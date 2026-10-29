@@ -41,6 +41,21 @@ func run():
    assert(mesh.get_surface_count()==1 and mesh.get_aabb().size.x>.5,"Every weapon produces a visible stroke")
  await create_timer(.3).timeout
  for trail in trails:assert(trail.get_ref()==null,"Transient strokes release their nodes")
+ var fighters=load("res://scripts/fighters.gd").new();var rules=load("res://scripts/rules.gd").new()
+ var stage=Node3D.new();root.add_child(stage)
+ for job in ["Vanguard","Knight","Corsair","Duelist","Rider"]:
+  var unit=rules.roster.filter(func(u):return u.job==job)[0].duplicate(true);unit.team="player"
+  var actor=fighters.build(stage,unit,Vector3.ZERO);actor.rotation.y=-PI/2
+  var target=Vector3(Actor.melee_spacing(unit.weapon),1.1,0);actor.aim_at(target)
+  await actor.pose("windup",.01).finished;await actor.pose("strike",.01).finished;actor._process(0)
+  var tip=Vector3(0,0,-1.62 if unit.weapon=="lance" else -.97 if unit.weapon=="axe" else -1.075)
+  var contact=actor.bone("Weapon").to_global(tip)
+  assert(contact.distance_to(target)<.45,"Melee weapon reaches the opponent's torso rather than passing above it")
+  if unit.weapon=="lance":
+   actor.aim_at(Vector3(target.x,1.85,0));actor._process(0)
+   assert(actor.bone("Weapon").to_global(tip).distance_to(Vector3(target.x,1.85,0))<.25,"Spear grip tracks mounted as well as infantry targets")
+  actor.queue_free()
+ stage.queue_free()
  walker.queue_free();rider.queue_free();await process_frame
- print("PASS: locomotion ownership, mounted gait reset/sockets, weapon poses and transient trail cleanup")
+ print("PASS: locomotion, mounted gait/sockets, actual melee contact, spear target heights and trail cleanup")
  quit()

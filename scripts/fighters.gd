@@ -98,7 +98,7 @@ func build(parent,u,p) -> Node3D:
   ellipsoid(elbow,Vector3.ZERO,Vector3(.073,.073,.073),steel)
   geo.cylinder(elbow,Vector3(0,-.13,0),.25,.068,steel if armored else leather,.055)
   ellipsoid(elbow,Vector3(0,-.29,0),Vector3(.075,.085,.065),leather)
-  if sign_value>0:weapon(elbow,u.weapon,gold,steel,leather)
+  if sign_value>0:actor.register_bone("Weapon",weapon(elbow,u.weapon,gold,steel,leather))
   elif heavy:
    var shield=geo.cylinder(elbow,Vector3(-.04,-.16,-.17),.08,.29,blue)
    shield.rotation.x=PI/2;shield.scale=Vector3(.8,1,1.3)
@@ -204,7 +204,7 @@ func apply_surfaces(root,blue,tint,skin,steel,gold,leather,cape_color):
   elif color!=skin:
    var shaded=material.duplicate();shaded.diffuse_mode=BaseMaterial3D.DIFFUSE_TOON;mesh.material_override=shaded
 
-func weapon(arm,kind,gold,steel,leather):
+func weapon(arm,kind,gold,steel,leather) -> Node3D:
  var hand=joint(arm,"Weapon",Vector3(0,-.29,-.04))
  if kind in ["magic","staff"]:
   geo.cylinder(hand,Vector3(0,.05,0),1.35,.022,leather)
@@ -230,6 +230,7 @@ func weapon(arm,kind,gold,steel,leather):
   else:
    geo.block(hand,Vector3(0,0,-.21),Vector3(.24,.04,.055),gold)
    var blade=geo.cylinder(hand,Vector3(0,0,-.65),.85,.055,steel,0);blade.rotation.x=-PI/2;blade.scale.x=.35
+ return hand
 
 func face_surface(parent,index):
  var st=SurfaceTool.new();st.begin(Mesh.PRIMITIVE_TRIANGLES)

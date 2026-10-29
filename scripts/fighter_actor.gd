@@ -9,6 +9,9 @@ var pose_name = "idle"
 var elapsed = 0.0
 var pose_tween: Tween
 var facing = 1.0
+var weapon_aim=0.0
+var aim_target=Vector3.ZERO
+var has_aim_target=false
 
 func register_bone(key: String,node: Node3D):
  bones[key]=node
@@ -33,6 +36,19 @@ func _process(dt):
   else:
    bones.LeftLeg.rotation.x=gait;bones.RightLeg.rotation.x=-gait
    bones.LeftKnee.rotation.x=-maxf(0,-gait)*.75;bones.RightKnee.rotation.x=-maxf(0,gait)*.75
+ if kind=="lance" and pose_name in ["windup","strike"] and bones.has("Weapon"):
+  var grip=bones.Weapon
+  var direction=aim_target-grip.global_position if has_aim_target else -global_transform.basis.z
+  if direction.length_squared()>.001:
+   var desired=Basis.looking_at(direction.normalized(),Vector3.UP)
+   var local_basis=grip.get_parent().global_transform.basis.inverse()*desired
+   grip.quaternion=Quaternion.from_euler(rest.Weapon.rotation).slerp(local_basis.get_rotation_quaternion(),weapon_aim)
+
+func aim_at(point: Vector3):
+ aim_target=point;has_aim_target=true
+
+static func melee_spacing(weapon: String) -> float:
+ return {"sword":1.4,"axe":1.3,"lance":2.1}.get(weapon,1.4)
 
 func pose(key: String,duration=.18) -> Tween:
  if pose_tween and pose_tween.is_valid():pose_tween.kill()
@@ -44,6 +60,7 @@ func pose(key: String,duration=.18) -> Tween:
   "LeftLeg":Vector3(-.14,0,-.035),"LeftKnee":Vector3(.14,0,0),
   "RightLeg":Vector3(.12,0,.035),"RightKnee":Vector3(.20,0,0)
  }
+ if rest.has("Weapon"):target.Weapon=rest.Weapon.rotation
  if kind=="bow":
   target.Arm=Vector3(-1.35,0,-.18);target.Elbow=Vector3(-.3,0,0)
   target.LeftArm=Vector3(-.9,0,.25);target.LeftElbow=Vector3(-.8,0,0)
@@ -72,7 +89,8 @@ func pose(key: String,duration=.18) -> Tween:
   target.LeftLeg.x=-.35;target.RightLeg.x=.4;target.RightKnee.x=.45
   if kind=="axe":
    target.Body=Vector3(.27,.38,.05);target.Arm=Vector3(-.3,-.15,.2);target.Elbow=Vector3(-.06,0,0)
-  elif kind=="lance":target.Arm=Vector3(-1.0,0,-.05)
+  elif kind=="lance":
+   target.Arm=Vector3(-1.0,0,-.05)
   elif kind=="bow":
    target.Arm=Vector3(-1.5,0,-.15);target.Elbow=Vector3(0,0,0)
    target.LeftArm=Vector3(-.8,.9,.7);target.LeftElbow=Vector3(-1.6,0,0)
@@ -100,7 +118,11 @@ func pose(key: String,duration=.18) -> Tween:
    for i in range(4):target["HorseLeg"+str(i)]=Vector3.ZERO
  if key=="advance" and not mounted:
   for leg in ["LeftLeg","RightLeg","LeftKnee","RightKnee"]:target.erase(leg)
+ var aiming=kind=="lance" and key in ["windup","strike"] and bones.has("Weapon")
+ if aiming:target.erase("Weapon")
+ elif key!="strike":weapon_aim=0.0
  pose_tween=create_tween().set_parallel(true).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN_OUT)
+ if aiming:pose_tween.tween_property(self,"weapon_aim",1.0,duration)
  for name_value in target:
   if name_value in ["Arm","Elbow","LeftArm","LeftElbow","LeftKnee","RightKnee","Body","Head"]:
    target[name_value].x=-target[name_value].x
