@@ -41,11 +41,11 @@ func _initialize():
 	var before=g.rng.state
 	var forecast=g.forecast(a,b)
 	verify(g.rng.state==before,"Forecast does not consume RNG")
-	verify(g.save_game("/private/tmp/ashen-test-save.json","battle"),"Save success")
+	verify(g.save_game("/private/tmp/poem-test-save.json","battle"),"Save success")
 	var results=g.combat(a,b)
 	verify(not results.is_empty(),"Combat generates events")
 	var copy=Rules.new()
-	verify(copy.load_game("/private/tmp/ashen-test-save.json")=="battle","Load stage")
+	verify(copy.load_game("/private/tmp/poem-test-save.json")=="battle","Load stage")
 	var results2=copy.combat(copy.units[0],copy.living("enemy")[0])
 	verify(JSON.stringify(results)==JSON.stringify(results2),"Save preserves RNG and outcomes")
 	verify(g.combat(a,b).is_empty(),"No second action")

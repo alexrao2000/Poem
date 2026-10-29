@@ -24,10 +24,10 @@ func run():
  var healer=g.units.filter(func(u):return u.weapon=="staff")[0]
  healer.item="beacon_staff";g.normalize_equipment(healer);healer.x=2;healer.y=3;fighter.hp-=12
  assert(g.heal(healer,fighter) and fighter.hp==fighter.max_hp-2,"Beacon heals ten HP at range two")
- assert(g.save_game("/private/tmp/ashen-equipment-save.json","battle"))
- var restored=Rules.new();assert(restored.load_game("/private/tmp/ashen-equipment-save.json")=="battle")
+ assert(g.save_game("/private/tmp/poem-equipment-save.json","battle"))
+ var restored=Rules.new();assert(restored.load_game("/private/tmp/poem-equipment-save.json")=="battle")
  assert(restored.roster[2].item=="longbow" and restored.roster[2].reach==3,"Equipment survives save roundtrip")
- var app=load("res://main.tscn").instantiate();app.settings_path="";app.save_path="/private/tmp/ashen-test_equipment-ui-save.json";root.add_child(app);await process_frame
+ var app=load("res://main.tscn").instantiate();app.settings_path="";app.save_path="/private/tmp/poem-test_equipment-ui-save.json";root.add_child(app);await process_frame
  app.show_equipment(app.game.roster[0]);await process_frame
  assert(app.screen=="equipment","Equipment page opens")
  app.show_dossier(app.game.roster[0]);assert(app.screen=="dossier","Return to record")

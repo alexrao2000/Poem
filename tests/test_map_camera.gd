@@ -3,7 +3,7 @@ extends SceneTree
 # bounded drag, interrupted zoom, cursor tracking and the real cinematic handoff.
 func _initialize():call_deferred("run")
 func run():
- var app=load("res://main.tscn").instantiate();app.settings_path="";app.save_path="/private/tmp/ashen-map-camera.json"
+ var app=load("res://main.tscn").instantiate();app.settings_path="";app.save_path="/private/tmp/poem-map-camera.json"
  root.add_child(app);await process_frame
  app.game.start_battle();app.make_map();app.show_battle()
  var nav=app.map_navigation;var camera=app.camera;var home=camera.transform;var anchor=Vector2(600,400)

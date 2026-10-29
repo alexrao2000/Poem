@@ -46,7 +46,7 @@ func run():
     assert(forecast.damage==game.attack_power(a)-b.defense-profile.cover,"Displayed cover reduces real damage")
     game.next_player_turn();assert(b.hp==1+profile.heal,"Displayed recovery is applied at turn start")
  assert(seen.size()==9,"All authored terrain symbols checked")
- var app=load("res://main.tscn").instantiate();app.settings_path="";app.save_path="/private/tmp/ashen-terrain-test.json";root.add_child(app);await process_frame
+ var app=load("res://main.tscn").instantiate();app.settings_path="";app.save_path="/private/tmp/poem-terrain-test.json";root.add_child(app);await process_frame
  app.game.start_battle();app.make_map();app.show_battle();await process_frame
  var actor=app.game.units[0];var tested={}
  for chapter in range(12):

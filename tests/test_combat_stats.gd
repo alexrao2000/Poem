@@ -29,7 +29,7 @@ func run():
  assert(g.restore_save(data)=="camp" and g.roster[0].resistance==8,"Migration includes level growth and promotion resistance")
  data=g.save_data("camp").duplicate(true);data.roster[0].resistance="bad";assert(not g.valid_save(data))
  data.roster[0].resistance=-1;assert(not g.valid_save(data))
- var app=load("res://main.tscn").instantiate();app.settings_path="";app.save_path="/private/tmp/ashen-stats-ui.json";root.add_child(app);await process_frame
+ var app=load("res://main.tscn").instantiate();app.settings_path="";app.save_path="/private/tmp/poem-stats-ui.json";root.add_child(app);await process_frame
  app.game.start_battle();app.make_map();app.show_battle();app.selected=app.game.units[0];app.target=app.game.living("enemy")[0]
  app.update_side();await process_frame;await process_frame
  for control in app.side.get_children():assert(control.get_global_rect().end.y<=app.ui.size.y,"Resistance and effectiveness forecast fit viewport")

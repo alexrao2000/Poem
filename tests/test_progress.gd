@@ -21,7 +21,7 @@ func run():
  unit.hp=0;g.award_xp(unit,100);assert(unit.level==1 and unit.hp==0,"Growth cannot revive a fallen unit")
  var malformed=g.save_data("battle").duplicate(true);malformed.roster[0].level=2.5
  assert(not g.valid_save(malformed),"Fractional progression fields are invalid")
- var app=load("res://main.tscn").instantiate();app.settings_path="";app.save_path="/private/tmp/ashen-test_progress-ui-save.json";root.add_child(app);await process_frame
+ var app=load("res://main.tscn").instantiate();app.settings_path="";app.save_path="/private/tmp/poem-test_progress-ui-save.json";root.add_child(app);await process_frame
  app.game.start_battle();app.make_map();app.show_battle();app.busy=true
  app.game.units[0].xp=90;before=app.game.progress_snapshot();app.game.award_xp(app.game.units[0],45)
  app.show_progress(before);await process_frame

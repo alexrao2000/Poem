@@ -45,7 +45,7 @@ func observe(app,shots,skip_at):
   previous=current
 
 func run():
- var app=load("res://main.tscn").instantiate();app.settings_path="";app.save_path="/private/tmp/ashen-exchange-test.json"
+ var app=load("res://main.tscn").instantiate();app.settings_path="";app.save_path="/private/tmp/poem-exchange-test.json"
  root.add_child(app);await process_frame
  app.game.start_battle();app.make_map();app.show_battle()
  var a=app.game.units[0];var b=app.game.living("enemy")[0]

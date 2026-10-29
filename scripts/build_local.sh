@@ -11,7 +11,7 @@ GODOT_BIN="$GODOT_BIN" python3 scripts/test_local.py
 python3 scripts/pack_web.py
 GODOT_BIN="$GODOT_BIN" python3 scripts/test_local.py export
 # Export to a new temporary path so Godot never needs to use the system Trash.
-BUILD_STAGE="$(mktemp -d "${TMPDIR:-/tmp}/ashen-build.XXXXXX")"
+BUILD_STAGE="$(mktemp -d "${TMPDIR:-/tmp}/poem-build.XXXXXX")"
 trap 'rm -rf "$BUILD_STAGE"' EXIT
 "$GODOT_BIN" --headless --log-file "$PWD/build/logs/native.log" --path "$PWD" --export-release macOS "$BUILD_STAGE/Poem.zip"
 mv "$BUILD_STAGE/Poem.zip" build/native/Poem.zip

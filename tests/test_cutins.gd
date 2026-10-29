@@ -5,7 +5,7 @@ func _initialize():call_deferred("run")
 func watch(node):
  if node.name=="CriticalCutin":observed+=1
 func run():
- var app=load("res://main.tscn").instantiate();app.settings_path="";app.save_path="/private/tmp/ashen-cutin-test.json";root.add_child(app);await process_frame
+ var app=load("res://main.tscn").instantiate();app.settings_path="";app.save_path="/private/tmp/poem-cutin-test.json";root.add_child(app);await process_frame
  var host=Control.new();root.add_child(host);host.theme=app.ui.theme
  for width in [1280,1440]:
   host.size=Vector2(width,720 if width==1280 else 900)

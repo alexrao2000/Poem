@@ -1,6 +1,6 @@
 extends SceneTree
 const Rules=preload("res://scripts/rules.gd")
-const PATH="/private/tmp/ashen-save-recovery-test.json"
+const PATH="/private/tmp/poem-save-recovery-test.json"
 func write_data(path,data):
  var file=FileAccess.open(path,FileAccess.WRITE);file.store_string(JSON.stringify(data));file.close()
 func _initialize():
