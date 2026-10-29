@@ -19,6 +19,9 @@ const CombatTrail=preload("res://scripts/combat_trail.gd")
 const CombatCamera=preload("res://scripts/combat_camera.gd")
 const CombatHUD=preload("res://scripts/combat_hud.gd")
 const CombatTransition=preload("res://scripts/combat_transition.gd")
+const PhaseBanner=preload("res://scripts/phase_banner.gd")
+var phase_skip=false
+var phase_banner_active=false
 const CriticalCutin=preload("res://scripts/critical_cutin.gd")
 const Fighters = preload("res://scripts/fighters.gd")
 var fighters: RefCounted
@@ -311,7 +314,7 @@ func show_camp():
 	label_in(left,"Recruited %d / 24  ·  Deployed %d / 6"%[game.available().size(),game.deployed.size()],18)
 	label_in(left,"Select up to six allies. Healing tiles restore 6 HP each turn. Open a portrait to inspect equipment. Wardens heal within staff range; everyone carries two field tonics.",16,Color("766e5e"))
 	var sp=Control.new();sp.size_flags_vertical=Control.SIZE_EXPAND_FILL;left.add_child(sp)
-	button_in(left,"Deploy company  >",func():game.start_battle();make_map();show_battle();persist_campaign("battle"),game.deployed.is_empty())
+	button_in(left,"Deploy company  >",deploy_company,game.deployed.is_empty())
 	var tools_row=HBoxContainer.new();tools_row.add_theme_constant_override("separation",8);left.add_child(tools_row)
 	button_in(tools_row,"Save campaign",func():save_with_feedback("camp")).size_flags_horizontal=Control.SIZE_EXPAND_FILL
 	button_in(tools_row,"Options",func():show_options("camp")).size_flags_horizontal=Control.SIZE_EXPAND_FILL
@@ -344,6 +347,17 @@ func objective_text() -> String:
 		"seize":return "Occupy the golden standard at the eastern gate"
 		"survive":return "Survive six enemy phases"
 		_:return "Defeat "+game.info().boss
+
+func deploy_company():
+	game.start_battle();make_map();show_battle();busy=true;update_side();persist_campaign("battle")
+	await announce_phase("player")
+	busy=false;update_side()
+
+func announce_phase(side: String):
+	phase_skip=false;phase_banner_active=true;play_sfx("phase")
+	var banner=PhaseBanner.new();banner.configure(ui,side,game.turn)
+	await banner.play(func():return phase_skip)
+	ui.remove_child(banner);banner.queue_free();phase_banner_active=false
 
 func show_battle():
 	screen="battle";reset_ui()
@@ -441,7 +455,8 @@ func _input(event):
 	if is_instance_valid(reward_panel) and event is InputEventKey and event.pressed and event.keycode in [KEY_SPACE,KEY_ENTER,KEY_TAB]:
 		reward_skip=true;get_viewport().set_input_as_handled();return
 	if screen=="battle" and busy and event is InputEventKey and event.pressed and event.keycode==KEY_TAB:
-		skip_combat=true
+		if phase_banner_active:phase_skip=true
+		else:skip_combat=true
 		get_viewport().set_input_as_handled()
 
 func _unhandled_input(event):
@@ -545,7 +560,7 @@ func finish_action():
 
 func end_turn():
 	if busy or screen!="battle":return
-	cancel_selection();busy=true;game.begin_enemy_phase();play_sfx("phase");update_side()
+	cancel_selection();busy=true;game.begin_enemy_phase();update_side();await announce_phase("enemy")
 	for e in game.living("enemy"):
 		if game.living("player").is_empty():break
 		var choice=tactics.plan(game,e)
@@ -563,8 +578,9 @@ func end_turn():
 			await show_progress(before)
 		refresh_pieces()
 		if game.result()!="":break
-	game.next_player_turn();play_sfx("phase");busy=false;update_side();refresh_pieces();highlight()
-	if await check_result():return
+	game.next_player_turn();update_side();refresh_pieces();highlight()
+	if await check_result():busy=false;return
+	await announce_phase("player");busy=false;update_side()
 	persist_campaign("battle")
 
 func make_fighter(u,position) -> Node3D:
