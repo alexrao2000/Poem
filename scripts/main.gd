@@ -655,7 +655,7 @@ func cinematic(a,b,events,initial_hp={}):
 	push.tween_property(camera,"size",5.0,.42)
 	push.tween_property(camera,"h_offset",0.0,.42)
 	push.tween_property(camera,"v_offset",0.0,.42)
-	push.tween_property(camera,"position",old_pos+focus-Vector3((game.board_size().x-1)*.5,0,(game.board_size().y-1)*.5),.42)
+	push.tween_property(camera,"position",map_navigation.eye_offset+focus,.42)
 	await push.finished
 	if veil.motion.is_running():await veil.motion.finished
 	for n in stage.get_children():n.queue_free()

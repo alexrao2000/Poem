@@ -1,6 +1,13 @@
 extends SceneTree
 # Measure projected ground anchors rather than relying on screenshots. Exercise
 # bounded drag, interrupted zoom, cursor tracking and the real cinematic handoff.
+var approach_distance=INF
+func watch_approach(app,focus):
+ while app.world.visible:
+  var projected=app.camera.unproject_position(focus)
+  approach_distance=minf(approach_distance,projected.distance_to(app.camera.get_viewport().get_visible_rect().size*.5))
+  await process_frame
+
 func _initialize():call_deferred("run")
 func run():
  var app=load("res://main.tscn").instantiate();app.settings_path="";app.save_path="/private/tmp/ashen-map-camera.json"
@@ -34,9 +41,12 @@ func run():
  var wheel=InputEventMouseButton.new();wheel.pressed=true;wheel.button_index=MOUSE_BUTTON_WHEEL_UP;wheel.position=anchor
  app.busy=true;app._unhandled_input(wheel);assert(camera.size==16 and nav.zoom_goal==16,"Busy actions ignore map gestures")
  app.busy=false;app._unhandled_input(wheel);await create_timer(.035).timeout
+ camera.position+=Vector3(3,0,-2)
  var prior=camera.transform;var size=camera.size;var rng=app.game.rng.state
  var a=app.game.units[0];var b=app.game.living("enemy")[0];a.x=8;a.y=4;b.x=9;b.y=4
+ watch_approach(app,Vector3(8.5,0,4))
  await app.cinematic(a,b,[{"actor":a.id,"target":b.id,"damage":1,"remaining":19,"hit":true,"crit":false}],{a.id:20,b.id:20})
+ assert(approach_distance<25,"Combat zoom centers the engaged pair even after the tactical map was panned")
  await create_timer(.2).timeout
  assert(camera.transform.is_equal_approx(prior) and is_equal_approx(camera.size,size),"Interrupted map zoom cannot overwrite arena or restored view")
  assert(app.game.rng.state==rng,"Camera gestures never consume gameplay randomness")
