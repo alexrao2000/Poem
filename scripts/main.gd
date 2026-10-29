@@ -717,7 +717,9 @@ func cinematic(a,b,events,initial_hp={}):
 			var trail=CombatTrail.new();stage.add_child(trail)
 			trail.start(whom.socket_position("impact")+Vector3(-direction*.28,0,.18),unit.weapon,direction,event.crit)
 		if is_ranged:
-			await projectile(who.socket_position("projectile"),whom.socket_position("impact"),unit.weapon,spell)
+			var release=who.socket_position("projectile")
+			if who.has_method("release_projectile"):who.release_projectile()
+			await projectile(release,whom.socket_position("impact"),unit.weapon,spell)
 		director.shot(who.position,whom.position,"impact",is_ranged,mounted,.16)
 		if event.hit:
 			play_sfx("critical" if event.crit else "hit")

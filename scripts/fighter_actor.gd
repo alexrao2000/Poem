@@ -52,6 +52,7 @@ static func melee_spacing(weapon: String) -> float:
 
 func pose(key: String,duration=.18) -> Tween:
  if pose_tween and pose_tween.is_valid():pose_tween.kill()
+ if bones.has("Weapon") and key not in ["throw","throw_windup"]:bones.Weapon.visible=true
  pose_name=key
  var target={
   "Body":Vector3(0,0,0),"Head":Vector3(0,0,0),
@@ -133,4 +134,10 @@ func pose(key: String,duration=.18) -> Tween:
  return pose_tween
 
 func socket_position(key: String) -> Vector3:
+ if key=="projectile" and bones.has("Weapon"):
+  var offset=Vector3(0,0,-.22) if kind=="bow" else Vector3(0,.14,-.12) if kind=="magic" else Vector3.ZERO
+  return bones.Weapon.to_global(offset)
  return global_position+Vector3(0,(1.2 if key=="projectile" else 1.1)+(.75 if mounted else 0.0),0)
+
+func release_projectile():
+ if kind=="lance" and bones.has("Weapon"):bones.Weapon.visible=false
