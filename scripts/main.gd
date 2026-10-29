@@ -5,6 +5,7 @@ const WeaponIcons=preload("res://scripts/weapon_icons.gd")
 const MapUnit=preload("res://scripts/campaign_map_unit.gd")
 const MapOverlay=preload("res://scripts/map_overlay.gd")
 const TerrainCard=preload("res://scripts/terrain_card.gd")
+const BattleForecast=preload("res://scripts/battle_forecast.gd")
 const FOG_FIELDS=["fog_enabled","fog_mode","fog_density","fog_depth_begin","fog_depth_end","fog_depth_curve","fog_light_color","fog_light_energy","fog_sky_affect"]
 var map_catalog=preload("res://scripts/campaign_catalog.gd").new()
 var map_facings: Dictionary={}
@@ -52,6 +53,7 @@ var canvas: CanvasLayer
 var ui: Control
 var side: VBoxContainer
 var terrain_card: Control
+var forecast_panel: Control
 var status: Label
 var selected = null
 var target = null
@@ -174,6 +176,7 @@ func box(color: Color) -> StyleBoxFlat:
 func reset_ui():
 	dialogue_label=null
 	terrain_card=null
+	forecast_panel=null
 	if is_instance_valid(ui):
 		canvas.remove_child(ui)
 		ui.queue_free()
@@ -413,6 +416,8 @@ func show_battle():
 	update_side();highlight()
 
 func update_side():
+	if is_instance_valid(forecast_panel):ui.remove_child(forecast_panel);forecast_panel.queue_free()
+	forecast_panel=null
 	for n in side.get_children():side.remove_child(n);n.queue_free()
 	status.text="TURN %d  /  %s"%[game.turn,game.phase.to_upper()]+("\nSAVE FAILED" if save_failed else "")
 	if selected!=null:
@@ -437,11 +442,10 @@ func update_side():
 			var versus=label_in(side,("Effective vs " if f.effective else "VS  ")+target.name,19,GOLD)
 			versus.autowrap_mode=TextServer.AUTOWRAP_OFF;versus.text_overrun_behavior=TextServer.OVERRUN_TRIM_ELLIPSIS;versus.tooltip_text=versus.text
 			var counter=game.forecast(target,selected)
-			var table=GridContainer.new();table.columns=3;table.add_theme_constant_override("h_separation",8);table.add_theme_constant_override("v_separation",2);side.add_child(table)
-			var entries=[["", "YOU", "FOE"],["HP", "%d/%d"%[selected.hp,selected.max_hp], "%d/%d"%[target.hp,target.max_hp]], ["Dmg",str(f.damage)+(" ×2" if f.double else ""),str(counter.damage)+(" ×2" if counter.double else "") if f.counter else "—"], ["Hit",str(f.hit)+"%",str(counter.hit)+"%" if f.counter else "—"], ["Crit",str(f.crit)+"%",str(counter.crit)+"%" if f.counter else "—"]]
-			for values in entries:
-				for value in values:
-					var cell=label_in(table,value,17);cell.custom_minimum_size.x=66;cell.size_flags_horizontal=Control.SIZE_EXPAND_FILL;cell.autowrap_mode=TextServer.AUTOWRAP_OFF
+			var faces=[]
+			for unit in [selected,target]:
+				var face=portraits.get_portrait(unit.id);faces.append(face if face!=null else unit_portrait(unit))
+			forecast_panel=BattleForecast.new();forecast_panel.configure(ui,game,selected,target,faces)
 			label_in(side,("Foe has an effective counter!" if counter.effective else "Counter if both survive.") if f.counter else "Foe cannot counter at this range.",14,GOLD)
 			button_in(side,"Confirm attack",func():player_attack(),busy)
 		if selected.team=="player" and not selected.acted:
@@ -1218,6 +1222,7 @@ func initialize_map_cursor():
 
 func move_map_cursor(direction: Vector2i):
 	if screen!="battle" or busy or game.phase!="player":return
+	if direction!=Vector2i.ZERO and target!=null:target=null;update_side()
 	initialize_map_cursor()
 	var focus=get_viewport().gui_get_focus_owner()
 	if focus!=null:focus.release_focus()
