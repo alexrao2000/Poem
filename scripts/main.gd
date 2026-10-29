@@ -46,6 +46,8 @@ var sprites: Array = []
 var clock = 0.0
 var skip_combat = false
 var show_danger = false
+var preview_actor: Node3D
+var preview_unit: Dictionary
 const GOLD = Color("8d6a32")
 const INK = Color("e8e0cb")
 const SAVE = "user://campaign.json"
@@ -393,6 +395,8 @@ func _input(event):
 		get_viewport().set_input_as_handled()
 
 func _unhandled_input(event):
+	if screen=="model" and event is InputEventKey and event.pressed and event.keycode==KEY_ESCAPE:
+		close_model_view();get_viewport().set_input_as_handled();return
 	if screen=="dossier" and event is InputEventKey and event.pressed and event.keycode==KEY_ESCAPE:
 		show_camp();get_viewport().set_input_as_handled();return
 	if screen=="dialogue" and event is InputEventKey and event.pressed:
@@ -733,6 +737,7 @@ func show_dossier(unit):
 	label_in(info,profile.get("biography",unit.bio),22)
 	label_in(info,"PERSONAL NOTE",16,GOLD);label_in(info,profile.get("note",""),20)
 	button_in(panel,"Equipment · "+game.item_for(unit).name,func():show_equipment(unit))
+	button_in(panel,"View combat model",func():show_model_view(unit))
 	button_in(panel,"Return to war council",show_camp)
 
 func load_campaign():
@@ -772,3 +777,28 @@ func show_equipment(unit):
 		,locked or equipped)
 	button_in(panel,"Return to company record",func():show_dossier(unit))
 	button_in(panel,"Return to war council",show_camp)
+
+func show_model_view(unit):
+	screen="model";preview_unit=unit;reset_ui()
+	for child in stage.get_children():stage.remove_child(child);child.queue_free()
+	world.hide();pieces.hide();markers.hide();stage.show()
+	scenery.battle_landscape(stage,Vector3(35,0,0),{"environment":game.info().get("environment","village")})
+	var actor_data=unit.duplicate(true);actor_data.team="player"
+	preview_actor=make_fighter(actor_data,Vector3(35,0,0));preview_actor.rotation.y=PI-.35
+	camera.projection=Camera3D.PROJECTION_PERSPECTIVE;camera.h_offset=-.25;camera.fov=35
+	camera.position=Vector3(35,1.4,4.7 if unit.job!="Rider" else 6.5);camera.look_at(Vector3(35,1.05,0))
+	var panel=panel_at(ui,28,30,-1060,-30)
+	label_in(panel,"COMPANY / COMBAT MODEL",15,GOLD);label_in(panel,unit.name,38)
+	var portrait=TextureRect.new();portrait.texture=portraits.get_portrait(unit.id);portrait.custom_minimum_size=Vector2(220,240)
+	portrait.expand_mode=TextureRect.EXPAND_IGNORE_SIZE;portrait.stretch_mode=TextureRect.STRETCH_KEEP_ASPECT_CENTERED;panel.add_child(portrait)
+	label_in(panel,unit.job+" · "+game.item_for(unit).name,21)
+	var spacer=Control.new();spacer.size_flags_vertical=Control.SIZE_EXPAND_FILL;panel.add_child(spacer)
+	button_in(panel,"Turn left",func():preview_actor.rotation.y-=PI/6)
+	button_in(panel,"Turn right",func():preview_actor.rotation.y+=PI/6)
+	button_in(panel,"Ready",func():preview_actor.pose("idle"))
+	button_in(panel,"Windup",func():preview_actor.pose("windup"))
+	button_in(panel,"Strike",func():preview_actor.pose("strike"))
+	button_in(panel,"Return to record [Esc]",close_model_view)
+
+func close_model_view():
+	make_map();show_dossier(preview_unit)

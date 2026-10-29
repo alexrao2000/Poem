@@ -5,6 +5,8 @@ var profiles=JSON.parse_string(FileAccess.get_file_as_string("res://data/charact
 var surface_atlas=load("res://assets/art/character-materials.png")
 var surface_shader=preload("res://assets/shaders/character.gdshader")
 var surface_cache={}
+var face_atlas=load("res://assets/art/face-features.png")
+var face_materials={}
 var geo = preload("res://scripts/scenery.gd").new()
 
 func ellipsoid(parent,p,size,color):
@@ -31,15 +33,29 @@ func build(parent,u,p) -> Node3D:
  var appearance=profiles.get(u.id,{}).get("appearance",{})
  var skin=Color(appearance.get("skin","e0ba98"));var steel=Color("a8b3bb");var gold=Color("bca26b");var leather=Color("554337")
  var heavy=u.job=="Knight";var robe=u.weapon in ["magic","staff"]
- var armored=u.job in ["Knight","Vanguard","Rider"]
+ var armored=u.job in ["Knight","Vanguard","Rider"] and u.id!="lyra"
+ var slender=u.id in ["lyra","sera","mara","nell","esme","faye","vela","una","petra","noor","yuna","rhea"]
  var cape_color=Color("e5dfce") if u.id in ["lyra","ivo"] else tint.darkened(.25)
  var torso=joint(body,"Torso",Vector3(0,.1,0))
  ellipsoid(body,Vector3(0,-.16,0),Vector3(.19,.19,.14),Color("3c3f48"))
  shell(torso,Vector3.ZERO,[[-.1,.18,.12],[.15,.21,.14],[.35,.245,.12],[.41,.15,.1]],blue)
  if armored:shell(torso,Vector3(0,0,-.065),[[.02,.17,.10],[.22,.23,.11],[.37,.20,.08]],steel)
- elif not robe:shell(torso,Vector3(0,0,-.04),[[.02,.17,.105],[.22,.21,.12],[.34,.18,.08]],leather)
+ elif not robe and u.id!="lyra":shell(torso,Vector3(0,0,-.04),[[.02,.17,.105],[.22,.21,.12],[.34,.18,.08]],leather)
  geo.cylinder(torso,Vector3(0,-.09,0),.08,.205,leather)
  geo.block(torso,Vector3(0,-.09,-.21),Vector3(.08,.07,.025),gold)
+ # Collar, leather harness, chest fittings and layered hems.
+ shell(torso,Vector3(0,0,0),[[.36,.095,.085],[.49,.09,.08]],blue)
+ for side_value in [-1,1]:
+  var piping=geo.block(torso,Vector3(side_value*.08,.39,-.095),Vector3(.018,.14,.015),gold);piping.rotation.z=side_value*.18
+ if armored:
+  for side_value in [-1,1]:
+   var ridge=geo.block(torso,Vector3(side_value*.09,.20,-.173),Vector3(.018,.24,.013),gold);ridge.rotation.z=-side_value*.20
+  ellipsoid(torso,Vector3(0,.31,-.17),Vector3(.045,.05,.014),gold)
+ else:
+  var strap=geo.block(torso,Vector3(0,.16,-.165),Vector3(.052,.48,.025),leather);strap.rotation.z=-.48
+  geo.block(torso,Vector3(.025,.20,-.185),Vector3(.07,.06,.02),gold)
+ for side_value in [-1,1]:
+  var pouch=ellipsoid(torso,Vector3(side_value*.21,-.11,-.04),Vector3(.07,.09,.065),leather)
  # A layered coat/tassets with gold hem and a moving cape silhouette.
  for side_value in [-1,1]:
   var flap=cloth(torso,[Vector3(side_value*.02,-.13,-.14),Vector3(side_value*.20,-.13,-.12),Vector3(side_value*.25,-.46,-.20),Vector3(side_value*.035,-.43,-.23)],steel if heavy else blue)
@@ -52,7 +68,12 @@ func build(parent,u,p) -> Node3D:
   for i in range(4):geo.cylinder(torso,Vector3(.12+i*.025,.43,.19),.4,.009,Color("9c8769"))
  var cape=joint(torso,"Cape",Vector3(0,.35,.12));actor.register_bone("Cape",cape)
  cape_surface(cape,cape_color)
- if u.id=="lyra":shell(torso,Vector3(0,0,.025),[[.34,.28,.16],[.43,.25,.15],[.47,.105,.085]],cape_color)
+ if u.id=="lyra":
+  shell(torso,Vector3(0,0,.025),[[.34,.28,.16],[.43,.25,.15],[.47,.105,.085]],cape_color)
+  for side_value in [-1,1]:
+   cloth(torso,[Vector3(side_value*.09,.44,-.11),Vector3(side_value*.27,.34,-.10),Vector3(side_value*.24,.20,-.15),Vector3(0,.34,-.17)],cape_color)
+   var chain=geo.block(torso,Vector3(side_value*.13,.31,-.17),Vector3(.23,.016,.018),gold);chain.rotation.z=side_value*.42
+  ellipsoid(torso,Vector3(0,.34,-.18),Vector3(.04,.045,.018),gold)
  for sign_value in [-1,1]:
   var leg_name="LeftLeg" if sign_value<0 else "RightLeg"
   var leg=joint(actor,leg_name,Vector3(sign_value*.13,.85,0));actor.register_bone(leg_name,leg)
@@ -60,9 +81,12 @@ func build(parent,u,p) -> Node3D:
   var knee=joint(leg,"Knee",Vector3(0,-.36,0));actor.register_bone("LeftKnee" if sign_value<0 else "RightKnee",knee)
   ellipsoid(knee,Vector3(0,0,-.02),Vector3(.10,.11,.09),steel)
   geo.cylinder(knee,Vector3(0,-.18,0),.32,.085,steel if heavy else leather,.07)
+  geo.cylinder(knee,Vector3(0,-.04,0),.06,.091,gold if heavy else leather.lightened(.13))
+  if not heavy:
+   for j in range(3):geo.block(knee,Vector3(0,-.11-j*.065,-.077),Vector3(.10,.012,.014),Color("8e7a61"))
   ellipsoid(knee,Vector3(0,-.38,-.07),Vector3(.09,.075,.145),leather)
   var arm_name="Arm" if sign_value>0 else "LeftArm"
-  var arm=joint(body,arm_name,Vector3(sign_value*.27,.4,0));actor.register_bone(arm_name,arm)
+  var arm=joint(body,arm_name,Vector3(sign_value*(.225 if slender else .27),.4,0));actor.register_bone(arm_name,arm)
   var shoulder_color=steel if armored else blue
   shell(arm,Vector3(sign_value*.025,0,0),[[-.12,.13 if heavy else .095,.13],[.02,.16 if heavy else .11,.15],[.10,.09,.09]],shoulder_color)
   if armored:geo.cylinder(arm,Vector3(0,-.12,0),.025,.13 if heavy else .10,gold)
@@ -79,7 +103,7 @@ func build(parent,u,p) -> Node3D:
  geo.cylinder(body,Vector3(0,.53,0),.15,.075,skin)
  var head=joint(body,"Head",Vector3(0,.69,0));head.scale=Vector3(.86,.83,.86);actor.register_bone("Head",head)
  ellipsoid(head,Vector3.ZERO,Vector3(.145,.19,.14),skin)
- ellipsoid(head,Vector3(0,-.01,-.135),Vector3(.022,.029,.026),skin)
+ ellipsoid(head,Vector3(0,-.035,-.135),Vector3(.010,.025,.012),skin)
  for x in [-.14,.14]:ellipsoid(head,Vector3(x,-.015,0),Vector3(.025,.05,.025),skin)
  if heavy and u.team!="player":
   ellipsoid(head,Vector3(0,.045,.015),Vector3(.16,.19,.16),steel)
@@ -88,20 +112,22 @@ func build(parent,u,p) -> Node3D:
  else:
   var hair=Color(appearance.get("hair","623c31"))
   if appearance.get("hair_style")!="bald":ellipsoid(head,Vector3(0,.085,.025),Vector3(.157,.145,.155),hair)
-  for i in range(0 if appearance.get("hair_style")=="bald" else 7):
-   var bang=geo.cylinder(head,Vector3((i-3)*.04,.065,-.115),.19,.035,hair,.002)
-   bang.rotation.x=PI+.2;bang.rotation.z=(i-3)*.12
-  for x in [-.061,.061]:
-   geo.block(head,Vector3(x,-.014,-.146),Vector3(.053,.033,.012),Color("eee6d8"))
-   geo.block(head,Vector3(x,-.014,-.155),Vector3(.022,.028,.008),Color("394c5c"))
-   geo.block(head,Vector3(x,.015,-.146),Vector3(.054,.011,.012),hair.darkened(.3))
-  geo.block(head,Vector3(0,-.08,-.125),Vector3(.043,.008,.008),skin.darkened(.3))
+  if appearance.get("hair_style")!="bald":
+   for i in range(5):
+    hair_lock(head,[Vector3(.055,.17,-.09),Vector3(-.055-i*.015,.13-i*.008,-.13),Vector3(-.105-i*.012,.04-i*.012,-.10),Vector3(-.13-i*.008,-.045-i*.009,-.06)],.027,hair.lightened(i*.02))
+   for i in range(2):hair_lock(head,[Vector3(.07,.16,-.08),Vector3(.12+i*.02,.08,-.11),Vector3(.14+i*.015,-.05,-.06)],.03,hair)
+  var face_index={"lyra":0,"sera":1,"mara":3,"nell":2,"esme":2,"faye":3,"vela":1,"una":0,"petra":3,"noor":2,"yuna":1,"rhea":0,"oren":5,"ivo":4,"tarin":6,"bram":4,"rook":5,"cassian":6,"dax":5,"silas":6,"ari":4,"galen":7,"hale":7,"elian":6}.get(u.id,5)
+  face_surface(head,face_index)
   if u.id=="petra":
    for x in [-.07,.07]:
     var rim=geo.cylinder(head,Vector3(x,.13,-.10),.035,.05,gold);rim.rotation.x=PI/2
     var lens=geo.cylinder(head,Vector3(x,.13,-.122),.015,.037,Color("445d6b"));lens.rotation.x=PI/2
   if appearance.get("hair_style")=="long":
-   ellipsoid(head,Vector3(0,-.14,.14),Vector3(.13,.25,.09),hair)
+   for i in range(7):
+    var x=(i-3)*.038
+    hair_lock(head,[Vector3(x,.1,.13),Vector3(x*1.2,-.1,.17),Vector3(x*1.3+.018*sin(i),-.32,.18),Vector3(x*1.25-.025*sin(i),-.55,.12)],.052,hair.lightened((i%3)*.025))
+   for side_value in [-1,1]:
+    hair_lock(head,[Vector3(side_value*.13,.08,-.055),Vector3(side_value*.15,-.14,-.08),Vector3(side_value*.18,-.31,-.11),Vector3(side_value*.15,-.49,-.08)],.038,hair)
   elif appearance.get("hair_style") in ["beard","bald"]:
    ellipsoid(head,Vector3(0,-.12,-.07),Vector3(.13,.12,.1),hair)
  if u.job=="Rider":
@@ -201,3 +227,35 @@ func weapon(arm,kind,gold,steel,leather):
   else:
    geo.block(hand,Vector3(0,0,-.21),Vector3(.24,.04,.055),gold)
    var blade=geo.cylinder(hand,Vector3(0,0,-.65),.85,.055,steel,0);blade.rotation.x=-PI/2;blade.scale.x=.35
+
+func face_surface(parent,index):
+ var st=SurfaceTool.new();st.begin(Mesh.PRIMITIVE_TRIANGLES)
+ for row in range(16):
+  for column in range(16):
+   var points=[];var uvs=[]
+   for corner in [[column,row],[column+1,row],[column+1,row+1],[column,row+1]]:
+    var u=corner[0]/16.0;var v=corner[1]/16.0
+    var x=(u-.5)*.286;var y=.19-v*.38
+    var z=-.14*sqrt(maxf(.015,1.0-pow(x/.145,2)-pow(y/.19,2)))-.003
+    points.append(Vector3(x,y,z));uvs.append(Vector2((index%4+u)*.25,(index/4+v)*.5))
+   for vertex in [0,2,1,0,3,2]:st.set_uv(uvs[vertex]);st.add_vertex(points[vertex])
+ st.generate_normals()
+ if not face_materials.has(index):
+  var mat=StandardMaterial3D.new();mat.albedo_texture=face_atlas;mat.transparency=BaseMaterial3D.TRANSPARENCY_ALPHA_SCISSOR;mat.alpha_scissor_threshold=.22
+  mat.cull_mode=BaseMaterial3D.CULL_DISABLED;mat.roughness=1;mat.diffuse_mode=BaseMaterial3D.DIFFUSE_TOON
+  face_materials[index]=mat
+ var visual=geo.mesh(parent,st.commit(),Vector3.ZERO,Vector3.ONE,face_materials[index]);visual.name="PaintedFace";visual.cast_shadow=GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+
+func hair_lock(parent,points,radius,color):
+ var st=SurfaceTool.new();st.begin(Mesh.PRIMITIVE_TRIANGLES)
+ for segment in range(points.size()-1):
+  for side in range(7):
+   var vertices=[]
+   for corner in [[segment,side],[segment,side+1],[segment+1,side+1],[segment+1,side]]:
+    var taper=1.0-float(corner[0])/float(points.size()-1)*.95
+    var angle=corner[1]*TAU/7
+    vertices.append(points[corner[0]]+Vector3(cos(angle)*radius*taper,0,sin(angle)*radius*taper))
+   for vertex in [0,2,1,0,3,2]:st.add_vertex(vertices[vertex])
+ st.generate_normals()
+ var mat=geo.material(color).duplicate();mat.cull_mode=BaseMaterial3D.CULL_DISABLED;mat.diffuse_mode=BaseMaterial3D.DIFFUSE_TOON
+ return geo.mesh(parent,st.commit(),Vector3.ZERO,Vector3.ONE,mat)

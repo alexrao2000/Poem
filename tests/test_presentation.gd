@@ -36,6 +36,7 @@ func run():
 	for unit in app.game.roster:
 		var fighter_data=unit.duplicate(true);fighter_data.team="player"
 		var fighter=app.make_fighter(fighter_data,Vector3.ZERO)
+		assert(fighter.find_child("PaintedFace",true,false)!=null,"Original painted face on each recruit")
 		assert(fighter.bone("Arm")!=null,"Every character exposes the weapon animation joint")
 		assert(fighter.bone("Elbow")!=null and fighter.bone("RightKnee")!=null,"Articulated limbs")
 		await fighter.pose("windup",.01).finished
@@ -74,6 +75,10 @@ func run():
 	assert(app.score.get_sync_stream_volume(1)<-50,"Intense arrangement faded without overlapping tweens")
 	for panel in app.ui.get_children():
 		if not panel.is_queued_for_deletion():assert(panel.visible,"Tactical controls restored")
+	app.show_model_view(app.game.roster[0]);await process_frame
+	assert(app.screen=="model" and app.stage.visible and not app.world.visible,"Model gallery isolates presentation")
+	app.close_model_view();await process_frame
+	assert(app.screen=="dossier" and app.camera.projection==Camera3D.PROJECTION_ORTHOGONAL,"Gallery restores map camera")
 	app.show_ending()
 	await process_frame
 	app.queue_free()

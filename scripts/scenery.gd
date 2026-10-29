@@ -24,6 +24,10 @@ func detail_material(tile: int) -> ShaderMaterial:
  m.set_shader_parameter("quadrant",Vector2((tile%2)*.5,(tile/2)*.5));materials[key]=m
  return m
 
+func water_material() -> ShaderMaterial:
+ if materials.has("water"):return materials.water
+ var m=ShaderMaterial.new();m.shader=load("res://assets/shaders/water.gdshader");materials.water=m;return m
+
 func material(color: Color) -> StandardMaterial3D:
  var key=color.to_html()
  if materials.has(key):return materials[key]
@@ -44,7 +48,8 @@ func ground_material(tile: int) -> ShaderMaterial:
   vec2 uv=fract(world_position.xz*0.5)*0.496+0.002+quadrant;
   vec3 paint=texture(atlas_texture,uv).rgb;
   float gray=dot(paint,vec3(0.299,0.587,0.114));
-  ALBEDO=mix(vec3(gray),paint,0.72)*vec3(0.88,0.94,0.94);
+  float variation=sin(world_position.x*0.37+world_position.z*0.29)*sin(world_position.z*0.53-world_position.x*0.19);
+  ALBEDO=mix(vec3(gray),paint,0.72)*vec3(0.88,0.94,0.94)*(0.93+variation*0.07);
   ROUGHNESS=1.0;
  }
  """
@@ -73,14 +78,14 @@ func boulder(parent,p,radius):
 
 func tree(parent,p,seed_value=0):
  var rng=RandomNumberGenerator.new();rng.seed=seed_value+997
- var h=rng.randf_range(1.1,1.6)
+ var h=rng.randf_range(1.45,2.1)
  var trunk=cylinder(parent,p+Vector3(0,h*.32,0),h*.72,.075,Color.WHITE,.035)
  trunk.material_override=detail_material(2)
- for i in range(6):
+ for i in range(8):
   var shape=SphereMesh.new();shape.radius=1;shape.height=2;shape.radial_segments=8;shape.rings=5
   var angle=i*2.399
-  var center=p+Vector3(cos(angle)*.27,h*.65+float(i%3)*.13,sin(angle)*.26)
-  var n=mesh(parent,shape,center,Vector3(.38+rng.randf()*.08,.38+rng.randf()*.12,.36),detail_material(seed_value%2))
+  var center=p+Vector3(cos(angle)*(.22+rng.randf()*.18),h*.65+float(i%3)*.18,sin(angle)*(.22+rng.randf()*.16))
+  var n=mesh(parent,shape,center,Vector3(.32+rng.randf()*.17,.31+rng.randf()*.21,.31+rng.randf()*.12),detail_material(seed_value%2))
   n.rotation.y=angle
   var base=p+Vector3(0,h*.38,0)
   var branch=cylinder(parent,(base+center)*.5,base.distance_to(center),.03,Color.WHITE,.012)
@@ -129,6 +134,12 @@ func house(parent,p,scale_value=1.0):
    seam.rotation.z=-side*.48
  var chimney=block(root,Vector3(.5,1.6,-.3),Vector3(.23,.7,.25),Color("8d8271"));chimney.material_override=detail_material(3)
  block(root,Vector3(.5,1.97,-.3),Vector3(.29,.08,.3),Color("686c68"))
+ for z in [-.25,.18]:barrel(root,Vector3(.95,0,z),.75)
+ var sign=block(root,Vector3(-.56,.92,.78),Vector3(.28,.18,.045),Color("74634c"));sign.rotation.z=.05
+ block(root,Vector3(-.56,.92,.81),Vector3(.12,.025,.01),Color("c2af78"))
+ for x in [-.7,.7]:
+  var shrub=SphereMesh.new();shrub.radius=.15;shrub.height=.25;shrub.radial_segments=7;shrub.rings=4
+  mesh(root,shrub,Vector3(x,.13,.78),Vector3(1,.8,1),detail_material(1))
 
 func landscape(parent,game):
  # Surrounding land continues beyond the playable cells instead of exposing a board edge.
@@ -141,7 +152,7 @@ func landscape(parent,game):
    for y in range(area[1],area[1]+area[3]):
     for x in range(area[0],area[0]+area[2]):building_cells[Vector2i(x,y)]=true
  if theme in ["village","river"]:
-  var water=StandardMaterial3D.new();water.albedo_color=Color("274f61");water.roughness=.3
+  var water=water_material()
   var river=PlaneMesh.new();river.size=Vector2(2 if theme=="river" else 1,64)
   mesh(parent,river,Vector3(5.5 if theme=="river" else 7,-.07,5),Vector3.ONE,water)
  for y in range(game.board_size().y):
@@ -151,10 +162,9 @@ func landscape(parent,game):
    if t in ["o","+","p"]:surface=3 if theme in ["observatory","engine","furnace"] else 1
    elif t=="h":surface=2
    if t=="~":
-    var water=StandardMaterial3D.new();water.albedo_color=Color("274f61");water.roughness=.25;water.metallic=.15
+    var water=water_material()
     var plane=PlaneMesh.new();plane.size=Vector2.ONE
     mesh(parent,plane,p-Vector3(0,.07,0),Vector3.ONE,water)
-    for i in range(3):block(parent,p+Vector3((i-1)*.24,-.055,sin(x+y+i)*.3),Vector3(.18,.005,.014),Color("71979c"))
     for direction in [Vector2i.LEFT,Vector2i.RIGHT,Vector2i.UP,Vector2i.DOWN]:
      if game.terrain(Vector2i(x,y)+direction) not in ["~","=","#"]:
       block(parent,p+Vector3(direction.x*.48,.015,direction.y*.48),Vector3(.08 if direction.x else 1,.16,.08 if direction.y else 1),Color("9d9e8e"))
@@ -185,7 +195,7 @@ func landscape(parent,game):
   for i in range(16):boulder(parent,Vector3(-3+(i*5)%22,.2,-3-i%3),2.5)
  elif theme in ["harbor","aqueduct"]:
   var sea=PlaneMesh.new();sea.size=Vector2(55,35)
-  mesh(parent,sea,Vector3(7,-.12,26),Vector3.ONE,material(Color("345e70")))
+  mesh(parent,sea,Vector3(7,-.12,26),Vector3.ONE,water_material())
 
 func landmark(parent,p,kind):
  var stone=Color("969b91");var gold=Color("bba16b")
@@ -239,7 +249,7 @@ func battle_landscape(parent,center,context={}):
  ground(parent,center-Vector3(0,.06,0),Vector2(70,70),3 if stone else 0)
  ground(parent,center,Vector2(24,6),3 if stone else (1 if theme=="village" else 2))
  if theme in ["river","harbor","aqueduct"] or context.get("terrain")=="=":
-  var water=StandardMaterial3D.new();water.albedo_color=Color("274f61");water.roughness=.2
+  var water=water_material()
   var plane=PlaneMesh.new();plane.size=Vector2(60,40)
   mesh(parent,plane,center+Vector3(0,-.025,-22),Vector3.ONE,water)
   if theme=="harbor" or context.get("terrain")=="=":
@@ -253,6 +263,9 @@ func battle_landscape(parent,center,context={}):
    tree(parent,center+Vector3(-17+(i*11)%35,0,-6-(i%4)*2),i*83)
   if theme!="forest":
    for i in range(3):house(parent,center+Vector3(-12+i*11,0,-15),1.0+i*.13)
+ if theme in ["village","road"]:
+  cart(parent,center+Vector3(-6,0,-3.8));fence(parent,center+Vector3(3,0,-4),5.0)
+  for i in range(3):barrel(parent,center+Vector3(6+i*.4,0,-4.3),1.0)
  if theme in ["abbey","aqueduct","observatory","castle"]:
   for x in range(-12,13,4):
    cylinder(parent,center+Vector3(x,1.8,-5),3.6,.32,Color("9e9d8d"))
@@ -270,7 +283,7 @@ func battle_landscape(parent,center,context={}):
  if theme in ["mountain","road","forest","river","village"]:
   for i in range(9):
    var shape=SphereMesh.new();shape.radius=1;shape.height=2;shape.radial_segments=18;shape.rings=8
-   mesh(parent,shape,center+Vector3(-45+i*11,-1,-35-(i%3)*4),Vector3(13,(9 if theme=="mountain" else 4)+i%3,9),material(Color("809187").lightened(i%3*.035)))
+   mesh(parent,shape,center+Vector3(-45+i*11,-1,-35-(i%3)*4),Vector3(13,(9 if theme=="mountain" else 4)+i%3,9),material(Color("586c69").lightened(i%3*.035)))
   if theme=="mountain":
    for i in range(16):boulder(parent,center+Vector3(-12+(i*7)%25,.4,-4-i%3),1.0+i%3*.3)
  if theme in ["engine","furnace"]:
@@ -288,3 +301,27 @@ func battle_landscape(parent,center,context={}):
    var glow=material(Color("ffe3a0")).duplicate();glow.shading_mode=BaseMaterial3D.SHADING_MODE_UNSHADED
    mesh(parent,shape,center+Vector3(0,4,-12),Vector3.ONE,glow)
  return theme
+
+func barrel(parent,p,scale_value=1.0):
+ var root=Node3D.new();parent.add_child(root);root.position=p;root.scale=Vector3.ONE*scale_value
+ cylinder(root,Vector3(0,.20,0),.40,.16,Color("77634a"),.16)
+ for y in [.06,.32]:cylinder(root,Vector3(0,y,0),.035,.168,Color("515754"))
+ cylinder(root,Vector3(0,.405,0),.015,.145,Color("a08a66"))
+ for x in [-.07,0,.07]:block(root,Vector3(x,.415,0),Vector3(.008,.008,.26),Color("695940"))
+
+func fence(parent,p,length=3.0):
+ for i in range(int(length)+1):
+  cylinder(parent,p+Vector3(i,.36,0),.72,.045,Color("6e604d"),.025)
+ for y in [.25,.55]:block(parent,p+Vector3(length*.5,y,0),Vector3(length,.07,.04),Color("897659"))
+
+func cart(parent,p):
+ var root=Node3D.new();parent.add_child(root);root.position=p
+ block(root,Vector3(0,.4,0),Vector3(.9,.10,1.3),Color("816b4f"))
+ for x in [-.44,.44]:
+  block(root,Vector3(x,.63,0),Vector3(.045,.4,1.3),Color("927e5e"))
+  for z in [-.42,.42]:
+   var wheel=cylinder(root,Vector3(x*1.22,.27,z),.06,.25,Color("544d41"));wheel.rotation.z=PI/2
+   var hub=cylinder(root,Vector3(x*1.3,.27,z),.07,.075,Color("a08a62"));hub.rotation.z=PI/2
+ for z in [-.63,.63]:block(root,Vector3(0,.62,z),Vector3(.9,.35,.05),Color("8f7959"))
+ for x in [-.25,.25]:block(root,Vector3(x,.35,1.2),Vector3(.055,.065,1.3),Color("695b45"))
+ barrel(root,Vector3(-.15,.46,-.15),.8)

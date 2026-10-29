@@ -36,3 +36,9 @@ Character material shading uses Godot’s documented toon render modes: https://
 ## Individual map sprites
 
 `assets/sprites/company-a.png` through `company-c.png` contain all 24 recruits in original full-body sprite art derived from the project’s own portraits and earlier class sprite style. Exact creation and layout-refinement prompts are in `docs/map-sprite-prompts.json`. `scripts/index_sprites.gd` reads alpha bounds and writes `data/sprite_regions.json`; it does not alter pixels. Hand-chosen search regions accommodate the widest weapons without including neighboring characters. The older class atlas remains the fallback for enemies.
+
+## Facial texture and model inspection
+
+`assets/art/face-features.png` is an original transparent eight-face feature atlas generated with the built-in image tool on 2026-10-29. Exact prompt: `docs/face-features-prompt.txt`. It supplies painted eyes, brows, nose and mouth details on curved 3D facial surfaces; characters remain fully 3D during combat. Each recruit selects a feature variant, skin/hair palette and short/long/bearded silhouette. Sculpted hair locks, collars, harnesses, armor trim and boot fittings add depth to the shared rigs. The company record's combat-model viewer exposes rotation and attack poses for visual review.
+
+Water uses a shared world-space animated ripple shader. Ground receives broad color variation, tree crowns have varied heights/asymmetry, and village arenas include a cart, barrels and fences. These remain prototype art rather than a claim of matching finished 3DS character quality.
