@@ -30,7 +30,7 @@ func run():
 		var arena=Node3D.new();app.add_child(arena)
 		app.scenery.battle_landscape(arena,Vector3.ZERO,{"environment":app.game.info().environment})
 		assert(arena.get_meta("environment")==app.game.info().environment,"Arena matches chapter")
-		assert(arena.get_child_count()>5,"Arena includes scenery")
+		assert(arena.get_meta("batch_stats").sources>5,"Arena includes batched scenery")
 		arena.queue_free()
 	app.game.new_campaign()
 	for unit in app.game.roster:

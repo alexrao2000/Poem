@@ -1,6 +1,8 @@
 extends RefCounted
 # Shared landscape construction for the tactical board and battle stage.
 var materials: Dictionary = {}
+var batching_enabled=true
+var batcher=preload("res://scripts/static_batch.gd").new()
 var atlas: Texture2D
 var environment_atlas: Texture2D
 
@@ -197,6 +199,8 @@ func landscape(parent,game):
   var sea=PlaneMesh.new();sea.size=Vector2(55,35)
   mesh(parent,sea,Vector3(7,-.12,26),Vector3.ONE,water_material())
 
+ if batching_enabled:batcher.combine(parent)
+
 func landmark(parent,p,kind):
  var stone=Color("969b91");var gold=Color("bba16b")
  if kind in ["house","warehouse"]:
@@ -300,6 +304,7 @@ func battle_landscape(parent,center,context={}):
    var shape=SphereMesh.new();shape.radius=1.2;shape.height=2.4
    var glow=material(Color("ffe3a0")).duplicate();glow.shading_mode=BaseMaterial3D.SHADING_MODE_UNSHADED
    mesh(parent,shape,center+Vector3(0,4,-12),Vector3.ONE,glow)
+ if batching_enabled:batcher.combine(parent)
  return theme
 
 func barrel(parent,p,scale_value=1.0):
