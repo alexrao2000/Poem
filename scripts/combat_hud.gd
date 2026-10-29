@@ -2,6 +2,7 @@ extends Control
 # Opposing nameplates leave the arena center open. HP animation only displays
 # resolved results; neither damage nor combat timing is owned by this overlay.
 const DISPLAY_FONT=preload("res://assets/fonts/CormorantGaramond.ttf")
+const Icons=preload("res://scripts/weapon_icons.gd")
 var records: Dictionary={}
 var order: Array=[]
 
@@ -63,13 +64,16 @@ func configure(parent: Control,entries: Array):
   var heading=make_label(plate,unit.name,27,Color("fff1d5"));heading.add_theme_font_override("font",DISPLAY_FONT)
   var job=make_label(plate,entry.class_name,14,Color("c1c2bb"))
   var weapon=make_label(plate,entry.weapon,17,Color("e6d7b5"))
+  weapon.tooltip_text=entry.weapon
+  var icon=TextureRect.new();icon.name="WeaponIcon";icon.texture=Icons.get_icon(unit.get("weapon",""))
+  icon.expand_mode=TextureRect.EXPAND_IGNORE_SIZE;icon.stretch_mode=TextureRect.STRETCH_KEEP_ASPECT_CENTERED;icon.mouse_filter=Control.MOUSE_FILTER_IGNORE;plate.add_child(icon)
   var hp=make_label(plate,"",24,Color("fff8e7"));hp.horizontal_alignment=HORIZONTAL_ALIGNMENT_RIGHT
   var meter=HealthMeter.new();meter.name="Health";meter.maximum=maxf(1,unit.max_hp)
   meter.accent=Color("d98684") if plate.enemy else Color("8fc8b8")
   meter.mouse_filter=Control.MOUSE_FILTER_IGNORE;plate.add_child(meter)
   meter.value_changed.connect(func(amount):hp.text="%d / %d"%[ceili(amount),int(meter.maximum)])
   meter.change_to(float(entry.hp),true)
-  records[unit.id]={"plate":plate,"portrait":face,"name":heading,"job":job,"weapon":weapon,"hp":hp,"meter":meter}
+  records[unit.id]={"plate":plate,"portrait":face,"name":heading,"job":job,"weapon":weapon,"icon":icon,"hp":hp,"meter":meter}
   order.append(unit.id)
  resized.connect(arrange);arrange()
 
@@ -92,7 +96,8 @@ func arrange():
    text_x=28.0;text_width=width-56
   r.name.position=Vector2(text_x,10);r.name.size=Vector2(text_width,34)
   r.job.position=Vector2(text_x,44);r.job.size=Vector2(text_width,21)
-  r.weapon.position=Vector2(text_x,69);r.weapon.size=Vector2(maxf(80,text_width-108),26)
+  r.icon.position=Vector2(text_x-2,69);r.icon.size=Vector2(24,24)
+  r.weapon.position=Vector2(text_x+26,69);r.weapon.size=Vector2(maxf(80,text_width-134),26)
   r.hp.position=Vector2(text_x+text_width-104,66);r.hp.size=Vector2(104,30)
   r.meter.position=Vector2(text_x,101);r.meter.size=Vector2(text_width,12)
   plate.queue_redraw();r.meter.queue_redraw()

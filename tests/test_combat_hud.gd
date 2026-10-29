@@ -8,7 +8,7 @@ func _initialize():call_deferred("run")
 func run():
  var game=Rules.new();game.new_campaign();var portraits=Portraits.new()
  var host=Control.new();root.add_child(host)
- var foe={"id":"foe","name":"Imperial gate captain","team":"enemy","max_hp":999}
+ var foe={"id":"foe","name":"Imperial gate captain","team":"enemy","max_hp":999,"weapon":"lance"}
  for viewport_size in [Vector2(1024,640),Vector2(1280,720),Vector2(1440,900)]:
   host.size=viewport_size
   for recruit in game.roster:
@@ -21,6 +21,7 @@ func run():
    assert(left.get_rect().end.x<right.position.x,"Nameplates leave the arena center clear")
    for id in hud.records:
     var r=hud.records[id];var bounds=r.plate.get_rect()
+    assert(r.icon.texture!=null,"Every weapon family has a readable icon")
     assert(bounds.position.x>=0 and bounds.end.x<=host.size.x and bounds.end.y<=host.size.y,"Nameplates fit desktop viewport")
     for child in r.plate.get_children():
      assert(child.position.x>=0 and child.position.y>=0 and child.get_rect().end.x<=r.plate.size.x+.1 and child.get_rect().end.y<=r.plate.size.y,"Portrait, labels and health fit nameplate")

@@ -43,6 +43,8 @@ Character material shading uses Godot’s documented toon render modes: https://
 
 The campaign map now uses the [animated class catalog](../visuals/README.md) for all eight classes. Its 96 original source poses supply four directional facings, walking, attack and recoil states. The static individual sheets remain available for identity/fallback UI. Map figures share class costumes; individual recruit portraits and 3D appearances remain distinct. The campaign adapter adds team tint, selection/spent markers, sprite-sized mouse picking and healing effects while keeping the portable renderer independent of campaign rules.
 
+`assets/ui/weapons/` contains six original SVG weapon silhouettes authored directly as vector paths: sword, lance, axe, bow, tome and staff. The same lookup supplies combat nameplates, unit inspection and the arsenal. Their isolated asset render was checked on dark blue and parchment backgrounds; in-game bounds are covered by the combat/forecast layout checks.
+
 ## Facial texture and model inspection
 
 `assets/art/face-features.png` is an original transparent eight-face feature atlas generated with the built-in image tool on 2026-10-29. Exact prompt: `docs/face-features-prompt.txt`. It supplies painted eyes, brows, nose and mouth details on curved 3D facial surfaces; characters remain fully 3D during combat. Each recruit selects a feature variant, skin/hair palette and short/long/bearded silhouette. Sculpted hair locks, collars, harnesses, armor trim and boot fittings add depth to the shared rigs. The company record's combat-model viewer exposes rotation and attack poses for visual review.

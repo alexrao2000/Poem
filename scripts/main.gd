@@ -1,6 +1,7 @@
 extends Node3D
 const Rules = preload("res://scripts/rules.gd")
 const Portraits = preload("res://scripts/portraits.gd")
+const WeaponIcons=preload("res://scripts/weapon_icons.gd")
 const MapUnit=preload("res://scripts/campaign_map_unit.gd")
 var map_catalog=preload("res://visuals/catalog.gd").new()
 var map_facings: Dictionary={}
@@ -196,6 +197,14 @@ func label_in(parent,text_value,size=18,color=Color("443e36")) -> Label:
 func button_in(parent,text_value,action,disabled=false) -> Button:
 	var b=Button.new();b.text=text_value;b.custom_minimum_size.y=42;b.disabled=disabled
 	b.pressed.connect(action);parent.add_child(b);return b
+
+func weapon_label(parent,kind: String,text_value: String,font_size=18) -> Label:
+	var row=HBoxContainer.new();row.add_theme_constant_override("separation",7);parent.add_child(row)
+	var icon=TextureRect.new();icon.texture=WeaponIcons.get_icon(kind);icon.custom_minimum_size=Vector2(28,28)
+	icon.expand_mode=TextureRect.EXPAND_IGNORE_SIZE;icon.stretch_mode=TextureRect.STRETCH_KEEP_ASPECT_CENTERED;row.add_child(icon)
+	var label=label_in(row,text_value,font_size,GOLD);label.size_flags_horizontal=Control.SIZE_EXPAND_FILL
+	label.text_overrun_behavior=TextServer.OVERRUN_TRIM_ELLIPSIS;label.autowrap_mode=TextServer.AUTOWRAP_OFF;label.tooltip_text=text_value
+	return label
 
 func show_notice(message: String,hold=2.2):
 	var panel=PanelContainer.new();panel.name="Notice";panel.mouse_filter=Control.MOUSE_FILTER_IGNORE;ui.add_child(panel)
@@ -404,7 +413,8 @@ func update_side():
 		label_in(details,game.class_name_for(selected),16)
 		var bond_rank=game.supports.nearby_rank(game,selected)
 		label_in(details,("Lv %d / MAX"%selected.level if selected.level>=game.MAX_LEVEL else "Lv %d / XP %d"%[selected.level,selected.xp])+(" · Bond "+game.supports.RANKS[bond_rank] if bond_rank>0 else ""),15)
-		label_in(side,"HP %d/%d · ATK %d\nDEF %d · RES %d · SPD %d\n%s · %s tiles"%[selected.hp,selected.max_hp,game.attack_power(selected),selected.defense,game.resistance_for(selected),game.attack_speed(selected),game.item_for(selected).name,game.range_text(selected)],17)
+		label_in(side,"HP %d/%d · ATK %d\nDEF %d · RES %d · SPD %d"%[selected.hp,selected.max_hp,game.attack_power(selected),selected.defense,game.resistance_for(selected),game.attack_speed(selected)],17)
+		weapon_label(side,selected.weapon,game.item_for(selected).name+" · "+game.range_text(selected)+" tiles",15)
 		if selected.team=="enemy":
 			var behavior={"guard":"Holds position","sentry":"Waits until approached","pursue":"Advances toward the company"}
 			label_in(side,behavior.get(selected.get("ai","pursue"),"Advances"),17,GOLD)
@@ -889,7 +899,7 @@ func show_equipment(unit):
 	var summary=VBoxContainer.new();summary.custom_minimum_size.x=280;row.add_child(summary)
 	var portrait=TextureRect.new();portrait.texture=portraits.get_portrait(unit.id);portrait.custom_minimum_size=Vector2(280,310)
 	portrait.expand_mode=TextureRect.EXPAND_IGNORE_SIZE;portrait.stretch_mode=TextureRect.STRETCH_KEEP_ASPECT_CENTERED;summary.add_child(portrait)
-	label_in(summary,"EQUIPPED",16,GOLD);label_in(summary,game.item_for(unit).name,25)
+	label_in(summary,"EQUIPPED",16,GOLD);weapon_label(summary,unit.weapon,game.item_for(unit).name,25)
 	label_in(summary,"Attack %d   Speed %d\nRange %s"%[game.attack_power(unit),game.attack_speed(unit),game.range_text(unit)],21)
 	label_in(summary,"Weight reduces speed. A 4-point speed lead grants a follow-up attack.",17)
 	var scroll=ScrollContainer.new();scroll.size_flags_horizontal=Control.SIZE_EXPAND_FILL;scroll.size_flags_vertical=Control.SIZE_EXPAND_FILL;row.add_child(scroll)
@@ -898,7 +908,7 @@ func show_equipment(unit):
 		if item.kind!=unit.weapon:continue
 		var card=PanelContainer.new();list.add_child(card)
 		var details=VBoxContainer.new();details.add_theme_constant_override("separation",5);card.add_child(details)
-		label_in(details,item.name,26,GOLD);label_in(details,item.description,17)
+		weapon_label(details,item.kind,item.name,26);label_in(details,item.description,17)
 		if item.has("effective_against"):label_in(details,"Triple weapon might against "+", ".join(item.effective_against)+" foes.",17,GOLD)
 		var reach=str(int(item.min_range)) if item.min_range==item.max_range else "%d–%d"%[item.min_range,item.max_range]
 		if item.kind=="staff":label_in(details,"Heal %d   Weight %d   Range %s"%[int(item.heal)+game.promotion_bonus(unit,"heal"),item.weight,reach],18)
