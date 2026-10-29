@@ -36,9 +36,12 @@ func run():
 	for unit in app.game.roster:
 		var fighter_data=unit.duplicate(true);fighter_data.team="player"
 		var fighter=app.make_fighter(fighter_data,Vector3.ZERO)
-		assert(fighter.find_child("PaintedFace",true,false)!=null,"Original painted face on each recruit")
-		assert(fighter.bone("Arm")!=null,"Every character exposes the weapon animation joint")
-		assert(fighter.bone("Elbow")!=null and fighter.bone("RightKnee")!=null,"Articulated limbs")
+		if fighter.has_meta("source_model"):
+			assert(fighter.player!=null and fighter.poses.has("strike"),"Authored model has valid animation adapter")
+		else:
+			assert(fighter.find_child("PaintedFace",true,false)!=null,"Original painted face on each recruit")
+			assert(fighter.bone("Arm")!=null,"Every procedural character exposes the weapon animation joint")
+			assert(fighter.bone("Elbow")!=null and fighter.bone("RightKnee")!=null,"Articulated limbs")
 		await fighter.pose("windup",.01).finished
 		assert(fighter.pose_name=="windup","Attack preparation pose")
 		await fighter.pose("strike",.01).finished

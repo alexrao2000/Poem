@@ -1,5 +1,6 @@
 extends RefCounted
 # Original articulated low-poly actors. Nodes are named for animation replacement.
+var models=preload("res://scripts/combat_models.gd").new()
 const Actor=preload("res://scripts/fighter_actor.gd")
 var profiles=JSON.parse_string(FileAccess.get_file_as_string("res://data/characters.json"))
 var surface_atlas=load("res://assets/art/character-materials.png")
@@ -25,6 +26,8 @@ func joint(parent,node_name,p):
  var n=Node3D.new();n.name=node_name;n.position=p;parent.add_child(n);return n
 
 func build(parent,u,p) -> Node3D:
+ var imported=models.build(parent,u,p)
+ if imported!=null:return imported
  var actor=Actor.new();parent.add_child(actor);actor.position=p;actor.kind=u.weapon
  var body=joint(actor,"Body",Vector3(0,1.1,0));actor.register_bone("Body",body)
  var tint=Color(u.color)

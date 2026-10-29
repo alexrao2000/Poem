@@ -32,12 +32,15 @@ Save files are local to the device/browser origin. Browser storage can be cleare
 
 Open `project.godot` in Godot 4.5.1 (standard edition). Use the Compatibility renderer for web parity. No third-party packages are needed.
 
+Visual exploration: [reusable 2D visual requirements](docs/visuals-2d/README.md) specify shared sprite assets for either 2D or 3D maps, with an example asset manifest and project integration notes. The proposed profile is separate from the current implementation.
+
 - `scripts/rules.gd`: scene-independent simulation, validated actions, campaign state and backup persistence.
 - `scripts/tactics.gd`: weighted pathfinding, guard/sentry/pursuit behavior, combat evaluation and automated playtest planning.
 - `scripts/main.gd`: menus, board renderer, input, AI orchestration, combat presentation and music.
 - `scripts/scenery.gd`: textured terrain, environment construction and material caching.
 - `scripts/static_batch.gd`: spatial/material batching for static scenery, with correct normals under nonuniform scaling. The current 12 maps combine 13,633 mesh objects into 674 batches; browser FPS has not yet been measured.
 - `scripts/fighters.gd` and `fighter_actor.gd`: articulated class actors, joint poses, weapons and class-specific attack animations.
+- `scripts/combat_models.gd`, `imported_fighter.gd` and `data/combat_models.json`: optional authored glTF/scene replacement with animation segments and effect sockets. The catalog is initially empty; see `docs/combat-models.md` for asset integration.
 - `assets/art/`: original generated terrain atlas and class sprite atlas. Prompts and provenance are recorded in `docs/art-direction.md`.
 - `data/campaign.json`: editable roster, classes and chapter definitions.
 - `scripts/supports.gd` and `data/supports.json`: bounded relationship progress, combat proximity checks and authored camp conversations.
@@ -60,7 +63,7 @@ Export templates are not checked in. Download the official 4.5.1 export template
 
 Browser build: `godot --headless --path . --export-release Web`, then `python3 scripts/pack_web.py`. The postprocessor compresses the WASM engine and uses the browser DecompressionStream API so static hosting needs no special response headers. Native build: `godot --headless --path . --export-release macOS`.
 
-To import, run all seventeen test suites, and package both local builds in one step: `GODOT_BIN=/path/to/godot scripts/build_local.sh`.
+To import, run all eighteen test suites, and package both local builds in one step: `GODOT_BIN=/path/to/godot scripts/build_local.sh`.
 
 Apart from the openly licensed display font, all game assets and story content are original prototype work, including generated raster art and procedural 3D models. The game includes no Nintendo code, art, characters or music. Reference repositories informed mechanical architecture; the implementation is new GDScript.
 

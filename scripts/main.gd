@@ -620,7 +620,7 @@ func cinematic(a,b,events,initial_hp={}):
 		var is_ranged=unit.weapon in ["bow","magic"] or (unit.weapon=="lance" and game.distance(a,b)>1)
 		caption.text=unit.name+"  /  "+("Critical strike" if event.crit else unit.weapon.capitalize())
 		if not is_ranged:
-			who.pose_name="advance"
+			who.pose("advance",.24)
 			var approach=create_tween().set_trans(Tween.TRANS_SINE)
 			var distance_to_close=absf(whom.position.x-who.position.x)-1.65
 			approach.tween_property(who,"position:x",base.x+direction*maxf(0,distance_to_close),.24)
@@ -630,7 +630,7 @@ func cinematic(a,b,events,initial_hp={}):
 		play_sfx("magic" if unit.weapon=="magic" else "swing")
 		await who.pose("throw" if is_ranged and unit.weapon=="lance" else "strike",.12).finished
 		if is_ranged:
-			await projectile(who.position+Vector3(0,1.2,0),whom.position+Vector3(0,1.1,0),unit.weapon)
+			await projectile(who.socket_position("projectile"),whom.socket_position("impact"),unit.weapon)
 		if event.hit:
 			play_sfx("critical" if event.crit else "hit")
 			whom.pose("hit",.12)
@@ -640,7 +640,7 @@ func cinematic(a,b,events,initial_hp={}):
 		displayed_hp[event.target]=maxi(0,displayed_hp[event.target]-event.damage)
 		hp_numbers[event.target].text=str(int(displayed_hp[event.target]))+" / "+str(int(b.max_hp if event.target==b.id else a.max_hp))
 		var hp_tween=create_tween();hp_tween.tween_property(health_bars[event.target],"value",float(displayed_hp[event.target]),.25)
-		show_impact(whom.position+Vector3(0,1.1,0),event)
+		show_impact(whom.socket_position("impact"),event)
 		caption.text=unit.name+(" — CRITICAL! " if event.crit else " — ")+(str(int(event.damage))+" damage" if event.hit else "Miss")
 		if event.hit:
 			var camera_home=camera.position

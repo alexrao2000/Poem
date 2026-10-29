@@ -96,3 +96,6 @@ func pose(key: String,duration=.18) -> Tween:
  if bones.has("Body"):
   pose_tween.tween_property(bones.Body,"position:y",rest.Body.position.y-(.43 if key=="down" else 0.0),duration)
  return pose_tween
+
+func socket_position(key: String) -> Vector3:
+ return global_position+Vector3(0,1.2 if key=="projectile" else 1.1,0)

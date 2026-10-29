@@ -5,6 +5,7 @@ GODOT_BIN="${GODOT_BIN:-godot}"
 mkdir -p build/web build/native build/logs
 touch build/.gdignore
 "$GODOT_BIN" --headless --log-file "$PWD/build/logs/import.log" --path "$PWD" --editor --import
+"$GODOT_BIN" --headless --log-file "$PWD/build/logs/model-catalog.log" --path "$PWD" --script scripts/check_combat_models.gd
 GODOT_BIN="$GODOT_BIN" python3 scripts/test_local.py
 "$GODOT_BIN" --headless --log-file "$PWD/build/logs/web.log" --path "$PWD" --export-release Web
 python3 scripts/pack_web.py
