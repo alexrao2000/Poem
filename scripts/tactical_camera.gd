@@ -19,6 +19,15 @@ func stop():
  dragging=false
  if is_instance_valid(camera):zoom_goal=camera.size
 
+func approach_combat(focus: Vector3,duration=.42) -> Tween:
+ stop()
+ motion=camera.create_tween().set_parallel(true).set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_IN)
+ motion.tween_property(camera,"size",5.0,duration)
+ motion.tween_property(camera,"h_offset",0.0,duration)
+ motion.tween_property(camera,"v_offset",0.0,duration)
+ motion.tween_property(camera,"position",eye_offset+focus,duration)
+ return motion
+
 func ground_at(screen_point: Vector2):
  return Plane(Vector3.UP,0).intersects_ray(camera.project_ray_origin(screen_point),camera.project_ray_normal(screen_point))
 

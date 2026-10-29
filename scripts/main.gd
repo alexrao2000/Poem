@@ -655,11 +655,7 @@ func cinematic(a,b,events,initial_hp={}):
 	for control in ui.get_children():tactical_controls[control]=control.visible;control.hide()
 	var veil=CombatTransition.new();veil.configure(ui,func():return camera.unproject_position(focus))
 	veil.conceal()
-	var push=create_tween().set_parallel(true).set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_IN)
-	push.tween_property(camera,"size",5.0,.42)
-	push.tween_property(camera,"h_offset",0.0,.42)
-	push.tween_property(camera,"v_offset",0.0,.42)
-	push.tween_property(camera,"position",map_navigation.eye_offset+focus,.42)
+	var push=map_navigation.approach_combat(focus)
 	await push.finished
 	if veil.motion.is_running():await veil.motion.finished
 	for n in stage.get_children():n.queue_free()
