@@ -1,0 +1,243 @@
+{
+  "repository": "sgossner/VSCO-2-CE",
+  "revision": "440300901dfe9275fd84e0b7763af1f8443ae62e",
+  "mapping_revision": "6dd651d55dde97fd4028699be9d4481f26917891",
+  "license": "CC0-1.0",
+  "samples": [
+    {
+      "instrument": "strings",
+      "path": "Strings/Cello Section/susvib/susvib_A2_v1_1.wav",
+      "root": 57,
+      "mapping": "CelloEnsSusVib.sfz",
+      "git_blob": "76df6b474aff133b2ac9d96bf2466cb6fd865c72"
+    },
+    {
+      "instrument": "strings",
+      "path": "Strings/Cello Section/susvib/susvib_D2_v1_1.wav",
+      "root": 50,
+      "mapping": "CelloEnsSusVib.sfz",
+      "git_blob": "8076f809d4f6a8057f3835e12d22751a25e39252"
+    },
+    {
+      "instrument": "strings",
+      "path": "Strings/Cello Section/susvib/susvib_F2_v1_1.wav",
+      "root": 53,
+      "mapping": "CelloEnsSusVib.sfz",
+      "git_blob": "78f52c49ddc8a357657d92b05cd89f15beb6c717"
+    },
+    {
+      "instrument": "strings",
+      "path": "Strings/Violin Section/susVib/VlnEns_susVib_A3_v1.wav",
+      "root": 69,
+      "mapping": "ViolinEnsSusVib.sfz",
+      "git_blob": "ec84b89a4b93ecdc7e23d0c023b897b6f151bca7"
+    },
+    {
+      "instrument": "strings",
+      "path": "Strings/Violin Section/susVib/VlnEns_susVib_B4_v1.wav",
+      "root": 83,
+      "mapping": "ViolinEnsSusVib.sfz",
+      "git_blob": "8e22cb66ba5bccb4df68decf98139b3008733e8a"
+    },
+    {
+      "instrument": "strings",
+      "path": "Strings/Violin Section/susVib/VlnEns_susVib_C4_v1.wav",
+      "root": 72,
+      "mapping": "ViolinEnsSusVib.sfz",
+      "git_blob": "6d81fcafba04ca992a8b85665a56e60337929ce0"
+    },
+    {
+      "instrument": "strings",
+      "path": "Strings/Violin Section/susVib/VlnEns_susVib_D3_v1.wav",
+      "root": 62,
+      "mapping": "ViolinEnsSusVib.sfz",
+      "git_blob": "e47f9a53d487475fb049039ca7846e11c1ff830a"
+    },
+    {
+      "instrument": "strings",
+      "path": "Strings/Violin Section/susVib/VlnEns_susVib_E4_v1.wav",
+      "root": 76,
+      "mapping": "ViolinEnsSusVib.sfz",
+      "git_blob": "838b43d3c9e763898817869d411ab26463b7464f"
+    },
+    {
+      "instrument": "strings",
+      "path": "Strings/Violin Section/susVib/VlnEns_susVib_F#3_v1.wav",
+      "root": 66,
+      "mapping": "ViolinEnsSusVib.sfz",
+      "git_blob": "996ca7e6b1d9541d2f2fd7f53ba88294693893e7"
+    },
+    {
+      "instrument": "strings",
+      "path": "Strings/Violin Section/susVib/VlnEns_susVib_G4_v1.wav",
+      "root": 79,
+      "mapping": "ViolinEnsSusVib.sfz",
+      "git_blob": "81d3994ebbf467cbbc88bb2d2ad0dd94d96e7e04"
+    },
+    {
+      "instrument": "flute",
+      "path": "Woodwinds/Flute/susvib/LDFlute_susvib_A3_v1_1.wav",
+      "root": 69,
+      "mapping": "FluteSusVib.sfz",
+      "git_blob": "1e8972d4e28dbf8b48e348b93c7862f29b0edfab"
+    },
+    {
+      "instrument": "flute",
+      "path": "Woodwinds/Flute/susvib/LDFlute_susvib_A4_v1_1.wav",
+      "root": 81,
+      "mapping": "FluteSusVib.sfz",
+      "git_blob": "1202232193c565a79618a1696913714e9fe1ad20"
+    },
+    {
+      "instrument": "flute",
+      "path": "Woodwinds/Flute/susvib/LDFlute_susvib_C4_v1_1.wav",
+      "root": 72,
+      "mapping": "FluteSusVib.sfz",
+      "git_blob": "7be22f8b86e5dc405a10f51dd71d44712d23c9aa"
+    },
+    {
+      "instrument": "flute",
+      "path": "Woodwinds/Flute/susvib/LDFlute_susvib_C5_v1_1.wav",
+      "root": 84,
+      "mapping": "FluteSusVib.sfz",
+      "git_blob": "5dc3e06072700651fe1844aafd304633692c6e97"
+    },
+    {
+      "instrument": "flute",
+      "path": "Woodwinds/Flute/susvib/LDFlute_susvib_E3_v1_1.wav",
+      "root": 64,
+      "mapping": "FluteSusVib.sfz",
+      "git_blob": "ee1008bf0f9dde16d2c584b0cca67fc79889d298"
+    },
+    {
+      "instrument": "flute",
+      "path": "Woodwinds/Flute/susvib/LDFlute_susvib_E4_v1_1.wav",
+      "root": 76,
+      "mapping": "FluteSusVib.sfz",
+      "git_blob": "19c052eab97d1e823fd7d8344c05d94dc7dd4733"
+    },
+    {
+      "instrument": "horn",
+      "path": "Brass/F Horn/sus/MOHorn_sus_A2_v1_1.wav",
+      "root": 57,
+      "mapping": "FHornSus.sfz",
+      "git_blob": "d358aadfb3bb1e0f28ab742d96f5418dc750057b"
+    },
+    {
+      "instrument": "horn",
+      "path": "Brass/F Horn/sus/MOHorn_sus_C3_v1_1.wav",
+      "root": 60,
+      "mapping": "FHornSus.sfz",
+      "git_blob": "e53d2d03f0902c9f3a6add7c6bf51122bcc7d573"
+    },
+    {
+      "instrument": "horn",
+      "path": "Brass/F Horn/sus/MOHorn_sus_D2_v1_1.wav",
+      "root": 50,
+      "mapping": "FHornSus.sfz",
+      "git_blob": "e63cadc76d2b3e56ee26ad558e52fd633cc8c4b1"
+    },
+    {
+      "instrument": "horn",
+      "path": "Brass/F Horn/sus/MOHorn_sus_D4_v1_1.wav",
+      "root": 74,
+      "mapping": "FHornSus.sfz",
+      "git_blob": "0d13acd769ecdfc234c416fe859a4eda9aac2f22"
+    },
+    {
+      "instrument": "horn",
+      "path": "Brass/F Horn/sus/MOHorn_sus_F2_v1_1.wav",
+      "root": 53,
+      "mapping": "FHornSus.sfz",
+      "git_blob": "90c68f7833a7aa2325dea7159aad8af4c9b13a76"
+    },
+    {
+      "instrument": "horn",
+      "path": "Brass/F Horn/sus/MOHorn_sus_F4_v1_1.wav",
+      "root": 77,
+      "mapping": "FHornSus.sfz",
+      "git_blob": "3061198e82995900230e9ddde1138a076d8dca9f"
+    },
+    {
+      "instrument": "harp",
+      "path": "Strings/Harp/KSHarp_A4_mf.wav",
+      "root": 69,
+      "mapping": "Harp.sfz",
+      "git_blob": "acbece38a84e886cb5516e0f29d6ff5d38900fe1"
+    },
+    {
+      "instrument": "harp",
+      "path": "Strings/Harp/KSHarp_B3_mf.wav",
+      "root": 59,
+      "mapping": "Harp.sfz",
+      "git_blob": "8d06cd55bc871d19f25a2bb1b56c7a567aabbc6b"
+    },
+    {
+      "instrument": "harp",
+      "path": "Strings/Harp/KSHarp_C5_mf.wav",
+      "root": 72,
+      "mapping": "Harp.sfz",
+      "git_blob": "748b4b1366616972c2a22e81fc48a86178801c45"
+    },
+    {
+      "instrument": "harp",
+      "path": "Strings/Harp/KSHarp_D4_mf.wav",
+      "root": 62,
+      "mapping": "Harp.sfz",
+      "git_blob": "342eec5072e2c0a7fb7cb03b6f5b46d84ed6ac69"
+    },
+    {
+      "instrument": "harp",
+      "path": "Strings/Harp/KSHarp_E5_mf.wav",
+      "root": 76,
+      "mapping": "Harp.sfz",
+      "git_blob": "20675907d698db011d0c8bc72cf9af4e7a1ac971"
+    },
+    {
+      "instrument": "harp",
+      "path": "Strings/Harp/KSHarp_F4_mf.wav",
+      "root": 65,
+      "mapping": "Harp.sfz",
+      "git_blob": "a1966639b165b623ac533270d616814cbc5389ef"
+    },
+    {
+      "instrument": "harp",
+      "path": "Strings/Harp/KSHarp_G3_mf.wav",
+      "root": 55,
+      "mapping": "Harp.sfz",
+      "git_blob": "a2f7fcc2bce81d039d9c0c529a94159f589f36e1"
+    },
+    {
+      "instrument": "harp",
+      "path": "Strings/Harp/KSHarp_G5_mf.wav",
+      "root": 79,
+      "mapping": "Harp.sfz",
+      "git_blob": "8e3593345c95368ae9d74591c1046d21de6a8e60"
+    },
+    {
+      "instrument": "bass",
+      "path": "Strings/Cello Section/susvib/susvib_C1_v1_1.wav",
+      "root": 36,
+      "mapping": "CelloEnsSusVib.sfz",
+      "git_blob": "ff87d1ae488d87189f33a0d18550d3bcde012f3d"
+    },
+    {
+      "instrument": "bass",
+      "path": "Strings/Cello Section/susvib/susvib_E1_v1_1.wav",
+      "root": 40,
+      "mapping": "CelloEnsSusVib.sfz",
+      "git_blob": "fcd27d29a8c0d520539cef6aad659bf9006ae730"
+    },
+    {
+      "instrument": "bass",
+      "path": "Strings/Cello Section/susvib/susvib_G1_v1_1.wav",
+      "root": 43,
+      "mapping": "CelloEnsSusVib.sfz",
+      "git_blob": "42a2731d11a4749c3026f0618e21a8c9370c2024"
+    }
+  ],
+  "license_file": {
+    "path": "LICENSE",
+    "git_blob": "670154e3538863b2d9891fd5483160fbdfc89164"
+  }
+}

@@ -1,16 +1,24 @@
-"""Original 32-bar paired score and game effects. Requires NumPy; no sampled audio.
+"""Original 32-bar paired score and game effects. Requires NumPy.
 Both full arrangements share tempo, harmony, melody, frame count and loop phase.
+Default rendering uses pinned CC0 orchestral recordings; --synthetic preserves
+the original oscillator-only renderer. Fetch the local bank before rendering.
 """
 from pathlib import Path
 import json
 import wave
+import sys
 import numpy as np
+from orchestra_samples import OrchestraSamples
 ROOT=Path(__file__).resolve().parent.parent
 OUT=ROOT/'assets/audio';OUT.mkdir(parents=True,exist_ok=True)
 SR=22050;BPM=108;BEAT=60/BPM;BARS=32;FRAMES=round(BARS*4*BEAT*SR)
 rng=np.random.default_rng(85107)
+bank=None if '--synthetic' in sys.argv else OrchestraSamples(SR)
 
 def voice(midi,seconds,instrument,velocity=1):
+    if bank is not None:
+        recorded=bank.render(midi,seconds,instrument,velocity)
+        if recorded is not None:return recorded
     t=np.arange(max(1,round(seconds*SR)))/SR
     hz=440*2**((midi-69)/12)
     phase=2*np.pi*hz*t + (.018*np.sin(2*np.pi*5.1*t) if instrument in ('strings','flute','horn') else 0)
@@ -137,5 +145,5 @@ effects['select']=voice(81,.07,'harp',.13)
 for name,sound in effects.items():
     with wave.open(str(OUT/f'{name}.wav'),'wb') as f:
         f.setparams((1,2,SR,0,'NONE','not compressed'));f.writeframes((np.clip(sound,-.9,.9)*32767).astype('<i2').tobytes())
-(OUT/'score.json').write_text(json.dumps(dict(title='A Standard at Dawn',composer='Original procedural composition for Ashen Standard',bpm=BPM,bars=BARS,meter='4/4',sample_rate=SR,channels=2,frames=FRAMES,duration_seconds=FRAMES/SR,arrangements=['calm','ablaze'],source='scripts/generate_score.py',samples='None; all voices and effects synthesized'),indent=2)+'\n')
+(OUT/'score.json').write_text(json.dumps(dict(title='A Standard at Dawn',composer='Original composition for Ashen Standard',bpm=BPM,bars=BARS,meter='4/4',sample_rate=SR,channels=2,frames=FRAMES,duration_seconds=FRAMES/SR,arrangements=['calm','ablaze'],source='scripts/generate_score.py',samples='VSCO 2 Community Edition, CC0; see orchestra-sources.json and VSCO-LICENSE.txt' if bank else 'None; all voices and effects synthesized'),indent=2)+'\n')
 print(f'Wrote matched {BARS}-bar stereo arrangements: {FRAMES/SR:.2f}s, {FRAMES} frames each; {len(effects)} effects.')

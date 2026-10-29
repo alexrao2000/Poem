@@ -278,9 +278,25 @@ func show_title():
 	button_in(v,"Begin the chronicle",func():game.new_campaign();music.play();show_camp())
 	button_in(v,"Continue saved campaign",load_campaign,not FileAccess.file_exists(save_path) and not FileAccess.file_exists(save_path+".bak"))
 	button_in(v,"Transfer a local save",func():show_save_transfer("title"))
-	button_in(v,"Options",func():show_options("title"))
+	var extras=HBoxContainer.new();extras.add_theme_constant_override("separation",8);v.add_child(extras)
+	button_in(extras,"Options",func():show_options("title")).size_flags_horizontal=Control.SIZE_EXPAND_FILL
+	button_in(extras,"Credits",show_credits).size_flags_horizontal=Control.SIZE_EXPAND_FILL
 	button_in(v,"Visual workshop · 2D / 3D maps",show_visual_workshop)
 	label_in(v,"Original playable prototype • Casual recovery\nFallen allies return next chapter. Losing everyone means retry.",14,Color("827b6c"))
+
+func show_credits():
+	screen="credits";reset_ui()
+	var panel=panel_at(ui,220,100,-220,-100)
+	label_in(panel,"ASHEN STANDARD",42,GOLD)
+	label_in(panel,"An original tactical chronicle",22)
+	label_in(panel,"A STANDARD AT DAWN",20,GOLD)
+	label_in(panel,"Original composition and paired calm / Ablaze arrangements.",20)
+	label_in(panel,"Instrument recordings: VSCO 2 Community Edition\nVersilian Studios · Sam Gossner and Simon Dalzell\nSample cutting: Elan Hickler / Soundemote\nReleased under CC0 1.0 Universal.",19)
+	label_in(panel,"ART & TYPE",20,GOLD)
+	label_in(panel,"Original generated illustrations and sprite artwork.\nOriginal 3D environments and character figures.\nCormorant Garamond · Cormorant Project Authors\nSIL Open Font License.",19)
+	label_in(panel,"Created with Godot Engine.",19)
+	var spacer=Control.new();spacer.size_flags_vertical=Control.SIZE_EXPAND_FILL;panel.add_child(spacer)
+	button_in(panel,"Return to title",show_title)
 
 func show_visual_workshop():
 	screen="visual_workshop"
@@ -460,6 +476,8 @@ func _input(event):
 		get_viewport().set_input_as_handled()
 
 func _unhandled_input(event):
+	if screen=="credits" and event is InputEventKey and event.pressed and event.keycode==KEY_ESCAPE:
+		show_title();get_viewport().set_input_as_handled();return
 	if screen=="model" and event is InputEventKey and event.pressed and event.keycode==KEY_ESCAPE:
 		close_model_view();get_viewport().set_input_as_handled();return
 	if screen=="dossier" and event is InputEventKey and event.pressed and event.keycode==KEY_ESCAPE:

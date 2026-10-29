@@ -39,6 +39,10 @@ func run():
  app.close_options();assert(app.screen=="battle","Options return to tactical play")
  app.show_title();await process_frame;await process_frame
  for control in app.ui.find_children("*","Button",true,false):assert(control.get_global_rect().end.y<=app.ui.size.y,"Title controls fit viewport")
+ app.show_credits();await process_frame;await process_frame
+ for control in app.ui.find_children("*","Label",true,false):assert(control.get_global_rect().end.y<=app.ui.size.y,"Credits fit the viewport")
+ var escape=InputEventKey.new();escape.pressed=true;escape.keycode=KEY_ESCAPE;app._unhandled_input(escape)
+ assert(app.screen=="title","Credits return to title through the normal back action")
  for chapter in range(12):
   app.game.chapter=chapter;app.game.story_seen.append("opening_"+str(chapter));app.show_camp();await process_frame;await process_frame
   for control in app.ui.find_children("*","Button",true,false):

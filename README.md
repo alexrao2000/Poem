@@ -9,13 +9,13 @@ An original, playable tactical RPG prototype in Godot 4.5.1 / GDScript.
 - Authored enemy equipment across all 12 chapters, including ranged spears, longbows, stronger tomes and specialist weapons visible in enemy inspection and forecasts.
 - Weighted terrain movement, occupancy, weapon triangle, two-roll hit checks, critical hits, counters, speed follow-ups, healing, enemy turns and casual recovery.
 - Eight animated map-sprite classes with four facings on textured 3D terrain, directional walking, attack/recoil poses, selection rings and spent-action markers. Individual portraits identify all 24 recruits. Combat uses articulated 3D figures, weapon strokes, opposing portrait nameplates and animated health meters. Low three-quarter shots follow preparation and impact; a radial zoom transition joins map and arena.
-- Original 71-second, 32-bar stereo score with calm/intense arrangements on the same sample timeline, plus synthesized combat/healing/phase effects.
+- Original 71-second, 32-bar stereo score with calm/Ablaze arrangements on the same sample timeline, rendered with CC0 orchestral recordings and synthetic percussion. Separate combat, healing and phase effects.
 - Save/load during the player phase and at camp; autosaves after actions. Saves include RNG state, validate loaded data, retain the previous save as a backup, and migrate changed map layouts back to preparation.
 - 36 original support conversations (192 lines) across 12 partnerships covering the full roster; earned ranks grant proximity bonuses.
 - Animated XP and level-up rewards, complete two-sided forecasts, chapter results, a rotatable 3D character viewer, and skippable critical portrait accents with original battle calls for all 24 recruits.
 - Browser and macOS exports.
 
-This is a complete campaign **prototype**, not finished commercial content. The first visual rebuild adds painted materials and distinct class silhouettes, but 3D characters and animation still need substantial refinement to approach the Awakening/Fates reference quality. Music is synthesized, and 3D characters remain procedural despite textured materials and class-specific silhouettes. Portraits are original generated illustrations. There is no voice acting, weapon durability, or multiplayer. Five automated campaigns clear all 12 chapters using legal actions, including both promotion branches, but campaign balance still needs a complete human playthrough. Recruitment occurs automatically at the relevant chapter's war council. Fallen units recover when the map is restarted or the chapter ends.
+This is a complete campaign **prototype**, not finished commercial content. The visual rebuild adds painted materials, animated map sprites and distinct class silhouettes, but 3D characters and animation still need substantial refinement to approach the Awakening/Fates reference quality. Combat characters remain procedural. Portraits are original generated illustrations. There is no voice acting, weapon durability, or multiplayer. Five automated campaigns clear all 12 chapters using legal actions, including both promotion branches, but campaign balance still needs a complete human playthrough. Recruitment occurs automatically at the relevant chapter's war council. Fallen units recover when the map is restarted or the chapter ends.
 
 ## Play
 
@@ -53,7 +53,7 @@ Open **Visual workshop · 2D / 3D maps** from the title screen to play the same 
 - `scripts/index_sprites.gd`: reads alpha bounds to generate sprite region metadata without modifying the source images.
 - `assets/fonts/`: Cormorant Garamond under the included SIL Open Font License.
 - `scripts/author_maps.py`: authored map geometry, deployment, squads, landmarks and tactical briefings.
-- `scripts/generate_score.py`: original score and effects synthesis; requires NumPy for regeneration.
+- `scripts/generate_score.py`: original score and effects rendering; requires NumPy. Run `scripts/fetch_score_samples.py` first to fetch the pinned CC0 instrument bank into the ignored local cache. `--synthetic` retains the oscillator-only version. Sources and hashes are recorded in `assets/audio/orchestra-sources.json`.
 - `scripts/generate_content.py`: legacy full content regeneration. Running it overwrites campaign data, original placeholder sprites and audio; use focused authoring scripts for normal edits.
 - `tests/test_rules.gd`: headless rules, all-map connectivity, outcome and persistence tests.
 - `tests/test_presentation.gd`: all 12 camp/map scenes, combat camera return, UI restoration and ending.
@@ -68,6 +68,6 @@ Browser build: `godot --headless --path . --export-release Web`, then `python3 s
 
 To import, run all test suites, and package both local builds in one step: `GODOT_BIN=/path/to/godot scripts/build_local.sh`.
 
-Apart from the openly licensed display font, all game assets and story content are original prototype work, including generated raster art and procedural 3D models. The game includes no Nintendo code, art, characters or music. Reference repositories informed mechanical architecture; the implementation is new GDScript.
+Story, music composition, raster illustrations and procedural 3D figures are original prototype work. The display font uses the SIL Open Font License; instrument recordings come from [VSCO 2 Community Edition](https://github.com/sgossner/VSCO-2-CE) under CC0. Credits and both licenses ship in the local exports. The game includes no Nintendo code, art, characters or music. Reference repositories informed mechanical architecture; the implementation is new GDScript.
 
 Local QA checkpoints can be generated with `godot --headless --path . --script scripts/make_qa_saves.gd`; codes are written under ignored `build/qa-saves/` and excluded from release archives.

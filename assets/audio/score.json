@@ -1,6 +1,6 @@
 {
   "title": "A Standard at Dawn",
-  "composer": "Original procedural composition for Ashen Standard",
+  "composer": "Original composition for Ashen Standard",
   "bpm": 108,
   "bars": 32,
   "meter": "4/4",
@@ -13,5 +13,5 @@
     "ablaze"
   ],
   "source": "scripts/generate_score.py",
-  "samples": "None; all voices and effects synthesized"
+  "samples": "VSCO 2 Community Edition, CC0; see orchestra-sources.json and VSCO-LICENSE.txt"
 }

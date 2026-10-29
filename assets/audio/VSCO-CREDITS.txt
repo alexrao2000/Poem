@@ -1,0 +1,23 @@
+A Standard at Dawn: original composition and paired arrangements for Ashen Standard.
+
+Instrument recordings: VSCO 2 Community Edition, Versilian Studios.
+Recorded by Sam Gossner and Simon Dalzell.
+Sample cutting by Elan Hickler / Soundemote.
+License: CC0 1.0 Universal. Full terms: VSCO-LICENSE.txt.
+Source: https://github.com/sgossner/VSCO-2-CE
+Source revision: 440300901dfe9275fd84e0b7763af1f8443ae62e
+Pitch mappings: SFZ revision 6dd651d55dde97fd4028699be9d4481f26917891
+
+orchestra-sources.json lists all 33 selected recordings, source pitches and Git
+blob hashes. The renderer mixes them to mono, filters before pitch resampling,
+applies note envelopes, then places the original notes in a stereo arrangement.
+Percussion and additional synthetic voices/effects are generated locally.
+The raw recordings stay in the ignored build cache; the game ships only the
+rendered music/effects, this credit and the upstream license. No Nintendo
+recordings or melodies are used.
+
+Regenerate with NumPy installed:
+python3 scripts/fetch_score_samples.py
+python3 scripts/generate_score.py
+
+The score script also accepts --synthetic for its oscillator-only arrangement.
