@@ -4,6 +4,8 @@ var content: Dictionary
 var equipment: Array
 var promotions: Array
 var supports=preload("res://scripts/supports.gd").new()
+const MAX_LEVEL=99
+const STAT_CAPS={"max_hp":999,"pow":255,"defense":255,"resistance":255,"speed":255,"move":20}
 const DEFAULT_ITEMS={"sword":"iron_sword","lance":"iron_lance","axe":"iron_axe","bow":"scout_bow","magic":"ember","staff":"field_staff"}
 var chapter: int = 0
 var turn: int = 1
@@ -247,15 +249,21 @@ func combat(a: Dictionary,b: Dictionary) -> Array:
 	return result
 
 func award_xp(u: Dictionary, amount: int):
+	if amount<=0 or u.level>=MAX_LEVEL or u.hp<=0:return
 	u.xp+=amount
-	while u.xp>=100:
+	while u.xp>=100 and u.level<MAX_LEVEL:
 		u.xp-=100
 		u.level+=1
-		u.max_hp+=2
-		u.hp+=2
-		u.pow+=1
-		u.defense+=1
-		if int(u.level)%2==0:u.speed+=1;u.resistance=resistance_for(u)+1
+		var health_gain=raise_stat(u,"max_hp",2)
+		u.hp=mini(u.max_hp,u.hp+health_gain)
+		raise_stat(u,"pow",1);raise_stat(u,"defense",1)
+		if int(u.level)%2==0:raise_stat(u,"speed",1);raise_stat(u,"resistance",1)
+	if u.level>=MAX_LEVEL:u.xp=0
+
+func raise_stat(unit: Dictionary,key: String,amount: int) -> int:
+	var before=int(unit.get(key,resistance_for(unit) if key=="resistance" else 0))
+	unit[key]=mini(STAT_CAPS[key],before+maxi(0,amount))
+	return int(unit[key])-before
 
 func result() -> String:
 	if living("player").is_empty(): return "defeat"
@@ -359,10 +367,10 @@ func valid_unit(unit,in_battle: bool) -> bool:
 		if not unit.promotion.is_empty() and not promotions.any(func(path):return path.id==unit.promotion and path.base==unit.job):return false
 	for key in ["hp","max_hp","pow","defense","speed","move","reach","level","xp"]:
 		if not (unit.get(key) is float or unit.get(key) is int):return false
-		if not is_finite(float(unit[key])) or unit[key]<0:return false
-	if unit.max_hp<=0 or unit.max_hp>999 or unit.hp>unit.max_hp or unit.move<1 or unit.move>20 or unit.reach<1 or unit.reach>10:return false
-	if unit.level<1 or unit.level>99 or unit.xp>=100 or unit.pow>255 or unit.defense>255 or unit.speed>255:return false
-	if unit.has("resistance") and (not (unit.resistance is int or unit.resistance is float) or not is_finite(float(unit.resistance)) or unit.resistance<0 or unit.resistance>255):return false
+		if not is_finite(float(unit[key])) or unit[key]<0 or unit[key]!=int(unit[key]):return false
+	if unit.max_hp<=0 or unit.max_hp>STAT_CAPS.max_hp or unit.hp>unit.max_hp or unit.move<1 or unit.move>STAT_CAPS.move or unit.reach<1 or unit.reach>10:return false
+	if unit.level<1 or unit.level>MAX_LEVEL or unit.xp>=100 or unit.pow>STAT_CAPS.pow or unit.defense>STAT_CAPS.defense or unit.speed>STAT_CAPS.speed:return false
+	if unit.has("resistance") and (not (unit.resistance is int or unit.resistance is float) or not is_finite(float(unit.resistance)) or unit.resistance<0 or unit.resistance>STAT_CAPS.resistance or unit.resistance!=int(unit.resistance)):return false
 	if in_battle:
 		if unit.get("team") not in ["player","enemy"] or not unit.get("acted") is bool:return false
 		for key in ["x","y"]:
@@ -470,10 +478,10 @@ func can_promote(unit: Dictionary,id: String) -> bool:
 
 func promote(unit: Dictionary,id: String) -> bool:
 	if not can_promote(unit,id):return false
+	var gains=promotion_gains(unit,id)
 	unit.promotion=id
-	for key in ["max_hp","pow","defense","resistance","speed","move"]:
-		unit[key]+=promotion_bonus(unit,key)
-	unit.hp=mini(unit.max_hp,unit.hp+promotion_bonus(unit,"max_hp"))
+	for key in STAT_CAPS:raise_stat(unit,key,int(gains.get(key,0)))
+	unit.hp=mini(unit.max_hp,unit.hp+int(gains.get("max_hp",0)))
 	return true
 
 func resistance_for(unit: Dictionary) -> int:
@@ -484,3 +492,11 @@ func effectiveness(attacker: Dictionary,defender: Dictionary) -> int:
 	for tag in item_for(attacker).get("effective_against",[]):
 		if tag in tags:return 3
 	return 1
+
+func promotion_gains(unit: Dictionary,id: String) -> Dictionary:
+	var matching=promotions.filter(func(path):return path.id==id and path.base==unit.job)
+	if matching.is_empty():return {}
+	var gains=matching[0].bonuses.duplicate(true)
+	for key in gains:
+		if STAT_CAPS.has(key):gains[key]=mini(int(gains[key]),STAT_CAPS[key]-int(unit.get(key,resistance_for(unit) if key=="resistance" else 0)))
+	return gains

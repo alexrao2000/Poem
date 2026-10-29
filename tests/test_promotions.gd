@@ -28,6 +28,13 @@ func run():
   var restored=Rules.new();assert(restored.import_code(campaign.export_code("battle"))=="battle")
   assert(restored.living("player")[0].promotion==path.id,"Promotion survives portable save")
   campaign.finish_chapter();assert(unit.promotion==path.id,"Chapter progression retains selected path")
+ var capped_game=Rules.new();var capped_unit=capped_game.roster[0];capped_unit.level=99
+ for key in Rules.STAT_CAPS:capped_unit[key]=Rules.STAT_CAPS[key]
+ capped_unit.hp=900
+ var preview=capped_game.promotion_gains(capped_unit,"standard_bearer")
+ assert(preview.max_hp==0 and preview.pow==0 and preview.defense==0)
+ assert(capped_game.promote(capped_unit,"standard_bearer") and capped_unit.hp==900,"Training only grants actual capped stat gains")
+ assert(capped_game.valid_save(capped_game.save_data("camp")),"Capped promotion remains loadable")
  var legacy=Rules.new();assert(legacy.restore_save(legacy.save_data("camp"))=="camp","Legacy saves without a promotion remain valid")
  var malformed=legacy.save_data("camp").duplicate(true);malformed.roster[0].promotion="bastion"
  assert(not legacy.valid_save(malformed),"Reject incompatible path in imported save")

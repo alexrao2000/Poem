@@ -367,7 +367,7 @@ func update_side():
 		label_in(details,selected.name,27,GOLD)
 		label_in(details,game.class_name_for(selected),16)
 		var bond_rank=game.supports.nearby_rank(game,selected)
-		label_in(details,"Lv %d / XP %d"%[selected.level,selected.xp]+(" · Bond "+game.supports.RANKS[bond_rank] if bond_rank>0 else ""),15)
+		label_in(details,("Lv %d / MAX"%selected.level if selected.level>=game.MAX_LEVEL else "Lv %d / XP %d"%[selected.level,selected.xp])+(" · Bond "+game.supports.RANKS[bond_rank] if bond_rank>0 else ""),15)
 		label_in(side,"HP %d/%d · ATK %d\nDEF %d · RES %d · SPD %d\n%s · %s tiles"%[selected.hp,selected.max_hp,game.attack_power(selected),selected.defense,game.resistance_for(selected),game.attack_speed(selected),game.item_for(selected).name,game.range_text(selected)],17)
 		if selected.team=="enemy":
 			var behavior={"guard":"Holds position","sentry":"Waits until approached","pursue":"Advances toward the company"}
@@ -808,7 +808,7 @@ func show_dossier(unit):
 	var info=VBoxContainer.new();info.add_theme_constant_override("separation",16);info.size_flags_horizontal=Control.SIZE_EXPAND_FILL;row.add_child(info)
 	var profile=profiles.get(unit.id,{})
 	label_in(info,unit.name,46,GOLD);label_in(info,profile.get("title",unit.job),26)
-	label_in(info,"%s  /  Level %d  /  %d XP"%[game.class_name_for(unit),unit.level,unit.xp],20)
+	label_in(info,"%s  /  Level %d  /  %s"%[game.class_name_for(unit),unit.level,"MAX" if unit.level>=game.MAX_LEVEL else "%d XP"%unit.xp],20)
 	label_in(info,"HP %d    ATK %d    DEF %d    RES %d    SPD %d    MOV %d"%[unit.max_hp,game.attack_power(unit),unit.defense,game.resistance_for(unit),game.attack_speed(unit),unit.move],21)
 	label_in(info,profile.get("biography",unit.bio),22)
 	label_in(info,"PERSONAL NOTE",16,GOLD);label_in(info,profile.get("note",""),20)
@@ -900,8 +900,8 @@ func show_progress(before: Dictionary):
 		var tween=reward_panel.create_tween()
 		if leveled:
 			tween.tween_property(progress,"value",100.0,.25);tween.tween_callback(func():progress.value=0)
-		tween.tween_property(progress,"value",float(unit.xp),.35)
-		label_in(details,"%d / 100 XP"%unit.xp,16)
+		tween.tween_property(progress,"value",100.0 if unit.level>=game.MAX_LEVEL else float(unit.xp),.35)
+		label_in(details,"Level limit reached" if unit.level>=game.MAX_LEVEL else "%d / 100 XP"%unit.xp,16)
 		if leveled:
 			label_in(details,"HP +%d   Power +%d   Defense +%d   Resistance +%d   Speed +%d"%[change.gains.max_hp,change.gains.pow,change.gains.defense,change.gains.resistance,change.gains.speed],17)
 		label_in(details,"Space / Enter to continue",14)
@@ -962,7 +962,8 @@ func show_promotions(unit):
 		var details=VBoxContainer.new();details.add_theme_constant_override("separation",10);card.add_child(details)
 		label_in(details,path.name,32,GOLD);label_in(details,path.description,19)
 		var gains=[];var names={"max_hp":"HP","pow":"Power","defense":"Defense","resistance":"Resistance","speed":"Speed","move":"Move","heal":"Staff healing","hit":"Hit","crit":"Crit"}
-		for key in path.bonuses:gains.append("%s +%d"%[names[key],path.bonuses[key]])
+		var actual_gains=game.promotion_gains(unit,path.id)
+		for key in actual_gains:gains.append("%s +%d"%[names[key],actual_gains[key]])
 		label_in(details,"   ·   ".join(gains),20)
 		var chosen=unit.get("promotion","")==path.id
 		var title="Chosen path" if chosen else ("Choose "+path.name if game.can_promote(unit,path.id) else "Requires level 10" if unit.level<10 else "Path unavailable")
