@@ -18,6 +18,9 @@ const Scenery = preload("res://scripts/scenery.gd")
 var scenery: RefCounted
 const CLASSES = ["Vanguard","Knight","Ranger","Arcanist","Warden","Rider","Corsair","Duelist"]
 var game = Rules.new()
+var preferences=preload("res://scripts/preferences.gd").new()
+var settings_path="user://preferences.json"
+var options_return="title"
 var tactics=preload("res://scripts/tactics.gd").new()
 var camera: Camera3D
 var environment: Environment
@@ -41,7 +44,6 @@ var score: AudioStreamSynchronized
 var sfx_streams: Dictionary={}
 var sfx_players: Array=[]
 var music_transition: Tween
-var muted = false
 var sprites: Array = []
 var unit_nodes: Dictionary={}
 var moving_id=""
@@ -94,7 +96,8 @@ func _ready():
 	camera.current=true
 	canvas=CanvasLayer.new()
 	add_child(canvas)
-	setup_audio()
+	preferences.load_file(settings_path)
+	setup_audio();apply_audio_preferences()
 	show_title()
 
 func setup_audio():
@@ -131,8 +134,8 @@ func music_mix(battle: bool):
 func _process(dt):
 	clock+=dt
 	if screen=="dialogue" and is_instance_valid(dialogue_label):
-		dialogue_reveal+=dt*55
-		dialogue_label.visible_characters=int(dialogue_reveal)
+		dialogue_reveal+=dt*float(preferences.values.text_speed)
+		dialogue_label.visible_characters=-1 if preferences.values.text_speed==0 else int(dialogue_reveal)
 	for s in sprites:
 		if is_instance_valid(s):s.position.y=s.get_meta("base_y",.65)+sin(clock*3+float(s.get_meta("phase",0)))*.015
 
@@ -271,6 +274,7 @@ func show_title():
 	button_in(v,"Begin the chronicle",func():game.new_campaign();music.play();show_camp())
 	button_in(v,"Continue saved campaign",load_campaign,not FileAccess.file_exists(save_path) and not FileAccess.file_exists(save_path+".bak"))
 	button_in(v,"Transfer a local save",func():show_save_transfer("title"))
+	button_in(v,"Options",func():show_options("title"))
 	label_in(v,"Original playable prototype • Casual recovery\nFallen allies return next chapter. Losing everyone means retry.",14,Color("827b6c"))
 
 func show_camp():
@@ -298,7 +302,9 @@ func show_camp():
 	label_in(left,"Select up to six allies. Healing tiles restore 6 HP each turn. Open a portrait to inspect equipment. Wardens heal within staff range; everyone carries two field tonics.",16,Color("766e5e"))
 	var sp=Control.new();sp.size_flags_vertical=Control.SIZE_EXPAND_FILL;left.add_child(sp)
 	button_in(left,"Deploy company  >",func():game.start_battle();make_map();show_battle();game.save_game(save_path,"battle"),game.deployed.is_empty())
-	button_in(left,"Save campaign",func():save_with_feedback("camp"))
+	var tools_row=HBoxContainer.new();tools_row.add_theme_constant_override("separation",8);left.add_child(tools_row)
+	button_in(tools_row,"Save campaign",func():save_with_feedback("camp")).size_flags_horizontal=Control.SIZE_EXPAND_FILL
+	button_in(tools_row,"Options",func():show_options("camp")).size_flags_horizontal=Control.SIZE_EXPAND_FILL
 	button_in(left,"Transfer a local save",func():show_save_transfer("camp"))
 	button_in(left,"Return to title",show_title)
 	label_in(left,"Music: A Standard at Dawn · paired arrangements\nVisuals: original painted art and 3D models",13,Color("827b6c"))
@@ -389,7 +395,7 @@ func update_side():
 	var spacer=Control.new();spacer.size_flags_vertical=Control.SIZE_EXPAND_FILL;side.add_child(spacer)
 	button_in(side,"End player phase",end_turn,busy)
 	button_in(side,"Save battle",func():save_with_feedback("battle"),busy)
-	button_in(side,"Music: "+("off" if muted else "on"),func():muted=not muted;music.volume_db=-80 if muted else -12;update_side())
+	button_in(side,"Options / audio",func():show_options("battle"),busy)
 	button_in(side,"War council (restart map)",show_camp,busy)
 
 func highlight():
@@ -500,7 +506,7 @@ func finish_action():
 	selected=null;target=null;origin=null;refresh_pieces();highlight();update_side()
 	if await check_result():return
 	game.save_game(save_path,"battle")
-	if game.living("player").all(func(u):return u.acted):end_turn()
+	if preferences.values.auto_end and game.living("player").all(func(u):return u.acted):end_turn()
 
 func end_turn():
 	if busy or screen!="battle":return
@@ -531,6 +537,9 @@ func make_fighter(u,position) -> Node3D:
 
 func cinematic(a,b,events,initial_hp={}):
 	if events.is_empty():return
+	if not preferences.show_cinematic(a.team):
+		await map_combat_feedback(events)
+		return
 	skip_combat=false;music_mix(true)
 	var old_pos=camera.position;var old_rot=camera.rotation
 	var focus=Vector3((a.x+b.x)*.5,0,(a.y+b.y)*.5)
@@ -760,11 +769,11 @@ func refresh_dialogue():
 	var speaker=game.roster.filter(func(u):return u.id==line.speaker)
 	dialogue_name.text=speaker[0].name if not speaker.is_empty() else line.speaker.capitalize()
 	dialogue_portrait.texture=portraits.get_portrait(line.speaker)
-	dialogue_label.text=line.text;dialogue_label.visible_characters=0;dialogue_reveal=0.0
+	dialogue_label.text=line.text;dialogue_label.visible_characters=-1 if preferences.values.text_speed==0 else 0;dialogue_reveal=0.0
 
 func advance_dialogue():
 	if screen!="dialogue":return
-	if dialogue_label.visible_characters<dialogue_label.text.length():
+	if dialogue_label.visible_characters>=0 and dialogue_label.visible_characters<dialogue_label.text.length():
 		dialogue_reveal=dialogue_label.text.length();dialogue_label.visible_characters=dialogue_label.text.length();return
 	dialogue_index+=1;refresh_dialogue()
 
@@ -1022,3 +1031,58 @@ func preview_route(destination: Vector2i):
 		cube(route_preview,Vector3((a.x+b.x)*.5,.055,(a.y+b.y)*.5),Vector3(1,.025,.075) if a.y==b.y else Vector3(.075,.025,1),Color("ffdf88"))
 	for offset in [Vector2(-.43,0),Vector2(.43,0),Vector2(0,-.43),Vector2(0,.43)]:
 		cube(route_preview,Vector3(destination.x+offset.x,.055,destination.y+offset.y),Vector3(.055,.025,.9) if offset.x!=0 else Vector3(.9,.025,.055),Color("ffdf88"))
+
+func apply_audio_preferences():
+	if is_instance_valid(music):music.volume_db=preferences.volume_db("music")
+	for player in sfx_players:player.volume_db=preferences.volume_db("effects")
+
+func show_options(return_to: String):
+	if return_to=="battle":cancel_selection()
+	options_return=return_to;screen="options";reset_ui()
+	var panel=panel_at(ui,240,65,-240,-65)
+	label_in(panel,"PLAYBACK & CONTROLS",17,GOLD)
+	label_in(panel,"Options",44,GOLD)
+	label_in(panel,"These settings stay on this device and do not change combat results.",19)
+	label_in(panel,"Battle presentation",21,GOLD)
+	var mode=OptionButton.new();mode.name="CombatMode";mode.custom_minimum_size.y=42
+	for title in ["All 3D battles","3D for player attacks","Quick map battles"]:mode.add_item(title)
+	mode.selected=["all","player","map"].find(preferences.values.combat);panel.add_child(mode)
+	mode.item_selected.connect(func(index):preferences.values.combat=["all","player","map"][index])
+	for key in ["music","effects"]:
+		var row=HBoxContainer.new();row.add_theme_constant_override("separation",20);panel.add_child(row)
+		var title=label_in(row,key.capitalize()+" volume",20);title.custom_minimum_size.x=180
+		var value_label=Label.new();value_label.custom_minimum_size.x=60
+		var slider=HSlider.new();slider.name=key.capitalize()+"Volume";slider.min_value=0;slider.max_value=100;slider.step=5;slider.value=preferences.values[key]*100
+		slider.size_flags_horizontal=Control.SIZE_EXPAND_FILL;slider.custom_minimum_size.y=48;row.add_child(slider);row.add_child(value_label);value_label.text="%d%%"%slider.value
+		slider.value_changed.connect(func(value):preferences.values[key]=value/100.0;value_label.text="%d%%"%value;apply_audio_preferences())
+	label_in(panel,"Dialogue text",21,GOLD)
+	var speed=OptionButton.new();speed.name="TextSpeed";speed.custom_minimum_size.y=42
+	for title in ["Standard","Fast","Instant"]:speed.add_item(title)
+	speed.selected=[55,90,0].find(int(preferences.values.text_speed));panel.add_child(speed)
+	speed.item_selected.connect(func(index):preferences.values.text_speed=[55,90,0][index])
+	var automatic=CheckButton.new();automatic.name="AutoEnd";automatic.text="End the phase when every ally has acted";automatic.button_pressed=preferences.values.auto_end;panel.add_child(automatic)
+	automatic.toggled.connect(func(value):preferences.values.auto_end=value)
+	var spacer=Control.new();spacer.size_flags_vertical=Control.SIZE_EXPAND_FILL;panel.add_child(spacer)
+	button_in(panel,"Restore defaults",func():preferences.reset();apply_audio_preferences();show_options(options_return))
+	button_in(panel,"Apply and return",close_options)
+
+func close_options():
+	var saved=preferences.save_file(settings_path)
+	if options_return=="battle":show_battle()
+	elif options_return=="camp":show_camp()
+	else:show_title()
+	if not saved:show_notice("Settings are active, but could not be saved on this device.")
+
+func map_combat_feedback(events: Array):
+	for event in events:
+		var targets=game.units.filter(func(unit):return unit.id==event.target)
+		if targets.is_empty():continue
+		var unit=targets[0];var text_label=Label.new();ui.add_child(text_label)
+		text_label.text="MISS" if not event.hit else ("CRIT " if event.crit else "")+str(int(event.damage))
+		text_label.add_theme_font_size_override("font_size",28);text_label.add_theme_color_override("font_color",Color("ffe5a1"));text_label.add_theme_color_override("font_outline_color",Color("30353a"));text_label.add_theme_constant_override("outline_size",5)
+		text_label.position=camera.unproject_position(Vector3(unit.x,1.1,unit.y))-Vector2(25,20);text_label.mouse_filter=Control.MOUSE_FILTER_IGNORE
+		play_sfx("critical" if event.crit else "hit" if event.hit else "swing")
+		var fade=create_tween().set_parallel(true);fade.tween_property(text_label,"position:y",text_label.position.y-24,.24);fade.tween_property(text_label,"modulate:a",0.0,.24)
+		await fade.finished
+		text_label.queue_free()
+	refresh_pieces()

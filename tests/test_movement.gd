@@ -22,7 +22,7 @@ func run():
     paths+=1
    assert(g.rng.state==before and g.pos(unit)==position,"Route queries are pure")
    assert(g.movement_path(unit,Vector2i(-1,-1)).is_empty())
- var app=load("res://main.tscn").instantiate();app.save_path="/private/tmp/ashen-movement-ui.json";root.add_child(app);await process_frame
+ var app=load("res://main.tscn").instantiate();app.settings_path="";app.save_path="/private/tmp/ashen-movement-ui.json";root.add_child(app);await process_frame
  app.game.new_campaign();app.game.start_battle();app.make_map();app.show_battle();await process_frame
  var unit=app.game.units[0];var start=app.game.pos(unit);var destination=start
  for tile in app.game.reachable(unit):

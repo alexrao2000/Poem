@@ -24,6 +24,8 @@ Select an ally, hover a reachable tile to preview its route, click to travel alo
 
 Use **Transfer a local save** on the title screen or war council to copy an ASHEN1 code into another build. In a browser, **Open browser copy / paste** provides a native text field; choose **Use code**, then **Import pasted code**. The previous save is retained as a backup. Nothing is uploaded.
 
+**Options** is available from the title, war council and battle sidebar. It controls full 3D/player-only/quick-map battles, music and effects volume, dialogue speed, and automatic phase ending. Preferences stay on the device separately from campaign saves.
+
 Save files are local to the device/browser origin. Browser storage can be cleared by the browser. Returning to the war council restarts the current map from its pre-battle roster.
 
 ## Develop
@@ -58,7 +60,7 @@ Export templates are not checked in. Download the official 4.5.1 export template
 
 Browser build: `godot --headless --path . --export-release Web`, then `python3 scripts/pack_web.py`. The postprocessor compresses the WASM engine and uses the browser DecompressionStream API so static hosting needs no special response headers. Native build: `godot --headless --path . --export-release macOS`.
 
-To import, run all fifteen test suites, and package both local builds in one step: `GODOT_BIN=/path/to/godot scripts/build_local.sh`.
+To import, run all sixteen test suites, and package both local builds in one step: `GODOT_BIN=/path/to/godot scripts/build_local.sh`.
 
 Apart from the openly licensed display font, all game assets and story content are original prototype work, including generated raster art and procedural 3D models. The game includes no Nintendo code, art, characters or music. Reference repositories informed mechanical architecture; the implementation is new GDScript.
 

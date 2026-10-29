@@ -22,7 +22,7 @@ func run():
  var legacy=source.save_data("battle").duplicate(true)
  for unit in legacy.roster+legacy.units:unit.erase("item")
  assert(copy.restore_save(legacy)=="battle" and copy.roster[2].item=="scout_bow","Older equipment-free saves receive defaults")
- var app=load("res://main.tscn").instantiate();app.save_path="/private/tmp/ashen-transfer-ui-save.json";root.add_child(app);await process_frame
+ var app=load("res://main.tscn").instantiate();app.settings_path="";app.save_path="/private/tmp/ashen-transfer-ui-save.json";root.add_child(app);await process_frame
  app.show_save_transfer("title");await process_frame
  assert(app.screen=="save_transfer" and is_instance_valid(app.transfer_text))
  app.transfer_text.text=code;await app.import_pasted_save();await process_frame
