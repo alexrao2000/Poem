@@ -1,6 +1,6 @@
 # Reusable 2D visual requirements
 
-Status: visual requirements and production targets, 2026-10-29. A working prototype now lives in [the reusable visual package](../../visuals/README.md), with both map renderers available from the game title screen. Character sprites are the shared foundation; the production map renderer remains a separate decision. This package can be copied into another tactical RPG project without Ashen Standard code or character data.
+Status: visual requirements and production targets, 2026-10-29. A working prototype now lives in [the reusable visual package](../../visuals/README.md), with both map renderers available from the game title screen. Character sprites are the shared foundation; the production map renderer remains a separate decision. This package can be copied into another tactical RPG project without Poem code or character data.
 
 The target is a readable, expressive handheld tactical RPG look: compact pixel characters, strong class silhouettes, restrained terrain detail, and clear tactical information. [Dyadem](https://store.steampowered.com/app/4206930/Dyadem/) is a reference for presentation and readability. Create original characters, tiles, interfaces, and animations.
 

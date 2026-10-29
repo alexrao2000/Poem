@@ -1,4 +1,4 @@
-# Ashen Standard visual integration notes
+# Poem visual integration notes
 
 This is the project-specific companion to the [portable requirements](README.md). The title screen now opens a working visual workshop with both map renderers, a shared catalog and sprite player, movement, combat, healing, effects, and enemy turns. Implementation and reuse instructions are in [the visual package](../../visuals/README.md). The main campaign retains its existing rendering path; the workshop owns a separate simulation and writes no campaign saves.
 
@@ -40,4 +40,4 @@ Do not move rules, combat RNG, or turn advancement into animation callbacks. Exi
 
 Copy this folder's portable README and example manifest as the starting contract. Add the actual `source`, `textures`, `metadata`, `previews`, and `licenses` folders once assets are produced. Resolve engine resources and game-specific IDs in the receiving adapter.
 
-Ashen Standard's roster, story, procedural combat actors, renderer, and save format are not dependencies of the shared asset package. Existing art can be reused where its provenance permits, but it still needs review against the chosen pixel profile. This integration note can be omitted when transferring the package.
+Poem's roster, story, procedural combat actors, renderer, and save format are not dependencies of the shared asset package. Existing art can be reused where its provenance permits, but it still needs review against the chosen pixel profile. This integration note can be omitted when transferring the package.

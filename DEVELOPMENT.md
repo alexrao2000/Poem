@@ -1,4 +1,6 @@
-# Ashen Standard development
+# Poem development
+
+Working title: **Poem** (user direction, 2026-10-29). Existing save locations and the application bundle identifier remain stable across the rename.
 
 User direction: keep developing continuously in this chat until the user returns/stops work or available usage is exhausted. **Do not schedule anything.** The user clarified that the earlier heartbeat was unwanted; it has been deleted. They authorize model switching if one model is exhausted and another is available, but the current tool surface has no direct self-model switch and usage currently reports a shared Codex pool. The previous geometric prototype was rejected visually; resemblance to Awakening/Fates presentation is the priority, alongside the existing full roster and campaign. Keep local builds; the only authorized remote destination is the private GitHub repository https://github.com/alexrao2000/fe-clone. Never publish to Sites. No purchases.
 

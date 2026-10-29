@@ -13,12 +13,12 @@ GODOT_BIN="$GODOT_BIN" python3 scripts/test_local.py export
 # Export to a new temporary path so Godot never needs to use the system Trash.
 BUILD_STAGE="$(mktemp -d "${TMPDIR:-/tmp}/ashen-build.XXXXXX")"
 trap 'rm -rf "$BUILD_STAGE"' EXIT
-"$GODOT_BIN" --headless --log-file "$PWD/build/logs/native.log" --path "$PWD" --export-release macOS "$BUILD_STAGE/AshenStandard.zip"
-mv "$BUILD_STAGE/AshenStandard.zip" build/native/AshenStandard.zip
+"$GODOT_BIN" --headless --log-file "$PWD/build/logs/native.log" --path "$PWD" --export-release macOS "$BUILD_STAGE/Poem.zip"
+mv "$BUILD_STAGE/Poem.zip" build/native/Poem.zip
 python3 - <<'PY'
 from pathlib import Path
 from zipfile import ZipFile, ZIP_DEFLATED
-with ZipFile('build/AshenStandard-Web.zip','w',ZIP_DEFLATED) as archive:
+with ZipFile('build/Poem-Web.zip','w',ZIP_DEFLATED) as archive:
     for path in Path('build/web').iterdir():
         if path.is_file():archive.write(path,path.name)
     archive.writestr('PLAY.txt','Extract this folder and run: python3 -m http.server 8060\nThen open http://localhost:8060 in a desktop browser.\n')

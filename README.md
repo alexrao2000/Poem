@@ -1,4 +1,4 @@
-# Ashen Standard
+# Poem
 
 An original, playable tactical RPG prototype in Godot 4.5.1 / GDScript.
 

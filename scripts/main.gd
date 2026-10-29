@@ -309,7 +309,7 @@ func show_title():
 func show_credits():
 	screen="credits";reset_ui()
 	var panel=panel_at(ui,220,100,-220,-100)
-	label_in(panel,"ASHEN STANDARD",42,GOLD)
+	label_in(panel,"POEM",42,GOLD)
 	label_in(panel,"An original tactical chronicle",22)
 	label_in(panel,"A STANDARD AT DAWN",20,GOLD)
 	label_in(panel,"Original composition and paired calm / Ablaze arrangements.",20)
@@ -343,7 +343,7 @@ func show_camp():
 	ui.add_child(shell)
 	var row=HBoxContainer.new();row.add_theme_constant_override("separation",24);shell.add_child(row)
 	var left=VBoxContainer.new();left.custom_minimum_size.x=350;left.size_flags_horizontal=Control.SIZE_EXPAND_FILL;row.add_child(left)
-	label_in(left,"ASHEN STANDARD / WAR COUNCIL",16,GOLD)
+	label_in(left,"POEM / WAR COUNCIL",16,GOLD)
 	label_in(left,"%02d  %s"%[game.chapter+1,game.info().title],34)
 	label_in(left,game.info().place.to_upper(),17,Color("79755f"))
 	label_in(left,game.info().intro,21)
