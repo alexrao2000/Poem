@@ -63,14 +63,14 @@ func run():
  assert(app.game.pos(unit)==moved and app.origin==undo_origin,"Opening and closing the menu preserves an uncommitted move")
  app.cancel_selection();assert(app.game.pos(unit)==Vector2i(8,4),"Undo still works after resuming from the menu")
  app.busy=true;app.show_battle_menu();assert(app.screen=="battle" and app.battle_menu==null,"Menu cannot interrupt an action")
- app.busy=false;app.settings_path="/private/tmp/ashen-controls-settings.json"
+ app.busy=false;app.settings_path="/private/tmp/poem-controls-settings.json"
  for command in ["Save","Transfer code","Options / audio","War council (restart map)"]:
   app.show_battle_menu()
   var button=app.battle_menu.find_children("*","Button",true,false).filter(func(value):return value.text==command)[0]
   button.pressed.emit();await process_frame
   if command=="Save":assert(app.screen=="battle" and FileAccess.file_exists(app.save_path),"Menu Save writes the local battle save")
   elif command=="Transfer code":
-   assert(app.screen=="save_transfer" and app.transfer_text.text.begins_with("ASHEN1:"),"Menu transfer exports the live battle")
+   assert(app.screen=="save_transfer" and app.transfer_text.text.begins_with("POEM1:"),"Menu transfer exports the live battle")
    app.close_save_transfer();await process_frame
   elif command=="Options / audio":
    assert(app.screen=="options" and app.options_return=="battle","Menu options retain their return route")
