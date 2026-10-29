@@ -12,7 +12,7 @@ func threatened_tiles(game,unit: Dictionary) -> Dictionary:
   for y in range(-int(unit.reach),int(unit.reach)+1):
    for x in range(-int(unit.reach),int(unit.reach)+1):
     var distance=absi(x)+absi(y)
-    if distance==0 or distance>unit.reach or (unit.weapon=="bow" and distance!=2):continue
+    if not game.in_weapon_range(unit,distance):continue
     var target=p+Vector2i(x,y)
     if game.terrain(target) not in ["#","~"]:result[target]=true
  return result
@@ -42,7 +42,7 @@ func attack_positions(game,unit: Dictionary,target: Dictionary) -> Array:
  for y in range(-int(unit.reach),int(unit.reach)+1):
   for x in range(-int(unit.reach),int(unit.reach)+1):
    var distance=absi(x)+absi(y)
-   if distance==0 or distance>unit.reach or (unit.weapon=="bow" and distance!=2):continue
+   if not game.in_weapon_range(unit,distance):continue
    var p=center+Vector2i(x,y)
    var other=game.at(p)
    if game.terrain(p) not in ["#","~"] and (other==null or other.id==unit.id):result.append(p)
@@ -109,11 +109,11 @@ func plan_healer(game,unit: Dictionary,free: Array,foes: Array) -> Dictionary:
  var injured=game.living(unit.team).filter(func(ally):return ally.id!=unit.id and ally.hp<ally.max_hp)
  for ally in injured:
   for p in free:
-   if absi(p.x-int(ally.x))+absi(p.y-int(ally.y))!=1:continue
+   if not game.in_weapon_range(unit,absi(p.x-int(ally.x))+absi(p.y-int(ally.y))):continue
    var threat=0
    for foe in foes:
     if absi(p.x-int(foe.x))+absi(p.y-int(foe.y))<=foe.reach:threat+=10
-   var value=mini(12,ally.max_hp-ally.hp)*4-threat
+   var value=mini(int(game.item_for(unit).heal),ally.max_hp-ally.hp)*4-threat
    if value>best_score:
     best_score=value;best={"position":p,"action":"heal","target":ally.id,"alert":true}
  if best.action=="heal":return best

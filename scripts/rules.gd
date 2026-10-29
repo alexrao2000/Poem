@@ -1,6 +1,8 @@
 extends RefCounted
 # The simulation has no scene, rendering, or audio dependencies.
 var content: Dictionary
+var equipment: Array
+const DEFAULT_ITEMS={"sword":"iron_sword","lance":"iron_lance","axe":"iron_axe","bow":"scout_bow","magic":"ember","staff":"field_staff"}
 var chapter: int = 0
 var turn: int = 1
 var phase: String = "player"
@@ -13,6 +15,7 @@ var story_seen: Array = []
 
 func _init():
 	content = JSON.parse_string(FileAccess.get_file_as_string("res://data/campaign.json"))
+	equipment = JSON.parse_string(FileAccess.get_file_as_string("res://data/equipment.json"))
 	rng.seed = 472019
 	new_campaign()
 
@@ -32,6 +35,7 @@ func new_campaign():
 		u.pow += int(u.join)
 		u.defense += int(u.join)/2
 		u.max_hp = u.hp
+		normalize_equipment(u)
 	deployed = ["lyra", "oren", "sera", "ivo"]
 
 func available() -> Array:
@@ -76,6 +80,7 @@ func start_battle():
 		e.team="enemy";e.acted=false;e.moved=false;e.boss=i==0
 		e.ai=entry.get("ai","pursue");e.alerted=false
 		e.x=int(entry.position[0]);e.y=int(entry.position[1])
+		normalize_equipment(e)
 		units.append(e)
 
 func terrain(p: Vector2i) -> String:
@@ -133,10 +138,44 @@ func wait_unit(u: Dictionary) -> bool:
 	if not can_act(u):return false
 	u.acted=true;return true
 
+func item_for(u: Dictionary) -> Dictionary:
+	var id=u.get("item",DEFAULT_ITEMS.get(u.weapon,"iron_sword"))
+	for item in equipment:
+		if item.id==id and item.kind==u.weapon:return item
+	for item in equipment:
+		if item.id==DEFAULT_ITEMS.get(u.weapon,"iron_sword"):return item
+	return equipment[0]
+
+func normalize_equipment(u: Dictionary):
+	var item=item_for(u);u.item=item.id;u.reach=int(item.max_range)
+
+func equip(u: Dictionary,id: String) -> bool:
+	if not roster.has(u) or int(u.join)>chapter:return false
+	for item in equipment:
+		if item.id==id and item.kind==u.weapon and int(item.unlock)<=chapter:
+			u.item=id;u.reach=int(item.max_range);return true
+	return false
+
+func attack_power(u: Dictionary) -> int:
+	return int(u.pow)+int(item_for(u).might)
+
+func attack_speed(u: Dictionary) -> int:
+	return maxi(0,int(u.speed)-int(item_for(u).weight))
+
+func in_weapon_range(u: Dictionary,tiles: int) -> bool:
+	var item=item_for(u)
+	return tiles>=int(item.min_range) and tiles<=int(item.max_range)
+
+func range_text(u: Dictionary) -> String:
+	var item=item_for(u)
+	return str(int(item.min_range)) if item.min_range==item.max_range else "%d–%d"%[item.min_range,item.max_range]
+
+func can_heal(a: Dictionary,b: Dictionary) -> bool:
+	return can_act(a) and a.weapon=="staff" and a.team==b.team and a.id!=b.id and b.hp>0 and b.hp<b.max_hp and in_weapon_range(a,distance(a,b))
+
 func heal(a: Dictionary,b: Dictionary) -> bool:
-	if not can_act(a) or a.weapon!="staff" or a.team!=b.team or a==b:return false
-	if b.hp<=0 or b.hp>=b.max_hp or distance(a,b)!=1:return false
-	b.hp=mini(b.max_hp,b.hp+12);a.acted=true;award_xp(a,30)
+	if not can_heal(a,b):return false
+	b.hp=mini(b.max_hp,b.hp+int(item_for(a).heal));a.acted=true;award_xp(a,30)
 	return true
 
 func use_tonic(u: Dictionary) -> bool:
@@ -151,7 +190,7 @@ func begin_enemy_phase():
 
 func can_attack(a: Dictionary,b: Dictionary) -> bool:
 	var d = distance(a,b)
-	return a.hp>0 and b.hp>0 and a.team!=b.team and d<=a.reach and d>0 and (a.weapon!="bow" or d==2) and a.weapon!="staff"
+	return a.hp>0 and b.hp>0 and a.team!=b.team and in_weapon_range(a,d) and a.weapon!="staff"
 
 func forecast(a: Dictionary,b: Dictionary) -> Dictionary:
 	var advantage = 0
@@ -160,7 +199,7 @@ func forecast(a: Dictionary,b: Dictionary) -> Dictionary:
 	if beats.get(b.weapon,"")==a.weapon: advantage=-1
 	var cover = 2 if terrain(pos(b)) in ["f","h","o"] else 0
 	var defense = int(b.defense)/2 if a.weapon=="magic" else int(b.defense)
-	return {"damage":maxi(1,int(a.pow)+3+advantage-defense-cover),"hit":clampi(85+int(a.speed-b.speed)*2+advantage*15-cover*5,25,100),"crit":clampi(int(a.speed)/2,0,20),"double":a.speed-b.speed>=4,"counter":can_attack(b,a)}
+	return {"damage":maxi(1,attack_power(a)+advantage-defense-cover),"hit":clampi(85+(attack_speed(a)-attack_speed(b))*2+int(item_for(a).hit)+advantage*15-cover*5,25,100),"crit":clampi(int(a.speed)/2+int(item_for(a).crit),0,50),"double":attack_speed(a)-attack_speed(b)>=4,"counter":can_attack(b,a)}
 
 func strike(a: Dictionary,b: Dictionary) -> Dictionary:
 	var f = forecast(a,b)
@@ -177,7 +216,7 @@ func combat(a: Dictionary,b: Dictionary) -> Array:
 	if b.hp>0 and can_attack(b,a): result.append(strike(b,a))
 	if a.hp>0 and b.hp>0:
 		if f.double: result.append(strike(a,b))
-		elif b.speed-a.speed>=4 and can_attack(b,a): result.append(strike(b,a))
+		elif attack_speed(b)-attack_speed(a)>=4 and can_attack(b,a): result.append(strike(b,a))
 	a.acted = true
 	for u in [a,b]:
 		if u.team=="player" and u.hp>0:
@@ -215,7 +254,7 @@ func finish_chapter():
 		if u.team!="player": continue
 		for r in roster:
 			if r.id==u.id:
-				for key in ["level","xp","max_hp","pow","defense","speed"]:r[key]=u[key]
+				for key in ["level","xp","max_hp","pow","defense","speed","item","reach"]:r[key]=u[key]
 	chapter+=1
 	if chapter>=content.chapters.size():
 		completed=true
@@ -277,6 +316,8 @@ func valid_unit(unit,in_battle: bool) -> bool:
 	for key in ["id","name","job","weapon","color"]:
 		if not unit.get(key) is String:return false
 	if not content.classes.has(unit.job):return false
+	if unit.weapon!=content.classes[unit.job].weapon:return false
+	if unit.has("item") and (not unit.item is String or not equipment.any(func(item):return item.id==unit.item and item.kind==unit.weapon)):return false
 	for key in ["hp","max_hp","pow","defense","speed","move","reach","level","xp"]:
 		if not (unit.get(key) is float or unit.get(key) is int):return false
 		if not is_finite(float(unit[key])) or unit[key]<0:return false
@@ -298,7 +339,9 @@ func load_game(path: String) -> String:
 	if data==null:return ""
 	story_seen=data.get("story_seen",[])
 	chapter=int(data.chapter);turn=int(data.turn);phase=data.phase;roster=data.roster;units=data.units;deployed=data.deployed;completed=data.completed;rng.state=int(data.rng)
+	for unit in roster:normalize_equipment(unit)
 	for unit in units:
+		normalize_equipment(unit)
 		unit.moved=unit.get("moved",false)
 		if unit.team=="enemy":unit.ai=unit.get("ai","guard" if unit.get("boss",false) else "pursue")
 	# Old layouts cannot safely resume units on redesigned walls or water.

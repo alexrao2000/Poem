@@ -3,6 +3,7 @@ set -euo pipefail
 cd "$(dirname "$0")/.."
 GODOT_BIN="${GODOT_BIN:-godot}"
 mkdir -p build/web build/native build/logs
+touch build/.gdignore
 "$GODOT_BIN" --headless --log-file "$PWD/build/logs/import.log" --path "$PWD" --editor --import
 GODOT_BIN="$GODOT_BIN" python3 scripts/test_local.py
 "$GODOT_BIN" --headless --log-file "$PWD/build/logs/web.log" --path "$PWD" --export-release Web

@@ -281,7 +281,7 @@ func show_camp():
 	label_in(left,game.info().get("tactical_brief",""),18,Color("6f6c5e"))
 	label_in(left,"OBJECTIVE  /  "+objective_text(),18,GOLD)
 	label_in(left,"Recruited %d / 24  ·  Deployed %d / 6"%[game.available().size(),game.deployed.size()],18)
-	label_in(left,"Select up to six allies. Healing tiles restore 6 HP each turn. Wardens heal adjacent allies; everyone carries two field tonics.",16,Color("766e5e"))
+	label_in(left,"Select up to six allies. Healing tiles restore 6 HP each turn. Open a portrait to inspect equipment. Wardens heal within staff range; everyone carries two field tonics.",16,Color("766e5e"))
 	var sp=Control.new();sp.size_flags_vertical=Control.SIZE_EXPAND_FILL;left.add_child(sp)
 	button_in(left,"Deploy company  >",func():game.start_battle();make_map();show_battle();game.save_game(SAVE,"battle"),game.deployed.is_empty())
 	button_in(left,"Save campaign",func():save_with_feedback("camp"))
@@ -300,7 +300,7 @@ func show_camp():
 		var texts=VBoxContainer.new();texts.size_flags_horizontal=Control.SIZE_EXPAND_FILL;content.add_child(texts)
 		label_in(texts,u.name+"  /  "+u.job+"  ·  Lv "+str(int(u.level)),19,GOLD if unlocked else Color("9a9588"))
 		label_in(texts,u.bio if unlocked else "Joins in chapter "+str(int(u.join)+1),14)
-		label_in(texts,"HP %d   ATK %d   DEF %d   SPD %d   MOV %d"%[u.max_hp,u.pow,u.defense,u.speed,u.move],13,Color("81775f"))
+		label_in(texts,"HP %d   ATK %d   DEF %d   SPD %d   MOV %d"%[u.max_hp,game.attack_power(u),u.defense,game.attack_speed(u),u.move],13,Color("81775f"))
 		button_in(content,"Deployed" if u.id in game.deployed else "Deploy",func():
 			if u.id in game.deployed:game.deployed.erase(u.id)
 			elif game.deployed.size()<6:game.deployed.append(u.id)
@@ -341,7 +341,7 @@ func update_side():
 		label_in(details,selected.name,27,GOLD)
 		label_in(details,selected.job,16)
 		label_in(details,"Lv %d  /  XP %d"%[selected.level,selected.xp],15)
-		label_in(side,"HP %d / %d\nATK %d   DEF %d   SPD %d\n%s · range %d"%[selected.hp,selected.max_hp,selected.pow,selected.defense,selected.speed,selected.weapon.to_upper(),selected.reach],18)
+		label_in(side,"HP %d / %d\nATK %d   DEF %d   SPD %d\n%s · range %s"%[selected.hp,selected.max_hp,game.attack_power(selected),selected.defense,game.attack_speed(selected),game.item_for(selected).name,game.range_text(selected)],18)
 		if selected.team=="enemy":
 			var behavior={"guard":"Holds position","sentry":"Waits until approached","pursue":"Advances toward the company"}
 			label_in(side,behavior.get(selected.get("ai","pursue"),"Advances"),17,GOLD)
@@ -356,7 +356,7 @@ func update_side():
 		if selected.team=="player" and not selected.acted:
 			button_in(side,"Wait / secure position",wait_action,busy)
 			button_in(side,"Field tonic (+12 HP)  ·  "+str(int(selected.potions)),tonic,busy or selected.potions<=0 or selected.hp>=selected.max_hp)
-			if selected.weapon=="staff":label_in(side,"Click an adjacent ally to heal 12 HP.",16,GOLD)
+			if selected.weapon=="staff":label_in(side,"Heal %d HP · range %s. Click an injured ally."%[game.item_for(selected).heal,game.range_text(selected)],16,GOLD)
 	else:
 		label_in(side,"THE COMPANY",15,GOLD)
 		label_in(side,"%d allies  ·  %d enemies"%[game.living("player").size(),game.living("enemy").size()],18)
@@ -426,7 +426,7 @@ func click_tile(p: Vector2i):
 	var u=game.at(p)
 	if selected!=null and selected.team=="player" and not selected.acted and u!=null:
 		if game.can_attack(selected,u):target=u;update_side();return
-		if selected.weapon=="staff" and u.team=="player" and u!=selected and game.distance(selected,u)==1 and u.hp<u.max_hp:
+		if game.can_heal(selected,u):
 			if game.heal(selected,u):play_sfx("heal");finish_action();return
 	if u!=null and u.team=="player":
 		cancel_selection();selected=u;play_sfx("select");highlight();update_side();return
@@ -504,7 +504,7 @@ func cinematic(a,b,events,initial_hp={}):
 	var old_lighting=battle_lighting(game.info().get("environment","village"))
 	scenery.battle_landscape(stage,Vector3(35,0,0),{"chapter":game.chapter,"terrain":game.terrain(game.pos(b)),"environment":game.info().get("environment","village")})
 	world.hide();pieces.hide()
-	var ranged=a.weapon in ["bow","magic"] or b.weapon in ["bow","magic"]
+	var ranged=game.distance(a,b)>1 or a.weapon in ["bow","magic"] or b.weapon in ["bow","magic"]
 	var spacing=2.0 if ranged else 1.6
 	var actor=make_fighter(a,Vector3(35-spacing,0,0));var defender=make_fighter(b,Vector3(35+spacing,0,0))
 	actor.rotation.y=-PI/2;defender.rotation.y=PI/2
@@ -549,7 +549,7 @@ func cinematic(a,b,events,initial_hp={}):
 		var unit=a if who==actor else b
 		var base=who.position
 		var direction=1.0 if who==actor else -1.0
-		var is_ranged=unit.weapon in ["bow","magic"]
+		var is_ranged=unit.weapon in ["bow","magic"] or (unit.weapon=="lance" and game.distance(a,b)>1)
 		caption.text=unit.name+"  /  "+("Critical strike" if event.crit else unit.weapon.capitalize())
 		if not is_ranged:
 			who.pose_name="advance"
@@ -557,10 +557,10 @@ func cinematic(a,b,events,initial_hp={}):
 			var distance_to_close=absf(whom.position.x-who.position.x)-1.65
 			approach.tween_property(who,"position:x",base.x+direction*maxf(0,distance_to_close),.24)
 			await approach.finished
-		await who.pose("windup",.28 if not event.crit else .4).finished
+		await who.pose("throw_windup" if is_ranged and unit.weapon=="lance" else "windup",.28 if not event.crit else .4).finished
 		if skip_combat:break
 		play_sfx("magic" if unit.weapon=="magic" else "swing")
-		await who.pose("strike",.12).finished
+		await who.pose("throw" if is_ranged and unit.weapon=="lance" else "strike",.12).finished
 		if is_ranged:
 			await projectile(who.position+Vector3(0,1.2,0),whom.position+Vector3(0,1.1,0),unit.weapon)
 		if event.hit:
@@ -623,8 +623,8 @@ func restore_lighting(old: Dictionary):
 
 func projectile(from: Vector3,to: Vector3,kind: String):
 	var visual=Node3D.new();stage.add_child(visual);visual.position=from
-	if kind=="bow":
-		var shaft=cube(visual,Vector3.ZERO,Vector3(.5,.018,.018),Color("695344"))
+	if kind in ["bow","lance"]:
+		var shaft=cube(visual,Vector3.ZERO,Vector3(1.3,.035,.035) if kind=="lance" else Vector3(.5,.018,.018),Color("695344"))
 		cube(shaft,Vector3(.5,0,0),Vector3(.12,3,3),Color("d2d8dc"))
 		if to.x<from.x:visual.rotation.y=PI
 	else:
@@ -729,9 +729,10 @@ func show_dossier(unit):
 	var profile=profiles.get(unit.id,{})
 	label_in(info,unit.name,46,GOLD);label_in(info,profile.get("title",unit.job),26)
 	label_in(info,"%s  /  Level %d  /  %d XP"%[unit.job,unit.level,unit.xp],20)
-	label_in(info,"HP %d    ATK %d    DEF %d    SPD %d    MOV %d"%[unit.max_hp,unit.pow,unit.defense,unit.speed,unit.move],21)
+	label_in(info,"HP %d    ATK %d    DEF %d    SPD %d    MOV %d"%[unit.max_hp,game.attack_power(unit),unit.defense,game.attack_speed(unit),unit.move],21)
 	label_in(info,profile.get("biography",unit.bio),22)
 	label_in(info,"PERSONAL NOTE",16,GOLD);label_in(info,profile.get("note",""),20)
+	button_in(panel,"Equipment · "+game.item_for(unit).name,func():show_equipment(unit))
 	button_in(panel,"Return to war council",show_camp)
 
 func load_campaign():
@@ -741,3 +742,33 @@ func load_campaign():
 	if saved=="ending":show_ending()
 	elif saved=="battle":make_map();show_battle()
 	else:show_camp()
+
+func show_equipment(unit):
+	screen="equipment";reset_ui()
+	var panel=panel_at(ui,70,45,-70,-45)
+	label_in(panel,"COMPANY ARSENAL",17,GOLD)
+	label_in(panel,unit.name+"  /  "+unit.job,40,GOLD)
+	label_in(panel,"Equipment is shared freely. New supplies become available as the campaign advances.",19)
+	var row=HBoxContainer.new();row.add_theme_constant_override("separation",28);row.size_flags_vertical=Control.SIZE_EXPAND_FILL;panel.add_child(row)
+	var summary=VBoxContainer.new();summary.custom_minimum_size.x=280;row.add_child(summary)
+	var portrait=TextureRect.new();portrait.texture=portraits.get_portrait(unit.id);portrait.custom_minimum_size=Vector2(280,310)
+	portrait.expand_mode=TextureRect.EXPAND_IGNORE_SIZE;portrait.stretch_mode=TextureRect.STRETCH_KEEP_ASPECT_CENTERED;summary.add_child(portrait)
+	label_in(summary,"EQUIPPED",16,GOLD);label_in(summary,game.item_for(unit).name,25)
+	label_in(summary,"Attack %d   Speed %d\nRange %s"%[game.attack_power(unit),game.attack_speed(unit),game.range_text(unit)],21)
+	label_in(summary,"Weight reduces speed. A 4-point speed lead grants a follow-up attack.",17)
+	var scroll=ScrollContainer.new();scroll.size_flags_horizontal=Control.SIZE_EXPAND_FILL;scroll.size_flags_vertical=Control.SIZE_EXPAND_FILL;row.add_child(scroll)
+	var list=VBoxContainer.new();list.size_flags_horizontal=Control.SIZE_EXPAND_FILL;list.add_theme_constant_override("separation",12);scroll.add_child(list)
+	for item in game.equipment:
+		if item.kind!=unit.weapon:continue
+		var card=PanelContainer.new();list.add_child(card)
+		var details=VBoxContainer.new();details.add_theme_constant_override("separation",5);card.add_child(details)
+		label_in(details,item.name,26,GOLD);label_in(details,item.description,17)
+		var reach=str(int(item.min_range)) if item.min_range==item.max_range else "%d–%d"%[item.min_range,item.max_range]
+		if item.kind=="staff":label_in(details,"Heal %d   Weight %d   Range %s"%[item.heal,item.weight,reach],18)
+		else:label_in(details,"Might %d   Hit %+d   Crit +%d   Weight %d   Range %s"%[item.might,item.hit,item.crit,item.weight,reach],18)
+		var locked=int(item.unlock)>game.chapter;var equipped=unit.item==item.id
+		button_in(details,"Available in chapter %d"%(int(item.unlock)+1) if locked else ("Equipped" if equipped else "Equip"),func():
+			if game.equip(unit,item.id):show_equipment(unit);game.save_game(SAVE,"camp")
+		,locked or equipped)
+	button_in(panel,"Return to company record",func():show_dossier(unit))
+	button_in(panel,"Return to war council",show_camp)
