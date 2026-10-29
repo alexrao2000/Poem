@@ -18,3 +18,11 @@ Created with the built-in image-generation tool on 2026-10-29, then copied into 
 - Replace repetitive round foliage and simple houses with richer original environment assets. Match each combat arena to the actual battlefield terrain.
 - Add restrained UI ornament and typographic hierarchy without increasing panel size.
 - Improve camera continuity: track the selected map unit into the close-up, preserve relative orientation and terrain, then return to its exact map position.
+
+## Character portraits and typography
+
+`assets/portraits/company-a.png` through `company-d.png` contain all 24 individual original portraits in 3-by-2 atlases. Generated with the built-in image tool on 2026-10-29; complete prompts are preserved in `docs/portrait-prompts.json`. Transparent backgrounds are preserved and Godot clips each atlas region at runtime. These appear in recruitment, dossiers, dialogue and selected-unit panels.
+
+Display headings use Cormorant Garamond from https://github.com/google/fonts/tree/main/ofl/cormorantgaramond under the included `assets/fonts/OFL.txt`.
+
+The second presentation pass adds elbow/knee articulation, weapon-specific attack preparation and strikes, dodges, reactions and falling poses; projectiles for bows/magic; chapter-specific combat scenery and lighting; selection-centered camera zoom; and crossfades that remain stable during consecutive fights. Meshes remain procedural placeholders and need a substantial art pass.

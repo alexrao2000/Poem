@@ -1,0 +1,488 @@
+{
+  "chapters": [
+    {
+      "opening": [
+        {
+          "speaker": "oren",
+          "text": "The evacuation order is signed. They want every house empty before sunset."
+        },
+        {
+          "speaker": "lyra",
+          "text": "And the people who cannot walk?"
+        },
+        {
+          "speaker": "ivo",
+          "text": "They were not mentioned in the order. I have six patients still on this side of the river."
+        },
+        {
+          "speaker": "sera",
+          "text": "The patrol is crossing the upper bridge. If we hold the square, the wagons can reach the south road."
+        },
+        {
+          "speaker": "lyra",
+          "text": "Then that is what this banner means today. A road out. Nothing more."
+        },
+        {
+          "speaker": "oren",
+          "text": "That will be enough for the people behind us."
+        }
+      ],
+      "closing": [
+        {
+          "speaker": "ivo",
+          "text": "The last wagon is across. All six patients are still complaining, which I take as a good sign."
+        },
+        {
+          "speaker": "lyra",
+          "text": "Oren, you can go home now."
+        },
+        {
+          "speaker": "oren",
+          "text": "There is an empty square where my home used to feel safe. I would rather help you change that."
+        }
+      ]
+    },
+    {
+      "opening": [
+        {
+          "speaker": "mara",
+          "text": "I can carry your people north. I cannot sail through an iron chain."
+        },
+        {
+          "speaker": "tarin",
+          "text": "The chain is raised from the eastern tollhouse. The guards are protecting a shipment with the royal observatory seal."
+        },
+        {
+          "speaker": "lyra",
+          "text": "Food? Weapons?"
+        },
+        {
+          "speaker": "tarin",
+          "text": "Sunstone. More than any furnace could safely burn."
+        },
+        {
+          "speaker": "mara",
+          "text": "Questions after the crossing. Take their flag, and I will take their river."
+        }
+      ],
+      "closing": [
+        {
+          "speaker": "mara",
+          "text": "The river is open. You owe me one chain and a great deal of rope."
+        },
+        {
+          "speaker": "tarin",
+          "text": "These manifests lead to the abbey furnaces. Whatever the regent is building, he is running out of time."
+        },
+        {
+          "speaker": "lyra",
+          "text": "Then we go north before he decides to borrow ours."
+        }
+      ]
+    },
+    {
+      "opening": [
+        {
+          "speaker": "nell",
+          "text": "The children know to follow my lantern. The soldiers know it too."
+        },
+        {
+          "speaker": "bram",
+          "text": "My horses can pull the last wagon, but the axle will not survive a gallop."
+        },
+        {
+          "speaker": "sera",
+          "text": "We can hold the bends in the road. The trees will make their archers work for a clear shot."
+        },
+        {
+          "speaker": "ivo",
+          "text": "Six bells. That is how long we need."
+        },
+        {
+          "speaker": "lyra",
+          "text": "Keep the lanterns moving. We will keep the road."
+        }
+      ],
+      "closing": [
+        {
+          "speaker": "nell",
+          "text": "Every lantern accounted for. Bram even brought back the broken axle."
+        },
+        {
+          "speaker": "bram",
+          "text": "Good timber is good timber."
+        },
+        {
+          "speaker": "sera",
+          "text": "Tomorrow we follow the abbey road. Tonight, let the horses sleep."
+        }
+      ]
+    },
+    {
+      "opening": [
+        {
+          "speaker": "esme",
+          "text": "They took the bell three mornings ago. Now they make us ring an iron plate for the work shifts."
+        },
+        {
+          "speaker": "rook",
+          "text": "I helped them seize this abbey. I know the sentries, and I know the man giving the orders."
+        },
+        {
+          "speaker": "oren",
+          "text": "You expect us to trust you?"
+        },
+        {
+          "speaker": "rook",
+          "text": "No. Put me at the front, where you can see what I do."
+        },
+        {
+          "speaker": "lyra",
+          "text": "We free the granary and remove the overseer. What comes after that, you will have to earn."
+        }
+      ],
+      "closing": [
+        {
+          "speaker": "esme",
+          "text": "The granary keys were in his desk. He kept the bell\u2019s clapper beside them."
+        },
+        {
+          "speaker": "rook",
+          "text": "I cannot give back the mornings we took from this place."
+        },
+        {
+          "speaker": "esme",
+          "text": "No. But you can help us hang another bell."
+        }
+      ]
+    },
+    {
+      "opening": [
+        {
+          "speaker": "cassian",
+          "text": "Your standard bears my family\u2019s colors."
+        },
+        {
+          "speaker": "lyra",
+          "text": "It was the only cloth large enough to cover a wagon. You may have it when everyone is safe."
+        },
+        {
+          "speaker": "faye",
+          "text": "The imperial checkpoint will arrest both of you while you argue over laundry."
+        },
+        {
+          "speaker": "cassian",
+          "text": "You have a route through the trees?"
+        },
+        {
+          "speaker": "faye",
+          "text": "Two. Neither is wide enough for your pride."
+        },
+        {
+          "speaker": "lyra",
+          "text": "We take the eastern gate together. The crown can wait."
+        }
+      ],
+      "closing": [
+        {
+          "speaker": "cassian",
+          "text": "I thought people would rally when they saw my crest."
+        },
+        {
+          "speaker": "faye",
+          "text": "They rallied when you helped push a cart out of the ditch."
+        },
+        {
+          "speaker": "cassian",
+          "text": "A rather less dignified kind of leadership."
+        },
+        {
+          "speaker": "lyra",
+          "text": "You may be good at it."
+        }
+      ]
+    },
+    {
+      "opening": [
+        {
+          "speaker": "vela",
+          "text": "The beacon is still lit, but there are soldiers in every warehouse."
+        },
+        {
+          "speaker": "dax",
+          "text": "Dock crews are trapped between the occupation and the fires. They will come out when the patrols fall."
+        },
+        {
+          "speaker": "mara",
+          "text": "My boat is on the far quay. Try not to burn the good rope."
+        },
+        {
+          "speaker": "lyra",
+          "text": "We clear the harbor street by street. Leave the doors open behind us."
+        },
+        {
+          "speaker": "dax",
+          "text": "You heard her. Today we unload an army."
+        }
+      ],
+      "closing": [
+        {
+          "speaker": "dax",
+          "text": "Three warehouses, two barges, and everyone we could find. The harbor is ours."
+        },
+        {
+          "speaker": "vela",
+          "text": "The beacon is clear to the far shore. Someone has answered it."
+        },
+        {
+          "speaker": "mara",
+          "text": "Then the next tide belongs to us."
+        }
+      ]
+    },
+    {
+      "opening": [
+        {
+          "speaker": "una",
+          "text": "The embassy was promised safe passage. The promise lasted until we entered the pass."
+        },
+        {
+          "speaker": "silas",
+          "text": "I have the written order that arranged the ambush. Get it to the cities, and the regent loses his excuses."
+        },
+        {
+          "speaker": "cassian",
+          "text": "And if we cannot hold the pass?"
+        },
+        {
+          "speaker": "una",
+          "text": "Then take the documents anyway. I am tired of being the reason someone else stays behind."
+        },
+        {
+          "speaker": "lyra",
+          "text": "Nobody is being traded for a piece of paper. We hold together, then we leave together."
+        }
+      ],
+      "closing": [
+        {
+          "speaker": "silas",
+          "text": "The orders are in the hands of every city council. I have never delivered so many copies of the truth."
+        },
+        {
+          "speaker": "una",
+          "text": "And the embassy survivors?"
+        },
+        {
+          "speaker": "ivo",
+          "text": "All here. Tired of diplomats asking after them, but here."
+        }
+      ]
+    },
+    {
+      "opening": [
+        {
+          "speaker": "petra",
+          "text": "I built the west supports. The old maintenance walk still crosses underneath the garrison."
+        },
+        {
+          "speaker": "ari",
+          "text": "The patrol changes at the eastern gate. I can keep the signal birds above the arches."
+        },
+        {
+          "speaker": "oren",
+          "text": "Can the aqueduct bear the company?"
+        },
+        {
+          "speaker": "petra",
+          "text": "It bore a city\u2019s water for two hundred years. Walk where I tell you."
+        },
+        {
+          "speaker": "lyra",
+          "text": "We take the gate and open the sluices. Let the valley have something back."
+        }
+      ],
+      "closing": [
+        {
+          "speaker": "petra",
+          "text": "Listen. That is water reaching the lower channels."
+        },
+        {
+          "speaker": "ari",
+          "text": "The birds are following it all the way down."
+        },
+        {
+          "speaker": "lyra",
+          "text": "For once, let the news arrive before the soldiers."
+        }
+      ]
+    },
+    {
+      "opening": [
+        {
+          "speaker": "noor",
+          "text": "The engine is not making sunlight. It is drawing heat from the land and storing it above the capital."
+        },
+        {
+          "speaker": "tarin",
+          "text": "That cannot continue. The valley would freeze, then burn when the containment fails."
+        },
+        {
+          "speaker": "galen",
+          "text": "The roots below my monastery are already warm in winter."
+        },
+        {
+          "speaker": "lyra",
+          "text": "Can we stop it here?"
+        },
+        {
+          "speaker": "noor",
+          "text": "The observatory controls its aim. Break that control first. Then I can find the anchors."
+        }
+      ],
+      "closing": [
+        {
+          "speaker": "noor",
+          "text": "Three anchors. One in the furnace, two under the palace. We can reach them."
+        },
+        {
+          "speaker": "galen",
+          "text": "Then I will pack more seeds."
+        },
+        {
+          "speaker": "tarin",
+          "text": "For a siege?"
+        },
+        {
+          "speaker": "galen",
+          "text": "For the day after. Someone ought to think of it."
+        }
+      ]
+    },
+    {
+      "opening": [
+        {
+          "speaker": "hale",
+          "text": "I dug these tunnels. They told us the engine would end the hungry winters."
+        },
+        {
+          "speaker": "yuna",
+          "text": "In the palace they told a different story. They said the workers were honored volunteers."
+        },
+        {
+          "speaker": "hale",
+          "text": "Then let us show them some honored volunteers walking out."
+        },
+        {
+          "speaker": "ivo",
+          "text": "The treatment stations are ready at both exits."
+        },
+        {
+          "speaker": "lyra",
+          "text": "Clear the furnace halls. Nobody stays to fuel this machine."
+        }
+      ],
+      "closing": [
+        {
+          "speaker": "hale",
+          "text": "Nobody left below. I checked the old shafts myself."
+        },
+        {
+          "speaker": "yuna",
+          "text": "The palace service doors open at dawn. I still remember every step."
+        },
+        {
+          "speaker": "lyra",
+          "text": "Then we will be there when they open."
+        }
+      ]
+    },
+    {
+      "opening": [
+        {
+          "speaker": "elian",
+          "text": "My regiment has opened the outer defenses. The inner guard has not answered."
+        },
+        {
+          "speaker": "rhea",
+          "text": "My father read your offer of surrender. Then he locked the engine chamber."
+        },
+        {
+          "speaker": "lyra",
+          "text": "Do you still want to go in?"
+        },
+        {
+          "speaker": "rhea",
+          "text": "I want him to open the door. If he will not, I want to be there when we do."
+        },
+        {
+          "speaker": "cassian",
+          "text": "Then no banners above the gate until this is over. Today we enter as a company."
+        }
+      ],
+      "closing": [
+        {
+          "speaker": "elian",
+          "text": "The guard has stood down. No one outside the chamber is still fighting."
+        },
+        {
+          "speaker": "rhea",
+          "text": "I can hear him speaking through the door. He is giving orders to an empty room."
+        },
+        {
+          "speaker": "lyra",
+          "text": "Then we should not leave him there alone."
+        }
+      ]
+    },
+    {
+      "opening": [
+        {
+          "speaker": "noor",
+          "text": "The anchors are failing. Every order sworn to the crown feeds the binding again."
+        },
+        {
+          "speaker": "rhea",
+          "text": "He thinks keeping his oath will keep the city alive."
+        },
+        {
+          "speaker": "oren",
+          "text": "An oath does not mend a broken thing by breaking everyone around it."
+        },
+        {
+          "speaker": "lyra",
+          "text": "We stop the keeper. We shut down the engine. Then we help whoever is left, on either side."
+        },
+        {
+          "speaker": "ivo",
+          "text": "I have brought every bandage we own."
+        },
+        {
+          "speaker": "lyra",
+          "text": "Let us try not to need them all."
+        }
+      ],
+      "closing": [
+        {
+          "speaker": "rhea",
+          "text": "I thought the sky would go dark."
+        },
+        {
+          "speaker": "noor",
+          "text": "That was only the borrowed light. Morning does not need the engine."
+        },
+        {
+          "speaker": "cassian",
+          "text": "And the throne?"
+        },
+        {
+          "speaker": "lyra",
+          "text": "We can discuss chairs after we get everyone home."
+        },
+        {
+          "speaker": "oren",
+          "text": "I know a square with room for a very long table."
+        }
+      ]
+    }
+  ]
+}

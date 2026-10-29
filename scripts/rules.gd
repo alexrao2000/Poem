@@ -9,6 +9,7 @@ var units: Array = []
 var deployed: Array = []
 var rng := RandomNumberGenerator.new()
 var completed: bool = false
+var story_seen: Array = []
 
 func _init():
 	content = JSON.parse_string(FileAccess.get_file_as_string("res://data/campaign.json"))
@@ -18,6 +19,8 @@ func _init():
 func new_campaign():
 	chapter = 0
 	completed = false
+	story_seen.clear()
+	rng.seed = 472019
 	roster = content.roster.duplicate(true)
 	for u in roster:
 		u.level = 1+int(u.join)
@@ -196,12 +199,13 @@ func next_player_turn():
 func save_game(path: String,stage: String):
 	var file = FileAccess.open(path,FileAccess.WRITE)
 	if file==null: return false
-	file.store_string(JSON.stringify({"version":1,"chapter":chapter,"turn":turn,"phase":phase,"roster":roster,"units":units,"deployed":deployed,"completed":completed,"rng":str(rng.state),"stage":stage}))
+	file.store_string(JSON.stringify({"version":2,"story_seen":story_seen,"chapter":chapter,"turn":turn,"phase":phase,"roster":roster,"units":units,"deployed":deployed,"completed":completed,"rng":str(rng.state),"stage":stage}))
 	return true
 
 func load_game(path: String) -> String:
 	if not FileAccess.file_exists(path):return ""
 	var d = JSON.parse_string(FileAccess.get_file_as_string(path))
-	if not d is Dictionary or d.get("version")!=1:return ""
+	if not d is Dictionary or int(d.get("version",0)) not in [1,2]:return ""
+	story_seen=d.get("story_seen",[])
 	chapter=int(d.chapter);turn=int(d.turn);phase=d.phase;roster=d.roster;units=d.units;deployed=d.deployed;completed=d.completed;rng.state=int(d.rng)
 	return d.stage

@@ -384,7 +384,8 @@
       ],
       "turn_limit": 6,
       "deployment": 6,
-      "enemy_count": 5
+      "enemy_count": 5,
+      "environment": "village"
     },
     {
       "id": 1,
@@ -408,7 +409,8 @@
       ],
       "turn_limit": 6,
       "deployment": 6,
-      "enemy_count": 5
+      "enemy_count": 5,
+      "environment": "river"
     },
     {
       "id": 2,
@@ -432,7 +434,8 @@
       ],
       "turn_limit": 6,
       "deployment": 6,
-      "enemy_count": 6
+      "enemy_count": 6,
+      "environment": "forest"
     },
     {
       "id": 3,
@@ -456,7 +459,8 @@
       ],
       "turn_limit": 6,
       "deployment": 6,
-      "enemy_count": 6
+      "enemy_count": 6,
+      "environment": "abbey"
     },
     {
       "id": 4,
@@ -480,7 +484,8 @@
       ],
       "turn_limit": 6,
       "deployment": 6,
-      "enemy_count": 7
+      "enemy_count": 7,
+      "environment": "road"
     },
     {
       "id": 5,
@@ -504,7 +509,8 @@
       ],
       "turn_limit": 6,
       "deployment": 6,
-      "enemy_count": 7
+      "enemy_count": 7,
+      "environment": "harbor"
     },
     {
       "id": 6,
@@ -528,7 +534,8 @@
       ],
       "turn_limit": 6,
       "deployment": 6,
-      "enemy_count": 8
+      "enemy_count": 8,
+      "environment": "mountain"
     },
     {
       "id": 7,
@@ -552,7 +559,8 @@
       ],
       "turn_limit": 6,
       "deployment": 6,
-      "enemy_count": 8
+      "enemy_count": 8,
+      "environment": "aqueduct"
     },
     {
       "id": 8,
@@ -576,7 +584,8 @@
       ],
       "turn_limit": 6,
       "deployment": 6,
-      "enemy_count": 9
+      "enemy_count": 9,
+      "environment": "observatory"
     },
     {
       "id": 9,
@@ -600,7 +609,8 @@
       ],
       "turn_limit": 6,
       "deployment": 6,
-      "enemy_count": 9
+      "enemy_count": 9,
+      "environment": "furnace"
     },
     {
       "id": 10,
@@ -624,7 +634,8 @@
       ],
       "turn_limit": 6,
       "deployment": 6,
-      "enemy_count": 10
+      "enemy_count": 10,
+      "environment": "castle"
     },
     {
       "id": 11,
@@ -648,7 +659,8 @@
       ],
       "turn_limit": 6,
       "deployment": 6,
-      "enemy_count": 10
+      "enemy_count": 10,
+      "environment": "engine"
     }
   ],
   "classes": {

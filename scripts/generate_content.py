@@ -45,6 +45,7 @@ for i,(title,place,obj,boss,intro,outro) in enumerate(chapters):
  for x,y in [(1,3),(1,4),(1,5),(2,3),(2,4),(2,5)]:grid[y][x]='.'
  grid[4][12]='o';grid[3][3]='+';grid[7][10]='+'
  cs.append(dict(id=i,title=title,place=place,objective=obj,boss=boss,intro=intro,outro=outro,map=[''.join(r) for r in grid],turn_limit=6,deployment=6,enemy_count=5+i//2))
+for chapter,theme in zip(cs,['village','river','forest','abbey','road','harbor','mountain','aqueduct','observatory','furnace','castle','engine']):chapter['environment']=theme
 json.dump(dict(roster=roster,chapters=cs,classes=classes),open(root+'/data/campaign.json','w'),indent=2)
 # Pixel silhouettes authored procedurally; transparent PNG sprites, 3 idle frames.
 def png(path,w,h,data):

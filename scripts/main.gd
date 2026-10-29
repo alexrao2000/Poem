@@ -1,5 +1,17 @@
 extends Node3D
 const Rules = preload("res://scripts/rules.gd")
+const Portraits = preload("res://scripts/portraits.gd")
+const DISPLAY_FONT = preload("res://assets/fonts/CormorantGaramond.ttf")
+var portraits=Portraits.new()
+var story: Dictionary
+var profiles: Dictionary
+var dialogue_lines: Array=[]
+var dialogue_index=0
+var dialogue_callback: Callable
+var dialogue_label: Label
+var dialogue_name: Label
+var dialogue_portrait: TextureRect
+var dialogue_reveal=0.0
 const Fighters = preload("res://scripts/fighters.gd")
 var fighters: RefCounted
 const Scenery = preload("res://scripts/scenery.gd")
@@ -7,6 +19,8 @@ var scenery: RefCounted
 const CLASSES = ["Vanguard","Knight","Ranger","Arcanist","Warden","Rider","Corsair","Duelist"]
 var game = Rules.new()
 var camera: Camera3D
+var environment: Environment
+var sunlight: DirectionalLight3D
 var world: Node3D
 var markers: Node3D
 var pieces: Node3D
@@ -22,6 +36,7 @@ var busy = false
 var screen = "title"
 var music: AudioStreamPlayer
 var score: AudioStreamSynchronized
+var music_transition: Tween
 var muted = false
 var sprites: Array = []
 var clock = 0.0
@@ -31,11 +46,14 @@ const INK = Color("e8e0cb")
 const SAVE = "user://campaign.json"
 
 func _ready():
+	story=JSON.parse_string(FileAccess.get_file_as_string("res://data/story.json"))
+	profiles=JSON.parse_string(FileAccess.get_file_as_string("res://data/characters.json"))
 	scenery=Scenery.new()
 	fighters=Fighters.new()
 	RenderingServer.set_default_clear_color(Color("b9c7ca"))
 	var env = WorldEnvironment.new()
 	var settings = Environment.new()
+	environment=settings
 	settings.background_mode=Environment.BG_SKY
 	var sky=Sky.new();var sky_material=ProceduralSkyMaterial.new()
 	sky_material.sky_top_color=Color("648aa7");sky_material.sky_horizon_color=Color("d8dbce")
@@ -47,6 +65,7 @@ func _ready():
 	env.environment=settings
 	add_child(env)
 	var sun = DirectionalLight3D.new()
+	sunlight=sun
 	sun.rotation_degrees=Vector3(-55,-25,0)
 	sun.light_color=Color("ffe2ad")
 	sun.light_energy=1.1
@@ -77,12 +96,16 @@ func setup_audio():
 	add_child(music)
 
 func music_mix(battle: bool):
-	var tw=create_tween().set_parallel(true)
-	tw.tween_method(func(v):score.set_sync_stream_volume(0,linear_to_db(maxf(v,0.001))),1.0 if battle else 0.001,0.001 if battle else 1.0,0.45)
-	tw.tween_method(func(v):score.set_sync_stream_volume(1,linear_to_db(maxf(v,0.001))),0.001 if battle else 1.0,1.0 if battle else 0.001,0.45)
+	if music_transition and music_transition.is_valid():music_transition.kill()
+	music_transition=create_tween().set_parallel(true)
+	music_transition.tween_method(func(v):score.set_sync_stream_volume(0,linear_to_db(maxf(v,0.001))),db_to_linear(score.get_sync_stream_volume(0)),0.001 if battle else 1.0,0.45)
+	music_transition.tween_method(func(v):score.set_sync_stream_volume(1,linear_to_db(maxf(v,0.001))),db_to_linear(score.get_sync_stream_volume(1)),1.0 if battle else 0.001,0.45)
 
 func _process(dt):
 	clock+=dt
+	if screen=="dialogue" and is_instance_valid(dialogue_label):
+		dialogue_reveal+=dt*55
+		dialogue_label.visible_characters=int(dialogue_reveal)
 	for s in sprites:
 		if is_instance_valid(s):s.position.y=s.get_meta("base_y",.65)+sin(clock*3+s.position.x)*.015
 
@@ -96,6 +119,7 @@ func box(color: Color) -> StyleBoxFlat:
 	return b
 
 func reset_ui():
+	dialogue_label=null
 	if is_instance_valid(ui):
 		canvas.remove_child(ui)
 		ui.queue_free()
@@ -119,6 +143,7 @@ func reset_ui():
 
 func label_in(parent,text_value,size=18,color=Color("443e36")) -> Label:
 	var l=Label.new();l.text=text_value;l.add_theme_font_size_override("font_size",size);l.add_theme_color_override("font_color",color)
+	if size>=30:l.add_theme_font_override("font",DISPLAY_FONT)
 	l.autowrap_mode=TextServer.AUTOWRAP_WORD_SMART
 	parent.add_child(l)
 	return l
@@ -207,6 +232,11 @@ func show_title():
 func show_camp():
 	screen="camp";busy=false;selected=null;target=null;origin=null
 	game.phase="player"
+	var story_key="opening_"+str(game.chapter)
+	if story_key not in game.story_seen:
+		game.story_seen.append(story_key)
+		show_dialogue(story.chapters[game.chapter].opening,show_camp)
+		return
 	reset_ui()
 	var bg=ColorRect.new();bg.color=INK;bg.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT);ui.add_child(bg);ui.move_child(bg,0)
 	var shell=MarginContainer.new();shell.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
@@ -225,14 +255,17 @@ func show_camp():
 	button_in(left,"Deploy company  >",func():game.start_battle();make_map();show_battle();game.save_game(SAVE,"battle"),game.deployed.is_empty())
 	button_in(left,"Save campaign",func():game.save_game(SAVE,"camp"))
 	button_in(left,"Return to title",show_title)
-	label_in(left,"Music: original synchronized sketch\nVisuals: original procedural prototype assets",13,Color("827b6c"))
+	label_in(left,"Music: original synchronized sketch\nVisuals: original painted art and 3D models",13,Color("827b6c"))
 	var scroll=ScrollContainer.new();scroll.custom_minimum_size.x=650;scroll.size_flags_horizontal=Control.SIZE_EXPAND_FILL;row.add_child(scroll)
 	var cards=VBoxContainer.new();cards.size_flags_horizontal=Control.SIZE_EXPAND_FILL;scroll.add_child(cards)
 	for u in game.roster:
 		var unlocked=int(u.join)<=game.chapter
 		var panel=PanelContainer.new();cards.add_child(panel)
 		var content=HBoxContainer.new();panel.add_child(content)
-		var pic=TextureRect.new();pic.texture=unit_portrait(u);pic.custom_minimum_size=Vector2(90,60);pic.expand_mode=TextureRect.EXPAND_IGNORE_SIZE;pic.stretch_mode=TextureRect.STRETCH_KEEP_ASPECT_CENTERED;pic.texture_filter=CanvasItem.TEXTURE_FILTER_NEAREST;content.add_child(pic)
+		var pic=TextureButton.new();pic.texture_normal=portraits.get_portrait(u.id) if unlocked else unit_portrait(u)
+		pic.custom_minimum_size=Vector2(90,90);pic.ignore_texture_size=true;pic.stretch_mode=TextureButton.STRETCH_KEEP_ASPECT_CENTERED
+		pic.disabled=not unlocked;pic.tooltip_text="View "+u.name+"'s dossier" if unlocked else "Not yet recruited"
+		pic.pressed.connect(func():show_dossier(u));content.add_child(pic)
 		var texts=VBoxContainer.new();texts.size_flags_horizontal=Control.SIZE_EXPAND_FILL;content.add_child(texts)
 		label_in(texts,u.name+"  /  "+u.job+"  ·  Lv "+str(int(u.level)),19,GOLD if unlocked else Color("9a9588"))
 		label_in(texts,u.bio if unlocked else "Joins in chapter "+str(int(u.join)+1),14)
@@ -268,11 +301,14 @@ func show_battle():
 func update_side():
 	for n in side.get_children():side.remove_child(n);n.queue_free()
 	status.text="TURN %d  /  %s"%[game.turn,game.phase.to_upper()]
-	label_in(side,"THE COMPANY",15,GOLD)
-	label_in(side,"%d allies  ·  %d enemies"%[game.living("player").size(),game.living("enemy").size()],18)
 	if selected!=null:
-		label_in(side,selected.name,30,GOLD)
-		label_in(side,"%s · Lv %d · XP %d"%[selected.job,selected.level,selected.xp],16)
+		var identity=HBoxContainer.new();identity.add_theme_constant_override("separation",8);side.add_child(identity)
+		var portrait=TextureRect.new();portrait.texture=portraits.get_portrait(selected.id);portrait.expand_mode=TextureRect.EXPAND_IGNORE_SIZE
+		portrait.stretch_mode=TextureRect.STRETCH_KEEP_ASPECT_CENTERED;portrait.custom_minimum_size=Vector2(90,100);identity.add_child(portrait)
+		var details=VBoxContainer.new();details.size_flags_horizontal=Control.SIZE_EXPAND_FILL;identity.add_child(details)
+		label_in(details,selected.name,27,GOLD)
+		label_in(details,selected.job,16)
+		label_in(details,"Lv %d  /  XP %d"%[selected.level,selected.xp],15)
 		label_in(side,"HP %d / %d\nATK %d   DEF %d   SPD %d\n%s · range %d"%[selected.hp,selected.max_hp,selected.pow,selected.defense,selected.speed,selected.weapon.to_upper(),selected.reach],18)
 		if target!=null:
 			var f=game.forecast(selected,target)
@@ -285,6 +321,8 @@ func update_side():
 			button_in(side,"Field tonic (+12 HP)  ·  "+str(int(selected.potions)),tonic,busy or selected.potions<=0 or selected.hp>=selected.max_hp)
 			if selected.weapon=="staff":label_in(side,"Click an adjacent ally to heal 12 HP.",16,GOLD)
 	else:
+		label_in(side,"THE COMPANY",15,GOLD)
+		label_in(side,"%d allies  ·  %d enemies"%[game.living("player").size(),game.living("enemy").size()],18)
 		label_in(side,"Choose your next move.",25)
 		label_in(side,"Forest and hills cost 2 movement and grant cover. Cross water at bridges. Golden tiles mark objectives; pale crosses restore health.",17,Color("6f6c5e"))
 	var spacer=Control.new();spacer.size_flags_vertical=Control.SIZE_EXPAND_FILL;side.add_child(spacer)
@@ -302,7 +340,18 @@ func highlight():
 	for e in game.living("enemy"):
 		if game.can_attack(selected,e):cube(markers,Vector3(e.x,.018,e.y),Vector3(.9,.03,.9),Color(0.85,0.22,0.12,0.55))
 
+func _input(event):
+	if screen=="battle" and busy and event is InputEventKey and event.pressed and event.keycode==KEY_TAB:
+		skip_combat=true
+		get_viewport().set_input_as_handled()
+
 func _unhandled_input(event):
+	if screen=="dossier" and event is InputEventKey and event.pressed and event.keycode==KEY_ESCAPE:
+		show_camp();get_viewport().set_input_as_handled();return
+	if screen=="dialogue" and event is InputEventKey and event.pressed:
+		if event.keycode in [KEY_SPACE,KEY_ENTER]:advance_dialogue();get_viewport().set_input_as_handled()
+		elif event.keycode==KEY_ESCAPE:finish_dialogue();get_viewport().set_input_as_handled()
+		return
 	if event is InputEventKey and event.pressed:
 		if event.keycode==KEY_TAB:skip_combat=true
 		if screen=="battle" and not busy:
@@ -402,7 +451,13 @@ func cinematic(a,b,events,initial_hp={}):
 	if events.is_empty():return
 	skip_combat=false;music_mix(true)
 	var old_pos=camera.position;var old_rot=camera.rotation
-	var push=create_tween();push.tween_property(camera,"size",11.0,.2);await push.finished
+	var focus=Vector3((a.x+b.x)*.5,0,(a.y+b.y)*.5)
+	markers.hide()
+	var push=create_tween().set_parallel(true).set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_IN)
+	push.tween_property(camera,"size",6.0,.32)
+	push.tween_property(camera,"h_offset",0.0,.32)
+	push.tween_property(camera,"position",old_pos+focus-Vector3(6.5,0,4.5),.32)
+	await push.finished
 	var tactical_controls=ui.get_children()
 	for control in tactical_controls:control.hide()
 	var veil=ColorRect.new();veil.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
@@ -410,17 +465,22 @@ func cinematic(a,b,events,initial_hp={}):
 	var close=create_tween();close.tween_property(veil,"modulate:a",1.0,.12);await close.finished
 	for n in stage.get_children():n.queue_free()
 	stage.visible=true
-	scenery.battle_landscape(stage,Vector3(35,0,0))
-	var actor=make_fighter(a,Vector3(33.7,0,0));var defender=make_fighter(b,Vector3(36.3,0,0))
+	var old_lighting=battle_lighting(game.info().get("environment","village"))
+	scenery.battle_landscape(stage,Vector3(35,0,0),{"chapter":game.chapter,"terrain":game.terrain(game.pos(b)),"environment":game.info().get("environment","village")})
+	world.hide();pieces.hide()
+	var ranged=a.weapon in ["bow","magic"] or b.weapon in ["bow","magic"]
+	var spacing=2.0 if ranged else 1.6
+	var actor=make_fighter(a,Vector3(35-spacing,0,0));var defender=make_fighter(b,Vector3(35+spacing,0,0))
 	actor.rotation.y=-PI/2;defender.rotation.y=PI/2
 	camera.projection=Camera3D.PROJECTION_PERSPECTIVE;camera.h_offset=0;camera.fov=48
-	camera.position=Vector3(37,1.8,5.5);camera.look_at(Vector3(35,1,0))
+	camera.position=Vector3(36.6,2.0,6.8 if ranged else 5.8);camera.look_at(Vector3(35,1.1,0))
 	var reveal=create_tween();reveal.tween_property(veil,"modulate:a",0.0,.18);await reveal.finished
 	veil.queue_free()
 	var banner=PanelContainer.new();banner.set_anchors_and_offsets_preset(Control.PRESET_BOTTOM_WIDE)
+	banner.name="CombatHUD"
 	banner.offset_left=70;banner.offset_right=-70;banner.offset_top=-140;banner.offset_bottom=-30;ui.add_child(banner)
 	var battle_ui=HBoxContainer.new();battle_ui.add_theme_constant_override("separation",45);banner.add_child(battle_ui)
-	var health_labels={};var health_bars={};var displayed_hp={}
+	var health_labels={};var health_bars={};var displayed_hp={};var hp_numbers={}
 	for unit in [a,b]:
 		var column=VBoxContainer.new();column.size_flags_horizontal=Control.SIZE_EXPAND_FILL;battle_ui.add_child(column)
 		var hp=int(initial_hp.get(unit.id,unit.hp))
@@ -428,7 +488,15 @@ func cinematic(a,b,events,initial_hp={}):
 			for strike_event in events:
 				if strike_event.target==unit.id:hp+=strike_event.damage
 		displayed_hp[unit.id]=mini(hp,unit.max_hp)
-		health_labels[unit.id]=label_in(column,unit.name+"  /  "+unit.job,23,GOLD)
+		var heading=HBoxContainer.new();column.add_child(heading)
+		health_labels[unit.id]=label_in(heading,unit.name+"  /  "+unit.job,23,GOLD)
+		health_labels[unit.id].size_flags_horizontal=Control.SIZE_EXPAND_FILL
+		health_labels[unit.id].autowrap_mode=TextServer.AUTOWRAP_OFF
+		health_labels[unit.id].text_overrun_behavior=TextServer.OVERRUN_TRIM_ELLIPSIS
+		hp_numbers[unit.id]=label_in(heading,str(int(displayed_hp[unit.id]))+" / "+str(int(unit.max_hp)),23)
+		hp_numbers[unit.id].autowrap_mode=TextServer.AUTOWRAP_OFF
+		hp_numbers[unit.id].custom_minimum_size.x=100
+		hp_numbers[unit.id].horizontal_alignment=HORIZONTAL_ALIGNMENT_RIGHT
 		var bar=ProgressBar.new();bar.max_value=unit.max_hp;bar.value=displayed_hp[unit.id];bar.show_percentage=false;bar.custom_minimum_size.y=16
 		var fill=StyleBoxFlat.new();fill.bg_color=Color("718e56") if unit.team=="player" else Color("b35e51")
 		var backing=StyleBoxFlat.new();backing.bg_color=Color("c7c1ad")
@@ -437,36 +505,93 @@ func cinematic(a,b,events,initial_hp={}):
 	caption.add_theme_font_size_override("font_size",30);caption.add_theme_color_override("font_color",Color("f7edce"));caption.add_theme_color_override("font_outline_color",Color("373d42"));caption.add_theme_constant_override("outline_size",7)
 	caption.text="Tab to skip";ui.add_child(caption)
 
+	await get_tree().create_timer(.3).timeout
 	for event in events:
 		if skip_combat:break
 		var who=actor if event.actor==a.id else defender
 		var whom=defender if who==actor else actor
-		var base=who.position;var arm=who.get_node("Arm")
-		var swing=create_tween().set_parallel(true)
-		swing.tween_property(who,"position",base+Vector3(.65 if who==actor else -.65,0,0),.22)
-		swing.tween_property(arm,"rotation:x",-1.4,.22)
-		await swing.finished
-		caption.text=(a.name if who==actor else b.name)+(" — CRITICAL! " if event.crit else " — ")+(str(int(event.damage))+" damage" if event.hit else "Miss")
-		var recoil=create_tween().set_parallel(true)
-		recoil.tween_property(whom,"rotation:z",.12 if who==actor else -.12,.12)
-		recoil.tween_property(arm,"rotation:x",.5,.12)
-		await recoil.finished
+		var unit=a if who==actor else b
+		var base=who.position
+		var direction=1.0 if who==actor else -1.0
+		var is_ranged=unit.weapon in ["bow","magic"]
+		caption.text=unit.name+"  /  "+("Critical strike" if event.crit else unit.weapon.capitalize())
+		if not is_ranged:
+			who.pose_name="advance"
+			var approach=create_tween().set_trans(Tween.TRANS_SINE)
+			var distance_to_close=absf(whom.position.x-who.position.x)-1.65
+			approach.tween_property(who,"position:x",base.x+direction*maxf(0,distance_to_close),.24)
+			await approach.finished
+		await who.pose("windup",.28 if not event.crit else .4).finished
+		if skip_combat:break
+		await who.pose("strike",.12).finished
+		if is_ranged:
+			await projectile(who.position+Vector3(0,1.2,0),whom.position+Vector3(0,1.1,0),unit.weapon)
+		if event.hit:
+			whom.pose("hit",.12)
+		else:
+			whom.pose("evade",.16)
+			var dodge=create_tween();dodge.tween_property(whom,"position:z",-.32,.14);dodge.tween_property(whom,"position:z",0.0,.2)
 		displayed_hp[event.target]=maxi(0,displayed_hp[event.target]-event.damage)
-		var hp_tween=create_tween();hp_tween.tween_property(health_bars[event.target],"value",float(displayed_hp[event.target]),.2)
+		hp_numbers[event.target].text=str(int(displayed_hp[event.target]))+" / "+str(int(b.max_hp if event.target==b.id else a.max_hp))
+		var hp_tween=create_tween();hp_tween.tween_property(health_bars[event.target],"value",float(displayed_hp[event.target]),.25)
 		show_impact(whom.position+Vector3(0,1.1,0),event)
-		var camera_home=camera.position
-		var shake=create_tween();shake.tween_property(camera,"position",camera_home+Vector3(.06,.025,0),.04);shake.tween_property(camera,"position",camera_home,.09)
-		await get_tree().create_timer(.35).timeout
-		var reset=create_tween().set_parallel(true)
-		reset.tween_property(who,"position",base,.2);reset.tween_property(arm,"rotation:x",0.0,.2);reset.tween_property(whom,"rotation:z",PI/2 if event.remaining<=0 else 0.0,.2)
-		await reset.finished
+		caption.text=unit.name+(" — CRITICAL! " if event.crit else " — ")+(str(int(event.damage))+" damage" if event.hit else "Miss")
+		if event.hit:
+			var camera_home=camera.position
+			var shake=create_tween();shake.tween_property(camera,"position",camera_home+Vector3(.10 if event.crit else .045,.025,0),.04);shake.tween_property(camera,"position",camera_home,.1)
+		await get_tree().create_timer(.22 if not event.crit else .34).timeout
+		who.pose("idle",.25)
+		var retreat=create_tween().set_trans(Tween.TRANS_SINE);retreat.tween_property(who,"position",base,.3)
+		if event.remaining<=0:
+			await whom.pose("down",.3).finished
+		else:
+			await whom.pose("idle",.25).finished
+		if retreat.is_running():await retreat.finished
+	await get_tree().create_timer(.18).timeout
+
 	banner.queue_free();caption.queue_free()
 	stage.visible=false
+	restore_lighting(old_lighting)
+	world.show();pieces.show();markers.show()
 	camera.projection=Camera3D.PROJECTION_ORTHOGONAL;camera.position=old_pos;camera.rotation=old_rot;camera.h_offset=2.0
 	var pull=create_tween();pull.tween_property(camera,"size",16.0,.25);await pull.finished
 	for control in tactical_controls:
 		if is_instance_valid(control):control.show()
 	music_mix(false)
+
+func battle_lighting(theme: String) -> Dictionary:
+	var sky=environment.sky.sky_material
+	var old={"energy":sunlight.light_energy,"color":sunlight.light_color,"ambient":environment.ambient_light_energy,"top":sky.sky_top_color,"horizon":sky.sky_horizon_color,"ground":sky.ground_horizon_color}
+	if theme in ["forest","mountain"]:
+		sunlight.light_energy=.7;environment.ambient_light_energy=.6
+		sky.sky_top_color=Color("536c82");sky.sky_horizon_color=Color("b5b9ab");sky.ground_horizon_color=Color("b5b9ab")
+	elif theme in ["observatory","engine","furnace"]:
+		sunlight.light_energy=.45;environment.ambient_light_energy=.7
+		sunlight.light_color=Color("bbbdde") if theme=="observatory" else Color("efb17f")
+		sky.sky_top_color=Color("14243b") if theme=="observatory" else Color("3c343a")
+		sky.sky_horizon_color=Color("596179") if theme=="observatory" else Color("98725e")
+		sky.ground_horizon_color=sky.sky_horizon_color
+	return old
+
+func restore_lighting(old: Dictionary):
+	var sky=environment.sky.sky_material
+	sunlight.light_energy=old.energy;sunlight.light_color=old.color;environment.ambient_light_energy=old.ambient
+	sky.sky_top_color=old.top;sky.sky_horizon_color=old.horizon;sky.ground_horizon_color=old.ground
+
+func projectile(from: Vector3,to: Vector3,kind: String):
+	var visual=Node3D.new();stage.add_child(visual);visual.position=from
+	if kind=="bow":
+		var shaft=cube(visual,Vector3.ZERO,Vector3(.5,.018,.018),Color("695344"))
+		cube(shaft,Vector3(.5,0,0),Vector3(.12,3,3),Color("d2d8dc"))
+		if to.x<from.x:visual.rotation.y=PI
+	else:
+		var orb=sphere(visual,Vector3.ZERO,.15,Color("8ddae9"))
+		orb.material_override.shading_mode=BaseMaterial3D.SHADING_MODE_UNSHADED
+		var ring=TorusMesh.new();ring.inner_radius=.2;ring.outer_radius=.225
+		var n=MeshInstance3D.new();n.mesh=ring;n.rotation.z=PI/2;n.material_override=orb.material_override;visual.add_child(n)
+	var travel=create_tween().set_trans(Tween.TRANS_LINEAR);travel.tween_property(visual,"position",to,.23)
+	await travel.finished
+	visual.queue_free()
 
 func show_impact(point,event):
 	var root=Node3D.new();stage.add_child(root);root.position=point
@@ -492,10 +617,11 @@ func check_result() -> bool:
 		label_in(v,"CHAPTER COMPLETE",18,GOLD);label_in(v,game.info().title,38)
 		label_in(v,game.info().outro,24)
 		button_in(v,"Continue the chronicle",func():
-			game.finish_chapter()
-			game.save_game(SAVE,"ending" if game.completed else "camp")
-			if game.completed:show_ending()
-			else:show_camp())
+			show_dialogue(story.chapters[game.chapter].closing,func():
+				game.finish_chapter()
+				game.save_game(SAVE,"ending" if game.completed else "camp")
+				if game.completed:show_ending()
+				else:show_camp()))
 	else:
 		label_in(v,"THE STANDARD FALLS",38,GOLD)
 		label_in(v,"Your company is scattered. Regroup at the war council and choose a new approach.",24)
@@ -511,8 +637,59 @@ func show_ending():
 	var list=VBoxContainer.new();list.size_flags_horizontal=Control.SIZE_EXPAND_FILL;scroll.add_child(list)
 	for u in game.roster:
 		label_in(list,u.name+" · "+u.job+" · Level "+str(int(u.level)),19,Color(u.color))
-		label_in(list,u.bio+" Their name is written in the chronicle of the free valley.",15)
+		label_in(list,profiles.get(u.id,{}).get("ending",u.bio),17)
 	button_in(v,"Return to title",show_title)
+
+func show_dialogue(lines: Array,on_complete: Callable):
+	screen="dialogue";reset_ui()
+	dialogue_lines=lines;dialogue_index=0;dialogue_callback=on_complete
+	var shade=ColorRect.new();shade.color=Color(.08,.10,.13,.55);shade.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT);ui.add_child(shade)
+	dialogue_portrait=TextureRect.new();dialogue_portrait.set_anchors_and_offsets_preset(Control.PRESET_BOTTOM_LEFT)
+	dialogue_portrait.offset_left=65;dialogue_portrait.offset_right=520;dialogue_portrait.offset_top=-710;dialogue_portrait.offset_bottom=-240
+	dialogue_portrait.expand_mode=TextureRect.EXPAND_IGNORE_SIZE;dialogue_portrait.stretch_mode=TextureRect.STRETCH_KEEP_ASPECT_CENTERED;ui.add_child(dialogue_portrait)
+	var panel=PanelContainer.new();panel.set_anchors_and_offsets_preset(Control.PRESET_BOTTOM_WIDE);panel.offset_left=65;panel.offset_right=-65;panel.offset_top=-265;panel.offset_bottom=-55;ui.add_child(panel)
+	var column=VBoxContainer.new();column.add_theme_constant_override("separation",14);panel.add_child(column)
+	dialogue_name=label_in(column,"",25,GOLD)
+	dialogue_label=label_in(column,"",25);dialogue_label.size_flags_vertical=Control.SIZE_EXPAND_FILL
+	var controls=HBoxContainer.new();column.add_child(controls)
+	var hint=label_in(controls,"Space / Enter: continue   ·   Escape: skip",15,Color("827b6c"));hint.size_flags_horizontal=Control.SIZE_EXPAND_FILL
+	button_in(controls,"Skip scene",finish_dialogue)
+	button_in(controls,"Continue  >",advance_dialogue)
+	refresh_dialogue()
+
+func refresh_dialogue():
+	if dialogue_index>=dialogue_lines.size():finish_dialogue();return
+	var line=dialogue_lines[dialogue_index]
+	var speaker=game.roster.filter(func(u):return u.id==line.speaker)
+	dialogue_name.text=speaker[0].name if not speaker.is_empty() else line.speaker.capitalize()
+	dialogue_portrait.texture=portraits.get_portrait(line.speaker)
+	dialogue_label.text=line.text;dialogue_label.visible_characters=0;dialogue_reveal=0.0
+
+func advance_dialogue():
+	if screen!="dialogue":return
+	if dialogue_label.visible_characters<dialogue_label.text.length():
+		dialogue_reveal=dialogue_label.text.length();dialogue_label.visible_characters=dialogue_label.text.length();return
+	dialogue_index+=1;refresh_dialogue()
+
+func finish_dialogue():
+	var callback=dialogue_callback;dialogue_callback=Callable()
+	if callback.is_valid():callback.call()
+
+func show_dossier(unit):
+	screen="dossier";reset_ui()
+	var panel=panel_at(ui,70,60,-70,-60)
+	label_in(panel,"COMPANY RECORD",17,GOLD)
+	var row=HBoxContainer.new();row.add_theme_constant_override("separation",36);row.size_flags_vertical=Control.SIZE_EXPAND_FILL;panel.add_child(row)
+	var portrait=TextureRect.new();portrait.texture=portraits.get_portrait(unit.id);portrait.custom_minimum_size=Vector2(400,400)
+	portrait.expand_mode=TextureRect.EXPAND_IGNORE_SIZE;portrait.stretch_mode=TextureRect.STRETCH_KEEP_ASPECT_CENTERED;row.add_child(portrait)
+	var info=VBoxContainer.new();info.add_theme_constant_override("separation",16);info.size_flags_horizontal=Control.SIZE_EXPAND_FILL;row.add_child(info)
+	var profile=profiles.get(unit.id,{})
+	label_in(info,unit.name,46,GOLD);label_in(info,profile.get("title",unit.job),26)
+	label_in(info,"%s  /  Level %d  /  %d XP"%[unit.job,unit.level,unit.xp],20)
+	label_in(info,"HP %d    ATK %d    DEF %d    SPD %d    MOV %d"%[unit.max_hp,unit.pow,unit.defense,unit.speed,unit.move],21)
+	label_in(info,profile.get("biography",unit.bio),22)
+	label_in(info,"PERSONAL NOTE",16,GOLD);label_in(info,profile.get("note",""),20)
+	button_in(panel,"Return to war council",show_camp)
 
 func load_campaign():
 	var saved=game.load_game(SAVE)

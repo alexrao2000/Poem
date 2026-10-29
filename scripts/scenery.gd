@@ -133,11 +133,59 @@ func landscape(parent,game):
   tree(parent,p,i*23)
  for i in range(12):tree(parent,Vector3(-3+(i*13)%21,0,12+i%3),i*11)
 
-func battle_landscape(parent,center):
- ground(parent,center-Vector3(0,.02,0),Vector2(70,70),0)
- ground(parent,center,Vector2(24,4),2)
- for i in range(30):tree(parent,center+Vector3(-14+(i*7)%29,0,-5-(i%4)*2),i*83)
- for i in range(3):house(parent,center+Vector3(-9+i*8,0,-15),1.0+i*.13)
- for i in range(9):
-  var shape=SphereMesh.new();shape.radius=1;shape.height=2;shape.radial_segments=18;shape.rings=8
-  mesh(parent,shape,center+Vector3(-45+i*11,-1,-35-(i%3)*4),Vector3(13,4+i%3,9),material(Color("809187").lightened(i%3*.035)))
+func battle_landscape(parent,center,context={}):
+ var theme=context.get("environment","village")
+ parent.set_meta("environment",theme)
+ var stone=theme in ["abbey","aqueduct","observatory","castle","engine","furnace"]
+ ground(parent,center-Vector3(0,.06,0),Vector2(70,70),3 if stone else 0)
+ ground(parent,center,Vector2(24,6),3 if stone else (1 if theme=="village" else 2))
+ if theme in ["river","harbor","aqueduct"] or context.get("terrain")=="=":
+  var water=StandardMaterial3D.new();water.albedo_color=Color("274f61");water.roughness=.2
+  var plane=PlaneMesh.new();plane.size=Vector2(60,40)
+  mesh(parent,plane,center+Vector3(0,-.025,-22),Vector3.ONE,water)
+  if theme=="harbor" or context.get("terrain")=="=":
+   for x in range(-10,11):
+    for z in range(-2,3):block(parent,center+Vector3(x,.025,z),Vector3(.98,.05,.98),Color("877560").lightened((x+z+30)%3*.02))
+  for x in range(-10,11,2):
+   block(parent,center+Vector3(x,.55,-3),Vector3(.13,1.1,.13),Color("72624f"))
+  block(parent,center+Vector3(0,.7,-3),Vector3(22,.12,.10),Color("8e7c60"))
+ if theme in ["village","river","road","forest","harbor"]:
+  for i in range(34 if theme=="forest" else 19):
+   tree(parent,center+Vector3(-17+(i*11)%35,0,-6-(i%4)*2),i*83)
+  if theme!="forest":
+   for i in range(3):house(parent,center+Vector3(-12+i*11,0,-15),1.0+i*.13)
+ if theme in ["abbey","aqueduct","observatory","castle"]:
+  for x in range(-12,13,4):
+   cylinder(parent,center+Vector3(x,1.8,-5),3.6,.32,Color("9e9d8d"))
+   cylinder(parent,center+Vector3(x,.12,-5),.24,.5,Color("7f8178"))
+   cylinder(parent,center+Vector3(x,3.5,-5),.3,.48,Color("c2bea7"))
+   if theme in ["aqueduct","abbey"]:
+    block(parent,center+Vector3(x+1.8,3.7,-5),Vector3(4,.35,.8),Color("aaa58f"))
+  if theme=="castle":
+   block(parent,center+Vector3(0,2,-9),Vector3(35,4,.7),Color("858b88"))
+   for x in range(-16,17,2):block(parent,center+Vector3(x,4.2,-9),Vector3(.8,.8,.9),Color("9a9d91"))
+  elif theme=="observatory":
+   var ring=TorusMesh.new();ring.inner_radius=1.5;ring.outer_radius=1.58
+   var orbit=mesh(parent,ring,center+Vector3(0,2.6,-10),Vector3.ONE,material(Color("b9a46f")))
+   orbit.rotation.z=.7
+ if theme in ["mountain","road","forest","river","village"]:
+  for i in range(9):
+   var shape=SphereMesh.new();shape.radius=1;shape.height=2;shape.radial_segments=18;shape.rings=8
+   mesh(parent,shape,center+Vector3(-45+i*11,-1,-35-(i%3)*4),Vector3(13,(9 if theme=="mountain" else 4)+i%3,9),material(Color("809187").lightened(i%3*.035)))
+  if theme=="mountain":
+   for i in range(16):boulder(parent,center+Vector3(-12+(i*7)%25,.4,-4-i%3),1.0+i%3*.3)
+ if theme in ["engine","furnace"]:
+  for x in [-8,-4,0,4,8]:
+   cylinder(parent,center+Vector3(x,2,-7),4,.4,Color("494d51"))
+   cylinder(parent,center+Vector3(x,3.5,-7),.12,.6,Color("bb9a64"))
+   var core_material=material(Color("fbb56c")).duplicate();core_material.shading_mode=BaseMaterial3D.SHADING_MODE_UNSHADED
+   var core=SphereMesh.new();core.radius=.24;core.height=.48
+   mesh(parent,core,center+Vector3(x,2.5,-6.6),Vector3.ONE,core_material)
+  if theme=="engine":
+   var ring=TorusMesh.new();ring.inner_radius=1.75;ring.outer_radius=2
+   var outer=mesh(parent,ring,center+Vector3(0,4,-12),Vector3.ONE,material(Color("c6ad71")))
+   outer.rotation.x=PI/2
+   var shape=SphereMesh.new();shape.radius=1.2;shape.height=2.4
+   var glow=material(Color("ffe3a0")).duplicate();glow.shading_mode=BaseMaterial3D.SHADING_MODE_UNSHADED
+   mesh(parent,shape,center+Vector3(0,4,-12),Vector3.ONE,glow)
+ return theme

@@ -1,0 +1,266 @@
+{
+  "lyra": {
+    "title": "A standard without a throne",
+    "biography": "Lyra grew up repairing nets and reading histories borrowed from a teacher who never asked for them back. A distant connection to the old royal household made her useful to people with ambitions; the river evacuation made those ambitions seem very small. She is most decisive when the choice concerns someone else, and least comfortable when others ask what she wants.",
+    "note": "Keeps a list of everyone who helped the company, including people who never carried a weapon.",
+    "ending": "Lyra helped write the valley charter, then returned to Cinderford. The broken standard hangs above a public meeting hall, where anyone may call the next meeting.",
+    "appearance": {
+      "skin": "e0ba98",
+      "hair": "623c31",
+      "hair_style": "long"
+    }
+  },
+  "oren": {
+    "title": "The gate left open",
+    "biography": "Oren spent twenty years guarding a gate and learning the names of the people who passed through it. When his final orders required him to stop recognizing those people, he refused. He mends armor with the patience of someone who expects its owner to come back.",
+    "note": "Makes tea before difficult conversations, even when everyone insists there is no time.",
+    "ending": "Oren reopened the town gate as a shelter and workshop. He never again accepted a post that required him to turn away a neighbor.",
+    "appearance": {
+      "skin": "d0aa89",
+      "hair": "62564e",
+      "hair_style": "short"
+    }
+  },
+  "sera": {
+    "title": "Roads beneath the stars",
+    "biography": "Sera once guided merchants along the border tracks. She remembers routes as constellations: a turn at the bent oak, a ford beneath a pale cliff. She joined the company after discovering that the army was erasing those roads from its maps.",
+    "note": "Annotates maps with places to find clean water and good pie.",
+    "ending": "Sera published the first free road atlas of the valley. Its margins are crowded with advice from travelers she met along the way.",
+    "appearance": {
+      "skin": "e3b995",
+      "hair": "8f4b30",
+      "hair_style": "long"
+    }
+  },
+  "ivo": {
+    "title": "No one expendable",
+    "biography": "Ivo learned medicine from a traveling infirmary, where a patient\u2019s uniform was less important than whether it could be cut away quickly. He has little patience for speeches about noble sacrifice and remarkable patience for frightened people.",
+    "note": "Carries lavender in the medicine bag because the smell helps him sleep.",
+    "ending": "Ivo founded a network of roadside infirmaries, each with a bed reserved for travelers who could not pay.",
+    "appearance": {
+      "skin": "bb8d67",
+      "hair": "30272b",
+      "hair_style": "short"
+    }
+  },
+  "mara": {
+    "title": "A captain of borrowed tides",
+    "biography": "Mara has smuggled grain, medicine, and once an entire wedding party through the regent\u2019s toll lines. She insists every favor is a debt, then forgets to collect most of them. Her crew trusts her because she is always the last person off a damaged boat.",
+    "note": "Names every new boat after a place the authorities said she could not visit.",
+    "ending": "Mara organized a river cooperative. The first rule was simple: no town could charge a toll on food during a hungry winter.",
+    "appearance": {
+      "skin": "a86d4b",
+      "hair": "713629",
+      "hair_style": "long"
+    }
+  },
+  "tarin": {
+    "title": "The inconvenient calculation",
+    "biography": "Tarin\u2019s colleagues dismissed his eclipse calculations as an error in an old instrument. He spent a year checking the instrument, the records, and himself before realizing that the figures described a machine. He is learning that being correct and being heard require different kinds of courage.",
+    "note": "Writes questions in the margins before writing answers in the center.",
+    "ending": "Tarin rebuilt the observatory as a public school. Students are encouraged to check his calculations.",
+    "appearance": {
+      "skin": "e8c6a6",
+      "hair": "d3bc89",
+      "hair_style": "short"
+    }
+  },
+  "nell": {
+    "title": "Every door has two sides",
+    "biography": "Nell carried messages between households that were forbidden to speak to one another. She learned locks because waiting outside was often more dangerous than entering. Her jokes arrive a little faster when she is afraid.",
+    "note": "Collects keys without keeping track of the doors they once opened.",
+    "ending": "Nell established a courier guild with no royal seal. Its messengers promise delivery, discretion, and absolutely no opinions about the contents.",
+    "appearance": {
+      "skin": "d0a17c",
+      "hair": "28232c",
+      "hair_style": "short"
+    }
+  },
+  "bram": {
+    "title": "Good timber, good people",
+    "biography": "Bram left his farm with a cart, two frightened horses, and the conviction that someone would know what to do next. He has since discovered that most leaders are working with less. He contributes by noticing what is broken and quietly repairing it.",
+    "note": "Can identify a wagon by the sound of its left wheel.",
+    "ending": "Bram returned to farming and founded a cooperative stable. Refugee families received their first plow teams on credit that was rarely collected.",
+    "appearance": {
+      "skin": "d6b48c",
+      "hair": "aa8450",
+      "hair_style": "short"
+    }
+  },
+  "esme": {
+    "title": "The names in the bell",
+    "biography": "Esme sang at the abbey before the occupation. When the bell was taken, she began preserving the names of missing parishioners in the verses of familiar hymns. She does not confuse gentleness with forgiveness, or forgiveness with forgetting.",
+    "note": "Remembers a person\u2019s voice long after forgetting their face.",
+    "ending": "Esme helped cast a new abbey bell. The names inside it include soldiers from both sides and every villager who did not return.",
+    "appearance": {
+      "skin": "76533f",
+      "hair": "c6c1b4",
+      "hair_style": "long"
+    }
+  },
+  "rook": {
+    "title": "The work after regret",
+    "biography": "Rook followed orders long after he stopped believing them. Desertion saved his conscience but did little for the people his unit had hurt. He joined the company because its route led back through those places, and because apologies alone had begun to sound like another escape.",
+    "note": "Repairs damaged walls before finding somewhere to sleep.",
+    "ending": "Rook spent years rebuilding the abbey villages. He kept no record of the work and declined every offer to rename a street after him.",
+    "appearance": {
+      "skin": "bf9878",
+      "hair": "444146",
+      "hair_style": "short"
+    }
+  },
+  "faye": {
+    "title": "The forest keeps its paths",
+    "biography": "Faye measures authority by whether it knows where the water runs. A hunter and guide, she has watched armies enter the forest with certainty and leave it with questions. Her dry humor hides a fierce loyalty to the communities at its edge.",
+    "note": "Leaves trail markers that make sense only if you slow down.",
+    "ending": "Faye became the valley\u2019s first forest warden. Her maps mark the places where travelers should turn back, and the places where armies must.",
+    "appearance": {
+      "skin": "c99b72",
+      "hair": "b29863",
+      "hair_style": "long"
+    }
+  },
+  "cassian": {
+    "title": "Learning to lower a banner",
+    "biography": "Cassian was raised to inherit a claim that everyone around him treated as a duty. The war introduced him to people who did not need a claimant, only help. He is proud, generous, and slowly learning to tell those qualities apart.",
+    "note": "Practices speeches, then forgets them whenever someone asks an honest question.",
+    "ending": "Cassian renounced the hereditary claim and stood for election. He lost his first campaign, learned from it, and kept serving the district anyway.",
+    "appearance": {
+      "skin": "e5bd99",
+      "hair": "ccae6e",
+      "hair_style": "long"
+    }
+  },
+  "vela": {
+    "title": "The light that answers",
+    "biography": "Vela tends a lighthouse built on older foundations than anyone can name. She studies weather through its lenses and magic through the behavior of its flame. The occupation taught her how quickly a light meant to guide people can be used to control them.",
+    "note": "Can tell which harbor a sailor comes from by the knots on their coat.",
+    "ending": "Vela linked the coast\u2019s beacons into a free warning network. When a storm rises, every light answers.",
+    "appearance": {
+      "skin": "805439",
+      "hair": "242b37",
+      "hair_style": "long"
+    }
+  },
+  "dax": {
+    "title": "Hands on the same rope",
+    "biography": "Dax learned organization on the docks, where a missed warning could cost a hand and a shared meal could end a feud. The first uprising began when he asked a foreman why the grain ships were leaving a starving harbor. He has not stopped asking questions.",
+    "note": "Always checks that the newest worker has eaten.",
+    "ending": "Dax helped establish elected harbor councils and enforceable safety rules. He remained on the loading crews one day each week.",
+    "appearance": {
+      "skin": "996b4c",
+      "hair": "2e2827",
+      "hair_style": "bald"
+    }
+  },
+  "una": {
+    "title": "Beyond the sealed letter",
+    "biography": "Una was trained to make disagreement sound like agreement until a treaty could be signed. The betrayal of her embassy stripped that habit from her speech. She still believes in diplomacy, but now asks who must live with every promise it makes.",
+    "note": "Keeps rejected drafts of treaties because the crossings-out tell the truth.",
+    "ending": "Una negotiated the valley\u2019s first open trade compact. Every town received a plain-language copy before its delegates signed.",
+    "appearance": {
+      "skin": "e0bb9b",
+      "hair": "744633",
+      "hair_style": "short"
+    }
+  },
+  "silas": {
+    "title": "A truth without a cover story",
+    "biography": "Silas spent half his life making powerful people\u2019s mistakes disappear. He left with the one document he could not persuade himself to destroy. The company knows he can lie convincingly; he hopes it will eventually notice when he chooses not to.",
+    "note": "Never sits with his back to a door, but is trying.",
+    "ending": "Silas testified in public and accepted judgment for his own work. Later he taught investigators how to recognize the lies he once wrote.",
+    "appearance": {
+      "skin": "b99a7d",
+      "hair": "302c32",
+      "hair_style": "short"
+    }
+  },
+  "petra": {
+    "title": "What a bridge is for",
+    "biography": "Petra designs structures with room for the weight no one expected. When the regent turned her aqueduct into a military crossing, she realized engineering could not remain neutral about who controlled it. She brings tools to every council and prefers plans that survive questions.",
+    "note": "Sketches improvements on any flat surface, including expensive stationery.",
+    "ending": "Petra rebuilt the lower aqueduct and trained a generation of village engineers. Her favorite bridges are the ones nobody notices using.",
+    "appearance": {
+      "skin": "b87f59",
+      "hair": "985034",
+      "hair_style": "short"
+    }
+  },
+  "ari": {
+    "title": "Messages with wings",
+    "biography": "Ari inherited a falconry loft and a collection of birds with strong opinions. Carrying messages for isolated towns taught him how much distance a few kind words can cross. He joined the company after its signal fires answered one of his own.",
+    "note": "Names birds after weather, then apologizes when they live up to it.",
+    "ending": "Ari maintained a valley-wide message loft. Every spring, apprentices carry the first letters on foot so they understand where the birds are going.",
+    "appearance": {
+      "skin": "b78b65",
+      "hair": "4a342b",
+      "hair_style": "short"
+    }
+  },
+  "noor": {
+    "title": "The cost of borrowed light",
+    "biography": "Noor studied the heavens because they seemed beyond politics. The engine forced her to calculate a human cost in the language of heat and distance. She will explain a difficult idea as many times as needed, but refuses to soften an unwelcome answer.",
+    "note": "Marks observations with the names of whoever shared the night watch.",
+    "ending": "Noor dismantled the remaining sunstone apparatus and published the designs with warnings. She kept the observatory roof open to anyone who wanted to see the actual stars.",
+    "appearance": {
+      "skin": "76513d",
+      "hair": "302939",
+      "hair_style": "long"
+    }
+  },
+  "galen": {
+    "title": "Seeds for the day after",
+    "biography": "Galen has tended the monastery gardens through three rulers and twice as many bad harvests. He joined the march when the soil began warming beneath dormant roots. He believes preparation is a kind of hope that can survive being disappointed.",
+    "note": "Gives practical advice in the form of very specific gardening complaints.",
+    "ending": "Galen planted orchards on the abandoned furnace grounds. Years later, the first fruit was delivered to the families of the workers.",
+    "appearance": {
+      "skin": "d5b394",
+      "hair": "b8b2a3",
+      "hair_style": "beard"
+    }
+  },
+  "yuna": {
+    "title": "Steps through the palace",
+    "biography": "Yuna learned the palace\u2019s secrets by being treated as part of its decoration. She remembers patrol rhythms as precisely as dances, and knows which servants hid frightened people behind the kitchens. Freedom, to her, begins with deciding where to place the next step.",
+    "note": "Practices footwork while waiting for the kettle.",
+    "ending": "Yuna opened a school whose students learned performance, self-defense, and how to negotiate their own contracts. The palace eventually asked for an invitation.",
+    "appearance": {
+      "skin": "bf946e",
+      "hair": "272631",
+      "hair_style": "long"
+    }
+  },
+  "hale": {
+    "title": "The way back to daylight",
+    "biography": "Hale helped excavate the engine foundations believing the machine would spare his children another winter underground. By the time the truth emerged, the work gangs were locked inside. He knows the tunnels well enough to lead everyone out, and remembers exactly who promised they would be safe.",
+    "note": "Tests every ceiling before taking off his helmet.",
+    "ending": "Hale helped close the forced-work shafts and create a miners\u2019 mutual fund. He took his grandchildren to the surface orchards each year.",
+    "appearance": {
+      "skin": "825b43",
+      "hair": "4b4947",
+      "hair_style": "beard"
+    }
+  },
+  "elian": {
+    "title": "An oath reconsidered",
+    "biography": "Elian believed a good officer could keep a bad order from becoming a disaster. Too many compromises taught him otherwise. Opening the capital defenses cost him the career that had defined him; serving beside the people outside them is beginning to define what comes next.",
+    "note": "Polishes equipment while thinking, sometimes long after it is clean.",
+    "ending": "Elian helped replace the royal guard with a civilian service accountable to the towns. He insisted that every recruit study the orders the old guard should have refused.",
+    "appearance": {
+      "skin": "bb9b80",
+      "hair": "b4b4ad",
+      "hair_style": "short"
+    }
+  },
+  "rhea": {
+    "title": "The person behind the regent",
+    "biography": "Rhea remembers her father before his title consumed every conversation. She comes to the company with a letter he would not send and no certainty that he can still be reached. She does not ask others to excuse him, only to leave room for a surrender if one is offered.",
+    "note": "Keeps unfinished letters in a blue ribbon.",
+    "ending": "Rhea helped preserve the records of the engine\u2019s construction, including her family\u2019s part in it. Her last letter to Lyra described an ordinary morning in a town that no longer bowed to her.",
+    "appearance": {
+      "skin": "e3bc9d",
+      "hair": "713c31",
+      "hair_style": "long"
+    }
+  }
+}

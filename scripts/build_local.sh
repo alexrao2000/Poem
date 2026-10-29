@@ -4,8 +4,7 @@ cd "$(dirname "$0")/.."
 GODOT_BIN="${GODOT_BIN:-godot}"
 mkdir -p build/web build/native build/logs
 "$GODOT_BIN" --headless --log-file "$PWD/build/logs/import.log" --path "$PWD" --editor --import
-"$GODOT_BIN" --headless --log-file "$PWD/build/logs/rules.log" --path "$PWD" --script tests/test_rules.gd
-"$GODOT_BIN" --headless --log-file "$PWD/build/logs/presentation.log" --path "$PWD" --script tests/test_presentation.gd
+GODOT_BIN="$GODOT_BIN" python3 scripts/test_local.py
 "$GODOT_BIN" --headless --log-file "$PWD/build/logs/web.log" --path "$PWD" --export-release Web
 python3 scripts/pack_web.py
 # Export to a new temporary path so Godot never needs to use the system Trash.
