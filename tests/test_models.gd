@@ -48,6 +48,15 @@ func run():
  await actor.pose("throw",.01).finished;assert(actor.model.get_node("Hand").position.y==2)
  actor.pose("advance",.01);await process_frame;assert(actor.player.is_playing() and actor.player.current_animation=="walk","Approach plays locomotion")
  var other=models.build(world,unit,Vector3.ZERO)
+ var hold=preload("res://scripts/combat_hit_stop.gd").new();root.add_child(hold)
+ var pause=hold.play([actor,other],.12)
+ var animation_position=actor.player.current_animation_position
+ var hand_position=actor.model.get_node("Hand").position
+ await create_timer(.05).timeout
+ assert(actor.player.current_animation_position==animation_position and actor.model.get_node("Hand").position==hand_position,"Hit stop also freezes inherited authored animation players")
+ await pause.finished
+ await create_timer(.03).timeout
+ assert(actor.player.current_animation_position>animation_position,"Authored animation resumes after contact hold")
  other.poses.idle={"clip":"swing","from":0.0,"to":1.0};other.pose("idle")
  actor.pose("strike",.01)
  assert(other.player.get_animation("swing").loop_mode==Animation.LOOP_LINEAR and actor.player.get_animation("swing").loop_mode==Animation.LOOP_NONE,"Each actor owns animation loop settings")

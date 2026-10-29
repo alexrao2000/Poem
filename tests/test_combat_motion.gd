@@ -4,6 +4,7 @@ const Trail=preload("res://scripts/combat_trail.gd")
 const Impact=preload("res://scripts/combat_impact.gd")
 const Projectile=preload("res://scripts/combat_projectile.gd")
 const Blades=preload("res://scripts/weapon_blades.gd")
+const HitStop=preload("res://scripts/combat_hit_stop.gd")
 
 func _initialize():call_deferred("run")
 
@@ -30,6 +31,26 @@ func verify_blades():
 
 func run():
  verify_blades()
+ var held=make_actor();held.set_process(true)
+ var other=make_actor();other.process_mode=Node.PROCESS_MODE_ALWAYS
+ var free_motion=Node3D.new();root.add_child(free_motion)
+ var drift=free_motion.create_tween();drift.tween_property(free_motion,"position:x",1.0,.3)
+ held.pose("hit",.3);await create_timer(.04).timeout
+ var hold=HitStop.new();root.add_child(hold);hold.play([held,other,held],.15)
+ var frozen=held.bone("Body").rotation;var clock=held.elapsed;var outside=free_motion.position.x
+ await create_timer(.06).timeout
+ assert(held.bone("Body").rotation==frozen and held.elapsed==clock,"Hit stop freezes pose tweens and procedural breathing")
+ assert(free_motion.position.x>outside and Engine.time_scale==1.0,"Camera/effects and the shared clock continue during local hit stop")
+ hold.queue_free();await process_frame
+ assert(held.process_mode==Node.PROCESS_MODE_INHERIT and other.process_mode==Node.PROCESS_MODE_ALWAYS,"Early cleanup restores each actor's original processing mode")
+ await create_timer(.04).timeout
+ assert(held.elapsed>clock and held.bone("Body").rotation!=frozen,"Pose motion resumes after cancellation")
+ hold=HitStop.new();root.add_child(hold)
+ await hold.play([held,other],.02).finished
+ assert(held.can_process() and other.can_process(),"Completed hit stop restores both actors")
+ assert(HitStop.duration_for({"hit":false,"damage":0,"crit":false})==0 and HitStop.duration_for({"hit":true,"damage":0,"crit":false})==0,"Misses and blocked hits never freeze actors")
+ assert(HitStop.duration_for({"hit":true,"damage":1,"crit":true})>HitStop.duration_for({"hit":true,"damage":1,"crit":false}),"Critical contacts have a longer accent")
+ held.queue_free();other.queue_free();free_motion.queue_free()
  var walker=make_actor()
  var advance=walker.pose("advance",.04)
  walker._process(.07)
@@ -79,6 +100,10 @@ func run():
   if effect.glow!=null:assert(effect.glow.material_override.albedo_color.a==0,"Bright contact fades promptly")
  await create_timer(.35).timeout
  for effect in impacts:assert(effect.get_ref()==null,"Impact geometry and number release together")
+ var blocked=Impact.new();root.add_child(blocked);blocked.configure(Vector3.ZERO,{"hit":true,"damage":0,"crit":false},camera)
+ assert(blocked.amount.text=="NO DAMAGE" and blocked.burst==null,"Armor stopping a hit has a distinct label without damaging sparks")
+ assert(blocked.glow.mesh.size.x==.5,"Blocked contact uses a restrained glint")
+ blocked.queue_free()
  camera.queue_free()
  var fighters=load("res://scripts/fighters.gd").new();var rules=load("res://scripts/rules.gd").new()
  var stage=Node3D.new();root.add_child(stage)
@@ -122,7 +147,7 @@ func run():
  for job in ["Vanguard","Knight","Ranger","Arcanist","Warden","Corsair","Duelist"]:
   var unit=rules.roster.filter(func(u):return u.job==job)[0].duplicate(true);unit.team="player"
   var actor=fighters.build(stage,unit,Vector3.ZERO);actor.set_process(false)
-  for pose in ["idle","windup","strike","hit","evade","down"]:
+  for pose in ["idle","windup","strike","guard","hit","evade","down"]:
    await actor.pose(pose,.001).finished
    var lowest=INF
    for side in ["LeftKnee","RightKnee"]:

@@ -116,6 +116,9 @@ func pose(key: String,duration=.18) -> Tween:
   target.Body=Vector3(.08,-.4,0);target.Arm=Vector3(-2.5,0,-.25);target.Elbow=Vector3(-1.1,0,0)
  elif key=="throw":
   target.Body=Vector3(.15,.35,0);target.Arm=Vector3(-1.3,0,.05);target.Elbow=Vector3(0,0,0)
+ elif key=="guard":
+  target.Body=Vector3(-.07,0,0)
+  target.LeftArm=Vector3(-1.0,-.1,.1);target.LeftElbow=Vector3(-1.3,0,0)
  elif key=="hit":
   target.Body=Vector3(-.25,0,0);target.Head=Vector3(-.15,0,.08)
   target.Arm=Vector3(.1,0,-.4);target.LeftArm=Vector3(.2,0,.4)

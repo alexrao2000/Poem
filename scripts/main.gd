@@ -24,6 +24,7 @@ var dialogue_stage: Control
 var dialogue_reveal=0.0
 const CombatTrail=preload("res://scripts/combat_trail.gd")
 const CombatImpact=preload("res://scripts/combat_impact.gd")
+const CombatHitStop=preload("res://scripts/combat_hit_stop.gd")
 const CombatProjectile=preload("res://scripts/combat_projectile.gd")
 const CombatCamera=preload("res://scripts/combat_camera.gd")
 const CombatHUD=preload("res://scripts/combat_hud.gd")
@@ -145,7 +146,7 @@ func setup_audio():
 	score.set_sync_stream_volume(1,-60)
 	music.stream=score
 	add_child(music)
-	for effect in ["select","swing","hit","critical","heal","magic","phase"]:
+	for effect in ["select","swing","hit","critical","heal","magic","phase","guard"]:
 		sfx_streams[effect]=load("res://assets/audio/"+effect+".wav")
 	for i in range(6):
 		var player=AudioStreamPlayer.new();player.volume_db=-12;sfx_players.append(player);add_child(player)
@@ -774,14 +775,20 @@ func cinematic(a,b,events,initial_hp={}):
 			await projectile(release,contact_point,unit.weapon,spell)
 		director.shot(who.position,whom.position,"impact",is_ranged,mounted,.16)
 		if event.hit:
-			play_sfx("critical" if event.crit else "hit")
-			whom.pose("hit",.12)
+			play_sfx("guard" if event.damage<=0 else "critical" if event.crit else "hit")
+			whom.pose("guard" if event.damage<=0 else "hit",.12)
 		displayed_hp[event.target]=maxi(0,displayed_hp[event.target]-event.damage)
 		banner.set_health(event.target,int(displayed_hp[event.target]))
 		show_impact(whom.socket_position("impact"),event,spell)
-		caption.text=unit.name+(" — CRITICAL! " if event.crit else " — ")+(str(int(event.damage))+" damage" if event.hit else "Miss")
-		if event.hit:director.impact(event.crit)
-		await get_tree().create_timer(.22 if not event.crit else .34).timeout
+		caption.text=unit.name+(" — CRITICAL! " if event.crit else " — ")+((str(int(event.damage))+" damage" if event.damage>0 else "No damage") if event.hit else "Miss")
+		if event.hit and event.damage>0:director.impact(event.crit)
+		var hold=CombatHitStop.duration_for(event)
+		if hold>0:
+			# Let the recoil register before holding the contact silhouette.
+			await get_tree().create_timer(.035).timeout
+			var hit_stop=CombatHitStop.new();stage.add_child(hit_stop)
+			await hit_stop.play([who,whom],hold).finished
+		await get_tree().create_timer((.22 if not event.crit else .34)-(.035 if hold>0 else 0.0)).timeout
 		who.pose("idle",.16)
 		if event.remaining<=0:
 			await whom.pose("down",.3).finished
@@ -1225,12 +1232,12 @@ func map_combat_feedback(events: Array):
 			actor.act_toward(game.pos(unit),game.pos(attackers[0]));map_facings[event.actor]=actor.player.facing
 		await get_tree().create_timer(.12).timeout
 		if victim!=null:
-			victim.react(event.hit,int(event.remaining));victim.hp_ratio=clampf(float(event.remaining)/maxf(1,unit.max_hp),0,1);victim.refresh_health()
+			victim.react(event.hit and event.damage>0,int(event.remaining));victim.hp_ratio=clampf(float(event.remaining)/maxf(1,unit.max_hp),0,1);victim.refresh_health()
 		var text_label=Label.new();ui.add_child(text_label)
-		text_label.text="MISS" if not event.hit else ("CRIT " if event.crit else "")+str(int(event.damage))
+		text_label.text="MISS" if not event.hit else "NO DAMAGE" if event.damage<=0 else ("CRIT " if event.crit else "")+str(int(event.damage))
 		text_label.add_theme_font_size_override("font_size",28);text_label.add_theme_color_override("font_color",Color("ffe5a1"));text_label.add_theme_color_override("font_outline_color",Color("30353a"));text_label.add_theme_constant_override("outline_size",5)
-		text_label.position=camera.unproject_position(map_position(game.pos(unit))+Vector3.UP*1.1)-Vector2(25,20);text_label.mouse_filter=Control.MOUSE_FILTER_IGNORE
-		play_sfx("critical" if event.crit else "hit" if event.hit else "swing")
+		text_label.position=camera.unproject_position(map_position(game.pos(unit))+Vector3.UP*1.1)-Vector2(text_label.get_minimum_size().x*.5,20);text_label.mouse_filter=Control.MOUSE_FILTER_IGNORE
+		play_sfx("swing" if not event.hit else "guard" if event.damage<=0 else "critical" if event.crit else "hit")
 		var fade=create_tween().set_parallel(true);fade.tween_property(text_label,"position:y",text_label.position.y-24,.24);fade.tween_property(text_label,"modulate:a",0.0,.24)
 		await fade.finished
 		text_label.queue_free()

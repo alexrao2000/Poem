@@ -12,8 +12,9 @@ static var glow_texture: GradientTexture2D
 
 func configure(point: Vector3,event: Dictionary,view: Camera3D,spell=""):
  name="CombatImpact";position=point;camera=view
- amount=Label3D.new();amount.name="Damage";amount.text=str(int(event.damage)) if event.hit else "MISS"
- amount.font_size=110 if event.crit else 80;amount.pixel_size=.0055;amount.billboard=BaseMaterial3D.BILLBOARD_ENABLED
+ var blocked=event.hit and event.damage<=0
+ amount=Label3D.new();amount.name="Damage";amount.text=("NO DAMAGE" if blocked else str(int(event.damage))) if event.hit else "MISS"
+ amount.font_size=52 if blocked else 110 if event.crit else 80;amount.pixel_size=.0055;amount.billboard=BaseMaterial3D.BILLBOARD_ENABLED
  amount.modulate=Color("ffdb73") if event.crit else Color("fff8e3") if event.hit else Color("d4e6ec")
  amount.outline_modulate=Color("302a35");amount.outline_size=14;amount.position.y=.52;amount.no_depth_test=true
  add_child(amount)
@@ -24,16 +25,17 @@ func configure(point: Vector3,event: Dictionary,view: Camera3D,spell=""):
  if event.hit:
   plane=Node3D.new();add_child(plane)
   glow=MeshInstance3D.new();glow.name="ContactGlow";plane.add_child(glow)
-  var quad=QuadMesh.new();quad.size=Vector2.ONE*(1.5 if event.crit else .9);glow.mesh=quad
+  var quad=QuadMesh.new();quad.size=Vector2.ONE*(.5 if blocked else 1.5 if event.crit else .9);glow.mesh=quad
   var material=accent_material();material.albedo_texture=radial_texture()
-  material.albedo_color=Color("ffca76") if spell.is_empty() else Spell.palette(spell).accent
+  material.albedo_color=Color("9caab5") if blocked else Color("ffca76") if spell.is_empty() else Spell.palette(spell).accent
   glow.material_override=material
-  burst=MeshInstance3D.new();burst.name="CriticalForks" if event.crit else "Sparks";plane.add_child(burst)
-  burst.mesh=burst_mesh(event.crit,spell);burst.material_override=accent_material();burst.position.z=.01
+  if not blocked:
+   burst=MeshInstance3D.new();burst.name="CriticalForks" if event.crit else "Sparks";plane.add_child(burst)
+   burst.mesh=burst_mesh(event.crit,spell);burst.material_override=accent_material();burst.position.z=.01
+   motion.tween_property(burst,"scale",Vector3.ONE*1.18,.23).from(Vector3.ONE*.45).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
+   motion.tween_property(burst.material_override,"albedo_color:a",0.0,.2).set_delay(.08)
   motion.tween_property(glow,"scale",Vector3.ONE*1.3,.2).from(Vector3.ONE*.4)
   motion.tween_property(glow.material_override,"albedo_color:a",0.0,.18).set_delay(.035)
-  motion.tween_property(burst,"scale",Vector3.ONE*1.18,.23).from(Vector3.ONE*.45).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
-  motion.tween_property(burst.material_override,"albedo_color:a",0.0,.2).set_delay(.08)
  _process(0)
  motion.chain().tween_callback(queue_free)
 
