@@ -673,11 +673,12 @@ func cinematic(a,b,events,initial_hp={}):
 		var is_ranged=unit.weapon in ["bow","magic"] or (unit.weapon=="lance" and game.distance(a,b)>1)
 		caption.text=unit.name+"  /  "+("Critical strike" if event.crit else unit.weapon.capitalize())
 		if not is_ranged:
-			who.pose("advance",.24)
-			var approach=create_tween().set_trans(Tween.TRANS_SINE)
 			var distance_to_close=absf(whom.position.x-who.position.x)-Fighters.Actor.melee_spacing(unit.weapon)
-			approach.tween_property(who,"position:x",base.x+direction*maxf(0,distance_to_close),.24)
-			await approach.finished
+			if absf(distance_to_close)>.08:
+				who.pose("advance" if distance_to_close>0 else "idle",.2)
+				var approach=create_tween().set_trans(Tween.TRANS_SINE)
+				approach.tween_property(who,"position:x",base.x+direction*distance_to_close,.24)
+				await approach.finished
 		if who.has_method("aim_at"):who.aim_at(whom.socket_position("impact"))
 		director.shot(who.position,whom.position,"windup",is_ranged,mounted,.28)
 		await who.pose("throw_windup" if is_ranged and unit.weapon=="lance" else "windup",.28 if not event.crit else .4).finished
@@ -705,14 +706,12 @@ func cinematic(a,b,events,initial_hp={}):
 		caption.text=unit.name+(" — CRITICAL! " if event.crit else " — ")+(str(int(event.damage))+" damage" if event.hit else "Miss")
 		if event.hit:director.impact(event.crit)
 		await get_tree().create_timer(.22 if not event.crit else .34).timeout
-		who.pose("idle",.25)
-		director.shot(base,whom.position,"wide",ranged,mounted,.3)
-		var retreat=create_tween().set_trans(Tween.TRANS_SINE);retreat.tween_property(who,"position",base,.3)
+		who.pose("idle",.16)
 		if event.remaining<=0:
 			await whom.pose("down",.3).finished
 		else:
-			await whom.pose("idle",.25).finished
-		if retreat.is_running():await retreat.finished
+			await whom.pose("idle",.16).finished
+	director.shot(actor.position,defender.position,"wide",ranged,mounted,.2)
 	await get_tree().create_timer(.18).timeout
 
 	banner.queue_free();caption.queue_free()
