@@ -281,7 +281,16 @@ func show_title():
 	button_in(v,"Continue saved campaign",load_campaign,not FileAccess.file_exists(save_path) and not FileAccess.file_exists(save_path+".bak"))
 	button_in(v,"Transfer a local save",func():show_save_transfer("title"))
 	button_in(v,"Options",func():show_options("title"))
+	button_in(v,"Visual workshop · 2D / 3D maps",show_visual_workshop)
 	label_in(v,"Original playable prototype • Casual recovery\nFallen allies return next chapter. Losing everyone means retry.",14,Color("827b6c"))
+
+func show_visual_workshop():
+	screen="visual_workshop"
+	ui.hide();world.hide();pieces.hide();markers.hide();stage.hide()
+	var workshop=load("res://visual_lab.tscn").instantiate()
+	canvas.add_child(workshop)
+	workshop.closed.connect(func():
+		canvas.remove_child(workshop);workshop.queue_free();camera.current=true;show_title())
 
 func show_camp():
 	screen="camp";busy=false;selected=null;target=null;origin=null

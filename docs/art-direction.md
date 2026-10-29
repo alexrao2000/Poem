@@ -2,6 +2,10 @@
 
 Target: the readable sprite-on-3D tactical presentation and close-up 3D combat of Fire Emblem Awakening and Fates. Reference screenshots are linked in DEVELOPMENT.md; no reference pixels are included in the game.
 
+## Exploratory 2D visual requirements
+
+The [reusable 2D requirements package](visuals-2d/README.md) explores animated pixel characters with either 2D tilemaps or 3D terrain, informed by Dyadem's presentation. The implemented [visual foundation](../visuals/README.md) contains original generated sprite and environment atlases, a validated catalog, shared animation playback, effects, two map adapters, and a portable preview. The title screen's Visual workshop runs both renderers against the same separate tactical skirmish. The main campaign's renderer and separate 3D combat remain in place. Exact art prompts and provenance are in `visuals/source/generation-prompts.json`; production gaps and integration context are in [integration notes](visuals-2d/integration-notes.md).
+
 The first build's floating board, flat spheres, identical block sprites and wooden mannequin combatants were rejected by the user. Do not treat that aesthetic as the target. The current rebuild is an intermediate step, not an equivalent of the reference games.
 
 ## Original raster assets

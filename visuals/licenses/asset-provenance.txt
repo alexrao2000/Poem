@@ -1,0 +1,9 @@
+Original generated artwork for this project, created on 2026-10-29 with the built-in image_gen tool.
+
+units-v1.png: original eight-class atlas generation.
+units-v2.png: transparency refinement of units-v1, used at runtime.
+terrain-v1.png: original sixteen-region environment atlas.
+
+Exact prompts are preserved in source/generation-prompts.json. No existing game artwork was supplied as image input. The image edit used only this project's own generated atlas. Indexing scripts read dimensions and emit metadata; they do not modify source image pixels.
+
+Code adapters and metadata were authored in this project. The standalone preview uses Godot's default UI font and includes no third-party fonts or campaign assets. This record describes provenance; it does not assign a new distribution license to the owner's project.
