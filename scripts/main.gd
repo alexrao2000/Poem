@@ -15,6 +15,7 @@ var dialogue_reveal=0.0
 const CombatTrail=preload("res://scripts/combat_trail.gd")
 const CombatCamera=preload("res://scripts/combat_camera.gd")
 const CombatHUD=preload("res://scripts/combat_hud.gd")
+const CombatTransition=preload("res://scripts/combat_transition.gd")
 const CriticalCutin=preload("res://scripts/critical_cutin.gd")
 const Fighters = preload("res://scripts/fighters.gd")
 var fighters: RefCounted
@@ -565,16 +566,17 @@ func cinematic(a,b,events,initial_hp={}):
 	var old_pos=camera.position;var old_rot=camera.rotation;var old_size=camera.size;var old_offset=camera.h_offset;var old_vertical_offset=camera.v_offset;var old_fov=camera.fov
 	var focus=Vector3((a.x+b.x)*.5,0,(a.y+b.y)*.5)
 	markers.hide()
-	var push=create_tween().set_parallel(true).set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_IN)
-	push.tween_property(camera,"size",6.0,.32)
-	push.tween_property(camera,"h_offset",0.0,.32)
-	push.tween_property(camera,"position",old_pos+focus-Vector3((game.board_size().x-1)*.5,0,(game.board_size().y-1)*.5),.32)
-	await push.finished
 	var tactical_controls=ui.get_children()
 	for control in tactical_controls:control.hide()
-	var veil=ColorRect.new();veil.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
-	veil.color=Color("101b29");veil.modulate.a=0;veil.mouse_filter=Control.MOUSE_FILTER_IGNORE;ui.add_child(veil)
-	var close=create_tween();close.tween_property(veil,"modulate:a",1.0,.12);await close.finished
+	var veil=CombatTransition.new();veil.configure(ui,func():return camera.unproject_position(focus))
+	veil.conceal()
+	var push=create_tween().set_parallel(true).set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_IN)
+	push.tween_property(camera,"size",5.0,.42)
+	push.tween_property(camera,"h_offset",0.0,.42)
+	push.tween_property(camera,"v_offset",0.0,.42)
+	push.tween_property(camera,"position",old_pos+focus-Vector3((game.board_size().x-1)*.5,0,(game.board_size().y-1)*.5),.42)
+	await push.finished
+	if veil.motion.is_running():await veil.motion.finished
 	for n in stage.get_children():n.queue_free()
 	stage.visible=true
 	var old_lighting=battle_lighting(game.info().get("environment","village"))
@@ -587,8 +589,8 @@ func cinematic(a,b,events,initial_hp={}):
 	var director=CombatCamera.new();stage.add_child(director);director.configure(camera)
 	var mounted=a.job=="Rider" or b.job=="Rider"
 	director.establish(actor.position,defender.position,ranged,mounted)
-	var reveal=create_tween();reveal.tween_property(veil,"modulate:a",0.0,.18);await reveal.finished
-	veil.queue_free()
+	await veil.reveal().finished
+	veil.hide()
 	var displayed_hp={};var entries=[]
 	for unit in [a,b]:
 		var hp=int(initial_hp.get(unit.id,unit.hp))
@@ -656,12 +658,16 @@ func cinematic(a,b,events,initial_hp={}):
 	await get_tree().create_timer(.18).timeout
 
 	banner.queue_free();caption.queue_free()
+	veil.show();await veil.conceal(.12,false).finished
 	director.stop();director.queue_free()
 	stage.visible=false
 	restore_lighting(old_lighting)
 	world.show();pieces.show();markers.show()
 	camera.projection=Camera3D.PROJECTION_ORTHOGONAL;camera.position=old_pos;camera.rotation=old_rot;camera.h_offset=old_offset;camera.v_offset=old_vertical_offset;camera.fov=old_fov
+	veil.reveal(.25)
 	var pull=create_tween();pull.tween_property(camera,"size",old_size,.25);await pull.finished
+	if veil.motion.is_running():await veil.motion.finished
+	veil.queue_free()
 	for control in tactical_controls:
 		if is_instance_valid(control):control.show()
 	music_mix(false)

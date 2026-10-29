@@ -1,5 +1,6 @@
 extends SceneTree
 const Director=preload("res://scripts/combat_camera.gd")
+const Transition=preload("res://scripts/combat_transition.gd")
 func _initialize():call_deferred("run")
 func run():
  var camera=Camera3D.new();root.add_child(camera);camera.position=Vector3(35,10,10)
@@ -22,5 +23,20 @@ func run():
  var stopped=camera.transform;await create_timer(.12).timeout
  assert(camera.transform==stopped,"Stopped director cannot overwrite tactical camera restoration")
  director.queue_free();camera.queue_free();await process_frame
- print("PASS: camera framing, attack/counter axis continuity, mounted framing, impact settling and cleanup")
+ var host=Control.new();root.add_child(host);host.size=Vector2(1440,900)
+ var veil=Transition.new();veil.configure(host)
+ var previous=0.0
+ for step in range(21):
+  veil.progress=step/20.0
+  assert(veil.cover_alpha()>=previous,"Concealment is monotonic")
+  previous=veil.cover_alpha()
+ await veil.conceal(.02).finished
+ assert(is_equal_approx(veil.cover_alpha(),1),"Arena swap happens behind an opaque veil")
+ await veil.reveal(.02).finished
+ assert(veil.progress==0 and veil.cover_alpha()==0,"Reveal leaves no opaque overlay")
+ veil.conceal(.2);await create_timer(.03).timeout
+ await veil.reveal(.02).finished
+ assert(veil.progress==0,"Interrupted transition cancels earlier movement")
+ host.queue_free();await process_frame
+ print("PASS: camera framing, axis continuity, mounted framing, impact settling, transition coverage and cleanup")
  quit()
