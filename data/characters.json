@@ -8,7 +8,8 @@
       "skin": "e0ba98",
       "hair": "623c31",
       "hair_style": "long"
-    }
+    },
+    "critical_quote": "For everyone behind me!"
   },
   "oren": {
     "title": "The gate left open",
@@ -19,7 +20,8 @@
       "skin": "d0aa89",
       "hair": "62564e",
       "hair_style": "short"
-    }
+    },
+    "critical_quote": "This line holds."
   },
   "sera": {
     "title": "Roads beneath the stars",
@@ -30,7 +32,8 @@
       "skin": "e3b995",
       "hair": "8f4b30",
       "hair_style": "long"
-    }
+    },
+    "critical_quote": "I see the way through."
   },
   "ivo": {
     "title": "No one expendable",
@@ -41,7 +44,8 @@
       "skin": "bb8d67",
       "hair": "30272b",
       "hair_style": "short"
-    }
+    },
+    "critical_quote": "No one is expendable!"
   },
   "mara": {
     "title": "A captain of borrowed tides",
@@ -52,7 +56,8 @@
       "skin": "a86d4b",
       "hair": "713629",
       "hair_style": "long"
-    }
+    },
+    "critical_quote": "You cannot bar this river!"
   },
   "tarin": {
     "title": "The inconvenient calculation",
@@ -63,7 +68,8 @@
       "skin": "e8c6a6",
       "hair": "d3bc89",
       "hair_style": "short"
-    }
+    },
+    "critical_quote": "I checked the numbers."
   },
   "nell": {
     "title": "Every door has two sides",
@@ -74,7 +80,8 @@
       "skin": "d0a17c",
       "hair": "28232c",
       "hair_style": "short"
-    }
+    },
+    "critical_quote": "Found your opening!"
   },
   "bram": {
     "title": "Good timber, good people",
@@ -85,7 +92,8 @@
       "skin": "d6b48c",
       "hair": "aa8450",
       "hair_style": "short"
-    }
+    },
+    "critical_quote": "Time to put this right."
   },
   "esme": {
     "title": "The names in the bell",
@@ -96,7 +104,8 @@
       "skin": "76533f",
       "hair": "c6c1b4",
       "hair_style": "long"
-    }
+    },
+    "critical_quote": "We remember their names."
   },
   "rook": {
     "title": "The work after regret",
@@ -107,7 +116,8 @@
       "skin": "bf9878",
       "hair": "444146",
       "hair_style": "short"
-    }
+    },
+    "critical_quote": "Let me make this count."
   },
   "faye": {
     "title": "The forest keeps its paths",
@@ -118,7 +128,8 @@
       "skin": "c99b72",
       "hair": "b29863",
       "hair_style": "long"
-    }
+    },
+    "critical_quote": "You missed the trail."
   },
   "cassian": {
     "title": "Learning to lower a banner",
@@ -129,7 +140,8 @@
       "skin": "e5bd99",
       "hair": "ccae6e",
       "hair_style": "long"
-    }
+    },
+    "critical_quote": "My oath is to these people!"
   },
   "vela": {
     "title": "The light that answers",
@@ -140,7 +152,8 @@
       "skin": "805439",
       "hair": "242b37",
       "hair_style": "long"
-    }
+    },
+    "critical_quote": "There is still a light."
   },
   "dax": {
     "title": "Hands on the same rope",
@@ -151,7 +164,8 @@
       "skin": "996b4c",
       "hair": "2e2827",
       "hair_style": "bald"
-    }
+    },
+    "critical_quote": "We pull together!"
   },
   "una": {
     "title": "Beyond the sealed letter",
@@ -162,7 +176,8 @@
       "skin": "e0bb9b",
       "hair": "744633",
       "hair_style": "short"
-    }
+    },
+    "critical_quote": "Here are my terms."
   },
   "silas": {
     "title": "A truth without a cover story",
@@ -173,7 +188,8 @@
       "skin": "b99a7d",
       "hair": "302c32",
       "hair_style": "short"
-    }
+    },
+    "critical_quote": "No more cover stories."
   },
   "petra": {
     "title": "What a bridge is for",
@@ -184,7 +200,8 @@
       "skin": "b87f59",
       "hair": "985034",
       "hair_style": "short"
-    }
+    },
+    "critical_quote": "I know the weak point."
   },
   "ari": {
     "title": "Messages with wings",
@@ -195,7 +212,8 @@
       "skin": "b78b65",
       "hair": "4a342b",
       "hair_style": "short"
-    }
+    },
+    "critical_quote": "The message gets through!"
   },
   "noor": {
     "title": "The cost of borrowed light",
@@ -206,7 +224,8 @@
       "skin": "76513d",
       "hair": "302939",
       "hair_style": "long"
-    }
+    },
+    "critical_quote": "I know what this light costs."
   },
   "galen": {
     "title": "Seeds for the day after",
@@ -217,7 +236,8 @@
       "skin": "d5b394",
       "hair": "b8b2a3",
       "hair_style": "beard"
-    }
+    },
+    "critical_quote": "We will see another spring."
   },
   "yuna": {
     "title": "Steps through the palace",
@@ -228,7 +248,8 @@
       "skin": "bf946e",
       "hair": "272631",
       "hair_style": "long"
-    }
+    },
+    "critical_quote": "One step ahead."
   },
   "hale": {
     "title": "The way back to daylight",
@@ -239,7 +260,8 @@
       "skin": "825b43",
       "hair": "4b4947",
       "hair_style": "beard"
-    }
+    },
+    "critical_quote": "We are getting out of here!"
   },
   "elian": {
     "title": "An oath reconsidered",
@@ -250,7 +272,8 @@
       "skin": "bb9b80",
       "hair": "b4b4ad",
       "hair_style": "short"
-    }
+    },
+    "critical_quote": "This oath is mine."
   },
   "rhea": {
     "title": "The person behind the regent",
@@ -261,6 +284,7 @@
       "skin": "e3bc9d",
       "hair": "713c31",
       "hair_style": "long"
-    }
+    },
+    "critical_quote": "I choose what comes next."
   }
 }

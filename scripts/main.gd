@@ -12,6 +12,7 @@ var dialogue_label: Label
 var dialogue_name: Label
 var dialogue_portrait: TextureRect
 var dialogue_reveal=0.0
+const CriticalCutin=preload("res://scripts/critical_cutin.gd")
 const Fighters = preload("res://scripts/fighters.gd")
 var fighters: RefCounted
 const Scenery = preload("res://scripts/scenery.gd")
@@ -627,6 +628,9 @@ func cinematic(a,b,events,initial_hp={}):
 			await approach.finished
 		await who.pose("throw_windup" if is_ranged and unit.weapon=="lance" else "windup",.28 if not event.crit else .4).finished
 		if skip_combat:break
+		if event.crit:
+			await critical_cutin(unit)
+			if skip_combat:break
 		play_sfx("magic" if unit.weapon=="magic" else "swing")
 		await who.pose("throw" if is_ranged and unit.weapon=="lance" else "strike",.12).finished
 		if is_ranged:
@@ -1141,3 +1145,11 @@ func draw_map_cursor():
 		for sign_y in [-1,1]:
 			cube(root,Vector3(cursor_tile.x+sign_x*.36,.085,cursor_tile.y+sign_y*.46),Vector3(.22,.035,.055),Color("fff6d6"))
 			cube(root,Vector3(cursor_tile.x+sign_x*.46,.085,cursor_tile.y+sign_y*.36),Vector3(.055,.035,.22),Color("fff6d6"))
+
+func critical_cutin(unit: Dictionary):
+	if skip_combat:return
+	var cutin=CriticalCutin.new()
+	var quote=fighters.profiles.get(unit.id,{}).get("critical_quote","Stand aside!")
+	cutin.configure(ui,unit,portraits.get_portrait(unit.id),quote)
+	await cutin.play(func():return skip_combat,unit.team=="enemy")
+	cutin.queue_free()

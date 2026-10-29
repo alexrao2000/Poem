@@ -11,7 +11,7 @@ An original, playable tactical RPG prototype in Godot 4.5.1 / GDScript.
 - Original 71-second, 32-bar stereo score with calm/intense arrangements on the same sample timeline, plus synthesized combat/healing/phase effects.
 - Save/load during the player phase and at camp; autosaves after actions. Saves include RNG state, validate loaded data, retain the previous save as a backup, and migrate changed map layouts back to preparation.
 - 36 original support conversations (192 lines) across 12 partnerships covering the full roster; earned ranks grant proximity bonuses.
-- Animated XP and level-up rewards, complete two-sided forecasts, chapter results, and a rotatable 3D character viewer.
+- Animated XP and level-up rewards, complete two-sided forecasts, chapter results, a rotatable 3D character viewer, and skippable critical portrait accents with original battle calls for all 24 recruits.
 - Browser and macOS exports.
 
 This is a complete campaign **prototype**, not finished commercial content. The first visual rebuild adds painted materials and distinct class silhouettes, but 3D characters and animation still need substantial refinement to approach the Awakening/Fates reference quality. Music is synthesized, and 3D characters remain procedural despite textured materials and class-specific silhouettes. Portraits are original generated illustrations. There is no voice acting, weapon durability, or multiplayer. Five automated campaigns clear all 12 chapters using legal actions, including both promotion branches, but campaign balance still needs a complete human playthrough. Recruitment occurs automatically at the relevant chapter's war council. Fallen units recover when the map is restarted or the chapter ends.
@@ -63,7 +63,7 @@ Export templates are not checked in. Download the official 4.5.1 export template
 
 Browser build: `godot --headless --path . --export-release Web`, then `python3 scripts/pack_web.py`. The postprocessor compresses the WASM engine and uses the browser DecompressionStream API so static hosting needs no special response headers. Native build: `godot --headless --path . --export-release macOS`.
 
-To import, run all eighteen test suites, and package both local builds in one step: `GODOT_BIN=/path/to/godot scripts/build_local.sh`.
+To import, run all nineteen test suites, and package both local builds in one step: `GODOT_BIN=/path/to/godot scripts/build_local.sh`.
 
 Apart from the openly licensed display font, all game assets and story content are original prototype work, including generated raster art and procedural 3D models. The game includes no Nintendo code, art, characters or music. Reference repositories informed mechanical architecture; the implementation is new GDScript.
 
