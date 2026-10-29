@@ -15,7 +15,7 @@ func _initialize():
 	call_deferred("run")
 
 func run():
-	var app=load("res://main.tscn").instantiate();app.settings_path="";app.save_path="/private/tmp/ashen-test_presentation-ui-save.json"
+	var app=load("res://main.tscn").instantiate();app.settings_path="";app.save_path="/private/tmp/poem-test_presentation-ui-save.json"
 	root.add_child(app)
 	await process_frame
 	for chapter in range(12):

@@ -93,7 +93,7 @@ func build_ui():
 	var shell=VBoxContainer.new();shell.add_theme_constant_override("separation",14);margin.add_child(shell)
 	var header=HBoxContainer.new();header.add_theme_constant_override("separation",18);shell.add_child(header)
 	var titles=VBoxContainer.new();titles.size_flags_horizontal=Control.SIZE_EXPAND_FILL;header.add_child(titles)
-	label(titles,"ASHEN STANDARD   /   VISUAL WORKSHOP",12,"a6b79c")
+	label(titles,"POEM   /   VISUAL WORKSHOP",12,"a6b79c")
 	var title=label(titles,"The river crossing",36,"eee6c8");title.add_theme_font_override("font",FONT)
 	var switcher=HBoxContainer.new();switcher.alignment=BoxContainer.ALIGNMENT_END;switcher.size_flags_vertical=Control.SIZE_SHRINK_CENTER;header.add_child(switcher)
 	mode_buttons.append(button(switcher,"  2D tilemap  ",func():set_mode("2d")))

@@ -69,7 +69,7 @@ func run():
  assert(procedural.bone("Arm")!=null and not procedural.has_meta("source_model"),"Unmapped roster retains procedural actors")
  assert(procedural.socket_position("impact")==Vector3(0,1.1,0))
  # Run the actual battle presentation through the same adapter, including ranged effects.
- var app=load("res://main.tscn").instantiate();app.settings_path="";app.save_path="/private/tmp/ashen-model-test.json";root.add_child(app);await process_frame
+ var app=load("res://main.tscn").instantiate();app.settings_path="";app.save_path="/private/tmp/poem-model-test.json";root.add_child(app);await process_frame
  app.fighters.models.catalog={"classes":{},"enemy_classes":{}}
  for job in g.content.classes:
   app.fighters.models.catalog.classes[job]=spec

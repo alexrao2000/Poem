@@ -37,7 +37,7 @@ func run():
    assert(game.rng.state==before,"Forecast display never consumes RNG")
    forecast.queue_free();await process_frame
  host.queue_free();await process_frame
- var app=load("res://main.tscn").instantiate();app.settings_path="";app.save_path="/private/tmp/ashen-forecast-ui.json";root.add_child(app);await process_frame
+ var app=load("res://main.tscn").instantiate();app.settings_path="";app.save_path="/private/tmp/poem-forecast-ui.json";root.add_child(app);await process_frame
  app.game.start_battle();app.make_map();app.show_battle();app.selected=app.game.units[0];app.target=app.game.living("enemy")[0]
  app.update_side();await process_frame
  assert(is_instance_valid(app.forecast_panel) and app.forecast_panel.visible)

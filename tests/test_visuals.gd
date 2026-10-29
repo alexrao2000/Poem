@@ -89,7 +89,7 @@ func run():
 		lab.end_turn();await idle(lab);assert(lab.game.turn==2 and lab.game.phase=="player","Enemy phase returns to player control")
 	assert(outcomes[0]==outcomes[1],"Identical attacks in both renderers yield identical HP, progression, and RNG")
 	lab.queue_free();await process_frame
-	var app=load("res://main.tscn").instantiate();app.settings_path="";app.save_path="/private/tmp/ashen-visuals-test.json";root.add_child(app);await process_frame
+	var app=load("res://main.tscn").instantiate();app.settings_path="";app.save_path="/private/tmp/poem-visuals-test.json";root.add_child(app);await process_frame
 	var campaign=app.game.save_data("battle");app.show_visual_workshop();await process_frame
 	assert(app.screen=="visual_workshop" and not app.ui.visible)
 	var workshop=app.canvas.get_child(app.canvas.get_child_count()-1);workshop.closed.emit();await process_frame

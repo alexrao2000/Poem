@@ -7,12 +7,12 @@ func run():
  prefs.values.combat="player";assert(prefs.show_cinematic("player") and not prefs.show_cinematic("enemy"))
  prefs.values.combat="map";assert(not prefs.show_cinematic("player"))
  prefs.values.music=0;assert(prefs.volume_db("music")==-80)
- assert(prefs.save_file("/private/tmp/ashen-preferences.json"))
- var restored=Preferences.new();assert(restored.load_file("/private/tmp/ashen-preferences.json") and restored.values.combat=="map" and restored.values.music==0 and restored.values.text_speed==55)
+ assert(prefs.save_file("/private/tmp/poem-preferences.json"))
+ var restored=Preferences.new();assert(restored.load_file("/private/tmp/poem-preferences.json") and restored.values.combat=="map" and restored.values.music==0 and restored.values.text_speed==55)
  var invalid=prefs.values.duplicate();invalid.effects=4;assert(not prefs.valid(invalid))
  invalid.effects="loud";assert(not prefs.valid(invalid))
- var app=load("res://main.tscn").instantiate();app.settings_path="";app.save_path="/private/tmp/ashen-preferences-campaign.json";root.add_child(app);await process_frame
- app.settings_path="/private/tmp/ashen-preferences-ui.json";app.show_options("title");await process_frame;await process_frame
+ var app=load("res://main.tscn").instantiate();app.settings_path="";app.save_path="/private/tmp/poem-preferences-campaign.json";root.add_child(app);await process_frame
+ app.settings_path="/private/tmp/poem-preferences-ui.json";app.show_options("title");await process_frame;await process_frame
  var mode=app.ui.find_child("CombatMode",true,false);mode.selected=2;mode.item_selected.emit(2)
  var music=app.ui.find_child("MusicVolume",true,false);music.value=0
  assert(app.preferences.values.combat=="map" and app.music.volume_db==-80,"Menu updates playback and audio")

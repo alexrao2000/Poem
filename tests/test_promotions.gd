@@ -46,7 +46,7 @@ func run():
  medic=g.units.filter(func(u):return u.id=="ivo")[0];hero=g.units[0]
  medic.x=2;medic.y=3;hero.x=3;hero.y=3;hero.hp=hero.max_hp-20
  var hp=hero.hp;assert(g.heal(medic,hero) and hero.hp==hp+16,"Luminary staff bonus changes actual healing")
- var app=load("res://main.tscn").instantiate();app.settings_path="";app.save_path="/private/tmp/ashen-test-promotions-ui.json";root.add_child(app);await process_frame
+ var app=load("res://main.tscn").instantiate();app.settings_path="";app.save_path="/private/tmp/poem-test-promotions-ui.json";root.add_child(app);await process_frame
  var unit=app.game.roster[0];unit.level=10
  app.show_promotions(unit);await process_frame;await process_frame
  assert(app.screen=="promotions")

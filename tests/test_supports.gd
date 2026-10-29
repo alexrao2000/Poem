@@ -53,7 +53,7 @@ func run():
  var medic=g.units[3];var scout=g.units[2];medic.x=1;medic.y=4;scout.x=1;scout.y=3;scout.hp-=8
  assert(g.heal(medic,scout) and g.supports.progress("sera_ivo").points==1)
  assert(not g.heal(medic,scout) and g.supports.progress("sera_ivo").points==1)
- var app=load("res://main.tscn").instantiate();app.settings_path="";app.save_path="/private/tmp/ashen-support-ui.json";root.add_child(app);await process_frame
+ var app=load("res://main.tscn").instantiate();app.settings_path="";app.save_path="/private/tmp/poem-support-ui.json";root.add_child(app);await process_frame
  var unit=app.game.roster[0];var entry=app.game.supports.entries[0]
  app.game.supports.state[entry.id]={"points":3,"rank":0,"chapter":0,"earned":3,"turn":3}
  app.game.chapter=1;app.show_supports(unit);await process_frame;await process_frame

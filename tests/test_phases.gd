@@ -23,7 +23,7 @@ func run():
    assert(not banner.visible and not banner.motion.is_running(),"Skip stops and hides the ribbon")
    banner.queue_free();await process_frame
  host.queue_free()
- app=load("res://main.tscn").instantiate();app.settings_path="";app.save_path="/private/tmp/ashen-phases.json";root.add_child(app);await process_frame
+ app=load("res://main.tscn").instantiate();app.settings_path="";app.save_path="/private/tmp/poem-phases.json";root.add_child(app);await process_frame
  app.deploy_company();await process_frame
  assert(app.busy and app.phase_banner_active and app.game.turn==1,"Deployment starts with a locked player phase ribbon")
  var before=app.cursor_tile;app.move_map_cursor(Vector2i.RIGHT);assert(app.cursor_tile==before,"Ribbon prevents tactical input")

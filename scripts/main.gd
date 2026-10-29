@@ -295,7 +295,7 @@ func show_title():
 	screen="title";game.start_battle();make_map();reset_ui()
 	var v=panel_at(ui,65,100,-760,-100)
 	label_in(v,"A TACTICAL CHRONICLE",16,GOLD)
-	label_in(v,"ASHEN\nSTANDARD",64)
+	label_in(v,"POEM",64)
 	label_in(v,"A broken banner. A borrowed sun.\nTwenty-four lives caught between them.",22)
 	label_in(v,"12 chapters · 24 recruits · 8 classes\nSprite battlefields / cinematic 3D combat",17,Color("766e5e"))
 	var spacer=Control.new();spacer.size_flags_vertical=Control.SIZE_EXPAND_FILL;v.add_child(spacer)
@@ -311,7 +311,7 @@ func show_title():
 func show_credits():
 	screen="credits";reset_ui()
 	var panel=panel_at(ui,220,100,-220,-100)
-	label_in(panel,"ASHEN STANDARD",42,GOLD)
+	label_in(panel,"POEM",42,GOLD)
 	label_in(panel,"An original tactical chronicle",22)
 	label_in(panel,"A STANDARD AT DAWN",20,GOLD)
 	label_in(panel,"Original composition and paired calm / Ablaze arrangements.",20)
@@ -345,7 +345,7 @@ func show_camp():
 	ui.add_child(shell)
 	var row=HBoxContainer.new();row.add_theme_constant_override("separation",24);shell.add_child(row)
 	var left=VBoxContainer.new();left.custom_minimum_size.x=350;left.size_flags_horizontal=Control.SIZE_EXPAND_FILL;row.add_child(left)
-	label_in(left,"ASHEN STANDARD / WAR COUNCIL",16,GOLD)
+	label_in(left,"POEM / WAR COUNCIL",16,GOLD)
 	label_in(left,"%02d  %s"%[game.chapter+1,game.info().title],34)
 	label_in(left,game.info().place.to_upper(),17,Color("79755f"))
 	label_in(left,game.info().intro,21)
@@ -1040,7 +1040,7 @@ func show_save_transfer(return_screen: String):
 	transfer_text=TextEdit.new();transfer_text.name="SaveCode";transfer_text.size_flags_vertical=Control.SIZE_EXPAND_FILL
 	transfer_text.wrap_mode=TextEdit.LINE_WRAPPING_BOUNDARY;transfer_text.add_theme_font_size_override("font_size",14);panel.add_child(transfer_text)
 	transfer_text.text=game.export_code(return_screen) if return_screen in ["camp","battle"] else game.export_saved_code(save_path)
-	transfer_text.placeholder_text="Paste an ASHEN1: save code here."
+	transfer_text.placeholder_text="Paste a POEM1: save code here."
 	button_in(panel,"Copy code",func():DisplayServer.clipboard_set(transfer_text.text);show_notice("Save code copied. Keep it in a local text file or paste it into another build."))
 	if OS.has_feature("web"):button_in(panel,"Open browser copy / paste",open_browser_transfer)
 	else:button_in(panel,"Select all text",func():transfer_text.grab_focus();transfer_text.select_all())
@@ -1064,7 +1064,7 @@ func open_browser_transfer():
 		browser_transfer_callback=JavaScriptBridge.create_callback(func(arguments):
 			if screen=="save_transfer" and is_instance_valid(transfer_text) and arguments.size()>0:transfer_text.text=str(arguments[0])
 		)
-	var bridge=JavaScriptBridge.get_interface("ashenSaveTransfer")
+	var bridge=JavaScriptBridge.get_interface("poemSaveTransfer")
 	bridge.open(transfer_text.text,browser_transfer_callback)
 
 func show_promotions(unit):

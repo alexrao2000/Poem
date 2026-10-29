@@ -83,7 +83,7 @@ def main():
         raise ValueError("Duplicate character ID")
     assets = index_sheet(path, ids, args.scale)
     output = ROOT / "campaign_visuals.json"
-    catalog = json.loads(output.read_text()) if output.exists() else {"schema_version": 1, "profile": {"id": "ashen-recruits-v1", "tile_size_px": [32, 32]}, "assets": [], "sources": {}}
+    catalog = json.loads(output.read_text()) if output.exists() else {"schema_version": 1, "profile": {"id": "poem-recruits-v1", "tile_size_px": [32, 32]}, "assets": [], "sources": {}}
     updated = {asset["id"]: asset for asset in catalog["assets"]}
     updated.update({asset["id"]: asset for asset in assets})
     catalog["assets"] = list(updated.values())

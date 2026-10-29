@@ -4,9 +4,9 @@ An original sprite and terrain asset package with working Godot 4 adapters for 2
 
 ## Run and reuse
 
-In Ashen Standard, choose **Visual workshop · 2D / 3D maps** from the title screen. The workshop is a separate skirmish with movement, undo, forecasts, attacks, healing, enemy turns, and map switching. It has its own simulation and never writes the campaign save. Tab switches map views while idle and skips the active action animation while busy.
+In Poem, choose **Visual workshop · 2D / 3D maps** from the title screen. The workshop is a separate skirmish with movement, undo, forecasts, attacks, healing, enemy turns, and map switching. It has its own simulation and never writes the campaign save. Tab switches map views while idle and skips the active action animation while busy.
 
-For another game, copy the entire `visuals/` directory into a Godot 4 project. Open `res://visuals/preview.tscn` to inspect all eight classes, both maps, and animation states. The preview has no dependency on Ashen Standard's scripts, fonts, roster, saves, or combat rules. Run `python3 scripts/package_visuals.py` in the source repository to create a clean starter project and `build/Reusable2DVisuals.zip`.
+For another game, copy the entire `visuals/` directory into a Godot 4 project. Open `res://visuals/preview.tscn` to inspect all eight classes, both maps, and animation states. The preview has no dependency on Poem's scripts, fonts, roster, saves, or combat rules. Run `python3 scripts/package_visuals.py` in the source repository to create a clean starter project and `build/Reusable2DVisuals.zip`.
 
 The renderer scripts currently use the `res://visuals/` resource root. Keep that directory name or update the resource paths together when relocating it.
 

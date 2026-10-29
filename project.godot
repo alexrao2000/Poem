@@ -1,6 +1,8 @@
 config_version=5
 [application]
-config/name="Ashen Standard"
+config/name="Poem"
+config/use_custom_user_dir=true
+config/custom_user_dir_name="Poem"
 run/main_scene="res://main.tscn"
 [display]
 window/size/viewport_width=1440

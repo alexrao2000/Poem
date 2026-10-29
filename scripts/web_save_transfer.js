@@ -1,10 +1,10 @@
 /* Native browser text entry for local save codes. No network calls. */
-window.ashenSaveTransfer = {
+window.poemSaveTransfer = {
   open(code, receiveCode) {
-    const previous = document.getElementById('ashen-save-transfer');
+    const previous = document.getElementById('poem-save-transfer');
     if (previous) previous.remove();
     const dialog = document.createElement('dialog');
-    dialog.id = 'ashen-save-transfer';
+    dialog.id = 'poem-save-transfer';
     Object.assign(dialog.style, {
       width: 'min(90vw, 850px)', border: '2px solid #a38d61',
       padding: '24px', background: '#f1ead6', color: '#443e36',

@@ -24,10 +24,10 @@ func run():
     assert(people[line.speaker].join<=chapter,"Speaker is already recruited")
     assert(not line.text.is_empty());lines+=1
  g.story_seen=["opening_0","opening_1"]
- assert(g.save_game("/private/tmp/ashen-story-save.json","camp"))
- var restored=Rules.new();assert(restored.load_game("/private/tmp/ashen-story-save.json")=="camp")
+ assert(g.save_game("/private/tmp/poem-story-save.json","camp"))
+ var restored=Rules.new();assert(restored.load_game("/private/tmp/poem-story-save.json")=="camp")
  assert(restored.story_seen==g.story_seen,"Read scenes persist")
- var app=load("res://main.tscn").instantiate();app.settings_path="";app.save_path="/private/tmp/ashen-test_story-ui-save.json";root.add_child(app);await process_frame
+ var app=load("res://main.tscn").instantiate();app.settings_path="";app.save_path="/private/tmp/poem-test_story-ui-save.json";root.add_child(app);await process_frame
  app.game.new_campaign();app.show_camp();await process_frame
  assert(app.screen=="dialogue","New chapter begins with dialogue")
  app.advance_dialogue();assert(app.dialogue_index==0,"First press completes typewriter text")

@@ -145,5 +145,5 @@ effects['select']=voice(81,.07,'harp',.13)
 for name,sound in effects.items():
     with wave.open(str(OUT/f'{name}.wav'),'wb') as f:
         f.setparams((1,2,SR,0,'NONE','not compressed'));f.writeframes((np.clip(sound,-.9,.9)*32767).astype('<i2').tobytes())
-(OUT/'score.json').write_text(json.dumps(dict(title='A Standard at Dawn',composer='Original composition for Ashen Standard',bpm=BPM,bars=BARS,meter='4/4',sample_rate=SR,channels=2,frames=FRAMES,duration_seconds=FRAMES/SR,arrangements=['calm','ablaze'],source='scripts/generate_score.py',samples='VSCO 2 Community Edition, CC0; see orchestra-sources.json and VSCO-LICENSE.txt' if bank else 'None; all voices and effects synthesized'),indent=2)+'\n')
+(OUT/'score.json').write_text(json.dumps(dict(title='A Standard at Dawn',composer='Original composition for Poem',bpm=BPM,bars=BARS,meter='4/4',sample_rate=SR,channels=2,frames=FRAMES,duration_seconds=FRAMES/SR,arrangements=['calm','ablaze'],source='scripts/generate_score.py',samples='VSCO 2 Community Edition, CC0; see orchestra-sources.json and VSCO-LICENSE.txt' if bank else 'None; all voices and effects synthesized'),indent=2)+'\n')
 print(f'Wrote matched {BARS}-bar stereo arrangements: {FRAMES/SR:.2f}s, {FRAMES} frames each; {len(effects)} effects.')

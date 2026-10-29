@@ -451,20 +451,22 @@ func progress_since(snapshot: Dictionary) -> Array:
 	return changes
 
 func export_code(stage: String) -> String:
-	return "ASHEN1:"+Marshalls.utf8_to_base64(JSON.stringify(save_data(stage)))
+	return "POEM1:"+Marshalls.utf8_to_base64(JSON.stringify(save_data(stage)))
 
 func export_saved_code(path: String) -> String:
 	for candidate in [path,path+".bak"]:
 		if not FileAccess.file_exists(candidate):continue
 		var parser=JSON.new()
 		if parser.parse(FileAccess.get_file_as_string(candidate))==OK and valid_save(parser.data):
-			return "ASHEN1:"+Marshalls.utf8_to_base64(JSON.stringify(parser.data))
+			return "POEM1:"+Marshalls.utf8_to_base64(JSON.stringify(parser.data))
 	return ""
 
 func import_code(code: String) -> String:
 	code=code.strip_edges().replace("\n","").replace("\r","").replace(" ","").replace("\t","")
-	if code.length()>1000000 or not code.begins_with("ASHEN1:"):return ""
-	var encoded=code.substr(7)
+	if code.length()>1000000:return ""
+	var prefix=code.get_slice(":",0)
+	if prefix not in ["POEM1","ASHEN1"]:return ""
+	var encoded=code.substr(prefix.length()+1)
 	if encoded.is_empty() or encoded.length()%4!=0:return ""
 	if "=" in encoded.trim_suffix("=").trim_suffix("="):return ""
 	for character in encoded:
