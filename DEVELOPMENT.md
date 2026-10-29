@@ -2,9 +2,21 @@
 
 User direction: keep developing continuously in this chat until the user returns/stops work or available usage is exhausted. **Do not schedule anything.** The user clarified that the earlier heartbeat was unwanted; it has been deleted. They authorize model switching if one model is exhausted and another is available, but the current tool surface has no direct self-model switch and usage currently reports a shared Codex pool. The previous geometric prototype was rejected visually; resemblance to Awakening/Fates presentation is the priority, alongside the existing full roster and campaign. Keep local builds; the only authorized remote destination is the private GitHub repository https://github.com/alexrao2000/fe-clone. Never publish to Sites. No purchases.
 
-## Current work
+## Current checkpoint
 
-### Latest checkpoint: authored campaign, tactical AI, painted materials and score
+All 24 recruits now have individual animated map artwork: 288 original source poses, four facings, walking, attack and recoil, with planted pivots and mirrored west-facing contact poses. Eight class sheets remain the portable workshop package and enemy/fallback artwork. [Art provenance and current rendering details](docs/art-direction.md) are maintained separately.
+
+Combat retains real 3D figures with individual clothing palettes, ponytail/braid/bun/curl silhouettes, three distinct detailed mounts, planted infantry pose endpoints, weapon-grip projectile sockets, continuous counters/follow-ups and separate Ember/Gale/Thunder effects. The roster combines 1,779 rigid source meshes into 994 joint batches while preserving geometry and animation. Characters are still procedural; the authored-model catalog remains empty.
+
+The battlefield has flat tactical overlays, a shared-rules terrain card, pointer-anchored zoom, bounded drag, keyboard tracking and paired portrait forecast cards. Combat zoom centers the engaged pair after panning and restores the previous view. The original calm/Ablaze score uses pinned CC0 orchestral samples on one shared timeline.
+
+The last delivered local browser/macOS checkpoint passed all 31 automated suites, five complete campaign simulations (60 chapter victories), model-catalog validation and an exported-resource-pack smoke check. These are runtime, geometry and layout checks, not a rendered review of the latest game. Full human balance and listening reviews remain outstanding. Routine non-destructive commits and private pushes are authorized.
+
+The user explicitly allowed local browser testing, but the subsequent tool retry still returned a saved/managed permission denial. Localhost, the Quaternius asset site and native Codex access were blocked. Do not circumvent these denials with another browser surface, native game capture, raw browser/CDP access or alternate asset hosts. No Quaternius models have been acquired. Earlier screenshots and another chat's native workshop captures do not verify the current campaign visuals.
+
+## Earlier checkpoint notes
+
+### Early campaign, materials and score
 
 All 12 maps now have distinct authored routes, deployment positions, enemy formations, objectives, landmarks and tactical briefings (`scripts/author_maps.py`). Board bounds and objective positions are data-driven. Opening town includes blocked building footprints and a fountain. Enemy planning uses reverse weighted paths to attack positions, respects bow minimum range, holds guards in place and activates sentries. All movement, undo, healing, tonics and attacks use validated simulation actions.
 
@@ -32,9 +44,9 @@ These are reference links only. Do not copy Nintendo assets into the game or rep
 ## Prioritized work
 
 1. Refine the textured landscape, replacing repetitive round foliage and toy houses with richer original assets and distinct chapter environments.
-2. Give the shared class sprites individual character identity; maintain clear picking and terrain overlays.
+2. Refine the individual animation coverage and add promotion-specific outfits while maintaining clear picking and terrain overlays.
 3. Add restrained ornament and portraits to the cream/parchment UI, keeping controls within the viewport at 1280x720.
-4. Build articulated original 3D battle actors, class-specific silhouettes, weapon animations, camera motion, impact VFX and live combat HP display. Do not substitute 2D combat characters.
+4. Refine the original 3D battle actors, grounded motion, class silhouettes, weapon animation and camera continuity. Do not substitute 2D combat characters.
 5. Character portraits and dialogue presentation; deepen recruitment scenes and chapter-specific maps.
 6. Extend paired music arrangements, seamless loop boundary, attack sounds and spell effects.
 7. Simulate/play all 12 chapters, tune progression and AI, improve equipment and promotion systems with tests.

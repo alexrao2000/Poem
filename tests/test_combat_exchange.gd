@@ -7,6 +7,17 @@ const Impact=preload("res://scripts/combat_impact.gd")
 var observing=false
 var spells=[]
 var contact_colors=[]
+var misses=[]
+
+func watch_miss(node):
+ if not node is Projectile and not node is Impact:return
+ var actors=node.get_parent().get_children().filter(func(child):return child is Actor and not child.is_queued_for_deletion())
+ if actors.size()!=2:return
+ var record={"position":actors[1].position,"pose":actors[1].pose_name}
+ misses.append(record)
+ if node is Projectile:
+  await process_frame
+  record.destination=node.destination
 
 func watch_spell(node):
  if node is Projectile:
@@ -56,6 +67,18 @@ func run():
    assert(shots[2].a.x<shots[1].a.x,"Long weapon steps back to regain reach after a short-weapon counter")
   assert(app.game.save_data("battle")==saved and app.game.rng.state==rng,"Animation never changes campaign outcomes")
   assert(app.world.visible and not app.stage.visible and app.camera.projection==Camera3D.PROJECTION_ORTHOGONAL,"Every exchange returns to the map")
+ app.stage.child_entered_tree.connect(watch_miss)
+ for weapon in ["sword","bow"]:
+  a.weapon=weapon;a.job="Ranger" if weapon=="bow" else "Vanguard";b.x=10 if weapon=="bow" else 9
+  misses.clear();var saved=app.game.save_data("battle").duplicate(true);var rng=app.game.rng.state
+  await app.cinematic(a,b,[{"actor":a.id,"target":b.id,"damage":0,"remaining":20,"hit":false,"crit":false}],{a.id:20,b.id:20})
+  assert(misses.size()==(2 if weapon=="bow" else 1))
+  for sample in misses:
+   assert(sample.position.z<-.25 and sample.pose=="evade","Defender dodges before projectile release or melee contact")
+   if sample.has("destination"):assert(is_zero_approx(sample.destination.z),"Missed projectile keeps its original aim instead of tracking the dodge")
+  for actor in app.stage.get_children().filter(func(node):return node is Actor):assert(is_zero_approx(actor.position.z),"Dodge settles before returning to the map")
+  assert(app.game.save_data("battle")==saved and app.game.rng.state==rng,"Dodge presentation never changes the miss result")
+ app.stage.child_entered_tree.disconnect(watch_miss)
  app.stage.child_entered_tree.connect(watch_spell)
  a.weapon="magic";a.job="Arcanist"
  for folio in ["ember","gale","thunder"]:
@@ -68,5 +91,5 @@ func run():
  for player in app.sfx_players:player.stop()
  app.music.stop();await create_timer(.15).timeout
  app.queue_free();await process_frame
- print("PASS: continuous counters/follow-ups, mixed weapon reach, skip cleanup, three equipped spell presentations and unchanged simulation")
+ print("PASS: continuous exchanges, mixed reach, early melee/ranged dodges, skip cleanup, three spell presentations and unchanged simulation")
  quit()

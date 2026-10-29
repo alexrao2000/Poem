@@ -712,21 +712,25 @@ func cinematic(a,b,events,initial_hp={}):
 			await critical_cutin(unit)
 			if skip_combat:break
 		play_sfx("magic" if unit.weapon=="magic" else "swing")
+		var contact_point=whom.socket_position("impact")
+		if not event.hit:
+			whom.pose("evade",.12)
+			var dodge=create_tween()
+			dodge.tween_property(whom,"position:z",-.32,.12)
+			dodge.tween_interval(.35 if is_ranged else .12)
+			dodge.tween_property(whom,"position:z",0.0,.16)
 		await who.pose("throw" if is_ranged and unit.weapon=="lance" else "strike",.12).finished
 		if not is_ranged:
 			var trail=CombatTrail.new();stage.add_child(trail)
-			trail.start(whom.socket_position("impact")+Vector3(-direction*.28,0,.18),unit.weapon,direction,event.crit)
+			trail.start(contact_point+Vector3(-direction*.28,0,.18),unit.weapon,direction,event.crit)
 		if is_ranged:
 			var release=who.socket_position("projectile")
 			if who.has_method("release_projectile"):who.release_projectile()
-			await projectile(release,whom.socket_position("impact"),unit.weapon,spell)
+			await projectile(release,contact_point,unit.weapon,spell)
 		director.shot(who.position,whom.position,"impact",is_ranged,mounted,.16)
 		if event.hit:
 			play_sfx("critical" if event.crit else "hit")
 			whom.pose("hit",.12)
-		else:
-			whom.pose("evade",.16)
-			var dodge=create_tween();dodge.tween_property(whom,"position:z",-.32,.14);dodge.tween_property(whom,"position:z",0.0,.2)
 		displayed_hp[event.target]=maxi(0,displayed_hp[event.target]-event.damage)
 		banner.set_health(event.target,int(displayed_hp[event.target]))
 		show_impact(whom.socket_position("impact"),event,spell)
