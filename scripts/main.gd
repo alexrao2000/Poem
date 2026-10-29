@@ -3,6 +3,7 @@ const Rules = preload("res://scripts/rules.gd")
 const Portraits = preload("res://scripts/portraits.gd")
 const WeaponIcons=preload("res://scripts/weapon_icons.gd")
 const MapUnit=preload("res://scripts/campaign_map_unit.gd")
+const MapOverlay=preload("res://scripts/map_overlay.gd")
 var map_catalog=preload("res://visuals/catalog.gd").new()
 var map_facings: Dictionary={}
 const DISPLAY_FONT = preload("res://assets/fonts/CormorantGaramond.ttf")
@@ -460,14 +461,15 @@ func highlight():
 	if show_danger:
 		for enemy in game.living("enemy"):danger.merge(tactics.threatened_tiles(game,enemy))
 	if selected!=null and selected.team=="enemy":danger.merge(tactics.threatened_tiles(game,selected))
-	for p in danger:cube(markers,Vector3(p.x,.01,p.y),Vector3(.87,.018,.87),Color(.72,.16,.21,.30))
+	MapOverlay.tiles(markers,danger.keys(),Color(.69,.21,.31,.24),.025,"DangerRange")
 	if cursor_visible:draw_map_cursor()
 	if selected==null or selected.team!="player" or selected.acted:return
 	var range_map=game.reachable(selected) if origin==null else {game.pos(selected):0}
-	for p in range_map:
-		cube(markers,Vector3(p.x,.015,p.y),Vector3(.84,.025,.84),Color(0.16,0.46,0.85,0.48))
+	MapOverlay.tiles(markers,range_map.keys(),Color(.18,.49,.85,.30),.032,"MovementRange")
+	var attackable=[]
 	for e in game.living("enemy"):
-		if game.can_attack(selected,e):cube(markers,Vector3(e.x,.018,e.y),Vector3(.9,.03,.9),Color(0.85,0.22,0.12,0.55))
+		if game.can_attack(selected,e):attackable.append(game.pos(e))
+	MapOverlay.tiles(markers,attackable,Color(.87,.29,.16,.38),.039,"AttackRange")
 
 func toggle_danger():
 	if busy or screen!="battle":return
@@ -1090,11 +1092,7 @@ func preview_route(destination: Vector2i):
 	var path=game.movement_path(selected,destination)
 	if path.size()<2:return
 	if not is_instance_valid(route_preview):route_preview=Node3D.new();markers.add_child(route_preview)
-	for i in range(1,path.size()):
-		var a=path[i-1];var b=path[i]
-		cube(route_preview,Vector3((a.x+b.x)*.5,.055,(a.y+b.y)*.5),Vector3(1,.025,.075) if a.y==b.y else Vector3(.075,.025,1),Color("ffdf88"))
-	for offset in [Vector2(-.43,0),Vector2(.43,0),Vector2(0,-.43),Vector2(0,.43)]:
-		cube(route_preview,Vector3(destination.x+offset.x,.055,destination.y+offset.y),Vector3(.055,.025,.9) if offset.x!=0 else Vector3(.9,.025,.055),Color("ffdf88"))
+	MapOverlay.route(route_preview,path)
 
 func apply_audio_preferences():
 	if is_instance_valid(music):music.volume_db=preferences.volume_db("music")

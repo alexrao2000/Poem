@@ -1,6 +1,14 @@
 extends SceneTree
 const Rules=preload("res://scripts/rules.gd")
 func _initialize():call_deferred("run")
+
+func covers(vertices: PackedVector3Array,point: Vector2) -> bool:
+ for i in range(0,vertices.size(),3):
+  var triangle=PackedVector2Array()
+  for j in range(3):triangle.append(Vector2(vertices[i+j].x,vertices[i+j].z))
+  if Geometry2D.is_point_in_polygon(point,triangle):return true
+ return false
+
 func run():
  var g=Rules.new();var paths=0
  for chapter in range(12):
@@ -28,8 +36,20 @@ func run():
  for tile in app.game.reachable(unit):
   if app.game.at(tile)==null and app.game.movement_path(unit,tile).size()>=3:destination=tile;break
  assert(destination!=start)
- app.selected=unit;app.preview_route(destination)
- assert(app.route_preview.get_child_count()==app.game.movement_path(unit,destination).size()+3,"Preview traces every segment and outlines destination")
+ app.selected=unit;app.highlight();await process_frame;app.preview_route(destination)
+ var overlay=app.markers.get_node("MovementRange")
+ var vertices=overlay.mesh.surface_get_arrays(0)[Mesh.ARRAY_VERTEX]
+ var reachable=app.game.reachable(unit)
+ for y in range(app.game.board_size().y):
+  for x in range(app.game.board_size().x):assert(covers(vertices,Vector2(x,y))==reachable.has(Vector2i(x,y)),"Range mesh covers exactly the reachable tile centers")
+ assert(overlay.cast_shadow==GeometryInstance3D.SHADOW_CASTING_SETTING_OFF,"Tactical ink never casts physical shadows")
+ assert(app.route_preview.get_child_count()==1,"Route shares a single draw mesh")
+ vertices=app.route_preview.get_child(0).mesh.surface_get_arrays(0)[Mesh.ARRAY_VERTEX]
+ var path=app.game.movement_path(unit,destination)
+ for i in range(1,path.size()):assert(covers(vertices,(Vector2(path[i-1])+Vector2(path[i]))*.5),"Arrow traces each legal movement segment")
+ var direction=Vector2(path[-1]-path[-2]).normalized()
+ assert(covers(vertices,Vector2(destination)+direction*.2),"Arrowhead points into the destination")
+ assert(not covers(vertices,Vector2(destination)+direction*.4),"Arrowhead stays within its destination tile")
  app.click_tile(destination);await process_frame
  app.click_tile(start);assert(app.game.pos(unit)==destination,"Clicks during movement cannot issue another action")
  assert(app.busy and app.moving_id==unit.id,"Map actions lock while movement animates")
