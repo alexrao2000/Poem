@@ -4,6 +4,7 @@ const Portraits = preload("res://scripts/portraits.gd")
 const WeaponIcons=preload("res://scripts/weapon_icons.gd")
 const MapUnit=preload("res://scripts/campaign_map_unit.gd")
 const MapOverlay=preload("res://scripts/map_overlay.gd")
+const MapSurface=preload("res://scripts/map_surface.gd")
 const TerrainCard=preload("res://scripts/terrain_card.gd")
 const BattleForecast=preload("res://scripts/battle_forecast.gd")
 const FOG_FIELDS=["fog_enabled","fog_mode","fog_density","fog_depth_begin","fog_depth_end","fog_depth_curve","fog_light_color","fog_light_energy","fog_sky_affect"]
@@ -275,7 +276,7 @@ func refresh_pieces():
 	sprites.clear();unit_nodes.clear()
 	for u in game.units:
 		if u.hp<=0:continue
-		var visual=MapUnit.new();visual.name=str(u.id).validate_node_name();visual.position=Vector3(u.x,0,u.y)
+		var visual=MapUnit.new();visual.name=str(u.id).validate_node_name();visual.position=map_position(game.pos(u))
 		pieces.add_child(visual);visual.configure(map_catalog,u,map_facings.get(u.id,"south"))
 		visual.selected=selected!=null and selected.id==u.id
 		unit_nodes[u.id]=visual;sprites.append(visual.sprite)
@@ -474,15 +475,15 @@ func highlight():
 	if show_danger:
 		for enemy in game.living("enemy"):danger.merge(tactics.threatened_tiles(game,enemy))
 	if selected!=null and selected.team=="enemy":danger.merge(tactics.threatened_tiles(game,selected))
-	MapOverlay.tiles(markers,danger.keys(),Color(.69,.21,.31,.24),.025,"DangerRange")
+	MapOverlay.tiles(markers,danger.keys(),Color(.69,.21,.31,.24),.025,"DangerRange",map_height)
 	if cursor_visible:draw_map_cursor()
 	if selected==null or selected.team!="player" or selected.acted:return
 	var range_map=game.reachable(selected) if origin==null else {game.pos(selected):0}
-	MapOverlay.tiles(markers,range_map.keys(),Color(.18,.49,.85,.30),.032,"MovementRange")
+	MapOverlay.tiles(markers,range_map.keys(),Color(.18,.49,.85,.30),.032,"MovementRange",map_height)
 	var attackable=[]
 	for e in game.living("enemy"):
 		if game.can_attack(selected,e):attackable.append(game.pos(e))
-	MapOverlay.tiles(markers,attackable,Color(.87,.29,.16,.38),.039,"AttackRange")
+	MapOverlay.tiles(markers,attackable,Color(.87,.29,.16,.38),.039,"AttackRange",map_height)
 
 func toggle_danger():
 	if busy or screen!="battle":return
@@ -493,7 +494,7 @@ func _input(event):
 	if screen=="battle" and not busy and game.phase=="player" and event is InputEventKey and event.pressed:
 		if event.keycode==KEY_HOME:map_camera();get_viewport().set_input_as_handled();return
 		if event.keycode in [KEY_EQUAL,KEY_PLUS,KEY_MINUS]:
-			var anchor=camera.unproject_position(Vector3(cursor_tile.x,0,cursor_tile.y)) if cursor_visible else Vector2((ui.size.x-325)*.5,ui.size.y*.5)
+			var anchor=camera.unproject_position(map_position(cursor_tile)) if cursor_visible else Vector2((ui.size.x-325)*.5,ui.size.y*.5)
 			map_navigation.zoom(-1 if event.keycode==KEY_MINUS else 1,anchor);get_viewport().set_input_as_handled();return
 		var steps={KEY_LEFT:Vector2i.LEFT,KEY_RIGHT:Vector2i.RIGHT,KEY_UP:Vector2i.UP,KEY_DOWN:Vector2i.DOWN}
 		if steps.has(event.keycode):
@@ -1102,16 +1103,25 @@ func read_support(unit,entry,index: int):
 func supports_ready(unit) -> bool:
 	return unit.join<=game.chapter and game.supports.for_unit(unit.id).any(func(entry):return game.supports.can_read(entry.id,game.chapter))
 
+func map_height(point: Vector2i) -> float:
+	return MapSurface.height_for(game.terrain(point))
+
+func map_position(point: Vector2i) -> Vector3:
+	return Vector3(point.x,map_height(point),point.y)
+
 func animate_map_move(unit,path: Array):
 	if path.size()<2 or not unit_nodes.has(unit.id):return
 	var visual=unit_nodes[unit.id]
 	moving_id=unit.id
-	visual.position=Vector3(path[0].x,0,path[0].y)
+	visual.position=map_position(path[0])
 	var motion=create_tween()
 	for i in range(1,path.size()):
 		var point=path[i];var step=point-path[i-1]
 		motion.tween_callback(func():visual.face_step(step);map_facings[unit.id]=visual.player.facing)
-		motion.tween_property(visual,"position",Vector3(point.x,0,point.y),.105).set_trans(Tween.TRANS_LINEAR)
+		var destination=map_position(point)
+		var crossing=MapSurface.crossing(map_position(path[i-1]),destination)
+		motion.tween_property(visual,"position",crossing,.0525).set_trans(Tween.TRANS_LINEAR)
+		motion.tween_property(visual,"position",destination,.0525).set_trans(Tween.TRANS_LINEAR)
 	await motion.finished
 	visual.finish_move()
 	moving_id=""
@@ -1126,7 +1136,7 @@ func preview_route(destination: Vector2i):
 	var path=game.movement_path(selected,destination)
 	if path.size()<2:return
 	if not is_instance_valid(route_preview):route_preview=Node3D.new();markers.add_child(route_preview)
-	MapOverlay.route(route_preview,path)
+	MapOverlay.route(route_preview,path,map_height)
 
 func apply_audio_preferences():
 	if is_instance_valid(music):music.volume_db=preferences.volume_db("music")
@@ -1184,7 +1194,7 @@ func map_combat_feedback(events: Array):
 		var text_label=Label.new();ui.add_child(text_label)
 		text_label.text="MISS" if not event.hit else ("CRIT " if event.crit else "")+str(int(event.damage))
 		text_label.add_theme_font_size_override("font_size",28);text_label.add_theme_color_override("font_color",Color("ffe5a1"));text_label.add_theme_color_override("font_outline_color",Color("30353a"));text_label.add_theme_constant_override("outline_size",5)
-		text_label.position=camera.unproject_position(Vector3(unit.x,1.1,unit.y))-Vector2(25,20);text_label.mouse_filter=Control.MOUSE_FILTER_IGNORE
+		text_label.position=camera.unproject_position(map_position(game.pos(unit))+Vector3.UP*1.1)-Vector2(25,20);text_label.mouse_filter=Control.MOUSE_FILTER_IGNORE
 		play_sfx("critical" if event.crit else "hit" if event.hit else "swing")
 		var fade=create_tween().set_parallel(true);fade.tween_property(text_label,"position:y",text_label.position.y-24,.24);fade.tween_property(text_label,"modulate:a",0.0,.24)
 		await fade.finished
@@ -1200,11 +1210,11 @@ func map_heal_feedback(healer,recipient,amount: int):
 		else:actor.player.play("act","",true)
 		map_facings[healer.id]=actor.player.facing
 	await get_tree().create_timer(.12).timeout
-	var glow=Node3D.new();pieces.add_child(glow);glow.position=Vector3(recipient.x,.08,recipient.y)
+	var glow=Node3D.new();pieces.add_child(glow);glow.position=map_position(game.pos(recipient))+Vector3.UP*.08
 	var ring=MeshInstance3D.new();var shape=TorusMesh.new();shape.inner_radius=.28;shape.outer_radius=.32;ring.mesh=shape;glow.add_child(ring)
 	var material=mat(Color(.55,.95,.76,.8));material.shading_mode=BaseMaterial3D.SHADING_MODE_UNSHADED;ring.material_override=material
 	var text_label=Label.new();ui.add_child(text_label);text_label.text="+"+str(amount)
-	text_label.position=camera.unproject_position(Vector3(recipient.x,1.1,recipient.y))-Vector2(20,20)
+	text_label.position=camera.unproject_position(map_position(game.pos(recipient))+Vector3.UP*1.1)-Vector2(20,20)
 	text_label.add_theme_font_size_override("font_size",28);text_label.add_theme_color_override("font_color",Color("b4efd1"));text_label.add_theme_color_override("font_outline_color",Color("263e36"));text_label.add_theme_constant_override("outline_size",5);text_label.mouse_filter=Control.MOUSE_FILTER_IGNORE
 	if patient!=null:patient.hp_ratio=float(recipient.hp)/maxf(1,recipient.max_hp);patient.refresh_health()
 	var bloom=create_tween().set_parallel(true)
@@ -1228,7 +1238,7 @@ func move_map_cursor(direction: Vector2i):
 	if focus!=null:focus.release_focus()
 	var size=game.board_size();cursor_tile+=direction
 	cursor_tile=Vector2i(clampi(cursor_tile.x,0,size.x-1),clampi(cursor_tile.y,0,size.y-1))
-	map_navigation.keep_visible(Vector3(cursor_tile.x,0,cursor_tile.y),terrain_card.get_global_rect() if is_instance_valid(terrain_card) else Rect2())
+	map_navigation.keep_visible(map_position(cursor_tile),terrain_card.get_global_rect() if is_instance_valid(terrain_card) else Rect2())
 	highlight();preview_route(cursor_tile)
 
 func cycle_ready_ally(direction: int):
@@ -1242,7 +1252,7 @@ func cycle_ready_ally(direction: int):
 	var focus=get_viewport().gui_get_focus_owner()
 	if focus!=null:focus.release_focus()
 	click_tile(cursor_tile)
-	map_navigation.keep_visible(Vector3(cursor_tile.x,0,cursor_tile.y),terrain_card.get_global_rect() if is_instance_valid(terrain_card) else Rect2())
+	map_navigation.keep_visible(map_position(cursor_tile),terrain_card.get_global_rect() if is_instance_valid(terrain_card) else Rect2())
 
 func activate_map_cursor():
 	if screen!="battle" or busy or game.phase!="player":return
@@ -1253,6 +1263,7 @@ func activate_map_cursor():
 
 func draw_map_cursor():
 	var root=Node3D.new();root.name="MapCursor";markers.add_child(root)
+	root.position.y=map_height(cursor_tile)
 	for sign_x in [-1,1]:
 		for sign_y in [-1,1]:
 			cube(root,Vector3(cursor_tile.x+sign_x*.36,.085,cursor_tile.y+sign_y*.46),Vector3(.22,.035,.055),Color("fff6d6"))

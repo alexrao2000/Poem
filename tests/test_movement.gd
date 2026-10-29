@@ -54,13 +54,13 @@ func run():
  app.click_tile(start);assert(app.game.pos(unit)==destination,"Clicks during movement cannot issue another action")
  assert(app.busy and app.moving_id==unit.id,"Map actions lock while movement animates")
  assert(app.game.pos(unit)==destination,"Player move commits once before presentation")
- assert(app.unit_nodes[unit.id].position.distance_to(Vector3(destination.x,0,destination.y))>.01,"Visual travels from old position")
+ assert(app.unit_nodes[unit.id].position.distance_to(app.map_position(destination))>.01,"Visual travels from old position")
  while app.busy:await process_frame
- assert(app.unit_nodes[unit.id].position==Vector3(destination.x,0,destination.y))
+ assert(app.unit_nodes[unit.id].position==app.map_position(destination))
  var actor=app.unit_nodes[unit.id]
  assert(actor.sprite.get_parent()==actor and actor.marker.get_parent()==actor and actor.health.get_parent()==actor,"Sprite, ground marker and HP travel in one group")
  assert(actor.player.state=="idle" and app.map_facings[unit.id]==actor.player.facing,"Walk returns to idle while retaining its last facing")
- app.cancel_selection();assert(app.game.pos(unit)==start and app.unit_nodes[unit.id].position==Vector3(start.x,0,start.y),"Cancel restores both simulation and visuals")
+ app.cancel_selection();assert(app.game.pos(unit)==start and app.unit_nodes[unit.id].position==app.map_position(start),"Cancel restores both simulation and visuals")
  assert(app.sprites.size()==app.game.units.size())
  for other in app.game.units:
   if other.id!=unit.id:other.hp=0

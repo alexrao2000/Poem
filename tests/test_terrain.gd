@@ -2,8 +2,31 @@ extends SceneTree
 # The readout shares profiles with simulation. Exercise actual cover, healing,
 # hover/keyboard inspection, off-board hiding and cinematic visibility restore.
 const Rules=preload("res://scripts/rules.gd")
+const MapSurface=preload("res://scripts/map_surface.gd")
+const MapOverlay=preload("res://scripts/map_overlay.gd")
+const Scenery=preload("res://scripts/scenery.gd")
 func _initialize():call_deferred("run")
+func surface_geometry():
+ var scenery=Scenery.new();var parent=Node3D.new();root.add_child(parent)
+ scenery.bridge(parent,Vector3.ZERO)
+ for plank in parent.get_child(0).get_children().slice(0,7):
+  var bounds=plank.mesh.get_aabb()
+  assert(is_equal_approx(plank.position.y+bounds.end.y*plank.scale.y,MapSurface.height_for("=")),"Bridge deck matches walkable height")
+ var shrine=Node3D.new();parent.add_child(shrine);scenery.sanctuary(shrine,Vector3.ZERO)
+ for cross in shrine.get_children().slice(1):
+  assert(is_equal_approx(cross.position.y+cross.mesh.get_aabb().end.y*cross.scale.y,MapSurface.height_for("+")),"Sanctuary crest matches walkable height")
+ var path=[Vector2i(0,0),Vector2i(1,0),Vector2i(2,0),Vector2i(3,0)]
+ var heights=func(point):return [0.0,MapSurface.BRIDGE_HEIGHT,MapSurface.SANCTUARY_HEIGHT,0.0][point.x]
+ var overlay=MapOverlay.tiles(parent,path,Color.BLUE,.032,"RaisedRange",heights)
+ for vertex in overlay.mesh.surface_get_arrays(0)[Mesh.ARRAY_VERTEX]:
+  assert(vertex.y>=heights.call(Vector2i(roundi(vertex.x),0))+.0319,"Each range cell clears its physical tile")
+ var route=MapOverlay.route(parent,path,heights)
+ for vertex in route.mesh.surface_get_arrays(0)[Mesh.ARRAY_VERTEX]:
+  var cell=clampi(roundi(vertex.x),0,3)
+  assert(vertex.y>=heights.call(Vector2i(cell,0))+.0569,"Route ramps clear the higher side at tile boundaries")
+ parent.free()
 func run():
+ surface_geometry()
  var game=Rules.new();var seen={}
  for chapter in range(12):
   game.chapter=chapter;game.start_battle()
@@ -25,6 +48,24 @@ func run():
  assert(seen.size()==9,"All authored terrain symbols checked")
  var app=load("res://main.tscn").instantiate();app.settings_path="";app.save_path="/private/tmp/ashen-terrain-test.json";root.add_child(app);await process_frame
  app.game.start_battle();app.make_map();app.show_battle();await process_frame
+ var actor=app.game.units[0];var tested={}
+ for chapter in range(12):
+  app.game.chapter=chapter
+  for y in range(app.game.board_size().y):
+   for x in range(app.game.board_size().x):
+    var point=Vector2i(x,y);var symbol=app.game.terrain(point)
+    if symbol not in ["=","+"] or tested.has(symbol):continue
+    tested[symbol]=true;actor.x=x;actor.y=y;app.refresh_pieces()
+    assert(app.unit_nodes[actor.id].position==app.map_position(point),"Refreshed units stand on raised scenery")
+    app.cursor_tile=point;app.draw_map_cursor()
+    assert(is_equal_approx(app.markers.get_children()[-1].position.y,MapSurface.height_for(symbol)),"Selection corners follow surface height")
+    var neighbor=point+Vector2i.LEFT
+    await app.animate_map_move(actor,[neighbor,point])
+    assert(app.unit_nodes[actor.id].position==app.map_position(point),"Animation ends on the raised surface")
+    await app.animate_map_move(actor,[point,neighbor])
+    assert(app.unit_nodes[actor.id].position==app.map_position(neighbor),"Animation descends back to the neighboring surface")
+ assert(tested.size()==2,"Both raised terrain types occur in campaign maps")
+ app.game.chapter=0;app.game.start_battle();app.make_map();app.show_battle();await process_frame
  app.move_map_cursor(Vector2i.RIGHT)
  assert(app.terrain_card.tile==app.cursor_tile,"Keyboard cursor updates terrain")
  for y in range(app.game.board_size().y):

@@ -1,4 +1,5 @@
 extends RefCounted
+const MapSurface=preload("res://scripts/map_surface.gd")
 # Shared landscape construction for the tactical board and battle stage.
 # Masonry spans use closed wedge stones with small joints and an open underside.
 var materials: Dictionary = {}
@@ -117,10 +118,15 @@ func bridge(parent,p,vertical=false):
  var root=Node3D.new();parent.add_child(root);root.position=p
  if vertical:root.rotation.y=PI/2
  for i in range(7):
-  block(root,Vector3((i-3)*.145,.035,0),Vector3(.135,.09,.98),Color("978367").lightened((i%3)*.025))
+  block(root,Vector3((i-3)*.145,MapSurface.BRIDGE_HEIGHT-.045,0),Vector3(.135,.09,.98),Color("978367").lightened((i%3)*.025))
  for z in [-.43,.43]:
   block(root,Vector3(0,.25,z),Vector3(1,.07,.055),Color("665747"))
   for x in [-.4,.4]:block(root,Vector3(x,.16,z),Vector3(.065,.4,.065),Color("655444"))
+
+func sanctuary(parent,p):
+ cylinder(parent,p+Vector3(0,MapSurface.SANCTUARY_HEIGHT-.06,0),.08,.36,Color("b8b8a0"))
+ block(parent,p+Vector3(0,MapSurface.SANCTUARY_HEIGHT-.01,0),Vector3(.35,.02,.08),Color("f5e4ac"))
+ block(parent,p+Vector3(0,MapSurface.SANCTUARY_HEIGHT-.01,0),Vector3(.08,.02,.35),Color("f5e4ac"))
 
 func house(parent,p,scale_value=1.0):
  var root=Node3D.new();parent.add_child(root);root.position=p;root.scale=Vector3.ONE*scale_value
@@ -203,10 +209,7 @@ func landscape(parent,game):
    elif t=="o":
     cylinder(parent,p+Vector3(.3,.65,-.3),1.3,.025,Color("a99463"))
     block(parent,p+Vector3(.5,1.05,-.3),Vector3(.4,.32,.015),Color("a54c47"))
-   elif t=="+":
-    cylinder(parent,p+Vector3(0,.04,0),.08,.36,Color("b8b8a0"))
-    block(parent,p+Vector3(0,.09,0),Vector3(.35,.02,.08),Color("f5e4ac"))
-    block(parent,p+Vector3(0,.09,0),Vector3(.08,.02,.35),Color("f5e4ac"))
+   elif t=="+":sanctuary(parent,p)
  # Authored landmarks communicate the chapter instead of a repeated village frame.
  for item in game.info().get("landmarks",[]):
   landmark(parent,Vector3(item.position[0],0,item.position[1]),item.kind)
