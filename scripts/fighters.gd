@@ -1,11 +1,14 @@
 extends RefCounted
-# Original articulated low-poly actors. Nodes are named for animation replacement.
+# Original articulated low-poly actors. Batch rigid details within each joint,
+# preserving every animated joint, painted face and authored model adapter.
 var models=preload("res://scripts/combat_models.gd").new()
 const Actor=preload("res://scripts/fighter_actor.gd")
 var profiles=JSON.parse_string(FileAccess.get_file_as_string("res://data/characters.json"))
 var surface_atlas=load("res://assets/art/character-materials.png")
 var surface_shader=preload("res://assets/shaders/character.gdshader")
 var surface_cache={}
+var shading_cache={}
+var batching_enabled=true
 var face_atlas=load("res://assets/art/face-features.png")
 var face_materials={}
 var geo = preload("res://scripts/scenery.gd").new()
@@ -28,6 +31,7 @@ func joint(parent,node_name,p):
 func build(parent,u,p) -> Node3D:
  var imported=models.build(parent,u,p)
  if imported!=null:return imported
+ shading_cache.clear()
  var actor=Actor.new();parent.add_child(actor);actor.position=p;actor.kind=u.weapon
  var body=joint(actor,"Body",Vector3(0,1.1,0));actor.register_bone("Body",body)
  var tint=Color(u.color)
@@ -149,8 +153,19 @@ func build(parent,u,p) -> Node3D:
     geo.cylinder(leg,Vector3(0,-.35,0),.7,.055,Color("5b3e32"))
     ellipsoid(leg,Vector3(0,-.72,0),Vector3(.075,.055,.10),Color("30333a"));i+=1
  apply_surfaces(actor,blue,tint,skin,steel,gold,leather,cape_color)
+ if batching_enabled:batch_rig(actor)
  actor.pose("idle",.01)
  return actor
+
+func batch_rig(actor):
+ for node in actor.bones.values():node.set_meta("dynamic",true)
+ for node in actor.find_children("PaintedFace","MeshInstance3D",true,false):node.set_meta("dynamic",true)
+ var totals={"sources":0,"batches":0,"vertices":0}
+ var parts=[actor];parts.append_array(actor.bones.values())
+ for part in parts:
+  var stats=geo.batcher.combine(part,false)
+  for key in totals:totals[key]+=stats[key]
+ actor.set_meta("rig_batch_stats",totals)
 
 func cape_surface(parent,color):
  var st=SurfaceTool.new();st.begin(Mesh.PRIMITIVE_TRIANGLES)
@@ -200,9 +215,13 @@ func apply_surfaces(root,blue,tint,skin,steel,gold,leather,cape_color):
   elif color==Color("69717a"):mesh.material_override=painted(Color("b8bfc8"),2)
   elif color in [blue,tint,cape_color,cape_color.darkened(.06)]:mesh.material_override=painted(color,0)
   elif color==gold:
-   var metallic=material.duplicate();metallic.metallic=.45;metallic.roughness=.5;mesh.material_override=metallic
+   if not shading_cache.has(material):
+    var metallic=material.duplicate();metallic.metallic=.45;metallic.roughness=.5;shading_cache[material]=metallic
+   mesh.material_override=shading_cache[material]
   elif color!=skin:
-   var shaded=material.duplicate();shaded.diffuse_mode=BaseMaterial3D.DIFFUSE_TOON;mesh.material_override=shaded
+   if not shading_cache.has(material):
+    var shaded=material.duplicate();shaded.diffuse_mode=BaseMaterial3D.DIFFUSE_TOON;shading_cache[material]=shaded
+   mesh.material_override=shading_cache[material]
 
 func weapon(arm,kind,gold,steel,leather) -> Node3D:
  var hand=joint(arm,"Weapon",Vector3(0,-.29,-.04))

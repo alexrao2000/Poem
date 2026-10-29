@@ -2,7 +2,7 @@ extends RefCounted
 # Bake only explicitly static scenery. Keep small spatial groups for culling.
 const CHUNK_SIZE=8.0
 
-func combine(root: Node3D) -> Dictionary:
+func combine(root: Node3D,spatial=true) -> Dictionary:
  var sources=[];collect(root,Transform3D.IDENTITY,sources)
  var groups={};var merged_sources=0;var vertices=0
  for source in sources:
@@ -16,7 +16,7 @@ func combine(root: Node3D) -> Dictionary:
    if arrays[i]!=null and arrays[i].size()>0:format|=1<<i
   var material=node.material_override if node.material_override!=null else node.get_active_material(0)
   if material==null:continue
-  var chunk=Vector2i(floori(transform.origin.x/CHUNK_SIZE),floori(transform.origin.z/CHUNK_SIZE))
+  var chunk=Vector2i(floori(transform.origin.x/CHUNK_SIZE),floori(transform.origin.z/CHUNK_SIZE)) if spatial else Vector2i.ZERO
   var key="%d:%d:%d:%d:%d:%d"%[material.get_instance_id(),format,chunk.x,chunk.y,node.cast_shadow,node.layers]
   if not groups.has(key):
    var surface=SurfaceTool.new();surface.begin(Mesh.PRIMITIVE_TRIANGLES);surface.set_material(material)
