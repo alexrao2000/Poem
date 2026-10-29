@@ -1,6 +1,7 @@
 extends Node3D
 # Presentation rig with separate pose and locomotion ownership. Actors face -Z;
 # arms lift forward with positive X, knees bend back, and mounted sockets rise.
+# Infantry hips and legs lower together to the lowest ellipsoidal boot sole.
 var bones: Dictionary = {}
 var rest: Dictionary = {}
 var kind = "sword"
@@ -12,6 +13,8 @@ var facing = 1.0
 var weapon_aim=0.0
 var aim_target=Vector3.ZERO
 var has_aim_target=false
+var grounded_stance=false
+var support_height=0.0
 
 func register_bone(key: String,node: Node3D):
  bones[key]=node
@@ -27,7 +30,7 @@ func _process(dt):
  if bones.has("Cape"):
   bones.Cape.rotation.x=sin(elapsed*2.7)*.07+(.18 if pose_name in ["advance","strike"] else .04)
  if pose_name=="idle":
-  if bones.has("Body"):bones.Body.position.y=rest.Body.position.y+sin(elapsed*2.4)*.006
+  if bones.has("Body"):bones.Body.position.y=rest.Body.position.y+support_height+sin(elapsed*2.4)*.006
   if bones.has("Head"):bones.Head.rotation.z=sin(elapsed*1.3)*.012
  elif pose_name=="advance":
   var gait=sin(elapsed*18)*.48
@@ -51,6 +54,15 @@ func aim_at(point: Vector3):
 
 static func melee_spacing(weapon: String) -> float:
  return {"sword":1.4,"axe":1.3,"lance":2.1}.get(weapon,1.4)
+
+func stance_height(target: Dictionary) -> float:
+ var lowest=INF
+ for side in ["Left","Right"]:
+  var leg=Basis.from_euler(target[side+"Leg"]);var knee=leg*Basis.from_euler(target[side+"Knee"])
+  var center=rest[side+"Leg"].position+leg*Vector3(0,-.36,0)+knee*Vector3(0,-.38,-.07)
+  var radius=sqrt(pow(knee.x.y*.09,2)+pow(knee.y.y*.075,2)+pow(knee.z.y*.145,2))
+  lowest=minf(lowest,center.y-radius)
+ return -lowest
 
 func pose(key: String,duration=.18) -> Tween:
  if pose_tween and pose_tween.is_valid():pose_tween.kill()
@@ -131,8 +143,12 @@ func pose(key: String,duration=.18) -> Tween:
    target[name_value].x=-target[name_value].x
   if key=="down" and name_value in ["LeftLeg","RightLeg"]:target[name_value].x=-target[name_value].x
   if bones.has(name_value):pose_tween.tween_property(bones[name_value],"rotation",target[name_value],duration)
+ var lift=stance_height(target) if grounded_stance and key!="advance" else 0.0
+ pose_tween.tween_property(self,"support_height",lift,duration)
+ if grounded_stance:
+  for side in ["LeftLeg","RightLeg"]:pose_tween.tween_property(bones[side],"position:y",rest[side].position.y+lift,duration)
  if bones.has("Body"):
-  pose_tween.tween_property(bones.Body,"position:y",rest.Body.position.y-(.43 if key=="down" else 0.0),duration)
+  pose_tween.tween_property(bones.Body,"position:y",rest.Body.position.y+lift-(.43 if key=="down" and not grounded_stance else 0.0),duration)
  return pose_tween
 
 func socket_position(key: String) -> Vector3:

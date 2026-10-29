@@ -96,6 +96,20 @@ func run():
   var origin=actor.position;actor.elapsed=.4;actor._process(0)
   assert(absf(tail.rotation.z)>.02 and absf(head.rotation.x)>.005 and actor.position==origin,"Secondary mount motion animates without moving the tactical actor")
   actor.queue_free()
+ fighters.batching_enabled=false
+ for job in ["Vanguard","Knight","Ranger","Arcanist","Warden","Corsair","Duelist"]:
+  var unit=rules.roster.filter(func(u):return u.job==job)[0].duplicate(true);unit.team="player"
+  var actor=fighters.build(stage,unit,Vector3.ZERO);actor.set_process(false)
+  for pose in ["idle","windup","strike","hit","evade","down"]:
+   await actor.pose(pose,.001).finished
+   var lowest=INF
+   for side in ["LeftKnee","RightKnee"]:
+    var boot=actor.bone(side).get_node("Boot")
+    for vertex in boot.mesh.get_mesh_arrays()[Mesh.ARRAY_VERTEX]:lowest=minf(lowest,(boot.global_transform*vertex).y)
+   assert(lowest>=-.001 and lowest<.018,"Every infantry pose keeps a supporting boot on the ground without sinking")
+   var body_shift=actor.bone("Body").position.y-actor.rest.Body.position.y
+   for side in ["LeftLeg","RightLeg"]:assert(is_equal_approx(actor.bone(side).position.y-actor.rest[side].position.y,body_shift),"Pelvis and legs lower together instead of disconnecting")
+  actor.queue_free()
  fighters.batching_enabled=true
  for job in ["Ranger","Arcanist","Knight","Rider"]:
   var unit=rules.roster.filter(func(u):return u.job==job)[0].duplicate(true);unit.team="player"
@@ -125,5 +139,5 @@ func run():
   actor.queue_free()
  stage.queue_free()
  walker.queue_free();rider.queue_free();await process_frame
- print("PASS: locomotion, mounted gait/sockets, melee contact, spear target heights, hit/miss/critical accents and effect cleanup")
+ print("PASS: locomotion, planted infantry poses, distinct mounts, mounted gait/sockets, melee contact, spear target heights and effect cleanup")
  quit()

@@ -95,7 +95,7 @@ func build(parent,u,p) -> Node3D:
   geo.cylinder(knee,Vector3(0,-.04,0),.06,.091,gold if heavy else leather.lightened(.13))
   if not heavy:
    for j in range(3):geo.block(knee,Vector3(0,-.11-j*.065,-.077),Vector3(.10,.012,.014),Color("8e7a61"))
-  ellipsoid(knee,Vector3(0,-.38,-.07),Vector3(.09,.075,.145),leather)
+  var boot=ellipsoid(knee,Vector3(0,-.38,-.07),Vector3(.09,.075,.145),leather);boot.name="Boot"
   var arm_name="Arm" if sign_value>0 else "LeftArm"
   var arm=joint(body,arm_name,Vector3(sign_value*(.225 if slender else .27),.4,0));actor.register_bone(arm_name,arm)
   var shoulder_color=steel if armored else blue
@@ -136,6 +136,7 @@ func build(parent,u,p) -> Node3D:
   Mount.build(self,actor,u.id,blue,gold,leather)
  apply_surfaces(actor,blue,tint,skin,steel,gold,leather,cape_color)
  if batching_enabled:batch_rig(actor)
+ actor.grounded_stance=not actor.mounted
  actor.pose("idle",.01)
  return actor
 
