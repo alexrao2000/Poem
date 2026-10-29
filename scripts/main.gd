@@ -258,7 +258,7 @@ func make_map():
 	cursor_visible=false
 	clear_world()
 	map_camera()
-	battle_lighting(game.info().get("environment","village"))
+	battle_lighting(game.info().get("environment","village"),false)
 	scenery.landscape(world,game)
 	refresh_pieces()
 
@@ -741,7 +741,7 @@ func lighting_state() -> Dictionary:
 	for field in FOG_FIELDS:fog[field]=environment.get(field)
 	return {"energy":sunlight.light_energy,"color":sunlight.light_color,"ambient":environment.ambient_light_energy,"top":sky.sky_top_color,"horizon":sky.sky_horizon_color,"ground":sky.ground_horizon_color,"fog":fog}
 
-func battle_lighting(theme: String) -> Dictionary:
+func battle_lighting(theme: String,arena=true) -> Dictionary:
 	var old=lighting_state()
 	if not default_lighting.is_empty():restore_lighting(default_lighting)
 	var sky=environment.sky.sky_material
@@ -754,7 +754,7 @@ func battle_lighting(theme: String) -> Dictionary:
 		sky.sky_top_color=Color("14243b") if theme=="observatory" else Color("3c343a")
 		sky.sky_horizon_color=Color("596179") if theme=="observatory" else Color("98725e")
 		sky.ground_horizon_color=sky.sky_horizon_color
-	environment.fog_enabled=true;environment.fog_mode=Environment.FOG_MODE_DEPTH
+	environment.fog_enabled=arena;environment.fog_mode=Environment.FOG_MODE_DEPTH
 	environment.fog_depth_begin=12.0;environment.fog_depth_end=65.0;environment.fog_depth_curve=1.3
 	environment.fog_density=.55 if theme=="forest" else .48 if theme in ["river","harbor","mountain"] else .28 if theme in ["observatory","engine","furnace","castle","abbey"] else .38
 	environment.fog_light_color=sky.sky_horizon_color.lerp(sky.sky_top_color,.3);environment.fog_light_energy=1.0;environment.fog_sky_affect=0.0

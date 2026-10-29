@@ -26,6 +26,7 @@ func run():
 		app.make_map()
 		app.show_battle()
 		await process_frame
+		assert(not app.environment.fog_enabled,"Tactical camera keeps the full grid clear of arena haze")
 		assert(app.sprites.size()==app.game.units.size(),"Every combatant has a map sprite")
 		var arena=Node3D.new();app.add_child(arena)
 		var context=app.scenery.combat_context(app.game,app.game.living("player")[0],app.game.living("enemy")[0])
