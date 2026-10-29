@@ -1,6 +1,16 @@
 extends RefCounted
 const ORDER=["lyra","oren","sera","ivo","mara","tarin","nell","bram","esme","rook","faye","cassian","vela","dax","una","silas","petra","ari","noor","galen","yuna","hale","elian","rhea"]
 var textures: Dictionary={}
+var sprite_textures: Dictionary={}
+var regions=JSON.parse_string(FileAccess.get_file_as_string("res://data/sprite_regions.json"))
+
+func get_map_sprite(id: String) -> Texture2D:
+ if sprite_textures.has(id):return sprite_textures[id]
+ if not regions.has(id):return null
+ var entry=regions[id]
+ var texture=AtlasTexture.new();texture.atlas=load("res://assets/sprites/"+entry.sheet+".png")
+ texture.region=Rect2(entry.region[0],entry.region[1],entry.region[2],entry.region[3]);texture.filter_clip=true
+ sprite_textures[id]=texture;return texture
 
 func get_portrait(id: String) -> Texture2D:
  if textures.has(id):return textures[id]

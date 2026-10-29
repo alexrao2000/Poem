@@ -1,0 +1,218 @@
+{
+	"ari": {
+		"region": [
+			449,
+			122,
+			306,
+			343
+		],
+		"sheet": "company-c"
+	},
+	"bram": {
+		"region": [
+			1118,
+			547,
+			384,
+			403
+		],
+		"sheet": "company-a"
+	},
+	"cassian": {
+		"region": [
+			1232,
+			183,
+			208,
+			233
+		],
+		"sheet": "company-b"
+	},
+	"dax": {
+		"region": [
+			462,
+			619,
+			210,
+			275
+		],
+		"sheet": "company-b"
+	},
+	"elian": {
+		"region": [
+			785,
+			525,
+			384,
+			459
+		],
+		"sheet": "company-c"
+	},
+	"esme": {
+		"region": [
+			91,
+			171,
+			191,
+			244
+		],
+		"sheet": "company-b"
+	},
+	"faye": {
+		"region": [
+			840,
+			197,
+			200,
+			217
+		],
+		"sheet": "company-b"
+	},
+	"galen": {
+		"region": [
+			1215,
+			57,
+			294,
+			414
+		],
+		"sheet": "company-c"
+	},
+	"hale": {
+		"region": [
+			421,
+			590,
+			326,
+			368
+		],
+		"sheet": "company-c"
+	},
+	"ivo": {
+		"region": [
+			1202,
+			119,
+			259,
+			338
+		],
+		"sheet": "company-a"
+	},
+	"lyra": {
+		"region": [
+			52,
+			126,
+			292,
+			333
+		],
+		"sheet": "company-a"
+	},
+	"mara": {
+		"region": [
+			46,
+			560,
+			345,
+			378
+		],
+		"sheet": "company-a"
+	},
+	"nell": {
+		"region": [
+			780,
+			602,
+			291,
+			337
+		],
+		"sheet": "company-a"
+	},
+	"noor": {
+		"region": [
+			819,
+			124,
+			286,
+			347
+		],
+		"sheet": "company-c"
+	},
+	"oren": {
+		"region": [
+			415,
+			77,
+			337,
+			381
+		],
+		"sheet": "company-a"
+	},
+	"petra": {
+		"region": [
+			52,
+			67,
+			304,
+			403
+		],
+		"sheet": "company-c"
+	},
+	"rhea": {
+		"region": [
+			1199,
+			600,
+			324,
+			366
+		],
+		"sheet": "company-c"
+	},
+	"rook": {
+		"region": [
+			477,
+			142,
+			210,
+			274
+		],
+		"sheet": "company-b"
+	},
+	"sera": {
+		"region": [
+			785,
+			114,
+			307,
+			344
+		],
+		"sheet": "company-a"
+	},
+	"silas": {
+		"region": [
+			1239,
+			651,
+			210,
+			247
+		],
+		"sheet": "company-b"
+	},
+	"tarin": {
+		"region": [
+			450,
+			584,
+			287,
+			350
+		],
+		"sheet": "company-a"
+	},
+	"una": {
+		"region": [
+			817,
+			633,
+			264,
+			266
+		],
+		"sheet": "company-b"
+	},
+	"vela": {
+		"region": [
+			86,
+			644,
+			215,
+			250
+		],
+		"sheet": "company-b"
+	},
+	"yuna": {
+		"region": [
+			38,
+			594,
+			336,
+			356
+		],
+		"sheet": "company-c"
+	}
+}

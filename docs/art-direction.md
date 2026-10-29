@@ -26,3 +26,13 @@ Created with the built-in image-generation tool on 2026-10-29, then copied into 
 Display headings use Cormorant Garamond from https://github.com/google/fonts/tree/main/ofl/cormorantgaramond under the included `assets/fonts/OFL.txt`.
 
 The second presentation pass adds elbow/knee articulation, weapon-specific attack preparation and strikes, dodges, reactions and falling poses; projectiles for bows/magic; chapter-specific combat scenery and lighting; selection-centered camera zoom; and crossfades that remain stable during consecutive fights. Meshes remain procedural placeholders and need a substantial art pass.
+
+## Environment and character materials
+
+`assets/art/environment-atlas.png` contains original painted oak leaves, willow leaves, bark and masonry. `assets/art/character-materials.png` contains original linen, steel, chainmail and leather. Both were generated with the built-in image tool on 2026-10-29; exact prompts are in `docs/environment-prompt.txt` and `docs/character-material-prompt.txt`. Godot samples atlas quadrants directly; no external raster editing was used.
+
+Character material shading uses Godot’s documented toon render modes: https://docs.godotengine.org/en/4.4/tutorials/shaders/shader_reference/spatial_shader.html. These are still procedural mesh approximations, not finished authored character models.
+
+## Individual map sprites
+
+`assets/sprites/company-a.png` through `company-c.png` contain all 24 recruits in original full-body sprite art derived from the project’s own portraits and earlier class sprite style. Exact creation and layout-refinement prompts are in `docs/map-sprite-prompts.json`. `scripts/index_sprites.gd` reads alpha bounds and writes `data/sprite_regions.json`; it does not alter pixels. Hand-chosen search regions accommodate the widest weapons without including neighboring characters. The older class atlas remains the fallback for enemies.

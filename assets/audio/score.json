@@ -1,0 +1,17 @@
+{
+  "title": "A Standard at Dawn",
+  "composer": "Original procedural composition for Ashen Standard",
+  "bpm": 108,
+  "bars": 32,
+  "meter": "4/4",
+  "sample_rate": 22050,
+  "channels": 2,
+  "frames": 1568000,
+  "duration_seconds": 71.11111111111111,
+  "arrangements": [
+    "calm",
+    "ablaze"
+  ],
+  "source": "scripts/generate_score.py",
+  "samples": "None; all voices and effects synthesized"
+}

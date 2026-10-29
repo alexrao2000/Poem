@@ -18,6 +18,9 @@ func _init():
 
 func new_campaign():
 	chapter = 0
+	turn = 1
+	phase = "player"
+	units.clear()
 	completed = false
 	story_seen.clear()
 	rng.seed = 472019
@@ -37,50 +40,46 @@ func available() -> Array:
 func info() -> Dictionary:
 	return content.chapters[chapter]
 
+func board_size() -> Vector2i:
+	return Vector2i(info().map[0].length(),info().map.size())
+
+func objective_position() -> Vector2i:
+	var point=info().get("objective_position",[12,4])
+	return Vector2i(point[0],point[1])
+
 func start_battle():
 	units.clear()
 	turn = 1
 	phase = "player"
-	var spots = [Vector2i(1,3),Vector2i(1,4),Vector2i(1,5),Vector2i(2,3),Vector2i(2,4),Vector2i(2,5)]
+	var spots = info().get("deployment_positions",[[1,3],[1,4],[1,5],[2,3],[2,4],[2,5]])
 	var index = 0
 	for u in available():
-		if u.id not in deployed or index >= 6: continue
+		if u.id not in deployed or index >= int(info().deployment): continue
 		var v = u.duplicate(true)
-		v.x = spots[index].x
-		v.y = spots[index].y
+		v.x = spots[index][0]
+		v.y = spots[index][1]
 		v.hp = v.max_hp
 		v.team = "player"
 		v.acted = false
+		v.moved = false
 		v.potions = 2
 		units.append(v)
 		index += 1
-	var positions = [Vector2i(9,3),Vector2i(10,6),Vector2i(8,8),Vector2i(11,1),Vector2i(12,7),Vector2i(8,4),Vector2i(10,8),Vector2i(9,6),Vector2i(11,3),Vector2i(12,4)]
-	var jobs = ["Vanguard","Corsair","Ranger","Knight","Arcanist"]
-	for i in range(int(info().enemy_count)):
-		var job = jobs[(i+chapter)%jobs.size()]
-		var e = content.classes[job].duplicate(true)
-		e.id = "enemy_"+str(i)
-		e.name = info().boss if i==0 else ["Ash guard","Crown scout","Sun sworn","Black pennant"][i%4]
-		e.job = job
-		e.color = "#ce7771"
-		e.level = 1+chapter
-		e.xp = 0
-		e.hp += chapter*2
-		e.pow += chapter
-		e.defense += chapter/2
-		e.max_hp = e.hp
-		e.team = "enemy"
-		e.acted = false
-		e.boss = i==0
-		var p = Vector2i(12,4) if i==0 else positions[i-1]
-		while terrain(p) in ["#","~"] or at(p)!=null:
-			p.x -= 1
-		e.x = p.x
-		e.y = p.y
+	for i in range(info().enemies.size()):
+		var entry=info().enemies[i]
+		var job=entry.job
+		var e=content.classes[job].duplicate(true)
+		e.id="enemy_"+str(i)
+		e.name=info().boss if i==0 else ["Ash guard","Crown scout","Sun sworn","Black pennant"][i%4]
+		e.job=job;e.color="#ce7771";e.level=1+chapter;e.xp=0
+		e.hp+=chapter*2;e.pow+=chapter;e.defense+=chapter/2;e.max_hp=e.hp
+		e.team="enemy";e.acted=false;e.moved=false;e.boss=i==0
+		e.ai=entry.get("ai","pursue");e.alerted=false
+		e.x=int(entry.position[0]);e.y=int(entry.position[1])
 		units.append(e)
 
 func terrain(p: Vector2i) -> String:
-	if p.x<0 or p.y<0 or p.x>=14 or p.y>=10: return "#"
+	if p.x<0 or p.y<0 or p.x>=board_size().x or p.y>=board_size().y: return "#"
 	return info().map[p.y][p.x]
 
 func pos(u: Dictionary) -> Vector2i:
@@ -115,6 +114,41 @@ func reachable(u: Dictionary) -> Dictionary:
 				queue.append(q)
 	return costs
 
+func can_act(u: Dictionary) -> bool:
+	return u.hp>0 and u.team==phase and not u.acted
+
+func move_unit(u: Dictionary,destination: Vector2i) -> bool:
+	if not can_act(u) or u.get("moved",false):return false
+	if destination!=pos(u) and at(destination)!=null:return false
+	if not reachable(u).has(destination):return false
+	u.move_origin=[u.x,u.y];u.x=destination.x;u.y=destination.y;u.moved=true
+	return true
+
+func undo_move(u: Dictionary) -> bool:
+	if not can_act(u) or not u.has("move_origin"):return false
+	u.x=u.move_origin[0];u.y=u.move_origin[1];u.moved=false;u.erase("move_origin")
+	return true
+
+func wait_unit(u: Dictionary) -> bool:
+	if not can_act(u):return false
+	u.acted=true;return true
+
+func heal(a: Dictionary,b: Dictionary) -> bool:
+	if not can_act(a) or a.weapon!="staff" or a.team!=b.team or a==b:return false
+	if b.hp<=0 or b.hp>=b.max_hp or distance(a,b)!=1:return false
+	b.hp=mini(b.max_hp,b.hp+12);a.acted=true;award_xp(a,30)
+	return true
+
+func use_tonic(u: Dictionary) -> bool:
+	if not can_act(u) or u.get("potions",0)<=0 or u.hp>=u.max_hp:return false
+	u.hp=mini(u.max_hp,u.hp+12);u.potions-=1;u.acted=true
+	return true
+
+func begin_enemy_phase():
+	phase="enemy"
+	for u in living("enemy"):
+		u.acted=false;u.moved=false;u.erase("move_origin")
+
 func can_attack(a: Dictionary,b: Dictionary) -> bool:
 	var d = distance(a,b)
 	return a.hp>0 and b.hp>0 and a.team!=b.team and d<=a.reach and d>0 and (a.weapon!="bow" or d==2) and a.weapon!="staff"
@@ -137,7 +171,7 @@ func strike(a: Dictionary,b: Dictionary) -> Dictionary:
 	return {"actor":a.id,"target":b.id,"damage":damage,"crit":crit,"hit":hit,"remaining":b.hp}
 
 func combat(a: Dictionary,b: Dictionary) -> Array:
-	if phase not in ["player","enemy"] or a.acted or not can_attack(a,b): return []
+	if a.team!=phase or a.acted or not can_attack(a,b): return []
 	var f = forecast(a,b)
 	var result = [strike(a,b)]
 	if b.hp>0 and can_attack(b,a): result.append(strike(b,a))
@@ -172,7 +206,7 @@ func result() -> String:
 		"survive":
 			if turn>info().turn_limit or living("enemy").is_empty(): return "victory"
 		"seize":
-			var occupant = at(Vector2i(12,4))
+			var occupant = at(objective_position())
 			if occupant!=null and occupant.team=="player": return "victory"
 	return ""
 
@@ -193,19 +227,81 @@ func next_player_turn():
 	turn+=1
 	phase="player"
 	for u in units:
-		u.acted=false
+		u.acted=false;u.moved=false;u.erase("move_origin")
 		if u.hp>0 and terrain(pos(u)) in ["+","o"]:u.hp=mini(u.max_hp,u.hp+6)
 
-func save_game(path: String,stage: String):
-	var file = FileAccess.open(path,FileAccess.WRITE)
-	if file==null: return false
-	file.store_string(JSON.stringify({"version":2,"story_seen":story_seen,"chapter":chapter,"turn":turn,"phase":phase,"roster":roster,"units":units,"deployed":deployed,"completed":completed,"rng":str(rng.state),"stage":stage}))
+const SAVE_VERSION=3
+
+func layout_signature() -> String:
+	return JSON.stringify([info().map,info().deployment_positions,info().enemies,info().objective_position]).sha256_text()
+
+func save_game(path: String,stage: String) -> bool:
+	var data={"version":SAVE_VERSION,"layout_signature":layout_signature(),"story_seen":story_seen,"chapter":chapter,"turn":turn,"phase":phase,"roster":roster,"units":units,"deployed":deployed,"completed":completed,"rng":str(rng.state),"stage":stage}
+	var file=FileAccess.open(path+".tmp",FileAccess.WRITE)
+	if file==null:return false
+	file.store_string(JSON.stringify(data));file.flush();file.close()
+	if FileAccess.file_exists(path):DirAccess.copy_absolute(path,path+".bak")
+	return DirAccess.rename_absolute(path+".tmp",path)==OK
+
+func valid_save(data) -> bool:
+	if not data is Dictionary:return false
+	for key in ["version","chapter","turn","phase","roster","units","deployed","completed","rng","stage"]:
+		if not data.has(key):return false
+	for key in ["version","chapter","turn"]:
+		if not (data[key] is float or data[key] is int):return false
+	if int(data.version) not in [1,2,SAVE_VERSION]:return false
+	if int(data.chapter)<0 or int(data.chapter)>=content.chapters.size() or int(data.turn)<1:return false
+	if data.phase not in ["player","enemy"] or data.stage not in ["camp","battle","ending"]:return false
+	if not data.completed is bool or not data.rng is String or not data.rng.is_valid_int():return false
+	if not data.roster is Array or data.roster.size()!=content.roster.size():return false
+	if not data.units is Array or not data.deployed is Array or not data.get("story_seen",[]) is Array:return false
+	var ids={}
+	for unit in data.roster:
+		if not valid_unit(unit,false) or ids.has(unit.id):return false
+		if not content.roster.any(func(original):return original.id==unit.id):return false
+		ids[unit.id]=true
+	for id in data.deployed:
+		if not id is String or not ids.has(id):return false
+	if data.deployed.size()>int(content.chapters[int(data.chapter)].deployment):return false
+	var combat_ids={}
+	for unit in data.units:
+		if not valid_unit(unit,true) or combat_ids.has(unit.id):return false
+		combat_ids[unit.id]=true
+		if unit.team=="player" and not ids.has(unit.id):return false
+		var grid=content.chapters[int(data.chapter)].map
+		if unit.x<0 or unit.y<0 or unit.x>=grid[0].length() or unit.y>=grid.size():return false
+	return true
+
+func valid_unit(unit,in_battle: bool) -> bool:
+	if not unit is Dictionary:return false
+	for key in ["id","name","job","weapon","color"]:
+		if not unit.get(key) is String:return false
+	if not content.classes.has(unit.job):return false
+	for key in ["hp","max_hp","pow","defense","speed","move","reach","level","xp"]:
+		if not (unit.get(key) is float or unit.get(key) is int):return false
+		if not is_finite(float(unit[key])) or unit[key]<0:return false
+	if unit.max_hp<=0 or unit.hp>unit.max_hp or unit.move>20 or unit.reach>10:return false
+	if in_battle:
+		if unit.get("team") not in ["player","enemy"] or not unit.get("acted") is bool:return false
+		for key in ["x","y"]:
+			if not (unit.get(key) is float or unit.get(key) is int):return false
 	return true
 
 func load_game(path: String) -> String:
-	if not FileAccess.file_exists(path):return ""
-	var d = JSON.parse_string(FileAccess.get_file_as_string(path))
-	if not d is Dictionary or int(d.get("version",0)) not in [1,2]:return ""
-	story_seen=d.get("story_seen",[])
-	chapter=int(d.chapter);turn=int(d.turn);phase=d.phase;roster=d.roster;units=d.units;deployed=d.deployed;completed=d.completed;rng.state=int(d.rng)
-	return d.stage
+	var data=null
+	for candidate in [path,path+".bak"]:
+		if not FileAccess.file_exists(candidate):continue
+		var parser=JSON.new()
+		if parser.parse(FileAccess.get_file_as_string(candidate))!=OK:continue
+		var parsed=parser.data
+		if valid_save(parsed):data=parsed;break
+	if data==null:return ""
+	story_seen=data.get("story_seen",[])
+	chapter=int(data.chapter);turn=int(data.turn);phase=data.phase;roster=data.roster;units=data.units;deployed=data.deployed;completed=data.completed;rng.state=int(data.rng)
+	for unit in units:
+		unit.moved=unit.get("moved",false)
+		if unit.team=="enemy":unit.ai=unit.get("ai","guard" if unit.get("boss",false) else "pursue")
+	# Old layouts cannot safely resume units on redesigned walls or water.
+	if data.stage=="battle" and data.get("layout_signature","")!=layout_signature():
+		units.clear();phase="player";return "camp"
+	return data.stage

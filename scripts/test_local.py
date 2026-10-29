@@ -7,7 +7,7 @@ import sys
 
 ROOT = Path(__file__).resolve().parent.parent
 ENGINE = os.environ.get("GODOT_BIN", "godot")
-SUITES = sys.argv[1:] or ["rules", "presentation", "story"]
+SUITES = sys.argv[1:] or ["rules", "saves", "tactics", "campaign", "presentation", "story", "audio"]
 logs = ROOT / "build/logs"
 logs.mkdir(parents=True, exist_ok=True)
 for name in SUITES:
@@ -28,6 +28,8 @@ for name in SUITES:
         raise SystemExit(f"FAIL: {name} exceeded 90 seconds (possible script assertion)")
     (logs / f"{name}-output.log").write_text(result.stdout)
     print(result.stdout, end="", flush=True)
-    if result.returncode or "SCRIPT ERROR:" in result.stdout or "PASS" not in result.stdout:
+    engine_errors = [line for line in result.stdout.splitlines()
+                     if line.startswith("ERROR:") and 'Condition "ret != noErr"' not in line]
+    if result.returncode or engine_errors or "SCRIPT ERROR:" in result.stdout or "PASS" not in result.stdout:
         raise SystemExit(f"FAIL: {name} did not finish successfully")
 print(f"PASS: {len(SUITES)} suites completed")

@@ -22,16 +22,16 @@ func _initialize():
 			positions[g.pos(u)]=true
 			verify(g.terrain(g.pos(u)) not in ["~","#"],"Valid spawn")
 		# Check terrain connectivity to every objective and spawn, ignoring occupants.
-		var reached={Vector2i(1,3):true};var queue=[Vector2i(1,3)]
+		var start=g.pos(g.units[0]);var reached={start:true};var queue=[start]
 		while not queue.is_empty():
 			var p=queue.pop_front()
 			for d in [Vector2i.LEFT,Vector2i.RIGHT,Vector2i.UP,Vector2i.DOWN]:
 				var q=p+d
 				if not reached.has(q) and g.terrain(q) not in ["~","#"]:reached[q]=true;queue.append(q)
-		verify(reached.has(Vector2i(12,4)),"Objective reachable")
+		verify(reached.has(g.objective_position()),"Objective reachable")
 		for u in g.units:verify(reached.has(g.pos(u)),"Unit reachable")
 		for u in g.living("enemy"):u.hp=0
-		if g.info().objective=="seize":g.units[0].x=12;g.units[0].y=4
+		if g.info().objective=="seize":g.units[0].x=g.objective_position().x;g.units[0].y=g.objective_position().y
 		verify(g.result()=="victory","Victory for chapter "+str(chapter))
 		g.finish_chapter()
 	verify(g.completed,"Campaign ending")

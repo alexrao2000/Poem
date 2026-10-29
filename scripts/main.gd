@@ -18,9 +18,11 @@ const Scenery = preload("res://scripts/scenery.gd")
 var scenery: RefCounted
 const CLASSES = ["Vanguard","Knight","Ranger","Arcanist","Warden","Rider","Corsair","Duelist"]
 var game = Rules.new()
+var tactics=preload("res://scripts/tactics.gd").new()
 var camera: Camera3D
 var environment: Environment
 var sunlight: DirectionalLight3D
+var default_lighting: Dictionary
 var world: Node3D
 var markers: Node3D
 var pieces: Node3D
@@ -36,6 +38,8 @@ var busy = false
 var screen = "title"
 var music: AudioStreamPlayer
 var score: AudioStreamSynchronized
+var sfx_streams: Dictionary={}
+var sfx_players: Array=[]
 var music_transition: Tween
 var muted = false
 var sprites: Array = []
@@ -71,6 +75,7 @@ func _ready():
 	sun.light_energy=1.1
 	sun.shadow_enabled=true
 	add_child(sun)
+	default_lighting=lighting_state()
 	camera=Camera3D.new()
 	add_child(camera)
 	camera.current=true
@@ -89,11 +94,20 @@ func setup_audio():
 		var stream = load("res://assets/"+("calm" if i==0 else "ablaze")+".wav") as AudioStreamWAV
 		stream.loop_mode=AudioStreamWAV.LOOP_FORWARD
 		stream.loop_begin=0
-		stream.loop_end=stream.data.size()/2
+		stream.loop_end=stream.data.size()/(4 if stream.stereo else 2)
 		score.set_sync_stream(i,stream)
 	score.set_sync_stream_volume(1,-60)
 	music.stream=score
 	add_child(music)
+	for effect in ["select","swing","hit","critical","heal","magic","phase"]:
+		sfx_streams[effect]=load("res://assets/audio/"+effect+".wav")
+	for i in range(6):
+		var player=AudioStreamPlayer.new();player.volume_db=-12;sfx_players.append(player);add_child(player)
+
+func play_sfx(effect: String):
+	for player in sfx_players:
+		if not player.playing:
+			player.stream=sfx_streams.get(effect);player.play();return
 
 func music_mix(battle: bool):
 	if music_transition and music_transition.is_valid():music_transition.kill()
@@ -180,14 +194,16 @@ func sphere(parent,position,radius,color) -> MeshInstance3D:
 
 func map_camera():
 	camera.projection=Camera3D.PROJECTION_ORTHOGONAL
-	camera.size=16
-	camera.position=Vector3(9,22,16)
-	camera.look_at(Vector3(6.5,0,4.5))
+	camera.size=maxf(16,game.board_size().x+2)
+	var center=Vector3((game.board_size().x-1)*.5,0,(game.board_size().y-1)*.5)
+	camera.position=center+Vector3(2.5,22,11.5)
+	camera.look_at(center)
 	camera.h_offset=2.0
 
 func make_map():
 	clear_world()
 	map_camera()
+	battle_lighting(game.info().get("environment","village"))
 	scenery.landscape(world,game)
 	refresh_pieces()
 
@@ -197,11 +213,12 @@ func refresh_pieces():
 	for u in game.units:
 		if u.hp<=0:continue
 		var s=Sprite3D.new();s.texture=unit_portrait(u)
-		s.pixel_size=.0022
+		var height=1.2 if u.job in ["Knight","Rider"] else 1.08
+		s.pixel_size=height/s.texture.get_height()
 		s.billboard=BaseMaterial3D.BILLBOARD_ENABLED;s.texture_filter=BaseMaterial3D.TEXTURE_FILTER_NEAREST
 		s.alpha_cut=SpriteBase3D.ALPHA_CUT_DISCARD;s.alpha_scissor_threshold=.35
 		s.no_depth_test=true;s.render_priority=2
-		s.position=Vector3(u.x,.64,u.y);s.set_meta("base_y",.64)
+		s.position=Vector3(u.x,height*.5+.07,u.y);s.set_meta("base_y",height*.5+.07)
 		s.modulate=(Color(.65,.65,.65) if u.acted else Color.WHITE) if u.team=="player" else Color(1,.66,.62)
 		pieces.add_child(s);sprites.append(s)
 		scenery.cylinder(pieces,Vector3(u.x,.035,u.y),.035,.31,Color("496f9c") if u.team=="player" else Color("a54b45"))
@@ -211,7 +228,9 @@ func refresh_pieces():
 		health.texture=ImageTexture.create_from_image(image);health.pixel_size=.013;health.billboard=BaseMaterial3D.BILLBOARD_ENABLED
 		health.position=Vector3(u.x,.16,u.y+.12);health.no_depth_test=true;health.render_priority=3;pieces.add_child(health)
 
-func unit_portrait(u) -> AtlasTexture:
+func unit_portrait(u) -> Texture2D:
+	var individual=portraits.get_map_sprite(u.id)
+	if individual!=null:return individual
 	var texture=AtlasTexture.new();texture.atlas=load("res://assets/art/class-sprites.png")
 	var index=maxi(0,CLASSES.find(u.job))
 	texture.region=Rect2((index%4)*384+12,(index/4)*512+10,360,492)
@@ -248,6 +267,7 @@ func show_camp():
 	label_in(left,"%02d  %s"%[game.chapter+1,game.info().title],34)
 	label_in(left,game.info().place.to_upper(),17,Color("79755f"))
 	label_in(left,game.info().intro,21)
+	label_in(left,game.info().get("tactical_brief",""),18,Color("6f6c5e"))
 	label_in(left,"OBJECTIVE  /  "+objective_text(),18,GOLD)
 	label_in(left,"Recruited %d / 24  ·  Deployed %d / 6"%[game.available().size(),game.deployed.size()],18)
 	label_in(left,"Select up to six allies. Healing tiles restore 6 HP each turn. Wardens heal adjacent allies; everyone carries two field tonics.",16,Color("766e5e"))
@@ -255,7 +275,7 @@ func show_camp():
 	button_in(left,"Deploy company  >",func():game.start_battle();make_map();show_battle();game.save_game(SAVE,"battle"),game.deployed.is_empty())
 	button_in(left,"Save campaign",func():game.save_game(SAVE,"camp"))
 	button_in(left,"Return to title",show_title)
-	label_in(left,"Music: original synchronized sketch\nVisuals: original painted art and 3D models",13,Color("827b6c"))
+	label_in(left,"Music: A Standard at Dawn · paired arrangements\nVisuals: original painted art and 3D models",13,Color("827b6c"))
 	var scroll=ScrollContainer.new();scroll.custom_minimum_size.x=650;scroll.size_flags_horizontal=Control.SIZE_EXPAND_FILL;row.add_child(scroll)
 	var cards=VBoxContainer.new();cards.size_flags_horizontal=Control.SIZE_EXPAND_FILL;scroll.add_child(cards)
 	for u in game.roster:
@@ -371,7 +391,7 @@ func _unhandled_input(event):
 
 func cancel_selection():
 	if selected!=null and origin!=null and not selected.acted:
-		selected.x=origin.x;selected.y=origin.y
+		game.undo_move(selected)
 	selected=null;target=null;origin=null;refresh_pieces();highlight();update_side()
 
 func click_tile(p: Vector2i):
@@ -379,19 +399,21 @@ func click_tile(p: Vector2i):
 	if selected!=null and not selected.acted and u!=null:
 		if game.can_attack(selected,u):target=u;update_side();return
 		if selected.weapon=="staff" and u.team=="player" and u!=selected and game.distance(selected,u)==1 and u.hp<u.max_hp:
-			u.hp=mini(u.max_hp,u.hp+12);selected.acted=true;game.award_xp(selected,30);finish_action();return
+			if game.heal(selected,u):play_sfx("heal");finish_action();return
 	if u!=null and u.team=="player":
-		cancel_selection();selected=u;highlight();update_side();return
+		cancel_selection();selected=u;play_sfx("select");highlight();update_side();return
 	if selected!=null and not selected.acted and origin==null and u==null and game.reachable(selected).has(p):
-		origin=game.pos(selected);selected.x=p.x;selected.y=p.y;target=null;refresh_pieces();highlight();update_side()
+		origin=game.pos(selected)
+		if game.move_unit(selected,p):target=null;refresh_pieces();highlight();update_side()
+		else:origin=null
 
 func wait_action():
 	if busy or selected==null:return
-	selected.acted=true;finish_action()
+	if game.wait_unit(selected):finish_action()
 
 func tonic():
 	if busy or selected==null:return
-	selected.hp=mini(selected.max_hp,selected.hp+12);selected.potions-=1;selected.acted=true;finish_action()
+	if game.use_tonic(selected):play_sfx("heal");finish_action()
 
 func player_attack():
 	if busy or selected==null or target==null:return
@@ -411,36 +433,20 @@ func finish_action():
 
 func end_turn():
 	if busy or screen!="battle":return
-	cancel_selection();busy=true;game.phase="enemy";update_side()
+	cancel_selection();busy=true;game.begin_enemy_phase();play_sfx("phase");update_side()
 	for e in game.living("enemy"):
-		e.acted=false
-		var allies=game.living("player")
-		if allies.is_empty():break
-		var chosen=allies[0]
-		for a in allies:
-			if game.distance(e,a)<game.distance(e,chosen):chosen=a
-		# Bosses hold the objective. Other units pursue the nearest reachable opponent.
-		if not e.boss:
-			var options=game.reachable(e);var best=game.pos(e);var best_score=10000
-			for p in options:
-				if game.at(p)!=null and p!=game.pos(e):continue
-				var d=absi(p.x-int(chosen.x))+absi(p.y-int(chosen.y))
-				var value=absi(d-int(e.reach))*10+int(options[p])
-				if value<best_score:best=p;best_score=value
-			e.x=best.x;e.y=best.y
+		if game.living("player").is_empty():break
+		var choice=tactics.plan(game,e)
+		var candidates=game.units.filter(func(u):return u.id==choice.target)
+		var chosen=candidates[0] if not candidates.is_empty() else null
+		var initial_hp={e.id:e.hp}
+		if chosen!=null:initial_hp[chosen.id]=chosen.hp
+		var events=tactics.apply_plan(game,e,choice)
 		refresh_pieces();await get_tree().create_timer(.18).timeout
-		var victims=allies.filter(func(a):return game.can_attack(e,a))
-		if not victims.is_empty():
-			chosen=victims[0]
-			for a in victims:
-				if a.hp<chosen.hp:chosen=a
-			var initial_hp={e.id:e.hp,chosen.id:chosen.hp}
-			var events=game.combat(e,chosen)
-			await cinematic(e,chosen,events,initial_hp)
-		else:e.acted=true
+		if chosen!=null and not events.is_empty():await cinematic(e,chosen,events,initial_hp)
 		refresh_pieces()
 		if game.result()!="":break
-	game.next_player_turn();busy=false;update_side();refresh_pieces()
+	game.next_player_turn();play_sfx("phase");busy=false;update_side();refresh_pieces()
 	if await check_result():return
 	game.save_game(SAVE,"battle")
 
@@ -456,7 +462,7 @@ func cinematic(a,b,events,initial_hp={}):
 	var push=create_tween().set_parallel(true).set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_IN)
 	push.tween_property(camera,"size",6.0,.32)
 	push.tween_property(camera,"h_offset",0.0,.32)
-	push.tween_property(camera,"position",old_pos+focus-Vector3(6.5,0,4.5),.32)
+	push.tween_property(camera,"position",old_pos+focus-Vector3((game.board_size().x-1)*.5,0,(game.board_size().y-1)*.5),.32)
 	await push.finished
 	var tactical_controls=ui.get_children()
 	for control in tactical_controls:control.hide()
@@ -523,10 +529,12 @@ func cinematic(a,b,events,initial_hp={}):
 			await approach.finished
 		await who.pose("windup",.28 if not event.crit else .4).finished
 		if skip_combat:break
+		play_sfx("magic" if unit.weapon=="magic" else "swing")
 		await who.pose("strike",.12).finished
 		if is_ranged:
 			await projectile(who.position+Vector3(0,1.2,0),whom.position+Vector3(0,1.1,0),unit.weapon)
 		if event.hit:
+			play_sfx("critical" if event.crit else "hit")
 			whom.pose("hit",.12)
 		else:
 			whom.pose("evade",.16)
@@ -559,9 +567,14 @@ func cinematic(a,b,events,initial_hp={}):
 		if is_instance_valid(control):control.show()
 	music_mix(false)
 
-func battle_lighting(theme: String) -> Dictionary:
+func lighting_state() -> Dictionary:
 	var sky=environment.sky.sky_material
-	var old={"energy":sunlight.light_energy,"color":sunlight.light_color,"ambient":environment.ambient_light_energy,"top":sky.sky_top_color,"horizon":sky.sky_horizon_color,"ground":sky.ground_horizon_color}
+	return {"energy":sunlight.light_energy,"color":sunlight.light_color,"ambient":environment.ambient_light_energy,"top":sky.sky_top_color,"horizon":sky.sky_horizon_color,"ground":sky.ground_horizon_color}
+
+func battle_lighting(theme: String) -> Dictionary:
+	var old=lighting_state()
+	if not default_lighting.is_empty():restore_lighting(default_lighting)
+	var sky=environment.sky.sky_material
 	if theme in ["forest","mountain"]:
 		sunlight.light_energy=.7;environment.ambient_light_energy=.6
 		sky.sky_top_color=Color("536c82");sky.sky_horizon_color=Color("b5b9ab");sky.ground_horizon_color=Color("b5b9ab")

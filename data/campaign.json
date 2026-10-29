@@ -371,21 +371,182 @@
       "intro": "The regent has ordered the river towns emptied. Lyra raises her broken standard at the first burning bridge.",
       "outro": "The villagers cross in silence. At dawn, a river captain offers a passage north.",
       "map": [
-        "h.....~.....f.",
-        "....f.~.h.f...",
-        "...f..~.f.....",
-        "...+..=f....f.",
-        "...h.f=....fo.",
-        "...f..~..f.h..",
-        "..f...~f.....f",
-        "f.....=...+f..",
-        "....f.~...f...",
-        "..f...~.f....."
+        "##.f.f.~...h..",
+        "##pp##p~.ff...",
+        "pppp##p~....f.",
+        "ppp+ppp~......",
+        "ppppppp=ppppop",
+        "ppppppp~......",
+        "ppppppp~.f....",
+        "##pp##p=pp+p##",
+        "##pp##p~.h.f##",
+        "f...f..~......"
       ],
       "turn_limit": 6,
       "deployment": 6,
       "enemy_count": 5,
-      "environment": "village"
+      "environment": "village",
+      "objective_position": [
+        12,
+        4
+      ],
+      "deployment_positions": [
+        [
+          1,
+          3
+        ],
+        [
+          1,
+          4
+        ],
+        [
+          1,
+          5
+        ],
+        [
+          2,
+          3
+        ],
+        [
+          2,
+          4
+        ],
+        [
+          2,
+          5
+        ]
+      ],
+      "enemies": [
+        {
+          "position": [
+            12,
+            4
+          ],
+          "job": "Vanguard",
+          "ai": "guard"
+        },
+        {
+          "position": [
+            9,
+            4
+          ],
+          "job": "Corsair",
+          "ai": "pursue"
+        },
+        {
+          "position": [
+            10,
+            6
+          ],
+          "job": "Ranger",
+          "ai": "pursue"
+        },
+        {
+          "position": [
+            10,
+            2
+          ],
+          "job": "Knight",
+          "ai": "sentry"
+        },
+        {
+          "position": [
+            8,
+            8
+          ],
+          "job": "Vanguard",
+          "ai": "pursue"
+        }
+      ],
+      "tactical_brief": "Two bridges cross the canal. Oren can hold the main crossing while Sera attacks from behind him; the southern bridge offers a wider approach.",
+      "landmarks": [
+        {
+          "kind": "house",
+          "position": [
+            0.5,
+            0.5
+          ],
+          "footprint": [
+            0,
+            0,
+            2,
+            2
+          ]
+        },
+        {
+          "kind": "house",
+          "position": [
+            4.5,
+            1.5
+          ],
+          "footprint": [
+            4,
+            1,
+            2,
+            2
+          ]
+        },
+        {
+          "kind": "house",
+          "position": [
+            0.5,
+            7.5
+          ],
+          "footprint": [
+            0,
+            7,
+            2,
+            2
+          ]
+        },
+        {
+          "kind": "house",
+          "position": [
+            4.5,
+            7.5
+          ],
+          "footprint": [
+            4,
+            7,
+            2,
+            2
+          ]
+        },
+        {
+          "kind": "house",
+          "position": [
+            12.5,
+            7.5
+          ],
+          "footprint": [
+            12,
+            7,
+            2,
+            2
+          ]
+        },
+        {
+          "kind": "house",
+          "position": [
+            -2,
+            3
+          ]
+        },
+        {
+          "kind": "house",
+          "position": [
+            11,
+            -2
+          ]
+        },
+        {
+          "kind": "fountain",
+          "position": [
+            3,
+            3
+          ]
+        }
+      ]
     },
     {
       "id": 1,
@@ -396,21 +557,118 @@
       "intro": "Mara\u2019s boats cannot pass the chain towers. Take the eastern tollhouse before the river closes.",
       "outro": "The chains fall. Tarin finds the eclipse engine\u2019s seal on a confiscated cargo manifest.",
       "map": [
-        "....h....f....",
-        "..f.....f...hf",
-        "f.....f.....f.",
-        "...+f.....f...",
-        "...f...hf...o.",
-        "...~=~~~~=~~f.",
-        ".....f.....f..",
-        "..hf.....f+...",
-        "..f....f..h..f",
-        "f.....f....f.."
+        ".ff..~~.f...f.",
+        "...+.~~.......",
+        "ppppp==ppp#...",
+        ".....~~...#ppp",
+        ".....~~.f.ppop",
+        ".....~~...#ppp",
+        ".....~~.+.p...",
+        "..f..==ppp#pp.",
+        "...f.~~.......",
+        ".....~~.....f."
       ],
       "turn_limit": 6,
       "deployment": 6,
-      "enemy_count": 5,
-      "environment": "river"
+      "enemy_count": 6,
+      "environment": "river",
+      "objective_position": [
+        12,
+        4
+      ],
+      "deployment_positions": [
+        [
+          1,
+          3
+        ],
+        [
+          1,
+          4
+        ],
+        [
+          1,
+          5
+        ],
+        [
+          2,
+          3
+        ],
+        [
+          2,
+          4
+        ],
+        [
+          2,
+          5
+        ]
+      ],
+      "enemies": [
+        {
+          "position": [
+            12,
+            4
+          ],
+          "job": "Knight",
+          "ai": "guard"
+        },
+        {
+          "position": [
+            8,
+            2
+          ],
+          "job": "Ranger",
+          "ai": "pursue"
+        },
+        {
+          "position": [
+            9,
+            7
+          ],
+          "job": "Corsair",
+          "ai": "pursue"
+        },
+        {
+          "position": [
+            11,
+            6
+          ],
+          "job": "Vanguard",
+          "ai": "sentry"
+        },
+        {
+          "position": [
+            8,
+            3
+          ],
+          "job": "Arcanist",
+          "ai": "sentry"
+        },
+        {
+          "position": [
+            4,
+            7
+          ],
+          "job": "Corsair",
+          "ai": "pursue"
+        }
+      ],
+      "tactical_brief": "Choose the northern bridge for speed or the southern approach for cover. Tarin\u2019s magic cuts through the tollhouse knight\u2019s armor. Any ally can seize the marked gate.",
+      "landmarks": [
+        {
+          "kind": "tower",
+          "position": [
+            10,
+            1
+          ]
+        },
+        {
+          "kind": "tower",
+          "position": [
+            10,
+            8
+          ]
+        }
+      ]
     },
     {
       "id": 2,
@@ -421,21 +679,111 @@
       "intro": "Refugees are hidden in the wood. Hold the lantern road for six turns while Nell guides them to safety.",
       "outro": "The final lantern disappears into the rain. Bram brings horses and news of the occupied abbey.",
       "map": [
-        ".f.....fh....f",
-        "f....f.#...f..",
-        "....f..#.f....",
-        "...+....f....f",
-        "f.....f....ho.",
-        "....f.....f...",
-        "...f...#f.....",
-        ".f....h#..+.f.",
-        ".....f.#...f..",
-        "...f.....f...."
+        "fffffffff..fff",
+        "fff..f#ff..fff",
+        "fff..f#ff..fff",
+        "f.....fff..fff",
+        "..+o..........",
+        "..............",
+        "f.....fff..fff",
+        "fff..ff#+..fff",
+        "fff..ff#f..fff",
+        "fffffffff..fff"
       ],
       "turn_limit": 6,
       "deployment": 6,
       "enemy_count": 6,
-      "environment": "forest"
+      "environment": "forest",
+      "objective_position": [
+        3,
+        4
+      ],
+      "deployment_positions": [
+        [
+          2,
+          3
+        ],
+        [
+          2,
+          4
+        ],
+        [
+          2,
+          5
+        ],
+        [
+          3,
+          3
+        ],
+        [
+          3,
+          5
+        ],
+        [
+          4,
+          4
+        ]
+      ],
+      "enemies": [
+        {
+          "position": [
+            12,
+            4
+          ],
+          "job": "Ranger",
+          "ai": "guard"
+        },
+        {
+          "position": [
+            9,
+            1
+          ],
+          "job": "Corsair",
+          "ai": "pursue"
+        },
+        {
+          "position": [
+            10,
+            8
+          ],
+          "job": "Vanguard",
+          "ai": "pursue"
+        },
+        {
+          "position": [
+            6,
+            4
+          ],
+          "job": "Arcanist",
+          "ai": "pursue"
+        },
+        {
+          "position": [
+            1,
+            8
+          ],
+          "job": "Corsair",
+          "ai": "pursue"
+        },
+        {
+          "position": [
+            4,
+            0
+          ],
+          "job": "Duelist",
+          "ai": "pursue"
+        }
+      ],
+      "tactical_brief": "Hold for six enemy phases. Forest slows both sides and reduces incoming damage. Keep the healer near the refuge; attackers approach from the north and south as well as the east.",
+      "landmarks": [
+        {
+          "kind": "camp",
+          "position": [
+            1,
+            1
+          ]
+        }
+      ]
     },
     {
       "id": 3,
@@ -446,21 +794,118 @@
       "intro": "The abbey bell has been melted for the regent\u2019s engine. Esme and Rook will help us silence its overseer.",
       "outro": "The abbey opens its granaries. Inside the crypt, Lyra finds a map to the old royal causeway.",
       "map": [
-        ".....f....f.h.",
-        "...f.....f....",
-        ".f...###.###.f",
-        "f..+.f.h...f..",
-        "....f....f..o.",
-        "........f....f",
-        "f.h...f.....f.",
-        "....f.....+...",
-        "...f....f.....",
-        ".f.....f....f."
+        "pfpppppppppppp",
+        "pppp##########",
+        "pppp#p+#pp#ppp",
+        "pppp#ppppppppp",
+        "ppppppp#pp#pop",
+        "ppppppp#pp#ppp",
+        "pppp#ppppppppp",
+        "pppp#pp#p+#ppp",
+        "pppp##########",
+        "pfpfpppppppppp"
       ],
       "turn_limit": 6,
       "deployment": 6,
       "enemy_count": 6,
-      "environment": "abbey"
+      "environment": "abbey",
+      "objective_position": [
+        12,
+        4
+      ],
+      "deployment_positions": [
+        [
+          1,
+          3
+        ],
+        [
+          1,
+          4
+        ],
+        [
+          1,
+          5
+        ],
+        [
+          2,
+          3
+        ],
+        [
+          2,
+          4
+        ],
+        [
+          2,
+          5
+        ]
+      ],
+      "enemies": [
+        {
+          "position": [
+            12,
+            4
+          ],
+          "job": "Arcanist",
+          "ai": "guard"
+        },
+        {
+          "position": [
+            6,
+            4
+          ],
+          "job": "Knight",
+          "ai": "pursue"
+        },
+        {
+          "position": [
+            8,
+            3
+          ],
+          "job": "Ranger",
+          "ai": "pursue"
+        },
+        {
+          "position": [
+            9,
+            6
+          ],
+          "job": "Vanguard",
+          "ai": "pursue"
+        },
+        {
+          "position": [
+            12,
+            6
+          ],
+          "job": "Knight",
+          "ai": "sentry"
+        },
+        {
+          "position": [
+            11,
+            2
+          ],
+          "job": "Arcanist",
+          "ai": "sentry"
+        }
+      ],
+      "tactical_brief": "The abbey\u2019s side chapels connect through narrow doors. Use both aisles to avoid a queue at the entrance. Defeat Prior Ash; clearing every guard is optional.",
+      "landmarks": [
+        {
+          "kind": "spire",
+          "position": [
+            12,
+            0
+          ]
+        },
+        {
+          "kind": "ruin",
+          "position": [
+            6,
+            9
+          ]
+        }
+      ]
     },
     {
       "id": 4,
@@ -471,21 +916,126 @@
       "intro": "Cassian blocks the causeway with his own banner. Faye brokers a truce: together, take the imperial checkpoint.",
       "outro": "Cassian lowers his claim for now. Two banners travel east under the same rain.",
       "map": [
-        "..f...~.f.....",
-        ".f....~.....f.",
-        "...h.f~...f...",
-        "...+..=..f.h..",
-        "......=f....of",
-        "f....f~....f..",
-        "....f.~..f....",
-        "..f...=.f.+..f",
-        "f.....~.....f.",
-        ".h..f.~...f..."
+        "f..~~~~~~~~...",
+        ".f.========...",
+        "...=~~~~~~=...",
+        "...=ppp#pp=...",
+        "...pppppppp.o.",
+        "...p+pppppp+..",
+        "...pppp#ppp...",
+        "...~~~~~~~~...",
+        "...~~~~~~~~.ff",
+        "...~~~~~~~~..."
       ],
       "turn_limit": 6,
       "deployment": 6,
       "enemy_count": 7,
-      "environment": "road"
+      "environment": "road",
+      "objective_position": [
+        12,
+        4
+      ],
+      "deployment_positions": [
+        [
+          1,
+          3
+        ],
+        [
+          1,
+          4
+        ],
+        [
+          1,
+          5
+        ],
+        [
+          2,
+          3
+        ],
+        [
+          2,
+          4
+        ],
+        [
+          2,
+          5
+        ]
+      ],
+      "enemies": [
+        {
+          "position": [
+            12,
+            4
+          ],
+          "job": "Rider",
+          "ai": "guard"
+        },
+        {
+          "position": [
+            6,
+            4
+          ],
+          "job": "Knight",
+          "ai": "pursue"
+        },
+        {
+          "position": [
+            6,
+            5
+          ],
+          "job": "Ranger",
+          "ai": "pursue"
+        },
+        {
+          "position": [
+            9,
+            4
+          ],
+          "job": "Vanguard",
+          "ai": "sentry"
+        },
+        {
+          "position": [
+            9,
+            6
+          ],
+          "job": "Arcanist",
+          "ai": "sentry"
+        },
+        {
+          "position": [
+            10,
+            1
+          ],
+          "job": "Duelist",
+          "ai": "pursue"
+        },
+        {
+          "position": [
+            11,
+            7
+          ],
+          "job": "Corsair",
+          "ai": "pursue"
+        }
+      ],
+      "tactical_brief": "The broad causeway favors armored units, but the northern maintenance bridge lets riders bypass the central barricade. Seize the eastern standard.",
+      "landmarks": [
+        {
+          "kind": "tower",
+          "position": [
+            8,
+            2
+          ]
+        },
+        {
+          "kind": "tower",
+          "position": [
+            8,
+            7
+          ]
+        }
+      ]
     },
     {
       "id": 5,
@@ -496,21 +1046,133 @@
       "intro": "The harbor is under siege. Vela\u2019s beacon and Dax\u2019s dockworkers can turn the tide if the occupation falls.",
       "outro": "The harbor fleet joins the cause. Beyond the water, the engine begins to wake.",
       "map": [
-        "f.....f....f..",
-        "....f.....f...",
-        "..f....hf.....",
-        "...+..f.....f.",
-        ".....f....f.o.",
-        "...~=~~~~=~~..",
-        ".f.....f..h..f",
-        "f....f....+f..",
-        "....f....f....",
-        "..f..h..f....f"
+        "f..ppppppppppp",
+        "...ppp###ppppp",
+        "..+ppp###ppppp",
+        "...pppppppppop",
+        "...ppppppppppp",
+        "...~=~~~=~~~=~",
+        "...~=~~~+~~~=~",
+        "...~=~~~=~~~=~",
+        ".ff~=~~~=~~~=~",
+        "...~=~~~=~~~=~"
       ],
       "turn_limit": 6,
       "deployment": 6,
       "enemy_count": 7,
-      "environment": "harbor"
+      "environment": "harbor",
+      "objective_position": [
+        12,
+        3
+      ],
+      "deployment_positions": [
+        [
+          1,
+          2
+        ],
+        [
+          1,
+          3
+        ],
+        [
+          1,
+          4
+        ],
+        [
+          2,
+          3
+        ],
+        [
+          2,
+          4
+        ],
+        [
+          3,
+          3
+        ]
+      ],
+      "enemies": [
+        {
+          "position": [
+            12,
+            3
+          ],
+          "job": "Vanguard",
+          "ai": "guard"
+        },
+        {
+          "position": [
+            4,
+            7
+          ],
+          "job": "Corsair",
+          "ai": "pursue"
+        },
+        {
+          "position": [
+            8,
+            8
+          ],
+          "job": "Ranger",
+          "ai": "pursue"
+        },
+        {
+          "position": [
+            12,
+            8
+          ],
+          "job": "Arcanist",
+          "ai": "pursue"
+        },
+        {
+          "position": [
+            9,
+            3
+          ],
+          "job": "Knight",
+          "ai": "pursue"
+        },
+        {
+          "position": [
+            10,
+            1
+          ],
+          "job": "Ranger",
+          "ai": "sentry"
+        },
+        {
+          "position": [
+            5,
+            0
+          ],
+          "job": "Corsair",
+          "ai": "pursue"
+        }
+      ],
+      "tactical_brief": "Clear the occupation from all three piers. Archers can fire across the narrow water gaps; the warehouse blocks movement but has routes along both sides.",
+      "landmarks": [
+        {
+          "kind": "warehouse",
+          "position": [
+            7,
+            1.5
+          ]
+        },
+        {
+          "kind": "boat",
+          "position": [
+            6,
+            8
+          ]
+        },
+        {
+          "kind": "boat",
+          "position": [
+            10,
+            7
+          ]
+        }
+      ]
     },
     {
       "id": 6,
@@ -521,21 +1183,127 @@
       "intro": "Una\u2019s embassy has been betrayed. Hold the pass for six turns while Silas carries the proof to the cities.",
       "outro": "The cities answer the message. For the first time, the regent\u2019s army faces a country instead of fugitives.",
       "map": [
-        "...f.....f....",
-        "..fh...#.....f",
-        "f.....f#...h..",
-        "...+f.....f...",
-        "........f...o.",
-        "......h.....f.",
-        ".....f.#..f...",
-        "...f...#.f+...",
-        ".h.....#.....f",
-        "f....f...h.f.."
+        "##############",
+        "#####h.hhhhhh#",
+        "#####h......h#",
+        "#####h.h##h.h#",
+        "hhhhhh.h##h.h#",
+        ".o.+...h##h.h#",
+        "hhhhhhhh##h.h#",
+        "##hhhhhhhhh.h#",
+        "##h......+..h#",
+        "##############"
       ],
       "turn_limit": 6,
       "deployment": 6,
       "enemy_count": 8,
-      "environment": "mountain"
+      "environment": "mountain",
+      "objective_position": [
+        1,
+        5
+      ],
+      "deployment_positions": [
+        [
+          1,
+          4
+        ],
+        [
+          1,
+          5
+        ],
+        [
+          1,
+          6
+        ],
+        [
+          2,
+          4
+        ],
+        [
+          2,
+          5
+        ],
+        [
+          2,
+          6
+        ]
+      ],
+      "enemies": [
+        {
+          "position": [
+            12,
+            2
+          ],
+          "job": "Knight",
+          "ai": "guard"
+        },
+        {
+          "position": [
+            6,
+            3
+          ],
+          "job": "Rider",
+          "ai": "pursue"
+        },
+        {
+          "position": [
+            6,
+            1
+          ],
+          "job": "Ranger",
+          "ai": "pursue"
+        },
+        {
+          "position": [
+            9,
+            2
+          ],
+          "job": "Arcanist",
+          "ai": "pursue"
+        },
+        {
+          "position": [
+            8,
+            8
+          ],
+          "job": "Rider",
+          "ai": "pursue"
+        },
+        {
+          "position": [
+            5,
+            7
+          ],
+          "job": "Corsair",
+          "ai": "pursue"
+        },
+        {
+          "position": [
+            12,
+            7
+          ],
+          "job": "Ranger",
+          "ai": "pursue"
+        },
+        {
+          "position": [
+            10,
+            8
+          ],
+          "job": "Vanguard",
+          "ai": "pursue"
+        }
+      ],
+      "tactical_brief": "Hold the western exit for six enemy phases. Hills slow every advance. The two switchback routes meet beside the healing spring; do not let your healer become the front line.",
+      "landmarks": [
+        {
+          "kind": "ruin",
+          "position": [
+            0,
+            2
+          ]
+        }
+      ]
     },
     {
       "id": 7,
@@ -546,21 +1314,134 @@
       "intro": "Petra knows a forgotten route across the aqueduct. Ari reports that the eastern gate is lightly guarded.",
       "outro": "Water returns to the valley. A hidden observatory reveals what the engine will consume.",
       "map": [
-        ".f.....f....f.",
-        ".....f.h...f..",
-        "...f.###.###..",
-        "...+...f.....f",
-        "f.....f....fo.",
-        "....f.....h...",
-        "..f.....f.....",
-        ".f....f...+.f.",
-        ".....h....f...",
-        "...f.....f...h"
+        "~~~~~~~~~~~~~~",
+        "~ppp+pppppppp~",
+        "~pppppppppppp~",
+        "pppp~~~~~~pppp",
+        "ppppp#ppppppop",
+        "pppppppp#p+ppp",
+        "pppp~~~~~~pppp",
+        "~~~~~~~~~~~~~~",
+        "~~~~~~~~~~~~~~",
+        "~~~~~~~~~~~~~~"
       ],
       "turn_limit": 6,
       "deployment": 6,
       "enemy_count": 8,
-      "environment": "aqueduct"
+      "environment": "aqueduct",
+      "objective_position": [
+        12,
+        4
+      ],
+      "deployment_positions": [
+        [
+          1,
+          3
+        ],
+        [
+          1,
+          4
+        ],
+        [
+          1,
+          5
+        ],
+        [
+          2,
+          3
+        ],
+        [
+          2,
+          4
+        ],
+        [
+          2,
+          5
+        ]
+      ],
+      "enemies": [
+        {
+          "position": [
+            12,
+            4
+          ],
+          "job": "Knight",
+          "ai": "guard"
+        },
+        {
+          "position": [
+            6,
+            5
+          ],
+          "job": "Ranger",
+          "ai": "pursue"
+        },
+        {
+          "position": [
+            7,
+            4
+          ],
+          "job": "Corsair",
+          "ai": "pursue"
+        },
+        {
+          "position": [
+            8,
+            2
+          ],
+          "job": "Arcanist",
+          "ai": "pursue"
+        },
+        {
+          "position": [
+            10,
+            1
+          ],
+          "job": "Vanguard",
+          "ai": "sentry"
+        },
+        {
+          "position": [
+            11,
+            5
+          ],
+          "job": "Ranger",
+          "ai": "sentry"
+        },
+        {
+          "position": [
+            4,
+            4
+          ],
+          "job": "Knight",
+          "ai": "pursue"
+        },
+        {
+          "position": [
+            5,
+            2
+          ],
+          "job": "Duelist",
+          "ai": "pursue"
+        }
+      ],
+      "tactical_brief": "The upper inspection gallery is longer but offers a healing station. Split the company or use the lower channel as a shielded advance. Petra can anchor either narrow route.",
+      "landmarks": [
+        {
+          "kind": "arch",
+          "position": [
+            4,
+            6
+          ]
+        },
+        {
+          "kind": "arch",
+          "position": [
+            8,
+            6
+          ]
+        }
+      ]
     },
     {
       "id": 8,
@@ -571,21 +1452,134 @@
       "intro": "Noor has calculated the cost: the engine will burn the valley to sustain the capital. Galen opens a path through the monastery.",
       "outro": "The observatory goes dark. Its charts reveal the engine\u2019s three vulnerable anchors.",
       "map": [
-        "...hf.~...f...",
-        "...f..~.f..h..",
-        ".f....~f....f.",
-        "...+.f=....f..",
-        "...f..=..f..o.",
-        "......~f.....f",
-        "f.....~....f..",
-        ".h..f.=...+...",
-        "..f...~.fh....",
-        ".f....~.....f."
+        "pppppp#ppppppp",
+        "pp##pp#ppppopp",
+        "ppppppppp+pppp",
+        "pppppp#ppppppp",
+        "###p######p###",
+        "pppppp#ppppppp",
+        "pppppp#ppppppp",
+        "pppp+ppppppppp",
+        "pppppp#ppp##pp",
+        "pppppp#ppppppp"
       ],
       "turn_limit": 6,
       "deployment": 6,
-      "enemy_count": 9,
-      "environment": "observatory"
+      "enemy_count": 8,
+      "environment": "observatory",
+      "objective_position": [
+        11,
+        1
+      ],
+      "deployment_positions": [
+        [
+          1,
+          7
+        ],
+        [
+          1,
+          8
+        ],
+        [
+          2,
+          7
+        ],
+        [
+          2,
+          8
+        ],
+        [
+          3,
+          7
+        ],
+        [
+          3,
+          8
+        ]
+      ],
+      "enemies": [
+        {
+          "position": [
+            11,
+            1
+          ],
+          "job": "Arcanist",
+          "ai": "guard"
+        },
+        {
+          "position": [
+            4,
+            3
+          ],
+          "job": "Knight",
+          "ai": "pursue"
+        },
+        {
+          "position": [
+            3,
+            2
+          ],
+          "job": "Ranger",
+          "ai": "pursue"
+        },
+        {
+          "position": [
+            8,
+            6
+          ],
+          "job": "Arcanist",
+          "ai": "pursue"
+        },
+        {
+          "position": [
+            10,
+            5
+          ],
+          "job": "Vanguard",
+          "ai": "pursue"
+        },
+        {
+          "position": [
+            9,
+            1
+          ],
+          "job": "Knight",
+          "ai": "sentry"
+        },
+        {
+          "position": [
+            12,
+            3
+          ],
+          "job": "Ranger",
+          "ai": "sentry"
+        },
+        {
+          "position": [
+            7,
+            8
+          ],
+          "job": "Duelist",
+          "ai": "pursue"
+        }
+      ],
+      "tactical_brief": "Four observatory chambers connect at narrow doors. Choose the northern library or southern instrument hall, then converge on Sen\u2019s telescope chamber.",
+      "landmarks": [
+        {
+          "kind": "observatory",
+          "position": [
+            11,
+            -1
+          ]
+        },
+        {
+          "kind": "ruin",
+          "position": [
+            -1,
+            3
+          ]
+        }
+      ]
     },
     {
       "id": 9,
@@ -596,21 +1590,142 @@
       "intro": "Yuna knows the palace entrances. Hale knows the tunnels beneath them. First, free the workers chained to the furnace.",
       "outro": "The furnace is empty. Workers and soldiers carry the wounded out together.",
       "map": [
-        "..f....hf....f",
-        "f.....f.....f.",
-        "....f.....f...",
-        "...+....f.....",
-        ".......f..h.o.",
-        "...~=~~~~=~~..",
-        "...f.....f....",
-        "..f..h.f..+..f",
-        "f.....f....f.h",
-        "....f.....f..."
+        "pppppppppppppp",
+        "ppppp~~p+p~ppp",
+        "ppp#p~~ppp=ppp",
+        "ppp#p==ppp~ppp",
+        "ppppp~~p#p~pop",
+        "ppppp~~p#p~ppp",
+        "pp+pp~~ppp=ppp",
+        "ppppp==ppp~p#p",
+        "ppppp~~ppp~ppp",
+        "pppppppppppppp"
       ],
       "turn_limit": 6,
       "deployment": 6,
       "enemy_count": 9,
-      "environment": "furnace"
+      "environment": "furnace",
+      "objective_position": [
+        12,
+        4
+      ],
+      "deployment_positions": [
+        [
+          1,
+          3
+        ],
+        [
+          1,
+          4
+        ],
+        [
+          1,
+          5
+        ],
+        [
+          2,
+          3
+        ],
+        [
+          2,
+          4
+        ],
+        [
+          2,
+          5
+        ]
+      ],
+      "enemies": [
+        {
+          "position": [
+            12,
+            4
+          ],
+          "job": "Knight",
+          "ai": "guard"
+        },
+        {
+          "position": [
+            4,
+            7
+          ],
+          "job": "Corsair",
+          "ai": "pursue"
+        },
+        {
+          "position": [
+            7,
+            3
+          ],
+          "job": "Arcanist",
+          "ai": "pursue"
+        },
+        {
+          "position": [
+            8,
+            7
+          ],
+          "job": "Ranger",
+          "ai": "pursue"
+        },
+        {
+          "position": [
+            11,
+            2
+          ],
+          "job": "Knight",
+          "ai": "pursue"
+        },
+        {
+          "position": [
+            12,
+            6
+          ],
+          "job": "Vanguard",
+          "ai": "pursue"
+        },
+        {
+          "position": [
+            9,
+            0
+          ],
+          "job": "Arcanist",
+          "ai": "pursue"
+        },
+        {
+          "position": [
+            7,
+            8
+          ],
+          "job": "Corsair",
+          "ai": "pursue"
+        },
+        {
+          "position": [
+            12,
+            8
+          ],
+          "job": "Duelist",
+          "ai": "pursue"
+        }
+      ],
+      "tactical_brief": "The furnace channels cannot be crossed except at catwalks. Secure one crossing before opening the next. Clear every guard to free the workers.",
+      "landmarks": [
+        {
+          "kind": "furnace",
+          "position": [
+            5.5,
+            5
+          ]
+        },
+        {
+          "kind": "furnace",
+          "position": [
+            10,
+            8
+          ]
+        }
+      ]
     },
     {
       "id": 10,
@@ -621,21 +1736,149 @@
       "intro": "Elian opens the outer defenses. Rhea brings an offer of surrender, but the inner guard refuses to stand down.",
       "outro": "The doors open. Rhea\u2019s father waits beside a sun that no longer obeys him.",
       "map": [
-        "f....f.....h..",
-        "....f..#.f....",
-        "..f....#f....f",
-        "f..+..h.....f.",
-        "....f.....f.o.",
-        "...f....f.....",
-        ".h.....#....f.",
-        ".....f.#.h+f..",
-        "...f...#.f....",
-        "..f....f.....f"
+        "pfffpppp#ppppp",
+        "pppppfpppppppp",
+        "pppppfpp###p#p",
+        "pppppppp#ppppp",
+        "pppp+pppppppop",
+        "pppppppppp+ppp",
+        "pppppppp#ppppp",
+        "pppppfpp###p#p",
+        "pffpfppppppppp",
+        "pppppppp#ppppp"
       ],
       "turn_limit": 6,
       "deployment": 6,
-      "enemy_count": 10,
-      "environment": "castle"
+      "enemy_count": 9,
+      "environment": "castle",
+      "objective_position": [
+        12,
+        4
+      ],
+      "deployment_positions": [
+        [
+          1,
+          3
+        ],
+        [
+          1,
+          4
+        ],
+        [
+          1,
+          5
+        ],
+        [
+          2,
+          3
+        ],
+        [
+          2,
+          4
+        ],
+        [
+          2,
+          5
+        ]
+      ],
+      "enemies": [
+        {
+          "position": [
+            12,
+            4
+          ],
+          "job": "Knight",
+          "ai": "guard"
+        },
+        {
+          "position": [
+            7,
+            4
+          ],
+          "job": "Knight",
+          "ai": "pursue"
+        },
+        {
+          "position": [
+            9,
+            1
+          ],
+          "job": "Ranger",
+          "ai": "pursue"
+        },
+        {
+          "position": [
+            9,
+            8
+          ],
+          "job": "Arcanist",
+          "ai": "pursue"
+        },
+        {
+          "position": [
+            11,
+            3
+          ],
+          "job": "Vanguard",
+          "ai": "sentry"
+        },
+        {
+          "position": [
+            11,
+            6
+          ],
+          "job": "Rider",
+          "ai": "sentry"
+        },
+        {
+          "position": [
+            5,
+            5
+          ],
+          "job": "Corsair",
+          "ai": "pursue"
+        },
+        {
+          "position": [
+            6,
+            2
+          ],
+          "job": "Rider",
+          "ai": "pursue"
+        },
+        {
+          "position": [
+            12,
+            0
+          ],
+          "job": "Duelist",
+          "ai": "pursue"
+        }
+      ],
+      "tactical_brief": "The inner wall has a broad central gate and two side breaches. Draw the mobile riders into the courtyard, then advance on the throne standard with healing support.",
+      "landmarks": [
+        {
+          "kind": "tower",
+          "position": [
+            8,
+            -1
+          ]
+        },
+        {
+          "kind": "tower",
+          "position": [
+            8,
+            10
+          ]
+        },
+        {
+          "kind": "spire",
+          "position": [
+            14,
+            4
+          ]
+        }
+      ]
     },
     {
       "id": 11,
@@ -646,21 +1889,143 @@
       "intro": "The engine feeds on every oath sworn to the crown. Break its keeper\u2019s hold before the valley becomes its fuel.",
       "outro": "The artificial sun breaks into a thousand harmless lights. In the valley, morning arrives on its own. Lyra plants the broken standard beside the river. No throne is raised in its place.",
       "map": [
-        "...f.....f....",
-        ".f.....f.....f",
-        "f.h..###.###..",
-        "...+f....fh...",
-        "........f...of",
-        "f.....f.....f.",
-        "....fh....f...",
-        "...f....f.+..h",
-        ".f.....f....f.",
-        "h....f.....f.."
+        "##############",
+        "##ppppphpppp##",
+        "##ppppppppppp#",
+        "ppppp~~~~~pppp",
+        "pppp+~~~~~ppop",
+        "ppppp~~~~~+ppp",
+        "ppppp~~~~~pppp",
+        "##ppppppppppp#",
+        "##ppppphpppp##",
+        "##############"
       ],
       "turn_limit": 6,
       "deployment": 6,
       "enemy_count": 10,
-      "environment": "engine"
+      "environment": "engine",
+      "objective_position": [
+        12,
+        4
+      ],
+      "deployment_positions": [
+        [
+          1,
+          3
+        ],
+        [
+          1,
+          4
+        ],
+        [
+          1,
+          5
+        ],
+        [
+          2,
+          3
+        ],
+        [
+          2,
+          4
+        ],
+        [
+          2,
+          5
+        ]
+      ],
+      "enemies": [
+        {
+          "position": [
+            12,
+            4
+          ],
+          "job": "Arcanist",
+          "ai": "guard"
+        },
+        {
+          "position": [
+            4,
+            2
+          ],
+          "job": "Knight",
+          "ai": "pursue"
+        },
+        {
+          "position": [
+            4,
+            7
+          ],
+          "job": "Knight",
+          "ai": "pursue"
+        },
+        {
+          "position": [
+            6,
+            1
+          ],
+          "job": "Ranger",
+          "ai": "pursue"
+        },
+        {
+          "position": [
+            6,
+            8
+          ],
+          "job": "Arcanist",
+          "ai": "pursue"
+        },
+        {
+          "position": [
+            9,
+            2
+          ],
+          "job": "Vanguard",
+          "ai": "pursue"
+        },
+        {
+          "position": [
+            9,
+            7
+          ],
+          "job": "Rider",
+          "ai": "pursue"
+        },
+        {
+          "position": [
+            11,
+            3
+          ],
+          "job": "Knight",
+          "ai": "sentry"
+        },
+        {
+          "position": [
+            11,
+            6
+          ],
+          "job": "Duelist",
+          "ai": "sentry"
+        },
+        {
+          "position": [
+            12,
+            2
+          ],
+          "job": "Arcanist",
+          "ai": "sentry"
+        }
+      ],
+      "tactical_brief": "The sealed engine core forces a northern or southern approach. Both routes have armored defenders and ranged support. Break through to Vael; defeating his remaining guards is optional.",
+      "landmarks": [
+        {
+          "kind": "engine",
+          "position": [
+            7,
+            4.5
+          ]
+        }
+      ]
     }
   ],
   "classes": {

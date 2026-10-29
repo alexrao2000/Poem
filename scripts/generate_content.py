@@ -1,4 +1,4 @@
-import json,os,math,wave,array,struct,zlib
+import json,os,math,wave,array,struct,zlib,subprocess,sys
 root=os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 classes={
 'Vanguard':dict(hp=27,pow=8,defense=6,speed=7,move=5,weapon='sword',reach=1),
@@ -47,6 +47,7 @@ for i,(title,place,obj,boss,intro,outro) in enumerate(chapters):
  cs.append(dict(id=i,title=title,place=place,objective=obj,boss=boss,intro=intro,outro=outro,map=[''.join(r) for r in grid],turn_limit=6,deployment=6,enemy_count=5+i//2))
 for chapter,theme in zip(cs,['village','river','forest','abbey','road','harbor','mountain','aqueduct','observatory','furnace','castle','engine']):chapter['environment']=theme
 json.dump(dict(roster=roster,chapters=cs,classes=classes),open(root+'/data/campaign.json','w'),indent=2)
+subprocess.run([sys.executable,root+"/scripts/author_maps.py"],check=True)
 # Pixel silhouettes authored procedurally; transparent PNG sprites, 3 idle frames.
 def png(path,w,h,data):
  def chunk(t,d):return struct.pack('>I',len(d))+t+d+struct.pack('>I',zlib.crc32(t+d)&0xffffffff)
@@ -62,19 +63,5 @@ for p in roster+[dict(id='enemy',color='#d87b79',weapon='axe')]:
   ox=frame*24; dy=1 if frame==1 else 0
   for x,y,ww,hh,c in [(7,24,4,5,(42,47,64)),(13,24,4,5,(42,47,64)),(6,12,12,13,dark),(8,12,9,10,col),(5,14,3,8,col),(17,14,3,8,col),(8,5,9,8,(227,189,152)),(7,3,11,4,(65,57,69)),(8,8,2,2,(39,43,57)),(14,8,2,2,(39,43,57)),(8,22,9,2,(223,199,135)),(20,7,2,17,(217,222,224))]:rect(ox+x,y+dy,ww,hh,c)
  png(root+'/assets/'+p['id']+'.png',w,h,pix)
-# Original matched 16-bar arrangements; identical harmonic timeline.
-sr=22050;bpm=112;beat=60/bpm;duration=32*beat;n=int(duration*sr)
-for mode in ['calm','ablaze']:
- out=array.array('h')
- for k in range(n):
-  t=k/sr;b=t/beat;ch=int(b//8)%4;rootnote=[57,53,60,55][ch];v=0
-  for interval in [0,7,12]:
-   f=440*2**((rootnote+interval-69)/12);v+=math.sin(2*math.pi*f*t)*.075
-  seq=[0,7,12,14,12,7,3,7];note=rootnote+12+seq[int(b)%8];phase=b%1
-  f=440*2**((note-69)/12);v+=math.sin(2*math.pi*f*t)*math.exp(-phase*4)*.15
-  if mode=='ablaze':
-   kick=b%1;v+=math.sin(2*math.pi*(55*t+3*(1-math.exp(-kick*20))))*math.exp(-kick*15)*.22
-   f=440*2**((rootnote-12-69)/12);v+=(math.sin(2*math.pi*f*t)+.3*math.sin(6*math.pi*f*t))*.15
-   v+=math.sin(2*math.pi*1760*t)*math.exp(-(b*2%1)*20)*.04
-  out.append(int(max(-.95,min(.95,v))*22000))
- with wave.open(root+'/assets/'+mode+'.wav','wb') as f:f.setparams((1,2,sr,0,'NONE','not compressed'));f.writeframes(out.tobytes())
+# The full paired score has its own reproducible composer.
+subprocess.run([sys.executable,root+"/scripts/generate_score.py"],check=True)

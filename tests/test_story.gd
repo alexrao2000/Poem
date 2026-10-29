@@ -14,6 +14,7 @@ func run():
   assert(profiles[u.id].biography.length()>100,"Dossier contains an individual biography")
   assert(profiles[u.id].ending.length()>40,"Individual epilogue")
   assert(portraits.get_portrait(u.id)!=null,"Individual portrait available")
+  assert(portraits.get_map_sprite(u.id)!=null,"Individual map sprite available")
  assert(story.chapters.size()==12)
  for chapter in range(12):
   for section in ["opening","closing"]:

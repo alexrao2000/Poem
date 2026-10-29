@@ -2,9 +2,27 @@ extends RefCounted
 # Shared landscape construction for the tactical board and battle stage.
 var materials: Dictionary = {}
 var atlas: Texture2D
+var environment_atlas: Texture2D
 
 func _init():
  atlas=load("res://assets/art/terrain-atlas.png")
+ environment_atlas=load("res://assets/art/environment-atlas.png")
+
+func detail_material(tile: int) -> ShaderMaterial:
+ var key="detail"+str(tile)
+ if materials.has(key):return materials[key]
+ var shader=Shader.new()
+ shader.code="""shader_type spatial;
+ uniform sampler2D atlas_texture : source_color, filter_linear_mipmap;
+ uniform vec2 quadrant;
+ void fragment() {
+  ALBEDO=texture(atlas_texture,UV*0.496+0.002+quadrant).rgb*vec3(0.91,0.94,0.91);
+  ROUGHNESS=0.9;
+ }
+ """
+ var m=ShaderMaterial.new();m.shader=shader;m.set_shader_parameter("atlas_texture",environment_atlas)
+ m.set_shader_parameter("quadrant",Vector2((tile%2)*.5,(tile/2)*.5));materials[key]=m
+ return m
 
 func material(color: Color) -> StandardMaterial3D:
  var key=color.to_html()
@@ -56,13 +74,17 @@ func boulder(parent,p,radius):
 func tree(parent,p,seed_value=0):
  var rng=RandomNumberGenerator.new();rng.seed=seed_value+997
  var h=rng.randf_range(1.1,1.6)
- cylinder(parent,p+Vector3(0,h*.3,0),h*.65,.065,Color("675444"),.035)
+ var trunk=cylinder(parent,p+Vector3(0,h*.32,0),h*.72,.075,Color.WHITE,.035)
+ trunk.material_override=detail_material(2)
  for i in range(6):
   var shape=SphereMesh.new();shape.radius=1;shape.height=2;shape.radial_segments=8;shape.rings=5
   var angle=i*2.399
   var center=p+Vector3(cos(angle)*.27,h*.65+float(i%3)*.13,sin(angle)*.26)
-  var n=mesh(parent,shape,center,Vector3(.38,.42,.36),material(Color("536e41").lightened(i*.016)))
+  var n=mesh(parent,shape,center,Vector3(.38+rng.randf()*.08,.38+rng.randf()*.12,.36),detail_material(seed_value%2))
   n.rotation.y=angle
+  var base=p+Vector3(0,h*.38,0)
+  var branch=cylinder(parent,(base+center)*.5,base.distance_to(center),.03,Color.WHITE,.012)
+  branch.quaternion=Quaternion(Vector3.UP,(center-base).normalized());branch.material_override=detail_material(2)
 
 func bridge(parent,p,vertical=false):
  var root=Node3D.new();parent.add_child(root);root.position=p
@@ -77,11 +99,27 @@ func house(parent,p,scale_value=1.0):
  var root=Node3D.new();parent.add_child(root);root.position=p;root.scale=Vector3.ONE*scale_value
  block(root,Vector3(0,.6,0),Vector3(1.6,1.2,1.25),Color("c5bca4"))
  # Stone foundation, half-timber braces, door and windows.
- block(root,Vector3(0,.08,0),Vector3(1.7,.16,1.34),Color("8b8a79"))
+ var foundation=block(root,Vector3(0,.08,0),Vector3(1.7,.16,1.34),Color("8b8a79"));foundation.material_override=detail_material(3)
  for x in [-.76,0,.76]:block(root,Vector3(x,.6,.64),Vector3(.06,1.2,.06),Color("695543"))
  for y in [.2,.95]:block(root,Vector3(0,y,.64),Vector3(1.6,.055,.055),Color("695543"))
  block(root,Vector3(-.3,.39,.67),Vector3(.28,.65,.025),Color("584c42"))
  block(root,Vector3(.4,.7,.67),Vector3(.27,.3,.025),Color("49616b"))
+ for x in [.25,.55]:block(root,Vector3(x,.7,.69),Vector3(.06,.36,.05),Color("7a8379"))
+ for y in [.54,.85]:block(root,Vector3(.4,y,.7),Vector3(.37,.045,.045),Color("796854"))
+ block(root,Vector3(.4,.7,.71),Vector3(.025,.3,.025),Color("baab8e"))
+ block(root,Vector3(-.3,.05,.85),Vector3(.5,.1,.4),Color("a4a18e"))
+ for x in [-.48,-.12]:block(root,Vector3(x,.42,.7),Vector3(.05,.72,.05),Color("76624b"))
+ block(root,Vector3(-.3,.79,.7),Vector3(.4,.06,.06),Color("76624b"))
+ for x in [-.82,.82]:
+  for z in [-.48,.48]:block(root,Vector3(x,.6,z),Vector3(.05,1.2,.06),Color("695543"))
+  for y in [.25,.95]:block(root,Vector3(x,y,0),Vector3(.05,.06,1.25),Color("695543"))
+ for z in [-.63,.63]:
+  var gable=SurfaceTool.new();gable.begin(Mesh.PRIMITIVE_TRIANGLES)
+  for point in [Vector3(-.8,1.2,z),Vector3(.8,1.2,z),Vector3(0,1.7,z)]:gable.add_vertex(point)
+  gable.generate_normals()
+  var plaster=material(Color("c5bca4")).duplicate();plaster.cull_mode=BaseMaterial3D.CULL_DISABLED
+  mesh(root,gable.commit(),Vector3.ZERO,Vector3.ONE,plaster)
+  block(root,Vector3(0,1.42,z),Vector3(.065,.55,.06),Color("695543"))
  for side in [-1,1]:
   var roof=block(root,Vector3(side*.45,1.38,0),Vector3(1.1,.09,1.5),Color("626c70"))
   roof.material_override=ground_material(3)
@@ -89,36 +127,47 @@ func house(parent,p,scale_value=1.0):
   for i in range(8):
    var seam=block(root,Vector3(side*.45,1.4,(i-3.5)*.18),Vector3(1.1,.025,.025),Color("7b8280"))
    seam.rotation.z=-side*.48
- block(root,Vector3(.5,1.6,-.3),Vector3(.23,.7,.25),Color("8d8271"))
+ var chimney=block(root,Vector3(.5,1.6,-.3),Vector3(.23,.7,.25),Color("8d8271"));chimney.material_override=detail_material(3)
+ block(root,Vector3(.5,1.97,-.3),Vector3(.29,.08,.3),Color("686c68"))
 
 func landscape(parent,game):
  # Surrounding land continues beyond the playable cells instead of exposing a board edge.
  ground(parent,Vector3(7,-.15,5),Vector2(64,64),0)
- if int(game.chapter)%4==0:
+ var theme=game.info().get("environment","village")
+ var building_cells={}
+ for item in game.info().get("landmarks",[]):
+  if item.has("footprint"):
+   var area=item.footprint
+   for y in range(area[1],area[1]+area[3]):
+    for x in range(area[0],area[0]+area[2]):building_cells[Vector2i(x,y)]=true
+ if theme in ["village","river"]:
   var water=StandardMaterial3D.new();water.albedo_color=Color("274f61");water.roughness=.3
-  var river=PlaneMesh.new();river.size=Vector2(1,64)
-  mesh(parent,river,Vector3(6,-.07,5),Vector3.ONE,water)
- for y in range(10):
-  for x in range(14):
+  var river=PlaneMesh.new();river.size=Vector2(2 if theme=="river" else 1,64)
+  mesh(parent,river,Vector3(5.5 if theme=="river" else 7,-.07,5),Vector3.ONE,water)
+ for y in range(game.board_size().y):
+  for x in range(game.board_size().x):
    var t=game.terrain(Vector2i(x,y));var p=Vector3(x,0,y)
-   var theme=int(game.chapter)%4
-   var surface=1 if game.chapter==0 and x<6 and y>0 and y<8 else 0
-   if t in ["o","+"] or (y==3 and t=="."):surface=1
-   elif theme==3:surface=3
-   elif theme==1 or t=="h":surface=2
+   var surface=3 if theme in ["abbey","aqueduct","observatory","furnace","castle","engine"] else 0
+   if t in ["o","+","p"]:surface=3 if theme in ["observatory","engine","furnace"] else 1
+   elif t=="h":surface=2
    if t=="~":
     var water=StandardMaterial3D.new();water.albedo_color=Color("274f61");water.roughness=.25;water.metallic=.15
     var plane=PlaneMesh.new();plane.size=Vector2.ONE
     mesh(parent,plane,p-Vector3(0,.07,0),Vector3.ONE,water)
     for i in range(3):block(parent,p+Vector3((i-1)*.24,-.055,sin(x+y+i)*.3),Vector3(.18,.005,.014),Color("71979c"))
-    for dx in [-.46,.46]:block(parent,p+Vector3(dx,.015,0),Vector3(.08,.18,1),Color("9d9e8e"))
+    for direction in [Vector2i.LEFT,Vector2i.RIGHT,Vector2i.UP,Vector2i.DOWN]:
+     if game.terrain(Vector2i(x,y)+direction) not in ["~","=","#"]:
+      block(parent,p+Vector3(direction.x*.48,.015,direction.y*.48),Vector3(.08 if direction.x else 1,.16,.08 if direction.y else 1),Color("9d9e8e"))
    else:ground(parent,p,Vector2.ONE,surface)
-   if t=="=":bridge(parent,p,theme==1)
+   if t=="=":bridge(parent,p,theme in ["harbor","road"])
    elif t=="f":tree(parent,p+Vector3(.22,0,-.22),x+y*17)
    elif t=="h":boulder(parent,p+Vector3(.22,0,-.2),.32)
-   elif t=="#":
+   elif t=="#" and theme=="mountain":boulder(parent,p+Vector3(0,.2,0),.8)
+   elif t=="#" and not building_cells.has(Vector2i(x,y)):
     for row in range(3):
-     for col in range(3):block(parent,p+Vector3((col-1)*.32+(.04 if row%2 else 0),.17+row*.28,0),Vector3(.3,.26,.7),Color("9b9988").lightened((row+col)%2*.06))
+     for col in range(3):
+      var stone=block(parent,p+Vector3((col-1)*.32+(.04 if row%2 else 0),.17+row*.28,0),Vector3(.3,.26,.7),Color.WHITE)
+      stone.material_override=detail_material(3)
    elif t=="o":
     cylinder(parent,p+Vector3(.3,.65,-.3),1.3,.025,Color("a99463"))
     block(parent,p+Vector3(.5,1.05,-.3),Vector3(.4,.32,.015),Color("a54c47"))
@@ -126,12 +175,62 @@ func landscape(parent,game):
     cylinder(parent,p+Vector3(0,.04,0),.08,.36,Color("b8b8a0"))
     block(parent,p+Vector3(0,.09,0),Vector3(.35,.02,.08),Color("f5e4ac"))
     block(parent,p+Vector3(0,.09,0),Vector3(.08,.02,.35),Color("f5e4ac"))
- # Framing village, wooded banks and far ridge; all outside playable coordinates.
- for p in [Vector3(-2,0,1),Vector3(-2.5,0,5),Vector3(3,0,-2),Vector3(10,0,-2),Vector3(15.5,0,5)]:house(parent,p,1.2)
- for i in range(26):
-  var p=Vector3(-4+(i*7)%23,0,-3-(i%3)*1.3)
-  tree(parent,p,i*23)
- for i in range(12):tree(parent,Vector3(-3+(i*13)%21,0,12+i%3),i*11)
+ # Authored landmarks communicate the chapter instead of a repeated village frame.
+ for item in game.info().get("landmarks",[]):
+  landmark(parent,Vector3(item.position[0],0,item.position[1]),item.kind)
+ if theme in ["village","river","forest","road","castle"]:
+  for i in range(22):tree(parent,Vector3(-4+(i*7)%23,0,-3-(i%3)*1.3),i*23)
+  for i in range(12):tree(parent,Vector3(-3+(i*13)%21,0,12+i%3),i*11)
+ elif theme=="mountain":
+  for i in range(16):boulder(parent,Vector3(-3+(i*5)%22,.2,-3-i%3),2.5)
+ elif theme in ["harbor","aqueduct"]:
+  var sea=PlaneMesh.new();sea.size=Vector2(55,35)
+  mesh(parent,sea,Vector3(7,-.12,26),Vector3.ONE,material(Color("345e70")))
+
+func landmark(parent,p,kind):
+ var stone=Color("969b91");var gold=Color("bba16b")
+ if kind in ["house","warehouse"]:
+  house(parent,p,1.4 if kind=="warehouse" else 1.2)
+ elif kind=="fountain":
+  cylinder(parent,p+Vector3(0,.08,0),.16,.46,stone)
+  cylinder(parent,p+Vector3(0,.18,0),.12,.40,Color("5d8d9b"))
+  cylinder(parent,p+Vector3(0,.42,0),.65,.09,stone)
+  cylinder(parent,p+Vector3(0,.7,0),.08,.24,stone)
+ elif kind in ["tower","spire"]:
+  cylinder(parent,p+Vector3(0,1,0),2,.55,stone)
+  cylinder(parent,p+Vector3(0,.15,0),.3,.7,stone.darkened(.15))
+  cylinder(parent,p+Vector3(0,2,0),.25,.65,stone.lightened(.08))
+  if kind=="spire":cylinder(parent,p+Vector3(0,2.8,0),1.5,.65,Color("586b75"),0)
+  else:
+   for i in range(8):block(parent,p+Vector3(cos(i*PI/4)*.55,2.3,sin(i*PI/4)*.55),Vector3(.22,.4,.22),stone)
+ elif kind=="arch":
+  for x in [-.7,.7]:block(parent,p+Vector3(x,.8,0),Vector3(.4,1.6,.6),stone)
+  block(parent,p+Vector3(0,1.6,0),Vector3(1.8,.4,.6),stone)
+ elif kind=="boat":
+  var hull=cylinder(parent,p+Vector3(0,-.08,0),.4,.65,Color("605141"),.9);hull.scale.z=2.0
+  block(parent,p+Vector3(0,.18,0),Vector3(1.2,.1,2.8),Color("9b886b"))
+  cylinder(parent,p+Vector3(0,1.1,0),2.2,.045,Color("685644"))
+  var sail=PlaneMesh.new();sail.size=Vector2(1.3,1.4)
+  var material_value=material(Color("dcd4b9")).duplicate();material_value.cull_mode=BaseMaterial3D.CULL_DISABLED
+  var canvas=mesh(parent,sail,p+Vector3(.55,1.5,0),Vector3.ONE,material_value);canvas.rotation.x=PI/2
+ elif kind=="camp":
+  var tent=cylinder(parent,p+Vector3(0,.5,0),1,.8,Color("c7bba1"),0);tent.scale.z=1.5
+  cylinder(parent,p+Vector3(1,.06,0),.1,.3,Color("6a5c4b"))
+ elif kind in ["engine","observatory"]:
+  cylinder(parent,p+Vector3(0,.2,0),.4,1.3,stone)
+  var ring=TorusMesh.new();ring.inner_radius=1.05;ring.outer_radius=1.15
+  var orbit=mesh(parent,ring,p+Vector3(0,1.5,0),Vector3.ONE,material(gold));orbit.rotation.x=PI/2;orbit.rotation.y=.3
+  var globe=SphereMesh.new();globe.radius=.55;globe.height=1.1
+  var core=material(Color("f8cd7e") if kind=="engine" else Color("5b859c")).duplicate()
+  if kind=="engine":core.shading_mode=BaseMaterial3D.SHADING_MODE_UNSHADED
+  mesh(parent,globe,p+Vector3(0,1.5,0),Vector3.ONE,core)
+ elif kind=="furnace":
+  cylinder(parent,p+Vector3(0,1,0),2,.65,Color("595b5b"))
+  for y in [.5,1.3]:cylinder(parent,p+Vector3(0,y,0),.12,.72,gold)
+  var glow=block(parent,p+Vector3(0,.7,.66),Vector3(.45,.55,.025),Color("e7a16b"))
+  glow.material_override=glow.material_override.duplicate();glow.material_override.shading_mode=BaseMaterial3D.SHADING_MODE_UNSHADED
+ elif kind=="ruin":
+  for i in range(3):cylinder(parent,p+Vector3(i*.6,.4+i*.2,0),.8+i*.4,.22,stone)
 
 func battle_landscape(parent,center,context={}):
  var theme=context.get("environment","village")
