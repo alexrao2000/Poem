@@ -113,7 +113,7 @@ func plan_healer(game,unit: Dictionary,free: Array,foes: Array) -> Dictionary:
    var threat=0
    for foe in foes:
     if absi(p.x-int(foe.x))+absi(p.y-int(foe.y))<=foe.reach:threat+=10
-   var value=mini(int(game.item_for(unit).heal),ally.max_hp-ally.hp)*4-threat
+   var value=mini(game.healing_power(unit),ally.max_hp-ally.hp)*4-threat
    if value>best_score:
     best_score=value;best={"position":p,"action":"heal","target":ally.id,"alert":true}
  if best.action=="heal":return best

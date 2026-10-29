@@ -6,14 +6,20 @@ func run():
  var wins=0
  for seed_value in [472019,17,309]:
   wins+=await simulate(seed_value)
- print("PASS: 36 chapter victories across three campaign seeds" if wins==36 else "FAIL: campaign needs balance/pathing work")
- quit(0 if wins==36 else 1)
+ for branch in [0,1]:
+  wins+=await simulate(472019,branch)
+ print("PASS: 60 chapter victories across three seeds and both promotion branches" if wins==60 else "FAIL: campaign needs balance/pathing work")
+ quit(0 if wins==60 else 1)
 
-func simulate(seed_value) -> int:
+func simulate(seed_value,branch=-1) -> int:
  var g=Rules.new();g.rng.seed=seed_value
  var ai=Tactics.new();var total_turns=0;var victories=0
  for chapter in range(12):
   g.chapter=chapter
+  if branch>=0:
+   for unit in g.available():
+    var path=g.promotion_options(unit)[branch]
+    if g.can_promote(unit,path.id):assert(g.promote(unit,path.id))
   var available=g.available();available.sort_custom(func(a,b):return a.level>b.level)
   g.deployed=[]
   for unit in available:
@@ -38,5 +44,5 @@ func simulate(seed_value) -> int:
   print("CHAPTER ",chapter+1,": ",outcome if outcome!="" else "stalemate"," / turns ",g.turn," / survivors ",g.living("player").size()," / enemies ",g.living("enemy").size())
   if outcome=="victory":victories+=1
   g.finish_chapter()
- print("CAMPAIGN seed ",seed_value,": ",victories,"/12 victories in ",total_turns," total turns using legal automated actions")
+ print("CAMPAIGN seed ",seed_value," / promotion branch ",branch,": ",victories,"/12 victories in ",total_turns," total turns using legal automated actions")
  return victories

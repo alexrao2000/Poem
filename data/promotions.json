@@ -1,0 +1,204 @@
+[
+  {
+    "base": "Vanguard",
+    "id": "standard_bearer",
+    "name": "Standard Bearer",
+    "description": "Hold the line with a sturdier guard.",
+    "min_level": 10,
+    "bonuses": {
+      "max_hp": 5,
+      "pow": 2,
+      "defense": 3
+    }
+  },
+  {
+    "base": "Vanguard",
+    "id": "dawnblade",
+    "name": "Dawnblade",
+    "description": "Trade heavy protection for swift, decisive swordplay.",
+    "min_level": 10,
+    "bonuses": {
+      "max_hp": 2,
+      "pow": 2,
+      "speed": 3,
+      "crit": 5
+    }
+  },
+  {
+    "base": "Knight",
+    "id": "bastion",
+    "name": "Bastion",
+    "description": "Anchor a narrow approach behind reinforced armor.",
+    "min_level": 10,
+    "bonuses": {
+      "max_hp": 6,
+      "pow": 1,
+      "defense": 4
+    }
+  },
+  {
+    "base": "Knight",
+    "id": "sentinel",
+    "name": "Sentinel",
+    "description": "Carry the shield farther without surrendering the front line.",
+    "min_level": 10,
+    "bonuses": {
+      "max_hp": 3,
+      "pow": 2,
+      "defense": 2,
+      "move": 1
+    }
+  },
+  {
+    "base": "Ranger",
+    "id": "sharpshooter",
+    "name": "Sharpshooter",
+    "description": "Precise arrows punish distant exposed targets.",
+    "min_level": 10,
+    "bonuses": {
+      "max_hp": 2,
+      "pow": 3,
+      "hit": 10,
+      "crit": 5
+    }
+  },
+  {
+    "base": "Ranger",
+    "id": "pathfinder",
+    "name": "Pathfinder",
+    "description": "Keep pace with a mobile company and seek new firing positions.",
+    "min_level": 10,
+    "bonuses": {
+      "max_hp": 3,
+      "pow": 1,
+      "speed": 2,
+      "move": 1
+    }
+  },
+  {
+    "base": "Arcanist",
+    "id": "star_sage",
+    "name": "Star Sage",
+    "description": "Focus disciplined spellcraft into stronger, accurate strikes.",
+    "min_level": 10,
+    "bonuses": {
+      "max_hp": 2,
+      "pow": 4,
+      "hit": 10
+    }
+  },
+  {
+    "base": "Arcanist",
+    "id": "spellwarden",
+    "name": "Spellwarden",
+    "description": "Protect the caster with practiced wards and swift gestures.",
+    "min_level": 10,
+    "bonuses": {
+      "max_hp": 5,
+      "pow": 1,
+      "defense": 3,
+      "speed": 1
+    }
+  },
+  {
+    "base": "Warden",
+    "id": "luminary",
+    "name": "Luminary",
+    "description": "Strengthen every staff with four additional points of healing.",
+    "min_level": 10,
+    "bonuses": {
+      "max_hp": 3,
+      "defense": 2,
+      "heal": 4
+    }
+  },
+  {
+    "base": "Warden",
+    "id": "wayfarer",
+    "name": "Wayfarer",
+    "description": "Reach wounded allies more quickly and withstand pursuit.",
+    "min_level": 10,
+    "bonuses": {
+      "max_hp": 4,
+      "defense": 1,
+      "speed": 2,
+      "move": 1
+    }
+  },
+  {
+    "base": "Rider",
+    "id": "outrider",
+    "name": "Outrider",
+    "description": "Open the road with speed and a longer stride.",
+    "min_level": 10,
+    "bonuses": {
+      "max_hp": 3,
+      "pow": 1,
+      "speed": 2,
+      "move": 1
+    }
+  },
+  {
+    "base": "Rider",
+    "id": "iron_lancer",
+    "name": "Iron Lancer",
+    "description": "Brace the saddle for powerful charges and sustained fighting.",
+    "min_level": 10,
+    "bonuses": {
+      "max_hp": 5,
+      "pow": 3,
+      "defense": 2
+    }
+  },
+  {
+    "base": "Corsair",
+    "id": "stormbreaker",
+    "name": "Stormbreaker",
+    "description": "Overwhelm a position with heavy, punishing blows.",
+    "min_level": 10,
+    "bonuses": {
+      "max_hp": 4,
+      "pow": 4,
+      "crit": 5
+    }
+  },
+  {
+    "base": "Corsair",
+    "id": "trailguard",
+    "name": "Trailguard",
+    "description": "Trade raw force for a steadier guard and quicker feet.",
+    "min_level": 10,
+    "bonuses": {
+      "max_hp": 3,
+      "pow": 1,
+      "defense": 3,
+      "speed": 2
+    }
+  },
+  {
+    "base": "Duelist",
+    "id": "sword_dancer",
+    "name": "Sword Dancer",
+    "description": "A flowing style that rewards speed and precise openings.",
+    "min_level": 10,
+    "bonuses": {
+      "max_hp": 2,
+      "pow": 1,
+      "speed": 3,
+      "crit": 10
+    }
+  },
+  {
+    "base": "Duelist",
+    "id": "oathkeeper",
+    "name": "Oathkeeper",
+    "description": "A disciplined blade tempered by defensive footwork.",
+    "min_level": 10,
+    "bonuses": {
+      "max_hp": 5,
+      "pow": 2,
+      "defense": 3,
+      "hit": 5
+    }
+  }
+]

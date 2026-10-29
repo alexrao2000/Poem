@@ -2,6 +2,7 @@ extends RefCounted
 # The simulation has no scene, rendering, or audio dependencies.
 var content: Dictionary
 var equipment: Array
+var promotions: Array
 const DEFAULT_ITEMS={"sword":"iron_sword","lance":"iron_lance","axe":"iron_axe","bow":"scout_bow","magic":"ember","staff":"field_staff"}
 var chapter: int = 0
 var turn: int = 1
@@ -16,6 +17,7 @@ var story_seen: Array = []
 func _init():
 	content = JSON.parse_string(FileAccess.get_file_as_string("res://data/campaign.json"))
 	equipment = JSON.parse_string(FileAccess.get_file_as_string("res://data/equipment.json"))
+	promotions = JSON.parse_string(FileAccess.get_file_as_string("res://data/promotions.json"))
 	rng.seed = 472019
 	new_campaign()
 
@@ -175,7 +177,7 @@ func can_heal(a: Dictionary,b: Dictionary) -> bool:
 
 func heal(a: Dictionary,b: Dictionary) -> bool:
 	if not can_heal(a,b):return false
-	b.hp=mini(b.max_hp,b.hp+int(item_for(a).heal));a.acted=true;award_xp(a,30)
+	b.hp=mini(b.max_hp,b.hp+healing_power(a));a.acted=true;award_xp(a,30)
 	return true
 
 func use_tonic(u: Dictionary) -> bool:
@@ -199,7 +201,7 @@ func forecast(a: Dictionary,b: Dictionary) -> Dictionary:
 	if beats.get(b.weapon,"")==a.weapon: advantage=-1
 	var cover = 2 if terrain(pos(b)) in ["f","h","o"] else 0
 	var defense = int(b.defense)/2 if a.weapon=="magic" else int(b.defense)
-	return {"damage":maxi(1,attack_power(a)+advantage-defense-cover),"hit":clampi(85+(attack_speed(a)-attack_speed(b))*2+int(item_for(a).hit)+advantage*15-cover*5,25,100),"crit":clampi(int(a.speed)/2+int(item_for(a).crit),0,50),"double":attack_speed(a)-attack_speed(b)>=4,"counter":can_attack(b,a)}
+	return {"damage":maxi(1,attack_power(a)+advantage-defense-cover),"hit":clampi(85+(attack_speed(a)-attack_speed(b))*2+int(item_for(a).hit)+promotion_bonus(a,"hit")+advantage*15-cover*5,25,100),"crit":clampi(int(a.speed)/2+int(item_for(a).crit)+promotion_bonus(a,"crit"),0,50),"double":attack_speed(a)-attack_speed(b)>=4,"counter":can_attack(b,a)}
 
 func strike(a: Dictionary,b: Dictionary) -> Dictionary:
 	var f = forecast(a,b)
@@ -330,6 +332,9 @@ func valid_unit(unit,in_battle: bool) -> bool:
 	if not content.classes.has(unit.job):return false
 	if unit.weapon!=content.classes[unit.job].weapon:return false
 	if unit.has("item") and (not unit.item is String or not equipment.any(func(item):return item.id==unit.item and item.kind==unit.weapon)):return false
+	if unit.has("promotion"):
+		if not unit.promotion is String:return false
+		if not unit.promotion.is_empty() and not promotions.any(func(path):return path.id==unit.promotion and path.base==unit.job):return false
 	for key in ["hp","max_hp","pow","defense","speed","move","reach","level","xp"]:
 		if not (unit.get(key) is float or unit.get(key) is int):return false
 		if not is_finite(float(unit[key])) or unit[key]<0:return false
@@ -416,3 +421,33 @@ func import_code(code: String) -> String:
 	var parser=JSON.new()
 	if parser.parse(Marshalls.base64_to_utf8(encoded))!=OK:return ""
 	return restore_save(parser.data)
+
+# A promoted title is separate from the base job, which drives equipment and art.
+func promotion_for(unit: Dictionary) -> Dictionary:
+	for path in promotions:
+		if path.id==unit.get("promotion","") and path.base==unit.job:return path
+	return {}
+
+func class_name_for(unit: Dictionary) -> String:
+	return promotion_for(unit).get("name",unit.job)
+
+func promotion_bonus(unit: Dictionary,key: String) -> int:
+	return int(promotion_for(unit).get("bonuses",{}).get(key,0))
+
+func healing_power(unit: Dictionary) -> int:
+	return int(item_for(unit).heal)+promotion_bonus(unit,"heal")
+
+func promotion_options(unit: Dictionary) -> Array:
+	return promotions.filter(func(path):return path.base==unit.job)
+
+func can_promote(unit: Dictionary,id: String) -> bool:
+	if not roster.has(unit) or unit.join>chapter or completed or not unit.get("promotion","").is_empty():return false
+	return promotion_options(unit).any(func(path):return path.id==id and unit.level>=path.min_level)
+
+func promote(unit: Dictionary,id: String) -> bool:
+	if not can_promote(unit,id):return false
+	unit.promotion=id
+	for key in ["max_hp","pow","defense","speed","move"]:
+		unit[key]+=promotion_bonus(unit,key)
+	unit.hp=mini(unit.max_hp,unit.hp+promotion_bonus(unit,"max_hp"))
+	return true

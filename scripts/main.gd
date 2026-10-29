@@ -308,7 +308,7 @@ func show_camp():
 		pic.disabled=not unlocked;pic.tooltip_text="View "+u.name+"'s dossier" if unlocked else "Not yet recruited"
 		pic.pressed.connect(func():show_dossier(u));content.add_child(pic)
 		var texts=VBoxContainer.new();texts.size_flags_horizontal=Control.SIZE_EXPAND_FILL;content.add_child(texts)
-		label_in(texts,u.name+"  /  "+u.job+"  ·  Lv "+str(int(u.level)),19,GOLD if unlocked else Color("9a9588"))
+		label_in(texts,u.name+"  /  "+game.class_name_for(u)+"  ·  Lv "+str(int(u.level)),19,GOLD if unlocked else Color("9a9588"))
 		label_in(texts,u.bio if unlocked else "Joins in chapter "+str(int(u.join)+1),14)
 		label_in(texts,"HP %d   ATK %d   DEF %d   SPD %d   MOV %d"%[u.max_hp,game.attack_power(u),u.defense,game.attack_speed(u),u.move],13,Color("81775f"))
 		button_in(content,"Deployed" if u.id in game.deployed else "Deploy",func():
@@ -349,7 +349,7 @@ func update_side():
 		portrait.stretch_mode=TextureRect.STRETCH_KEEP_ASPECT_CENTERED;portrait.custom_minimum_size=Vector2(90,100);identity.add_child(portrait)
 		var details=VBoxContainer.new();details.size_flags_horizontal=Control.SIZE_EXPAND_FILL;identity.add_child(details)
 		label_in(details,selected.name,27,GOLD)
-		label_in(details,selected.job,16)
+		label_in(details,game.class_name_for(selected),16)
 		label_in(details,"Lv %d  /  XP %d"%[selected.level,selected.xp],15)
 		label_in(side,"HP %d / %d\nATK %d   DEF %d   SPD %d\n%s · range %s"%[selected.hp,selected.max_hp,game.attack_power(selected),selected.defense,game.attack_speed(selected),game.item_for(selected).name,game.range_text(selected)],18)
 		if selected.team=="enemy":
@@ -371,7 +371,7 @@ func update_side():
 		if selected.team=="player" and not selected.acted:
 			button_in(side,"Wait / secure position",wait_action,busy)
 			button_in(side,"Field tonic (+12 HP)  ·  "+str(int(selected.potions)),tonic,busy or selected.potions<=0 or selected.hp>=selected.max_hp)
-			if selected.weapon=="staff":label_in(side,"Heal %d HP · range %s. Click an injured ally."%[game.item_for(selected).heal,game.range_text(selected)],16,GOLD)
+			if selected.weapon=="staff":label_in(side,"Heal %d HP · range %s. Click an injured ally."%[game.healing_power(selected),game.range_text(selected)],16,GOLD)
 	else:
 		label_in(side,"THE COMPANY",15,GOLD)
 		label_in(side,"%d allies  ·  %d enemies"%[game.living("player").size(),game.living("enemy").size()],18)
@@ -551,7 +551,7 @@ func cinematic(a,b,events,initial_hp={}):
 				if strike_event.target==unit.id:hp+=strike_event.damage
 		displayed_hp[unit.id]=mini(hp,unit.max_hp)
 		var heading=HBoxContainer.new();column.add_child(heading)
-		health_labels[unit.id]=label_in(heading,unit.name+"  /  "+unit.job,23,GOLD)
+		health_labels[unit.id]=label_in(heading,unit.name+"  /  "+game.class_name_for(unit),23,GOLD)
 		health_labels[unit.id].size_flags_horizontal=Control.SIZE_EXPAND_FILL
 		health_labels[unit.id].autowrap_mode=TextServer.AUTOWRAP_OFF
 		health_labels[unit.id].text_overrun_behavior=TextServer.OVERRUN_TRIM_ELLIPSIS
@@ -713,7 +713,7 @@ func show_ending():
 	var scroll=ScrollContainer.new();scroll.size_flags_vertical=Control.SIZE_EXPAND_FILL;v.add_child(scroll)
 	var list=VBoxContainer.new();list.size_flags_horizontal=Control.SIZE_EXPAND_FILL;scroll.add_child(list)
 	for u in game.roster:
-		label_in(list,u.name+" · "+u.job+" · Level "+str(int(u.level)),19,Color(u.color))
+		label_in(list,u.name+" · "+game.class_name_for(u)+" · Level "+str(int(u.level)),19,Color(u.color))
 		label_in(list,profiles.get(u.id,{}).get("ending",u.bio),17)
 	button_in(v,"Return to title",show_title)
 
@@ -762,12 +762,14 @@ func show_dossier(unit):
 	var info=VBoxContainer.new();info.add_theme_constant_override("separation",16);info.size_flags_horizontal=Control.SIZE_EXPAND_FILL;row.add_child(info)
 	var profile=profiles.get(unit.id,{})
 	label_in(info,unit.name,46,GOLD);label_in(info,profile.get("title",unit.job),26)
-	label_in(info,"%s  /  Level %d  /  %d XP"%[unit.job,unit.level,unit.xp],20)
+	label_in(info,"%s  /  Level %d  /  %d XP"%[game.class_name_for(unit),unit.level,unit.xp],20)
 	label_in(info,"HP %d    ATK %d    DEF %d    SPD %d    MOV %d"%[unit.max_hp,game.attack_power(unit),unit.defense,game.attack_speed(unit),unit.move],21)
 	label_in(info,profile.get("biography",unit.bio),22)
 	label_in(info,"PERSONAL NOTE",16,GOLD);label_in(info,profile.get("note",""),20)
 	button_in(panel,"Equipment · "+game.item_for(unit).name,func():show_equipment(unit))
-	button_in(panel,"View combat model",func():show_model_view(unit))
+	var actions=HBoxContainer.new();actions.add_theme_constant_override("separation",12);panel.add_child(actions)
+	button_in(actions,"View combat model",func():show_model_view(unit)).size_flags_horizontal=Control.SIZE_EXPAND_FILL
+	button_in(actions,"Advanced training",func():show_promotions(unit)).size_flags_horizontal=Control.SIZE_EXPAND_FILL
 	button_in(panel,"Return to war council",show_camp)
 
 func load_campaign():
@@ -782,7 +784,7 @@ func show_equipment(unit):
 	screen="equipment";reset_ui()
 	var panel=panel_at(ui,70,45,-70,-45)
 	label_in(panel,"COMPANY ARSENAL",17,GOLD)
-	label_in(panel,unit.name+"  /  "+unit.job,40,GOLD)
+	label_in(panel,unit.name+"  /  "+game.class_name_for(unit),40,GOLD)
 	label_in(panel,"Equipment is shared freely. New supplies become available as the campaign advances.",19)
 	var row=HBoxContainer.new();row.add_theme_constant_override("separation",28);row.size_flags_vertical=Control.SIZE_EXPAND_FILL;panel.add_child(row)
 	var summary=VBoxContainer.new();summary.custom_minimum_size.x=280;row.add_child(summary)
@@ -799,7 +801,7 @@ func show_equipment(unit):
 		var details=VBoxContainer.new();details.add_theme_constant_override("separation",5);card.add_child(details)
 		label_in(details,item.name,26,GOLD);label_in(details,item.description,17)
 		var reach=str(int(item.min_range)) if item.min_range==item.max_range else "%d–%d"%[item.min_range,item.max_range]
-		if item.kind=="staff":label_in(details,"Heal %d   Weight %d   Range %s"%[item.heal,item.weight,reach],18)
+		if item.kind=="staff":label_in(details,"Heal %d   Weight %d   Range %s"%[int(item.heal)+game.promotion_bonus(unit,"heal"),item.weight,reach],18)
 		else:label_in(details,"Might %d   Hit %+d   Crit +%d   Weight %d   Range %s"%[item.might,item.hit,item.crit,item.weight,reach],18)
 		var locked=int(item.unlock)>game.chapter;var equipped=unit.item==item.id
 		button_in(details,"Available in chapter %d"%(int(item.unlock)+1) if locked else ("Equipped" if equipped else "Equip"),func():
@@ -821,7 +823,7 @@ func show_model_view(unit):
 	label_in(panel,"COMPANY / COMBAT MODEL",15,GOLD);label_in(panel,unit.name,38)
 	var portrait=TextureRect.new();portrait.texture=portraits.get_portrait(unit.id);portrait.custom_minimum_size=Vector2(220,240)
 	portrait.expand_mode=TextureRect.EXPAND_IGNORE_SIZE;portrait.stretch_mode=TextureRect.STRETCH_KEEP_ASPECT_CENTERED;panel.add_child(portrait)
-	label_in(panel,unit.job+" · "+game.item_for(unit).name,21)
+	label_in(panel,game.class_name_for(unit)+" · "+game.item_for(unit).name,21)
 	var spacer=Control.new();spacer.size_flags_vertical=Control.SIZE_EXPAND_FILL;panel.add_child(spacer)
 	button_in(panel,"Turn left",func():preview_actor.rotation.y-=PI/6)
 	button_in(panel,"Turn right",func():preview_actor.rotation.y+=PI/6)
@@ -894,3 +896,39 @@ func open_browser_transfer():
 		)
 	var bridge=JavaScriptBridge.get_interface("ashenSaveTransfer")
 	bridge.open(transfer_text.text,browser_transfer_callback)
+
+func show_promotions(unit):
+	screen="promotions";reset_ui()
+	var panel=panel_at(ui,70,45,-70,-45)
+	label_in(panel,"ADVANCED TRAINING",17,GOLD)
+	label_in(panel,unit.name+"  /  "+game.class_name_for(unit),40,GOLD)
+	label_in(panel,"Choose one path at level 10. The choice is permanent; level, experience and equipment are retained.",19)
+	var row=HBoxContainer.new();row.add_theme_constant_override("separation",28);row.size_flags_vertical=Control.SIZE_EXPAND_FILL;panel.add_child(row)
+	var portrait=TextureRect.new();portrait.texture=portraits.get_portrait(unit.id);portrait.custom_minimum_size=Vector2(300,340)
+	portrait.expand_mode=TextureRect.EXPAND_IGNORE_SIZE;portrait.stretch_mode=TextureRect.STRETCH_KEEP_ASPECT_CENTERED;row.add_child(portrait)
+	var scroll=ScrollContainer.new();scroll.size_flags_horizontal=Control.SIZE_EXPAND_FILL;scroll.size_flags_vertical=Control.SIZE_EXPAND_FILL;row.add_child(scroll)
+	var list=VBoxContainer.new();list.size_flags_horizontal=Control.SIZE_EXPAND_FILL;list.add_theme_constant_override("separation",20);scroll.add_child(list)
+	for path in game.promotion_options(unit):
+		var card=PanelContainer.new();list.add_child(card)
+		var details=VBoxContainer.new();details.add_theme_constant_override("separation",10);card.add_child(details)
+		label_in(details,path.name,32,GOLD);label_in(details,path.description,19)
+		var gains=[];var names={"max_hp":"HP","pow":"Power","defense":"Defense","speed":"Speed","move":"Move","heal":"Staff healing","hit":"Hit","crit":"Crit"}
+		for key in path.bonuses:gains.append("%s +%d"%[names[key],path.bonuses[key]])
+		label_in(details,"   ·   ".join(gains),20)
+		var chosen=unit.get("promotion","")==path.id
+		var title="Chosen path" if chosen else ("Choose "+path.name if game.can_promote(unit,path.id) else "Requires level 10" if unit.level<10 else "Path unavailable")
+		button_in(details,title,func():confirm_promotion(unit,path),not game.can_promote(unit,path.id))
+	button_in(panel,"Return to company record",func():show_dossier(unit))
+
+func confirm_promotion(unit,path):
+	screen="promotion_confirm";reset_ui()
+	var panel=panel_at(ui,280,180,-280,-180)
+	label_in(panel,unit.name+" · "+path.name,42,GOLD)
+	label_in(panel,path.description,24)
+	label_in(panel,"This training choice cannot be changed. Your level, experience and equipped weapon remain the same.",21)
+	button_in(panel,"Confirm training",func():
+		if game.promote(unit,path.id):
+			show_promotions(unit)
+			show_notice("Training complete. Campaign saved." if game.save_game(save_path,"camp") else "Training complete. Save failed; keep the game open and try saving again.")
+		else:show_promotions(unit))
+	button_in(panel,"Keep considering",func():show_promotions(unit))
