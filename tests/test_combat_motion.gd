@@ -122,7 +122,7 @@ func run():
    var lowest=INF
    for side in ["LeftKnee","RightKnee"]:
     var boot=actor.bone(side).get_node("Boot")
-    for vertex in boot.mesh.get_mesh_arrays()[Mesh.ARRAY_VERTEX]:lowest=minf(lowest,(boot.global_transform*vertex).y)
+    for vertex in boot.mesh.surface_get_arrays(0)[Mesh.ARRAY_VERTEX]:lowest=minf(lowest,(boot.global_transform*vertex).y)
    assert(lowest>=-.001 and lowest<.018,"Every infantry pose keeps a supporting boot on the ground without sinking")
    var body_shift=actor.bone("Body").position.y-actor.rest.Body.position.y
    for side in ["LeftLeg","RightLeg"]:assert(is_equal_approx(actor.bone(side).position.y-actor.rest[side].position.y,body_shift),"Pelvis and legs lower together instead of disconnecting")

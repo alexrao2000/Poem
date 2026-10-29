@@ -58,6 +58,22 @@ func run():
   equivalent(before,signature(baked))
   for key in bones:assert(baked.bone(key)==bones[key] and bones[key].is_inside_tree(),"Animation joints survive batching")
   assert(baked.find_children("PaintedFace","MeshInstance3D",true,false).size()==1,"Face stays separately addressable")
+  for mesh in baked.find_children("*","MeshInstance3D",true,false):
+   var surface=mesh.material_override
+   if mesh.name=="PaintedFace":assert(surface.next_pass==null,"Painted features cannot grow into an opaque face rectangle")
+   elif surface is ShaderMaterial:
+    var ink=surface.next_pass
+    assert(ink==fighters.Outline.material() and "cull_front" in ink.shader.code and "unshaded" in ink.shader.code,"Batched clothing and steel retain the shared silhouette pass")
+    assert(ink.get_shader_parameter("width")<=.006 and not "depth_test_disabled" in ink.shader.code,"Outline stays thin and respects foreground geometry")
+   if surface.next_pass==fighters.Outline.material():
+    assert(mesh.extra_cull_margin>=fighters.Outline.WIDTH,"Expanded silhouette remains inside the culling margin after batching")
+    var arrays=mesh.mesh.surface_get_arrays(0);var directions={};var points=arrays[Mesh.ARRAY_VERTEX];var colors=arrays[Mesh.ARRAY_COLOR]
+    for i in range(points.size()):
+     var key=points[i].snapped(Vector3.ONE*.00001)
+     var direction=Vector3(colors[i].r,colors[i].g,colors[i].b)*2.0-Vector3.ONE
+     assert(absf(direction.length()-1.0)<.015,"Encoded silhouette directions remain normalized within color packing precision")
+     if directions.has(key):assert(directions[key].distance_to(direction)<.0001,"Coincident edges expand together, including faceted blades")
+     directions[key]=direction
   var appearance=fighters.profiles[unit.id].appearance
   var cape=baked.bone("Cape").find_children("*","MeshInstance3D",true,false)[0]
   assert(cape.material_override is ShaderMaterial and cape.material_override.get_shader_parameter("tint")==Color(appearance.cape),"Batched cape keeps the recruit's individual costume palette")
@@ -69,6 +85,8 @@ func run():
   print("RIG ",unit.id,": ",stats.sources," meshes → ",stats.batches," joint batches")
   original.queue_free();baked.queue_free();await process_frame
  assert(batches<sources*.7,"Reduce rigid mesh submissions by at least thirty percent")
+ for surface in fighters.surface_cache.values():assert(surface.next_pass==null,"Actor outlines do not mutate shared painted materials")
+ for surface in fighters.geo.materials.values():assert(surface.next_pass==null,"Shared geometry materials remain free of character-only passes")
  for job in ["Vanguard","Knight","Ranger","Arcanist","Warden","Rider","Corsair","Duelist"]:
   var unit=rules.roster.filter(func(value):return value.job==job)[0].duplicate(true);unit.id="enemy_qa_"+job;unit.team="enemy";unit.color="#b96466"
   var actor=fighters.build(stage,unit,Vector3.ZERO);actor.set_process(false);actor.pose_tween.kill()

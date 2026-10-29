@@ -7,6 +7,7 @@ const Mount=preload("res://scripts/mount_visuals.gd")
 const Hair=preload("res://scripts/character_hair.gd")
 const EnemyHeadgear=preload("res://scripts/enemy_headgear.gd")
 const WeaponBlades=preload("res://scripts/weapon_blades.gd")
+const Outline=preload("res://scripts/character_outline.gd")
 var profiles=JSON.parse_string(FileAccess.get_file_as_string("res://data/characters.json"))
 var surface_atlas=load("res://assets/art/character-materials.png")
 var surface_shader=preload("res://assets/shaders/character.gdshader")
@@ -139,6 +140,7 @@ func build(parent,u,p) -> Node3D:
   Mount.build(self,actor,u.id,blue,gold,leather)
  apply_surfaces(actor,blue,tint,skin,steel,gold,leather,cape_color)
  if batching_enabled:batch_rig(actor)
+ else:Outline.apply(actor)
  actor.grounded_stance=not actor.mounted
  actor.pose("idle",.01)
  return actor
@@ -152,6 +154,7 @@ func batch_rig(actor):
   var stats=geo.batcher.combine(part,false)
   for key in totals:totals[key]+=stats[key]
  actor.set_meta("rig_batch_stats",totals)
+ Outline.apply(actor)
 
 func cape_surface(parent,color):
  var st=SurfaceTool.new();st.begin(Mesh.PRIMITIVE_TRIANGLES)
