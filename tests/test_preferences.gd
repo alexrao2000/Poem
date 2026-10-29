@@ -28,6 +28,12 @@ func run():
  await app.cinematic(a,b,events)
  assert(app.camera.projection==Camera3D.PROJECTION_ORTHOGONAL and app.camera.position==camera_position,"Quick mode keeps tactical camera")
  assert(app.game.rng.state==rng and b.hp==hp,"Presentation does not reroll or apply damage twice")
+ a.hp=a.max_hp-6;a.acted=false;a.potions=1;app.selected=a
+ app.tonic();await process_frame
+ assert(app.busy and a.potions==0,"Healing animation locks input after one tonic is spent")
+ while app.busy:await process_frame
+ assert(a.hp==a.max_hp and a.potions==0 and app.game.rng.state==rng,"Healing feedback does not apply health twice or consume RNG")
+ assert(app.unit_nodes[a.id].player.state=="idle" and app.unit_nodes[a.id].spent,"Finished field action returns to spent idle")
  app.show_options("battle");await process_frame;await process_frame
  for control in app.ui.find_children("*","Button",true,false):assert(control.get_global_rect().end.y<=app.ui.size.y,"Options controls fit viewport")
  app.close_options();assert(app.screen=="battle","Options return to tactical play")

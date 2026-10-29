@@ -8,7 +8,7 @@ An original, playable tactical RPG prototype in Godot 4.5.1 / GDScript.
 - 12 individually authored battlefields with 103 lines of opening/closing dialogue, a campaign ending, and rout, seize, boss and six-turn defense objectives.
 - Authored enemy equipment across all 12 chapters, including ranged spears, longbows, stronger tomes and specialist weapons visible in enemy inspection and forecasts.
 - Weighted terrain movement, occupancy, weapon triangle, two-roll hit checks, critical hits, counters, speed follow-ups, healing, enemy turns and casual recovery.
-- 24 individual original map sprites on a textured 3D landscape, village scenery, parchment UI, and a camera handoff to articulated 3D combatants with armor, capes, weapon strokes, impact effects and combat health bars. Low three-quarter battle shots follow preparation and impact while keeping both sides consistently oriented.
+- Eight animated map-sprite classes with four facings on textured 3D terrain, directional walking, attack/recoil poses, selection rings and spent-action markers. Individual portraits identify all 24 recruits. Combat uses articulated 3D figures, weapon strokes, opposing portrait nameplates and animated health meters. Low three-quarter shots follow preparation and impact; a radial zoom transition joins map and arena.
 - Original 71-second, 32-bar stereo score with calm/intense arrangements on the same sample timeline, plus synthesized combat/healing/phase effects.
 - Save/load during the player phase and at camp; autosaves after actions. Saves include RNG state, validate loaded data, retain the previous save as a backup, and migrate changed map layouts back to preparation.
 - 36 original support conversations (192 lines) across 12 partnerships covering the full roster; earned ranks grant proximity bonuses.
@@ -38,6 +38,8 @@ Open **Visual workshop · 2D / 3D maps** from the title screen to play the same 
 - `scripts/rules.gd`: scene-independent simulation, validated actions, campaign state and backup persistence.
 - `scripts/tactics.gd`: weighted pathfinding, guard/sentry/pursuit behavior, combat evaluation and automated playtest planning.
 - `scripts/main.gd`: menus, board renderer, input, AI orchestration, combat presentation and music.
+- `scripts/campaign_map_unit.gd`: campaign adapter for the reusable animated sprite catalog in `visuals/`, with directional movement, quick-battle reactions and projected mouse selection bounds.
+- `scripts/combat_camera.gd`, `combat_hud.gd`, `combat_transition.gd` and `combat_trail.gd`: isolated camera direction, portrait health displays, map/arena handoff and transient melee strokes.
 - `scripts/scenery.gd`: textured terrain, environment construction and material caching.
 - `scripts/static_batch.gd`: spatial/material batching for static scenery, with correct normals under nonuniform scaling. The current 12 maps combine 13,633 mesh objects into 674 batches; browser FPS has not yet been measured.
 - `scripts/fighters.gd` and `fighter_actor.gd`: articulated class actors, joint poses, weapons and class-specific attack animations.

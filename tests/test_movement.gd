@@ -37,9 +37,26 @@ func run():
  assert(app.unit_nodes[unit.id].position.distance_to(Vector3(destination.x,0,destination.y))>.01,"Visual travels from old position")
  while app.busy:await process_frame
  assert(app.unit_nodes[unit.id].position==Vector3(destination.x,0,destination.y))
- assert(app.unit_nodes[unit.id].get_child_count()==3,"Sprite, ground marker and HP travel in one group")
+ var actor=app.unit_nodes[unit.id]
+ assert(actor.sprite.get_parent()==actor and actor.marker.get_parent()==actor and actor.health.get_parent()==actor,"Sprite, ground marker and HP travel in one group")
+ assert(actor.player.state=="idle" and app.map_facings[unit.id]==actor.player.facing,"Walk returns to idle while retaining its last facing")
  app.cancel_selection();assert(app.game.pos(unit)==start and app.unit_nodes[unit.id].position==Vector3(start.x,0,start.y),"Cancel restores both simulation and visuals")
  assert(app.sprites.size()==app.game.units.size())
+ for other in app.game.units:
+  if other.id!=unit.id:other.hp=0
+ app.refresh_pieces();await process_frame
+ actor=app.unit_nodes[unit.id]
+ for zoom in [12.0,16.0,22.0]:
+  app.camera.size=zoom
+  var bounds=actor.screen_bounds(app.camera)
+  assert(bounds.size.x>10 and bounds.size.y>10,"Picking uses projected sprite dimensions")
+  assert(app.pick_map_unit(bounds.position+bounds.size*Vector2(.5,.2))==unit,"Upper body remains selectable at different map zooms")
+  assert(app.pick_map_unit(bounds.end+Vector2(15,15))==null,"Outside sprite bounds falls through to terrain picking")
+ for recruit in app.game.roster:
+  var data=recruit.duplicate(true);data.team="player";data.acted=false
+  var visual=app.MapUnit.new();app.pieces.add_child(visual);visual.configure(app.map_catalog,data)
+  assert(visual.visual_id=="unit."+data.job.to_lower(),"Every recruit uses its own class animation set")
+  visual.queue_free()
  app.queue_free();await process_frame
  print("PASS: ",paths," legal weighted routes across 12 maps, movement animation, action lock and undo restoration")
  quit()

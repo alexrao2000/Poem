@@ -1,6 +1,9 @@
 extends Node3D
 const Rules = preload("res://scripts/rules.gd")
 const Portraits = preload("res://scripts/portraits.gd")
+const MapUnit=preload("res://scripts/campaign_map_unit.gd")
+var map_catalog=preload("res://visuals/catalog.gd").new()
+var map_facings: Dictionary={}
 const DISPLAY_FONT = preload("res://assets/fonts/CormorantGaramond.ttf")
 var portraits=Portraits.new()
 var story: Dictionary
@@ -74,6 +77,8 @@ var save_failed=false
 var save_warning_queued=false
 
 func _ready():
+	var map_catalog_loaded=map_catalog.open("res://visuals/units.json")
+	assert(map_catalog_loaded,"Campaign map sprite catalog must be valid")
 	story=JSON.parse_string(FileAccess.get_file_as_string("res://data/story.json"))
 	profiles=JSON.parse_string(FileAccess.get_file_as_string("res://data/characters.json"))
 	scenery=Scenery.new()
@@ -145,8 +150,6 @@ func _process(dt):
 	if screen=="dialogue" and is_instance_valid(dialogue_label):
 		dialogue_reveal+=dt*float(preferences.values.text_speed)
 		dialogue_label.visible_characters=-1 if preferences.values.text_speed==0 else int(dialogue_reveal)
-	for s in sprites:
-		if is_instance_valid(s):s.position.y=s.get_meta("base_y",.65)+sin(clock*3+float(s.get_meta("phase",0)))*.015
 
 func box(color: Color) -> StyleBoxFlat:
 	var b=StyleBoxFlat.new()
@@ -214,7 +217,7 @@ func clear_world():
 	markers=Node3D.new();add_child(markers)
 	pieces=Node3D.new();add_child(pieces)
 	stage=Node3D.new();add_child(stage)
-	sprites.clear();unit_nodes.clear()
+	sprites.clear();unit_nodes.clear();map_facings.clear()
 
 func mat(color: Color) -> StandardMaterial3D:
 	var m=StandardMaterial3D.new();m.albedo_color=color;m.roughness=0.95
@@ -248,22 +251,10 @@ func refresh_pieces():
 	sprites.clear();unit_nodes.clear()
 	for u in game.units:
 		if u.hp<=0:continue
-		var visual=Node3D.new();visual.name=str(u.id).validate_node_name();visual.position=Vector3(u.x,0,u.y);pieces.add_child(visual);unit_nodes[u.id]=visual
-		var s=Sprite3D.new();s.texture=unit_portrait(u)
-		var height=1.2 if u.job in ["Knight","Rider"] else 1.08
-		s.pixel_size=height/s.texture.get_height()
-		s.billboard=BaseMaterial3D.BILLBOARD_ENABLED;s.texture_filter=BaseMaterial3D.TEXTURE_FILTER_NEAREST
-		s.alpha_cut=SpriteBase3D.ALPHA_CUT_DISCARD;s.alpha_scissor_threshold=.35
-		s.no_depth_test=true;s.render_priority=2
-		s.position=Vector3(0,height*.5+.07,0);s.set_meta("base_y",height*.5+.07);s.set_meta("phase",u.x)
-		s.modulate=(Color(.65,.65,.65) if u.acted else Color.WHITE) if u.team=="player" else Color(1,.66,.62)
-		visual.add_child(s);sprites.append(s)
-		scenery.cylinder(visual,Vector3(0,.035,0),.035,.31,Color("496f9c") if u.team=="player" else Color("a54b45"))
-		# Compact green health bars preserve map readability at normal zoom.
-		var health=Sprite3D.new();var image=Image.create(48,5,false,Image.FORMAT_RGBA8)
-		image.fill(Color("343b30"));image.fill_rect(Rect2i(1,1,maxi(1,int(46.0*u.hp/u.max_hp)),3),Color("8bc96c") if u.team=="player" else Color("d48c70"))
-		health.texture=ImageTexture.create_from_image(image);health.pixel_size=.013;health.billboard=BaseMaterial3D.BILLBOARD_ENABLED
-		health.position=Vector3(0,.16,.12);health.no_depth_test=true;health.render_priority=3;visual.add_child(health)
+		var visual=MapUnit.new();visual.name=str(u.id).validate_node_name();visual.position=Vector3(u.x,0,u.y)
+		pieces.add_child(visual);visual.configure(map_catalog,u,map_facings.get(u.id,"south"))
+		visual.selected=selected!=null and selected.id==u.id
+		unit_nodes[u.id]=visual;sprites.append(visual.sprite)
 
 func unit_portrait(u) -> Texture2D:
 	var individual=portraits.get_map_sprite(u.id)
@@ -420,6 +411,7 @@ func update_side():
 	button_in(side,"War council (restart map)",show_camp,busy)
 
 func highlight():
+	for id in unit_nodes:unit_nodes[id].selected=selected!=null and selected.id==id
 	route_preview=null;last_hover=Vector2i(-1,-1)
 	for n in markers.get_children():n.queue_free()
 	var danger={}
@@ -478,13 +470,22 @@ func _unhandled_input(event):
 		if event.button_index==MOUSE_BUTTON_RIGHT:cancel_selection();return
 		if event.button_index!=MOUSE_BUTTON_LEFT:return
 		cursor_visible=false;highlight()
-		for unit in game.units:
-			if unit.hp>0 and camera.unproject_position(Vector3(unit.x,.65,unit.y)).distance_to(event.position)<25:
-				click_tile(game.pos(unit));return
+		var picked=pick_map_unit(event.position)
+		if picked!=null:click_tile(game.pos(picked));return
 		var start=camera.project_ray_origin(event.position)
 		var dir=camera.project_ray_normal(event.position)
 		var hit=Plane(Vector3.UP,0).intersects_ray(start,dir)
 		if hit!=null:click_tile(Vector2i(roundi(hit.x),roundi(hit.z)))
+
+func pick_map_unit(point: Vector2):
+	var picked=null;var front=-INF
+	for unit in game.units:
+		if unit.hp<=0 or not unit_nodes.has(unit.id):continue
+		var actor=unit_nodes[unit.id]
+		if not actor.screen_bounds(camera).has_point(point):continue
+		var depth=camera.unproject_position(actor.global_position).y
+		if depth>front:picked=unit;front=depth
+	return picked
 
 func cancel_selection():
 	if selected!=null and origin!=null and not selected.acted:
@@ -498,8 +499,9 @@ func click_tile(p: Vector2i):
 		if game.can_attack(selected,u):target=u;update_side();return
 		if game.can_heal(selected,u):
 			var before=game.progress_snapshot()
+			var old_hp=u.hp
 			if game.heal(selected,u):
-				play_sfx("heal");busy=true;update_side();await show_progress(before);busy=false;finish_action();return
+				play_sfx("heal");busy=true;update_side();await map_heal_feedback(selected,u,u.hp-old_hp);await show_progress(before);busy=false;finish_action();return
 	if u!=null and u.team=="player":
 		cancel_selection();selected=u;play_sfx("select");highlight();update_side();return
 	if u!=null and u.team=="enemy" and (selected==null or selected.team=="enemy"):
@@ -519,7 +521,9 @@ func wait_action():
 
 func tonic():
 	if busy or selected==null:return
-	if game.use_tonic(selected):play_sfx("heal");finish_action()
+	var unit=selected;var old_hp=unit.hp
+	if game.use_tonic(unit):
+		busy=true;play_sfx("heal");update_side();await map_heal_feedback(unit,unit,unit.hp-old_hp);busy=false;finish_action()
 
 func player_attack():
 	if busy or selected==null or target==null:return
@@ -1045,9 +1049,12 @@ func animate_map_move(unit,path: Array):
 	moving_id=unit.id
 	visual.position=Vector3(path[0].x,0,path[0].y)
 	var motion=create_tween()
-	for point in path.slice(1):
+	for i in range(1,path.size()):
+		var point=path[i];var step=point-path[i-1]
+		motion.tween_callback(func():visual.face_step(step);map_facings[unit.id]=visual.player.facing)
 		motion.tween_property(visual,"position",Vector3(point.x,0,point.y),.105).set_trans(Tween.TRANS_LINEAR)
 	await motion.finished
+	visual.finish_move()
 	moving_id=""
 
 func preview_route(destination: Vector2i):
@@ -1110,7 +1117,15 @@ func map_combat_feedback(events: Array):
 	for event in events:
 		var targets=game.units.filter(func(unit):return unit.id==event.target)
 		if targets.is_empty():continue
-		var unit=targets[0];var text_label=Label.new();ui.add_child(text_label)
+		var unit=targets[0]
+		var attackers=game.units.filter(func(other):return other.id==event.actor)
+		var actor=unit_nodes.get(event.actor);var victim=unit_nodes.get(event.target)
+		if actor!=null and not attackers.is_empty():
+			actor.act_toward(game.pos(unit),game.pos(attackers[0]));map_facings[event.actor]=actor.player.facing
+		await get_tree().create_timer(.12).timeout
+		if victim!=null:
+			victim.react(event.hit,int(event.remaining));victim.hp_ratio=clampf(float(event.remaining)/maxf(1,unit.max_hp),0,1);victim.refresh_health()
+		var text_label=Label.new();ui.add_child(text_label)
 		text_label.text="MISS" if not event.hit else ("CRIT " if event.crit else "")+str(int(event.damage))
 		text_label.add_theme_font_size_override("font_size",28);text_label.add_theme_color_override("font_color",Color("ffe5a1"));text_label.add_theme_color_override("font_outline_color",Color("30353a"));text_label.add_theme_constant_override("outline_size",5)
 		text_label.position=camera.unproject_position(Vector3(unit.x,1.1,unit.y))-Vector2(25,20);text_label.mouse_filter=Control.MOUSE_FILTER_IGNORE
@@ -1118,7 +1133,29 @@ func map_combat_feedback(events: Array):
 		var fade=create_tween().set_parallel(true);fade.tween_property(text_label,"position:y",text_label.position.y-24,.24);fade.tween_property(text_label,"modulate:a",0.0,.24)
 		await fade.finished
 		text_label.queue_free()
+		if actor!=null:actor.finish_move()
+		if victim!=null and event.remaining>0:victim.finish_move()
 	refresh_pieces()
+
+func map_heal_feedback(healer,recipient,amount: int):
+	var actor=unit_nodes.get(healer.id);var patient=unit_nodes.get(recipient.id)
+	if actor!=null:
+		if healer.id!=recipient.id:actor.act_toward(game.pos(recipient),game.pos(healer))
+		else:actor.player.play("act","",true)
+		map_facings[healer.id]=actor.player.facing
+	await get_tree().create_timer(.12).timeout
+	var glow=Node3D.new();pieces.add_child(glow);glow.position=Vector3(recipient.x,.08,recipient.y)
+	var ring=MeshInstance3D.new();var shape=TorusMesh.new();shape.inner_radius=.28;shape.outer_radius=.32;ring.mesh=shape;glow.add_child(ring)
+	var material=mat(Color(.55,.95,.76,.8));material.shading_mode=BaseMaterial3D.SHADING_MODE_UNSHADED;ring.material_override=material
+	var text_label=Label.new();ui.add_child(text_label);text_label.text="+"+str(amount)
+	text_label.position=camera.unproject_position(Vector3(recipient.x,1.1,recipient.y))-Vector2(20,20)
+	text_label.add_theme_font_size_override("font_size",28);text_label.add_theme_color_override("font_color",Color("b4efd1"));text_label.add_theme_color_override("font_outline_color",Color("263e36"));text_label.add_theme_constant_override("outline_size",5);text_label.mouse_filter=Control.MOUSE_FILTER_IGNORE
+	if patient!=null:patient.hp_ratio=float(recipient.hp)/maxf(1,recipient.max_hp);patient.refresh_health()
+	var bloom=create_tween().set_parallel(true)
+	bloom.tween_property(glow,"scale",Vector3.ONE*1.7,.35);bloom.tween_property(material,"albedo_color:a",0.0,.35)
+	bloom.tween_property(text_label,"position:y",text_label.position.y-22,.35);bloom.tween_property(text_label,"modulate:a",0.0,.35)
+	await bloom.finished;glow.queue_free();text_label.queue_free()
+	if actor!=null:actor.finish_move()
 
 func initialize_map_cursor():
 	if cursor_visible:return
