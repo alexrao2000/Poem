@@ -8,7 +8,7 @@ import tempfile
 
 ROOT = Path(__file__).resolve().parent.parent
 ENGINE = os.environ.get("GODOT_BIN", "godot")
-SUITES = sys.argv[1:] or ["rules", "movement", "controls", "phases", "visuals", "models", "cutins", "combat_camera", "combat_motion", "combat_hud", "combat_exchange", "rig_batching", "batching", "equipment", "enemy_loadouts", "combat_stats", "promotions", "supports", "progress", "transfer", "saves", "tactics", "campaign", "presentation", "story", "audio", "preferences"]
+SUITES = sys.argv[1:] or ["rules", "movement", "terrain", "controls", "phases", "visuals", "models", "cutins", "combat_camera", "combat_motion", "combat_hud", "combat_exchange", "rig_batching", "batching", "equipment", "enemy_loadouts", "combat_stats", "promotions", "supports", "progress", "transfer", "saves", "tactics", "campaign", "presentation", "story", "audio", "preferences"]
 logs = ROOT / "build/logs"
 logs.mkdir(parents=True, exist_ok=True)
 for name in SUITES:

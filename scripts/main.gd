@@ -4,6 +4,7 @@ const Portraits = preload("res://scripts/portraits.gd")
 const WeaponIcons=preload("res://scripts/weapon_icons.gd")
 const MapUnit=preload("res://scripts/campaign_map_unit.gd")
 const MapOverlay=preload("res://scripts/map_overlay.gd")
+const TerrainCard=preload("res://scripts/terrain_card.gd")
 const FOG_FIELDS=["fog_enabled","fog_mode","fog_density","fog_depth_begin","fog_depth_end","fog_depth_curve","fog_light_color","fog_light_energy","fog_sky_affect"]
 var map_catalog=preload("res://visuals/catalog.gd").new()
 var map_facings: Dictionary={}
@@ -49,6 +50,7 @@ var stage: Node3D
 var canvas: CanvasLayer
 var ui: Control
 var side: VBoxContainer
+var terrain_card: Control
 var status: Label
 var selected = null
 var target = null
@@ -170,6 +172,7 @@ func box(color: Color) -> StyleBoxFlat:
 
 func reset_ui():
 	dialogue_label=null
+	terrain_card=null
 	if is_instance_valid(ui):
 		canvas.remove_child(ui)
 		ui.queue_free()
@@ -402,6 +405,9 @@ func show_battle():
 	side=VBoxContainer.new();side.add_theme_constant_override("separation",5);panel.add_child(side)
 	var bottom=PanelContainer.new();bottom.set_anchors_and_offsets_preset(Control.PRESET_BOTTOM_WIDE);bottom.offset_left=22;bottom.offset_right=-343;bottom.offset_top=-84;bottom.offset_bottom=-22;ui.add_child(bottom)
 	label_in(bottom,"Arrows: cursor · Enter: select / confirm · Q/E: next ally · W: wait · R: danger\nMouse: select > move > attack · Esc: undo · Space: end phase · Tab: skip battle",14)
+	terrain_card=TerrainCard.new();terrain_card.configure(ui)
+	var inspected=game.pos(selected) if selected!=null else game.pos(game.living("player")[0]) if not game.living("player").is_empty() else Vector2i.ZERO
+	terrain_card.inspect(game,cursor_tile if cursor_visible else inspected)
 	update_side();highlight()
 
 func update_side():
@@ -542,6 +548,7 @@ func cancel_selection():
 
 func click_tile(p: Vector2i):
 	if busy:return
+	if is_instance_valid(terrain_card):terrain_card.inspect(game,p)
 	var u=game.at(p)
 	if selected!=null and selected.team=="player" and not selected.acted and u!=null:
 		if game.can_attack(selected,u):target=u;update_side();return
@@ -628,8 +635,8 @@ func cinematic(a,b,events,initial_hp={}):
 	var old_pos=camera.position;var old_rot=camera.rotation;var old_size=camera.size;var old_offset=camera.h_offset;var old_vertical_offset=camera.v_offset;var old_fov=camera.fov
 	var focus=Vector3((a.x+b.x)*.5,0,(a.y+b.y)*.5)
 	markers.hide()
-	var tactical_controls=ui.get_children()
-	for control in tactical_controls:control.hide()
+	var tactical_controls={}
+	for control in ui.get_children():tactical_controls[control]=control.visible;control.hide()
 	var veil=CombatTransition.new();veil.configure(ui,func():return camera.unproject_position(focus))
 	veil.conceal()
 	var push=create_tween().set_parallel(true).set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_IN)
@@ -732,7 +739,7 @@ func cinematic(a,b,events,initial_hp={}):
 	if veil.motion.is_running():await veil.motion.finished
 	veil.queue_free()
 	for control in tactical_controls:
-		if is_instance_valid(control):control.show()
+		if is_instance_valid(control):control.visible=tactical_controls[control]
 	music_mix(false)
 
 func lighting_state() -> Dictionary:
@@ -1092,6 +1099,7 @@ func animate_map_move(unit,path: Array):
 	moving_id=""
 
 func preview_route(destination: Vector2i):
+	if screen=="battle" and is_instance_valid(terrain_card):terrain_card.inspect(game,destination)
 	if destination==last_hover:return
 	last_hover=destination
 	if is_instance_valid(route_preview):

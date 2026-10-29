@@ -7,6 +7,17 @@ var supports=preload("res://scripts/supports.gd").new()
 const MAX_LEVEL=99
 const STAT_CAPS={"max_hp":999,"pow":255,"defense":255,"resistance":255,"speed":255,"move":20}
 const DEFAULT_ITEMS={"sword":"iron_sword","lance":"iron_lance","axe":"iron_axe","bow":"scout_bow","magic":"ember","staff":"field_staff"}
+const TERRAIN_PROFILES={
+ ".":{"name":"Plain","move":1,"cover":0,"avoid":0,"heal":0},
+ "p":{"name":"Path","move":1,"cover":0,"avoid":0,"heal":0},
+ "=":{"name":"Bridge","move":1,"cover":0,"avoid":0,"heal":0},
+ "f":{"name":"Forest","move":2,"cover":2,"avoid":10,"heal":0},
+ "h":{"name":"Hill","move":2,"cover":2,"avoid":10,"heal":0},
+ "o":{"name":"Stronghold","move":1,"cover":2,"avoid":10,"heal":6},
+ "+":{"name":"Sanctuary","move":1,"cover":0,"avoid":0,"heal":6},
+ "#":{"name":"Blocked","move":0,"cover":0,"avoid":0,"heal":0},
+ "~":{"name":"Water","move":0,"cover":0,"avoid":0,"heal":0}
+}
 var chapter: int = 0
 var turn: int = 1
 var phase: String = "player"
@@ -98,6 +109,9 @@ func terrain(p: Vector2i) -> String:
 func pos(u: Dictionary) -> Vector2i:
 	return Vector2i(int(u.x),int(u.y))
 
+func terrain_profile(p: Vector2i) -> Dictionary:
+	return TERRAIN_PROFILES.get(terrain(p),TERRAIN_PROFILES["."])
+
 func at(p: Vector2i):
 	for u in units:
 		if u.hp>0 and pos(u)==p: return u
@@ -121,7 +135,7 @@ func reachable(u: Dictionary) -> Dictionary:
 			if tile in ["#","~"]: continue
 			var other = at(q)
 			if other!=null and other.team!=u.team: continue
-			var cost = costs[p]+(2 if tile in ["f","h"] else 1)
+			var cost = costs[p]+terrain_profile(q).move
 			if cost<=u.move and (not costs.has(q) or cost<costs[q]):
 				costs[q]=cost
 				queue.append(q)
@@ -133,7 +147,7 @@ func movement_path(unit: Dictionary,destination: Vector2i) -> Array:
 	if destination!=start and at(destination)!=null:return []
 	var path=[destination];var point=destination
 	while point!=start:
-		var cost=2 if terrain(point) in ["f","h"] else 1
+		var cost=terrain_profile(point).move
 		var previous=point
 		for direction in [Vector2i.LEFT,Vector2i.RIGHT,Vector2i.UP,Vector2i.DOWN]:
 			var neighbor=point+direction
@@ -221,10 +235,10 @@ func forecast(a: Dictionary,b: Dictionary) -> Dictionary:
 	var beats = {"sword":"axe","axe":"lance","lance":"sword"}
 	if beats.get(a.weapon,"")==b.weapon: advantage=1
 	if beats.get(b.weapon,"")==a.weapon: advantage=-1
-	var cover = 2 if terrain(pos(b)) in ["f","h","o"] else 0
+	var terrain_stats=terrain_profile(pos(b));var cover=terrain_stats.cover
 	var defense = resistance_for(b) if a.weapon=="magic" else int(b.defense)
 	var effective=effectiveness(a,b)
-	return {"effective":effective>1,"damage":maxi(1,attack_power(a)+int(item_for(a).might)*(effective-1)+advantage+(1 if support_attack==3 else 0)-defense-cover),"hit":clampi(85+(attack_speed(a)-attack_speed(b))*2+int(item_for(a).hit)+promotion_bonus(a,"hit")+(support_attack-support_defense)*5+advantage*15-cover*5,25,100),"crit":clampi(int(a.speed)/2+int(item_for(a).crit)+promotion_bonus(a,"crit"),0,50),"double":attack_speed(a)-attack_speed(b)>=4,"counter":can_attack(b,a)}
+	return {"effective":effective>1,"damage":maxi(1,attack_power(a)+int(item_for(a).might)*(effective-1)+advantage+(1 if support_attack==3 else 0)-defense-cover),"hit":clampi(85+(attack_speed(a)-attack_speed(b))*2+int(item_for(a).hit)+promotion_bonus(a,"hit")+(support_attack-support_defense)*5+advantage*15-terrain_stats.avoid,25,100),"crit":clampi(int(a.speed)/2+int(item_for(a).crit)+promotion_bonus(a,"crit"),0,50),"double":attack_speed(a)-attack_speed(b)>=4,"counter":can_attack(b,a)}
 
 func strike(a: Dictionary,b: Dictionary) -> Dictionary:
 	var f = forecast(a,b)
@@ -299,7 +313,8 @@ func next_player_turn():
 	phase="player"
 	for u in units:
 		u.acted=false;u.moved=false;u.erase("move_origin")
-		if u.hp>0 and terrain(pos(u)) in ["+","o"]:u.hp=mini(u.max_hp,u.hp+6)
+		var recovery=terrain_profile(pos(u)).heal
+		if u.hp>0 and recovery>0:u.hp=mini(u.max_hp,u.hp+recovery)
 
 const SAVE_VERSION=3
 
