@@ -1,5 +1,6 @@
 extends Node3D
-# A small articulated rig. Presentation may change without affecting combat results.
+# Presentation rig with separate pose and locomotion ownership. Actors face -Z;
+# arms lift forward with positive X, knees bend back, and mounted sockets rise.
 var bones: Dictionary = {}
 var rest: Dictionary = {}
 var kind = "sword"
@@ -53,7 +54,10 @@ func pose(key: String,duration=.18) -> Tween:
   target.Arm=Vector3(-2.2,-.15,-.45);target.Elbow=Vector3(-.8,0,0)
   target.LeftArm=Vector3(-.3,0,.5)
   target.LeftLeg.x=-.28;target.RightLeg.x=.3;target.RightKnee.x=.42
-  if kind=="lance":
+  if kind=="axe":
+   target.Body=Vector3(.1,-.4,-.08);target.Arm=Vector3(-2.65,-.2,-.35);target.Elbow=Vector3(-.95,0,0)
+   target.LeftArm=Vector3(-.7,0,.5);target.RightKnee.x=.55
+  elif kind=="lance":
    target.Arm=Vector3(-.3,.2,-.1);target.Elbow=Vector3(-1.2,0,0)
   elif kind=="bow":
    target.Arm=Vector3(-1.5,0,-.15);target.Elbow=Vector3(0,0,0)
@@ -66,7 +70,9 @@ func pose(key: String,duration=.18) -> Tween:
   target.Arm=Vector3(-.45,-.25,.23);target.Elbow=Vector3(-.1,0,0)
   target.LeftArm=Vector3(.28,0,.3)
   target.LeftLeg.x=-.35;target.RightLeg.x=.4;target.RightKnee.x=.45
-  if kind=="lance":target.Arm=Vector3(-1.0,0,-.05)
+  if kind=="axe":
+   target.Body=Vector3(.27,.38,.05);target.Arm=Vector3(-.3,-.15,.2);target.Elbow=Vector3(-.06,0,0)
+  elif kind=="lance":target.Arm=Vector3(-1.0,0,-.05)
   elif kind=="bow":
    target.Arm=Vector3(-1.5,0,-.15);target.Elbow=Vector3(0,0,0)
    target.LeftArm=Vector3(-.8,.9,.7);target.LeftElbow=Vector3(-1.6,0,0)
@@ -86,9 +92,16 @@ func pose(key: String,duration=.18) -> Tween:
   target.Body=Vector3(.6,0,.25);target.Head=Vector3(.3,0,0)
   target.LeftLeg.x=-.7;target.LeftKnee.x=1.45;target.RightLeg.x=-.3;target.RightKnee.x=1.25
   target.Arm=Vector3(.2,0,-.3);target.LeftArm=Vector3(.3,0,.2)
+ if mounted:
+  for leg in ["LeftLeg","RightLeg"]:target[leg].x=.85
+  target.LeftLeg.z=-.18;target.RightLeg.z=.18
+  target.LeftKnee.x=1.25;target.RightKnee.x=1.25
+  if key!="advance":
+   for i in range(4):target["HorseLeg"+str(i)]=Vector3.ZERO
+ if key=="advance" and not mounted:
+  for leg in ["LeftLeg","RightLeg","LeftKnee","RightKnee"]:target.erase(leg)
  pose_tween=create_tween().set_parallel(true).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN_OUT)
  for name_value in target:
-  # Actors face local -Z: arms lift forward with positive X; knees flex back.
   if name_value in ["Arm","Elbow","LeftArm","LeftElbow","LeftKnee","RightKnee","Body","Head"]:
    target[name_value].x=-target[name_value].x
   if key=="down" and name_value in ["LeftLeg","RightLeg"]:target[name_value].x=-target[name_value].x
@@ -98,4 +111,4 @@ func pose(key: String,duration=.18) -> Tween:
  return pose_tween
 
 func socket_position(key: String) -> Vector3:
- return global_position+Vector3(0,1.2 if key=="projectile" else 1.1,0)
+ return global_position+Vector3(0,(1.2 if key=="projectile" else 1.1)+(.75 if mounted else 0.0),0)

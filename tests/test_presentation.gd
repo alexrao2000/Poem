@@ -65,7 +65,7 @@ func run():
 	app.selected=a;app.target=b;app.update_side();await process_frame;await process_frame
 	for control in app.side.get_children():
 		assert(control.get_global_rect().end.y<=app.ui.size.y,"Forecast and action controls fit viewport")
-	app.camera.size=15.25;app.camera.h_offset=1.5
+	app.camera.size=15.25;app.camera.h_offset=1.5;app.camera.v_offset=.3;app.camera.fov=62
 	var events=app.game.combat(a,b)
 	inspect_combat_hud(app)
 	await app.cinematic(a,b,events)
@@ -73,6 +73,7 @@ func run():
 	assert(not app.stage.visible,"Battle stage hidden on return")
 	assert(app.camera.projection==Camera3D.PROJECTION_ORTHOGONAL,"Map camera restored")
 	assert(is_equal_approx(app.camera.size,15.25) and is_equal_approx(app.camera.h_offset,1.5),"Map zoom restored")
+	assert(is_equal_approx(app.camera.v_offset,.3) and is_equal_approx(app.camera.fov,62),"Battle framing does not overwrite map camera settings")
 	assert(app.world.visible and app.pieces.visible,"Map restored after arena")
 	app.music_mix(true)
 	await create_timer(.1).timeout

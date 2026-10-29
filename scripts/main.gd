@@ -12,6 +12,8 @@ var dialogue_label: Label
 var dialogue_name: Label
 var dialogue_portrait: TextureRect
 var dialogue_reveal=0.0
+const CombatTrail=preload("res://scripts/combat_trail.gd")
+const CombatCamera=preload("res://scripts/combat_camera.gd")
 const CriticalCutin=preload("res://scripts/critical_cutin.gd")
 const Fighters = preload("res://scripts/fighters.gd")
 var fighters: RefCounted
@@ -559,7 +561,7 @@ func cinematic(a,b,events,initial_hp={}):
 		await map_combat_feedback(events)
 		return
 	skip_combat=false;music_mix(true)
-	var old_pos=camera.position;var old_rot=camera.rotation;var old_size=camera.size;var old_offset=camera.h_offset
+	var old_pos=camera.position;var old_rot=camera.rotation;var old_size=camera.size;var old_offset=camera.h_offset;var old_vertical_offset=camera.v_offset;var old_fov=camera.fov
 	var focus=Vector3((a.x+b.x)*.5,0,(a.y+b.y)*.5)
 	markers.hide()
 	var push=create_tween().set_parallel(true).set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_IN)
@@ -581,8 +583,9 @@ func cinematic(a,b,events,initial_hp={}):
 	var spacing=2.0 if ranged else 1.6
 	var actor=make_fighter(a,Vector3(35-spacing,0,0));var defender=make_fighter(b,Vector3(35+spacing,0,0))
 	actor.rotation.y=-PI/2;defender.rotation.y=PI/2
-	camera.projection=Camera3D.PROJECTION_PERSPECTIVE;camera.h_offset=0;camera.fov=48
-	camera.position=Vector3(36.6,2.0,6.8 if ranged else 5.8);camera.look_at(Vector3(35,1.1,0))
+	var director=CombatCamera.new();stage.add_child(director);director.configure(camera)
+	var mounted=a.job=="Rider" or b.job=="Rider"
+	director.establish(actor.position,defender.position,ranged,mounted)
 	var reveal=create_tween();reveal.tween_property(veil,"modulate:a",0.0,.18);await reveal.finished
 	veil.queue_free()
 	var banner=PanelContainer.new();banner.set_anchors_and_offsets_preset(Control.PRESET_BOTTOM_WIDE)
@@ -630,6 +633,7 @@ func cinematic(a,b,events,initial_hp={}):
 			var distance_to_close=absf(whom.position.x-who.position.x)-1.65
 			approach.tween_property(who,"position:x",base.x+direction*maxf(0,distance_to_close),.24)
 			await approach.finished
+		director.shot(who.position,whom.position,"windup",is_ranged,mounted,.28)
 		await who.pose("throw_windup" if is_ranged and unit.weapon=="lance" else "windup",.28 if not event.crit else .4).finished
 		if skip_combat:break
 		if event.crit:
@@ -637,8 +641,12 @@ func cinematic(a,b,events,initial_hp={}):
 			if skip_combat:break
 		play_sfx("magic" if unit.weapon=="magic" else "swing")
 		await who.pose("throw" if is_ranged and unit.weapon=="lance" else "strike",.12).finished
+		if not is_ranged:
+			var trail=CombatTrail.new();stage.add_child(trail)
+			trail.start(whom.socket_position("impact")+Vector3(-direction*.28,0,.18),unit.weapon,direction,event.crit)
 		if is_ranged:
 			await projectile(who.socket_position("projectile"),whom.socket_position("impact"),unit.weapon)
+		director.shot(who.position,whom.position,"impact",is_ranged,mounted,.16)
 		if event.hit:
 			play_sfx("critical" if event.crit else "hit")
 			whom.pose("hit",.12)
@@ -650,11 +658,10 @@ func cinematic(a,b,events,initial_hp={}):
 		var hp_tween=create_tween();hp_tween.tween_property(health_bars[event.target],"value",float(displayed_hp[event.target]),.25)
 		show_impact(whom.socket_position("impact"),event)
 		caption.text=unit.name+(" — CRITICAL! " if event.crit else " — ")+(str(int(event.damage))+" damage" if event.hit else "Miss")
-		if event.hit:
-			var camera_home=camera.position
-			var shake=create_tween();shake.tween_property(camera,"position",camera_home+Vector3(.10 if event.crit else .045,.025,0),.04);shake.tween_property(camera,"position",camera_home,.1)
+		if event.hit:director.impact(event.crit)
 		await get_tree().create_timer(.22 if not event.crit else .34).timeout
 		who.pose("idle",.25)
+		director.shot(base,whom.position,"wide",ranged,mounted,.3)
 		var retreat=create_tween().set_trans(Tween.TRANS_SINE);retreat.tween_property(who,"position",base,.3)
 		if event.remaining<=0:
 			await whom.pose("down",.3).finished
@@ -664,10 +671,11 @@ func cinematic(a,b,events,initial_hp={}):
 	await get_tree().create_timer(.18).timeout
 
 	banner.queue_free();caption.queue_free()
+	director.stop();director.queue_free()
 	stage.visible=false
 	restore_lighting(old_lighting)
 	world.show();pieces.show();markers.show()
-	camera.projection=Camera3D.PROJECTION_ORTHOGONAL;camera.position=old_pos;camera.rotation=old_rot;camera.h_offset=old_offset
+	camera.projection=Camera3D.PROJECTION_ORTHOGONAL;camera.position=old_pos;camera.rotation=old_rot;camera.h_offset=old_offset;camera.v_offset=old_vertical_offset;camera.fov=old_fov
 	var pull=create_tween();pull.tween_property(camera,"size",old_size,.25);await pull.finished
 	for control in tactical_controls:
 		if is_instance_valid(control):control.show()
