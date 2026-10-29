@@ -14,6 +14,7 @@ var dialogue_portrait: TextureRect
 var dialogue_reveal=0.0
 const CombatTrail=preload("res://scripts/combat_trail.gd")
 const CombatCamera=preload("res://scripts/combat_camera.gd")
+const CombatHUD=preload("res://scripts/combat_hud.gd")
 const CriticalCutin=preload("res://scripts/critical_cutin.gd")
 const Fighters = preload("res://scripts/fighters.gd")
 var fighters: RefCounted
@@ -588,31 +589,15 @@ func cinematic(a,b,events,initial_hp={}):
 	director.establish(actor.position,defender.position,ranged,mounted)
 	var reveal=create_tween();reveal.tween_property(veil,"modulate:a",0.0,.18);await reveal.finished
 	veil.queue_free()
-	var banner=PanelContainer.new();banner.set_anchors_and_offsets_preset(Control.PRESET_BOTTOM_WIDE)
-	banner.name="CombatHUD"
-	banner.offset_left=70;banner.offset_right=-70;banner.offset_top=-140;banner.offset_bottom=-30;ui.add_child(banner)
-	var battle_ui=HBoxContainer.new();battle_ui.add_theme_constant_override("separation",45);banner.add_child(battle_ui)
-	var health_labels={};var health_bars={};var displayed_hp={};var hp_numbers={}
+	var displayed_hp={};var entries=[]
 	for unit in [a,b]:
-		var column=VBoxContainer.new();column.size_flags_horizontal=Control.SIZE_EXPAND_FILL;battle_ui.add_child(column)
 		var hp=int(initial_hp.get(unit.id,unit.hp))
 		if initial_hp.is_empty():
 			for strike_event in events:
 				if strike_event.target==unit.id:hp+=strike_event.damage
 		displayed_hp[unit.id]=mini(hp,unit.max_hp)
-		var heading=HBoxContainer.new();column.add_child(heading)
-		health_labels[unit.id]=label_in(heading,unit.name+"  /  "+game.class_name_for(unit),23,GOLD)
-		health_labels[unit.id].size_flags_horizontal=Control.SIZE_EXPAND_FILL
-		health_labels[unit.id].autowrap_mode=TextServer.AUTOWRAP_OFF
-		health_labels[unit.id].text_overrun_behavior=TextServer.OVERRUN_TRIM_ELLIPSIS
-		hp_numbers[unit.id]=label_in(heading,str(int(displayed_hp[unit.id]))+" / "+str(int(unit.max_hp)),23)
-		hp_numbers[unit.id].autowrap_mode=TextServer.AUTOWRAP_OFF
-		hp_numbers[unit.id].custom_minimum_size.x=100
-		hp_numbers[unit.id].horizontal_alignment=HORIZONTAL_ALIGNMENT_RIGHT
-		var bar=ProgressBar.new();bar.max_value=unit.max_hp;bar.value=displayed_hp[unit.id];bar.show_percentage=false;bar.custom_minimum_size.y=16
-		var fill=StyleBoxFlat.new();fill.bg_color=Color("718e56") if unit.team=="player" else Color("b35e51")
-		var backing=StyleBoxFlat.new();backing.bg_color=Color("c7c1ad")
-		bar.add_theme_stylebox_override("fill",fill);bar.add_theme_stylebox_override("background",backing);column.add_child(bar);health_bars[unit.id]=bar
+		entries.append({"unit":unit,"hp":displayed_hp[unit.id],"portrait":portraits.get_portrait(unit.id),"class_name":game.class_name_for(unit),"weapon":game.item_for(unit).name})
+	var banner=CombatHUD.new();banner.configure(ui,entries)
 	var caption=Label.new();caption.set_anchors_and_offsets_preset(Control.PRESET_TOP_WIDE);caption.offset_top=36;caption.horizontal_alignment=HORIZONTAL_ALIGNMENT_CENTER
 	caption.add_theme_font_size_override("font_size",30);caption.add_theme_color_override("font_color",Color("f7edce"));caption.add_theme_color_override("font_outline_color",Color("373d42"));caption.add_theme_constant_override("outline_size",7)
 	caption.text="Tab to skip";ui.add_child(caption)
@@ -623,6 +608,7 @@ func cinematic(a,b,events,initial_hp={}):
 		var who=actor if event.actor==a.id else defender
 		var whom=defender if who==actor else actor
 		var unit=a if who==actor else b
+		banner.mark_actor(unit.id)
 		var base=who.position
 		var direction=1.0 if who==actor else -1.0
 		var is_ranged=unit.weapon in ["bow","magic"] or (unit.weapon=="lance" and game.distance(a,b)>1)
@@ -654,8 +640,7 @@ func cinematic(a,b,events,initial_hp={}):
 			whom.pose("evade",.16)
 			var dodge=create_tween();dodge.tween_property(whom,"position:z",-.32,.14);dodge.tween_property(whom,"position:z",0.0,.2)
 		displayed_hp[event.target]=maxi(0,displayed_hp[event.target]-event.damage)
-		hp_numbers[event.target].text=str(int(displayed_hp[event.target]))+" / "+str(int(b.max_hp if event.target==b.id else a.max_hp))
-		var hp_tween=create_tween();hp_tween.tween_property(health_bars[event.target],"value",float(displayed_hp[event.target]),.25)
+		banner.set_health(event.target,int(displayed_hp[event.target]))
 		show_impact(whom.socket_position("impact"),event)
 		caption.text=unit.name+(" — CRITICAL! " if event.crit else " — ")+(str(int(event.damage))+" damage" if event.hit else "Miss")
 		if event.hit:director.impact(event.crit)
