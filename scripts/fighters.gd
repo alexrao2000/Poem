@@ -4,6 +4,7 @@ extends RefCounted
 var models=preload("res://scripts/combat_models.gd").new()
 const Actor=preload("res://scripts/fighter_actor.gd")
 const Mount=preload("res://scripts/mount_visuals.gd")
+const Hair=preload("res://scripts/character_hair.gd")
 var profiles=JSON.parse_string(FileAccess.get_file_as_string("res://data/characters.json"))
 var surface_atlas=load("res://assets/art/character-materials.png")
 var surface_shader=preload("res://assets/shaders/character.gdshader")
@@ -38,13 +39,14 @@ func build(parent,u,p) -> Node3D:
  var body=joint(actor,"Body",Vector3(0,1.1,0));actor.register_bone("Body",body)
  var tint=Color(u.color)
  var palette={"Vanguard":"354c77","Knight":"394651","Ranger":"405c49","Arcanist":"434369","Warden":"c8c2ae","Rider":"3d566d","Corsair":"62463f","Duelist":"3b4355"}
- var blue=Color(palette[u.job]) if u.team=="player" else Color("853e43")
  var appearance=profiles.get(u.id,{}).get("appearance",{})
+ var blue=Color(appearance.get("cloth",palette[u.job])) if u.team=="player" else Color("853e43")
  var skin=Color(appearance.get("skin","e0ba98"));var steel=Color("a8b3bb");var gold=Color("bca26b");var leather=Color("554337")
  var heavy=u.job=="Knight";var robe=u.weapon in ["magic","staff"]
  var armored=u.job in ["Knight","Vanguard","Rider"] and u.id!="lyra"
  var slender=u.id in ["lyra","sera","mara","nell","esme","faye","vela","una","petra","noor","yuna","rhea"]
- var cape_color=Color("e5dfce") if u.id in ["lyra","ivo"] else tint.darkened(.25)
+ var cape_color=Color(appearance.get("cape","e5dfce" if u.id in ["lyra","ivo"] else tint.darkened(.25).to_html(false))) if u.team=="player" else tint.darkened(.25)
+ actor.set_meta("costume_colors",{"cloth":blue,"cape":cape_color})
  var torso=joint(body,"Torso",Vector3(0,.1,0))
  ellipsoid(body,Vector3(0,-.16,0),Vector3(.19,.19,.14),Color("3c3f48"))
  shell(torso,Vector3.ZERO,[[-.1,.18,.12],[.15,.21,.14],[.35,.245,.12],[.41,.15,.1]],blue)
@@ -119,26 +121,13 @@ func build(parent,u,p) -> Node3D:
   geo.block(head,Vector3(0,.005,-.15),Vector3(.24,.045,.025),Color("303841"))
   geo.block(head,Vector3(0,-.055,-.16),Vector3(.05,.15,.03),gold)
  else:
-  var hair=Color(appearance.get("hair","623c31"))
-  if appearance.get("hair_style")!="bald":ellipsoid(head,Vector3(0,.085,.025),Vector3(.157,.145,.155),hair)
-  if appearance.get("hair_style")!="bald":
-   for i in range(5):
-    hair_lock(head,[Vector3(.055,.17,-.09),Vector3(-.055-i*.015,.13-i*.008,-.13),Vector3(-.105-i*.012,.04-i*.012,-.10),Vector3(-.13-i*.008,-.045-i*.009,-.06)],.027,hair.lightened(i*.02))
-   for i in range(2):hair_lock(head,[Vector3(.07,.16,-.08),Vector3(.12+i*.02,.08,-.11),Vector3(.14+i*.015,-.05,-.06)],.03,hair)
+  Hair.build(self,head,appearance,gold)
   var face_index={"lyra":0,"sera":1,"mara":3,"nell":2,"esme":2,"faye":3,"vela":1,"una":0,"petra":3,"noor":2,"yuna":1,"rhea":0,"oren":5,"ivo":4,"tarin":6,"bram":4,"rook":5,"cassian":6,"dax":5,"silas":6,"ari":4,"galen":7,"hale":7,"elian":6}.get(u.id,5)
   face_surface(head,face_index)
   if u.id=="petra":
    for x in [-.07,.07]:
     var rim=geo.cylinder(head,Vector3(x,.13,-.10),.035,.05,gold);rim.rotation.x=PI/2
     var lens=geo.cylinder(head,Vector3(x,.13,-.122),.015,.037,Color("445d6b"));lens.rotation.x=PI/2
-  if appearance.get("hair_style")=="long":
-   for i in range(7):
-    var x=(i-3)*.038
-    hair_lock(head,[Vector3(x,.1,.13),Vector3(x*1.2,-.1,.17),Vector3(x*1.3+.018*sin(i),-.32,.18),Vector3(x*1.25-.025*sin(i),-.55,.12)],.052,hair.lightened((i%3)*.025))
-   for side_value in [-1,1]:
-    hair_lock(head,[Vector3(side_value*.13,.08,-.055),Vector3(side_value*.15,-.14,-.08),Vector3(side_value*.18,-.31,-.11),Vector3(side_value*.15,-.49,-.08)],.038,hair)
-  elif appearance.get("hair_style") in ["beard","bald"]:
-   ellipsoid(head,Vector3(0,-.12,-.07),Vector3(.13,.12,.1),hair)
  if u.job=="Rider":
   actor.mounted=true
   for name_value in ["Body","LeftLeg","RightLeg"]:

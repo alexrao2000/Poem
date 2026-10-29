@@ -7,7 +7,9 @@
     "appearance": {
       "skin": "e0ba98",
       "hair": "623c31",
-      "hair_style": "long"
+      "hair_style": "long",
+      "cloth": "354c77",
+      "cape": "e5dfce"
     },
     "critical_quote": "For everyone behind me!"
   },
@@ -19,7 +21,9 @@
     "appearance": {
       "skin": "d0aa89",
       "hair": "62564e",
-      "hair_style": "short"
+      "hair_style": "short",
+      "cloth": "394651",
+      "cape": "354c77"
     },
     "critical_quote": "This line holds."
   },
@@ -31,7 +35,9 @@
     "appearance": {
       "skin": "e3b995",
       "hair": "8f4b30",
-      "hair_style": "long"
+      "hair_style": "ponytail",
+      "cloth": "405c49",
+      "cape": "4a6345"
     },
     "critical_quote": "I see the way through."
   },
@@ -43,7 +49,9 @@
     "appearance": {
       "skin": "bb8d67",
       "hair": "30272b",
-      "hair_style": "short"
+      "hair_style": "short",
+      "cloth": "ded6c0",
+      "cape": "847299"
     },
     "critical_quote": "No one is expendable!"
   },
@@ -55,7 +63,9 @@
     "appearance": {
       "skin": "a86d4b",
       "hair": "713629",
-      "hair_style": "long"
+      "hair_style": "braid",
+      "cloth": "493a33",
+      "cape": "af823f"
     },
     "critical_quote": "You cannot bar this river!"
   },
@@ -67,7 +77,9 @@
     "appearance": {
       "skin": "e8c6a6",
       "hair": "d3bc89",
-      "hair_style": "short"
+      "hair_style": "short",
+      "cloth": "354c77",
+      "cape": "354c77"
     },
     "critical_quote": "I checked the numbers."
   },
@@ -79,7 +91,9 @@
     "appearance": {
       "skin": "d0a17c",
       "hair": "28232c",
-      "hair_style": "short"
+      "hair_style": "short",
+      "cloth": "333c48",
+      "cape": "355f98"
     },
     "critical_quote": "Found your opening!"
   },
@@ -91,7 +105,9 @@
     "appearance": {
       "skin": "d6b48c",
       "hair": "aa8450",
-      "hair_style": "short"
+      "hair_style": "short",
+      "cloth": "5a4d3c",
+      "cape": "4b6744"
     },
     "critical_quote": "Time to put this right."
   },
@@ -103,7 +119,9 @@
     "appearance": {
       "skin": "76533f",
       "hair": "c6c1b4",
-      "hair_style": "long"
+      "hair_style": "side_braid",
+      "cloth": "e0d7c2",
+      "cape": "87779b"
     },
     "critical_quote": "We remember their names."
   },
@@ -114,8 +132,10 @@
     "ending": "Rook spent years rebuilding the abbey villages. He kept no record of the work and declined every offer to rename a street after him.",
     "appearance": {
       "skin": "bf9878",
-      "hair": "444146",
-      "hair_style": "short"
+      "hair": "8a8580",
+      "hair_style": "short",
+      "cloth": "394651",
+      "cape": "354c77"
     },
     "critical_quote": "Let me make this count."
   },
@@ -127,7 +147,9 @@
     "appearance": {
       "skin": "c99b72",
       "hair": "b29863",
-      "hair_style": "long"
+      "hair_style": "braid",
+      "cloth": "415d43",
+      "cape": "41664e"
     },
     "critical_quote": "You missed the trail."
   },
@@ -139,7 +161,9 @@
     "appearance": {
       "skin": "e5bd99",
       "hair": "ccae6e",
-      "hair_style": "long"
+      "hair_style": "long",
+      "cloth": "354c77",
+      "cape": "e5dfce"
     },
     "critical_quote": "My oath is to these people!"
   },
@@ -151,7 +175,9 @@
     "appearance": {
       "skin": "805439",
       "hair": "242b37",
-      "hair_style": "long"
+      "hair_style": "braid",
+      "cloth": "2f686a",
+      "cape": "2f686a"
     },
     "critical_quote": "There is still a light."
   },
@@ -163,7 +189,9 @@
     "appearance": {
       "skin": "996b4c",
       "hair": "2e2827",
-      "hair_style": "bald"
+      "hair_style": "bald",
+      "cloth": "b58b42",
+      "cape": "355377"
     },
     "critical_quote": "We pull together!"
   },
@@ -175,7 +203,9 @@
     "appearance": {
       "skin": "e0bb9b",
       "hair": "744633",
-      "hair_style": "short"
+      "hair_style": "bun",
+      "cloth": "d6cbb6",
+      "cape": "a76d76"
     },
     "critical_quote": "Here are my terms."
   },
@@ -187,7 +217,9 @@
     "appearance": {
       "skin": "b99a7d",
       "hair": "302c32",
-      "hair_style": "short"
+      "hair_style": "short",
+      "cloth": "3b4355",
+      "cape": "355377"
     },
     "critical_quote": "No more cover stories."
   },
@@ -199,7 +231,9 @@
     "appearance": {
       "skin": "b87f59",
       "hair": "985034",
-      "hair_style": "short"
+      "hair_style": "curls",
+      "cloth": "535e6b",
+      "cape": "963f4a"
     },
     "critical_quote": "I know the weak point."
   },
@@ -211,7 +245,9 @@
     "appearance": {
       "skin": "b78b65",
       "hair": "4a342b",
-      "hair_style": "short"
+      "hair_style": "curls",
+      "cloth": "446e69",
+      "cape": "446e69"
     },
     "critical_quote": "The message gets through!"
   },
@@ -223,7 +259,9 @@
     "appearance": {
       "skin": "76513d",
       "hair": "302939",
-      "hair_style": "long"
+      "hair_style": "long",
+      "cloth": "3e3c6b",
+      "cape": "3e3c6b"
     },
     "critical_quote": "I know what this light costs."
   },
@@ -235,7 +273,9 @@
     "appearance": {
       "skin": "d5b394",
       "hair": "b8b2a3",
-      "hair_style": "beard"
+      "hair_style": "beard",
+      "cloth": "d8cdb3",
+      "cape": "4e6544"
     },
     "critical_quote": "We will see another spring."
   },
@@ -247,7 +287,9 @@
     "appearance": {
       "skin": "bf946e",
       "hair": "272631",
-      "hair_style": "long"
+      "hair_style": "ponytail",
+      "cloth": "696079",
+      "cape": "454366"
     },
     "critical_quote": "One step ahead."
   },
@@ -259,7 +301,9 @@
     "appearance": {
       "skin": "825b43",
       "hair": "4b4947",
-      "hair_style": "beard"
+      "hair_style": "beard",
+      "cloth": "624d3d",
+      "cape": "355377"
     },
     "critical_quote": "We are getting out of here!"
   },
@@ -271,7 +315,9 @@
     "appearance": {
       "skin": "bb9b80",
       "hair": "b4b4ad",
-      "hair_style": "short"
+      "hair_style": "short",
+      "cloth": "63798a",
+      "cape": "3f5879"
     },
     "critical_quote": "This oath is mine."
   },
@@ -283,7 +329,9 @@
     "appearance": {
       "skin": "e3bc9d",
       "hair": "713c31",
-      "hair_style": "long"
+      "hair_style": "long",
+      "cloth": "354c77",
+      "cape": "e5dfce"
     },
     "critical_quote": "I choose what comes next."
   }

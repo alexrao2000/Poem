@@ -1,0 +1,43 @@
+extends RefCounted
+# Original hair silhouettes follow each recruit's portrait identity. All pieces
+# remain children of the head so articulation and rigid batching stay shared.
+
+static func build(painter,head,appearance,gold):
+ var hair=Color(appearance.get("hair","623c31"));var style=appearance.get("hair_style","short")
+ head.set_meta("hair_style",style)
+ if style!="bald":
+  painter.ellipsoid(head,Vector3(0,.085,.025),Vector3(.157,.145,.155),hair)
+  if style=="curls":
+   for i in range(13):
+    var angle=i*TAU/13
+    painter.ellipsoid(head,Vector3(cos(angle)*.13,.10+sin(i*2.4)*.045,sin(angle)*.12+.015),Vector3(.065,.075,.065),hair.lightened((i%3)*.025))
+  else:
+   for i in range(5):
+    painter.hair_lock(head,[Vector3(.055,.17,-.09),Vector3(-.055-i*.015,.13-i*.008,-.13),Vector3(-.105-i*.012,.04-i*.012,-.10),Vector3(-.13-i*.008,-.045-i*.009,-.06)],.027,hair.lightened(i*.02))
+   for i in range(2):painter.hair_lock(head,[Vector3(.07,.16,-.08),Vector3(.12+i*.02,.08,-.11),Vector3(.14+i*.015,-.05,-.06)],.03,hair)
+ if style=="long":
+  for i in range(7):
+   var x=(i-3)*.038
+   painter.hair_lock(head,[Vector3(x,.1,.13),Vector3(x*1.2,-.1,.17),Vector3(x*1.3+.018*sin(i),-.32,.18),Vector3(x*1.25-.025*sin(i),-.55,.12)],.052,hair.lightened((i%3)*.025))
+  for side in [-1,1]:
+   painter.hair_lock(head,[Vector3(side*.13,.08,-.055),Vector3(side*.15,-.14,-.08),Vector3(side*.18,-.31,-.11),Vector3(side*.15,-.49,-.08)],.038,hair)
+ elif style=="ponytail":
+  painter.ellipsoid(head,Vector3(0,.10,.18),Vector3(.07,.055,.065),gold)
+  for i in range(5):
+   var x=(i-2)*.025
+   painter.hair_lock(head,[Vector3(x,.10,.18),Vector3(x*1.4,.0,.30),Vector3(x*1.6,-.24,.36),Vector3(x*1.3,-.51,.30)],.047,hair.lightened((i%3)*.025))
+ elif style in ["braid","side_braid"]:
+  var front=style=="side_braid"
+  for i in range(9):
+   var t=i/8.0;var x=.15 if front else sin(i*PI*.5)*.026
+   var z=-.10-t*.08 if front else .17+sin(t*PI)*.10
+   var plait=painter.ellipsoid(head,Vector3(x,.04-t*.58,z),Vector3(.067-t*.025,.055,.055),hair.lightened((i%2)*.035));plait.rotation.z=.42 if i%2 else -.42
+  painter.ellipsoid(head,Vector3(.15 if front else 0,-.51,-.18 if front else .18),Vector3(.045,.025,.04),gold)
+ elif style=="bun":
+  painter.ellipsoid(head,Vector3(0,-.015,.19),Vector3(.105,.11,.09),hair)
+  for i in range(5):
+   var angle=i*TAU/5
+   painter.ellipsoid(head,Vector3(cos(angle)*.065,-.015+sin(angle)*.07,.245),Vector3(.045,.045,.025),hair.lightened(.04))
+  painter.ellipsoid(head,Vector3(.095,.015,.19),Vector3(.025,.025,.025),gold)
+ elif style in ["beard","bald"]:
+  painter.ellipsoid(head,Vector3(0,-.12,-.07),Vector3(.13,.12,.1),hair)

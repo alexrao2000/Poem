@@ -1,6 +1,7 @@
 extends SceneTree
 # Compare rigid geometry before/after batching, then exercise every animated
-# joint on both representations. Normal totals allow 0.00002 per triangle
+# joint on both representations. Sum in 64-bit scalars so batch ordering does
+# not create 32-bit accumulation drift. Normal totals allow 0.00002 per triangle
 # vertex for mesh normal packing and float accumulation, not visible rotation.
 # Measurements concern geometry, not browser FPS.
 const Fighters=preload("res://scripts/fighters.gd")
@@ -9,7 +10,7 @@ const Rules=preload("res://scripts/rules.gd")
 func _initialize():call_deferred("run")
 
 func signature(actor):
- var count=0;var sum=Vector3.ZERO;var uv_sum=Vector2.ZERO;var normal_sum=Vector3.ZERO
+ var count=0;var px=0.0;var py=0.0;var pz=0.0;var u=0.0;var v=0.0;var nx=0.0;var ny=0.0;var nz=0.0
  var inverse=actor.global_transform.affine_inverse()
  for node in actor.find_children("*","MeshInstance3D",true,false):
   var transform=inverse*node.global_transform
@@ -20,20 +21,31 @@ func signature(actor):
    var indices=arrays[Mesh.ARRAY_INDEX]
    if indices==null or indices.is_empty():indices=range(points.size())
    for i in indices:
-    count+=1;sum+=transform*points[i]
-    if uvs!=null:uv_sum+=uvs[i]
-    if normals!=null:normal_sum+=(normals_basis*normals[i]).normalized()
- return {"count":count,"sum":sum,"uv":uv_sum,"normal":normal_sum}
+    count+=1;var point=transform*points[i];px+=point.x;py+=point.y;pz+=point.z
+    if uvs!=null:u+=uvs[i].x;v+=uvs[i].y
+    if normals!=null:
+     var normal=(normals_basis*normals[i]).normalized();nx+=normal.x;ny+=normal.y;nz+=normal.z
+ return {"count":count,"sum":Vector3(px,py,pz),"uv":Vector2(u,v),"normal":Vector3(nx,ny,nz)}
 
 func equivalent(a,b):
  assert(a.count==b.count,"Triangle vertices retained")
- assert(a.sum.distance_to(b.sum)<maxf(.15,a.sum.length()*.00003),"Joint-relative geometry retained")
- assert(a.uv.distance_to(b.uv)<maxf(.05,a.uv.length()*.00003),"Texture UVs retained")
+ assert(a.sum.distance_to(b.sum)<maxf(.02,a.sum.length()*.000001),"Joint-relative geometry retained")
+ assert(a.uv.distance_to(b.uv)<maxf(.01,a.uv.length()*.000001),"Texture UVs retained")
  assert(a.normal.distance_to(b.normal)/a.count<.00002,"Articulated lighting normals retained within mesh packing precision")
 
 func run():
  var fighters=Fighters.new();fighters.batching_enabled=false;var rules=Rules.new()
  var stage=Node3D.new();root.add_child(stage)
+ for style in ["ponytail","braid","side_braid","bun","curls"]:
+  var head=Node3D.new();stage.add_child(head);fighters.Hair.build(fighters,head,{"hair":"623c31","hair_style":style},Color("bca26b"))
+  var bounds=AABB();var first=true
+  for mesh in head.find_children("*","MeshInstance3D",true,false):
+   var part=mesh.transform*mesh.get_aabb();bounds=part if first else bounds.merge(part);first=false
+  if style=="ponytail":assert(bounds.end.z>.3 and bounds.position.y<-.45,"Ponytail extends behind the crown and below the neck")
+  elif style in ["braid","side_braid"]:assert(bounds.position.y<-.5,"Plait has a distinct long silhouette")
+  elif style=="bun":assert(bounds.end.z>.25 and bounds.position.y>-.2,"Bun stays compact behind the head")
+  elif style=="curls":assert(bounds.size.x>.35,"Curls break the smooth cap silhouette")
+  head.queue_free();await process_frame
  var sources=0;var batches=0;var elapsed=0
  for entry in rules.roster:
   var unit=entry.duplicate(true);unit.team="player"
@@ -46,6 +58,10 @@ func run():
   equivalent(before,signature(baked))
   for key in bones:assert(baked.bone(key)==bones[key] and bones[key].is_inside_tree(),"Animation joints survive batching")
   assert(baked.find_children("PaintedFace","MeshInstance3D",true,false).size()==1,"Face stays separately addressable")
+  var appearance=fighters.profiles[unit.id].appearance
+  var cape=baked.bone("Cape").find_children("*","MeshInstance3D",true,false)[0]
+  assert(cape.material_override is ShaderMaterial and cape.material_override.get_shader_parameter("tint")==Color(appearance.cape),"Batched cape keeps the recruit's individual costume palette")
+  assert(baked.bone("Head").get_meta("hair_style")==appearance.hair_style,"Recruit hair selection survives batching")
   for pose in ["idle","advance","windup","strike","hit","evade","down"]:
    original.pose(pose,.001);var motion=baked.pose(pose,.001);await motion.finished
    original.elapsed=.2;baked.elapsed=.2;original._process(0);baked._process(0)
