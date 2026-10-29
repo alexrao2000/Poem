@@ -87,6 +87,7 @@ func start_battle():
 		e.team="enemy";e.acted=false;e.moved=false;e.boss=i==0
 		e.ai=entry.get("ai","pursue");e.alerted=false
 		e.x=int(entry.position[0]);e.y=int(entry.position[1])
+		e.item=entry.get("item",DEFAULT_ITEMS[e.weapon])
 		normalize_equipment(e)
 		units.append(e)
 
@@ -303,7 +304,10 @@ func next_player_turn():
 const SAVE_VERSION=3
 
 func layout_signature() -> String:
-	return JSON.stringify([info().map,info().deployment_positions,info().enemies,info().objective_position]).sha256_text()
+	# Equipment changes are safe for an existing battle: each unit saves its item.
+	var placement=info().enemies.duplicate(true)
+	for entry in placement:entry.erase("item")
+	return JSON.stringify([info().map,info().deployment_positions,placement,info().objective_position]).sha256_text()
 
 func save_data(stage: String) -> Dictionary:
 	return {"version":SAVE_VERSION,"layout_signature":layout_signature(),"story_seen":story_seen,"supports":supports.state,"chapter":chapter,"turn":turn,"phase":phase,"roster":roster,"units":units,"deployed":deployed,"completed":completed,"rng":str(rng.state),"stage":stage}

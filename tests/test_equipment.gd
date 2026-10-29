@@ -18,7 +18,7 @@ func run():
  var ai=Tactics.new();assert(ai.threatened_tiles(g,archer).has(g.pos(foe)),"Threat overlay includes longbow maximum range")
  assert(g.pos(archer) in ai.attack_positions(g,archer,foe),"AI plans from longbow range")
  foe.x=3;assert(not g.can_attack(archer,foe),"Longbow retains adjacent blind spot")
- var fighter=g.units[0];fighter.x=4;fighter.y=3;foe.x=5;foe.speed=fighter.speed-4
+ var fighter=g.units[0];fighter.x=4;fighter.y=3;foe.x=5;foe.item="iron_sword";foe.speed=fighter.speed-4
  assert(not g.forecast(fighter,foe).double,"Heavy blade loses a marginal follow-up")
  fighter.item="iron_sword";assert(g.forecast(fighter,foe).double,"Standard blade keeps follow-up")
  var healer=g.units.filter(func(u):return u.weapon=="staff")[0]

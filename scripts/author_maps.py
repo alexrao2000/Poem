@@ -117,5 +117,7 @@ save(g,[12,4],west,[enemy(12,4,'Arcanist'),enemy(4,2,'Knight'),enemy(4,7,'Knight
      [{'kind':'engine','position':[7,4.5]}])
 assert len(maps)==12
 for chapter,layout in zip(content['chapters'],maps):chapter.update(layout)
-path.write_text(json.dumps(content,indent=2)+'\n')
+from author_loadouts import apply_loadouts
+apply_loadouts(content,json.loads((ROOT/'data/equipment.json').read_text()))
+path.write_text(json.dumps(content,indent=2,ensure_ascii=False)+'\n')
 print('Authored 12 distinct maps, deployment formations, objectives and enemy squads.')

@@ -6,6 +6,7 @@ An original, playable tactical RPG prototype in Godot 4.5.1 / GDScript.
 
 - 24 named recruits across 8 classes, individual original portraits, character dossiers, epilogues, deployment selection, persistent levels and experience, and 16 advanced promotion paths.
 - 12 individually authored battlefields with 103 lines of opening/closing dialogue, a campaign ending, and rout, seize, boss and six-turn defense objectives.
+- Authored enemy equipment across all 12 chapters, including ranged spears, longbows, stronger tomes and specialist weapons visible in enemy inspection and forecasts.
 - Weighted terrain movement, occupancy, weapon triangle, two-roll hit checks, critical hits, counters, speed follow-ups, healing, enemy turns and casual recovery.
 - 24 individual original map sprites on a textured 3D landscape, village scenery, parchment UI, and a camera handoff to articulated 3D combatants with armor, capes, weapons, impact effects and combat health bars.
 - Original 71-second, 32-bar stereo score with calm/intense arrangements on the same sample timeline, plus synthesized combat/healing/phase effects.
@@ -63,7 +64,7 @@ Export templates are not checked in. Download the official 4.5.1 export template
 
 Browser build: `godot --headless --path . --export-release Web`, then `python3 scripts/pack_web.py`. The postprocessor compresses the WASM engine and uses the browser DecompressionStream API so static hosting needs no special response headers. Native build: `godot --headless --path . --export-release macOS`.
 
-To import, run all nineteen test suites, and package both local builds in one step: `GODOT_BIN=/path/to/godot scripts/build_local.sh`.
+To import, run all twenty test suites, and package both local builds in one step: `GODOT_BIN=/path/to/godot scripts/build_local.sh`.
 
 Apart from the openly licensed display font, all game assets and story content are original prototype work, including generated raster art and procedural 3D models. The game includes no Nintendo code, art, characters or music. Reference repositories informed mechanical architecture; the implementation is new GDScript.
 
