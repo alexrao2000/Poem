@@ -5,10 +5,12 @@ var batching_enabled=true
 var batcher=preload("res://scripts/static_batch.gd").new()
 var atlas: Texture2D
 var environment_atlas: Texture2D
+var foliage_atlas: Texture2D
 
 func _init():
  atlas=load("res://assets/art/terrain-atlas.png")
  environment_atlas=load("res://assets/art/environment-atlas.png")
+ foliage_atlas=load("res://assets/art/foliage-cards-v1.png")
 
 func detail_material(tile: int) -> ShaderMaterial:
  var key="detail"+str(tile)
@@ -84,11 +86,13 @@ func tree(parent,p,seed_value=0):
  var trunk=cylinder(parent,p+Vector3(0,h*.32,0),h*.72,.075,Color.WHITE,.035)
  trunk.material_override=detail_material(2)
  for i in range(8):
-  var shape=SphereMesh.new();shape.radius=1;shape.height=2;shape.radial_segments=8;shape.rings=5
   var angle=i*2.399
   var center=p+Vector3(cos(angle)*(.22+rng.randf()*.18),h*.65+float(i%3)*.18,sin(angle)*(.22+rng.randf()*.16))
-  var n=mesh(parent,shape,center,Vector3(.32+rng.randf()*.17,.31+rng.randf()*.21,.31+rng.randf()*.12),detail_material(seed_value%2))
-  n.rotation.y=angle
+  var leaf_type=2 if seed_value%5==0 else (seed_value+i)%2
+  for card in range(3):
+   var shape=QuadMesh.new();shape.size=Vector2(1.15+rng.randf()*.18,1.0+rng.randf()*.15)
+   var n=mesh(parent,shape,center,Vector3.ONE,foliage_material(leaf_type))
+   n.rotation=Vector3(-1.05 if card==2 else -.25,angle+card*PI*.5,rng.randf_range(-.15,.15))
   var base=p+Vector3(0,h*.38,0)
   var branch=cylinder(parent,(base+center)*.5,base.distance_to(center),.03,Color.WHITE,.012)
   branch.quaternion=Quaternion(Vector3.UP,(center-base).normalized());branch.material_override=detail_material(2)
@@ -330,3 +334,11 @@ func cart(parent,p):
  for z in [-.63,.63]:block(root,Vector3(0,.62,z),Vector3(.9,.35,.05),Color("8f7959"))
  for x in [-.25,.25]:block(root,Vector3(x,.35,1.2),Vector3(.055,.065,1.3),Color("695b45"))
  barrel(root,Vector3(-.15,.46,-.15),.8)
+
+func foliage_material(tile: int) -> ShaderMaterial:
+ var key="foliage"+str(tile)
+ if materials.has(key):return materials[key]
+ var value=ShaderMaterial.new();value.shader=load("res://assets/shaders/foliage.gdshader")
+ value.set_shader_parameter("foliage_atlas",foliage_atlas);value.set_shader_parameter("quadrant",Vector2((tile%2)*.5,(tile/2)*.5))
+ materials[key]=value
+ return value

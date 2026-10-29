@@ -26,6 +26,17 @@ func signature(node: Node3D) -> Dictionary:
    queue.append({"node":child,"transform":transform})
  return {"triangles":triangles,"vertices":vertices,"sum":Vector3(totals[0],totals[1],totals[2]),"uv_sum":Vector2(uv_totals[0],uv_totals[1])}
 func run():
+ var foliage=Image.load_from_file("res://assets/art/foliage-cards-v1.png")
+ var cell=foliage.get_width()/2
+ assert(foliage.get_width()==foliage.get_height() and cell>0)
+ for tile in range(4):
+  var coverage=0
+  for y in range(cell):
+   for x in range(cell):
+    if foliage.get_pixel(x+(tile%2)*cell,y+(tile/2)*cell).a>.45:
+     coverage+=1
+     assert(x>cell*.07 and y>cell*.07 and x<cell*.93 and y<cell*.93,"Leaf cards retain transparent gutters")
+  assert(coverage>1000 and coverage<cell*cell*.8,"Each foliage card has leaves and transparent gaps")
  var world=Node3D.new();root.add_child(world)
  var shared=StandardMaterial3D.new();var surface=SurfaceTool.new();surface.begin(Mesh.PRIMITIVE_TRIANGLES)
  surface.set_normal(Vector3.ONE.normalized());surface.add_vertex(Vector3.ZERO);surface.add_vertex(Vector3.RIGHT);surface.add_vertex(Vector3.UP)

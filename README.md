@@ -34,7 +34,7 @@ Open `project.godot` in Godot 4.5.1 (standard edition). Use the Compatibility re
 - `scripts/tactics.gd`: weighted pathfinding, guard/sentry/pursuit behavior, combat evaluation and automated playtest planning.
 - `scripts/main.gd`: menus, board renderer, input, AI orchestration, combat presentation and music.
 - `scripts/scenery.gd`: textured terrain, environment construction and material caching.
-- `scripts/static_batch.gd`: spatial/material batching for static scenery, with correct normals under nonuniform scaling. The current 12 maps combine 9,169 mesh objects into 628 batches; browser FPS has not yet been measured.
+- `scripts/static_batch.gd`: spatial/material batching for static scenery, with correct normals under nonuniform scaling. The current 12 maps combine 13,633 mesh objects into 674 batches; browser FPS has not yet been measured.
 - `scripts/fighters.gd` and `fighter_actor.gd`: articulated class actors, joint poses, weapons and class-specific attack animations.
 - `assets/art/`: original generated terrain atlas and class sprite atlas. Prompts and provenance are recorded in `docs/art-direction.md`.
 - `data/campaign.json`: editable roster, classes and chapter definitions.
