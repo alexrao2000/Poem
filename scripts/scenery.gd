@@ -1,5 +1,6 @@
 extends RefCounted
 const MapSurface=preload("res://scripts/map_surface.gd")
+const RiverBank=preload("res://scripts/river_bank.gd")
 # Shared landscape construction for the tactical board and battle stage.
 # Masonry spans use closed wedge stones with small joints and an open underside.
 var materials: Dictionary = {}
@@ -193,9 +194,14 @@ func landscape(parent,game):
     var water=water_material()
     var plane=PlaneMesh.new();plane.size=Vector2.ONE
     mesh(parent,plane,p-Vector3(0,.07,0),Vector3.ONE,water)
-    for direction in [Vector2i.LEFT,Vector2i.RIGHT,Vector2i.UP,Vector2i.DOWN]:
-     if game.terrain(Vector2i(x,y)+direction) not in ["~","=","#"]:
-      block(parent,p+Vector3(direction.x*.48,.015,direction.y*.48),Vector3(.08 if direction.x else 1,.16,.08 if direction.y else 1),Color("9d9e8e"))
+    if theme in ["river","forest","mountain","road"]:
+     var bank=RiverBank.build(game,Vector2i(x,y))
+     if bank!=null:
+      var shore=mesh(parent,bank,p,Vector3.ONE,ground_material(2));shore.name="RiverBank"
+    else:
+     for direction in [Vector2i.LEFT,Vector2i.RIGHT,Vector2i.UP,Vector2i.DOWN]:
+      if game.terrain(Vector2i(x,y)+direction) not in ["~","=","#"]:
+       block(parent,p+Vector3(direction.x*.48,.015,direction.y*.48),Vector3(.08 if direction.x else 1,.16,.08 if direction.y else 1),Color("9d9e8e"))
    else:ground(parent,p,Vector2.ONE,surface)
    if t=="=":bridge(parent,p,theme in ["harbor","road"])
    elif t=="f":tree(parent,p+Vector3(.22,0,-.22),x+y*17)

@@ -14,6 +14,8 @@ func run():
   var actor=Unit.new();stage.add_child(actor);actor.configure(catalog,unit)
   var individual=catalog.assets.has("recruit."+unit.id)
   assert(individual and actor.visual_id=="recruit."+unit.id,"Every campaign recruit has its own animated identity")
+  assert(actor.marker.mesh is PlaneMesh and actor.marker.material_override==Unit.shadow_material(),"Campaign units share a soft contact shadow instead of a solid team plate")
+  assert(actor.health.visible and actor.health.texture.get_image().get_pixel(0,0).is_equal_approx(Color("6fb6d3")),"Player health remains visible at full HP with a blue team border")
   var extent=actor.sprite.texture.get_size()*Vector2(actor.sprite.scale.x,actor.sprite.scale.y)*actor.sprite.pixel_size
   assert(extent.y>=.8 and extent.y<=1.2 and extent.x<=1.15,"Idle recruit silhouettes stay near one tile tall without crowding adjacent tiles")
   if individual:
@@ -47,6 +49,12 @@ func run():
   actor.queue_free();catalog.assets[visual_id]=saved
   unit.team="enemy";actor=Unit.new();stage.add_child(actor);actor.configure(catalog,unit)
   assert(actor.visual_id=="unit."+unit.job.to_lower(),"Enemy figures retain class silhouettes even if an ID matches a recruit")
+  for ratio in [1.0,.5,.25,0.0]:
+   actor.hp_ratio=ratio;actor.refresh_health()
+   var bar=actor.health.texture.get_image()
+   assert(actor.health.visible and bar.get_pixel(0,0).is_equal_approx(Color("d77870")),"Enemy health keeps its red border at every HP level")
+   var fill=Color("acd86b") if ratio>.5 else Color("f2c45e") if ratio>.25 else Color("e87c63")
+   for x in range(1,23):assert(bar.get_pixel(x,1).is_equal_approx(fill if x<=roundi(22*ratio) else Color("172b30")),"HP fill and low-health colors match the displayed fraction")
   extent=actor.sprite.texture.get_size()*Vector2(actor.sprite.scale.x,actor.sprite.scale.y)*actor.sprite.pixel_size
   assert(extent.x<=1.15 and extent.y<=1.2,"Enemy fallback art shares the compact campaign scale")
   actor.queue_free()

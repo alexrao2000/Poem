@@ -55,6 +55,7 @@ var ui: Control
 var side: VBoxContainer
 var terrain_card: Control
 var forecast_panel: Control
+var battle_menu: Control
 var status: Label
 var selected = null
 var target = null
@@ -178,6 +179,7 @@ func reset_ui():
 	dialogue_label=null
 	terrain_card=null
 	forecast_panel=null
+	battle_menu=null
 	if is_instance_valid(ui):
 		canvas.remove_child(ui)
 		ui.queue_free()
@@ -410,10 +412,11 @@ func show_battle():
 	var panel=PanelContainer.new();panel.set_anchors_and_offsets_preset(Control.PRESET_RIGHT_WIDE);panel.offset_left=-325;panel.offset_right=-22;panel.offset_top=118;panel.offset_bottom=-24;ui.add_child(panel)
 	side=VBoxContainer.new();side.add_theme_constant_override("separation",5);panel.add_child(side)
 	var bottom=PanelContainer.new();bottom.set_anchors_and_offsets_preset(Control.PRESET_BOTTOM_WIDE);bottom.offset_left=22;bottom.offset_right=-343;bottom.offset_top=-84;bottom.offset_bottom=-22;ui.add_child(bottom)
-	label_in(bottom,"Arrows / Enter: select · Q/E: allies · W: wait · R: danger · Space: end phase\nWheel / + −: zoom · Middle drag: pan · Home: reset · Esc: undo · Tab: skip",14)
+	label_in(bottom,"Arrows / Enter: select · Q/E: allies · W: wait · R: danger · Space: end phase\nWheel / + −: zoom · Middle drag: pan · Home: reset · M: menu · Esc: undo · Tab: skip",14)
 	terrain_card=TerrainCard.new();terrain_card.configure(ui)
 	var inspected=game.pos(selected) if selected!=null else game.pos(game.living("player")[0]) if not game.living("player").is_empty() else Vector2i.ZERO
 	terrain_card.inspect(game,cursor_tile if cursor_visible else inspected)
+	ui.resized.connect(arrange_battle_side)
 	update_side();highlight()
 
 func update_side():
@@ -423,7 +426,7 @@ func update_side():
 	status.text="TURN %d  /  %s"%[game.turn,game.phase.to_upper()]+("\nSAVE FAILED" if save_failed else "")
 	if selected!=null:
 		var identity=HBoxContainer.new();identity.add_theme_constant_override("separation",8);side.add_child(identity)
-		var portrait=TextureRect.new();portrait.texture=portraits.get_unit_portrait(selected);portrait.expand_mode=TextureRect.EXPAND_IGNORE_SIZE;portrait.flip_h=selected.team=="enemy"
+		var portrait=TextureRect.new();portrait.name="UnitPortrait";portrait.texture=portraits.get_unit_portrait(selected);portrait.expand_mode=TextureRect.EXPAND_IGNORE_SIZE;portrait.flip_h=selected.team=="enemy"
 		if portrait.texture==null:portrait.texture=unit_portrait(selected)
 		portrait.stretch_mode=TextureRect.STRETCH_KEEP_ASPECT_CENTERED;portrait.custom_minimum_size=Vector2(90,100);identity.add_child(portrait)
 		var details=VBoxContainer.new();details.size_flags_horizontal=Control.SIZE_EXPAND_FILL;identity.add_child(details)
@@ -461,11 +464,47 @@ func update_side():
 		button_in(side,"Enemy ranges [R]: "+("on" if show_danger else "off"),toggle_danger,busy)
 	var spacer=Control.new();spacer.size_flags_vertical=Control.SIZE_EXPAND_FILL;side.add_child(spacer)
 	button_in(side,"End player phase",end_turn,busy)
-	var save_row=HBoxContainer.new();save_row.add_theme_constant_override("separation",6);side.add_child(save_row)
-	button_in(save_row,"Save",func():save_with_feedback("battle"),busy).size_flags_horizontal=Control.SIZE_EXPAND_FILL
-	button_in(save_row,"Transfer code",func():show_save_transfer("battle"),busy).size_flags_horizontal=Control.SIZE_EXPAND_FILL
-	button_in(side,"Options / audio",func():show_options("battle"),busy)
-	button_in(side,"War council (restart map)",show_camp,busy)
+	button_in(side,"Menu [M]",show_battle_menu,busy)
+	arrange_battle_side()
+
+func arrange_battle_side():
+	if not is_instance_valid(side) or not is_instance_valid(ui) or screen not in ["battle","battle_menu"]:return
+	var compact=ui.size.y<760
+	var theme=Theme.new();theme.default_font_size=17
+	for state in ["normal","hover","pressed","disabled"]:
+		var style=ui.theme.get_stylebox(state,"Button").duplicate()
+		style.content_margin_top=6 if compact else 12;style.content_margin_bottom=style.content_margin_top
+		theme.set_stylebox(state,"Button",style)
+	side.theme=theme
+	for button in side.find_children("*","Button",true,false):button.custom_minimum_size.y=34 if compact else 42
+	for portrait in side.find_children("UnitPortrait","TextureRect",true,false):portrait.custom_minimum_size=Vector2(76,84) if compact else Vector2(90,100)
+
+func show_battle_menu():
+	if screen!="battle" or busy or game.phase!="player":return
+	map_navigation.stop();play_sfx("select");screen="battle_menu"
+	battle_menu=Control.new();battle_menu.name="BattleMenu";ui.add_child(battle_menu)
+	battle_menu.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT);battle_menu.mouse_filter=Control.MOUSE_FILTER_STOP;battle_menu.z_index=20
+	var shade=ColorRect.new();shade.color=Color(0.04,.06,.08,.55);battle_menu.add_child(shade);shade.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	var frame=PanelContainer.new();frame.name="MenuFrame";battle_menu.add_child(frame)
+	frame.set_anchors_and_offsets_preset(Control.PRESET_CENTER);frame.offset_left=-220;frame.offset_right=220;frame.offset_top=-215;frame.offset_bottom=215
+	var commands=VBoxContainer.new();commands.add_theme_constant_override("separation",8);frame.add_child(commands)
+	label_in(commands,"Battle menu",40,GOLD)
+	label_in(commands,"Turn %d · %s"%[game.turn,game.info().title],17)
+	button_in(commands,"Return to battle",close_battle_menu).grab_focus()
+	button_in(commands,"Save",func():close_battle_menu();save_with_feedback("battle"))
+	button_in(commands,"Transfer code",func():close_battle_menu();show_save_transfer("battle"))
+	button_in(commands,"Options / audio",func():close_battle_menu();show_options("battle"))
+	button_in(commands,"War council (restart map)",func():close_battle_menu();show_camp())
+	var buttons=commands.find_children("*","Button",true,false)
+	for i in range(buttons.size()):
+		var button=buttons[i]
+		button.focus_next=button.get_path_to(buttons[(i+1)%buttons.size()]);button.focus_neighbor_bottom=button.focus_next
+		button.focus_previous=button.get_path_to(buttons[(i-1+buttons.size())%buttons.size()]);button.focus_neighbor_top=button.focus_previous
+		button.focus_neighbor_left=NodePath(".");button.focus_neighbor_right=NodePath(".")
+
+func close_battle_menu():
+	if not is_instance_valid(battle_menu):return
+	get_viewport().gui_release_focus();ui.remove_child(battle_menu);battle_menu.queue_free();battle_menu=null;screen="battle"
 
 func highlight():
 	for id in unit_nodes:unit_nodes[id].selected=selected!=null and selected.id==id
@@ -491,7 +530,10 @@ func toggle_danger():
 
 func _input(event):
 	if event is InputEventMouseButton and event.button_index==MOUSE_BUTTON_MIDDLE and not event.pressed:map_navigation.dragging=false
+	if screen=="battle_menu" and event is InputEventKey and event.pressed and not event.echo and event.keycode in [KEY_ESCAPE,KEY_M]:
+		close_battle_menu();get_viewport().set_input_as_handled();return
 	if screen=="battle" and not busy and game.phase=="player" and event is InputEventKey and event.pressed:
+		if event.keycode==KEY_M and not event.echo:show_battle_menu();get_viewport().set_input_as_handled();return
 		if event.keycode==KEY_HOME:map_camera();get_viewport().set_input_as_handled();return
 		if event.keycode in [KEY_EQUAL,KEY_PLUS,KEY_MINUS]:
 			var anchor=camera.unproject_position(map_position(cursor_tile)) if cursor_visible else Vector2((ui.size.x-325)*.5,ui.size.y*.5)

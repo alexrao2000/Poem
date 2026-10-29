@@ -29,6 +29,55 @@ func run():
  var key=InputEventKey.new();key.pressed=true;key.keycode=KEY_E;app._input(key)
  assert(app.selected!=null and not app.selected.acted)
  var old=app.cursor_tile;key.keycode=KEY_UP;app._input(key);assert(app.cursor_tile.y==maxi(0,old.y-1))
+ app.game.start_battle();app.make_map();app.show_battle();unit=app.game.units[0];enemy=app.game.living("enemy")[0]
+ unit.x=8;unit.y=4;enemy.x=9;enemy.y=4
+ for dimensions in [Vector2(1024,640),Vector2(1280,720),Vector2(1440,900)]:
+  app.ui.set_anchors_and_offsets_preset(Control.PRESET_TOP_LEFT);app.ui.size=dimensions
+  for state in ["company","unit","forecast","enemy"]:
+   app.selected=null if state=="company" else enemy if state=="enemy" else unit
+   app.target=enemy if state=="forecast" else null;app.update_side();await process_frame;await process_frame
+   var panel=app.side.get_parent();var frame=panel.get_global_rect()
+   assert(frame.end.y<=dimensions.y-20,"Battle sidebar fits the shorter desktop window")
+   for child in app.side.get_children():assert(child.get_global_rect().end.y<=frame.end.y-10,"Every action remains inside its panel without scrolling")
+  app.selected=unit;app.target=enemy;app.update_side()
+  var saved=app.game.save_data("battle").duplicate(true);var selection=app.selected;var position=app.camera.transform
+  app.show_battle_menu();await process_frame;await process_frame
+  assert(app.screen=="battle_menu" and app.selected==selection,"Opening the menu preserves tactical selection")
+  var menu_frame=app.battle_menu.get_node("MenuFrame").get_global_rect()
+  assert(menu_frame.position.x>=0 and menu_frame.position.y>=0 and menu_frame.end.x<=dimensions.x and menu_frame.end.y<=dimensions.y,"Battle menu stays within each desktop viewport")
+  var buttons=app.battle_menu.find_children("*","Button",true,false)
+  assert(buttons.size()==5,"All existing save, transfer, options and council routes remain available")
+  for button in buttons:assert(button.get_node(button.focus_next) in buttons and button.get_node(button.focus_previous) in buttons,"Keyboard focus cannot escape to the battlefield behind the menu")
+  key.keycode=KEY_SPACE;app._unhandled_input(key)
+  assert(app.game.save_data("battle")==saved and app.camera.transform==position,"Menu input cannot end the phase or move the camera")
+  key.keycode=KEY_ESCAPE;app._input(key)
+  assert(app.screen=="battle" and app.selected==selection and app.target==enemy,"Escape resumes the same forecast")
+ app.target=null;app.selected=unit;app.update_side()
+ var pending=app.game.pos(unit)
+ for tile in app.game.reachable(unit):
+  if app.game.at(tile)==null:pending=tile;break
+ app.click_tile(pending)
+ while app.busy:await process_frame
+ var moved=app.game.pos(unit);var undo_origin=app.origin
+ app.show_battle_menu();app.close_battle_menu()
+ assert(app.game.pos(unit)==moved and app.origin==undo_origin,"Opening and closing the menu preserves an uncommitted move")
+ app.cancel_selection();assert(app.game.pos(unit)==Vector2i(8,4),"Undo still works after resuming from the menu")
+ app.busy=true;app.show_battle_menu();assert(app.screen=="battle" and app.battle_menu==null,"Menu cannot interrupt an action")
+ app.busy=false;app.settings_path="/private/tmp/ashen-controls-settings.json"
+ for command in ["Save","Transfer code","Options / audio","War council (restart map)"]:
+  app.show_battle_menu()
+  var button=app.battle_menu.find_children("*","Button",true,false).filter(func(value):return value.text==command)[0]
+  button.pressed.emit();await process_frame
+  if command=="Save":assert(app.screen=="battle" and FileAccess.file_exists(app.save_path),"Menu Save writes the local battle save")
+  elif command=="Transfer code":
+   assert(app.screen=="save_transfer" and app.transfer_text.text.begins_with("ASHEN1:"),"Menu transfer exports the live battle")
+   app.close_save_transfer();await process_frame
+  elif command=="Options / audio":
+   assert(app.screen=="options" and app.options_return=="battle","Menu options retain their return route")
+   app.close_options();await process_frame;assert(app.screen=="battle")
+  else:
+   if app.screen=="dialogue":app.finish_dialogue();await process_frame
+   assert(app.screen=="camp","Menu council returns to preparation after any unseen chapter briefing")
  for player in app.sfx_players:player.stop()
  app.music.stop();await create_timer(.15).timeout
  app.queue_free();await process_frame

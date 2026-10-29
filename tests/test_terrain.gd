@@ -5,6 +5,7 @@ const Rules=preload("res://scripts/rules.gd")
 const MapSurface=preload("res://scripts/map_surface.gd")
 const MapOverlay=preload("res://scripts/map_overlay.gd")
 const Scenery=preload("res://scripts/scenery.gd")
+const RiverBank=preload("res://scripts/river_bank.gd")
 func _initialize():call_deferred("run")
 func surface_geometry():
  var scenery=Scenery.new();var parent=Node3D.new();root.add_child(parent)
@@ -28,6 +29,27 @@ func surface_geometry():
 func run():
  surface_geometry()
  var game=Rules.new();var seen={}
+ var banks=0;var exposed=0
+ for chapter in range(12):
+  game.chapter=chapter;var seams={};var state=game.rng.state
+  for y in range(game.board_size().y):
+   for x in range(game.board_size().x):
+    var cell=Vector2i(x,y)
+    if game.terrain(cell)!="~":continue
+    var bank=RiverBank.build(game,cell)
+    if bank==null:continue
+    banks+=1;var arrays=bank.surface_get_arrays(0)
+    for vertex in arrays[Mesh.ARRAY_VERTEX]:
+     assert(vertex.y>=RiverBank.BED_HEIGHT-.0001 and vertex.y<=.0001,"Shore stays below walkable terrain and above the river bed")
+     var point=Vector2(vertex.x+x,vertex.z+y).snapped(Vector2.ONE*.00001)
+     if seams.has(point):assert(absf(seams[point]-vertex.y)<.0001,"Adjacent bank tiles share matching edge and corner heights")
+     seams[point]=vertex.y
+     if vertex.y>-.07 and vertex.y<-.001:exposed+=1
+     for land in RiverBank.nearby_land(game,cell):
+      if (point-land).abs().x<=.5 and (point-land).abs().y<=.5:assert(is_zero_approx(vertex.y),"Bank meets neighboring land without a lip")
+    for normal in arrays[Mesh.ARRAY_NORMAL]:assert(normal.y>.5,"Bank lighting normals face above the water")
+  assert(game.rng.state==state,"Shore generation does not consume gameplay randomness")
+ assert(banks>10 and exposed>100,"Campaign water includes visible sloped shore geometry")
  for chapter in range(12):
   game.chapter=chapter;game.start_battle()
   var a=game.units[0].duplicate(true);var b=game.living("enemy")[0].duplicate(true)

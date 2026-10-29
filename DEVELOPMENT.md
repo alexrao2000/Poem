@@ -14,6 +14,8 @@ Combat silhouettes use a thin reverse-culled outline pass, with separately smoot
 
 Dock and bridge arena floors meet the fighters' foot plane. Physical projectile trajectories end at the actual arrow/spear tip, with the shaft trailing behind and launching near the animated grip.
 
+Natural river, forest, mountain and road water edges use continuous sloped banks; canals and harbor edges retain masonry. Campaign units have shared soft contact shadows and persistent green/amber/red HP fills with blue/red team borders. The battle sidebar keeps tactical actions visible and moves Save, transfer, options and the council into the M-key menu. Shorter windows use compact spacing; menu focus, phase isolation, action routes and pending-move restoration are covered by controls checks.
+
 The last delivered local browser/macOS checkpoint passed all 31 automated suites, five complete campaign simulations (60 chapter victories), model-catalog validation and an exported-resource-pack smoke check. These are runtime, geometry and layout checks, not a rendered review of the latest game. Full human balance and listening reviews remain outstanding. Routine non-destructive commits and private pushes are authorized.
 
 The user explicitly allowed local browser testing, but the subsequent tool retry still returned a saved/managed permission denial. Localhost, the Quaternius asset site and native Codex access were blocked. Do not circumvent these denials with another browser surface, native game capture, raw browser/CDP access or alternate asset hosts. No Quaternius models have been acquired. Earlier screenshots and another chat's native workshop captures do not verify the current campaign visuals.
