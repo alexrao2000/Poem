@@ -28,9 +28,19 @@ func run():
 		await process_frame
 		assert(app.sprites.size()==app.game.units.size(),"Every combatant has a map sprite")
 		var arena=Node3D.new();app.add_child(arena)
-		app.scenery.battle_landscape(arena,Vector3.ZERO,{"environment":app.game.info().environment})
+		var context=app.scenery.combat_context(app.game,app.game.living("player")[0],app.game.living("enemy")[0])
+		var rng_before=app.game.rng.state
+		app.scenery.battle_landscape(arena,Vector3.ZERO,context)
 		assert(arena.get_meta("environment")==app.game.info().environment,"Arena matches chapter")
+		assert(arena.get_meta("terrain")==context.terrain and arena.get_meta("backdrop_count")==context.landmarks.size(),"Combat uses target terrain and nearby map landmarks")
+		assert(context.landmarks.size()<=2 and app.game.rng.state==rng_before,"Backdrop selection is bounded and independent of gameplay RNG")
+		for landmark in context.landmarks:assert(absf(landmark.x)<=11 and landmark.z<=-7,"Landmarks remain behind the action")
 		assert(arena.get_meta("batch_stats").sources>5,"Arena includes batched scenery")
+		arena.queue_free()
+	for tile in [".","f","h","p","o","+"]:
+		var arena=Node3D.new();app.add_child(arena)
+		app.scenery.battle_landscape(arena,Vector3.ZERO,{"environment":"village","terrain":tile})
+		assert(arena.get_meta("arena_surface")== (2 if tile=="h" else 1 if tile in ["p","o","+"] else 0),"Forest/field fights do not become paved roads")
 		arena.queue_free()
 	app.game.new_campaign()
 	for unit in app.game.roster:

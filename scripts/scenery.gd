@@ -250,12 +250,33 @@ func landmark(parent,p,kind):
  elif kind=="ruin":
   for i in range(3):cylinder(parent,p+Vector3(i*.6,.4+i*.2,0),.8+i*.4,.22,stone)
 
+func combat_context(game,a,b) -> Dictionary:
+ var midpoint=Vector2(a.x+b.x,a.y+b.y)*.5
+ var axis=Vector2(b.x-a.x,b.y-a.y).normalized()
+ if axis.is_zero_approx():axis=Vector2.RIGHT
+ var depth=Vector2(-axis.y,axis.x)
+ var candidates=[]
+ for item in game.info().get("landmarks",[]):
+  var delta=Vector2(item.position[0],item.position[1])-midpoint
+  if delta.length()>8:continue
+  candidates.append({"kind":item.kind,"distance":delta.length(),"x":clampf(delta.dot(axis)*2.2,-11,11),"z":-7-clampf(absf(delta.dot(depth))*1.8,0,10)})
+ candidates.sort_custom(func(left,right):return left.distance<right.distance)
+ return {"chapter":game.chapter,"environment":game.info().get("environment","village"),"terrain":game.terrain(game.pos(b)),"landmarks":candidates.slice(0,2)}
+
+func battle_tree(parent,point,seed_value,scale_value):
+ var group=Node3D.new();group.name="ArenaTree";group.position=point;group.scale=Vector3.ONE*scale_value;parent.add_child(group)
+ tree(group,Vector3.ZERO,seed_value)
+
 func battle_landscape(parent,center,context={}):
  var theme=context.get("environment","village")
  parent.set_meta("environment",theme)
+ var tile=context.get("terrain","p")
+ parent.set_meta("terrain",tile)
  var stone=theme in ["abbey","aqueduct","observatory","castle","engine","furnace"]
+ var surface=3 if stone else 2 if tile=="h" else 1 if tile in ["p","o","+"] else 0
+ parent.set_meta("arena_surface",surface)
  ground(parent,center-Vector3(0,.06,0),Vector2(70,70),3 if stone else 0)
- ground(parent,center,Vector2(24,6),3 if stone else (1 if theme=="village" else 2))
+ ground(parent,center,Vector2(24,6),surface)
  if theme in ["river","harbor","aqueduct"] or context.get("terrain")=="=":
   var water=water_material()
   var plane=PlaneMesh.new();plane.size=Vector2(60,40)
@@ -267,10 +288,16 @@ func battle_landscape(parent,center,context={}):
    block(parent,center+Vector3(x,.55,-3),Vector3(.13,1.1,.13),Color("72624f"))
   block(parent,center+Vector3(0,.7,-3),Vector3(22,.12,.10),Color("8e7c60"))
  if theme in ["village","river","road","forest","harbor"]:
-  for i in range(34 if theme=="forest" else 19):
-   tree(parent,center+Vector3(-17+(i*11)%35,0,-6-(i%4)*2),i*83)
-  if theme!="forest":
-   for i in range(3):house(parent,center+Vector3(-12+i*11,0,-15),1.0+i*.13)
+  for i in range(28 if theme=="forest" or tile=="f" else 17):
+   battle_tree(parent,center+Vector3(-20+(i*11)%41,0,-8-(i%4)*3),i*83,2.6+(i%3)*.25)
+  if theme!="forest" and context.get("landmarks",[]).is_empty():
+   for i in range(3):house(parent,center+Vector3(-12+i*11,0,-17),2.0+i*.2)
+ var backdrop=context.get("landmarks",[])
+ parent.set_meta("backdrop_count",backdrop.size())
+ for item in backdrop:
+  var group=Node3D.new();group.name="ArenaLandmark";parent.add_child(group);group.position=center+Vector3(item.x,0,item.z)
+  group.scale=Vector3.ONE*(2.1 if item.kind in ["house","warehouse","tower","spire","arch"] else 1.4)
+  landmark(group,Vector3.ZERO,item.kind)
  if theme in ["village","road"]:
   cart(parent,center+Vector3(-6,0,-3.8));fence(parent,center+Vector3(3,0,-4),5.0)
   for i in range(3):barrel(parent,center+Vector3(6+i*.4,0,-4.3),1.0)

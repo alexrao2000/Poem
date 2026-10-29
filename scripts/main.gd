@@ -627,7 +627,7 @@ func cinematic(a,b,events,initial_hp={}):
 	for n in stage.get_children():n.queue_free()
 	stage.visible=true
 	var old_lighting=battle_lighting(game.info().get("environment","village"))
-	scenery.battle_landscape(stage,Vector3(35,0,0),{"chapter":game.chapter,"terrain":game.terrain(game.pos(b)),"environment":game.info().get("environment","village")})
+	scenery.battle_landscape(stage,Vector3(35,0,0),scenery.combat_context(game,a,b))
 	world.hide();pieces.hide()
 	var ranged=game.distance(a,b)>1 or a.weapon in ["bow","magic"] or b.weapon in ["bow","magic"]
 	var spacing=2.0 if ranged else 1.6
