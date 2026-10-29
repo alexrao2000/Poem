@@ -1,6 +1,7 @@
 extends Node3D
 # Original local impact accents: additive glow, tapered sparks and angular
 # critical forks. Fixed geometry keeps presentation independent of game RNG.
+const Spell=preload("res://scripts/combat_spell.gd")
 var camera: Camera3D
 var plane: Node3D
 var burst: MeshInstance3D
@@ -9,7 +10,7 @@ var amount: Label3D
 var motion: Tween
 static var glow_texture: GradientTexture2D
 
-func configure(point: Vector3,event: Dictionary,view: Camera3D):
+func configure(point: Vector3,event: Dictionary,view: Camera3D,spell=""):
  name="CombatImpact";position=point;camera=view
  amount=Label3D.new();amount.name="Damage";amount.text=str(int(event.damage)) if event.hit else "MISS"
  amount.font_size=110 if event.crit else 80;amount.pixel_size=.0055;amount.billboard=BaseMaterial3D.BILLBOARD_ENABLED
@@ -24,9 +25,11 @@ func configure(point: Vector3,event: Dictionary,view: Camera3D):
   plane=Node3D.new();add_child(plane)
   glow=MeshInstance3D.new();glow.name="ContactGlow";plane.add_child(glow)
   var quad=QuadMesh.new();quad.size=Vector2.ONE*(1.5 if event.crit else .9);glow.mesh=quad
-  var material=accent_material();material.albedo_texture=radial_texture();glow.material_override=material
+  var material=accent_material();material.albedo_texture=radial_texture()
+  material.albedo_color=Color("ffca76") if spell.is_empty() else Spell.palette(spell).accent
+  glow.material_override=material
   burst=MeshInstance3D.new();burst.name="CriticalForks" if event.crit else "Sparks";plane.add_child(burst)
-  burst.mesh=burst_mesh(event.crit);burst.material_override=accent_material();burst.position.z=.01
+  burst.mesh=burst_mesh(event.crit,spell);burst.material_override=accent_material();burst.position.z=.01
   motion.tween_property(glow,"scale",Vector3.ONE*1.3,.2).from(Vector3.ONE*.4)
   motion.tween_property(glow.material_override,"albedo_color:a",0.0,.18).set_delay(.035)
   motion.tween_property(burst,"scale",Vector3.ONE*1.18,.23).from(Vector3.ONE*.45).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
@@ -43,7 +46,7 @@ static func accent_material() -> StandardMaterial3D:
 static func radial_texture() -> GradientTexture2D:
  if glow_texture!=null:return glow_texture
  var gradient=Gradient.new();gradient.offsets=PackedFloat32Array([0,.15,.42,1])
- gradient.colors=PackedColorArray([Color(1,1,.9,.85),Color(1,.9,.5,.65),Color(1,.56,.18,.25),Color(1,.35,.08,0)])
+ gradient.colors=PackedColorArray([Color(1,1,1,.85),Color(1,1,1,.65),Color(1,1,1,.25),Color(1,1,1,0)])
  glow_texture=GradientTexture2D.new();glow_texture.width=128;glow_texture.height=128
  glow_texture.gradient=gradient;glow_texture.fill=GradientTexture2D.FILL_RADIAL
  glow_texture.fill_from=Vector2(.5,.5);glow_texture.fill_to=Vector2(1,.5)
@@ -54,20 +57,21 @@ static func ribbon(surface: SurfaceTool,start: Vector2,end: Vector2,width: float
  var points=[start-normal,start+normal,end]
  for p in points:surface.set_color(color);surface.add_vertex(Vector3(p.x,p.y,0))
 
-static func burst_mesh(critical: bool) -> ArrayMesh:
+static func burst_mesh(critical: bool,spell="") -> ArrayMesh:
  var surface=SurfaceTool.new();surface.begin(Mesh.PRIMITIVE_TRIANGLES)
+ var colors={"core":Color("ffe1a0"),"accent":Color("ffab3f")} if spell.is_empty() else Spell.palette(spell)
  for i in range(14 if critical else 9):
   var angle=i*2.39996
   var direction=Vector2(cos(angle),sin(angle))
   var length=.45+float(i%4)*.13
-  ribbon(surface,direction*.12,direction*length*(1.3 if critical else 1.0),.022 if i%2 else .038,Color("ffe1a0") if i%2 else Color("ffab3f"))
- if critical:
-  for i in range(5):
+  ribbon(surface,direction*.12,direction*length*(1.3 if critical else 1.0),.022 if i%2 else .038,colors.core if i%2 else colors.accent)
+ if critical or spell=="thunder":
+  for i in range(5 if critical else 3):
    var direction=Vector2.from_angle(i*TAU/5+.2);var side=direction.orthogonal();var previous=direction*.14
    for j in range(1,6):
     var next=direction*(.14+j*.21)+side*sin(j*4.3+i)*.11
-    ribbon(surface,previous,next,.018,Color("fff2c7"));previous=next
-    if j==3:ribbon(surface,previous,previous+direction*.22+side*.18,.012,Color("ffd37c"))
+    ribbon(surface,previous,next,.018,colors.core);previous=next
+    if j==3:ribbon(surface,previous,previous+direction*.22+side*.18,.012,colors.accent)
  return surface.commit()
 
 func _process(_dt):

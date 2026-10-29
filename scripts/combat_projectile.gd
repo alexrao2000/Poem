@@ -1,17 +1,19 @@
 extends Node3D
 # Original arrow, thrown spear and spell presentations follow an explicit arc.
 # The tip tracks its flight tangent, including different mounted target heights.
+const Spell=preload("res://scripts/combat_spell.gd")
 var origin=Vector3.ZERO
 var destination=Vector3.ZERO
 var arc=0.0
 var progress=0.0
 var kind="bow"
+var spell=""
 var body: Node3D
 var trail: Array=[]
 var motion: Tween
 
-func launch(from: Vector3,to: Vector3,weapon: String,duration=.23) -> Tween:
- name="CombatProjectile";origin=from;destination=to;kind=weapon
+func launch(from: Vector3,to: Vector3,weapon: String,duration=.23,spell_id="") -> Tween:
+ name="CombatProjectile";origin=from;destination=to;kind=weapon;spell=spell_id
  arc=.14 if kind=="bow" else .08 if kind=="lance" else .04
  body=Node3D.new();body.name="FlightBody";add_child(body)
  if kind in ["bow","lance"]:
@@ -27,13 +29,20 @@ func launch(from: Vector3,to: Vector3,weapon: String,duration=.23) -> Tween:
     surface.generate_normals()
     var feather=piece(body,surface.commit(),Color("c5d1c9"));feather.rotation.z=angle
  else:
+  var colors=Spell.palette(spell)
   var orb=SphereMesh.new();orb.radius=.14;orb.height=.28;orb.radial_segments=12;orb.rings=6
-  piece(body,orb,Color("b7f2ed"),true)
-  for i in range(2):
-   var torus=TorusMesh.new();torus.inner_radius=.19;torus.outer_radius=.215;torus.rings=16;torus.ring_segments=6
-   var ring=piece(body,torus,Color("6fbfdf"),true);ring.rotation=Vector3(PI/2,i*PI/2,0)
+  if spell=="gale":
+   for i in range(3):
+    var ring=piece(body,Spell.crescent(),colors.accent,true);ring.name="WindCrescent"+str(i)
+    ring.rotation=Vector3(.5,0,i*TAU/3);ring.position.z=(i-1)*.08
+  elif spell=="thunder":
+   for i in range(2):
+    var bolt=piece(body,Spell.bolt(),colors.core if i==0 else colors.accent,true);bolt.name="ThunderBolt"+str(i);bolt.rotation.z=i*PI/2
+  else:
+   var core=piece(body,orb,colors.core,true);core.name="EmberCore" if spell=="ember" else "SpellCore"
+   core.scale=Vector3(.85,.85,1.45) if spell=="ember" else Vector3.ONE
   for i in range(6):
-   var mote=piece(self,orb,Color("66b4d3"),true);mote.name="Wake"+str(i);trail.append(mote)
+   var mote=piece(self,orb,colors.wake,true);mote.name="Wake"+str(i);trail.append(mote)
  _process(0)
  motion=create_tween();motion.tween_property(self,"progress",1.0,duration).set_trans(Tween.TRANS_LINEAR)
  motion.tween_callback(func():_process(0);queue_free())
@@ -49,7 +58,7 @@ func _process(_dt):
  var direction=destination-origin+Vector3.UP*cos(progress*PI)*PI*arc
  if direction.length_squared()>.0001:
   body.look_at(global_position+direction,Vector3.FORWARD if direction.normalized().cross(Vector3.UP).length_squared()<.001 else Vector3.UP)
- if kind=="magic":body.rotate_object_local(Vector3.FORWARD,progress*TAU)
+ if kind=="magic" and spell=="gale":body.rotate_object_local(Vector3.FORWARD,progress*TAU*2)
  for i in range(trail.size()):
   var t=progress-(i+1)*.045
   trail[i].visible=t>=0

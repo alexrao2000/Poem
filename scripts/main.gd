@@ -669,6 +669,7 @@ func cinematic(a,b,events,initial_hp={}):
 		var who=actor if event.actor==a.id else defender
 		var whom=defender if who==actor else actor
 		var unit=a if who==actor else b
+		var spell=game.item_for(unit).id if unit.weapon=="magic" else ""
 		banner.mark_actor(unit.id)
 		var base=who.position
 		var direction=1.0 if who==actor else -1.0
@@ -694,7 +695,7 @@ func cinematic(a,b,events,initial_hp={}):
 			var trail=CombatTrail.new();stage.add_child(trail)
 			trail.start(whom.socket_position("impact")+Vector3(-direction*.28,0,.18),unit.weapon,direction,event.crit)
 		if is_ranged:
-			await projectile(who.socket_position("projectile"),whom.socket_position("impact"),unit.weapon)
+			await projectile(who.socket_position("projectile"),whom.socket_position("impact"),unit.weapon,spell)
 		director.shot(who.position,whom.position,"impact",is_ranged,mounted,.16)
 		if event.hit:
 			play_sfx("critical" if event.crit else "hit")
@@ -704,7 +705,7 @@ func cinematic(a,b,events,initial_hp={}):
 			var dodge=create_tween();dodge.tween_property(whom,"position:z",-.32,.14);dodge.tween_property(whom,"position:z",0.0,.2)
 		displayed_hp[event.target]=maxi(0,displayed_hp[event.target]-event.damage)
 		banner.set_health(event.target,int(displayed_hp[event.target]))
-		show_impact(whom.socket_position("impact"),event)
+		show_impact(whom.socket_position("impact"),event,spell)
 		caption.text=unit.name+(" — CRITICAL! " if event.crit else " — ")+(str(int(event.damage))+" damage" if event.hit else "Miss")
 		if event.hit:director.impact(event.crit)
 		await get_tree().create_timer(.22 if not event.crit else .34).timeout
@@ -755,12 +756,12 @@ func restore_lighting(old: Dictionary):
 	sunlight.light_energy=old.energy;sunlight.light_color=old.color;environment.ambient_light_energy=old.ambient
 	sky.sky_top_color=old.top;sky.sky_horizon_color=old.horizon;sky.ground_horizon_color=old.ground
 
-func projectile(from: Vector3,to: Vector3,kind: String):
+func projectile(from: Vector3,to: Vector3,kind: String,spell=""):
 	var visual=CombatProjectile.new();stage.add_child(visual)
-	await visual.launch(from,to,kind).finished
+	await visual.launch(from,to,kind,.23,spell).finished
 
-func show_impact(point,event):
-	var impact=CombatImpact.new();stage.add_child(impact);impact.configure(point,event,camera)
+func show_impact(point,event,spell=""):
+	var impact=CombatImpact.new();stage.add_child(impact);impact.configure(point,event,camera,spell)
 
 func check_result() -> bool:
 	var outcome=game.result()

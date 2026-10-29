@@ -2,7 +2,21 @@ extends SceneTree
 # Observe actual cinematic poses through counters and follow-ups, including
 # mixed weapon reach and skipping mid-exchange. No combat results are rerolled.
 const Actor=preload("res://scripts/fighter_actor.gd")
+const Projectile=preload("res://scripts/combat_projectile.gd")
+const Impact=preload("res://scripts/combat_impact.gd")
 var observing=false
+var spells=[]
+var contact_colors=[]
+
+func watch_spell(node):
+ if node is Projectile:
+  await process_frame
+  spells.append(node.spell)
+  var expected={"ember":"EmberCore","gale":"WindCrescent0","thunder":"ThunderBolt0"}[node.spell]
+  assert(node.body.has_node(expected),"Equipped folio selects its own airborne shape")
+ elif node is Impact:
+  await process_frame
+  contact_colors.append(node.glow.material_override.albedo_color)
 
 func _initialize():call_deferred("run")
 
@@ -42,8 +56,17 @@ func run():
    assert(shots[2].a.x<shots[1].a.x,"Long weapon steps back to regain reach after a short-weapon counter")
   assert(app.game.save_data("battle")==saved and app.game.rng.state==rng,"Animation never changes campaign outcomes")
   assert(app.world.visible and not app.stage.visible and app.camera.projection==Camera3D.PROJECTION_ORTHOGONAL,"Every exchange returns to the map")
+ app.stage.child_entered_tree.connect(watch_spell)
+ a.weapon="magic";a.job="Arcanist"
+ for folio in ["ember","gale","thunder"]:
+  a.item=folio
+  var saved=app.game.save_data("battle").duplicate(true);var rng=app.game.rng.state
+  await app.cinematic(a,b,[{"actor":a.id,"target":b.id,"damage":1,"remaining":19,"hit":true,"crit":false}],{a.id:20,b.id:20})
+  assert(app.game.save_data("battle")==saved and app.game.rng.state==rng,"Folio presentation never changes spell results")
+ assert(spells==["ember","gale","thunder"],"Real cinematic carries equipment identity through flight")
+ assert(contact_colors.size()==3 and contact_colors[0]!=contact_colors[1] and contact_colors[1]!=contact_colors[2] and contact_colors[0]!=contact_colors[2],"Each element retains a distinct contact color")
  for player in app.sfx_players:player.stop()
  app.music.stop();await create_timer(.15).timeout
  app.queue_free();await process_frame
- print("PASS: continuous counters/follow-ups, mixed weapon reach, mid-exchange skip and unchanged simulation")
+ print("PASS: continuous counters/follow-ups, mixed weapon reach, skip cleanup, three equipped spell presentations and unchanged simulation")
  quit()
