@@ -6,7 +6,7 @@ func run():
  assert(calm.stereo and ablaze.stereo,"Both arrangements use stereo")
  assert(calm.mix_rate==ablaze.mix_rate and calm.data.size()==ablaze.data.size(),"Exact shared sample timeline")
  assert(calm.get_length()>70 and calm.get_length()<72,"Full 32-bar arrangement")
- var app=load("res://main.tscn").instantiate();root.add_child(app);await process_frame
+ var app=load("res://main.tscn").instantiate();app.save_path="/private/tmp/ashen-test_audio-ui-save.json";root.add_child(app);await process_frame
  var expected=calm.data.size()/4
  for i in range(2):
   var track=app.score.get_sync_stream(i)

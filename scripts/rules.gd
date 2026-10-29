@@ -348,3 +348,22 @@ func load_game(path: String) -> String:
 	if data.stage=="battle" and data.get("layout_signature","")!=layout_signature():
 		units.clear();phase="player";return "camp"
 	return data.stage
+
+func progress_snapshot() -> Dictionary:
+	var snapshot={}
+	for unit in living("player"):
+		snapshot[unit.id]={}
+		for key in ["level","xp","max_hp","pow","defense","speed"]:snapshot[unit.id][key]=int(unit[key])
+	return snapshot
+
+func progress_since(snapshot: Dictionary) -> Array:
+	var changes=[]
+	for unit in living("player"):
+		if not snapshot.has(unit.id):continue
+		var before=snapshot[unit.id]
+		var gain=(int(unit.level)-before.level)*100+int(unit.xp)-before.xp
+		if gain<=0:continue
+		var record={"unit":unit,"xp_gain":gain,"before":before,"gains":{}}
+		for key in ["max_hp","pow","defense","speed"]:record.gains[key]=int(unit[key])-before[key]
+		changes.append(record)
+	return changes

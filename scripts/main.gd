@@ -48,9 +48,12 @@ var skip_combat = false
 var show_danger = false
 var preview_actor: Node3D
 var preview_unit: Dictionary
+var reward_panel: PanelContainer
+var reward_skip=false
 const GOLD = Color("8d6a32")
 const INK = Color("e8e0cb")
 const SAVE = "user://campaign.json"
+var save_path=SAVE
 
 func _ready():
 	story=JSON.parse_string(FileAccess.get_file_as_string("res://data/story.json"))
@@ -177,7 +180,7 @@ func show_notice(message: String):
 
 func save_with_feedback(stage_name: String):
 	if stage_name=="battle":cancel_selection()
-	show_notice("Campaign saved on this device." if game.save_game(SAVE,stage_name) else "The save could not be written. Your current game is still open.")
+	show_notice("Campaign saved on this device." if game.save_game(save_path,stage_name) else "The save could not be written. Your current game is still open.")
 
 func panel_at(parent,left,top,right,bottom) -> VBoxContainer:
 	var panel=PanelContainer.new();parent.add_child(panel)
@@ -258,7 +261,7 @@ func show_title():
 	label_in(v,"12 chapters · 24 recruits · 8 classes\nSprite battlefields / cinematic 3D combat",17,Color("766e5e"))
 	var spacer=Control.new();spacer.size_flags_vertical=Control.SIZE_EXPAND_FILL;v.add_child(spacer)
 	button_in(v,"Begin the chronicle",func():game.new_campaign();music.play();show_camp())
-	button_in(v,"Continue saved campaign",load_campaign,not FileAccess.file_exists(SAVE) and not FileAccess.file_exists(SAVE+".bak"))
+	button_in(v,"Continue saved campaign",load_campaign,not FileAccess.file_exists(save_path) and not FileAccess.file_exists(save_path+".bak"))
 	label_in(v,"Original playable prototype • Casual recovery\nFallen allies return next chapter. Losing everyone means retry.",14,Color("827b6c"))
 
 func show_camp():
@@ -285,7 +288,7 @@ func show_camp():
 	label_in(left,"Recruited %d / 24  ·  Deployed %d / 6"%[game.available().size(),game.deployed.size()],18)
 	label_in(left,"Select up to six allies. Healing tiles restore 6 HP each turn. Open a portrait to inspect equipment. Wardens heal within staff range; everyone carries two field tonics.",16,Color("766e5e"))
 	var sp=Control.new();sp.size_flags_vertical=Control.SIZE_EXPAND_FILL;left.add_child(sp)
-	button_in(left,"Deploy company  >",func():game.start_battle();make_map();show_battle();game.save_game(SAVE,"battle"),game.deployed.is_empty())
+	button_in(left,"Deploy company  >",func():game.start_battle();make_map();show_battle();game.save_game(save_path,"battle"),game.deployed.is_empty())
 	button_in(left,"Save campaign",func():save_with_feedback("camp"))
 	button_in(left,"Return to title",show_title)
 	label_in(left,"Music: A Standard at Dawn · paired arrangements\nVisuals: original painted art and 3D models",13,Color("827b6c"))
@@ -352,8 +355,13 @@ func update_side():
 		if target!=null:
 			var f=game.forecast(selected,target)
 			label_in(side,"VS  "+target.name,21,GOLD)
-			label_in(side,"%d damage%s\n%d%% hit  ·  %d%% critical"%[f.damage," x 2" if f.double else "",f.hit,f.crit],23)
-			label_in(side,"Counterattack: "+str(game.forecast(target,selected).damage if f.counter else 0),16)
+			var counter=game.forecast(target,selected)
+			var table=GridContainer.new();table.columns=3;table.add_theme_constant_override("h_separation",8);table.add_theme_constant_override("v_separation",2);side.add_child(table)
+			var entries=[["", "YOU", "FOE"],["HP", "%d/%d"%[selected.hp,selected.max_hp], "%d/%d"%[target.hp,target.max_hp]], ["Dmg",str(f.damage)+(" ×2" if f.double else ""),str(counter.damage)+(" ×2" if counter.double else "") if f.counter else "—"], ["Hit",str(f.hit)+"%",str(counter.hit)+"%" if f.counter else "—"], ["Crit",str(f.crit)+"%",str(counter.crit)+"%" if f.counter else "—"]]
+			for values in entries:
+				for value in values:
+					var cell=label_in(table,value,17);cell.custom_minimum_size.x=66;cell.size_flags_horizontal=Control.SIZE_EXPAND_FILL;cell.autowrap_mode=TextServer.AUTOWRAP_OFF
+			label_in(side,"Counter if both survive." if f.counter else "Foe cannot counter at this range.",14,GOLD)
 			button_in(side,"Confirm attack",func():player_attack(),busy)
 		if selected.team=="player" and not selected.acted:
 			button_in(side,"Wait / secure position",wait_action,busy)
@@ -390,6 +398,8 @@ func toggle_danger():
 	show_danger=not show_danger;highlight();update_side()
 
 func _input(event):
+	if is_instance_valid(reward_panel) and event is InputEventKey and event.pressed and event.keycode in [KEY_SPACE,KEY_ENTER,KEY_TAB]:
+		reward_skip=true;get_viewport().set_input_as_handled();return
 	if screen=="battle" and busy and event is InputEventKey and event.pressed and event.keycode==KEY_TAB:
 		skip_combat=true
 		get_viewport().set_input_as_handled()
@@ -431,7 +441,9 @@ func click_tile(p: Vector2i):
 	if selected!=null and selected.team=="player" and not selected.acted and u!=null:
 		if game.can_attack(selected,u):target=u;update_side();return
 		if game.can_heal(selected,u):
-			if game.heal(selected,u):play_sfx("heal");finish_action();return
+			var before=game.progress_snapshot()
+			if game.heal(selected,u):
+				play_sfx("heal");busy=true;update_side();await show_progress(before);busy=false;finish_action();return
 	if u!=null and u.team=="player":
 		cancel_selection();selected=u;play_sfx("select");highlight();update_side();return
 	if u!=null and u.team=="enemy" and (selected==null or selected.team=="enemy"):
@@ -455,14 +467,16 @@ func player_attack():
 	update_side()
 	var a=selected;var b=target
 	var initial_hp={a.id:a.hp,b.id:b.hp}
+	var before=game.progress_snapshot()
 	var events=game.combat(a,b)
 	await cinematic(a,b,events,initial_hp)
+	await show_progress(before)
 	busy=false;finish_action()
 
 func finish_action():
 	selected=null;target=null;origin=null;refresh_pieces();highlight();update_side()
 	if await check_result():return
-	game.save_game(SAVE,"battle")
+	game.save_game(save_path,"battle")
 	if game.living("player").all(func(u):return u.acted):end_turn()
 
 func end_turn():
@@ -475,14 +489,17 @@ func end_turn():
 		var chosen=candidates[0] if not candidates.is_empty() else null
 		var initial_hp={e.id:e.hp}
 		if chosen!=null:initial_hp[chosen.id]=chosen.hp
+		var before=game.progress_snapshot()
 		var events=tactics.apply_plan(game,e,choice)
 		refresh_pieces();highlight();await get_tree().create_timer(.18).timeout
-		if chosen!=null and not events.is_empty():await cinematic(e,chosen,events,initial_hp)
+		if chosen!=null and not events.is_empty():
+			await cinematic(e,chosen,events,initial_hp)
+			await show_progress(before)
 		refresh_pieces()
 		if game.result()!="":break
 	game.next_player_turn();play_sfx("phase");busy=false;update_side();refresh_pieces();highlight()
 	if await check_result():return
-	game.save_game(SAVE,"battle")
+	game.save_game(save_path,"battle")
 
 func make_fighter(u,position) -> Node3D:
 	return fighters.build(stage,u,position)
@@ -658,15 +675,23 @@ func show_impact(point,event):
 func check_result() -> bool:
 	var outcome=game.result()
 	if outcome=="":return false
+	game.save_game(save_path,"battle")
 	screen="result";reset_ui()
 	var v=panel_at(ui,210,170,-210,-170)
 	if outcome=="victory":
 		label_in(v,"CHAPTER COMPLETE",18,GOLD);label_in(v,game.info().title,38)
 		label_in(v,game.info().outro,24)
+		label_in(v,"%d turns  ·  %d allies standing  ·  %d foes defeated"%[game.turn,game.living("player").size(),game.units.filter(func(u):return u.team=="enemy" and u.hp<=0).size()],18,GOLD)
+		var summary=GridContainer.new();summary.columns=2;summary.add_theme_constant_override("h_separation",24);summary.add_theme_constant_override("v_separation",8);v.add_child(summary)
+		for unit in game.units:
+			if unit.team!="player":continue
+			var row=HBoxContainer.new();row.size_flags_horizontal=Control.SIZE_EXPAND_FILL;summary.add_child(row)
+			var portrait=TextureRect.new();portrait.texture=portraits.get_portrait(unit.id);portrait.custom_minimum_size=Vector2(55,55);portrait.expand_mode=TextureRect.EXPAND_IGNORE_SIZE;portrait.stretch_mode=TextureRect.STRETCH_KEEP_ASPECT_CENTERED;row.add_child(portrait)
+			label_in(row,"%s · Lv %d\n%s"%[unit.name,unit.level,"Ready for the next march" if unit.hp>0 else "Recovering at camp"],16)
 		button_in(v,"Continue the chronicle",func():
 			show_dialogue(story.chapters[game.chapter].closing,func():
 				game.finish_chapter()
-				game.save_game(SAVE,"ending" if game.completed else "camp")
+				game.save_game(save_path,"ending" if game.completed else "camp")
 				if game.completed:show_ending()
 				else:show_camp()))
 	else:
@@ -741,11 +766,11 @@ func show_dossier(unit):
 	button_in(panel,"Return to war council",show_camp)
 
 func load_campaign():
-	var saved=game.load_game(SAVE)
+	var saved=game.load_game(save_path)
 	if saved=="":show_notice("No readable campaign save was found on this device.");return
 	if not music.playing:music.play()
 	if saved=="ending":show_ending()
-	elif saved=="battle":make_map();show_battle()
+	elif saved=="battle":make_map();show_battle();await check_result()
 	else:show_camp()
 
 func show_equipment(unit):
@@ -773,7 +798,7 @@ func show_equipment(unit):
 		else:label_in(details,"Might %d   Hit %+d   Crit +%d   Weight %d   Range %s"%[item.might,item.hit,item.crit,item.weight,reach],18)
 		var locked=int(item.unlock)>game.chapter;var equipped=unit.item==item.id
 		button_in(details,"Available in chapter %d"%(int(item.unlock)+1) if locked else ("Equipped" if equipped else "Equip"),func():
-			if game.equip(unit,item.id):show_equipment(unit);game.save_game(SAVE,"camp")
+			if game.equip(unit,item.id):show_equipment(unit);game.save_game(save_path,"camp")
 		,locked or equipped)
 	button_in(panel,"Return to company record",func():show_dossier(unit))
 	button_in(panel,"Return to war council",show_camp)
@@ -802,3 +827,29 @@ func show_model_view(unit):
 
 func close_model_view():
 	make_map();show_dossier(preview_unit)
+
+func show_progress(before: Dictionary):
+	for change in game.progress_since(before):
+		var unit=change.unit;var leveled=int(unit.level)>change.before.level
+		reward_skip=false
+		reward_panel=PanelContainer.new();reward_panel.name="ProgressReward";ui.add_child(reward_panel)
+		reward_panel.anchor_left=.5;reward_panel.anchor_right=.5;reward_panel.offset_left=-330;reward_panel.offset_right=330;reward_panel.offset_top=115
+		var row=HBoxContainer.new();row.add_theme_constant_override("separation",18);reward_panel.add_child(row)
+		var portrait=TextureRect.new();portrait.texture=portraits.get_portrait(unit.id);portrait.custom_minimum_size=Vector2(110,130);portrait.expand_mode=TextureRect.EXPAND_IGNORE_SIZE;portrait.stretch_mode=TextureRect.STRETCH_KEEP_ASPECT_CENTERED;row.add_child(portrait)
+		var details=VBoxContainer.new();details.size_flags_horizontal=Control.SIZE_EXPAND_FILL;row.add_child(details)
+		label_in(details,("LEVEL UP  /  " if leveled else "EXPERIENCE  /  ")+unit.name,28,GOLD)
+		label_in(details,"Level %d  ·  +%d XP"%[unit.level,change.xp_gain],20)
+		var progress=ProgressBar.new();progress.max_value=100;progress.value=change.before.xp;progress.show_percentage=false;progress.custom_minimum_size.y=16;details.add_child(progress)
+		var fill=StyleBoxFlat.new();fill.bg_color=Color("889d65");progress.add_theme_stylebox_override("fill",fill)
+		var tween=reward_panel.create_tween()
+		if leveled:
+			tween.tween_property(progress,"value",100.0,.25);tween.tween_callback(func():progress.value=0)
+		tween.tween_property(progress,"value",float(unit.xp),.35)
+		label_in(details,"%d / 100 XP"%unit.xp,16)
+		if leveled:
+			label_in(details,"HP +%d   Power +%d   Defense +%d   Speed +%d"%[change.gains.max_hp,change.gains.pow,change.gains.defense,change.gains.speed],17)
+		label_in(details,"Space / Enter to continue",14)
+		var elapsed=0.0
+		while elapsed<(2.0 if leveled else .8) and not reward_skip:
+			await get_tree().process_frame;elapsed+=get_process_delta_time()
+		reward_panel.queue_free();reward_panel=null

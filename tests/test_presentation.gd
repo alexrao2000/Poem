@@ -15,7 +15,7 @@ func _initialize():
 	call_deferred("run")
 
 func run():
-	var app=load("res://main.tscn").instantiate()
+	var app=load("res://main.tscn").instantiate();app.save_path="/private/tmp/ashen-test_presentation-ui-save.json"
 	root.add_child(app)
 	await process_frame
 	for chapter in range(12):
@@ -59,6 +59,9 @@ func run():
 	app.cancel_selection();assert(app.selected==null)
 	app.toggle_danger();assert(not app.show_danger)
 	a.x=8;a.y=4;b.x=9;b.y=4
+	app.selected=a;app.target=b;app.update_side();await process_frame;await process_frame
+	for control in app.side.get_children():
+		assert(control.get_global_rect().end.y<=app.ui.size.y,"Forecast and action controls fit viewport")
 	var events=app.game.combat(a,b)
 	inspect_combat_hud(app)
 	await app.cinematic(a,b,events)

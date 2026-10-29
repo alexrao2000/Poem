@@ -7,7 +7,7 @@ import sys
 
 ROOT = Path(__file__).resolve().parent.parent
 ENGINE = os.environ.get("GODOT_BIN", "godot")
-SUITES = sys.argv[1:] or ["rules", "equipment", "saves", "tactics", "campaign", "presentation", "story", "audio"]
+SUITES = sys.argv[1:] or ["rules", "equipment", "progress", "saves", "tactics", "campaign", "presentation", "story", "audio"]
 logs = ROOT / "build/logs"
 logs.mkdir(parents=True, exist_ok=True)
 for name in SUITES:
