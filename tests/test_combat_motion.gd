@@ -158,6 +158,42 @@ func run():
    for side in ["LeftLeg","RightLeg"]:assert(is_equal_approx(actor.bone(side).position.y-actor.rest[side].position.y,body_shift),"Pelvis and legs lower together instead of disconnecting")
   actor.queue_free()
  fighters.batching_enabled=true
+ for recruit in rules.roster.filter(func(unit):return unit.weapon=="bow"):
+  for direction in [-1,1]:
+   var unit=recruit.duplicate(true);unit.team="player"
+   var archer=fighters.build(stage,unit,Vector3.ZERO);archer.rotation.y=-direction*PI/2
+   var target=Vector3(direction*4,1.85 if direction<0 else 1.1,0);archer.aim_at(target)
+   await archer.pose("idle",.01).finished
+   var drawing=archer.pose("windup",.12)
+   while drawing.is_running():
+    await process_frame
+    var nock=archer.bone("NockedArrow").to_global(Vector3(0,0,Projectile.ARROW_LENGTH*.5))
+    var hand=archer.bone("LeftElbow").to_global(Vector3(0,-.29,0))
+    assert(hand.distance_to(nock)<.005,"Drawing hand stays on the nock throughout the aimed windup")
+   archer._process(0)
+   assert(archer.bow_draw==1,"Windup draws the bowstring")
+   var weapon=archer.bone("Weapon")
+   assert((-weapon.global_basis.z).normalized().dot(weapon.global_position.direction_to(target))>.999,"Bow and nocked shaft aim at infantry or mounted contact height")
+   for draw in [0.0,.5,1.0]:
+    archer.bow_draw=draw;archer.apply_constraints()
+    var tail=archer.bone("NockedArrow").to_global(Vector3(0,0,Projectile.ARROW_LENGTH*.5))
+    for i in range(2):
+     var string=archer.bone("BowStringTop" if i==0 else "BowStringBottom")
+     assert(string.to_global(Vector3(0,-.5,0)).distance_to(tail)<.0001,"Both string halves meet the actual arrow nock through the full draw")
+     var tip=weapon.to_global(Vector3(0,.45 if i==0 else -.45,.22))
+     assert(string.to_global(Vector3(0,.5,0)).distance_to(tip)<.0001,"String endpoints remain attached to the bow tips after rig batching")
+   await archer.pose("strike",.01).finished;archer._process(0)
+   assert(archer.bow_draw==0,"Release unloads the string")
+   assert(archer.bow_hand_weight==0,"Drawing hand lets go rather than following the string forward")
+   var shaft=archer.bone("NockedArrow");var from=archer.socket_position("projectile")
+   var flight=Projectile.new();stage.add_child(flight);flight.launch(from,target,"bow",1).kill()
+   var held_tip=from;var forward=from.direction_to(target);var furthest=-INF
+   for part in shaft.find_children("*","MeshInstance3D",true,false):
+    for vertex in part.mesh.surface_get_arrays(0)[Mesh.ARRAY_VERTEX]:
+     var point=part.to_global(vertex);var extent=(point-from).dot(forward)
+     if extent>furthest:furthest=extent;held_tip=point
+   assert(flight.global_position.distance_to(held_tip)<.001,"Flying arrow continues from the held arrow tip without a release jump")
+   flight.queue_free();archer.queue_free()
  for job in ["Ranger","Arcanist","Knight","Rider"]:
   var unit=rules.roster.filter(func(u):return u.job==job)[0].duplicate(true);unit.team="player"
   var actor=fighters.build(stage,unit,Vector3.ZERO);actor.rotation.y=-PI/2

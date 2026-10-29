@@ -58,6 +58,7 @@ var side: VBoxContainer
 var terrain_card: Control
 var forecast_panel: Control
 var battle_menu: Control
+var battle_hint: Label
 var status: Label
 var selected = null
 var target = null
@@ -183,6 +184,7 @@ func reset_ui():
 	terrain_card=null
 	forecast_panel=null
 	battle_menu=null
+	battle_hint=null
 	if is_instance_valid(ui):
 		canvas.remove_child(ui)
 		ui.queue_free()
@@ -412,10 +414,10 @@ func show_battle():
 	status=label_in(row,"TURN %d  /  %s"%[game.turn,game.phase.to_upper()],20)
 	status.custom_minimum_size.x=300
 	status.autowrap_mode=TextServer.AUTOWRAP_OFF
-	var panel=PanelContainer.new();panel.set_anchors_and_offsets_preset(Control.PRESET_RIGHT_WIDE);panel.offset_left=-325;panel.offset_right=-22;panel.offset_top=118;panel.offset_bottom=-24;ui.add_child(panel)
+	var panel=PanelContainer.new();panel.set_anchors_and_offsets_preset(Control.PRESET_TOP_RIGHT);panel.offset_left=-325;panel.offset_right=-22;panel.offset_top=118;panel.offset_bottom=118;panel.custom_minimum_size.x=303;ui.add_child(panel)
 	side=VBoxContainer.new();side.add_theme_constant_override("separation",5);panel.add_child(side)
-	var bottom=PanelContainer.new();bottom.set_anchors_and_offsets_preset(Control.PRESET_BOTTOM_WIDE);bottom.offset_left=22;bottom.offset_right=-343;bottom.offset_top=-84;bottom.offset_bottom=-22;ui.add_child(bottom)
-	label_in(bottom,"Arrows / Enter: select · Q/E: allies · W: wait · R: danger · Space: end phase\nWheel / + −: zoom · Middle drag: pan · Home: reset · M: menu · Esc: undo · Tab: skip",14)
+	var bottom=PanelContainer.new();bottom.set_anchors_and_offsets_preset(Control.PRESET_BOTTOM_WIDE);bottom.offset_left=22;bottom.offset_right=-343;bottom.offset_top=-64;bottom.offset_bottom=-22;ui.add_child(bottom)
+	battle_hint=label_in(bottom,"",14)
 	terrain_card=TerrainCard.new();terrain_card.configure(ui)
 	var inspected=game.pos(selected) if selected!=null else game.pos(game.living("player")[0]) if not game.living("player").is_empty() else Vector2i.ZERO
 	terrain_card.inspect(game,cursor_tile if cursor_visible else inspected)
@@ -462,12 +464,16 @@ func update_side():
 	else:
 		label_in(side,"THE COMPANY",15,GOLD)
 		label_in(side,"%d allies  ·  %d enemies"%[game.living("player").size(),game.living("enemy").size()],18)
-		label_in(side,"Choose your next move.",25)
-		label_in(side,"Forest and hills cost 2 movement and grant cover. Cross water at bridges. Golden tiles mark objectives; pale crosses restore health.",17,Color("6f6c5e"))
+		label_in(side,"Choose an ally to move or inspect a foe.",17,Color("6f6c5e"))
 		button_in(side,"Enemy ranges [R]: "+("on" if show_danger else "off"),toggle_danger,busy)
-	var spacer=Control.new();spacer.size_flags_vertical=Control.SIZE_EXPAND_FILL;side.add_child(spacer)
 	button_in(side,"End player phase",end_turn,busy)
 	button_in(side,"Menu [M]",show_battle_menu,busy)
+	if is_instance_valid(battle_hint):
+		battle_hint.text="Arrows: cursor · Enter: select · Q/E: allies · M: menu"
+		if selected!=null:
+			battle_hint.text="Enter: confirm · W: wait · Esc: undo · M: menu"
+			if selected.team=="enemy":battle_hint.text="Red tiles: enemy reach · R: all ranges · Esc: close"
+			elif selected.weapon=="staff":battle_hint.text="Select an injured ally to heal · Esc: cancel · M: menu"
 	arrange_battle_side()
 
 func arrange_battle_side():
@@ -481,6 +487,8 @@ func arrange_battle_side():
 	side.theme=theme
 	for button in side.find_children("*","Button",true,false):button.custom_minimum_size.y=34 if compact else 42
 	for portrait in side.find_children("UnitPortrait","TextureRect",true,false):portrait.custom_minimum_size=Vector2(76,84) if compact else Vector2(90,100)
+	# Minimum size is recalculated after the contents and compact theme settle.
+	side.get_parent().call_deferred("reset_size")
 
 func show_battle_menu():
 	if screen!="battle" or busy or game.phase!="player":return
@@ -489,7 +497,7 @@ func show_battle_menu():
 	battle_menu.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT);battle_menu.mouse_filter=Control.MOUSE_FILTER_STOP;battle_menu.z_index=20
 	var shade=ColorRect.new();shade.color=Color(0.04,.06,.08,.55);battle_menu.add_child(shade);shade.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	var frame=PanelContainer.new();frame.name="MenuFrame";battle_menu.add_child(frame)
-	frame.set_anchors_and_offsets_preset(Control.PRESET_CENTER);frame.offset_left=-220;frame.offset_right=220;frame.offset_top=-215;frame.offset_bottom=215
+	frame.set_anchors_and_offsets_preset(Control.PRESET_CENTER);frame.offset_left=-280;frame.offset_right=280;frame.offset_top=-250;frame.offset_bottom=250
 	var commands=VBoxContainer.new();commands.add_theme_constant_override("separation",8);frame.add_child(commands)
 	label_in(commands,"Battle menu",40,GOLD)
 	label_in(commands,"Turn %d · %s"%[game.turn,game.info().title],17)
@@ -498,6 +506,7 @@ func show_battle_menu():
 	button_in(commands,"Transfer code",func():close_battle_menu();show_save_transfer("battle"))
 	button_in(commands,"Options / audio",func():close_battle_menu();show_options("battle"))
 	button_in(commands,"War council (restart map)",func():close_battle_menu();show_camp())
+	label_in(commands,"Arrows / Enter: select · Q/E: allies · W: wait\nR: danger · Space: end phase · Esc: undo\nWheel / + −: zoom · Middle drag: pan · Home: reset\nTab: skip animation · M / Esc: close menu",14,Color("777163"))
 	var buttons=commands.find_children("*","Button",true,false)
 	for i in range(buttons.size()):
 		var button=buttons[i]

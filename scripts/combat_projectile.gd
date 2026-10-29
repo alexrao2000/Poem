@@ -4,6 +4,7 @@ extends Node3D
 # Launch advances the tip from the hand so the shaft begins near the grip.
 const Spell=preload("res://scripts/combat_spell.gd")
 const WeaponBlades=preload("res://scripts/weapon_blades.gd")
+const ARROW_LENGTH=.72
 var origin=Vector3.ZERO
 var destination=Vector3.ZERO
 var arc=0.0
@@ -43,7 +44,7 @@ func launch(from: Vector3,to: Vector3,weapon: String,duration=.23,spell_id="") -
  return motion
 
 static func physical_geometry(parent: Node3D,weapon: String) -> float:
- var length=.72 if weapon=="bow" else 1.3
+ var length=ARROW_LENGTH if weapon=="bow" else 1.3
  var shaft=CylinderMesh.new();shaft.height=length;shaft.top_radius=.012 if weapon=="bow" else .021;shaft.bottom_radius=shaft.top_radius;shaft.radial_segments=8
  var pole=piece(parent,shaft,Color("78604a"));pole.name="Shaft";pole.rotation.x=PI/2
  var tip=piece(parent,WeaponBlades.spear(-length*.5+.10,-length*.5,-length*.5-(.075 if weapon=="bow" else .12),.04 if weapon=="bow" else .065),Color("d5dce1"));tip.name="Tip"

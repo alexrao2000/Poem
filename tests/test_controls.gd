@@ -38,13 +38,17 @@ func run():
    app.target=enemy if state=="forecast" else null;app.update_side();await process_frame;await process_frame
    var panel=app.side.get_parent();var frame=panel.get_global_rect()
    assert(frame.end.y<=dimensions.y-20,"Battle sidebar fits the shorter desktop window")
+   assert(frame.size.y<=app.side.get_combined_minimum_size().y+32,"Action card fits its contents instead of covering an empty column")
+   if state=="company":assert(frame.size.y<300,"Unselected map leaves most of the right edge visible")
    for child in app.side.get_children():assert(child.get_global_rect().end.y<=frame.end.y-10,"Every action remains inside its panel without scrolling")
+   assert(app.battle_hint.get_line_count()==1,"Contextual map hint stays on one line")
   app.selected=unit;app.target=enemy;app.update_side()
   var saved=app.game.save_data("battle").duplicate(true);var selection=app.selected;var position=app.camera.transform
   app.show_battle_menu();await process_frame;await process_frame
   assert(app.screen=="battle_menu" and app.selected==selection,"Opening the menu preserves tactical selection")
   var menu_frame=app.battle_menu.get_node("MenuFrame").get_global_rect()
   assert(menu_frame.position.x>=0 and menu_frame.position.y>=0 and menu_frame.end.x<=dimensions.x and menu_frame.end.y<=dimensions.y,"Battle menu stays within each desktop viewport")
+  for child in app.battle_menu.get_node("MenuFrame").find_children("*","Control",true,false):assert(menu_frame.grow(1).encloses(child.get_global_rect()),"Full control guide and all menu actions fit the window")
   var buttons=app.battle_menu.find_children("*","Button",true,false)
   assert(buttons.size()==5,"All existing save, transfer, options and council routes remain available")
   for button in buttons:assert(button.get_node(button.focus_next) in buttons and button.get_node(button.focus_previous) in buttons,"Keyboard focus cannot escape to the battlefield behind the menu")

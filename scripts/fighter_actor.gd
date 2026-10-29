@@ -15,6 +15,12 @@ var aim_target=Vector3.ZERO
 var has_aim_target=false
 var grounded_stance=false
 var support_height=0.0
+var bow_draw=0.0:
+ set(value):
+  bow_draw=clampf(value,0,1);update_bow()
+var drawing_arm_rotation=Vector3.ZERO
+var drawing_elbow_rotation=Vector3.ZERO
+var bow_hand_weight=0.0
 
 func register_bone(key: String,node: Node3D):
  bones[key]=node
@@ -41,13 +47,45 @@ func _process(dt):
   else:
    bones.LeftLeg.rotation.x=gait;bones.RightLeg.rotation.x=-gait
    bones.LeftKnee.rotation.x=-maxf(0,-gait)*.75;bones.RightKnee.rotation.x=-maxf(0,gait)*.75
- if kind=="lance" and pose_name in ["windup","strike"] and bones.has("Weapon"):
+ apply_constraints()
+
+func apply_constraints():
+ if kind in ["lance","bow"] and pose_name in ["windup","strike"] and bones.has("Weapon"):
   var grip=bones.Weapon
   var direction=aim_target-grip.global_position if has_aim_target else -global_transform.basis.z
   if direction.length_squared()>.001:
    var desired=Basis.looking_at(direction.normalized(),Vector3.UP)
    var local_basis=grip.get_parent().global_transform.basis.inverse()*desired
    grip.quaternion=Quaternion.from_euler(rest.Weapon.rotation).slerp(local_basis.get_rotation_quaternion(),weapon_aim)
+ if kind=="bow":align_drawing_hand()
+
+func align_drawing_hand():
+ if not bones.has("NockedArrow") or not bones.has("LeftElbow"):return
+ var arm=bones.LeftArm;var elbow=bones.LeftElbow
+ arm.rotation=drawing_arm_rotation;elbow.rotation=drawing_elbow_rotation
+ if bow_hand_weight<=0:return
+ var target=bones.NockedArrow.to_global(Vector3(0,0,preload("res://scripts/combat_projectile.gd").ARROW_LENGTH*.5))
+ var origin=arm.global_position;var delta=target-origin
+ var length=clampf(delta.length(),.001,.5799);var direction=delta.normalized()
+ var pole=global_basis*Vector3(-1,.15,.8)
+ pole=(pole-direction*pole.dot(direction)).normalized()
+ if pole.length_squared()<.001:pole=direction.cross(Vector3.UP).normalized()
+ var elbow_point=origin+direction*length*.5+pole*sqrt(maxf(0,.29*.29-length*length*.25))
+ var arm_direction=(arm.get_parent().global_basis.inverse()*(elbow_point-origin)).normalized()
+ arm.quaternion=arm.quaternion.slerp(Quaternion(Vector3.DOWN,arm_direction),bow_hand_weight)
+ var hand_direction=(arm.global_basis.inverse()*(origin+direction*length-elbow.global_position)).normalized()
+ elbow.quaternion=elbow.quaternion.slerp(Quaternion(Vector3.DOWN,hand_direction),bow_hand_weight)
+
+func update_bow():
+ if not bones.has("BowStringTop") or not bones.has("NockedArrow"):return
+ var nock=Vector3(0,0,.22+.30*bow_draw)
+ bones.NockedArrow.position=nock-Vector3(0,0,preload("res://scripts/combat_projectile.gd").ARROW_LENGTH*.5)
+ for i in range(2):
+  var segment=bones["BowStringTop" if i==0 else "BowStringBottom"]
+  var tip=Vector3(0,.45 if i==0 else -.45,.22)
+  segment.position=(nock+tip)*.5
+  segment.quaternion=Quaternion(Vector3.UP,(tip-nock).normalized())
+  segment.scale=Vector3(1,tip.distance_to(nock),1)
 
 func aim_at(point: Vector3):
  aim_target=point;has_aim_target=true
@@ -78,7 +116,7 @@ func pose(key: String,duration=.18) -> Tween:
  }
  if rest.has("Weapon"):target.Weapon=rest.Weapon.rotation
  if kind=="bow":
-  target.Arm=Vector3(-1.35,0,-.18);target.Elbow=Vector3(-.3,0,0)
+  target.Arm=Vector3(-1.35,.15,-.18);target.Elbow=Vector3(-.3,0,0)
   target.LeftArm=Vector3(-.9,0,.25);target.LeftElbow=Vector3(-.8,0,0)
  elif kind in ["magic","staff"]:
   target.Arm=Vector3(-.1,0,-.12);target.Elbow=Vector3(-.18,0,0)
@@ -93,7 +131,7 @@ func pose(key: String,duration=.18) -> Tween:
   elif kind=="lance":
    target.Arm=Vector3(-.3,.2,-.1);target.Elbow=Vector3(-1.2,0,0)
   elif kind=="bow":
-   target.Arm=Vector3(-1.5,0,-.15);target.Elbow=Vector3(0,0,0)
+   target.Arm=Vector3(-1.5,.15,-.15);target.Elbow=Vector3(0,0,0)
    target.LeftArm=Vector3(-1.2,.6,.5);target.LeftElbow=Vector3(-1.8,0,0)
   elif kind in ["magic","staff"]:
    target.Arm=Vector3(-1.8,0,-.4);target.Elbow=Vector3(-.2,0,0)
@@ -108,7 +146,7 @@ func pose(key: String,duration=.18) -> Tween:
   elif kind=="lance":
    target.Arm=Vector3(-1.0,0,-.05)
   elif kind=="bow":
-   target.Arm=Vector3(-1.5,0,-.15);target.Elbow=Vector3(0,0,0)
+   target.Arm=Vector3(-1.5,.15,-.15);target.Elbow=Vector3(0,0,0)
    target.LeftArm=Vector3(-.8,.9,.7);target.LeftElbow=Vector3(-1.6,0,0)
   elif kind in ["magic","staff"]:
    target.Arm=Vector3(-1.1,0,-.35);target.LeftArm=Vector3(-1.3,0,.3)
@@ -137,25 +175,33 @@ func pose(key: String,duration=.18) -> Tween:
    for i in range(4):target["HorseLeg"+str(i)]=Vector3.ZERO
  if key=="advance" and not mounted:
   for leg in ["LeftLeg","RightLeg","LeftKnee","RightKnee"]:target.erase(leg)
- var aiming=kind=="lance" and key in ["windup","strike"] and bones.has("Weapon")
+ var aiming=kind in ["lance","bow"] and key in ["windup","strike"] and bones.has("Weapon")
  if aiming:target.erase("Weapon")
  elif key!="strike":weapon_aim=0.0
  pose_tween=create_tween().set_parallel(true).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN_OUT)
+ if kind=="bow":pose_tween.tween_property(self,"bow_draw",1.0 if key=="windup" else 0.0,duration)
+ if kind=="bow":pose_tween.tween_property(self,"bow_hand_weight",1.0 if key in ["idle","advance","windup"] else 0.0,duration)
  if aiming:pose_tween.tween_property(self,"weapon_aim",1.0,duration)
  for name_value in target:
   if name_value in ["Arm","Elbow","LeftArm","LeftElbow","LeftKnee","RightKnee","Body","Head"]:
    target[name_value].x=-target[name_value].x
   if key=="down" and name_value in ["LeftLeg","RightLeg"]:target[name_value].x=-target[name_value].x
-  if bones.has(name_value):pose_tween.tween_property(bones[name_value],"rotation",target[name_value],duration)
+  if kind=="bow" and name_value in ["LeftArm","LeftElbow"]:
+   pose_tween.tween_property(self,"drawing_arm_rotation" if name_value=="LeftArm" else "drawing_elbow_rotation",target[name_value],duration)
+  elif bones.has(name_value):pose_tween.tween_property(bones[name_value],"rotation",target[name_value],duration)
  var lift=stance_height(target) if grounded_stance and key!="advance" else 0.0
  pose_tween.tween_property(self,"support_height",lift,duration)
  if grounded_stance:
   for side in ["LeftLeg","RightLeg"]:pose_tween.tween_property(bones[side],"position:y",rest[side].position.y+lift,duration)
  if bones.has("Body"):
   pose_tween.tween_property(bones.Body,"position:y",rest.Body.position.y+lift-(.43 if key=="down" and not grounded_stance else 0.0),duration)
+ # Apply constraints after this frame's parallel pose writes, avoiding a frame
+ # of separation between the drawing hand, nock and newly aimed weapon.
+ pose_tween.tween_method(func(_progress):apply_constraints(),0.0,1.0,duration)
  return pose_tween
 
 func socket_position(key: String) -> Vector3:
+ if key=="projectile" and kind=="bow" and bones.has("NockedArrow"):return bones.NockedArrow.global_position
  if key=="projectile" and bones.has("Weapon"):
   var offset=Vector3(0,0,-.22) if kind=="bow" else Vector3(0,.14,-.12) if kind=="magic" else Vector3.ZERO
   return bones.Weapon.to_global(offset)

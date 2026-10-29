@@ -113,6 +113,9 @@ func build(parent,u,p) -> Node3D:
   if sign_value>0:
    var hand=weapon(elbow,u.weapon,gold,steel,leather);actor.register_bone("Weapon",hand)
    if hand.has_node("NockedArrow"):actor.register_bone("NockedArrow",hand.get_node("NockedArrow"))
+   if u.weapon=="bow":
+    for key in ["BowStringTop","BowStringBottom"]:actor.register_bone(key,hand.get_node(key))
+    actor.update_bow()
   elif heavy:
    var shield=geo.cylinder(elbow,Vector3(-.04,-.16,-.17),.08,.29,blue)
    shield.rotation.x=PI/2;shield.scale=Vector3(.8,1,1.3)
@@ -233,12 +236,14 @@ func weapon(arm,kind,gold,steel,leather) -> Node3D:
   hand.rotation.x=-1.5
   for i in range(12):
    var t=float(i)/12*PI;var next_t=float(i+1)/12*PI
-   var start=Vector3(0,cos(t)*.45,-sin(t)*.22)
-   var end=Vector3(0,cos(next_t)*.45,-sin(next_t)*.22)
+   var start=Vector3(0,cos(t)*.45,.22-sin(t)*.22)
+   var end=Vector3(0,cos(next_t)*.45,.22-sin(next_t)*.22)
    var segment=geo.cylinder(hand,(start+end)*.5,start.distance_to(end)+.008,.018,leather)
    segment.quaternion=Quaternion(Vector3.UP,(end-start).normalized())
-  geo.block(hand,Vector3.ZERO,Vector3(.009,.9,.009),Color("d6c9a4"))
-  var arrow=joint(hand,"NockedArrow",Vector3(0,0,-.22));Projectile.physical_geometry(arrow,"bow")
+  for key in ["BowStringTop","BowStringBottom"]:
+   var segment=joint(hand,key,Vector3.ZERO)
+   geo.block(segment,Vector3.ZERO,Vector3(.007,1,.007),Color("d6c9a4"))
+  var arrow=joint(hand,"NockedArrow",Vector3(0,0,-.14));Projectile.physical_geometry(arrow,"bow")
  else:
   var grip=geo.cylinder(hand,Vector3(0,0,-.08),.23,.027,leather);grip.rotation.x=PI/2
   if kind=="lance":

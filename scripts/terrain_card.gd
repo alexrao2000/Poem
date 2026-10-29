@@ -8,9 +8,9 @@ var tile=Vector2i(-1,-1)
 
 func configure(parent: Control):
  name="TerrainCard";mouse_filter=Control.MOUSE_FILTER_IGNORE;parent.add_child(self)
- position=Vector2(22,118);custom_minimum_size=Vector2(274,96)
+ position=Vector2(22,118);custom_minimum_size=Vector2(238,80)
  var column=VBoxContainer.new();column.mouse_filter=Control.MOUSE_FILTER_IGNORE;column.add_theme_constant_override("separation",2);add_child(column)
- heading=Label.new();heading.add_theme_font_override("font",FONT);heading.add_theme_font_size_override("font_size",26)
+ heading=Label.new();heading.add_theme_font_override("font",FONT);heading.add_theme_font_size_override("font_size",22)
  heading.add_theme_color_override("font_color",Color("63543a"));column.add_child(heading)
  values=Label.new();values.add_theme_font_size_override("font_size",14);column.add_child(values)
  detail=Label.new();detail.add_theme_font_size_override("font_size",13);detail.add_theme_color_override("font_color",Color("777163"));column.add_child(detail)
