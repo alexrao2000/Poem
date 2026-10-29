@@ -67,5 +67,5 @@ func keep_visible(point: Vector3,occlusion=Rect2()):
  var desired=projected.clamp(safe.position,safe.end)
  if occlusion.has_area() and occlusion.grow(16).has_point(desired):desired.y=minf(safe.end.y,occlusion.end.y+20)
  if projected.distance_to(desired)<1:return
- stop();var target=ground_at(desired)
- if target!=null:camera.position+=point-target;limit_position()
+ stop();var source=ground_at(projected);var target=ground_at(desired)
+ if source!=null and target!=null:camera.position+=source-target;limit_position()

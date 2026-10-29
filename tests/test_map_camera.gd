@@ -24,6 +24,12 @@ func run():
  nav.zoom(100,anchor);await nav.motion.finished;assert(camera.size==8,"Zoom-in is bounded")
  nav.keep_visible(Vector3(13,0,9))
  assert(nav.safe_rect().grow(.01).has_point(camera.unproject_position(Vector3(13,0,9))),"Keyboard tracking keeps distant tiles away from command panels")
+ var height=camera.position.y
+ for cycle in range(4):
+  for point in [Vector3(0,.1,0),Vector3(13,.08,9)]:
+   nav.keep_visible(point)
+   assert(is_equal_approx(camera.position.y,height),"Tracking elevated tiles cannot accumulate camera altitude")
+   assert(nav.safe_rect().grow(.01).has_point(camera.unproject_position(point)),"Elevated tiles track to the actual safe screen rectangle")
  app.cursor_visible=true
  for corner in [Vector2i.ZERO,Vector2i(13,0),Vector2i(0,9),Vector2i(13,9)]:
   app.cursor_tile=corner;app.move_map_cursor(Vector2i.ZERO)
