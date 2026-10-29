@@ -1,6 +1,7 @@
 extends Node3D
 # Original arrow, thrown spear and spell presentations follow an explicit arc.
-# The tip tracks its flight tangent, including different mounted target heights.
+# Physical flights track the leading tip to contact, with the shaft behind it.
+# Launch advances the tip from the hand so the shaft begins near the grip.
 const Spell=preload("res://scripts/combat_spell.gd")
 const WeaponBlades=preload("res://scripts/weapon_blades.gd")
 var origin=Vector3.ZERO
@@ -22,12 +23,15 @@ func launch(from: Vector3,to: Vector3,weapon: String,duration=.23,spell_id="") -
   var shaft=CylinderMesh.new();shaft.height=length;shaft.top_radius=.012 if kind=="bow" else .021;shaft.bottom_radius=shaft.top_radius;shaft.radial_segments=8
   var pole=piece(body,shaft,Color("78604a"));pole.rotation.x=PI/2
   var tip=piece(body,WeaponBlades.spear(-length*.5+.10,-length*.5,-length*.5-(.075 if kind=="bow" else .12),.04 if kind=="bow" else .065),Color("d5dce1"));tip.name="Tip"
+  var reach=-tip.mesh.get_aabb().position.z
   if kind=="bow":
    for angle in [0,TAU/3,TAU*2/3]:
     var surface=SurfaceTool.new();surface.begin(Mesh.PRIMITIVE_TRIANGLES)
     for p in [Vector3(0,0,.20),Vector3(.075,0,.34),Vector3(0,0,.34)]:surface.add_vertex(p)
     surface.generate_normals()
     var feather=piece(body,surface.commit(),Color("c5d1c9"));feather.rotation.z=angle
+  for part in body.get_children():part.position.z+=reach
+  origin=from+from.direction_to(to)*minf(reach,from.distance_to(to)*.5)
  else:
   var colors=Spell.palette(spell)
   var orb=SphereMesh.new();orb.radius=.14;orb.height=.28;orb.radial_segments=12;orb.rings=6

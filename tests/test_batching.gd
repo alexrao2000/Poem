@@ -78,10 +78,23 @@ func run():
   world.queue_free();await process_frame
  for chapter in range(12):
   game.chapter=chapter;world=Node3D.new();root.add_child(world);scenery.battle_landscape(world,Vector3(35,0,0),{"environment":game.info().environment})
+  if game.info().environment=="harbor":verify_deck(world,Vector3(35,0,0))
   before=signature(world);stats=batch.combine(world);after=signature(world)
   assert(before.vertices==after.vertices and before.triangles==after.triangles,"Combat arenas retain all geometry")
   assert(before.sum.distance_to(after.sum)<maxf(1,before.sum.length()*.000001),"Arena transforms retained")
   world.queue_free();await process_frame
+ world=Node3D.new();root.add_child(world);scenery.battle_landscape(world,Vector3(35,.7,0),{"environment":"road","terrain":"="})
+ verify_deck(world,Vector3(35,.7,0));world.queue_free();await process_frame
  assert(total_batches<total_sources*.6,"Static mesh submissions reduced by at least forty percent")
  print("PASS: 12 maps and 12 arenas retain vertices, triangles, UVs and transforms; correct scaled normals; ",total_sources," meshes → ",total_batches," batches")
  quit()
+
+func verify_deck(world: Node3D,center: Vector3):
+ var planks=world.find_children("ArenaDeck*","MeshInstance3D",true,false)
+ assert(planks.size()==105,"Dock floor contains the full fighting lane")
+ for plank in planks:
+  assert(is_equal_approx(plank.position.y+plank.scale.y*plank.mesh.get_aabb().end.y,center.y),"Every deck top matches the fighters' ground plane")
+ var water=world.get_node("ArenaWater")
+ assert(water.position.y<center.y-.05 and water.position.z+water.mesh.size.y*.5>center.z+2.5,"Water stays below and extends beneath the entire deck")
+ for mesh in world.find_children("*","MeshInstance3D",true,false):
+  assert(not (mesh.mesh is PlaneMesh and mesh.mesh.size==Vector2(24,6)),"Wooden arenas do not retain a coincident central ground plane")

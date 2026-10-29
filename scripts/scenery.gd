@@ -294,17 +294,19 @@ func battle_landscape(parent,center,context={}):
  var tile=context.get("terrain","p")
  parent.set_meta("terrain",tile)
  var stone=theme in ["abbey","aqueduct","observatory","castle","engine","furnace"]
+ var wooden_floor=theme=="harbor" or tile=="="
  var surface=3 if stone else 2 if tile=="h" else 1 if tile in ["p","o","+"] else 0
  parent.set_meta("arena_surface",surface)
  ground(parent,center-Vector3(0,.06,0),Vector2(70,70),3 if stone else 0)
- ground(parent,center,Vector2(24,6),surface)
+ if not wooden_floor:ground(parent,center,Vector2(24,6),surface)
  if theme in ["river","harbor","aqueduct"] or context.get("terrain")=="=":
   var water=water_material()
-  var plane=PlaneMesh.new();plane.size=Vector2(60,40)
-  mesh(parent,plane,center+Vector3(0,-.025,-22),Vector3.ONE,water)
-  if theme=="harbor" or context.get("terrain")=="=":
+  var plane=PlaneMesh.new();plane.size=Vector2(60,60 if wooden_floor else 40)
+  var water_surface=mesh(parent,plane,center+Vector3(0,-.055 if wooden_floor else -.025,-12 if wooden_floor else -22),Vector3.ONE,water);water_surface.name="ArenaWater"
+  if wooden_floor:
    for x in range(-10,11):
-    for z in range(-2,3):block(parent,center+Vector3(x,.025,z),Vector3(.98,.05,.98),Color("877560").lightened((x+z+30)%3*.02))
+    for z in range(-2,3):
+     var plank=block(parent,center+Vector3(x,-.025,z),Vector3(.98,.05,.98),Color("877560").lightened((x+z+30)%3*.02));plank.name="ArenaDeck"
   for x in range(-10,11,2):
    block(parent,center+Vector3(x,.55,-3),Vector3(.13,1.1,.13),Color("72624f"))
   block(parent,center+Vector3(0,.7,-3),Vector3(22,.12,.10),Color("8e7c60"))

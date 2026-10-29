@@ -4,13 +4,15 @@ User direction: keep developing continuously in this chat until the user returns
 
 ## Current checkpoint
 
-All 24 recruits now have individual animated map artwork: 288 original source poses, four facings, walking, attack and recoil, with planted pivots and mirrored west-facing contact poses. Eight class sheets remain the portable workshop package and enemy/fallback artwork. [Art provenance and current rendering details](docs/art-direction.md) are maintained separately.
+All 24 recruits now have individual animated map artwork: 288 original source poses, four facings, walking, attack and recoil, with planted pivots and mirrored west-facing contact poses. Campaign rendering reduces the earlier scale by one third, keeping idle figures roughly one tile tall and matching enemy/fallback scale; projected click targets follow the smaller artwork. Eight class sheets remain the portable workshop package and enemy/fallback artwork. [Art provenance and current rendering details](docs/art-direction.md) are maintained separately.
 
 Combat retains real 3D figures with individual clothing palettes, ponytail/braid/bun/curl silhouettes, three distinct detailed mounts, planted infantry pose endpoints, closed beveled steel blades, weapon-grip projectile sockets, continuous counters/follow-ups and separate Ember/Gale/Thunder effects. Held and thrown spears share a leaf-shaped head; sword and axe geometry retain their existing attack reach. The roster combines 1,779 rigid source meshes into 994 joint batches while preserving geometry and animation. Characters are still procedural; the authored-model catalog remains empty.
 
 The battlefield has surface-aware tactical overlays, a shared-rules terrain card, pointer-anchored zoom, bounded drag, keyboard tracking and paired portrait forecast cards. Bridge decks and sanctuary platforms share their elevation with units, routes, selection corners and healing effects; movement climbs before entering a raised tile. Combat zoom centers the engaged pair after panning and restores the previous view. The original calm/Ablaze score uses pinned CC0 orchestral samples on one shared timeline.
 
 Combat silhouettes use a thin reverse-culled outline pass, with separately smoothed edge directions so faceted steel keeps its base lighting without gaps in the outline. Painted face cards, transparent pieces and luminous details are excluded. The 994-batch figure counts base geometry; outlined batches add a rendering pass. Browser frame rate and rendered appearance remain unmeasured.
+
+Dock and bridge arena floors meet the fighters' foot plane. Physical projectile trajectories end at the actual arrow/spear tip, with the shaft trailing behind and launching near the animated grip.
 
 The last delivered local browser/macOS checkpoint passed all 31 automated suites, five complete campaign simulations (60 chapter victories), model-catalog validation and an exported-resource-pack smoke check. These are runtime, geometry and layout checks, not a rendered review of the latest game. Full human balance and listening reviews remain outstanding. Routine non-destructive commits and private pushes are authorized.
 

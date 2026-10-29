@@ -1,6 +1,7 @@
 extends "res://visuals/unit_3d.gd"
 # Campaign adapter keeps the portable sprite renderer free of campaign rules.
 # Facing and animation are presentation state; action resolution stays in Rules.
+const TACTICAL_PIXEL_SIZE=1.0/48.0
 var unit_id=""
 
 func configure(source: RefCounted,unit: Dictionary,facing="south"):
@@ -8,7 +9,7 @@ func configure(source: RefCounted,unit: Dictionary,facing="south"):
  hp_ratio=clampf(float(unit.hp)/maxf(1,unit.max_hp),0,1)
  var individual="recruit."+unit.id
  setup(source,individual if team=="player" and source.assets.has(individual) else "unit."+unit.job.to_lower())
- sprite.no_depth_test=true;sprite.render_priority=2
+ sprite.pixel_size=TACTICAL_PIXEL_SIZE;sprite.no_depth_test=true;sprite.render_priority=2
  player.play("idle",facing);update_frame()
 
 func _process(dt):

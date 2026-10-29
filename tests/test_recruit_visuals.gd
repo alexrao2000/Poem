@@ -14,6 +14,8 @@ func run():
   var actor=Unit.new();stage.add_child(actor);actor.configure(catalog,unit)
   var individual=catalog.assets.has("recruit."+unit.id)
   assert(individual and actor.visual_id=="recruit."+unit.id,"Every campaign recruit has its own animated identity")
+  var extent=actor.sprite.texture.get_size()*Vector2(actor.sprite.scale.x,actor.sprite.scale.y)*actor.sprite.pixel_size
+  assert(extent.y>=.8 and extent.y<=1.2 and extent.x<=1.15,"Idle recruit silhouettes stay near one tile tall without crowding adjacent tiles")
   if individual:
    var entry=catalog.assets[actor.visual_id]
    var image=catalog.textures[actor.visual_id].get_image()
@@ -45,6 +47,8 @@ func run():
   actor.queue_free();catalog.assets[visual_id]=saved
   unit.team="enemy";actor=Unit.new();stage.add_child(actor);actor.configure(catalog,unit)
   assert(actor.visual_id=="unit."+unit.job.to_lower(),"Enemy figures retain class silhouettes even if an ID matches a recruit")
+  extent=actor.sprite.texture.get_size()*Vector2(actor.sprite.scale.x,actor.sprite.scale.y)*actor.sprite.pixel_size
+  assert(extent.x<=1.15 and extent.y<=1.2,"Enemy fallback art shares the compact campaign scale")
   actor.queue_free()
  var keys=catalog.assets.keys();var textures=catalog.textures.keys()
  assert(not catalog.add_recruits("res://visuals/units.json"),"Supplemental catalog cannot overwrite base classes")

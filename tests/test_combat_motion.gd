@@ -90,9 +90,14 @@ func run():
    for t in [0.0,.5,1.0]:
     shot.progress=t;shot._process(0)
     assert(shot.global_position.distance_to(shot.point_at(t))<.0001,"Projectile path uses world-space sockets beneath transformed stages")
-    var tangent=to-from+Vector3.UP*cos(t*PI)*PI*shot.arc
+    var tangent=shot.destination-shot.origin+Vector3.UP*cos(t*PI)*PI*shot.arc
     assert((-shot.body.global_basis.z).dot(tangent.normalized())>.999,"Arrow and spear tips follow actual flight direction")
-    if t==.5:assert(shot.global_position.y>from.lerp(to,.5).y,"Ranged shot follows a restrained arc")
+    if t==.5:assert(shot.global_position.y>shot.origin.lerp(to,.5).y,"Ranged shot follows a restrained arc")
+    if weapon in ["bow","lance"]:
+     var tip=shot.body.get_node("Tip")
+     var lead=tip.to_global(Vector3(0,0,tip.mesh.get_aabb().position.z))
+     assert(lead.distance_to(shot.point_at(t))<.0001,"Actual leading vertex stays on the flight path, without overshooting contact")
+     if t==0:assert(shot.body.get_child(0).global_position.distance_to(from)<.1,"Physical shaft launches near the animated grip")
    assert(shot.global_position.distance_to(to)<.0001,"Projectile reaches mounted or infantry impact socket")
    if weapon=="magic":assert(shot.trail.size()==6 and shot.trail[0].visible,"Magic leaves a bounded trailing wake")
    shot.queue_free()
