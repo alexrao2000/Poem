@@ -21,5 +21,11 @@ func add_recruits(path: String) -> bool:
   var scale_value=extra.assets[id].get("source_pixel_scale",0)
   if not (scale_value is int or scale_value is float) or not is_finite(float(scale_value)) or scale_value<=0 or scale_value>2:
    recruit_errors.append(id+": invalid source pixel scale");return false
+  var facing_frames=extra.assets[id].get("right_facing_frames",[])
+  if not facing_frames is Array:
+   recruit_errors.append(id+": invalid right-facing frames");return false
+  for frame in facing_frames:
+   if not (frame is int or frame is float) or not is_finite(float(frame)) or frame!=int(frame) or frame<0 or frame>=extra.assets[id].frames.size():
+    recruit_errors.append(id+": invalid right-facing frame");return false
  assets.merge(extra.assets);textures.merge(extra.textures)
  return true

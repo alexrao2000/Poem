@@ -17,6 +17,9 @@
         64
       ],
       "source_pixel_scale": 0.5,
+      "right_facing_frames": [
+        10
+      ],
       "fallback_visual_id": null,
       "frames": [
         {
@@ -28,7 +31,7 @@
           ],
           "pivot_px": [
             38,
-            83
+            82
           ]
         },
         {
@@ -40,7 +43,7 @@
           ],
           "pivot_px": [
             40,
-            81
+            80
           ]
         },
         {
@@ -64,7 +67,7 @@
           ],
           "pivot_px": [
             46,
-            82
+            81
           ]
         },
         {
@@ -100,7 +103,7 @@
           ],
           "pivot_px": [
             33,
-            83
+            82
           ]
         },
         {
@@ -112,7 +115,7 @@
           ],
           "pivot_px": [
             39,
-            83
+            82
           ]
         },
         {
@@ -160,7 +163,7 @@
           ],
           "pivot_px": [
             36,
-            80
+            81
           ]
         }
       ],
@@ -462,6 +465,9 @@
         64
       ],
       "source_pixel_scale": 0.5,
+      "right_facing_frames": [
+        10
+      ],
       "fallback_visual_id": null,
       "frames": [
         {
@@ -497,7 +503,7 @@
           ],
           "pivot_px": [
             46,
-            87
+            88
           ]
         },
         {
@@ -907,6 +913,9 @@
         64
       ],
       "source_pixel_scale": 0.5,
+      "right_facing_frames": [
+        10
+      ],
       "fallback_visual_id": null,
       "frames": [
         {
@@ -978,7 +987,7 @@
           ],
           "pivot_px": [
             55,
-            89
+            88
           ]
         },
         {
@@ -1014,7 +1023,7 @@
           ],
           "pivot_px": [
             39,
-            88
+            89
           ]
         },
         {
@@ -1026,7 +1035,7 @@
           ],
           "pivot_px": [
             39,
-            88
+            89
           ]
         },
         {
@@ -1352,6 +1361,9 @@
         64
       ],
       "source_pixel_scale": 0.5,
+      "right_facing_frames": [
+        10
+      ],
       "fallback_visual_id": null,
       "frames": [
         {
@@ -1399,7 +1411,7 @@
           ],
           "pivot_px": [
             36,
-            86
+            85
           ]
         },
         {
@@ -1447,7 +1459,7 @@
           ],
           "pivot_px": [
             41,
-            85
+            84
           ]
         },
         {
@@ -1797,6 +1809,9 @@
         64
       ],
       "source_pixel_scale": 0.5,
+      "right_facing_frames": [
+        10
+      ],
       "fallback_visual_id": null,
       "frames": [
         {
@@ -1820,7 +1835,7 @@
           ],
           "pivot_px": [
             38,
-            91
+            92
           ]
         },
         {
@@ -1904,7 +1919,7 @@
           ],
           "pivot_px": [
             50,
-            90
+            91
           ]
         },
         {
@@ -2242,6 +2257,9 @@
         64
       ],
       "source_pixel_scale": 0.5,
+      "right_facing_frames": [
+        10
+      ],
       "fallback_visual_id": null,
       "frames": [
         {
@@ -2277,7 +2295,7 @@
           ],
           "pivot_px": [
             54,
-            87
+            86
           ]
         },
         {
@@ -2289,7 +2307,7 @@
           ],
           "pivot_px": [
             49,
-            87
+            86
           ]
         },
         {
@@ -2301,7 +2319,7 @@
           ],
           "pivot_px": [
             53,
-            87
+            86
           ]
         },
         {
@@ -2313,7 +2331,7 @@
           ],
           "pivot_px": [
             56,
-            87
+            86
           ]
         },
         {
@@ -2361,7 +2379,7 @@
           ],
           "pivot_px": [
             42,
-            87
+            86
           ]
         },
         {
@@ -2687,6 +2705,9 @@
         64
       ],
       "source_pixel_scale": 0.5,
+      "right_facing_frames": [
+        10
+      ],
       "fallback_visual_id": null,
       "frames": [
         {
@@ -2698,7 +2719,7 @@
           ],
           "pivot_px": [
             41,
-            81
+            82
           ]
         },
         {
@@ -2710,7 +2731,7 @@
           ],
           "pivot_px": [
             43,
-            82
+            83
           ]
         },
         {
@@ -2794,7 +2815,7 @@
           ],
           "pivot_px": [
             49,
-            81
+            83
           ]
         },
         {
@@ -2806,7 +2827,7 @@
           ],
           "pivot_px": [
             43,
-            81
+            83
           ]
         },
         {
@@ -2818,7 +2839,7 @@
           ],
           "pivot_px": [
             39,
-            79
+            80
           ]
         },
         {
@@ -3132,6 +3153,9 @@
         64
       ],
       "source_pixel_scale": 0.5,
+      "right_facing_frames": [
+        10
+      ],
       "fallback_visual_id": null,
       "frames": [
         {
@@ -3191,7 +3215,7 @@
           ],
           "pivot_px": [
             58,
-            102
+            101
           ]
         },
         {
@@ -3203,7 +3227,7 @@
           ],
           "pivot_px": [
             54,
-            103
+            102
           ]
         },
         {
@@ -3215,7 +3239,7 @@
           ],
           "pivot_px": [
             39,
-            104
+            103
           ]
         },
         {
@@ -3227,7 +3251,7 @@
           ],
           "pivot_px": [
             45,
-            104
+            103
           ]
         },
         {
@@ -3275,7 +3299,7175 @@
           ],
           "pivot_px": [
             51,
-            102
+            103
+          ]
+        }
+      ],
+      "clips": {
+        "idle": {
+          "south": {
+            "frames": [
+              0,
+              1
+            ],
+            "duration_ms": [
+              350,
+              350
+            ],
+            "loop": true,
+            "cues": []
+          },
+          "west": {
+            "frames": [
+              2,
+              2
+            ],
+            "duration_ms": [
+              350,
+              350
+            ],
+            "loop": true,
+            "cues": []
+          },
+          "east": {
+            "frames": [
+              4,
+              4
+            ],
+            "duration_ms": [
+              350,
+              350
+            ],
+            "loop": true,
+            "cues": []
+          },
+          "north": {
+            "frames": [
+              6,
+              6
+            ],
+            "duration_ms": [
+              350,
+              350
+            ],
+            "loop": true,
+            "cues": []
+          }
+        },
+        "move": {
+          "south": {
+            "frames": [
+              8,
+              9
+            ],
+            "duration_ms": [
+              110,
+              110
+            ],
+            "loop": true,
+            "cues": []
+          },
+          "west": {
+            "frames": [
+              2,
+              3
+            ],
+            "duration_ms": [
+              110,
+              110
+            ],
+            "loop": true,
+            "cues": []
+          },
+          "east": {
+            "frames": [
+              4,
+              5
+            ],
+            "duration_ms": [
+              110,
+              110
+            ],
+            "loop": true,
+            "cues": []
+          },
+          "north": {
+            "frames": [
+              6,
+              7
+            ],
+            "duration_ms": [
+              110,
+              110
+            ],
+            "loop": true,
+            "cues": []
+          }
+        },
+        "act": {
+          "south": {
+            "frames": [
+              0,
+              10,
+              10,
+              0
+            ],
+            "duration_ms": [
+              120,
+              100,
+              90,
+              110
+            ],
+            "loop": false,
+            "cues": [
+              {
+                "frame_index": 1,
+                "name": "contact"
+              }
+            ]
+          },
+          "west": {
+            "frames": [
+              2,
+              10,
+              10,
+              2
+            ],
+            "duration_ms": [
+              120,
+              100,
+              90,
+              110
+            ],
+            "loop": false,
+            "cues": [
+              {
+                "frame_index": 1,
+                "name": "contact"
+              }
+            ]
+          },
+          "east": {
+            "frames": [
+              4,
+              10,
+              10,
+              4
+            ],
+            "duration_ms": [
+              120,
+              100,
+              90,
+              110
+            ],
+            "loop": false,
+            "cues": [
+              {
+                "frame_index": 1,
+                "name": "contact"
+              }
+            ]
+          },
+          "north": {
+            "frames": [
+              6,
+              10,
+              10,
+              6
+            ],
+            "duration_ms": [
+              120,
+              100,
+              90,
+              110
+            ],
+            "loop": false,
+            "cues": [
+              {
+                "frame_index": 1,
+                "name": "contact"
+              }
+            ]
+          }
+        },
+        "hurt": {
+          "south": {
+            "frames": [
+              11,
+              11
+            ],
+            "duration_ms": [
+              120,
+              160
+            ],
+            "loop": false,
+            "cues": []
+          },
+          "west": {
+            "frames": [
+              11,
+              11
+            ],
+            "duration_ms": [
+              120,
+              160
+            ],
+            "loop": false,
+            "cues": []
+          },
+          "east": {
+            "frames": [
+              11,
+              11
+            ],
+            "duration_ms": [
+              120,
+              160
+            ],
+            "loop": false,
+            "cues": []
+          },
+          "north": {
+            "frames": [
+              11,
+              11
+            ],
+            "duration_ms": [
+              120,
+              160
+            ],
+            "loop": false,
+            "cues": []
+          }
+        },
+        "defeated": {
+          "south": {
+            "frames": [
+              11,
+              11
+            ],
+            "duration_ms": [
+              200,
+              300
+            ],
+            "loop": false,
+            "cues": []
+          },
+          "west": {
+            "frames": [
+              11,
+              11
+            ],
+            "duration_ms": [
+              200,
+              300
+            ],
+            "loop": false,
+            "cues": []
+          },
+          "east": {
+            "frames": [
+              11,
+              11
+            ],
+            "duration_ms": [
+              200,
+              300
+            ],
+            "loop": false,
+            "cues": []
+          },
+          "north": {
+            "frames": [
+              11,
+              11
+            ],
+            "duration_ms": [
+              200,
+              300
+            ],
+            "loop": false,
+            "cues": []
+          }
+        }
+      }
+    },
+    {
+      "id": "recruit.petra",
+      "kind": "map_unit",
+      "texture": "assets/sprites/company-c-animated-v1.png",
+      "logical_frame_px": [
+        64,
+        64
+      ],
+      "source_pixel_scale": 0.6,
+      "right_facing_frames": [
+        10
+      ],
+      "fallback_visual_id": null,
+      "frames": [
+        {
+          "rect": [
+            32,
+            46,
+            76,
+            74
+          ],
+          "pivot_px": [
+            32,
+            71
+          ]
+        },
+        {
+          "rect": [
+            156,
+            46,
+            73,
+            74
+          ],
+          "pivot_px": [
+            36,
+            71
+          ]
+        },
+        {
+          "rect": [
+            276,
+            47,
+            72,
+            74
+          ],
+          "pivot_px": [
+            44,
+            71
+          ]
+        },
+        {
+          "rect": [
+            398,
+            45,
+            75,
+            75
+          ],
+          "pivot_px": [
+            50,
+            72
+          ]
+        },
+        {
+          "rect": [
+            526,
+            46,
+            77,
+            74
+          ],
+          "pivot_px": [
+            50,
+            71
+          ]
+        },
+        {
+          "rect": [
+            658,
+            45,
+            75,
+            75
+          ],
+          "pivot_px": [
+            46,
+            72
+          ]
+        },
+        {
+          "rect": [
+            797,
+            45,
+            64,
+            75
+          ],
+          "pivot_px": [
+            35,
+            72
+          ]
+        },
+        {
+          "rect": [
+            922,
+            44,
+            63,
+            76
+          ],
+          "pivot_px": [
+            38,
+            73
+          ]
+        },
+        {
+          "rect": [
+            1042,
+            45,
+            75,
+            75
+          ],
+          "pivot_px": [
+            46,
+            72
+          ]
+        },
+        {
+          "rect": [
+            1169,
+            45,
+            76,
+            75
+          ],
+          "pivot_px": [
+            47,
+            72
+          ]
+        },
+        {
+          "rect": [
+            1294,
+            47,
+            111,
+            71
+          ],
+          "pivot_px": [
+            50,
+            68
+          ]
+        },
+        {
+          "rect": [
+            1437,
+            47,
+            60,
+            73
+          ],
+          "pivot_px": [
+            35,
+            70
+          ]
+        }
+      ],
+      "clips": {
+        "idle": {
+          "south": {
+            "frames": [
+              0,
+              1
+            ],
+            "duration_ms": [
+              350,
+              350
+            ],
+            "loop": true,
+            "cues": []
+          },
+          "west": {
+            "frames": [
+              2,
+              2
+            ],
+            "duration_ms": [
+              350,
+              350
+            ],
+            "loop": true,
+            "cues": []
+          },
+          "east": {
+            "frames": [
+              4,
+              4
+            ],
+            "duration_ms": [
+              350,
+              350
+            ],
+            "loop": true,
+            "cues": []
+          },
+          "north": {
+            "frames": [
+              6,
+              6
+            ],
+            "duration_ms": [
+              350,
+              350
+            ],
+            "loop": true,
+            "cues": []
+          }
+        },
+        "move": {
+          "south": {
+            "frames": [
+              8,
+              9
+            ],
+            "duration_ms": [
+              110,
+              110
+            ],
+            "loop": true,
+            "cues": []
+          },
+          "west": {
+            "frames": [
+              2,
+              3
+            ],
+            "duration_ms": [
+              110,
+              110
+            ],
+            "loop": true,
+            "cues": []
+          },
+          "east": {
+            "frames": [
+              4,
+              5
+            ],
+            "duration_ms": [
+              110,
+              110
+            ],
+            "loop": true,
+            "cues": []
+          },
+          "north": {
+            "frames": [
+              6,
+              7
+            ],
+            "duration_ms": [
+              110,
+              110
+            ],
+            "loop": true,
+            "cues": []
+          }
+        },
+        "act": {
+          "south": {
+            "frames": [
+              0,
+              10,
+              10,
+              0
+            ],
+            "duration_ms": [
+              120,
+              100,
+              90,
+              110
+            ],
+            "loop": false,
+            "cues": [
+              {
+                "frame_index": 1,
+                "name": "contact"
+              }
+            ]
+          },
+          "west": {
+            "frames": [
+              2,
+              10,
+              10,
+              2
+            ],
+            "duration_ms": [
+              120,
+              100,
+              90,
+              110
+            ],
+            "loop": false,
+            "cues": [
+              {
+                "frame_index": 1,
+                "name": "contact"
+              }
+            ]
+          },
+          "east": {
+            "frames": [
+              4,
+              10,
+              10,
+              4
+            ],
+            "duration_ms": [
+              120,
+              100,
+              90,
+              110
+            ],
+            "loop": false,
+            "cues": [
+              {
+                "frame_index": 1,
+                "name": "contact"
+              }
+            ]
+          },
+          "north": {
+            "frames": [
+              6,
+              10,
+              10,
+              6
+            ],
+            "duration_ms": [
+              120,
+              100,
+              90,
+              110
+            ],
+            "loop": false,
+            "cues": [
+              {
+                "frame_index": 1,
+                "name": "contact"
+              }
+            ]
+          }
+        },
+        "hurt": {
+          "south": {
+            "frames": [
+              11,
+              11
+            ],
+            "duration_ms": [
+              120,
+              160
+            ],
+            "loop": false,
+            "cues": []
+          },
+          "west": {
+            "frames": [
+              11,
+              11
+            ],
+            "duration_ms": [
+              120,
+              160
+            ],
+            "loop": false,
+            "cues": []
+          },
+          "east": {
+            "frames": [
+              11,
+              11
+            ],
+            "duration_ms": [
+              120,
+              160
+            ],
+            "loop": false,
+            "cues": []
+          },
+          "north": {
+            "frames": [
+              11,
+              11
+            ],
+            "duration_ms": [
+              120,
+              160
+            ],
+            "loop": false,
+            "cues": []
+          }
+        },
+        "defeated": {
+          "south": {
+            "frames": [
+              11,
+              11
+            ],
+            "duration_ms": [
+              200,
+              300
+            ],
+            "loop": false,
+            "cues": []
+          },
+          "west": {
+            "frames": [
+              11,
+              11
+            ],
+            "duration_ms": [
+              200,
+              300
+            ],
+            "loop": false,
+            "cues": []
+          },
+          "east": {
+            "frames": [
+              11,
+              11
+            ],
+            "duration_ms": [
+              200,
+              300
+            ],
+            "loop": false,
+            "cues": []
+          },
+          "north": {
+            "frames": [
+              11,
+              11
+            ],
+            "duration_ms": [
+              200,
+              300
+            ],
+            "loop": false,
+            "cues": []
+          }
+        }
+      }
+    },
+    {
+      "id": "recruit.ari",
+      "kind": "map_unit",
+      "texture": "assets/sprites/company-c-animated-v1.png",
+      "logical_frame_px": [
+        64,
+        64
+      ],
+      "source_pixel_scale": 0.6,
+      "right_facing_frames": [
+        10
+      ],
+      "fallback_visual_id": null,
+      "frames": [
+        {
+          "rect": [
+            31,
+            154,
+            75,
+            79
+          ],
+          "pivot_px": [
+            33,
+            76
+          ]
+        },
+        {
+          "rect": [
+            156,
+            154,
+            72,
+            79
+          ],
+          "pivot_px": [
+            36,
+            76
+          ]
+        },
+        {
+          "rect": [
+            287,
+            155,
+            67,
+            78
+          ],
+          "pivot_px": [
+            33,
+            75
+          ]
+        },
+        {
+          "rect": [
+            409,
+            156,
+            70,
+            77
+          ],
+          "pivot_px": [
+            39,
+            74
+          ]
+        },
+        {
+          "rect": [
+            529,
+            154,
+            75,
+            79
+          ],
+          "pivot_px": [
+            47,
+            76
+          ]
+        },
+        {
+          "rect": [
+            657,
+            155,
+            77,
+            78
+          ],
+          "pivot_px": [
+            47,
+            75
+          ]
+        },
+        {
+          "rect": [
+            792,
+            156,
+            72,
+            76
+          ],
+          "pivot_px": [
+            40,
+            73
+          ]
+        },
+        {
+          "rect": [
+            916,
+            156,
+            71,
+            76
+          ],
+          "pivot_px": [
+            44,
+            73
+          ]
+        },
+        {
+          "rect": [
+            1045,
+            154,
+            70,
+            80
+          ],
+          "pivot_px": [
+            43,
+            77
+          ]
+        },
+        {
+          "rect": [
+            1172,
+            154,
+            75,
+            79
+          ],
+          "pivot_px": [
+            44,
+            76
+          ]
+        },
+        {
+          "rect": [
+            1294,
+            155,
+            103,
+            78
+          ],
+          "pivot_px": [
+            50,
+            75
+          ]
+        },
+        {
+          "rect": [
+            1428,
+            158,
+            76,
+            75
+          ],
+          "pivot_px": [
+            44,
+            72
+          ]
+        }
+      ],
+      "clips": {
+        "idle": {
+          "south": {
+            "frames": [
+              0,
+              1
+            ],
+            "duration_ms": [
+              350,
+              350
+            ],
+            "loop": true,
+            "cues": []
+          },
+          "west": {
+            "frames": [
+              2,
+              2
+            ],
+            "duration_ms": [
+              350,
+              350
+            ],
+            "loop": true,
+            "cues": []
+          },
+          "east": {
+            "frames": [
+              4,
+              4
+            ],
+            "duration_ms": [
+              350,
+              350
+            ],
+            "loop": true,
+            "cues": []
+          },
+          "north": {
+            "frames": [
+              6,
+              6
+            ],
+            "duration_ms": [
+              350,
+              350
+            ],
+            "loop": true,
+            "cues": []
+          }
+        },
+        "move": {
+          "south": {
+            "frames": [
+              8,
+              9
+            ],
+            "duration_ms": [
+              110,
+              110
+            ],
+            "loop": true,
+            "cues": []
+          },
+          "west": {
+            "frames": [
+              2,
+              3
+            ],
+            "duration_ms": [
+              110,
+              110
+            ],
+            "loop": true,
+            "cues": []
+          },
+          "east": {
+            "frames": [
+              4,
+              5
+            ],
+            "duration_ms": [
+              110,
+              110
+            ],
+            "loop": true,
+            "cues": []
+          },
+          "north": {
+            "frames": [
+              6,
+              7
+            ],
+            "duration_ms": [
+              110,
+              110
+            ],
+            "loop": true,
+            "cues": []
+          }
+        },
+        "act": {
+          "south": {
+            "frames": [
+              0,
+              10,
+              10,
+              0
+            ],
+            "duration_ms": [
+              120,
+              100,
+              90,
+              110
+            ],
+            "loop": false,
+            "cues": [
+              {
+                "frame_index": 1,
+                "name": "contact"
+              }
+            ]
+          },
+          "west": {
+            "frames": [
+              2,
+              10,
+              10,
+              2
+            ],
+            "duration_ms": [
+              120,
+              100,
+              90,
+              110
+            ],
+            "loop": false,
+            "cues": [
+              {
+                "frame_index": 1,
+                "name": "contact"
+              }
+            ]
+          },
+          "east": {
+            "frames": [
+              4,
+              10,
+              10,
+              4
+            ],
+            "duration_ms": [
+              120,
+              100,
+              90,
+              110
+            ],
+            "loop": false,
+            "cues": [
+              {
+                "frame_index": 1,
+                "name": "contact"
+              }
+            ]
+          },
+          "north": {
+            "frames": [
+              6,
+              10,
+              10,
+              6
+            ],
+            "duration_ms": [
+              120,
+              100,
+              90,
+              110
+            ],
+            "loop": false,
+            "cues": [
+              {
+                "frame_index": 1,
+                "name": "contact"
+              }
+            ]
+          }
+        },
+        "hurt": {
+          "south": {
+            "frames": [
+              11,
+              11
+            ],
+            "duration_ms": [
+              120,
+              160
+            ],
+            "loop": false,
+            "cues": []
+          },
+          "west": {
+            "frames": [
+              11,
+              11
+            ],
+            "duration_ms": [
+              120,
+              160
+            ],
+            "loop": false,
+            "cues": []
+          },
+          "east": {
+            "frames": [
+              11,
+              11
+            ],
+            "duration_ms": [
+              120,
+              160
+            ],
+            "loop": false,
+            "cues": []
+          },
+          "north": {
+            "frames": [
+              11,
+              11
+            ],
+            "duration_ms": [
+              120,
+              160
+            ],
+            "loop": false,
+            "cues": []
+          }
+        },
+        "defeated": {
+          "south": {
+            "frames": [
+              11,
+              11
+            ],
+            "duration_ms": [
+              200,
+              300
+            ],
+            "loop": false,
+            "cues": []
+          },
+          "west": {
+            "frames": [
+              11,
+              11
+            ],
+            "duration_ms": [
+              200,
+              300
+            ],
+            "loop": false,
+            "cues": []
+          },
+          "east": {
+            "frames": [
+              11,
+              11
+            ],
+            "duration_ms": [
+              200,
+              300
+            ],
+            "loop": false,
+            "cues": []
+          },
+          "north": {
+            "frames": [
+              11,
+              11
+            ],
+            "duration_ms": [
+              200,
+              300
+            ],
+            "loop": false,
+            "cues": []
+          }
+        }
+      }
+    },
+    {
+      "id": "recruit.noor",
+      "kind": "map_unit",
+      "texture": "assets/sprites/company-c-animated-v1.png",
+      "logical_frame_px": [
+        64,
+        64
+      ],
+      "source_pixel_scale": 0.6,
+      "right_facing_frames": [
+        10
+      ],
+      "fallback_visual_id": null,
+      "frames": [
+        {
+          "rect": [
+            32,
+            271,
+            73,
+            82
+          ],
+          "pivot_px": [
+            32,
+            79
+          ]
+        },
+        {
+          "rect": [
+            157,
+            271,
+            71,
+            82
+          ],
+          "pivot_px": [
+            35,
+            79
+          ]
+        },
+        {
+          "rect": [
+            279,
+            271,
+            75,
+            82
+          ],
+          "pivot_px": [
+            41,
+            79
+          ]
+        },
+        {
+          "rect": [
+            405,
+            271,
+            74,
+            81
+          ],
+          "pivot_px": [
+            43,
+            78
+          ]
+        },
+        {
+          "rect": [
+            531,
+            271,
+            72,
+            82
+          ],
+          "pivot_px": [
+            45,
+            79
+          ]
+        },
+        {
+          "rect": [
+            656,
+            271,
+            74,
+            82
+          ],
+          "pivot_px": [
+            48,
+            79
+          ]
+        },
+        {
+          "rect": [
+            792,
+            271,
+            72,
+            81
+          ],
+          "pivot_px": [
+            40,
+            78
+          ]
+        },
+        {
+          "rect": [
+            918,
+            271,
+            70,
+            82
+          ],
+          "pivot_px": [
+            42,
+            79
+          ]
+        },
+        {
+          "rect": [
+            1045,
+            271,
+            72,
+            82
+          ],
+          "pivot_px": [
+            43,
+            79
+          ]
+        },
+        {
+          "rect": [
+            1173,
+            271,
+            75,
+            82
+          ],
+          "pivot_px": [
+            43,
+            79
+          ]
+        },
+        {
+          "rect": [
+            1300,
+            271,
+            96,
+            82
+          ],
+          "pivot_px": [
+            44,
+            79
+          ]
+        },
+        {
+          "rect": [
+            1429,
+            271,
+            71,
+            82
+          ],
+          "pivot_px": [
+            43,
+            79
+          ]
+        }
+      ],
+      "clips": {
+        "idle": {
+          "south": {
+            "frames": [
+              0,
+              1
+            ],
+            "duration_ms": [
+              350,
+              350
+            ],
+            "loop": true,
+            "cues": []
+          },
+          "west": {
+            "frames": [
+              2,
+              2
+            ],
+            "duration_ms": [
+              350,
+              350
+            ],
+            "loop": true,
+            "cues": []
+          },
+          "east": {
+            "frames": [
+              4,
+              4
+            ],
+            "duration_ms": [
+              350,
+              350
+            ],
+            "loop": true,
+            "cues": []
+          },
+          "north": {
+            "frames": [
+              6,
+              6
+            ],
+            "duration_ms": [
+              350,
+              350
+            ],
+            "loop": true,
+            "cues": []
+          }
+        },
+        "move": {
+          "south": {
+            "frames": [
+              8,
+              9
+            ],
+            "duration_ms": [
+              110,
+              110
+            ],
+            "loop": true,
+            "cues": []
+          },
+          "west": {
+            "frames": [
+              2,
+              3
+            ],
+            "duration_ms": [
+              110,
+              110
+            ],
+            "loop": true,
+            "cues": []
+          },
+          "east": {
+            "frames": [
+              4,
+              5
+            ],
+            "duration_ms": [
+              110,
+              110
+            ],
+            "loop": true,
+            "cues": []
+          },
+          "north": {
+            "frames": [
+              6,
+              7
+            ],
+            "duration_ms": [
+              110,
+              110
+            ],
+            "loop": true,
+            "cues": []
+          }
+        },
+        "act": {
+          "south": {
+            "frames": [
+              0,
+              10,
+              10,
+              0
+            ],
+            "duration_ms": [
+              120,
+              100,
+              90,
+              110
+            ],
+            "loop": false,
+            "cues": [
+              {
+                "frame_index": 1,
+                "name": "contact"
+              }
+            ]
+          },
+          "west": {
+            "frames": [
+              2,
+              10,
+              10,
+              2
+            ],
+            "duration_ms": [
+              120,
+              100,
+              90,
+              110
+            ],
+            "loop": false,
+            "cues": [
+              {
+                "frame_index": 1,
+                "name": "contact"
+              }
+            ]
+          },
+          "east": {
+            "frames": [
+              4,
+              10,
+              10,
+              4
+            ],
+            "duration_ms": [
+              120,
+              100,
+              90,
+              110
+            ],
+            "loop": false,
+            "cues": [
+              {
+                "frame_index": 1,
+                "name": "contact"
+              }
+            ]
+          },
+          "north": {
+            "frames": [
+              6,
+              10,
+              10,
+              6
+            ],
+            "duration_ms": [
+              120,
+              100,
+              90,
+              110
+            ],
+            "loop": false,
+            "cues": [
+              {
+                "frame_index": 1,
+                "name": "contact"
+              }
+            ]
+          }
+        },
+        "hurt": {
+          "south": {
+            "frames": [
+              11,
+              11
+            ],
+            "duration_ms": [
+              120,
+              160
+            ],
+            "loop": false,
+            "cues": []
+          },
+          "west": {
+            "frames": [
+              11,
+              11
+            ],
+            "duration_ms": [
+              120,
+              160
+            ],
+            "loop": false,
+            "cues": []
+          },
+          "east": {
+            "frames": [
+              11,
+              11
+            ],
+            "duration_ms": [
+              120,
+              160
+            ],
+            "loop": false,
+            "cues": []
+          },
+          "north": {
+            "frames": [
+              11,
+              11
+            ],
+            "duration_ms": [
+              120,
+              160
+            ],
+            "loop": false,
+            "cues": []
+          }
+        },
+        "defeated": {
+          "south": {
+            "frames": [
+              11,
+              11
+            ],
+            "duration_ms": [
+              200,
+              300
+            ],
+            "loop": false,
+            "cues": []
+          },
+          "west": {
+            "frames": [
+              11,
+              11
+            ],
+            "duration_ms": [
+              200,
+              300
+            ],
+            "loop": false,
+            "cues": []
+          },
+          "east": {
+            "frames": [
+              11,
+              11
+            ],
+            "duration_ms": [
+              200,
+              300
+            ],
+            "loop": false,
+            "cues": []
+          },
+          "north": {
+            "frames": [
+              11,
+              11
+            ],
+            "duration_ms": [
+              200,
+              300
+            ],
+            "loop": false,
+            "cues": []
+          }
+        }
+      }
+    },
+    {
+      "id": "recruit.galen",
+      "kind": "map_unit",
+      "texture": "assets/sprites/company-c-animated-v1.png",
+      "logical_frame_px": [
+        64,
+        64
+      ],
+      "source_pixel_scale": 0.6,
+      "right_facing_frames": [
+        10
+      ],
+      "fallback_visual_id": null,
+      "frames": [
+        {
+          "rect": [
+            31,
+            396,
+            75,
+            91
+          ],
+          "pivot_px": [
+            33,
+            88
+          ]
+        },
+        {
+          "rect": [
+            155,
+            396,
+            75,
+            91
+          ],
+          "pivot_px": [
+            37,
+            88
+          ]
+        },
+        {
+          "rect": [
+            279,
+            396,
+            80,
+            91
+          ],
+          "pivot_px": [
+            41,
+            88
+          ]
+        },
+        {
+          "rect": [
+            408,
+            396,
+            74,
+            91
+          ],
+          "pivot_px": [
+            40,
+            88
+          ]
+        },
+        {
+          "rect": [
+            529,
+            396,
+            78,
+            91
+          ],
+          "pivot_px": [
+            47,
+            88
+          ]
+        },
+        {
+          "rect": [
+            651,
+            395,
+            84,
+            93
+          ],
+          "pivot_px": [
+            53,
+            90
+          ]
+        },
+        {
+          "rect": [
+            789,
+            395,
+            72,
+            92
+          ],
+          "pivot_px": [
+            43,
+            89
+          ]
+        },
+        {
+          "rect": [
+            912,
+            395,
+            73,
+            92
+          ],
+          "pivot_px": [
+            48,
+            89
+          ]
+        },
+        {
+          "rect": [
+            1045,
+            396,
+            73,
+            91
+          ],
+          "pivot_px": [
+            43,
+            88
+          ]
+        },
+        {
+          "rect": [
+            1172,
+            396,
+            74,
+            92
+          ],
+          "pivot_px": [
+            44,
+            89
+          ]
+        },
+        {
+          "rect": [
+            1292,
+            398,
+            90,
+            91
+          ],
+          "pivot_px": [
+            52,
+            88
+          ]
+        },
+        {
+          "rect": [
+            1426,
+            406,
+            72,
+            82
+          ],
+          "pivot_px": [
+            46,
+            79
+          ]
+        }
+      ],
+      "clips": {
+        "idle": {
+          "south": {
+            "frames": [
+              0,
+              1
+            ],
+            "duration_ms": [
+              350,
+              350
+            ],
+            "loop": true,
+            "cues": []
+          },
+          "west": {
+            "frames": [
+              2,
+              2
+            ],
+            "duration_ms": [
+              350,
+              350
+            ],
+            "loop": true,
+            "cues": []
+          },
+          "east": {
+            "frames": [
+              4,
+              4
+            ],
+            "duration_ms": [
+              350,
+              350
+            ],
+            "loop": true,
+            "cues": []
+          },
+          "north": {
+            "frames": [
+              6,
+              6
+            ],
+            "duration_ms": [
+              350,
+              350
+            ],
+            "loop": true,
+            "cues": []
+          }
+        },
+        "move": {
+          "south": {
+            "frames": [
+              8,
+              9
+            ],
+            "duration_ms": [
+              110,
+              110
+            ],
+            "loop": true,
+            "cues": []
+          },
+          "west": {
+            "frames": [
+              2,
+              3
+            ],
+            "duration_ms": [
+              110,
+              110
+            ],
+            "loop": true,
+            "cues": []
+          },
+          "east": {
+            "frames": [
+              4,
+              5
+            ],
+            "duration_ms": [
+              110,
+              110
+            ],
+            "loop": true,
+            "cues": []
+          },
+          "north": {
+            "frames": [
+              6,
+              7
+            ],
+            "duration_ms": [
+              110,
+              110
+            ],
+            "loop": true,
+            "cues": []
+          }
+        },
+        "act": {
+          "south": {
+            "frames": [
+              0,
+              10,
+              10,
+              0
+            ],
+            "duration_ms": [
+              120,
+              100,
+              90,
+              110
+            ],
+            "loop": false,
+            "cues": [
+              {
+                "frame_index": 1,
+                "name": "contact"
+              }
+            ]
+          },
+          "west": {
+            "frames": [
+              2,
+              10,
+              10,
+              2
+            ],
+            "duration_ms": [
+              120,
+              100,
+              90,
+              110
+            ],
+            "loop": false,
+            "cues": [
+              {
+                "frame_index": 1,
+                "name": "contact"
+              }
+            ]
+          },
+          "east": {
+            "frames": [
+              4,
+              10,
+              10,
+              4
+            ],
+            "duration_ms": [
+              120,
+              100,
+              90,
+              110
+            ],
+            "loop": false,
+            "cues": [
+              {
+                "frame_index": 1,
+                "name": "contact"
+              }
+            ]
+          },
+          "north": {
+            "frames": [
+              6,
+              10,
+              10,
+              6
+            ],
+            "duration_ms": [
+              120,
+              100,
+              90,
+              110
+            ],
+            "loop": false,
+            "cues": [
+              {
+                "frame_index": 1,
+                "name": "contact"
+              }
+            ]
+          }
+        },
+        "hurt": {
+          "south": {
+            "frames": [
+              11,
+              11
+            ],
+            "duration_ms": [
+              120,
+              160
+            ],
+            "loop": false,
+            "cues": []
+          },
+          "west": {
+            "frames": [
+              11,
+              11
+            ],
+            "duration_ms": [
+              120,
+              160
+            ],
+            "loop": false,
+            "cues": []
+          },
+          "east": {
+            "frames": [
+              11,
+              11
+            ],
+            "duration_ms": [
+              120,
+              160
+            ],
+            "loop": false,
+            "cues": []
+          },
+          "north": {
+            "frames": [
+              11,
+              11
+            ],
+            "duration_ms": [
+              120,
+              160
+            ],
+            "loop": false,
+            "cues": []
+          }
+        },
+        "defeated": {
+          "south": {
+            "frames": [
+              11,
+              11
+            ],
+            "duration_ms": [
+              200,
+              300
+            ],
+            "loop": false,
+            "cues": []
+          },
+          "west": {
+            "frames": [
+              11,
+              11
+            ],
+            "duration_ms": [
+              200,
+              300
+            ],
+            "loop": false,
+            "cues": []
+          },
+          "east": {
+            "frames": [
+              11,
+              11
+            ],
+            "duration_ms": [
+              200,
+              300
+            ],
+            "loop": false,
+            "cues": []
+          },
+          "north": {
+            "frames": [
+              11,
+              11
+            ],
+            "duration_ms": [
+              200,
+              300
+            ],
+            "loop": false,
+            "cues": []
+          }
+        }
+      }
+    },
+    {
+      "id": "recruit.yuna",
+      "kind": "map_unit",
+      "texture": "assets/sprites/company-c-animated-v1.png",
+      "logical_frame_px": [
+        64,
+        64
+      ],
+      "source_pixel_scale": 0.6,
+      "right_facing_frames": [
+        10
+      ],
+      "fallback_visual_id": null,
+      "frames": [
+        {
+          "rect": [
+            31,
+            525,
+            68,
+            85
+          ],
+          "pivot_px": [
+            33,
+            82
+          ]
+        },
+        {
+          "rect": [
+            154,
+            524,
+            67,
+            86
+          ],
+          "pivot_px": [
+            38,
+            83
+          ]
+        },
+        {
+          "rect": [
+            276,
+            525,
+            78,
+            86
+          ],
+          "pivot_px": [
+            44,
+            83
+          ]
+        },
+        {
+          "rect": [
+            411,
+            525,
+            65,
+            85
+          ],
+          "pivot_px": [
+            37,
+            82
+          ]
+        },
+        {
+          "rect": [
+            527,
+            525,
+            79,
+            85
+          ],
+          "pivot_px": [
+            49,
+            82
+          ]
+        },
+        {
+          "rect": [
+            659,
+            525,
+            84,
+            85
+          ],
+          "pivot_px": [
+            45,
+            82
+          ]
+        },
+        {
+          "rect": [
+            796,
+            525,
+            66,
+            86
+          ],
+          "pivot_px": [
+            36,
+            83
+          ]
+        },
+        {
+          "rect": [
+            920,
+            525,
+            68,
+            85
+          ],
+          "pivot_px": [
+            40,
+            82
+          ]
+        },
+        {
+          "rect": [
+            1041,
+            524,
+            71,
+            86
+          ],
+          "pivot_px": [
+            47,
+            83
+          ]
+        },
+        {
+          "rect": [
+            1165,
+            524,
+            85,
+            86
+          ],
+          "pivot_px": [
+            51,
+            83
+          ]
+        },
+        {
+          "rect": [
+            1295,
+            527,
+            108,
+            84
+          ],
+          "pivot_px": [
+            49,
+            81
+          ]
+        },
+        {
+          "rect": [
+            1430,
+            526,
+            71,
+            85
+          ],
+          "pivot_px": [
+            42,
+            82
+          ]
+        }
+      ],
+      "clips": {
+        "idle": {
+          "south": {
+            "frames": [
+              0,
+              1
+            ],
+            "duration_ms": [
+              350,
+              350
+            ],
+            "loop": true,
+            "cues": []
+          },
+          "west": {
+            "frames": [
+              2,
+              2
+            ],
+            "duration_ms": [
+              350,
+              350
+            ],
+            "loop": true,
+            "cues": []
+          },
+          "east": {
+            "frames": [
+              4,
+              4
+            ],
+            "duration_ms": [
+              350,
+              350
+            ],
+            "loop": true,
+            "cues": []
+          },
+          "north": {
+            "frames": [
+              6,
+              6
+            ],
+            "duration_ms": [
+              350,
+              350
+            ],
+            "loop": true,
+            "cues": []
+          }
+        },
+        "move": {
+          "south": {
+            "frames": [
+              8,
+              9
+            ],
+            "duration_ms": [
+              110,
+              110
+            ],
+            "loop": true,
+            "cues": []
+          },
+          "west": {
+            "frames": [
+              2,
+              3
+            ],
+            "duration_ms": [
+              110,
+              110
+            ],
+            "loop": true,
+            "cues": []
+          },
+          "east": {
+            "frames": [
+              4,
+              5
+            ],
+            "duration_ms": [
+              110,
+              110
+            ],
+            "loop": true,
+            "cues": []
+          },
+          "north": {
+            "frames": [
+              6,
+              7
+            ],
+            "duration_ms": [
+              110,
+              110
+            ],
+            "loop": true,
+            "cues": []
+          }
+        },
+        "act": {
+          "south": {
+            "frames": [
+              0,
+              10,
+              10,
+              0
+            ],
+            "duration_ms": [
+              120,
+              100,
+              90,
+              110
+            ],
+            "loop": false,
+            "cues": [
+              {
+                "frame_index": 1,
+                "name": "contact"
+              }
+            ]
+          },
+          "west": {
+            "frames": [
+              2,
+              10,
+              10,
+              2
+            ],
+            "duration_ms": [
+              120,
+              100,
+              90,
+              110
+            ],
+            "loop": false,
+            "cues": [
+              {
+                "frame_index": 1,
+                "name": "contact"
+              }
+            ]
+          },
+          "east": {
+            "frames": [
+              4,
+              10,
+              10,
+              4
+            ],
+            "duration_ms": [
+              120,
+              100,
+              90,
+              110
+            ],
+            "loop": false,
+            "cues": [
+              {
+                "frame_index": 1,
+                "name": "contact"
+              }
+            ]
+          },
+          "north": {
+            "frames": [
+              6,
+              10,
+              10,
+              6
+            ],
+            "duration_ms": [
+              120,
+              100,
+              90,
+              110
+            ],
+            "loop": false,
+            "cues": [
+              {
+                "frame_index": 1,
+                "name": "contact"
+              }
+            ]
+          }
+        },
+        "hurt": {
+          "south": {
+            "frames": [
+              11,
+              11
+            ],
+            "duration_ms": [
+              120,
+              160
+            ],
+            "loop": false,
+            "cues": []
+          },
+          "west": {
+            "frames": [
+              11,
+              11
+            ],
+            "duration_ms": [
+              120,
+              160
+            ],
+            "loop": false,
+            "cues": []
+          },
+          "east": {
+            "frames": [
+              11,
+              11
+            ],
+            "duration_ms": [
+              120,
+              160
+            ],
+            "loop": false,
+            "cues": []
+          },
+          "north": {
+            "frames": [
+              11,
+              11
+            ],
+            "duration_ms": [
+              120,
+              160
+            ],
+            "loop": false,
+            "cues": []
+          }
+        },
+        "defeated": {
+          "south": {
+            "frames": [
+              11,
+              11
+            ],
+            "duration_ms": [
+              200,
+              300
+            ],
+            "loop": false,
+            "cues": []
+          },
+          "west": {
+            "frames": [
+              11,
+              11
+            ],
+            "duration_ms": [
+              200,
+              300
+            ],
+            "loop": false,
+            "cues": []
+          },
+          "east": {
+            "frames": [
+              11,
+              11
+            ],
+            "duration_ms": [
+              200,
+              300
+            ],
+            "loop": false,
+            "cues": []
+          },
+          "north": {
+            "frames": [
+              11,
+              11
+            ],
+            "duration_ms": [
+              200,
+              300
+            ],
+            "loop": false,
+            "cues": []
+          }
+        }
+      }
+    },
+    {
+      "id": "recruit.hale",
+      "kind": "map_unit",
+      "texture": "assets/sprites/company-c-animated-v1.png",
+      "logical_frame_px": [
+        64,
+        64
+      ],
+      "source_pixel_scale": 0.6,
+      "right_facing_frames": [
+        10
+      ],
+      "fallback_visual_id": null,
+      "frames": [
+        {
+          "rect": [
+            29,
+            653,
+            80,
+            80
+          ],
+          "pivot_px": [
+            35,
+            77
+          ]
+        },
+        {
+          "rect": [
+            150,
+            653,
+            80,
+            80
+          ],
+          "pivot_px": [
+            42,
+            77
+          ]
+        },
+        {
+          "rect": [
+            271,
+            654,
+            87,
+            80
+          ],
+          "pivot_px": [
+            49,
+            77
+          ]
+        },
+        {
+          "rect": [
+            401,
+            654,
+            77,
+            79
+          ],
+          "pivot_px": [
+            47,
+            76
+          ]
+        },
+        {
+          "rect": [
+            524,
+            654,
+            88,
+            79
+          ],
+          "pivot_px": [
+            52,
+            76
+          ]
+        },
+        {
+          "rect": [
+            654,
+            654,
+            90,
+            79
+          ],
+          "pivot_px": [
+            50,
+            76
+          ]
+        },
+        {
+          "rect": [
+            792,
+            653,
+            73,
+            80
+          ],
+          "pivot_px": [
+            40,
+            77
+          ]
+        },
+        {
+          "rect": [
+            912,
+            654,
+            82,
+            79
+          ],
+          "pivot_px": [
+            48,
+            76
+          ]
+        },
+        {
+          "rect": [
+            1038,
+            654,
+            79,
+            80
+          ],
+          "pivot_px": [
+            50,
+            77
+          ]
+        },
+        {
+          "rect": [
+            1164,
+            654,
+            80,
+            79
+          ],
+          "pivot_px": [
+            52,
+            76
+          ]
+        },
+        {
+          "rect": [
+            1285,
+            654,
+            106,
+            79
+          ],
+          "pivot_px": [
+            59,
+            76
+          ]
+        },
+        {
+          "rect": [
+            1425,
+            654,
+            78,
+            80
+          ],
+          "pivot_px": [
+            47,
+            77
+          ]
+        }
+      ],
+      "clips": {
+        "idle": {
+          "south": {
+            "frames": [
+              0,
+              1
+            ],
+            "duration_ms": [
+              350,
+              350
+            ],
+            "loop": true,
+            "cues": []
+          },
+          "west": {
+            "frames": [
+              2,
+              2
+            ],
+            "duration_ms": [
+              350,
+              350
+            ],
+            "loop": true,
+            "cues": []
+          },
+          "east": {
+            "frames": [
+              4,
+              4
+            ],
+            "duration_ms": [
+              350,
+              350
+            ],
+            "loop": true,
+            "cues": []
+          },
+          "north": {
+            "frames": [
+              6,
+              6
+            ],
+            "duration_ms": [
+              350,
+              350
+            ],
+            "loop": true,
+            "cues": []
+          }
+        },
+        "move": {
+          "south": {
+            "frames": [
+              8,
+              9
+            ],
+            "duration_ms": [
+              110,
+              110
+            ],
+            "loop": true,
+            "cues": []
+          },
+          "west": {
+            "frames": [
+              2,
+              3
+            ],
+            "duration_ms": [
+              110,
+              110
+            ],
+            "loop": true,
+            "cues": []
+          },
+          "east": {
+            "frames": [
+              4,
+              5
+            ],
+            "duration_ms": [
+              110,
+              110
+            ],
+            "loop": true,
+            "cues": []
+          },
+          "north": {
+            "frames": [
+              6,
+              7
+            ],
+            "duration_ms": [
+              110,
+              110
+            ],
+            "loop": true,
+            "cues": []
+          }
+        },
+        "act": {
+          "south": {
+            "frames": [
+              0,
+              10,
+              10,
+              0
+            ],
+            "duration_ms": [
+              120,
+              100,
+              90,
+              110
+            ],
+            "loop": false,
+            "cues": [
+              {
+                "frame_index": 1,
+                "name": "contact"
+              }
+            ]
+          },
+          "west": {
+            "frames": [
+              2,
+              10,
+              10,
+              2
+            ],
+            "duration_ms": [
+              120,
+              100,
+              90,
+              110
+            ],
+            "loop": false,
+            "cues": [
+              {
+                "frame_index": 1,
+                "name": "contact"
+              }
+            ]
+          },
+          "east": {
+            "frames": [
+              4,
+              10,
+              10,
+              4
+            ],
+            "duration_ms": [
+              120,
+              100,
+              90,
+              110
+            ],
+            "loop": false,
+            "cues": [
+              {
+                "frame_index": 1,
+                "name": "contact"
+              }
+            ]
+          },
+          "north": {
+            "frames": [
+              6,
+              10,
+              10,
+              6
+            ],
+            "duration_ms": [
+              120,
+              100,
+              90,
+              110
+            ],
+            "loop": false,
+            "cues": [
+              {
+                "frame_index": 1,
+                "name": "contact"
+              }
+            ]
+          }
+        },
+        "hurt": {
+          "south": {
+            "frames": [
+              11,
+              11
+            ],
+            "duration_ms": [
+              120,
+              160
+            ],
+            "loop": false,
+            "cues": []
+          },
+          "west": {
+            "frames": [
+              11,
+              11
+            ],
+            "duration_ms": [
+              120,
+              160
+            ],
+            "loop": false,
+            "cues": []
+          },
+          "east": {
+            "frames": [
+              11,
+              11
+            ],
+            "duration_ms": [
+              120,
+              160
+            ],
+            "loop": false,
+            "cues": []
+          },
+          "north": {
+            "frames": [
+              11,
+              11
+            ],
+            "duration_ms": [
+              120,
+              160
+            ],
+            "loop": false,
+            "cues": []
+          }
+        },
+        "defeated": {
+          "south": {
+            "frames": [
+              11,
+              11
+            ],
+            "duration_ms": [
+              200,
+              300
+            ],
+            "loop": false,
+            "cues": []
+          },
+          "west": {
+            "frames": [
+              11,
+              11
+            ],
+            "duration_ms": [
+              200,
+              300
+            ],
+            "loop": false,
+            "cues": []
+          },
+          "east": {
+            "frames": [
+              11,
+              11
+            ],
+            "duration_ms": [
+              200,
+              300
+            ],
+            "loop": false,
+            "cues": []
+          },
+          "north": {
+            "frames": [
+              11,
+              11
+            ],
+            "duration_ms": [
+              200,
+              300
+            ],
+            "loop": false,
+            "cues": []
+          }
+        }
+      }
+    },
+    {
+      "id": "recruit.elian",
+      "kind": "map_unit",
+      "texture": "assets/sprites/company-c-animated-v1.png",
+      "logical_frame_px": [
+        64,
+        64
+      ],
+      "source_pixel_scale": 0.6,
+      "right_facing_frames": [
+        10
+      ],
+      "fallback_visual_id": null,
+      "frames": [
+        {
+          "rect": [
+            32,
+            774,
+            83,
+            87
+          ],
+          "pivot_px": [
+            32,
+            84
+          ]
+        },
+        {
+          "rect": [
+            155,
+            774,
+            76,
+            87
+          ],
+          "pivot_px": [
+            37,
+            84
+          ]
+        },
+        {
+          "rect": [
+            274,
+            774,
+            86,
+            87
+          ],
+          "pivot_px": [
+            46,
+            84
+          ]
+        },
+        {
+          "rect": [
+            404,
+            774,
+            87,
+            87
+          ],
+          "pivot_px": [
+            44,
+            84
+          ]
+        },
+        {
+          "rect": [
+            527,
+            774,
+            84,
+            87
+          ],
+          "pivot_px": [
+            49,
+            84
+          ]
+        },
+        {
+          "rect": [
+            650,
+            774,
+            97,
+            87
+          ],
+          "pivot_px": [
+            54,
+            84
+          ]
+        },
+        {
+          "rect": [
+            792,
+            771,
+            67,
+            90
+          ],
+          "pivot_px": [
+            40,
+            87
+          ]
+        },
+        {
+          "rect": [
+            915,
+            769,
+            74,
+            92
+          ],
+          "pivot_px": [
+            45,
+            89
+          ]
+        },
+        {
+          "rect": [
+            1031,
+            775,
+            92,
+            87
+          ],
+          "pivot_px": [
+            57,
+            84
+          ]
+        },
+        {
+          "rect": [
+            1162,
+            775,
+            81,
+            87
+          ],
+          "pivot_px": [
+            54,
+            84
+          ]
+        },
+        {
+          "rect": [
+            1284,
+            775,
+            128,
+            87
+          ],
+          "pivot_px": [
+            60,
+            84
+          ]
+        },
+        {
+          "rect": [
+            1428,
+            775,
+            80,
+            86
+          ],
+          "pivot_px": [
+            44,
+            83
+          ]
+        }
+      ],
+      "clips": {
+        "idle": {
+          "south": {
+            "frames": [
+              0,
+              1
+            ],
+            "duration_ms": [
+              350,
+              350
+            ],
+            "loop": true,
+            "cues": []
+          },
+          "west": {
+            "frames": [
+              2,
+              2
+            ],
+            "duration_ms": [
+              350,
+              350
+            ],
+            "loop": true,
+            "cues": []
+          },
+          "east": {
+            "frames": [
+              4,
+              4
+            ],
+            "duration_ms": [
+              350,
+              350
+            ],
+            "loop": true,
+            "cues": []
+          },
+          "north": {
+            "frames": [
+              6,
+              6
+            ],
+            "duration_ms": [
+              350,
+              350
+            ],
+            "loop": true,
+            "cues": []
+          }
+        },
+        "move": {
+          "south": {
+            "frames": [
+              8,
+              9
+            ],
+            "duration_ms": [
+              110,
+              110
+            ],
+            "loop": true,
+            "cues": []
+          },
+          "west": {
+            "frames": [
+              2,
+              3
+            ],
+            "duration_ms": [
+              110,
+              110
+            ],
+            "loop": true,
+            "cues": []
+          },
+          "east": {
+            "frames": [
+              4,
+              5
+            ],
+            "duration_ms": [
+              110,
+              110
+            ],
+            "loop": true,
+            "cues": []
+          },
+          "north": {
+            "frames": [
+              6,
+              7
+            ],
+            "duration_ms": [
+              110,
+              110
+            ],
+            "loop": true,
+            "cues": []
+          }
+        },
+        "act": {
+          "south": {
+            "frames": [
+              0,
+              10,
+              10,
+              0
+            ],
+            "duration_ms": [
+              120,
+              100,
+              90,
+              110
+            ],
+            "loop": false,
+            "cues": [
+              {
+                "frame_index": 1,
+                "name": "contact"
+              }
+            ]
+          },
+          "west": {
+            "frames": [
+              2,
+              10,
+              10,
+              2
+            ],
+            "duration_ms": [
+              120,
+              100,
+              90,
+              110
+            ],
+            "loop": false,
+            "cues": [
+              {
+                "frame_index": 1,
+                "name": "contact"
+              }
+            ]
+          },
+          "east": {
+            "frames": [
+              4,
+              10,
+              10,
+              4
+            ],
+            "duration_ms": [
+              120,
+              100,
+              90,
+              110
+            ],
+            "loop": false,
+            "cues": [
+              {
+                "frame_index": 1,
+                "name": "contact"
+              }
+            ]
+          },
+          "north": {
+            "frames": [
+              6,
+              10,
+              10,
+              6
+            ],
+            "duration_ms": [
+              120,
+              100,
+              90,
+              110
+            ],
+            "loop": false,
+            "cues": [
+              {
+                "frame_index": 1,
+                "name": "contact"
+              }
+            ]
+          }
+        },
+        "hurt": {
+          "south": {
+            "frames": [
+              11,
+              11
+            ],
+            "duration_ms": [
+              120,
+              160
+            ],
+            "loop": false,
+            "cues": []
+          },
+          "west": {
+            "frames": [
+              11,
+              11
+            ],
+            "duration_ms": [
+              120,
+              160
+            ],
+            "loop": false,
+            "cues": []
+          },
+          "east": {
+            "frames": [
+              11,
+              11
+            ],
+            "duration_ms": [
+              120,
+              160
+            ],
+            "loop": false,
+            "cues": []
+          },
+          "north": {
+            "frames": [
+              11,
+              11
+            ],
+            "duration_ms": [
+              120,
+              160
+            ],
+            "loop": false,
+            "cues": []
+          }
+        },
+        "defeated": {
+          "south": {
+            "frames": [
+              11,
+              11
+            ],
+            "duration_ms": [
+              200,
+              300
+            ],
+            "loop": false,
+            "cues": []
+          },
+          "west": {
+            "frames": [
+              11,
+              11
+            ],
+            "duration_ms": [
+              200,
+              300
+            ],
+            "loop": false,
+            "cues": []
+          },
+          "east": {
+            "frames": [
+              11,
+              11
+            ],
+            "duration_ms": [
+              200,
+              300
+            ],
+            "loop": false,
+            "cues": []
+          },
+          "north": {
+            "frames": [
+              11,
+              11
+            ],
+            "duration_ms": [
+              200,
+              300
+            ],
+            "loop": false,
+            "cues": []
+          }
+        }
+      }
+    },
+    {
+      "id": "recruit.rhea",
+      "kind": "map_unit",
+      "texture": "assets/sprites/company-c-animated-v1.png",
+      "logical_frame_px": [
+        64,
+        64
+      ],
+      "source_pixel_scale": 0.6,
+      "right_facing_frames": [
+        10
+      ],
+      "fallback_visual_id": null,
+      "frames": [
+        {
+          "rect": [
+            31,
+            907,
+            79,
+            79
+          ],
+          "pivot_px": [
+            33,
+            76
+          ]
+        },
+        {
+          "rect": [
+            155,
+            907,
+            81,
+            79
+          ],
+          "pivot_px": [
+            37,
+            76
+          ]
+        },
+        {
+          "rect": [
+            280,
+            907,
+            76,
+            80
+          ],
+          "pivot_px": [
+            40,
+            77
+          ]
+        },
+        {
+          "rect": [
+            409,
+            907,
+            70,
+            79
+          ],
+          "pivot_px": [
+            39,
+            76
+          ]
+        },
+        {
+          "rect": [
+            524,
+            907,
+            85,
+            80
+          ],
+          "pivot_px": [
+            52,
+            77
+          ]
+        },
+        {
+          "rect": [
+            654,
+            907,
+            88,
+            80
+          ],
+          "pivot_px": [
+            50,
+            77
+          ]
+        },
+        {
+          "rect": [
+            793,
+            906,
+            71,
+            80
+          ],
+          "pivot_px": [
+            39,
+            77
+          ]
+        },
+        {
+          "rect": [
+            915,
+            906,
+            70,
+            79
+          ],
+          "pivot_px": [
+            45,
+            76
+          ]
+        },
+        {
+          "rect": [
+            1039,
+            907,
+            78,
+            80
+          ],
+          "pivot_px": [
+            49,
+            77
+          ]
+        },
+        {
+          "rect": [
+            1167,
+            907,
+            82,
+            80
+          ],
+          "pivot_px": [
+            49,
+            77
+          ]
+        },
+        {
+          "rect": [
+            1291,
+            910,
+            108,
+            78
+          ],
+          "pivot_px": [
+            53,
+            75
+          ]
+        },
+        {
+          "rect": [
+            1427,
+            907,
+            78,
+            81
+          ],
+          "pivot_px": [
+            45,
+            78
+          ]
+        }
+      ],
+      "clips": {
+        "idle": {
+          "south": {
+            "frames": [
+              0,
+              1
+            ],
+            "duration_ms": [
+              350,
+              350
+            ],
+            "loop": true,
+            "cues": []
+          },
+          "west": {
+            "frames": [
+              2,
+              2
+            ],
+            "duration_ms": [
+              350,
+              350
+            ],
+            "loop": true,
+            "cues": []
+          },
+          "east": {
+            "frames": [
+              4,
+              4
+            ],
+            "duration_ms": [
+              350,
+              350
+            ],
+            "loop": true,
+            "cues": []
+          },
+          "north": {
+            "frames": [
+              6,
+              6
+            ],
+            "duration_ms": [
+              350,
+              350
+            ],
+            "loop": true,
+            "cues": []
+          }
+        },
+        "move": {
+          "south": {
+            "frames": [
+              8,
+              9
+            ],
+            "duration_ms": [
+              110,
+              110
+            ],
+            "loop": true,
+            "cues": []
+          },
+          "west": {
+            "frames": [
+              2,
+              3
+            ],
+            "duration_ms": [
+              110,
+              110
+            ],
+            "loop": true,
+            "cues": []
+          },
+          "east": {
+            "frames": [
+              4,
+              5
+            ],
+            "duration_ms": [
+              110,
+              110
+            ],
+            "loop": true,
+            "cues": []
+          },
+          "north": {
+            "frames": [
+              6,
+              7
+            ],
+            "duration_ms": [
+              110,
+              110
+            ],
+            "loop": true,
+            "cues": []
+          }
+        },
+        "act": {
+          "south": {
+            "frames": [
+              0,
+              10,
+              10,
+              0
+            ],
+            "duration_ms": [
+              120,
+              100,
+              90,
+              110
+            ],
+            "loop": false,
+            "cues": [
+              {
+                "frame_index": 1,
+                "name": "contact"
+              }
+            ]
+          },
+          "west": {
+            "frames": [
+              2,
+              10,
+              10,
+              2
+            ],
+            "duration_ms": [
+              120,
+              100,
+              90,
+              110
+            ],
+            "loop": false,
+            "cues": [
+              {
+                "frame_index": 1,
+                "name": "contact"
+              }
+            ]
+          },
+          "east": {
+            "frames": [
+              4,
+              10,
+              10,
+              4
+            ],
+            "duration_ms": [
+              120,
+              100,
+              90,
+              110
+            ],
+            "loop": false,
+            "cues": [
+              {
+                "frame_index": 1,
+                "name": "contact"
+              }
+            ]
+          },
+          "north": {
+            "frames": [
+              6,
+              10,
+              10,
+              6
+            ],
+            "duration_ms": [
+              120,
+              100,
+              90,
+              110
+            ],
+            "loop": false,
+            "cues": [
+              {
+                "frame_index": 1,
+                "name": "contact"
+              }
+            ]
+          }
+        },
+        "hurt": {
+          "south": {
+            "frames": [
+              11,
+              11
+            ],
+            "duration_ms": [
+              120,
+              160
+            ],
+            "loop": false,
+            "cues": []
+          },
+          "west": {
+            "frames": [
+              11,
+              11
+            ],
+            "duration_ms": [
+              120,
+              160
+            ],
+            "loop": false,
+            "cues": []
+          },
+          "east": {
+            "frames": [
+              11,
+              11
+            ],
+            "duration_ms": [
+              120,
+              160
+            ],
+            "loop": false,
+            "cues": []
+          },
+          "north": {
+            "frames": [
+              11,
+              11
+            ],
+            "duration_ms": [
+              120,
+              160
+            ],
+            "loop": false,
+            "cues": []
+          }
+        },
+        "defeated": {
+          "south": {
+            "frames": [
+              11,
+              11
+            ],
+            "duration_ms": [
+              200,
+              300
+            ],
+            "loop": false,
+            "cues": []
+          },
+          "west": {
+            "frames": [
+              11,
+              11
+            ],
+            "duration_ms": [
+              200,
+              300
+            ],
+            "loop": false,
+            "cues": []
+          },
+          "east": {
+            "frames": [
+              11,
+              11
+            ],
+            "duration_ms": [
+              200,
+              300
+            ],
+            "loop": false,
+            "cues": []
+          },
+          "north": {
+            "frames": [
+              11,
+              11
+            ],
+            "duration_ms": [
+              200,
+              300
+            ],
+            "loop": false,
+            "cues": []
+          }
+        }
+      }
+    },
+    {
+      "id": "recruit.esme",
+      "kind": "map_unit",
+      "texture": "assets/sprites/company-b-animated-v1.png",
+      "logical_frame_px": [
+        64,
+        64
+      ],
+      "source_pixel_scale": 0.6,
+      "right_facing_frames": [
+        10
+      ],
+      "fallback_visual_id": null,
+      "frames": [
+        {
+          "rect": [
+            40,
+            53,
+            63,
+            79
+          ],
+          "pivot_px": [
+            24,
+            76
+          ]
+        },
+        {
+          "rect": [
+            169,
+            54,
+            63,
+            78
+          ],
+          "pivot_px": [
+            23,
+            75
+          ]
+        },
+        {
+          "rect": [
+            298,
+            54,
+            69,
+            78
+          ],
+          "pivot_px": [
+            22,
+            75
+          ]
+        },
+        {
+          "rect": [
+            424,
+            54,
+            69,
+            78
+          ],
+          "pivot_px": [
+            24,
+            75
+          ]
+        },
+        {
+          "rect": [
+            550,
+            54,
+            63,
+            78
+          ],
+          "pivot_px": [
+            26,
+            75
+          ]
+        },
+        {
+          "rect": [
+            676,
+            53,
+            64,
+            79
+          ],
+          "pivot_px": [
+            28,
+            76
+          ]
+        },
+        {
+          "rect": [
+            803,
+            54,
+            63,
+            78
+          ],
+          "pivot_px": [
+            29,
+            75
+          ]
+        },
+        {
+          "rect": [
+            925,
+            53,
+            64,
+            79
+          ],
+          "pivot_px": [
+            35,
+            76
+          ]
+        },
+        {
+          "rect": [
+            1056,
+            53,
+            65,
+            79
+          ],
+          "pivot_px": [
+            32,
+            76
+          ]
+        },
+        {
+          "rect": [
+            1187,
+            54,
+            65,
+            78
+          ],
+          "pivot_px": [
+            29,
+            75
+          ]
+        },
+        {
+          "rect": [
+            1305,
+            55,
+            105,
+            77
+          ],
+          "pivot_px": [
+            39,
+            75
+          ]
+        },
+        {
+          "rect": [
+            1438,
+            53,
+            65,
+            79
+          ],
+          "pivot_px": [
+            34,
+            76
+          ]
+        }
+      ],
+      "clips": {
+        "idle": {
+          "south": {
+            "frames": [
+              0,
+              1
+            ],
+            "duration_ms": [
+              350,
+              350
+            ],
+            "loop": true,
+            "cues": []
+          },
+          "west": {
+            "frames": [
+              2,
+              2
+            ],
+            "duration_ms": [
+              350,
+              350
+            ],
+            "loop": true,
+            "cues": []
+          },
+          "east": {
+            "frames": [
+              4,
+              4
+            ],
+            "duration_ms": [
+              350,
+              350
+            ],
+            "loop": true,
+            "cues": []
+          },
+          "north": {
+            "frames": [
+              6,
+              6
+            ],
+            "duration_ms": [
+              350,
+              350
+            ],
+            "loop": true,
+            "cues": []
+          }
+        },
+        "move": {
+          "south": {
+            "frames": [
+              8,
+              9
+            ],
+            "duration_ms": [
+              110,
+              110
+            ],
+            "loop": true,
+            "cues": []
+          },
+          "west": {
+            "frames": [
+              2,
+              3
+            ],
+            "duration_ms": [
+              110,
+              110
+            ],
+            "loop": true,
+            "cues": []
+          },
+          "east": {
+            "frames": [
+              4,
+              5
+            ],
+            "duration_ms": [
+              110,
+              110
+            ],
+            "loop": true,
+            "cues": []
+          },
+          "north": {
+            "frames": [
+              6,
+              7
+            ],
+            "duration_ms": [
+              110,
+              110
+            ],
+            "loop": true,
+            "cues": []
+          }
+        },
+        "act": {
+          "south": {
+            "frames": [
+              0,
+              10,
+              10,
+              0
+            ],
+            "duration_ms": [
+              120,
+              100,
+              90,
+              110
+            ],
+            "loop": false,
+            "cues": [
+              {
+                "frame_index": 1,
+                "name": "contact"
+              }
+            ]
+          },
+          "west": {
+            "frames": [
+              2,
+              10,
+              10,
+              2
+            ],
+            "duration_ms": [
+              120,
+              100,
+              90,
+              110
+            ],
+            "loop": false,
+            "cues": [
+              {
+                "frame_index": 1,
+                "name": "contact"
+              }
+            ]
+          },
+          "east": {
+            "frames": [
+              4,
+              10,
+              10,
+              4
+            ],
+            "duration_ms": [
+              120,
+              100,
+              90,
+              110
+            ],
+            "loop": false,
+            "cues": [
+              {
+                "frame_index": 1,
+                "name": "contact"
+              }
+            ]
+          },
+          "north": {
+            "frames": [
+              6,
+              10,
+              10,
+              6
+            ],
+            "duration_ms": [
+              120,
+              100,
+              90,
+              110
+            ],
+            "loop": false,
+            "cues": [
+              {
+                "frame_index": 1,
+                "name": "contact"
+              }
+            ]
+          }
+        },
+        "hurt": {
+          "south": {
+            "frames": [
+              11,
+              11
+            ],
+            "duration_ms": [
+              120,
+              160
+            ],
+            "loop": false,
+            "cues": []
+          },
+          "west": {
+            "frames": [
+              11,
+              11
+            ],
+            "duration_ms": [
+              120,
+              160
+            ],
+            "loop": false,
+            "cues": []
+          },
+          "east": {
+            "frames": [
+              11,
+              11
+            ],
+            "duration_ms": [
+              120,
+              160
+            ],
+            "loop": false,
+            "cues": []
+          },
+          "north": {
+            "frames": [
+              11,
+              11
+            ],
+            "duration_ms": [
+              120,
+              160
+            ],
+            "loop": false,
+            "cues": []
+          }
+        },
+        "defeated": {
+          "south": {
+            "frames": [
+              11,
+              11
+            ],
+            "duration_ms": [
+              200,
+              300
+            ],
+            "loop": false,
+            "cues": []
+          },
+          "west": {
+            "frames": [
+              11,
+              11
+            ],
+            "duration_ms": [
+              200,
+              300
+            ],
+            "loop": false,
+            "cues": []
+          },
+          "east": {
+            "frames": [
+              11,
+              11
+            ],
+            "duration_ms": [
+              200,
+              300
+            ],
+            "loop": false,
+            "cues": []
+          },
+          "north": {
+            "frames": [
+              11,
+              11
+            ],
+            "duration_ms": [
+              200,
+              300
+            ],
+            "loop": false,
+            "cues": []
+          }
+        }
+      }
+    },
+    {
+      "id": "recruit.rook",
+      "kind": "map_unit",
+      "texture": "assets/sprites/company-b-animated-v1.png",
+      "logical_frame_px": [
+        64,
+        64
+      ],
+      "source_pixel_scale": 0.6,
+      "right_facing_frames": [
+        10
+      ],
+      "fallback_visual_id": null,
+      "frames": [
+        {
+          "rect": [
+            33,
+            165,
+            72,
+            85
+          ],
+          "pivot_px": [
+            31,
+            82
+          ]
+        },
+        {
+          "rect": [
+            162,
+            166,
+            73,
+            85
+          ],
+          "pivot_px": [
+            30,
+            82
+          ]
+        },
+        {
+          "rect": [
+            291,
+            166,
+            77,
+            84
+          ],
+          "pivot_px": [
+            29,
+            81
+          ]
+        },
+        {
+          "rect": [
+            419,
+            167,
+            73,
+            84
+          ],
+          "pivot_px": [
+            29,
+            81
+          ]
+        },
+        {
+          "rect": [
+            543,
+            167,
+            72,
+            84
+          ],
+          "pivot_px": [
+            33,
+            81
+          ]
+        },
+        {
+          "rect": [
+            668,
+            166,
+            74,
+            85
+          ],
+          "pivot_px": [
+            36,
+            82
+          ]
+        },
+        {
+          "rect": [
+            800,
+            170,
+            70,
+            81
+          ],
+          "pivot_px": [
+            32,
+            78
+          ]
+        },
+        {
+          "rect": [
+            925,
+            170,
+            68,
+            81
+          ],
+          "pivot_px": [
+            35,
+            78
+          ]
+        },
+        {
+          "rect": [
+            1049,
+            167,
+            74,
+            84
+          ],
+          "pivot_px": [
+            39,
+            81
+          ]
+        },
+        {
+          "rect": [
+            1177,
+            167,
+            75,
+            84
+          ],
+          "pivot_px": [
+            39,
+            81
+          ]
+        },
+        {
+          "rect": [
+            1297,
+            171,
+            112,
+            79
+          ],
+          "pivot_px": [
+            47,
+            76
+          ]
+        },
+        {
+          "rect": [
+            1434,
+            167,
+            71,
+            84
+          ],
+          "pivot_px": [
+            38,
+            81
+          ]
+        }
+      ],
+      "clips": {
+        "idle": {
+          "south": {
+            "frames": [
+              0,
+              1
+            ],
+            "duration_ms": [
+              350,
+              350
+            ],
+            "loop": true,
+            "cues": []
+          },
+          "west": {
+            "frames": [
+              2,
+              2
+            ],
+            "duration_ms": [
+              350,
+              350
+            ],
+            "loop": true,
+            "cues": []
+          },
+          "east": {
+            "frames": [
+              4,
+              4
+            ],
+            "duration_ms": [
+              350,
+              350
+            ],
+            "loop": true,
+            "cues": []
+          },
+          "north": {
+            "frames": [
+              6,
+              6
+            ],
+            "duration_ms": [
+              350,
+              350
+            ],
+            "loop": true,
+            "cues": []
+          }
+        },
+        "move": {
+          "south": {
+            "frames": [
+              8,
+              9
+            ],
+            "duration_ms": [
+              110,
+              110
+            ],
+            "loop": true,
+            "cues": []
+          },
+          "west": {
+            "frames": [
+              2,
+              3
+            ],
+            "duration_ms": [
+              110,
+              110
+            ],
+            "loop": true,
+            "cues": []
+          },
+          "east": {
+            "frames": [
+              4,
+              5
+            ],
+            "duration_ms": [
+              110,
+              110
+            ],
+            "loop": true,
+            "cues": []
+          },
+          "north": {
+            "frames": [
+              6,
+              7
+            ],
+            "duration_ms": [
+              110,
+              110
+            ],
+            "loop": true,
+            "cues": []
+          }
+        },
+        "act": {
+          "south": {
+            "frames": [
+              0,
+              10,
+              10,
+              0
+            ],
+            "duration_ms": [
+              120,
+              100,
+              90,
+              110
+            ],
+            "loop": false,
+            "cues": [
+              {
+                "frame_index": 1,
+                "name": "contact"
+              }
+            ]
+          },
+          "west": {
+            "frames": [
+              2,
+              10,
+              10,
+              2
+            ],
+            "duration_ms": [
+              120,
+              100,
+              90,
+              110
+            ],
+            "loop": false,
+            "cues": [
+              {
+                "frame_index": 1,
+                "name": "contact"
+              }
+            ]
+          },
+          "east": {
+            "frames": [
+              4,
+              10,
+              10,
+              4
+            ],
+            "duration_ms": [
+              120,
+              100,
+              90,
+              110
+            ],
+            "loop": false,
+            "cues": [
+              {
+                "frame_index": 1,
+                "name": "contact"
+              }
+            ]
+          },
+          "north": {
+            "frames": [
+              6,
+              10,
+              10,
+              6
+            ],
+            "duration_ms": [
+              120,
+              100,
+              90,
+              110
+            ],
+            "loop": false,
+            "cues": [
+              {
+                "frame_index": 1,
+                "name": "contact"
+              }
+            ]
+          }
+        },
+        "hurt": {
+          "south": {
+            "frames": [
+              11,
+              11
+            ],
+            "duration_ms": [
+              120,
+              160
+            ],
+            "loop": false,
+            "cues": []
+          },
+          "west": {
+            "frames": [
+              11,
+              11
+            ],
+            "duration_ms": [
+              120,
+              160
+            ],
+            "loop": false,
+            "cues": []
+          },
+          "east": {
+            "frames": [
+              11,
+              11
+            ],
+            "duration_ms": [
+              120,
+              160
+            ],
+            "loop": false,
+            "cues": []
+          },
+          "north": {
+            "frames": [
+              11,
+              11
+            ],
+            "duration_ms": [
+              120,
+              160
+            ],
+            "loop": false,
+            "cues": []
+          }
+        },
+        "defeated": {
+          "south": {
+            "frames": [
+              11,
+              11
+            ],
+            "duration_ms": [
+              200,
+              300
+            ],
+            "loop": false,
+            "cues": []
+          },
+          "west": {
+            "frames": [
+              11,
+              11
+            ],
+            "duration_ms": [
+              200,
+              300
+            ],
+            "loop": false,
+            "cues": []
+          },
+          "east": {
+            "frames": [
+              11,
+              11
+            ],
+            "duration_ms": [
+              200,
+              300
+            ],
+            "loop": false,
+            "cues": []
+          },
+          "north": {
+            "frames": [
+              11,
+              11
+            ],
+            "duration_ms": [
+              200,
+              300
+            ],
+            "loop": false,
+            "cues": []
+          }
+        }
+      }
+    },
+    {
+      "id": "recruit.faye",
+      "kind": "map_unit",
+      "texture": "assets/sprites/company-b-animated-v1.png",
+      "logical_frame_px": [
+        64,
+        64
+      ],
+      "source_pixel_scale": 0.6,
+      "right_facing_frames": [
+        10
+      ],
+      "fallback_visual_id": null,
+      "frames": [
+        {
+          "rect": [
+            35,
+            290,
+            73,
+            81
+          ],
+          "pivot_px": [
+            29,
+            78
+          ]
+        },
+        {
+          "rect": [
+            163,
+            290,
+            73,
+            81
+          ],
+          "pivot_px": [
+            29,
+            78
+          ]
+        },
+        {
+          "rect": [
+            296,
+            291,
+            71,
+            80
+          ],
+          "pivot_px": [
+            24,
+            77
+          ]
+        },
+        {
+          "rect": [
+            420,
+            291,
+            74,
+            79
+          ],
+          "pivot_px": [
+            28,
+            76
+          ]
+        },
+        {
+          "rect": [
+            542,
+            290,
+            73,
+            81
+          ],
+          "pivot_px": [
+            34,
+            78
+          ]
+        },
+        {
+          "rect": [
+            666,
+            290,
+            73,
+            80
+          ],
+          "pivot_px": [
+            38,
+            77
+          ]
+        },
+        {
+          "rect": [
+            799,
+            290,
+            67,
+            80
+          ],
+          "pivot_px": [
+            33,
+            77
+          ]
+        },
+        {
+          "rect": [
+            920,
+            290,
+            70,
+            80
+          ],
+          "pivot_px": [
+            40,
+            77
+          ]
+        },
+        {
+          "rect": [
+            1049,
+            290,
+            73,
+            81
+          ],
+          "pivot_px": [
+            39,
+            78
+          ]
+        },
+        {
+          "rect": [
+            1176,
+            290,
+            73,
+            80
+          ],
+          "pivot_px": [
+            40,
+            77
+          ]
+        },
+        {
+          "rect": [
+            1294,
+            290,
+            107,
+            80
+          ],
+          "pivot_px": [
+            50,
+            77
+          ]
+        },
+        {
+          "rect": [
+            1427,
+            291,
+            76,
+            80
+          ],
+          "pivot_px": [
+            45,
+            77
+          ]
+        }
+      ],
+      "clips": {
+        "idle": {
+          "south": {
+            "frames": [
+              0,
+              1
+            ],
+            "duration_ms": [
+              350,
+              350
+            ],
+            "loop": true,
+            "cues": []
+          },
+          "west": {
+            "frames": [
+              2,
+              2
+            ],
+            "duration_ms": [
+              350,
+              350
+            ],
+            "loop": true,
+            "cues": []
+          },
+          "east": {
+            "frames": [
+              4,
+              4
+            ],
+            "duration_ms": [
+              350,
+              350
+            ],
+            "loop": true,
+            "cues": []
+          },
+          "north": {
+            "frames": [
+              6,
+              6
+            ],
+            "duration_ms": [
+              350,
+              350
+            ],
+            "loop": true,
+            "cues": []
+          }
+        },
+        "move": {
+          "south": {
+            "frames": [
+              8,
+              9
+            ],
+            "duration_ms": [
+              110,
+              110
+            ],
+            "loop": true,
+            "cues": []
+          },
+          "west": {
+            "frames": [
+              2,
+              3
+            ],
+            "duration_ms": [
+              110,
+              110
+            ],
+            "loop": true,
+            "cues": []
+          },
+          "east": {
+            "frames": [
+              4,
+              5
+            ],
+            "duration_ms": [
+              110,
+              110
+            ],
+            "loop": true,
+            "cues": []
+          },
+          "north": {
+            "frames": [
+              6,
+              7
+            ],
+            "duration_ms": [
+              110,
+              110
+            ],
+            "loop": true,
+            "cues": []
+          }
+        },
+        "act": {
+          "south": {
+            "frames": [
+              0,
+              10,
+              10,
+              0
+            ],
+            "duration_ms": [
+              120,
+              100,
+              90,
+              110
+            ],
+            "loop": false,
+            "cues": [
+              {
+                "frame_index": 1,
+                "name": "contact"
+              }
+            ]
+          },
+          "west": {
+            "frames": [
+              2,
+              10,
+              10,
+              2
+            ],
+            "duration_ms": [
+              120,
+              100,
+              90,
+              110
+            ],
+            "loop": false,
+            "cues": [
+              {
+                "frame_index": 1,
+                "name": "contact"
+              }
+            ]
+          },
+          "east": {
+            "frames": [
+              4,
+              10,
+              10,
+              4
+            ],
+            "duration_ms": [
+              120,
+              100,
+              90,
+              110
+            ],
+            "loop": false,
+            "cues": [
+              {
+                "frame_index": 1,
+                "name": "contact"
+              }
+            ]
+          },
+          "north": {
+            "frames": [
+              6,
+              10,
+              10,
+              6
+            ],
+            "duration_ms": [
+              120,
+              100,
+              90,
+              110
+            ],
+            "loop": false,
+            "cues": [
+              {
+                "frame_index": 1,
+                "name": "contact"
+              }
+            ]
+          }
+        },
+        "hurt": {
+          "south": {
+            "frames": [
+              11,
+              11
+            ],
+            "duration_ms": [
+              120,
+              160
+            ],
+            "loop": false,
+            "cues": []
+          },
+          "west": {
+            "frames": [
+              11,
+              11
+            ],
+            "duration_ms": [
+              120,
+              160
+            ],
+            "loop": false,
+            "cues": []
+          },
+          "east": {
+            "frames": [
+              11,
+              11
+            ],
+            "duration_ms": [
+              120,
+              160
+            ],
+            "loop": false,
+            "cues": []
+          },
+          "north": {
+            "frames": [
+              11,
+              11
+            ],
+            "duration_ms": [
+              120,
+              160
+            ],
+            "loop": false,
+            "cues": []
+          }
+        },
+        "defeated": {
+          "south": {
+            "frames": [
+              11,
+              11
+            ],
+            "duration_ms": [
+              200,
+              300
+            ],
+            "loop": false,
+            "cues": []
+          },
+          "west": {
+            "frames": [
+              11,
+              11
+            ],
+            "duration_ms": [
+              200,
+              300
+            ],
+            "loop": false,
+            "cues": []
+          },
+          "east": {
+            "frames": [
+              11,
+              11
+            ],
+            "duration_ms": [
+              200,
+              300
+            ],
+            "loop": false,
+            "cues": []
+          },
+          "north": {
+            "frames": [
+              11,
+              11
+            ],
+            "duration_ms": [
+              200,
+              300
+            ],
+            "loop": false,
+            "cues": []
+          }
+        }
+      }
+    },
+    {
+      "id": "recruit.cassian",
+      "kind": "map_unit",
+      "texture": "assets/sprites/company-b-animated-v1.png",
+      "logical_frame_px": [
+        64,
+        64
+      ],
+      "source_pixel_scale": 0.6,
+      "right_facing_frames": [
+        10
+      ],
+      "fallback_visual_id": null,
+      "frames": [
+        {
+          "rect": [
+            32,
+            417,
+            75,
+            83
+          ],
+          "pivot_px": [
+            32,
+            80
+          ]
+        },
+        {
+          "rect": [
+            158,
+            417,
+            77,
+            83
+          ],
+          "pivot_px": [
+            34,
+            80
+          ]
+        },
+        {
+          "rect": [
+            295,
+            417,
+            74,
+            82
+          ],
+          "pivot_px": [
+            25,
+            79
+          ]
+        },
+        {
+          "rect": [
+            420,
+            417,
+            76,
+            82
+          ],
+          "pivot_px": [
+            28,
+            79
+          ]
+        },
+        {
+          "rect": [
+            539,
+            417,
+            80,
+            82
+          ],
+          "pivot_px": [
+            37,
+            79
+          ]
+        },
+        {
+          "rect": [
+            660,
+            417,
+            92,
+            82
+          ],
+          "pivot_px": [
+            44,
+            79
+          ]
+        },
+        {
+          "rect": [
+            796,
+            417,
+            74,
+            82
+          ],
+          "pivot_px": [
+            36,
+            79
+          ]
+        },
+        {
+          "rect": [
+            922,
+            417,
+            70,
+            81
+          ],
+          "pivot_px": [
+            38,
+            78
+          ]
+        },
+        {
+          "rect": [
+            1045,
+            417,
+            77,
+            82
+          ],
+          "pivot_px": [
+            43,
+            79
+          ]
+        },
+        {
+          "rect": [
+            1170,
+            417,
+            78,
+            82
+          ],
+          "pivot_px": [
+            46,
+            79
+          ]
+        },
+        {
+          "rect": [
+            1290,
+            418,
+            120,
+            81
+          ],
+          "pivot_px": [
+            54,
+            78
+          ]
+        },
+        {
+          "rect": [
+            1425,
+            417,
+            76,
+            83
+          ],
+          "pivot_px": [
+            47,
+            80
+          ]
+        }
+      ],
+      "clips": {
+        "idle": {
+          "south": {
+            "frames": [
+              0,
+              1
+            ],
+            "duration_ms": [
+              350,
+              350
+            ],
+            "loop": true,
+            "cues": []
+          },
+          "west": {
+            "frames": [
+              2,
+              2
+            ],
+            "duration_ms": [
+              350,
+              350
+            ],
+            "loop": true,
+            "cues": []
+          },
+          "east": {
+            "frames": [
+              4,
+              4
+            ],
+            "duration_ms": [
+              350,
+              350
+            ],
+            "loop": true,
+            "cues": []
+          },
+          "north": {
+            "frames": [
+              6,
+              6
+            ],
+            "duration_ms": [
+              350,
+              350
+            ],
+            "loop": true,
+            "cues": []
+          }
+        },
+        "move": {
+          "south": {
+            "frames": [
+              8,
+              9
+            ],
+            "duration_ms": [
+              110,
+              110
+            ],
+            "loop": true,
+            "cues": []
+          },
+          "west": {
+            "frames": [
+              2,
+              3
+            ],
+            "duration_ms": [
+              110,
+              110
+            ],
+            "loop": true,
+            "cues": []
+          },
+          "east": {
+            "frames": [
+              4,
+              5
+            ],
+            "duration_ms": [
+              110,
+              110
+            ],
+            "loop": true,
+            "cues": []
+          },
+          "north": {
+            "frames": [
+              6,
+              7
+            ],
+            "duration_ms": [
+              110,
+              110
+            ],
+            "loop": true,
+            "cues": []
+          }
+        },
+        "act": {
+          "south": {
+            "frames": [
+              0,
+              10,
+              10,
+              0
+            ],
+            "duration_ms": [
+              120,
+              100,
+              90,
+              110
+            ],
+            "loop": false,
+            "cues": [
+              {
+                "frame_index": 1,
+                "name": "contact"
+              }
+            ]
+          },
+          "west": {
+            "frames": [
+              2,
+              10,
+              10,
+              2
+            ],
+            "duration_ms": [
+              120,
+              100,
+              90,
+              110
+            ],
+            "loop": false,
+            "cues": [
+              {
+                "frame_index": 1,
+                "name": "contact"
+              }
+            ]
+          },
+          "east": {
+            "frames": [
+              4,
+              10,
+              10,
+              4
+            ],
+            "duration_ms": [
+              120,
+              100,
+              90,
+              110
+            ],
+            "loop": false,
+            "cues": [
+              {
+                "frame_index": 1,
+                "name": "contact"
+              }
+            ]
+          },
+          "north": {
+            "frames": [
+              6,
+              10,
+              10,
+              6
+            ],
+            "duration_ms": [
+              120,
+              100,
+              90,
+              110
+            ],
+            "loop": false,
+            "cues": [
+              {
+                "frame_index": 1,
+                "name": "contact"
+              }
+            ]
+          }
+        },
+        "hurt": {
+          "south": {
+            "frames": [
+              11,
+              11
+            ],
+            "duration_ms": [
+              120,
+              160
+            ],
+            "loop": false,
+            "cues": []
+          },
+          "west": {
+            "frames": [
+              11,
+              11
+            ],
+            "duration_ms": [
+              120,
+              160
+            ],
+            "loop": false,
+            "cues": []
+          },
+          "east": {
+            "frames": [
+              11,
+              11
+            ],
+            "duration_ms": [
+              120,
+              160
+            ],
+            "loop": false,
+            "cues": []
+          },
+          "north": {
+            "frames": [
+              11,
+              11
+            ],
+            "duration_ms": [
+              120,
+              160
+            ],
+            "loop": false,
+            "cues": []
+          }
+        },
+        "defeated": {
+          "south": {
+            "frames": [
+              11,
+              11
+            ],
+            "duration_ms": [
+              200,
+              300
+            ],
+            "loop": false,
+            "cues": []
+          },
+          "west": {
+            "frames": [
+              11,
+              11
+            ],
+            "duration_ms": [
+              200,
+              300
+            ],
+            "loop": false,
+            "cues": []
+          },
+          "east": {
+            "frames": [
+              11,
+              11
+            ],
+            "duration_ms": [
+              200,
+              300
+            ],
+            "loop": false,
+            "cues": []
+          },
+          "north": {
+            "frames": [
+              11,
+              11
+            ],
+            "duration_ms": [
+              200,
+              300
+            ],
+            "loop": false,
+            "cues": []
+          }
+        }
+      }
+    },
+    {
+      "id": "recruit.vela",
+      "kind": "map_unit",
+      "texture": "assets/sprites/company-b-animated-v1.png",
+      "logical_frame_px": [
+        64,
+        64
+      ],
+      "source_pixel_scale": 0.6,
+      "right_facing_frames": [
+        10
+      ],
+      "fallback_visual_id": null,
+      "frames": [
+        {
+          "rect": [
+            34,
+            531,
+            75,
+            86
+          ],
+          "pivot_px": [
+            30,
+            83
+          ]
+        },
+        {
+          "rect": [
+            162,
+            531,
+            76,
+            86
+          ],
+          "pivot_px": [
+            30,
+            83
+          ]
+        },
+        {
+          "rect": [
+            293,
+            531,
+            78,
+            86
+          ],
+          "pivot_px": [
+            27,
+            83
+          ]
+        },
+        {
+          "rect": [
+            420,
+            530,
+            74,
+            86
+          ],
+          "pivot_px": [
+            28,
+            83
+          ]
+        },
+        {
+          "rect": [
+            541,
+            531,
+            77,
+            86
+          ],
+          "pivot_px": [
+            35,
+            83
+          ]
+        },
+        {
+          "rect": [
+            666,
+            531,
+            77,
+            86
+          ],
+          "pivot_px": [
+            38,
+            83
+          ]
+        },
+        {
+          "rect": [
+            797,
+            531,
+            70,
+            86
+          ],
+          "pivot_px": [
+            35,
+            83
+          ]
+        },
+        {
+          "rect": [
+            918,
+            531,
+            74,
+            86
+          ],
+          "pivot_px": [
+            42,
+            83
+          ]
+        },
+        {
+          "rect": [
+            1048,
+            531,
+            75,
+            86
+          ],
+          "pivot_px": [
+            40,
+            83
+          ]
+        },
+        {
+          "rect": [
+            1174,
+            531,
+            78,
+            86
+          ],
+          "pivot_px": [
+            42,
+            83
+          ]
+        },
+        {
+          "rect": [
+            1294,
+            531,
+            93,
+            87
+          ],
+          "pivot_px": [
+            50,
+            84
+          ]
+        },
+        {
+          "rect": [
+            1426,
+            531,
+            72,
+            87
+          ],
+          "pivot_px": [
+            46,
+            84
+          ]
+        }
+      ],
+      "clips": {
+        "idle": {
+          "south": {
+            "frames": [
+              0,
+              1
+            ],
+            "duration_ms": [
+              350,
+              350
+            ],
+            "loop": true,
+            "cues": []
+          },
+          "west": {
+            "frames": [
+              2,
+              2
+            ],
+            "duration_ms": [
+              350,
+              350
+            ],
+            "loop": true,
+            "cues": []
+          },
+          "east": {
+            "frames": [
+              4,
+              4
+            ],
+            "duration_ms": [
+              350,
+              350
+            ],
+            "loop": true,
+            "cues": []
+          },
+          "north": {
+            "frames": [
+              6,
+              6
+            ],
+            "duration_ms": [
+              350,
+              350
+            ],
+            "loop": true,
+            "cues": []
+          }
+        },
+        "move": {
+          "south": {
+            "frames": [
+              8,
+              9
+            ],
+            "duration_ms": [
+              110,
+              110
+            ],
+            "loop": true,
+            "cues": []
+          },
+          "west": {
+            "frames": [
+              2,
+              3
+            ],
+            "duration_ms": [
+              110,
+              110
+            ],
+            "loop": true,
+            "cues": []
+          },
+          "east": {
+            "frames": [
+              4,
+              5
+            ],
+            "duration_ms": [
+              110,
+              110
+            ],
+            "loop": true,
+            "cues": []
+          },
+          "north": {
+            "frames": [
+              6,
+              7
+            ],
+            "duration_ms": [
+              110,
+              110
+            ],
+            "loop": true,
+            "cues": []
+          }
+        },
+        "act": {
+          "south": {
+            "frames": [
+              0,
+              10,
+              10,
+              0
+            ],
+            "duration_ms": [
+              120,
+              100,
+              90,
+              110
+            ],
+            "loop": false,
+            "cues": [
+              {
+                "frame_index": 1,
+                "name": "contact"
+              }
+            ]
+          },
+          "west": {
+            "frames": [
+              2,
+              10,
+              10,
+              2
+            ],
+            "duration_ms": [
+              120,
+              100,
+              90,
+              110
+            ],
+            "loop": false,
+            "cues": [
+              {
+                "frame_index": 1,
+                "name": "contact"
+              }
+            ]
+          },
+          "east": {
+            "frames": [
+              4,
+              10,
+              10,
+              4
+            ],
+            "duration_ms": [
+              120,
+              100,
+              90,
+              110
+            ],
+            "loop": false,
+            "cues": [
+              {
+                "frame_index": 1,
+                "name": "contact"
+              }
+            ]
+          },
+          "north": {
+            "frames": [
+              6,
+              10,
+              10,
+              6
+            ],
+            "duration_ms": [
+              120,
+              100,
+              90,
+              110
+            ],
+            "loop": false,
+            "cues": [
+              {
+                "frame_index": 1,
+                "name": "contact"
+              }
+            ]
+          }
+        },
+        "hurt": {
+          "south": {
+            "frames": [
+              11,
+              11
+            ],
+            "duration_ms": [
+              120,
+              160
+            ],
+            "loop": false,
+            "cues": []
+          },
+          "west": {
+            "frames": [
+              11,
+              11
+            ],
+            "duration_ms": [
+              120,
+              160
+            ],
+            "loop": false,
+            "cues": []
+          },
+          "east": {
+            "frames": [
+              11,
+              11
+            ],
+            "duration_ms": [
+              120,
+              160
+            ],
+            "loop": false,
+            "cues": []
+          },
+          "north": {
+            "frames": [
+              11,
+              11
+            ],
+            "duration_ms": [
+              120,
+              160
+            ],
+            "loop": false,
+            "cues": []
+          }
+        },
+        "defeated": {
+          "south": {
+            "frames": [
+              11,
+              11
+            ],
+            "duration_ms": [
+              200,
+              300
+            ],
+            "loop": false,
+            "cues": []
+          },
+          "west": {
+            "frames": [
+              11,
+              11
+            ],
+            "duration_ms": [
+              200,
+              300
+            ],
+            "loop": false,
+            "cues": []
+          },
+          "east": {
+            "frames": [
+              11,
+              11
+            ],
+            "duration_ms": [
+              200,
+              300
+            ],
+            "loop": false,
+            "cues": []
+          },
+          "north": {
+            "frames": [
+              11,
+              11
+            ],
+            "duration_ms": [
+              200,
+              300
+            ],
+            "loop": false,
+            "cues": []
+          }
+        }
+      }
+    },
+    {
+      "id": "recruit.dax",
+      "kind": "map_unit",
+      "texture": "assets/sprites/company-b-animated-v1.png",
+      "logical_frame_px": [
+        64,
+        64
+      ],
+      "source_pixel_scale": 0.6,
+      "right_facing_frames": [
+        10
+      ],
+      "fallback_visual_id": null,
+      "frames": [
+        {
+          "rect": [
+            30,
+            654,
+            79,
+            77
+          ],
+          "pivot_px": [
+            34,
+            74
+          ]
+        },
+        {
+          "rect": [
+            158,
+            653,
+            84,
+            78
+          ],
+          "pivot_px": [
+            34,
+            75
+          ]
+        },
+        {
+          "rect": [
+            284,
+            655,
+            88,
+            77
+          ],
+          "pivot_px": [
+            36,
+            74
+          ]
+        },
+        {
+          "rect": [
+            410,
+            653,
+            90,
+            79
+          ],
+          "pivot_px": [
+            38,
+            76
+          ]
+        },
+        {
+          "rect": [
+            537,
+            653,
+            97,
+            79
+          ],
+          "pivot_px": [
+            39,
+            76
+          ]
+        },
+        {
+          "rect": [
+            660,
+            653,
+            93,
+            79
+          ],
+          "pivot_px": [
+            44,
+            76
+          ]
+        },
+        {
+          "rect": [
+            798,
+            653,
+            72,
+            79
+          ],
+          "pivot_px": [
+            34,
+            76
+          ]
+        },
+        {
+          "rect": [
+            910,
+            654,
+            94,
+            79
+          ],
+          "pivot_px": [
+            50,
+            76
+          ]
+        },
+        {
+          "rect": [
+            1040,
+            654,
+            83,
+            78
+          ],
+          "pivot_px": [
+            48,
+            75
+          ]
+        },
+        {
+          "rect": [
+            1165,
+            654,
+            89,
+            79
+          ],
+          "pivot_px": [
+            51,
+            76
+          ]
+        },
+        {
+          "rect": [
+            1292,
+            654,
+            113,
+            79
+          ],
+          "pivot_px": [
+            52,
+            76
+          ]
+        },
+        {
+          "rect": [
+            1420,
+            654,
+            83,
+            78
+          ],
+          "pivot_px": [
+            52,
+            75
+          ]
+        }
+      ],
+      "clips": {
+        "idle": {
+          "south": {
+            "frames": [
+              0,
+              1
+            ],
+            "duration_ms": [
+              350,
+              350
+            ],
+            "loop": true,
+            "cues": []
+          },
+          "west": {
+            "frames": [
+              2,
+              2
+            ],
+            "duration_ms": [
+              350,
+              350
+            ],
+            "loop": true,
+            "cues": []
+          },
+          "east": {
+            "frames": [
+              4,
+              4
+            ],
+            "duration_ms": [
+              350,
+              350
+            ],
+            "loop": true,
+            "cues": []
+          },
+          "north": {
+            "frames": [
+              6,
+              6
+            ],
+            "duration_ms": [
+              350,
+              350
+            ],
+            "loop": true,
+            "cues": []
+          }
+        },
+        "move": {
+          "south": {
+            "frames": [
+              8,
+              9
+            ],
+            "duration_ms": [
+              110,
+              110
+            ],
+            "loop": true,
+            "cues": []
+          },
+          "west": {
+            "frames": [
+              2,
+              3
+            ],
+            "duration_ms": [
+              110,
+              110
+            ],
+            "loop": true,
+            "cues": []
+          },
+          "east": {
+            "frames": [
+              4,
+              5
+            ],
+            "duration_ms": [
+              110,
+              110
+            ],
+            "loop": true,
+            "cues": []
+          },
+          "north": {
+            "frames": [
+              6,
+              7
+            ],
+            "duration_ms": [
+              110,
+              110
+            ],
+            "loop": true,
+            "cues": []
+          }
+        },
+        "act": {
+          "south": {
+            "frames": [
+              0,
+              10,
+              10,
+              0
+            ],
+            "duration_ms": [
+              120,
+              100,
+              90,
+              110
+            ],
+            "loop": false,
+            "cues": [
+              {
+                "frame_index": 1,
+                "name": "contact"
+              }
+            ]
+          },
+          "west": {
+            "frames": [
+              2,
+              10,
+              10,
+              2
+            ],
+            "duration_ms": [
+              120,
+              100,
+              90,
+              110
+            ],
+            "loop": false,
+            "cues": [
+              {
+                "frame_index": 1,
+                "name": "contact"
+              }
+            ]
+          },
+          "east": {
+            "frames": [
+              4,
+              10,
+              10,
+              4
+            ],
+            "duration_ms": [
+              120,
+              100,
+              90,
+              110
+            ],
+            "loop": false,
+            "cues": [
+              {
+                "frame_index": 1,
+                "name": "contact"
+              }
+            ]
+          },
+          "north": {
+            "frames": [
+              6,
+              10,
+              10,
+              6
+            ],
+            "duration_ms": [
+              120,
+              100,
+              90,
+              110
+            ],
+            "loop": false,
+            "cues": [
+              {
+                "frame_index": 1,
+                "name": "contact"
+              }
+            ]
+          }
+        },
+        "hurt": {
+          "south": {
+            "frames": [
+              11,
+              11
+            ],
+            "duration_ms": [
+              120,
+              160
+            ],
+            "loop": false,
+            "cues": []
+          },
+          "west": {
+            "frames": [
+              11,
+              11
+            ],
+            "duration_ms": [
+              120,
+              160
+            ],
+            "loop": false,
+            "cues": []
+          },
+          "east": {
+            "frames": [
+              11,
+              11
+            ],
+            "duration_ms": [
+              120,
+              160
+            ],
+            "loop": false,
+            "cues": []
+          },
+          "north": {
+            "frames": [
+              11,
+              11
+            ],
+            "duration_ms": [
+              120,
+              160
+            ],
+            "loop": false,
+            "cues": []
+          }
+        },
+        "defeated": {
+          "south": {
+            "frames": [
+              11,
+              11
+            ],
+            "duration_ms": [
+              200,
+              300
+            ],
+            "loop": false,
+            "cues": []
+          },
+          "west": {
+            "frames": [
+              11,
+              11
+            ],
+            "duration_ms": [
+              200,
+              300
+            ],
+            "loop": false,
+            "cues": []
+          },
+          "east": {
+            "frames": [
+              11,
+              11
+            ],
+            "duration_ms": [
+              200,
+              300
+            ],
+            "loop": false,
+            "cues": []
+          },
+          "north": {
+            "frames": [
+              11,
+              11
+            ],
+            "duration_ms": [
+              200,
+              300
+            ],
+            "loop": false,
+            "cues": []
+          }
+        }
+      }
+    },
+    {
+      "id": "recruit.una",
+      "kind": "map_unit",
+      "texture": "assets/sprites/company-b-animated-v1.png",
+      "logical_frame_px": [
+        64,
+        64
+      ],
+      "source_pixel_scale": 0.6,
+      "right_facing_frames": [
+        10
+      ],
+      "fallback_visual_id": null,
+      "frames": [
+        {
+          "rect": [
+            33,
+            769,
+            75,
+            92
+          ],
+          "pivot_px": [
+            31,
+            89
+          ]
+        },
+        {
+          "rect": [
+            159,
+            769,
+            76,
+            92
+          ],
+          "pivot_px": [
+            33,
+            89
+          ]
+        },
+        {
+          "rect": [
+            290,
+            769,
+            84,
+            92
+          ],
+          "pivot_px": [
+            30,
+            89
+          ]
+        },
+        {
+          "rect": [
+            419,
+            769,
+            79,
+            93
+          ],
+          "pivot_px": [
+            29,
+            90
+          ]
+        },
+        {
+          "rect": [
+            539,
+            768,
+            78,
+            93
+          ],
+          "pivot_px": [
+            37,
+            90
+          ]
+        },
+        {
+          "rect": [
+            663,
+            768,
+            80,
+            93
+          ],
+          "pivot_px": [
+            41,
+            90
+          ]
+        },
+        {
+          "rect": [
+            798,
+            768,
+            69,
+            95
+          ],
+          "pivot_px": [
+            34,
+            92
+          ]
+        },
+        {
+          "rect": [
+            918,
+            769,
+            72,
+            94
+          ],
+          "pivot_px": [
+            42,
+            91
+          ]
+        },
+        {
+          "rect": [
+            1043,
+            769,
+            77,
+            92
+          ],
+          "pivot_px": [
+            45,
+            89
+          ]
+        },
+        {
+          "rect": [
+            1169,
+            769,
+            78,
+            93
+          ],
+          "pivot_px": [
+            47,
+            90
+          ]
+        },
+        {
+          "rect": [
+            1292,
+            769,
+            119,
+            93
+          ],
+          "pivot_px": [
+            52,
+            90
+          ]
+        },
+        {
+          "rect": [
+            1425,
+            768,
+            76,
+            94
+          ],
+          "pivot_px": [
+            47,
+            91
+          ]
+        }
+      ],
+      "clips": {
+        "idle": {
+          "south": {
+            "frames": [
+              0,
+              1
+            ],
+            "duration_ms": [
+              350,
+              350
+            ],
+            "loop": true,
+            "cues": []
+          },
+          "west": {
+            "frames": [
+              2,
+              2
+            ],
+            "duration_ms": [
+              350,
+              350
+            ],
+            "loop": true,
+            "cues": []
+          },
+          "east": {
+            "frames": [
+              4,
+              4
+            ],
+            "duration_ms": [
+              350,
+              350
+            ],
+            "loop": true,
+            "cues": []
+          },
+          "north": {
+            "frames": [
+              6,
+              6
+            ],
+            "duration_ms": [
+              350,
+              350
+            ],
+            "loop": true,
+            "cues": []
+          }
+        },
+        "move": {
+          "south": {
+            "frames": [
+              8,
+              9
+            ],
+            "duration_ms": [
+              110,
+              110
+            ],
+            "loop": true,
+            "cues": []
+          },
+          "west": {
+            "frames": [
+              2,
+              3
+            ],
+            "duration_ms": [
+              110,
+              110
+            ],
+            "loop": true,
+            "cues": []
+          },
+          "east": {
+            "frames": [
+              4,
+              5
+            ],
+            "duration_ms": [
+              110,
+              110
+            ],
+            "loop": true,
+            "cues": []
+          },
+          "north": {
+            "frames": [
+              6,
+              7
+            ],
+            "duration_ms": [
+              110,
+              110
+            ],
+            "loop": true,
+            "cues": []
+          }
+        },
+        "act": {
+          "south": {
+            "frames": [
+              0,
+              10,
+              10,
+              0
+            ],
+            "duration_ms": [
+              120,
+              100,
+              90,
+              110
+            ],
+            "loop": false,
+            "cues": [
+              {
+                "frame_index": 1,
+                "name": "contact"
+              }
+            ]
+          },
+          "west": {
+            "frames": [
+              2,
+              10,
+              10,
+              2
+            ],
+            "duration_ms": [
+              120,
+              100,
+              90,
+              110
+            ],
+            "loop": false,
+            "cues": [
+              {
+                "frame_index": 1,
+                "name": "contact"
+              }
+            ]
+          },
+          "east": {
+            "frames": [
+              4,
+              10,
+              10,
+              4
+            ],
+            "duration_ms": [
+              120,
+              100,
+              90,
+              110
+            ],
+            "loop": false,
+            "cues": [
+              {
+                "frame_index": 1,
+                "name": "contact"
+              }
+            ]
+          },
+          "north": {
+            "frames": [
+              6,
+              10,
+              10,
+              6
+            ],
+            "duration_ms": [
+              120,
+              100,
+              90,
+              110
+            ],
+            "loop": false,
+            "cues": [
+              {
+                "frame_index": 1,
+                "name": "contact"
+              }
+            ]
+          }
+        },
+        "hurt": {
+          "south": {
+            "frames": [
+              11,
+              11
+            ],
+            "duration_ms": [
+              120,
+              160
+            ],
+            "loop": false,
+            "cues": []
+          },
+          "west": {
+            "frames": [
+              11,
+              11
+            ],
+            "duration_ms": [
+              120,
+              160
+            ],
+            "loop": false,
+            "cues": []
+          },
+          "east": {
+            "frames": [
+              11,
+              11
+            ],
+            "duration_ms": [
+              120,
+              160
+            ],
+            "loop": false,
+            "cues": []
+          },
+          "north": {
+            "frames": [
+              11,
+              11
+            ],
+            "duration_ms": [
+              120,
+              160
+            ],
+            "loop": false,
+            "cues": []
+          }
+        },
+        "defeated": {
+          "south": {
+            "frames": [
+              11,
+              11
+            ],
+            "duration_ms": [
+              200,
+              300
+            ],
+            "loop": false,
+            "cues": []
+          },
+          "west": {
+            "frames": [
+              11,
+              11
+            ],
+            "duration_ms": [
+              200,
+              300
+            ],
+            "loop": false,
+            "cues": []
+          },
+          "east": {
+            "frames": [
+              11,
+              11
+            ],
+            "duration_ms": [
+              200,
+              300
+            ],
+            "loop": false,
+            "cues": []
+          },
+          "north": {
+            "frames": [
+              11,
+              11
+            ],
+            "duration_ms": [
+              200,
+              300
+            ],
+            "loop": false,
+            "cues": []
+          }
+        }
+      }
+    },
+    {
+      "id": "recruit.silas",
+      "kind": "map_unit",
+      "texture": "assets/sprites/company-b-animated-v1.png",
+      "logical_frame_px": [
+        64,
+        64
+      ],
+      "source_pixel_scale": 0.6,
+      "right_facing_frames": [
+        10
+      ],
+      "fallback_visual_id": null,
+      "frames": [
+        {
+          "rect": [
+            32,
+            895,
+            79,
+            87
+          ],
+          "pivot_px": [
+            32,
+            84
+          ]
+        },
+        {
+          "rect": [
+            157,
+            895,
+            81,
+            87
+          ],
+          "pivot_px": [
+            35,
+            84
+          ]
+        },
+        {
+          "rect": [
+            281,
+            895,
+            85,
+            87
+          ],
+          "pivot_px": [
+            39,
+            84
+          ]
+        },
+        {
+          "rect": [
+            416,
+            895,
+            73,
+            87
+          ],
+          "pivot_px": [
+            32,
+            84
+          ]
+        },
+        {
+          "rect": [
+            530,
+            895,
+            79,
+            87
+          ],
+          "pivot_px": [
+            46,
+            84
+          ]
+        },
+        {
+          "rect": [
+            656,
+            895,
+            91,
+            88
+          ],
+          "pivot_px": [
+            48,
+            85
+          ]
+        },
+        {
+          "rect": [
+            801,
+            895,
+            67,
+            89
+          ],
+          "pivot_px": [
+            31,
+            86
+          ]
+        },
+        {
+          "rect": [
+            919,
+            895,
+            72,
+            89
+          ],
+          "pivot_px": [
+            41,
+            86
+          ]
+        },
+        {
+          "rect": [
+            1041,
+            895,
+            85,
+            88
+          ],
+          "pivot_px": [
+            47,
+            85
+          ]
+        },
+        {
+          "rect": [
+            1168,
+            895,
+            83,
+            89
+          ],
+          "pivot_px": [
+            48,
+            86
+          ]
+        },
+        {
+          "rect": [
+            1286,
+            895,
+            119,
+            88
+          ],
+          "pivot_px": [
+            58,
+            85
+          ]
+        },
+        {
+          "rect": [
+            1421,
+            895,
+            85,
+            88
+          ],
+          "pivot_px": [
+            51,
+            85
           ]
         }
       ],
@@ -3570,6 +10762,8 @@
     }
   ],
   "sources": {
-    "assets/sprites/opening-animated-v1.png": "2406ec8616979d919e8ee3639dfabd8fc5181ae5aa0da1335e9b7ca022783858"
+    "assets/sprites/opening-animated-v1.png": "2406ec8616979d919e8ee3639dfabd8fc5181ae5aa0da1335e9b7ca022783858",
+    "assets/sprites/company-c-animated-v1.png": "527b050ca509f7ee6c408584037acea104d7045d88a0eb1c03b747d7322cd8ad",
+    "assets/sprites/company-b-animated-v1.png": "a04638b63b32753db14c1cd8a184ff676786d2e81822b9cbc6ab3d28d48c78c8"
   }
 }

@@ -3,7 +3,7 @@
 
 Generated atlases may place figures a few pixels beyond nominal grid lines.
 Find genuinely empty separators, retain a common source-pixel scale, and use
-the row's median foot baseline. Use a conservative alpha floor just below the
+each pose's lowest visible foot pixel. Use a conservative alpha floor just below the
 renderer cutoff, including borderline packed alpha values. Output is atlas metadata only. Requires Pillow
 and NumPy for offline authoring; the game has no Python runtime dependency.
 """
@@ -53,9 +53,9 @@ def index_sheet(path, ids, scale):
             if len(xs) < 100:
                 raise ValueError(f"Missing figure in {character}, pose {column}")
             boxes.append([int(xs.min()) + left, int(ys.min()) + top, int(xs.max()) + left + 1, int(ys.max()) + top + 1])
-        baseline = int(np.median([box[3] for box in boxes])) - 1
         frames = []
         for column, box in enumerate(boxes):
+            baseline = box[3] - 1
             left = max(columns[column], box[0] - 2)
             right = min(width, columns[column + 1] + 1, box[2] + 2)
             y = max(top, box[1] - 2)
@@ -65,7 +65,7 @@ def index_sheet(path, ids, scale):
                 raise ValueError(f"Invalid foot pivot in {character}, pose {column}")
             frames.append({"rect": [left, y, right - left, end - y], "pivot_px": pivot})
         template = classes["unit." + roster[character]["job"].lower()]
-        result.append({"id": "recruit." + character, "kind": "map_unit", "texture": path.relative_to(ROOT).as_posix(), "logical_frame_px": [64, 64], "source_pixel_scale": scale, "fallback_visual_id": None, "frames": frames, "clips": copy.deepcopy(template["clips"])})
+        result.append({"id": "recruit." + character, "kind": "map_unit", "texture": path.relative_to(ROOT).as_posix(), "logical_frame_px": [64, 64], "source_pixel_scale": scale, "right_facing_frames": [10], "fallback_visual_id": None, "frames": frames, "clips": copy.deepcopy(template["clips"])})
     return result
 
 

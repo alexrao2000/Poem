@@ -4,22 +4,21 @@ extends SceneTree
 const Catalog=preload("res://scripts/campaign_catalog.gd")
 const Unit=preload("res://scripts/campaign_map_unit.gd")
 const Rules=preload("res://scripts/rules.gd")
-const OPENING=["lyra","oren","sera","ivo","mara","tarin","nell","bram"]
 func _initialize():call_deferred("run")
 func run():
  var catalog=Catalog.new();assert(catalog.open("res://visuals/units.json") and catalog.recruit_errors.is_empty())
- assert(catalog.assets.size()==16,"Opening roster extends eight base classes")
+ assert(catalog.assets.size()==32,"Full roster extends eight base classes")
  var game=Rules.new();var stage=Node3D.new();root.add_child(stage)
- var image=load("res://assets/sprites/opening-animated-v1.png").get_image()
- assert(image.get_pixel(0,0).a==0,"Original atlas retains transparent alpha")
  for source in game.roster:
   var unit=source.duplicate(true);unit.team="player";unit.acted=false
   var actor=Unit.new();stage.add_child(actor);actor.configure(catalog,unit)
-  var individual=unit.id in OPENING
-  assert(actor.visual_id==("recruit."+unit.id if individual else "unit."+unit.job.to_lower()),"Named identity or matching class fallback selected")
+  var individual=catalog.assets.has("recruit."+unit.id)
+  assert(individual and actor.visual_id=="recruit."+unit.id,"Every campaign recruit has its own animated identity")
   if individual:
    var entry=catalog.assets[actor.visual_id]
-   assert(entry.frames.size()==12 and entry.source_pixel_scale==.5)
+   var image=catalog.textures[actor.visual_id].get_image()
+   assert(image.get_pixel(0,0).a==0,"Original atlas retains transparent alpha")
+   assert(entry.frames.size()==12 and entry.source_pixel_scale>0)
    for frame in entry.frames:
     var r=frame.rect;var coverage=0
     for y in range(r[3]):
@@ -31,10 +30,19 @@ func run():
    for state in ["idle","move","act","hurt","defeated"]:
     for facing in ["north","south","east","west"]:
      actor.player.play(state,facing,true);actor.update_frame()
-     assert(actor.sprite.scale==Vector3(.5,.5,1),"Variable frame crops retain one source-pixel density")
+     assert(actor.sprite.scale==Vector3(entry.source_pixel_scale,entry.source_pixel_scale,1),"Variable frame crops retain one source-pixel density")
      var frame=entry.frames[actor.player.frame_index()]
      assert(actor.sprite.offset==Vector2(-frame.pivot_px[0],frame.pivot_px[1]-frame.rect[3]),"Pose retains its indexed foot pivot")
+   actor.player.play("act","west",true);actor.player.advance(.13);actor.update_frame()
+   var contact=entry.frames[actor.player.frame_index()]
+   assert(actor.sprite.flip_h and actor.sprite.offset.x==contact.pivot_px[0]-contact.rect[2],"West attack mirrors the right-facing pose around its foot pivot")
+   actor.player.play("act","east",true);actor.player.advance(.13);actor.update_frame()
+   assert(not actor.sprite.flip_h and actor.sprite.offset.x==-contact.pivot_px[0],"Changing facing on the same frame restores the original pivot")
   actor.queue_free()
+  var visual_id="recruit."+unit.id;var saved=catalog.assets[visual_id];catalog.assets.erase(visual_id)
+  actor=Unit.new();stage.add_child(actor);actor.configure(catalog,unit)
+  assert(actor.visual_id=="unit."+unit.job.to_lower(),"Missing recruit artwork falls back to the correct class")
+  actor.queue_free();catalog.assets[visual_id]=saved
   unit.team="enemy";actor=Unit.new();stage.add_child(actor);actor.configure(catalog,unit)
   assert(actor.visual_id=="unit."+unit.job.to_lower(),"Enemy figures retain class silhouettes even if an ID matches a recruit")
   actor.queue_free()
@@ -44,5 +52,5 @@ func run():
  assert(not catalog.add_recruits("res://data/campaign.json") and catalog.assets.keys()==keys,"Malformed supplement preserves class fallback")
  assert(catalog.open("res://visuals/units.json") and catalog.recruit_errors.is_empty(),"Reopening resets supplemental errors")
  stage.queue_free();await process_frame
- print("PASS: eight original recruit identities, 96 isolated poses, stable density/pivots, all class/enemy fallbacks and supplemental validation")
+ print("PASS: 24 original recruit identities, 288 isolated poses, stable density/pivots, directional attacks, class/enemy fallbacks and supplemental validation")
  quit()

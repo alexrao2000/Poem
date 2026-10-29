@@ -19,6 +19,9 @@ func update_frame():
  super.update_frame()
  var density=player.asset.get("source_pixel_scale",0)
  if density>0:sprite.scale=Vector3(density,density,1)
+ var frame=player.asset.frames[player.frame_index()]
+ sprite.flip_h=player.facing=="west" and player.asset.get("right_facing_frames",[]).any(func(value):return int(value)==player.frame_index())
+ sprite.offset=Vector2(frame.pivot_px[0]-frame.rect[2] if sprite.flip_h else -frame.pivot_px[0],frame.pivot_px[1]-frame.rect[3])
 
 func face_step(step: Vector2i):
  player.play("move",Player.facing_for_step(step));update_frame()
