@@ -55,6 +55,18 @@ func run():
  assert(batch.combine(world).sources==0 and is_instance_valid(dynamic) and dynamic.get_parent()==world,"Explicitly dynamic and already-batched meshes are left intact")
  world.queue_free();await process_frame
  var scenery=Scenery.new();scenery.batching_enabled=false;var game=Rules.new();var total_sources=0;var total_batches=0
+ world=Node3D.new();root.add_child(world)
+ for dimensions in [[.5,.4,.6],[1.65,.35,.8]]:
+  var arch=scenery.arch_span(world,Vector3.ZERO,dimensions[0],dimensions[1],dimensions[2])
+  var arrays=arch.mesh.surface_get_arrays(0);var points=arrays[Mesh.ARRAY_VERTEX];var signed_volume=0.0
+  for point in points:
+   var radius=Vector2(point.x,point.y).length()
+   assert(point.y>=0 and radius>=dimensions[0]-.001 and radius<=dimensions[0]+dimensions[1]+.001,"Stone arch follows its curved span and leaves its underside open")
+  for i in range(0,points.size(),3):signed_volume+=points[i].dot(points[i+1].cross(points[i+2]))/6.0
+  var ideal=PI*.5*(pow(dimensions[0]+dimensions[1],2)-pow(dimensions[0],2))*dimensions[2]
+  assert(signed_volume>ideal*.9 and signed_volume<ideal,"Closed stones have outward winding and small mortar gaps")
+  for normal in arrays[Mesh.ARRAY_NORMAL]:assert(absf(normal.length()-1)<.001,"Arch surfaces have valid lighting normals")
+ world.queue_free();await process_frame
  for chapter in range(12):
   game.chapter=chapter;world=Node3D.new();root.add_child(world);scenery.landscape(world,game)
   before=signature(world);var began=Time.get_ticks_msec();stats=batch.combine(world);var elapsed=Time.get_ticks_msec()-began;after=signature(world)

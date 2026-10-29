@@ -1,5 +1,6 @@
 extends RefCounted
 # Shared landscape construction for the tactical board and battle stage.
+# Masonry spans use closed wedge stones with small joints and an open underside.
 var materials: Dictionary = {}
 var batching_enabled=true
 var batcher=preload("res://scripts/static_batch.gd").new()
@@ -79,6 +80,21 @@ func cylinder(parent,p,height,radius,color,top=-1.0):
 func boulder(parent,p,radius):
  var shape=SphereMesh.new();shape.radius=1;shape.height=2;shape.radial_segments=7;shape.rings=4
  return mesh(parent,shape,p,Vector3(radius,radius*.6,radius*.8),ground_material(1))
+
+func arch_span(parent,p,inner_radius=.5,thickness=.4,depth=.6):
+ var surface=SurfaceTool.new();surface.begin(Mesh.PRIMITIVE_TRIANGLES)
+ var uv=[Vector2(0,0),Vector2(1,0),Vector2(1,1),Vector2(0,1)]
+ for segment in range(11):
+  var a=segment*PI/11+.008;var b=(segment+1)*PI/11-.008
+  var points=[]
+  for z in [depth*.5,-depth*.5]:
+   for entry in [[a,inner_radius],[a,inner_radius+thickness],[b,inner_radius+thickness],[b,inner_radius]]:
+    points.append(Vector3(cos(entry[0])*entry[1],sin(entry[0])*entry[1],z))
+  for face in [[0,1,2,3],[7,6,5,4],[0,4,5,1],[1,5,6,2],[2,6,7,3],[3,7,4,0]]:
+   for i in [0,1,2,0,2,3]:surface.set_uv(uv[i]);surface.add_vertex(points[face[i]])
+ surface.generate_normals()
+ var span=mesh(parent,surface.commit(),p,Vector3.ONE,detail_material(3));span.name="MasonryArch"
+ return span
 
 func tree(parent,p,seed_value=0):
  var rng=RandomNumberGenerator.new();rng.seed=seed_value+997
@@ -222,8 +238,10 @@ func landmark(parent,p,kind):
   else:
    for i in range(8):block(parent,p+Vector3(cos(i*PI/4)*.55,2.3,sin(i*PI/4)*.55),Vector3(.22,.4,.22),stone)
  elif kind=="arch":
-  for x in [-.7,.7]:block(parent,p+Vector3(x,.8,0),Vector3(.4,1.6,.6),stone)
-  block(parent,p+Vector3(0,1.6,0),Vector3(1.8,.4,.6),stone)
+  for x in [-.7,.7]:
+   var pillar=block(parent,p+Vector3(x,.55,0),Vector3(.4,1.1,.6),stone);pillar.material_override=detail_material(3)
+   block(parent,p+Vector3(x,.08,0),Vector3(.5,.16,.7),stone.darkened(.1))
+  arch_span(parent,p+Vector3(0,1.1,0))
  elif kind=="boat":
   var hull=cylinder(parent,p+Vector3(0,-.08,0),.4,.65,Color("605141"),.9);hull.scale.z=2.0
   block(parent,p+Vector3(0,.18,0),Vector3(1.2,.1,2.8),Color("9b886b"))
@@ -306,8 +324,8 @@ func battle_landscape(parent,center,context={}):
    cylinder(parent,center+Vector3(x,1.8,-5),3.6,.32,Color("9e9d8d"))
    cylinder(parent,center+Vector3(x,.12,-5),.24,.5,Color("7f8178"))
    cylinder(parent,center+Vector3(x,3.5,-5),.3,.48,Color("c2bea7"))
-   if theme in ["aqueduct","abbey"]:
-    block(parent,center+Vector3(x+1.8,3.7,-5),Vector3(4,.35,.8),Color("aaa58f"))
+   if theme in ["aqueduct","abbey"] and x<12:
+    arch_span(parent,center+Vector3(x+2,3.55,-5),1.65,.35,.8)
   if theme=="castle":
    block(parent,center+Vector3(0,2,-9),Vector3(35,4,.7),Color("858b88"))
    for x in range(-16,17,2):block(parent,center+Vector3(x,4.2,-9),Vector3(.8,.8,.9),Color("9a9d91"))
