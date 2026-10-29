@@ -3,6 +3,7 @@ extends RefCounted
 var content: Dictionary
 var equipment: Array
 var promotions: Array
+var supports=preload("res://scripts/supports.gd").new()
 const DEFAULT_ITEMS={"sword":"iron_sword","lance":"iron_lance","axe":"iron_axe","bow":"scout_bow","magic":"ember","staff":"field_staff"}
 var chapter: int = 0
 var turn: int = 1
@@ -28,6 +29,7 @@ func new_campaign():
 	units.clear()
 	completed = false
 	story_seen.clear()
+	supports.state.clear()
 	rng.seed = 472019
 	roster = content.roster.duplicate(true)
 	for u in roster:
@@ -177,7 +179,7 @@ func can_heal(a: Dictionary,b: Dictionary) -> bool:
 
 func heal(a: Dictionary,b: Dictionary) -> bool:
 	if not can_heal(a,b):return false
-	b.hp=mini(b.max_hp,b.hp+healing_power(a));a.acted=true;award_xp(a,30)
+	b.hp=mini(b.max_hp,b.hp+healing_power(a));a.acted=true;award_xp(a,30);supports.earn(self,a)
 	return true
 
 func use_tonic(u: Dictionary) -> bool:
@@ -195,13 +197,14 @@ func can_attack(a: Dictionary,b: Dictionary) -> bool:
 	return a.hp>0 and b.hp>0 and a.team!=b.team and in_weapon_range(a,d) and a.weapon!="staff"
 
 func forecast(a: Dictionary,b: Dictionary) -> Dictionary:
+	var support_attack=supports.nearby_rank(self,a);var support_defense=supports.nearby_rank(self,b)
 	var advantage = 0
 	var beats = {"sword":"axe","axe":"lance","lance":"sword"}
 	if beats.get(a.weapon,"")==b.weapon: advantage=1
 	if beats.get(b.weapon,"")==a.weapon: advantage=-1
 	var cover = 2 if terrain(pos(b)) in ["f","h","o"] else 0
 	var defense = int(b.defense)/2 if a.weapon=="magic" else int(b.defense)
-	return {"damage":maxi(1,attack_power(a)+advantage-defense-cover),"hit":clampi(85+(attack_speed(a)-attack_speed(b))*2+int(item_for(a).hit)+promotion_bonus(a,"hit")+advantage*15-cover*5,25,100),"crit":clampi(int(a.speed)/2+int(item_for(a).crit)+promotion_bonus(a,"crit"),0,50),"double":attack_speed(a)-attack_speed(b)>=4,"counter":can_attack(b,a)}
+	return {"damage":maxi(1,attack_power(a)+advantage+(1 if support_attack==3 else 0)-defense-cover),"hit":clampi(85+(attack_speed(a)-attack_speed(b))*2+int(item_for(a).hit)+promotion_bonus(a,"hit")+(support_attack-support_defense)*5+advantage*15-cover*5,25,100),"crit":clampi(int(a.speed)/2+int(item_for(a).crit)+promotion_bonus(a,"crit"),0,50),"double":attack_speed(a)-attack_speed(b)>=4,"counter":can_attack(b,a)}
 
 func strike(a: Dictionary,b: Dictionary) -> Dictionary:
 	var f = forecast(a,b)
@@ -223,6 +226,7 @@ func combat(a: Dictionary,b: Dictionary) -> Array:
 	for u in [a,b]:
 		if u.team=="player" and u.hp>0:
 			award_xp(u,45 if (b.hp<=0 if u==a else a.hp<=0) else 25)
+	for unit in [a,b]:supports.earn(self,unit)
 	return result
 
 func award_xp(u: Dictionary, amount: int):
@@ -277,7 +281,7 @@ func layout_signature() -> String:
 	return JSON.stringify([info().map,info().deployment_positions,info().enemies,info().objective_position]).sha256_text()
 
 func save_data(stage: String) -> Dictionary:
-	return {"version":SAVE_VERSION,"layout_signature":layout_signature(),"story_seen":story_seen,"chapter":chapter,"turn":turn,"phase":phase,"roster":roster,"units":units,"deployed":deployed,"completed":completed,"rng":str(rng.state),"stage":stage}
+	return {"version":SAVE_VERSION,"layout_signature":layout_signature(),"story_seen":story_seen,"supports":supports.state,"chapter":chapter,"turn":turn,"phase":phase,"roster":roster,"units":units,"deployed":deployed,"completed":completed,"rng":str(rng.state),"stage":stage}
 
 func save_game(path: String,stage: String) -> bool:
 	var data=save_data(stage)
@@ -297,6 +301,7 @@ func valid_save(data) -> bool:
 	if int(data.chapter)<0 or int(data.chapter)>=content.chapters.size() or int(data.turn)<1:return false
 	if data.phase not in ["player","enemy"] or data.stage not in ["camp","battle","ending"]:return false
 	if not data.completed is bool or not data.rng is String or not data.rng.is_valid_int():return false
+	if not supports.valid_state(data.get("supports",{})):return false
 	if not data.roster is Array or data.roster.size()!=content.roster.size():return false
 	if not data.units is Array or not data.deployed is Array or not data.get("story_seen",[]) is Array:return false
 	if data.units.size()>64 or data.get("story_seen",[]).size()>128:return false
@@ -368,6 +373,7 @@ func restore_save(data) -> String:
 	if not valid_save(data):return ""
 	data=data.duplicate(true)
 	story_seen=data.get("story_seen",[])
+	supports.state=data.get("supports",{})
 	chapter=int(data.chapter);turn=int(data.turn);phase=data.phase;roster=data.roster;units=data.units;deployed=data.deployed;completed=data.completed;rng.state=int(data.rng)
 	for unit in roster:normalize_equipment(unit)
 	for unit in units:

@@ -20,6 +20,8 @@ func simulate(seed_value,branch=-1) -> int:
    for unit in g.available():
     var path=g.promotion_options(unit)[branch]
     if g.can_promote(unit,path.id):assert(g.promote(unit,path.id))
+   for entry in g.supports.entries:
+    while g.supports.can_read(entry.id,chapter):assert(g.supports.complete_scene(entry.id,chapter))
   var available=g.available();available.sort_custom(func(a,b):return a.level>b.level)
   g.deployed=[]
   for unit in available:

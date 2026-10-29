@@ -1,0 +1,1178 @@
+[
+  {
+    "id": "lyra_oren",
+    "members": [
+      "lyra",
+      "oren"
+    ],
+    "chapters": [
+      0,
+      1,
+      2
+    ],
+    "points": [
+      1,
+      3,
+      6
+    ],
+    "scenes": [
+      {
+        "title": "The spare cup",
+        "lines": [
+          {
+            "speaker": "lyra",
+            "text": "You set out two cups before I arrived."
+          },
+          {
+            "speaker": "oren",
+            "text": "You make the same circuit every night. I was beginning to worry about the tea."
+          },
+          {
+            "speaker": "lyra",
+            "text": "I came to ask whether I gave the right orders."
+          },
+          {
+            "speaker": "oren",
+            "text": "Sit down first. You are allowed to be thirsty before you are a commander."
+          }
+        ]
+      },
+      {
+        "title": "A name missing",
+        "lines": [
+          {
+            "speaker": "oren",
+            "text": "There is no Oren on your list of people to repay."
+          },
+          {
+            "speaker": "lyra",
+            "text": "You said you needed nothing."
+          },
+          {
+            "speaker": "oren",
+            "text": "I said my roof did not leak. Those are different things."
+          },
+          {
+            "speaker": "lyra",
+            "text": "Then tell me what to write."
+          },
+          {
+            "speaker": "oren",
+            "text": "A morning when you let someone else carry the banner."
+          },
+          {
+            "speaker": "lyra",
+            "text": "I can promise you tomorrow morning."
+          }
+        ]
+      },
+      {
+        "title": "The gate tomorrow",
+        "lines": [
+          {
+            "speaker": "lyra",
+            "text": "When this ends, will you stand guard again?"
+          },
+          {
+            "speaker": "oren",
+            "text": "At the workshop, perhaps. To keep the rain out."
+          },
+          {
+            "speaker": "lyra",
+            "text": "I was hoping you would help me with the meeting hall."
+          },
+          {
+            "speaker": "oren",
+            "text": "Does it need a guard?"
+          },
+          {
+            "speaker": "lyra",
+            "text": "Someone who knows when to leave the door open."
+          },
+          {
+            "speaker": "oren",
+            "text": "Then I will bring the spare cup."
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "sera_ivo",
+    "members": [
+      "sera",
+      "ivo"
+    ],
+    "chapters": [
+      0,
+      1,
+      2
+    ],
+    "points": [
+      1,
+      3,
+      6
+    ],
+    "scenes": [
+      {
+        "title": "A mark on the map",
+        "lines": [
+          {
+            "speaker": "ivo",
+            "text": "What does the little blue cup mean?"
+          },
+          {
+            "speaker": "sera",
+            "text": "Clean water. The pie is marked with a triangle."
+          },
+          {
+            "speaker": "ivo",
+            "text": "Your water marks could save my patients a day of travel."
+          },
+          {
+            "speaker": "sera",
+            "text": "Then take this copy. I can remember where the pie is."
+          }
+        ]
+      },
+      {
+        "title": "The shorter road",
+        "lines": [
+          {
+            "speaker": "sera",
+            "text": "I found a shorter route to the infirmary."
+          },
+          {
+            "speaker": "ivo",
+            "text": "How steep?"
+          },
+          {
+            "speaker": "sera",
+            "text": "Steep enough that I should have asked before calling it shorter."
+          },
+          {
+            "speaker": "ivo",
+            "text": "Distance looks different from a stretcher."
+          },
+          {
+            "speaker": "sera",
+            "text": "Come with me tomorrow. We will draw that version too."
+          },
+          {
+            "speaker": "ivo",
+            "text": "Bring the pencil with the broad point. My hands shake after a long shift."
+          }
+        ]
+      },
+      {
+        "title": "Room in the margin",
+        "lines": [
+          {
+            "speaker": "ivo",
+            "text": "Your new atlas has a very large margin."
+          },
+          {
+            "speaker": "sera",
+            "text": "Beds, wells, people who will open a door after dark. I needed the space."
+          },
+          {
+            "speaker": "ivo",
+            "text": "You cannot promise every traveler a welcome."
+          },
+          {
+            "speaker": "sera",
+            "text": "No. But I can make it easier for a welcome to be found."
+          },
+          {
+            "speaker": "ivo",
+            "text": "Put my name beside the first infirmary."
+          },
+          {
+            "speaker": "sera",
+            "text": "Already there. Beside a blue cup."
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "mara_tarin",
+    "members": [
+      "mara",
+      "tarin"
+    ],
+    "chapters": [
+      1,
+      2,
+      3
+    ],
+    "points": [
+      1,
+      3,
+      6
+    ],
+    "scenes": [
+      {
+        "title": "An unsuitable chart",
+        "lines": [
+          {
+            "speaker": "mara",
+            "text": "That is the worst river chart I have ever seen."
+          },
+          {
+            "speaker": "tarin",
+            "text": "It is a diagram of the night sky."
+          },
+          {
+            "speaker": "mara",
+            "text": "Explains why I could not find the toll station."
+          },
+          {
+            "speaker": "tarin",
+            "text": "If the sky acquires one, I will draw you a better chart."
+          }
+        ]
+      },
+      {
+        "title": "The missing weight",
+        "lines": [
+          {
+            "speaker": "tarin",
+            "text": "Your boat sits lower than your cargo list predicts."
+          },
+          {
+            "speaker": "mara",
+            "text": "The list forgets the medicine under the grain."
+          },
+          {
+            "speaker": "tarin",
+            "text": "You should include it. The current will not honor a discreet omission."
+          },
+          {
+            "speaker": "mara",
+            "text": "Then help me write two lists. One for the guards, one for the river."
+          },
+          {
+            "speaker": "tarin",
+            "text": "I would rather the river receive the honest one."
+          },
+          {
+            "speaker": "mara",
+            "text": "Now you are learning my business."
+          }
+        ]
+      },
+      {
+        "title": "A name for the boat",
+        "lines": [
+          {
+            "speaker": "tarin",
+            "text": "I have calculated the safest load for your next vessel."
+          },
+          {
+            "speaker": "mara",
+            "text": "Good. Have you calculated its name?"
+          },
+          {
+            "speaker": "tarin",
+            "text": "That lies outside my field."
+          },
+          {
+            "speaker": "mara",
+            "text": "The Question. You kept asking until somebody listened."
+          },
+          {
+            "speaker": "tarin",
+            "text": "I am not sure I deserve a boat."
+          },
+          {
+            "speaker": "mara",
+            "text": "Then keep her from sinking. We can discuss deserving it afterward."
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "nell_bram",
+    "members": [
+      "nell",
+      "bram"
+    ],
+    "chapters": [
+      2,
+      3,
+      4
+    ],
+    "points": [
+      1,
+      3,
+      6
+    ],
+    "scenes": [
+      {
+        "title": "Keys and wheels",
+        "lines": [
+          {
+            "speaker": "nell",
+            "text": "You heard me coming?"
+          },
+          {
+            "speaker": "bram",
+            "text": "The buckle on your left boot clicks."
+          },
+          {
+            "speaker": "nell",
+            "text": "I spent years learning to open doors quietly."
+          },
+          {
+            "speaker": "bram",
+            "text": "Doors rarely have that many loose buckles."
+          }
+        ]
+      },
+      {
+        "title": "A quiet repair",
+        "lines": [
+          {
+            "speaker": "nell",
+            "text": "You fixed my boot without asking."
+          },
+          {
+            "speaker": "bram",
+            "text": "The leather was splitting. I left the buckle loose in case you preferred it."
+          },
+          {
+            "speaker": "nell",
+            "text": "Why would I prefer being heard?"
+          },
+          {
+            "speaker": "bram",
+            "text": "Sometimes it helps people know you are coming home."
+          },
+          {
+            "speaker": "nell",
+            "text": "Leave a little click, then."
+          },
+          {
+            "speaker": "bram",
+            "text": "A little click I can manage."
+          }
+        ]
+      },
+      {
+        "title": "A door of her own",
+        "lines": [
+          {
+            "speaker": "nell",
+            "text": "I found a key that fits nothing."
+          },
+          {
+            "speaker": "bram",
+            "text": "We could build something around it."
+          },
+          {
+            "speaker": "nell",
+            "text": "That sounds like a ridiculous way to build a house."
+          },
+          {
+            "speaker": "bram",
+            "text": "A workshop, perhaps. You could decide who gets copies."
+          },
+          {
+            "speaker": "nell",
+            "text": "One for you. You will be doing most of the sensible work."
+          },
+          {
+            "speaker": "bram",
+            "text": "And a bell. So neither of us has to sneak in."
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "esme_rook",
+    "members": [
+      "esme",
+      "rook"
+    ],
+    "chapters": [
+      3,
+      4,
+      5
+    ],
+    "points": [
+      1,
+      3,
+      6
+    ],
+    "scenes": [
+      {
+        "title": "The broken step",
+        "lines": [
+          {
+            "speaker": "esme",
+            "text": "You have repaired that step twice."
+          },
+          {
+            "speaker": "rook",
+            "text": "The first repair was poor."
+          },
+          {
+            "speaker": "esme",
+            "text": "The second was finished an hour ago."
+          },
+          {
+            "speaker": "rook",
+            "text": "I was not ready to come inside."
+          }
+        ]
+      },
+      {
+        "title": "A verse remembered",
+        "lines": [
+          {
+            "speaker": "rook",
+            "text": "I knew the woman whose name is in that verse."
+          },
+          {
+            "speaker": "esme",
+            "text": "Then tell me something I do not know."
+          },
+          {
+            "speaker": "rook",
+            "text": "She kept geese. They chased our captain out of her yard."
+          },
+          {
+            "speaker": "esme",
+            "text": "That deserves a place beside her name."
+          },
+          {
+            "speaker": "rook",
+            "text": "I thought you would want an apology."
+          },
+          {
+            "speaker": "esme",
+            "text": "I want her remembered as more than what was done to her."
+          }
+        ]
+      },
+      {
+        "title": "Work left to do",
+        "lines": [
+          {
+            "speaker": "esme",
+            "text": "The wall will need another pair of hands tomorrow."
+          },
+          {
+            "speaker": "rook",
+            "text": "I will be here."
+          },
+          {
+            "speaker": "esme",
+            "text": "I know. I was asking whether you would teach the children to lay the stones."
+          },
+          {
+            "speaker": "rook",
+            "text": "Are you certain they should learn from me?"
+          },
+          {
+            "speaker": "esme",
+            "text": "They should learn how a wall is made strong, and how a mistake is repaired."
+          },
+          {
+            "speaker": "rook",
+            "text": "I can teach that. I am still learning it."
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "faye_cassian",
+    "members": [
+      "faye",
+      "cassian"
+    ],
+    "chapters": [
+      4,
+      5,
+      6
+    ],
+    "points": [
+      1,
+      3,
+      6
+    ],
+    "scenes": [
+      {
+        "title": "The wrong turn",
+        "lines": [
+          {
+            "speaker": "cassian",
+            "text": "Your trail marker points away from the road."
+          },
+          {
+            "speaker": "faye",
+            "text": "The road is flooded."
+          },
+          {
+            "speaker": "cassian",
+            "text": "The official map does not show a stream there."
+          },
+          {
+            "speaker": "faye",
+            "text": "You can explain that to the water while I find us a crossing."
+          }
+        ]
+      },
+      {
+        "title": "A useful speech",
+        "lines": [
+          {
+            "speaker": "cassian",
+            "text": "I prepared a speech for the village council."
+          },
+          {
+            "speaker": "faye",
+            "text": "They need their culvert cleared."
+          },
+          {
+            "speaker": "cassian",
+            "text": "I can do both."
+          },
+          {
+            "speaker": "faye",
+            "text": "Start with the culvert. You may find they have things to tell you."
+          },
+          {
+            "speaker": "cassian",
+            "text": "Would you listen to the speech afterward?"
+          },
+          {
+            "speaker": "faye",
+            "text": "If you still think it answers their questions."
+          }
+        ]
+      },
+      {
+        "title": "Where the water runs",
+        "lines": [
+          {
+            "speaker": "cassian",
+            "text": "I threw away the speech."
+          },
+          {
+            "speaker": "faye",
+            "text": "You could have used the back for notes."
+          },
+          {
+            "speaker": "cassian",
+            "text": "I did. Three pages of them."
+          },
+          {
+            "speaker": "faye",
+            "text": "And what did you learn?"
+          },
+          {
+            "speaker": "cassian",
+            "text": "Who repairs the bank when the river rises. I had never asked."
+          },
+          {
+            "speaker": "faye",
+            "text": "Good. Next spring, ask where they need another shovel."
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "vela_dax",
+    "members": [
+      "vela",
+      "dax"
+    ],
+    "chapters": [
+      5,
+      6,
+      7
+    ],
+    "points": [
+      1,
+      3,
+      6
+    ],
+    "scenes": [
+      {
+        "title": "The last meal",
+        "lines": [
+          {
+            "speaker": "vela",
+            "text": "You have checked everyone in this camp except yourself."
+          },
+          {
+            "speaker": "dax",
+            "text": "Someone has to check the newest arrivals."
+          },
+          {
+            "speaker": "vela",
+            "text": "The lighthouse keeper counts as an arrival. She has brought two bowls."
+          },
+          {
+            "speaker": "dax",
+            "text": "That is a remarkably specific regulation."
+          }
+        ]
+      },
+      {
+        "title": "The warning light",
+        "lines": [
+          {
+            "speaker": "dax",
+            "text": "Could your light signal a storm to the far docks?"
+          },
+          {
+            "speaker": "vela",
+            "text": "If someone there knows the sequence."
+          },
+          {
+            "speaker": "dax",
+            "text": "Teach me. We lost two hands because a warning stopped at the foreman's office."
+          },
+          {
+            "speaker": "vela",
+            "text": "Then we will teach more than one person."
+          },
+          {
+            "speaker": "dax",
+            "text": "Every shift. And the kitchen workers."
+          },
+          {
+            "speaker": "vela",
+            "text": "Especially anyone who notices when a crew fails to return."
+          }
+        ]
+      },
+      {
+        "title": "A shared watch",
+        "lines": [
+          {
+            "speaker": "dax",
+            "text": "The dock crews sent back your signal."
+          },
+          {
+            "speaker": "vela",
+            "text": "All three shifts?"
+          },
+          {
+            "speaker": "dax",
+            "text": "And the kitchen. They added a signal for hot supper."
+          },
+          {
+            "speaker": "vela",
+            "text": "A valuable addition to maritime safety."
+          },
+          {
+            "speaker": "dax",
+            "text": "You can come down from the tower tonight. They know the watch."
+          },
+          {
+            "speaker": "vela",
+            "text": "Keep me a bowl. I would like to see their faces when they answer."
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "una_silas",
+    "members": [
+      "una",
+      "silas"
+    ],
+    "chapters": [
+      6,
+      7,
+      8
+    ],
+    "points": [
+      1,
+      3,
+      6
+    ],
+    "scenes": [
+      {
+        "title": "An empty chair",
+        "lines": [
+          {
+            "speaker": "una",
+            "text": "I chose the chair facing the door for you."
+          },
+          {
+            "speaker": "silas",
+            "text": "That is either kindness or a very good interrogation technique."
+          },
+          {
+            "speaker": "una",
+            "text": "Tonight it is kindness."
+          },
+          {
+            "speaker": "silas",
+            "text": "I will try to accept the shorter explanation."
+          }
+        ]
+      },
+      {
+        "title": "The crossed-out line",
+        "lines": [
+          {
+            "speaker": "silas",
+            "text": "You kept the clause they removed from the treaty."
+          },
+          {
+            "speaker": "una",
+            "text": "It named the villages that would lose their wells."
+          },
+          {
+            "speaker": "silas",
+            "text": "I have destroyed documents for less."
+          },
+          {
+            "speaker": "una",
+            "text": "Why tell me that?"
+          },
+          {
+            "speaker": "silas",
+            "text": "Because I want you to know what I mean when I say I will keep this one safe."
+          },
+          {
+            "speaker": "una",
+            "text": "Then let us make copies. Safety should not depend on one honest evening."
+          }
+        ]
+      },
+      {
+        "title": "No hidden clause",
+        "lines": [
+          {
+            "speaker": "silas",
+            "text": "I sat with my back to the door yesterday."
+          },
+          {
+            "speaker": "una",
+            "text": "I noticed. I also noticed you moved the mirror."
+          },
+          {
+            "speaker": "silas",
+            "text": "A modest victory, then."
+          },
+          {
+            "speaker": "una",
+            "text": "A real one. You do not owe me a performance of trust."
+          },
+          {
+            "speaker": "silas",
+            "text": "What do I owe you?"
+          },
+          {
+            "speaker": "una",
+            "text": "The truth when it is difficult. I will try to offer the same."
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "petra_ari",
+    "members": [
+      "petra",
+      "ari"
+    ],
+    "chapters": [
+      7,
+      8,
+      9
+    ],
+    "points": [
+      1,
+      3,
+      6
+    ],
+    "scenes": [
+      {
+        "title": "An unwelcome perch",
+        "lines": [
+          {
+            "speaker": "petra",
+            "text": "Your bird has stolen my measuring string."
+          },
+          {
+            "speaker": "ari",
+            "text": "Rain considers all string a preliminary nest."
+          },
+          {
+            "speaker": "petra",
+            "text": "It was supporting a model bridge."
+          },
+          {
+            "speaker": "ari",
+            "text": "Then she has discovered a serious design weakness."
+          }
+        ]
+      },
+      {
+        "title": "Room for a landing",
+        "lines": [
+          {
+            "speaker": "petra",
+            "text": "I added a perch to the signal tower plan."
+          },
+          {
+            "speaker": "ari",
+            "text": "Rain prefers a clear approach from the east."
+          },
+          {
+            "speaker": "petra",
+            "text": "I was designing for messengers, not her preferences."
+          },
+          {
+            "speaker": "ari",
+            "text": "She is the messenger."
+          },
+          {
+            "speaker": "petra",
+            "text": "Then ask her about the crosswind before I set the height."
+          },
+          {
+            "speaker": "ari",
+            "text": "I will take her up. She is more persuasive in person."
+          }
+        ]
+      },
+      {
+        "title": "The extra weight",
+        "lines": [
+          {
+            "speaker": "ari",
+            "text": "The tower held three birds, two children, and an anxious mayor."
+          },
+          {
+            "speaker": "petra",
+            "text": "I allowed for four children."
+          },
+          {
+            "speaker": "ari",
+            "text": "You did not mention that in the plan."
+          },
+          {
+            "speaker": "petra",
+            "text": "People climb things. A useful structure survives being used."
+          },
+          {
+            "speaker": "ari",
+            "text": "I will put that on the plaque."
+          },
+          {
+            "speaker": "petra",
+            "text": "Put the maintenance instructions there instead. We can argue about wisdom later."
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "noor_galen",
+    "members": [
+      "noor",
+      "galen"
+    ],
+    "chapters": [
+      8,
+      9,
+      10
+    ],
+    "points": [
+      1,
+      3,
+      6
+    ],
+    "scenes": [
+      {
+        "title": "The warm roots",
+        "lines": [
+          {
+            "speaker": "noor",
+            "text": "How long has this soil been warm?"
+          },
+          {
+            "speaker": "galen",
+            "text": "Long enough for the roots to wake. Too soon for the leaves."
+          },
+          {
+            "speaker": "noor",
+            "text": "I need a sample from each bed."
+          },
+          {
+            "speaker": "galen",
+            "text": "Take the radishes too. They have made their objections quite plain."
+          }
+        ]
+      },
+      {
+        "title": "A difficult forecast",
+        "lines": [
+          {
+            "speaker": "noor",
+            "text": "I cannot promise the gardens will survive the shutdown."
+          },
+          {
+            "speaker": "galen",
+            "text": "I asked for a forecast, not a promise."
+          },
+          {
+            "speaker": "noor",
+            "text": "The eastern beds have the best chance."
+          },
+          {
+            "speaker": "galen",
+            "text": "Then that is where the cuttings go."
+          },
+          {
+            "speaker": "noor",
+            "text": "You do not seem surprised."
+          },
+          {
+            "speaker": "galen",
+            "text": "I have planted through several rulers. Hope benefits from a second seed tray."
+          }
+        ]
+      },
+      {
+        "title": "The second tray",
+        "lines": [
+          {
+            "speaker": "noor",
+            "text": "The cuttings have new leaves."
+          },
+          {
+            "speaker": "galen",
+            "text": "Three of them. The fourth may yet surprise us."
+          },
+          {
+            "speaker": "noor",
+            "text": "I recorded your name beside the observation."
+          },
+          {
+            "speaker": "galen",
+            "text": "Record who carried the water too."
+          },
+          {
+            "speaker": "noor",
+            "text": "I did. There was barely room on the page."
+          },
+          {
+            "speaker": "galen",
+            "text": "A good problem. Leave another page for what grows next."
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "yuna_hale",
+    "members": [
+      "yuna",
+      "hale"
+    ],
+    "chapters": [
+      9,
+      10,
+      11
+    ],
+    "points": [
+      1,
+      2,
+      3
+    ],
+    "scenes": [
+      {
+        "title": "A warning overhead",
+        "lines": [
+          {
+            "speaker": "yuna",
+            "text": "Why do you tap every beam?"
+          },
+          {
+            "speaker": "hale",
+            "text": "A ceiling tells you when it is tired. Quietly, at first."
+          },
+          {
+            "speaker": "yuna",
+            "text": "The palace taught me something similar about footsteps."
+          },
+          {
+            "speaker": "hale",
+            "text": "Then keep listening below while I listen above."
+          }
+        ]
+      },
+      {
+        "title": "A different rhythm",
+        "lines": [
+          {
+            "speaker": "yuna",
+            "text": "That passage has patrols every forty breaths."
+          },
+          {
+            "speaker": "hale",
+            "text": "And a cracked support at the turn. We cannot rush everyone through."
+          },
+          {
+            "speaker": "yuna",
+            "text": "I can give us another forty."
+          },
+          {
+            "speaker": "hale",
+            "text": "How?"
+          },
+          {
+            "speaker": "yuna",
+            "text": "By being seen exactly where they expect a dancer to be."
+          },
+          {
+            "speaker": "hale",
+            "text": "Only if you tell me where you will come back out."
+          }
+        ]
+      },
+      {
+        "title": "Choosing the next step",
+        "lines": [
+          {
+            "speaker": "yuna",
+            "text": "No one told me where to stand this morning."
+          },
+          {
+            "speaker": "hale",
+            "text": "Did you find somewhere?"
+          },
+          {
+            "speaker": "yuna",
+            "text": "In the sun. For a while, that was enough."
+          },
+          {
+            "speaker": "hale",
+            "text": "My children used to ask why I kept my helmet on outside."
+          },
+          {
+            "speaker": "yuna",
+            "text": "What will you tell them now?"
+          },
+          {
+            "speaker": "hale",
+            "text": "That I am learning to look up without being afraid of what is above me."
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "elian_rhea",
+    "members": [
+      "elian",
+      "rhea"
+    ],
+    "chapters": [
+      10,
+      11,
+      11
+    ],
+    "points": [
+      1,
+      2,
+      3
+    ],
+    "scenes": [
+      {
+        "title": "An unfinished letter",
+        "lines": [
+          {
+            "speaker": "rhea",
+            "text": "You have polished the same buckle for ten minutes."
+          },
+          {
+            "speaker": "elian",
+            "text": "You have folded that letter six times."
+          },
+          {
+            "speaker": "rhea",
+            "text": "It still says too little."
+          },
+          {
+            "speaker": "elian",
+            "text": "Mine shines too much. Neither task is improving with repetition."
+          }
+        ]
+      },
+      {
+        "title": "Words that can be sent",
+        "lines": [
+          {
+            "speaker": "rhea",
+            "text": "Did you ever tell him an order was wrong?"
+          },
+          {
+            "speaker": "elian",
+            "text": "Sometimes. More often I tried to make it less wrong."
+          },
+          {
+            "speaker": "rhea",
+            "text": "I keep removing the angry lines from my letter."
+          },
+          {
+            "speaker": "elian",
+            "text": "Does that leave anything true?"
+          },
+          {
+            "speaker": "rhea",
+            "text": "It leaves something easier for him to read."
+          },
+          {
+            "speaker": "elian",
+            "text": "Then perhaps one angry line should stay."
+          }
+        ]
+      },
+      {
+        "title": "A road back",
+        "lines": [
+          {
+            "speaker": "rhea",
+            "text": "I sent it."
+          },
+          {
+            "speaker": "elian",
+            "text": "Would you like me to ask whether it arrived?"
+          },
+          {
+            "speaker": "rhea",
+            "text": "Yes. But do not ask anyone to pretend he answered."
+          },
+          {
+            "speaker": "elian",
+            "text": "I will bring you what I learn."
+          },
+          {
+            "speaker": "rhea",
+            "text": "Whatever he chooses, the surrender road must stay open."
+          },
+          {
+            "speaker": "elian",
+            "text": "It will. And you will not have to stand at the gate alone."
+          }
+        ]
+      }
+    ]
+  }
+]

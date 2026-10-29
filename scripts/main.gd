@@ -309,6 +309,7 @@ func show_camp():
 		pic.pressed.connect(func():show_dossier(u));content.add_child(pic)
 		var texts=VBoxContainer.new();texts.size_flags_horizontal=Control.SIZE_EXPAND_FILL;content.add_child(texts)
 		label_in(texts,u.name+"  /  "+game.class_name_for(u)+"  ·  Lv "+str(int(u.level)),19,GOLD if unlocked else Color("9a9588"))
+		if unlocked and supports_ready(u):label_in(texts,"Support conversation ready · open portrait",14,GOLD)
 		label_in(texts,u.bio if unlocked else "Joins in chapter "+str(int(u.join)+1),14)
 		label_in(texts,"HP %d   ATK %d   DEF %d   SPD %d   MOV %d"%[u.max_hp,game.attack_power(u),u.defense,game.attack_speed(u),u.move],13,Color("81775f"))
 		button_in(content,"Deployed" if u.id in game.deployed else "Deploy",func():
@@ -350,7 +351,8 @@ func update_side():
 		var details=VBoxContainer.new();details.size_flags_horizontal=Control.SIZE_EXPAND_FILL;identity.add_child(details)
 		label_in(details,selected.name,27,GOLD)
 		label_in(details,game.class_name_for(selected),16)
-		label_in(details,"Lv %d  /  XP %d"%[selected.level,selected.xp],15)
+		var bond_rank=game.supports.nearby_rank(game,selected)
+		label_in(details,"Lv %d / XP %d"%[selected.level,selected.xp]+(" · Bond "+game.supports.RANKS[bond_rank] if bond_rank>0 else ""),15)
 		label_in(side,"HP %d / %d\nATK %d   DEF %d   SPD %d\n%s · range %s"%[selected.hp,selected.max_hp,game.attack_power(selected),selected.defense,game.attack_speed(selected),game.item_for(selected).name,game.range_text(selected)],18)
 		if selected.team=="enemy":
 			var behavior={"guard":"Holds position","sentry":"Waits until approached","pursue":"Advances toward the company"}
@@ -766,7 +768,9 @@ func show_dossier(unit):
 	label_in(info,"HP %d    ATK %d    DEF %d    SPD %d    MOV %d"%[unit.max_hp,game.attack_power(unit),unit.defense,game.attack_speed(unit),unit.move],21)
 	label_in(info,profile.get("biography",unit.bio),22)
 	label_in(info,"PERSONAL NOTE",16,GOLD);label_in(info,profile.get("note",""),20)
-	button_in(panel,"Equipment · "+game.item_for(unit).name,func():show_equipment(unit))
+	var records=HBoxContainer.new();records.add_theme_constant_override("separation",12);panel.add_child(records)
+	button_in(records,"Equipment · "+game.item_for(unit).name,func():show_equipment(unit)).size_flags_horizontal=Control.SIZE_EXPAND_FILL
+	button_in(records,"Support conversations"+(" · Ready" if supports_ready(unit) else ""),func():show_supports(unit)).size_flags_horizontal=Control.SIZE_EXPAND_FILL
 	var actions=HBoxContainer.new();actions.add_theme_constant_override("separation",12);panel.add_child(actions)
 	button_in(actions,"View combat model",func():show_model_view(unit)).size_flags_horizontal=Control.SIZE_EXPAND_FILL
 	button_in(actions,"Advanced training",func():show_promotions(unit)).size_flags_horizontal=Control.SIZE_EXPAND_FILL
@@ -932,3 +936,44 @@ func confirm_promotion(unit,path):
 			show_notice("Training complete. Campaign saved." if game.save_game(save_path,"camp") else "Training complete. Save failed; keep the game open and try saving again.")
 		else:show_promotions(unit))
 	button_in(panel,"Keep considering",func():show_promotions(unit))
+
+func show_supports(unit):
+	screen="supports";reset_ui()
+	var panel=panel_at(ui,70,45,-70,-45)
+	label_in(panel,"COMPANY BONDS",17,GOLD)
+	label_in(panel,unit.name+"  /  Support conversations",40,GOLD)
+	label_in(panel,"Fight or heal within 2 tiles of your partner: 1 point per pair each turn, up to 3 per chapter. Read conversations to gain ranks.",19)
+	label_in(panel,"Nearby partners grant +5 Hit and Avoid per rank; rank A also grants +1 damage. Bonuses are included in combat forecasts.",18)
+	var scroll=ScrollContainer.new();scroll.size_flags_vertical=Control.SIZE_EXPAND_FILL;panel.add_child(scroll)
+	var list=VBoxContainer.new();list.size_flags_horizontal=Control.SIZE_EXPAND_FILL;list.add_theme_constant_override("separation",16);scroll.add_child(list)
+	for entry in game.supports.for_unit(unit.id):
+		var partner=game.roster.filter(func(other):return other.id!=unit.id and other.id in entry.members)[0]
+		var record=game.supports.progress(entry.id);var available=partner.join<=game.chapter and unit.join<=game.chapter
+		var row=HBoxContainer.new();row.add_theme_constant_override("separation",24);list.add_child(row)
+		var portrait=TextureRect.new();portrait.texture=portraits.get_portrait(partner.id);portrait.custom_minimum_size=Vector2(250,300)
+		portrait.expand_mode=TextureRect.EXPAND_IGNORE_SIZE;portrait.stretch_mode=TextureRect.STRETCH_KEEP_ASPECT_CENTERED;row.add_child(portrait)
+		var details=VBoxContainer.new();details.size_flags_horizontal=Control.SIZE_EXPAND_FILL;details.add_theme_constant_override("separation",10);row.add_child(details)
+		label_in(details,partner.name+" · Rank "+game.supports.RANKS[int(record.rank)],32,GOLD)
+		label_in(details,"%d bond points"%record.points if available else "Partner joins in chapter %d"%(int(partner.join)+1),20)
+		for index in range(3):
+			var scene=entry.scenes[index];var read=index<int(record.rank)
+			var ready=index==int(record.rank) and available and game.supports.can_read(entry.id,game.chapter)
+			var title="%s · %s"%[game.supports.RANKS[index+1],scene.title]
+			label_in(details,title,22,GOLD)
+			if not read and not ready:label_in(details,"Requires %d points, chapter %d, and previous rank."%[entry.points[index],int(entry.chapters[index])+1],17)
+			button_in(details,"Replay conversation" if read else "Read conversation" if ready else "Not yet available",func():read_support(unit,entry,index),not (read or ready))
+	button_in(panel,"Return to company record",func():show_dossier(unit))
+
+func read_support(unit,entry,index: int):
+	var rank=int(game.supports.progress(entry.id).rank)
+	if index>rank or (index==rank and not game.supports.can_read(entry.id,game.chapter)):return
+	show_dialogue(entry.scenes[index].lines,func():
+		if index==int(game.supports.progress(entry.id).rank):
+			game.supports.complete_scene(entry.id,game.chapter)
+			var saved=game.save_game(save_path,"camp")
+			show_supports(unit)
+			show_notice("Bond strengthened. Campaign saved." if saved else "Bond strengthened. Save failed; keep the game open and try saving again.")
+		else:show_supports(unit))
+
+func supports_ready(unit) -> bool:
+	return unit.join<=game.chapter and game.supports.for_unit(unit.id).any(func(entry):return game.supports.can_read(entry.id,game.chapter))
