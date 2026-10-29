@@ -49,6 +49,8 @@ var unit_nodes: Dictionary={}
 var moving_id=""
 var route_preview: Node3D
 var last_hover=Vector2i(-1,-1)
+var cursor_tile=Vector2i.ZERO
+var cursor_visible=false
 var clock = 0.0
 var skip_combat = false
 var show_danger = false
@@ -227,6 +229,7 @@ func map_camera():
 	camera.h_offset=2.0
 
 func make_map():
+	cursor_visible=false
 	clear_world()
 	map_camera()
 	battle_lighting(game.info().get("environment","village"))
@@ -347,8 +350,8 @@ func show_battle():
 	status.autowrap_mode=TextServer.AUTOWRAP_OFF
 	var panel=PanelContainer.new();panel.set_anchors_and_offsets_preset(Control.PRESET_RIGHT_WIDE);panel.offset_left=-325;panel.offset_right=-22;panel.offset_top=118;panel.offset_bottom=-24;ui.add_child(panel)
 	side=VBoxContainer.new();side.add_theme_constant_override("separation",5);panel.add_child(side)
-	var bottom=PanelContainer.new();bottom.set_anchors_and_offsets_preset(Control.PRESET_BOTTOM_WIDE);bottom.offset_left=22;bottom.offset_right=-343;bottom.offset_top=-78;bottom.offset_bottom=-22;ui.add_child(bottom)
-	label_in(bottom,"Select ally > move > select foe > confirm.  R: enemy danger range.\nRight-click / Esc: undo move.  Space: end turn.  Tab: skip combat.",15)
+	var bottom=PanelContainer.new();bottom.set_anchors_and_offsets_preset(Control.PRESET_BOTTOM_WIDE);bottom.offset_left=22;bottom.offset_right=-343;bottom.offset_top=-84;bottom.offset_bottom=-22;ui.add_child(bottom)
+	label_in(bottom,"Arrows: cursor · Enter: select / confirm · Q/E: next ally · W: wait · R: danger\nMouse: select > move > attack · Esc: undo · Space: end phase · Tab: skip battle",14)
 	update_side();highlight()
 
 func update_side():
@@ -406,6 +409,7 @@ func highlight():
 		for enemy in game.living("enemy"):danger.merge(tactics.threatened_tiles(game,enemy))
 	if selected!=null and selected.team=="enemy":danger.merge(tactics.threatened_tiles(game,selected))
 	for p in danger:cube(markers,Vector3(p.x,.01,p.y),Vector3(.87,.018,.87),Color(.72,.16,.21,.30))
+	if cursor_visible:draw_map_cursor()
 	if selected==null or selected.team!="player" or selected.acted:return
 	var range_map=game.reachable(selected) if origin==null else {game.pos(selected):0}
 	for p in range_map:
@@ -418,6 +422,12 @@ func toggle_danger():
 	show_danger=not show_danger;highlight();update_side()
 
 func _input(event):
+	if screen=="battle" and not busy and game.phase=="player" and event is InputEventKey and event.pressed:
+		var steps={KEY_LEFT:Vector2i.LEFT,KEY_RIGHT:Vector2i.RIGHT,KEY_UP:Vector2i.UP,KEY_DOWN:Vector2i.DOWN}
+		if steps.has(event.keycode):
+			move_map_cursor(steps[event.keycode]);get_viewport().set_input_as_handled();return
+		if event.keycode in [KEY_Q,KEY_E] and not event.echo:
+			cycle_ready_ally(-1 if event.keycode==KEY_Q else 1);get_viewport().set_input_as_handled();return
 	if is_instance_valid(reward_panel) and event is InputEventKey and event.pressed and event.keycode in [KEY_SPACE,KEY_ENTER,KEY_TAB]:
 		reward_skip=true;get_viewport().set_input_as_handled();return
 	if screen=="battle" and busy and event is InputEventKey and event.pressed and event.keycode==KEY_TAB:
@@ -439,6 +449,8 @@ func _unhandled_input(event):
 			if event.keycode==KEY_ESCAPE:cancel_selection()
 			if event.keycode==KEY_SPACE:end_turn()
 			if event.keycode==KEY_R:toggle_danger()
+			if event.keycode==KEY_W and not event.echo:wait_action()
+			if event.keycode==KEY_ENTER and not event.echo:activate_map_cursor();get_viewport().set_input_as_handled()
 	if screen!="battle" or busy or game.phase!="player":return
 	if event is InputEventMouseMotion:
 		var ray_start=camera.project_ray_origin(event.position);var ray_direction=camera.project_ray_normal(event.position)
@@ -447,6 +459,7 @@ func _unhandled_input(event):
 	if event is InputEventMouseButton and event.pressed:
 		if event.button_index==MOUSE_BUTTON_RIGHT:cancel_selection();return
 		if event.button_index!=MOUSE_BUTTON_LEFT:return
+		cursor_visible=false;highlight()
 		for unit in game.units:
 			if unit.hp>0 and camera.unproject_position(Vector3(unit.x,.65,unit.y)).distance_to(event.position)<25:
 				click_tile(game.pos(unit));return
@@ -541,7 +554,7 @@ func cinematic(a,b,events,initial_hp={}):
 		await map_combat_feedback(events)
 		return
 	skip_combat=false;music_mix(true)
-	var old_pos=camera.position;var old_rot=camera.rotation
+	var old_pos=camera.position;var old_rot=camera.rotation;var old_size=camera.size;var old_offset=camera.h_offset
 	var focus=Vector3((a.x+b.x)*.5,0,(a.y+b.y)*.5)
 	markers.hide()
 	var push=create_tween().set_parallel(true).set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_IN)
@@ -646,8 +659,8 @@ func cinematic(a,b,events,initial_hp={}):
 	stage.visible=false
 	restore_lighting(old_lighting)
 	world.show();pieces.show();markers.show()
-	camera.projection=Camera3D.PROJECTION_ORTHOGONAL;camera.position=old_pos;camera.rotation=old_rot;camera.h_offset=2.0
-	var pull=create_tween();pull.tween_property(camera,"size",16.0,.25);await pull.finished
+	camera.projection=Camera3D.PROJECTION_ORTHOGONAL;camera.position=old_pos;camera.rotation=old_rot;camera.h_offset=old_offset
+	var pull=create_tween();pull.tween_property(camera,"size",old_size,.25);await pull.finished
 	for control in tactical_controls:
 		if is_instance_valid(control):control.show()
 	music_mix(false)
@@ -1086,3 +1099,45 @@ func map_combat_feedback(events: Array):
 		await fade.finished
 		text_label.queue_free()
 	refresh_pieces()
+
+func initialize_map_cursor():
+	if cursor_visible:return
+	var allies=game.living("player")
+	if selected!=null:cursor_tile=game.pos(selected)
+	elif not allies.is_empty():cursor_tile=game.pos(allies[0])
+	cursor_visible=true
+
+func move_map_cursor(direction: Vector2i):
+	if screen!="battle" or busy or game.phase!="player":return
+	initialize_map_cursor()
+	var focus=get_viewport().gui_get_focus_owner()
+	if focus!=null:focus.release_focus()
+	var size=game.board_size();cursor_tile+=direction
+	cursor_tile=Vector2i(clampi(cursor_tile.x,0,size.x-1),clampi(cursor_tile.y,0,size.y-1))
+	highlight();preview_route(cursor_tile)
+
+func cycle_ready_ally(direction: int):
+	if screen!="battle" or busy or game.phase!="player":return
+	var ready=game.living("player").filter(func(unit):return not unit.acted)
+	if ready.is_empty():return
+	var index=ready.find(selected)
+	index=(0 if direction>0 else ready.size()-1) if index<0 else posmod(index+direction,ready.size())
+	var unit=ready[index]
+	cancel_selection();cursor_tile=game.pos(unit);cursor_visible=true
+	var focus=get_viewport().gui_get_focus_owner()
+	if focus!=null:focus.release_focus()
+	click_tile(cursor_tile)
+
+func activate_map_cursor():
+	if screen!="battle" or busy or game.phase!="player":return
+	initialize_map_cursor()
+	if target!=null and game.pos(target)==cursor_tile and selected!=null and game.can_attack(selected,target):player_attack()
+	else:click_tile(cursor_tile)
+	highlight()
+
+func draw_map_cursor():
+	var root=Node3D.new();root.name="MapCursor";markers.add_child(root)
+	for sign_x in [-1,1]:
+		for sign_y in [-1,1]:
+			cube(root,Vector3(cursor_tile.x+sign_x*.36,.085,cursor_tile.y+sign_y*.46),Vector3(.22,.035,.055),Color("fff6d6"))
+			cube(root,Vector3(cursor_tile.x+sign_x*.46,.085,cursor_tile.y+sign_y*.36),Vector3(.055,.035,.22),Color("fff6d6"))
