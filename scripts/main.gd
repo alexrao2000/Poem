@@ -45,6 +45,7 @@ var muted = false
 var sprites: Array = []
 var clock = 0.0
 var skip_combat = false
+var show_danger = false
 const GOLD = Color("8d6a32")
 const INK = Color("e8e0cb")
 const SAVE = "user://campaign.json"
@@ -166,6 +167,16 @@ func button_in(parent,text_value,action,disabled=false) -> Button:
 	var b=Button.new();b.text=text_value;b.custom_minimum_size.y=42;b.disabled=disabled
 	b.pressed.connect(action);parent.add_child(b);return b
 
+func show_notice(message: String):
+	var panel=PanelContainer.new();panel.mouse_filter=Control.MOUSE_FILTER_IGNORE;ui.add_child(panel)
+	panel.anchor_left=.5;panel.anchor_right=.5;panel.offset_left=-300;panel.offset_right=300;panel.offset_top=110
+	var text_label=label_in(panel,message,18);text_label.horizontal_alignment=HORIZONTAL_ALIGNMENT_CENTER
+	var fade=panel.create_tween();fade.tween_interval(2.2);fade.tween_property(panel,"modulate:a",0.0,.3);fade.tween_callback(panel.queue_free)
+
+func save_with_feedback(stage_name: String):
+	if stage_name=="battle":cancel_selection()
+	show_notice("Campaign saved on this device." if game.save_game(SAVE,stage_name) else "The save could not be written. Your current game is still open.")
+
 func panel_at(parent,left,top,right,bottom) -> VBoxContainer:
 	var panel=PanelContainer.new();parent.add_child(panel)
 	panel.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
@@ -245,7 +256,7 @@ func show_title():
 	label_in(v,"12 chapters · 24 recruits · 8 classes\nSprite battlefields / cinematic 3D combat",17,Color("766e5e"))
 	var spacer=Control.new();spacer.size_flags_vertical=Control.SIZE_EXPAND_FILL;v.add_child(spacer)
 	button_in(v,"Begin the chronicle",func():game.new_campaign();music.play();show_camp())
-	button_in(v,"Continue saved campaign",load_campaign,not FileAccess.file_exists(SAVE))
+	button_in(v,"Continue saved campaign",load_campaign,not FileAccess.file_exists(SAVE) and not FileAccess.file_exists(SAVE+".bak"))
 	label_in(v,"Original playable prototype • Casual recovery\nFallen allies return next chapter. Losing everyone means retry.",14,Color("827b6c"))
 
 func show_camp():
@@ -273,7 +284,7 @@ func show_camp():
 	label_in(left,"Select up to six allies. Healing tiles restore 6 HP each turn. Wardens heal adjacent allies; everyone carries two field tonics.",16,Color("766e5e"))
 	var sp=Control.new();sp.size_flags_vertical=Control.SIZE_EXPAND_FILL;left.add_child(sp)
 	button_in(left,"Deploy company  >",func():game.start_battle();make_map();show_battle();game.save_game(SAVE,"battle"),game.deployed.is_empty())
-	button_in(left,"Save campaign",func():game.save_game(SAVE,"camp"))
+	button_in(left,"Save campaign",func():save_with_feedback("camp"))
 	button_in(left,"Return to title",show_title)
 	label_in(left,"Music: A Standard at Dawn · paired arrangements\nVisuals: original painted art and 3D models",13,Color("827b6c"))
 	var scroll=ScrollContainer.new();scroll.custom_minimum_size.x=650;scroll.size_flags_horizontal=Control.SIZE_EXPAND_FILL;row.add_child(scroll)
@@ -315,8 +326,8 @@ func show_battle():
 	var panel=PanelContainer.new();panel.set_anchors_and_offsets_preset(Control.PRESET_RIGHT_WIDE);panel.offset_left=-325;panel.offset_right=-22;panel.offset_top=118;panel.offset_bottom=-24;ui.add_child(panel)
 	side=VBoxContainer.new();side.add_theme_constant_override("separation",5);panel.add_child(side)
 	var bottom=PanelContainer.new();bottom.set_anchors_and_offsets_preset(Control.PRESET_BOTTOM_WIDE);bottom.offset_left=22;bottom.offset_right=-343;bottom.offset_top=-78;bottom.offset_bottom=-22;ui.add_child(bottom)
-	label_in(bottom,"Select ally > move > select foe > confirm attack.\nRight-click / Esc: undo uncommitted move.  Space: end turn.  Tab: skip combat.",15)
-	update_side()
+	label_in(bottom,"Select ally > move > select foe > confirm.  R: enemy danger range.\nRight-click / Esc: undo move.  Space: end turn.  Tab: skip combat.",15)
+	update_side();highlight()
 
 func update_side():
 	for n in side.get_children():side.remove_child(n);n.queue_free()
@@ -324,12 +335,18 @@ func update_side():
 	if selected!=null:
 		var identity=HBoxContainer.new();identity.add_theme_constant_override("separation",8);side.add_child(identity)
 		var portrait=TextureRect.new();portrait.texture=portraits.get_portrait(selected.id);portrait.expand_mode=TextureRect.EXPAND_IGNORE_SIZE
+		if portrait.texture==null:portrait.texture=unit_portrait(selected)
 		portrait.stretch_mode=TextureRect.STRETCH_KEEP_ASPECT_CENTERED;portrait.custom_minimum_size=Vector2(90,100);identity.add_child(portrait)
 		var details=VBoxContainer.new();details.size_flags_horizontal=Control.SIZE_EXPAND_FILL;identity.add_child(details)
 		label_in(details,selected.name,27,GOLD)
 		label_in(details,selected.job,16)
 		label_in(details,"Lv %d  /  XP %d"%[selected.level,selected.xp],15)
 		label_in(side,"HP %d / %d\nATK %d   DEF %d   SPD %d\n%s · range %d"%[selected.hp,selected.max_hp,selected.pow,selected.defense,selected.speed,selected.weapon.to_upper(),selected.reach],18)
+		if selected.team=="enemy":
+			var behavior={"guard":"Holds position","sentry":"Waits until approached","pursue":"Advances toward the company"}
+			label_in(side,behavior.get(selected.get("ai","pursue"),"Advances"),17,GOLD)
+			label_in(side,"Red tiles show this unit’s possible attacks, including movement. Other units may block its route.",16)
+			button_in(side,"All enemy ranges [R]: "+("on" if show_danger else "off"),toggle_danger,busy)
 		if target!=null:
 			var f=game.forecast(selected,target)
 			label_in(side,"VS  "+target.name,21,GOLD)
@@ -345,20 +362,30 @@ func update_side():
 		label_in(side,"%d allies  ·  %d enemies"%[game.living("player").size(),game.living("enemy").size()],18)
 		label_in(side,"Choose your next move.",25)
 		label_in(side,"Forest and hills cost 2 movement and grant cover. Cross water at bridges. Golden tiles mark objectives; pale crosses restore health.",17,Color("6f6c5e"))
+		button_in(side,"Enemy ranges [R]: "+("on" if show_danger else "off"),toggle_danger,busy)
 	var spacer=Control.new();spacer.size_flags_vertical=Control.SIZE_EXPAND_FILL;side.add_child(spacer)
 	button_in(side,"End player phase",end_turn,busy)
-	button_in(side,"Save battle",func():cancel_selection();game.save_game(SAVE,"battle"),busy)
+	button_in(side,"Save battle",func():save_with_feedback("battle"),busy)
 	button_in(side,"Music: "+("off" if muted else "on"),func():muted=not muted;music.volume_db=-80 if muted else -12;update_side())
 	button_in(side,"War council (restart map)",show_camp,busy)
 
 func highlight():
 	for n in markers.get_children():n.queue_free()
+	var danger={}
+	if show_danger:
+		for enemy in game.living("enemy"):danger.merge(tactics.threatened_tiles(game,enemy))
+	if selected!=null and selected.team=="enemy":danger.merge(tactics.threatened_tiles(game,selected))
+	for p in danger:cube(markers,Vector3(p.x,.01,p.y),Vector3(.87,.018,.87),Color(.72,.16,.21,.30))
 	if selected==null or selected.team!="player" or selected.acted:return
 	var range_map=game.reachable(selected) if origin==null else {game.pos(selected):0}
 	for p in range_map:
 		cube(markers,Vector3(p.x,.015,p.y),Vector3(.84,.025,.84),Color(0.16,0.46,0.85,0.48))
 	for e in game.living("enemy"):
 		if game.can_attack(selected,e):cube(markers,Vector3(e.x,.018,e.y),Vector3(.9,.03,.9),Color(0.85,0.22,0.12,0.55))
+
+func toggle_danger():
+	if busy or screen!="battle":return
+	show_danger=not show_danger;highlight();update_side()
 
 func _input(event):
 	if screen=="battle" and busy and event is InputEventKey and event.pressed and event.keycode==KEY_TAB:
@@ -377,6 +404,7 @@ func _unhandled_input(event):
 		if screen=="battle" and not busy:
 			if event.keycode==KEY_ESCAPE:cancel_selection()
 			if event.keycode==KEY_SPACE:end_turn()
+			if event.keycode==KEY_R:toggle_danger()
 	if screen!="battle" or busy or game.phase!="player":return
 	if event is InputEventMouseButton and event.pressed:
 		if event.button_index==MOUSE_BUTTON_RIGHT:cancel_selection();return
@@ -396,13 +424,15 @@ func cancel_selection():
 
 func click_tile(p: Vector2i):
 	var u=game.at(p)
-	if selected!=null and not selected.acted and u!=null:
+	if selected!=null and selected.team=="player" and not selected.acted and u!=null:
 		if game.can_attack(selected,u):target=u;update_side();return
 		if selected.weapon=="staff" and u.team=="player" and u!=selected and game.distance(selected,u)==1 and u.hp<u.max_hp:
 			if game.heal(selected,u):play_sfx("heal");finish_action();return
 	if u!=null and u.team=="player":
 		cancel_selection();selected=u;play_sfx("select");highlight();update_side();return
-	if selected!=null and not selected.acted and origin==null and u==null and game.reachable(selected).has(p):
+	if u!=null and u.team=="enemy" and (selected==null or selected.team=="enemy"):
+		selected=u;target=null;play_sfx("select");highlight();update_side();return
+	if selected!=null and selected.team=="player" and not selected.acted and origin==null and u==null and game.reachable(selected).has(p):
 		origin=game.pos(selected)
 		if game.move_unit(selected,p):target=null;refresh_pieces();highlight();update_side()
 		else:origin=null
@@ -442,11 +472,11 @@ func end_turn():
 		var initial_hp={e.id:e.hp}
 		if chosen!=null:initial_hp[chosen.id]=chosen.hp
 		var events=tactics.apply_plan(game,e,choice)
-		refresh_pieces();await get_tree().create_timer(.18).timeout
+		refresh_pieces();highlight();await get_tree().create_timer(.18).timeout
 		if chosen!=null and not events.is_empty():await cinematic(e,chosen,events,initial_hp)
 		refresh_pieces()
 		if game.result()!="":break
-	game.next_player_turn();play_sfx("phase");busy=false;update_side();refresh_pieces()
+	game.next_player_turn();play_sfx("phase");busy=false;update_side();refresh_pieces();highlight()
 	if await check_result():return
 	game.save_game(SAVE,"battle")
 
@@ -706,7 +736,7 @@ func show_dossier(unit):
 
 func load_campaign():
 	var saved=game.load_game(SAVE)
-	if saved=="":return
+	if saved=="":show_notice("No readable campaign save was found on this device.");return
 	if not music.playing:music.play()
 	if saved=="ending":show_ending()
 	elif saved=="battle":make_map();show_battle()

@@ -9,6 +9,7 @@ func _initialize():
  for y in range(10):rows.append(".....#........" if y<8 else "..............")
  g.content.chapters[0].map=rows;g.begin_enemy_phase()
  var state=g.rng.state;var plan=ai.plan(g,enemy)
+ assert(not ai.threatened_tiles(g,enemy).has(g.pos(ally)),"Danger range respects the wall detour")
  assert(plan.position.y>=6,"Pursuit moves away from the target to go around the wall")
  assert(g.rng.state==state,"Planning does not consume random rolls")
  assert(g.pos(enemy)==Vector2i(4,3),"Planning does not mutate the unit")
@@ -22,6 +23,10 @@ func _initialize():
  plan=ai.plan(g,enemy)
  assert(plan.action=="attack","Archer can reposition to attack adjacent target")
  ai.apply_plan(g,enemy,plan);assert(g.distance(enemy,ally)==2,"Archer respects minimum range")
+ enemy.ai="guard"
+ var threats=ai.threatened_tiles(g,enemy)
+ assert(threats.has(g.pos(ally)),"Stationary bow threatens exactly range two")
+ assert(not threats.has(g.pos(enemy)+Vector2i.LEFT),"Stationary bow has no adjacent threat")
  g=Rules.new();g.start_battle();ally=g.units[0];enemy=g.living("enemy")[0]
  ally.x=4;ally.y=4;enemy.x=5;enemy.y=4
  g.phase="enemy";assert(g.combat(ally,enemy).is_empty(),"Cannot initiate during opposing phase")

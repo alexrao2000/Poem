@@ -49,6 +49,14 @@ func run():
 	app.show_battle()
 	var a=app.game.units[0]
 	var b=app.game.living("enemy")[0]
+	app.click_tile(app.game.pos(b));await process_frame
+	assert(app.selected==b and app.target==null,"Enemy inspection never arms a player attack")
+	assert(app.markers.get_child_count()>0,"Enemy inspection shows threat tiles")
+	var old_enemy_position=app.game.pos(b)
+	app.click_tile(Vector2i(5,5));assert(app.game.pos(b)==old_enemy_position,"Inspection cannot move enemies")
+	app.toggle_danger();assert(app.show_danger,"All-enemy danger toggle")
+	app.cancel_selection();assert(app.selected==null)
+	app.toggle_danger();assert(not app.show_danger)
 	a.x=8;a.y=4;b.x=9;b.y=4
 	var events=app.game.combat(a,b)
 	inspect_combat_hud(app)

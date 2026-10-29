@@ -2,6 +2,21 @@ extends RefCounted
 # Deterministic tactical planning. No presentation, random rolls or state mutation.
 const DIRECTIONS=[Vector2i.LEFT,Vector2i.RIGHT,Vector2i.UP,Vector2i.DOWN]
 
+func threatened_tiles(game,unit: Dictionary) -> Dictionary:
+ var result={}
+ if unit.hp<=0 or unit.weapon=="staff":return result
+ var moves={game.pos(unit):0} if unit.get("ai","")=="guard" else game.reachable(unit)
+ for p in moves:
+  var occupied=game.at(p)
+  if occupied!=null and occupied.id!=unit.id:continue
+  for y in range(-int(unit.reach),int(unit.reach)+1):
+   for x in range(-int(unit.reach),int(unit.reach)+1):
+    var distance=absi(x)+absi(y)
+    if distance==0 or distance>unit.reach or (unit.weapon=="bow" and distance!=2):continue
+    var target=p+Vector2i(x,y)
+    if game.terrain(target) not in ["#","~"]:result[target]=true
+ return result
+
 func step_cost(game,p: Vector2i) -> int:
  return 2 if game.terrain(p) in ["f","h"] else 1
 
