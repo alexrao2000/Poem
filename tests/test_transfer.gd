@@ -28,7 +28,26 @@ func run():
  app.transfer_text.text=code;await app.import_pasted_save();await process_frame
  assert(app.screen=="battle" and app.game.chapter==4,"Paste/import flow restores the battle")
  var restored=Rules.new();assert(restored.load_game(app.save_path)=="battle" and restored.chapter==4,"Imported state is persisted")
+ # Force a write failure using an existing file as the would-be parent directory.
+ var working_path=app.save_path;var previous_file=FileAccess.get_file_as_string(working_path)
+ app.save_path=working_path+"/unwritable.json";app.game.turn=7;app.preferences.values.auto_end=false
+ await app.finish_action();await process_frame
+ assert(app.save_failed and "SAVE FAILED" in app.status.text,"Autosave failure remains visible in phase status")
+ assert(app.ui.find_child("Notice",true,false)!=null,"Failed autosave is reported")
+ assert(FileAccess.get_file_as_string(working_path)==previous_file,"Failed write preserves existing campaign")
+ var live_rng=app.game.rng.state
+ app.show_save_transfer("battle");await process_frame
+ var live_copy=Rules.new();assert(live_copy.import_code(app.transfer_text.text)=="battle" and live_copy.turn==7,"Transfer exports current unsaved battle, not the older file")
+ app.close_save_transfer();assert(app.screen=="battle" and app.game.turn==7 and app.game.rng.state==live_rng,"Returning preserves live battle")
+ app.busy=true;app.show_save_transfer("battle");assert(app.screen=="battle","Busy battle cannot enter transfer")
+ app.busy=false;app.save_path=working_path
+ assert(app.persist_campaign("battle") and not app.save_failed and not "SAVE FAILED" in app.status.text,"Successful retry clears failure status")
+ assert(restored.load_game(working_path)=="battle" and restored.turn==7)
+ app.save_path=working_path+"/unwritable.json"
+ for unit in app.game.living("player"):unit.hp=0
+ assert(await app.check_result());await process_frame
+ assert(app.screen=="result" and app.ui.find_child("Notice",true,false)!=null,"Result screen reset does not hide failed autosave")
  app.music.stop();await create_timer(.15).timeout
  app.queue_free();await process_frame
- print("PASS: local transfer, equipment/RNG continuity, bounded validation, legacy migration and import UI")
+ print("PASS: local transfer, equipment/RNG continuity, bounded validation, legacy migration, failed autosave recovery and live battle export")
  quit()

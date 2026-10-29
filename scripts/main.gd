@@ -66,6 +66,8 @@ const GOLD = Color("8d6a32")
 const INK = Color("e8e0cb")
 const SAVE = "user://campaign.json"
 var save_path=SAVE
+var save_failed=false
+var save_warning_queued=false
 
 func _ready():
 	story=JSON.parse_string(FileAccess.get_file_as_string("res://data/story.json"))
@@ -185,15 +187,15 @@ func button_in(parent,text_value,action,disabled=false) -> Button:
 	var b=Button.new();b.text=text_value;b.custom_minimum_size.y=42;b.disabled=disabled
 	b.pressed.connect(action);parent.add_child(b);return b
 
-func show_notice(message: String):
-	var panel=PanelContainer.new();panel.mouse_filter=Control.MOUSE_FILTER_IGNORE;ui.add_child(panel)
+func show_notice(message: String,hold=2.2):
+	var panel=PanelContainer.new();panel.name="Notice";panel.mouse_filter=Control.MOUSE_FILTER_IGNORE;ui.add_child(panel)
 	panel.anchor_left=.5;panel.anchor_right=.5;panel.offset_left=-300;panel.offset_right=300;panel.offset_top=110
 	var text_label=label_in(panel,message,18);text_label.horizontal_alignment=HORIZONTAL_ALIGNMENT_CENTER
-	var fade=panel.create_tween();fade.tween_interval(2.2);fade.tween_property(panel,"modulate:a",0.0,.3);fade.tween_callback(panel.queue_free)
+	var fade=panel.create_tween();fade.tween_interval(hold);fade.tween_property(panel,"modulate:a",0.0,.3);fade.tween_callback(panel.queue_free)
 
 func save_with_feedback(stage_name: String):
 	if stage_name=="battle":cancel_selection()
-	show_notice("Campaign saved on this device." if game.save_game(save_path,stage_name) else "The save could not be written. Your current game is still open.")
+	show_notice("Campaign saved on this device." if persist_campaign(stage_name,false) else "The save could not be written. Your current game is still open.")
 
 func panel_at(parent,left,top,right,bottom) -> VBoxContainer:
 	var panel=PanelContainer.new();parent.add_child(panel)
@@ -305,7 +307,7 @@ func show_camp():
 	label_in(left,"Recruited %d / 24  ·  Deployed %d / 6"%[game.available().size(),game.deployed.size()],18)
 	label_in(left,"Select up to six allies. Healing tiles restore 6 HP each turn. Open a portrait to inspect equipment. Wardens heal within staff range; everyone carries two field tonics.",16,Color("766e5e"))
 	var sp=Control.new();sp.size_flags_vertical=Control.SIZE_EXPAND_FILL;left.add_child(sp)
-	button_in(left,"Deploy company  >",func():game.start_battle();make_map();show_battle();game.save_game(save_path,"battle"),game.deployed.is_empty())
+	button_in(left,"Deploy company  >",func():game.start_battle();make_map();show_battle();persist_campaign("battle"),game.deployed.is_empty())
 	var tools_row=HBoxContainer.new();tools_row.add_theme_constant_override("separation",8);left.add_child(tools_row)
 	button_in(tools_row,"Save campaign",func():save_with_feedback("camp")).size_flags_horizontal=Control.SIZE_EXPAND_FILL
 	button_in(tools_row,"Options",func():show_options("camp")).size_flags_horizontal=Control.SIZE_EXPAND_FILL
@@ -357,7 +359,7 @@ func show_battle():
 
 func update_side():
 	for n in side.get_children():side.remove_child(n);n.queue_free()
-	status.text="TURN %d  /  %s"%[game.turn,game.phase.to_upper()]
+	status.text="TURN %d  /  %s"%[game.turn,game.phase.to_upper()]+("\nSAVE FAILED" if save_failed else "")
 	if selected!=null:
 		var identity=HBoxContainer.new();identity.add_theme_constant_override("separation",8);side.add_child(identity)
 		var portrait=TextureRect.new();portrait.texture=portraits.get_portrait(selected.id);portrait.expand_mode=TextureRect.EXPAND_IGNORE_SIZE
@@ -398,7 +400,9 @@ func update_side():
 		button_in(side,"Enemy ranges [R]: "+("on" if show_danger else "off"),toggle_danger,busy)
 	var spacer=Control.new();spacer.size_flags_vertical=Control.SIZE_EXPAND_FILL;side.add_child(spacer)
 	button_in(side,"End player phase",end_turn,busy)
-	button_in(side,"Save battle",func():save_with_feedback("battle"),busy)
+	var save_row=HBoxContainer.new();save_row.add_theme_constant_override("separation",6);side.add_child(save_row)
+	button_in(save_row,"Save",func():save_with_feedback("battle"),busy).size_flags_horizontal=Control.SIZE_EXPAND_FILL
+	button_in(save_row,"Transfer code",func():show_save_transfer("battle"),busy).size_flags_horizontal=Control.SIZE_EXPAND_FILL
 	button_in(side,"Options / audio",func():show_options("battle"),busy)
 	button_in(side,"War council (restart map)",show_camp,busy)
 
@@ -519,7 +523,7 @@ func player_attack():
 func finish_action():
 	selected=null;target=null;origin=null;refresh_pieces();highlight();update_side()
 	if await check_result():return
-	game.save_game(save_path,"battle")
+	persist_campaign("battle")
 	if preferences.values.auto_end and game.living("player").all(func(u):return u.acted):end_turn()
 
 func end_turn():
@@ -544,7 +548,7 @@ func end_turn():
 		if game.result()!="":break
 	game.next_player_turn();play_sfx("phase");busy=false;update_side();refresh_pieces();highlight()
 	if await check_result():return
-	game.save_game(save_path,"battle")
+	persist_campaign("battle")
 
 func make_fighter(u,position) -> Node3D:
 	return fighters.build(stage,u,position)
@@ -726,7 +730,7 @@ func show_impact(point,event):
 func check_result() -> bool:
 	var outcome=game.result()
 	if outcome=="":return false
-	game.save_game(save_path,"battle")
+	persist_campaign("battle")
 	screen="result";reset_ui()
 	var v=panel_at(ui,210,170,-210,-170)
 	if outcome=="victory":
@@ -742,7 +746,7 @@ func check_result() -> bool:
 		button_in(v,"Continue the chronicle",func():
 			show_dialogue(story.chapters[game.chapter].closing,func():
 				game.finish_chapter()
-				game.save_game(save_path,"ending" if game.completed else "camp")
+				persist_campaign("ending" if game.completed else "camp")
 				if game.completed:show_ending()
 				else:show_camp()))
 	else:
@@ -854,7 +858,7 @@ func show_equipment(unit):
 		else:label_in(details,"Might %d   Hit %+d   Crit +%d   Weight %d   Range %s"%[item.might,item.hit,item.crit,item.weight,reach],18)
 		var locked=int(item.unlock)>game.chapter;var equipped=unit.item==item.id
 		button_in(details,"Available in chapter %d"%(int(item.unlock)+1) if locked else ("Equipped" if equipped else "Equip"),func():
-			if game.equip(unit,item.id):show_equipment(unit);game.save_game(save_path,"camp")
+			if game.equip(unit,item.id):show_equipment(unit);persist_campaign("camp")
 		,locked or equipped)
 	button_in(panel,"Return to company record",func():show_dossier(unit))
 	button_in(panel,"Return to war council",show_camp)
@@ -911,6 +915,9 @@ func show_progress(before: Dictionary):
 		reward_panel.queue_free();reward_panel=null
 
 func show_save_transfer(return_screen: String):
+	if return_screen=="battle":
+		if busy or game.phase!="player":return
+		cancel_selection()
 	screen="save_transfer";transfer_return=return_screen;reset_ui()
 	var panel=panel_at(ui,100,60,-100,-60)
 	label_in(panel,"LOCAL SAVE TRANSFER",36,GOLD)
@@ -918,18 +925,18 @@ func show_save_transfer(return_screen: String):
 	label_in(panel,"Import replaces this device’s current campaign and keeps its previous save as a backup. No code is sent to a server.",17)
 	transfer_text=TextEdit.new();transfer_text.name="SaveCode";transfer_text.size_flags_vertical=Control.SIZE_EXPAND_FILL
 	transfer_text.wrap_mode=TextEdit.LINE_WRAPPING_BOUNDARY;transfer_text.add_theme_font_size_override("font_size",14);panel.add_child(transfer_text)
-	transfer_text.text=game.export_code("camp") if return_screen=="camp" else game.export_saved_code(save_path)
+	transfer_text.text=game.export_code(return_screen) if return_screen in ["camp","battle"] else game.export_saved_code(save_path)
 	transfer_text.placeholder_text="Paste an ASHEN1: save code here."
 	button_in(panel,"Copy code",func():DisplayServer.clipboard_set(transfer_text.text);show_notice("Save code copied. Keep it in a local text file or paste it into another build."))
 	if OS.has_feature("web"):button_in(panel,"Open browser copy / paste",open_browser_transfer)
 	else:button_in(panel,"Select all text",func():transfer_text.grab_focus();transfer_text.select_all())
 	button_in(panel,"Import pasted code",import_pasted_save)
-	button_in(panel,"Return",func():show_camp() if transfer_return=="camp" else show_title())
+	button_in(panel,"Return",close_save_transfer)
 
 func import_pasted_save():
 	var saved=game.import_code(transfer_text.text)
 	if saved=="":show_notice("This code is incomplete or invalid. Your campaign has not changed.");return
-	var persisted=game.save_game(save_path,saved)
+	var persisted=persist_campaign(saved,false)
 	if not music.playing:music.play()
 	if saved=="ending":show_ending()
 	elif saved=="battle":make_map();show_battle();await check_result()
@@ -979,7 +986,7 @@ func confirm_promotion(unit,path):
 	button_in(panel,"Confirm training",func():
 		if game.promote(unit,path.id):
 			show_promotions(unit)
-			show_notice("Training complete. Campaign saved." if game.save_game(save_path,"camp") else "Training complete. Save failed; keep the game open and try saving again.")
+			show_notice("Training complete. Campaign saved." if persist_campaign("camp",false) else "Training complete. Save failed; keep the game open and try saving again.")
 		else:show_promotions(unit))
 	button_in(panel,"Keep considering",func():show_promotions(unit))
 
@@ -1016,7 +1023,7 @@ func read_support(unit,entry,index: int):
 	show_dialogue(entry.scenes[index].lines,func():
 		if index==int(game.supports.progress(entry.id).rank):
 			game.supports.complete_scene(entry.id,game.chapter)
-			var saved=game.save_game(save_path,"camp")
+			var saved=persist_campaign("camp",false)
 			show_supports(unit)
 			show_notice("Bond strengthened. Campaign saved." if saved else "Bond strengthened. Save failed; keep the game open and try saving again.")
 		else:show_supports(unit))
@@ -1154,3 +1161,21 @@ func critical_cutin(unit: Dictionary):
 	cutin.configure(ui,unit,portraits.get_portrait(unit.id),quote)
 	await cutin.play(func():return skip_combat,unit.team=="enemy")
 	cutin.queue_free()
+
+func persist_campaign(stage_name: String,notify_failure=true) -> bool:
+	var saved=game.save_game(save_path,stage_name)
+	save_failed=not saved
+	if screen=="battle" and is_instance_valid(status):
+		status.text="TURN %d  /  %s"%[game.turn,game.phase.to_upper()]+("\nSAVE FAILED" if save_failed else "")
+	if not saved and notify_failure and not save_warning_queued:
+		save_warning_queued=true;call_deferred("show_save_warning")
+	return saved
+
+func show_save_warning():
+	save_warning_queued=false
+	if save_failed:show_notice("Autosave failed. Keep this game open. Try Save again, or use Transfer code to keep a copy of your current progress.",8.0)
+
+func close_save_transfer():
+	if transfer_return=="battle":show_battle()
+	elif transfer_return=="camp":show_camp()
+	else:show_title()
