@@ -59,6 +59,7 @@ func configure(parent: Control,entries: Array):
   var plate=Nameplate.new();plate.name="Side"+str(order.size());plate.enemy=unit.team=="enemy";plate.mirrored=order.size()==1
   plate.mouse_filter=Control.MOUSE_FILTER_IGNORE;add_child(plate)
   var face=TextureRect.new();face.name="Portrait";face.texture=entry.get("portrait")
+  face.flip_h=plate.mirrored
   face.expand_mode=TextureRect.EXPAND_IGNORE_SIZE;face.stretch_mode=TextureRect.STRETCH_KEEP_ASPECT_COVERED
   face.clip_contents=true;face.mouse_filter=Control.MOUSE_FILTER_IGNORE;plate.add_child(face)
   var heading=make_label(plate,unit.name,27,Color("fff1d5"));heading.add_theme_font_override("font",DISPLAY_FONT)

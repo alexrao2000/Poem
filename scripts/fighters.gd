@@ -5,6 +5,7 @@ var models=preload("res://scripts/combat_models.gd").new()
 const Actor=preload("res://scripts/fighter_actor.gd")
 const Mount=preload("res://scripts/mount_visuals.gd")
 const Hair=preload("res://scripts/character_hair.gd")
+const EnemyHeadgear=preload("res://scripts/enemy_headgear.gd")
 var profiles=JSON.parse_string(FileAccess.get_file_as_string("res://data/characters.json"))
 var surface_atlas=load("res://assets/art/character-materials.png")
 var surface_shader=preload("res://assets/shaders/character.gdshader")
@@ -128,6 +129,7 @@ func build(parent,u,p) -> Node3D:
    for x in [-.07,.07]:
     var rim=geo.cylinder(head,Vector3(x,.13,-.10),.035,.05,gold);rim.rotation.x=PI/2
     var lens=geo.cylinder(head,Vector3(x,.13,-.122),.015,.037,Color("445d6b"));lens.rotation.x=PI/2
+ if u.team=="enemy":EnemyHeadgear.build(self,head,u.job,steel,gold)
  if u.job=="Rider":
   actor.mounted=true
   for name_value in ["Body","LeftLeg","RightLeg"]:

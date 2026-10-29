@@ -8,16 +8,25 @@ func _initialize():call_deferred("run")
 func run():
  var game=Rules.new();game.new_campaign();var portraits=Portraits.new()
  var host=Control.new();root.add_child(host)
- var foe={"id":"foe","name":"Imperial gate captain","team":"enemy","max_hp":999,"weapon":"lance"}
+ var regions=[]
+ for job in Portraits.ENEMY_CLASSES:
+  var face=portraits.get_unit_portrait({"id":"lyra","team":"enemy","job":job})
+  assert(face!=null and face!=portraits.get_portrait("lyra"),"Enemy class identity takes precedence over a coincidentally matching recruit ID")
+  assert(face==portraits.get_unit_portrait({"id":"another_enemy","team":"enemy","job":job}),"Class portraits share cached texture regions")
+  assert(face.region not in regions and Rect2(Vector2.ZERO,face.atlas.get_size()).encloses(face.region),"Eight distinct enemy portrait regions stay inside the atlas")
+  regions.append(face.region)
+ assert(portraits.get_unit_portrait({"id":"unknown","team":"enemy","job":"Unknown"})==null,"Unknown classes retain the existing fallback")
+ var foe={"id":"foe","name":"Imperial gate captain","team":"enemy","job":"Knight","max_hp":999,"weapon":"lance"}
  for viewport_size in [Vector2(1024,640),Vector2(1280,720),Vector2(1440,900)]:
   host.size=viewport_size
   for recruit in game.roster:
    var unit=recruit.duplicate(true);unit.team="player"
    var hud=HUD.new();hud.configure(host,[
     {"unit":unit,"hp":unit.hp,"portrait":portraits.get_portrait(unit.id),"class_name":game.class_name_for(unit),"weapon":game.item_for(unit).name},
-    {"unit":foe,"hp":999,"portrait":null,"class_name":"Armored commander","weapon":"Rider-stop pike"}])
+    {"unit":foe,"hp":999,"portrait":portraits.get_unit_portrait(foe),"class_name":"Armored commander","weapon":"Rider-stop pike"}])
    await process_frame;await process_frame
    var left=hud.records[unit.id].plate;var right=hud.records.foe.plate
+   assert(hud.records.foe.portrait.flip_h and not hud.records[unit.id].portrait.flip_h,"Enemy portrait faces inward toward its opponent")
    assert(left.get_rect().end.x<right.position.x,"Nameplates leave the arena center clear")
    for id in hud.records:
     var r=hud.records[id];var bounds=r.plate.get_rect()
@@ -30,6 +39,10 @@ func run():
     assert(font.get_string_size(r.hp.text,HORIZONTAL_ALIGNMENT_LEFT,-1,font_size).x<=r.hp.size.x,"Full health numbers fit at the save cap")
    hud.mark_actor("foe");assert(hud.records.foe.plate.active and not hud.records[unit.id].plate.active)
    hud.queue_free();await process_frame
+ var hero=game.roster[0].duplicate(true);hero.team="player"
+ var reversed=HUD.new();reversed.configure(host,[{"unit":foe,"hp":999,"portrait":portraits.get_unit_portrait(foe),"class_name":"Knight","weapon":"Steel spear"},{"unit":hero,"hp":hero.hp,"portrait":portraits.get_portrait(hero.id),"class_name":"Vanguard","weapon":"Iron sword"}])
+ assert(not reversed.records.foe.portrait.flip_h and reversed.records[hero.id].portrait.flip_h,"Enemy-initiated combat still turns both portraits inward")
+ reversed.queue_free();await process_frame
  var hud=HUD.new();hud.configure(host,[{"unit":foe,"hp":999,"portrait":null,"class_name":"Knight","weapon":"Steel spear"}])
  var meter=hud.records.foe.meter
  hud.set_health("foe",800);await create_timer(.07).timeout

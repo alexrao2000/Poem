@@ -35,9 +35,15 @@ func run():
  assert(app.ui.get_node_or_null("CriticalCutin")==null,"Skip cancels the banner promptly")
  var count=observed;await app.critical_cutin(a);assert(observed==count,"Already-skipped combat creates no accent")
  var enemy_banner=Cutin.new();enemy_banner.configure(host,b,null,"Stand aside!")
- assert(enemy_banner.get_node_or_null("Portrait")==null,"Unnamed enemies use a text accent")
+ assert(enemy_banner.get_node_or_null("Portrait")==null,"Missing artwork retains a text-only accent")
  await enemy_banner.play(func():return true,true);assert(not enemy_banner.visible)
- enemy_banner.queue_free();host.queue_free()
+ enemy_banner.queue_free()
+ for job in app.Portraits.ENEMY_CLASSES:
+  var enemy=b.duplicate();enemy.job=job
+  var banner=Cutin.new();banner.configure(host,enemy,app.portraits.get_unit_portrait(enemy),"Stand aside!")
+  assert(banner.get_node("Portrait").flip_h,"Every enemy class has an inward-facing critical portrait")
+  banner.queue_free()
+ host.queue_free()
  for player in app.sfx_players:player.stop()
  app.music.stop();await create_timer(.15).timeout
  app.queue_free();await process_frame

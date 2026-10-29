@@ -422,7 +422,7 @@ func update_side():
 	status.text="TURN %d  /  %s"%[game.turn,game.phase.to_upper()]+("\nSAVE FAILED" if save_failed else "")
 	if selected!=null:
 		var identity=HBoxContainer.new();identity.add_theme_constant_override("separation",8);side.add_child(identity)
-		var portrait=TextureRect.new();portrait.texture=portraits.get_portrait(selected.id);portrait.expand_mode=TextureRect.EXPAND_IGNORE_SIZE
+		var portrait=TextureRect.new();portrait.texture=portraits.get_unit_portrait(selected);portrait.expand_mode=TextureRect.EXPAND_IGNORE_SIZE;portrait.flip_h=selected.team=="enemy"
 		if portrait.texture==null:portrait.texture=unit_portrait(selected)
 		portrait.stretch_mode=TextureRect.STRETCH_KEEP_ASPECT_CENTERED;portrait.custom_minimum_size=Vector2(90,100);identity.add_child(portrait)
 		var details=VBoxContainer.new();details.size_flags_horizontal=Control.SIZE_EXPAND_FILL;identity.add_child(details)
@@ -444,7 +444,7 @@ func update_side():
 			var counter=game.forecast(target,selected)
 			var faces=[]
 			for unit in [selected,target]:
-				var face=portraits.get_portrait(unit.id);faces.append(face if face!=null else unit_portrait(unit))
+				var face=portraits.get_unit_portrait(unit);faces.append(face if face!=null else unit_portrait(unit))
 			forecast_panel=BattleForecast.new();forecast_panel.configure(ui,game,selected,target,faces)
 			label_in(side,("Foe has an effective counter!" if counter.effective else "Counter if both survive.") if f.counter else "Foe cannot counter at this range.",14,GOLD)
 			button_in(side,"Confirm attack",func():player_attack(),busy)
@@ -679,7 +679,7 @@ func cinematic(a,b,events,initial_hp={}):
 			for strike_event in events:
 				if strike_event.target==unit.id:hp+=strike_event.damage
 		displayed_hp[unit.id]=mini(hp,unit.max_hp)
-		entries.append({"unit":unit,"hp":displayed_hp[unit.id],"portrait":portraits.get_portrait(unit.id),"class_name":game.class_name_for(unit),"weapon":game.item_for(unit).name})
+		entries.append({"unit":unit,"hp":displayed_hp[unit.id],"portrait":portraits.get_unit_portrait(unit),"class_name":game.class_name_for(unit),"weapon":game.item_for(unit).name})
 	var banner=CombatHUD.new();banner.configure(ui,entries)
 	var caption=Label.new();caption.set_anchors_and_offsets_preset(Control.PRESET_TOP_WIDE);caption.offset_top=36;caption.horizontal_alignment=HORIZONTAL_ALIGNMENT_CENTER
 	caption.add_theme_font_size_override("font_size",30);caption.add_theme_color_override("font_color",Color("f7edce"));caption.add_theme_color_override("font_outline_color",Color("373d42"));caption.add_theme_constant_override("outline_size",7)
@@ -1262,7 +1262,7 @@ func critical_cutin(unit: Dictionary):
 	if skip_combat:return
 	var cutin=CriticalCutin.new()
 	var quote=fighters.profiles.get(unit.id,{}).get("critical_quote","Stand aside!")
-	cutin.configure(ui,unit,portraits.get_portrait(unit.id),quote)
+	cutin.configure(ui,unit,portraits.get_unit_portrait(unit),quote)
 	await cutin.play(func():return skip_combat,unit.team=="enemy")
 	cutin.queue_free()
 

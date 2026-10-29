@@ -18,10 +18,11 @@ func run():
   host.size=size
   for source in game.roster:
    var unit=source.duplicate(true);unit.team="player";unit.x=4;unit.y=4;unit.hp=999;unit.max_hp=999;foe.x=5;foe.y=4
-   var before=game.rng.state;var forecast=Forecast.new();forecast.configure(host,game,unit,foe,[portraits.get_portrait(unit.id),null])
+   var before=game.rng.state;var forecast=Forecast.new();forecast.configure(host,game,unit,foe,[portraits.get_portrait(unit.id),portraits.get_unit_portrait(foe)])
    await process_frame
    var expected=game.forecast(unit,foe);var reverse=game.forecast(foe,unit)
    assert(forecast.records[0].portrait.texture!=null,"Named recruit portrait appears in the comparison")
+   assert(forecast.records[1].portrait.texture!=null and forecast.records[1].portrait.flip_h,"Enemy class portrait faces the recruit")
    assert(forecast.records[0].stats[0].value.text==str(expected.damage)+(" ×2" if expected.double else ""))
    assert(forecast.records[0].stats[1].value.text==str(expected.hit)+"%")
    assert(forecast.records[1].stats[0].value.text==(str(reverse.damage)+(" ×2" if reverse.double else "") if expected.counter else "—"))

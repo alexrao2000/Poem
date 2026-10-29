@@ -1,8 +1,22 @@
 extends RefCounted
 const ORDER=["lyra","oren","sera","ivo","mara","tarin","nell","bram","esme","rook","faye","cassian","vela","dax","una","silas","petra","ari","noor","galen","yuna","hale","elian","rhea"]
+const ENEMY_CLASSES=["Vanguard","Knight","Ranger","Arcanist","Warden","Rider","Corsair","Duelist"]
 var textures: Dictionary={}
 var sprite_textures: Dictionary={}
 var regions=JSON.parse_string(FileAccess.get_file_as_string("res://data/sprite_regions.json"))
+
+func get_unit_portrait(unit: Dictionary) -> Texture2D:
+ if unit.get("team","player")!="enemy":return get_portrait(unit.id)
+ var index=ENEMY_CLASSES.find(unit.job)
+ if index<0:return null
+ var key="enemy."+unit.job
+ if textures.has(key):return textures[key]
+ var path="res://assets/portraits/enemy-classes-v1.png"
+ if not ResourceLoader.exists(path):return null
+ var atlas=load(path) as Texture2D;var cell=Vector2(atlas.get_width()/4.0,atlas.get_height()/2.0)
+ var texture=AtlasTexture.new();texture.atlas=atlas;texture.filter_clip=true
+ texture.region=Rect2(Vector2(index%4,index/4)*cell+Vector2(8,8),cell-Vector2(16,16))
+ textures[key]=texture;return texture
 
 func get_map_sprite(id: String) -> Texture2D:
  if sprite_textures.has(id):return sprite_textures[id]

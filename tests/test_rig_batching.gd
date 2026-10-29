@@ -69,6 +69,13 @@ func run():
   print("RIG ",unit.id,": ",stats.sources," meshes → ",stats.batches," joint batches")
   original.queue_free();baked.queue_free();await process_frame
  assert(batches<sources*.7,"Reduce rigid mesh submissions by at least thirty percent")
+ for job in ["Vanguard","Knight","Ranger","Arcanist","Warden","Rider","Corsair","Duelist"]:
+  var unit=rules.roster.filter(func(value):return value.job==job)[0].duplicate(true);unit.id="enemy_qa_"+job;unit.team="enemy";unit.color="#b96466"
+  var actor=fighters.build(stage,unit,Vector3.ZERO);actor.set_process(false);actor.pose_tween.kill()
+  var head=actor.bone("Head");assert(head.get_meta("enemy_headgear")==job,"All enemy classes select their matching head silhouette")
+  var before=signature(actor);fighters.batch_rig(actor);equivalent(before,signature(actor))
+  assert(head==actor.bone("Head") and not actor.get_meta("costume_colors").cloth.is_equal_approx(Color("354c77")),"Enemy head and faction color remain independent of recruit identity")
+  actor.queue_free();await process_frame
  stage.queue_free();await process_frame
  print("PASS: 24 rigs preserve animated positions, normals, UVs, faces and joints; ",sources," meshes → ",batches," batches; total bake ",elapsed," ms")
  quit()

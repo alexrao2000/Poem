@@ -29,6 +29,7 @@ func configure(parent: Control,rules,a: Dictionary,b: Dictionary,faces: Array):
   var weapon=label(card,rules.item_for(unit).name,16)
   var icon=TextureRect.new();icon.texture=Icons.get_icon(unit.weapon);icon.expand_mode=TextureRect.EXPAND_IGNORE_SIZE;icon.stretch_mode=TextureRect.STRETCH_KEEP_ASPECT_CENTERED;icon.mouse_filter=Control.MOUSE_FILTER_IGNORE;card.add_child(icon)
   var portrait=TextureRect.new();portrait.texture=faces[index];portrait.expand_mode=TextureRect.EXPAND_IGNORE_SIZE;portrait.stretch_mode=TextureRect.STRETCH_KEEP_ASPECT_CENTERED;portrait.mouse_filter=Control.MOUSE_FILTER_IGNORE;card.add_child(portrait)
+  portrait.flip_h=index==1
   var hp=label(card,"%d / %d"%[unit.hp,unit.max_hp],29)
   var caption=label(card,"HP",13,Color("766546"))
   var meter=HUD.HealthMeter.new();meter.maximum=unit.max_hp;meter.accent=Color("b96268") if card.enemy else Color("5f9d91");card.add_child(meter);meter.change_to(unit.hp,true)

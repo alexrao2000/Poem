@@ -17,6 +17,7 @@ func configure(parent: Control,unit: Dictionary,portrait: Texture2D,quote: Strin
   var crop=AtlasTexture.new();crop.atlas=portrait
   crop.region=Rect2(0,portrait.get_height()*.04,portrait.get_width(),portrait.get_height()*.58);crop.filter_clip=true
   var face=TextureRect.new();face.name="Portrait";face.texture=crop
+  face.flip_h=enemy
   face.expand_mode=TextureRect.EXPAND_IGNORE_SIZE;face.stretch_mode=TextureRect.STRETCH_KEEP_ASPECT_COVERED
   face.position=Vector2(20,12);face.size=Vector2(270,150)
   face.mouse_filter=Control.MOUSE_FILTER_IGNORE;add_child(face);text_start=312

@@ -1,0 +1,24 @@
+{
+  "generator": "Built-in image_gen tool",
+  "date": "2026-10-29",
+  "asset": "assets/portraits/enemy-classes-v1.png",
+  "reference_images": [
+    "assets/portraits/company-a.png"
+  ],
+  "layout": {
+    "columns": 4,
+    "rows": 2,
+    "order": [
+      "Vanguard",
+      "Knight",
+      "Ranger",
+      "Arcanist",
+      "Warden",
+      "Rider",
+      "Corsair",
+      "Duelist"
+    ]
+  },
+  "prompt": "Use case: stylized-concept. Asset type: original enemy-class portrait atlas for a fantasy tactical RPG. Reference image supplies ONLY the painterly anime portrait style, fine linework, understated expressions, cloth/metal detail and lighting. Create eight NEW original anonymous enemy portraits, NOT the people in the reference and not existing game characters. Exactly FOUR equal columns by TWO equal rows on a landscape1536x1024 transparent canvas. Each384x512 cell contains one head-and-shoulders bust, facing slightly LEFT toward an opponent, with a consistent head size. Leave at least24px transparent gutter at left/right/top; cut the bust neatly across the chest at local y480. No figure, hair, helmet or weapon may overlap another cell. Top row left-to-right: 1 Vanguard officer, navy/oxblood light armor, dark short hair, high red collar and a half-visor masking lower face; 2 heavy Knight, closed angular iron helmet, narrow eye slit, red plume and massive layered pauldrons; 3 Ranger, muted olive hood, red scarf over lower face, brown leather, quiver visible behind shoulder; 4 Arcanist, deep plum hood, wine/gold scholarly robes, eyes visible in hood shadow, book edge at chest. Bottom row left-to-right: 5 Warden, ivory/wine healer vestments with a high veil and gold clasp, calm eyes; 6 Rider officer, silver cavalry helmet with swept crest and cheek guards, wine cloak, leather harness, no horse in bust; 7 Corsair, weathered tan skin, dark beard, brown leather and oxblood scarf, broad stocky shoulders, small axe haft behind shoulder; 8 Duelist, close charcoal cowl and fitted leather, narrow red collar, mask covering nose/mouth, sharp eyes. Palette: oxblood, wine, iron, muted charcoal, restrained aged gold. These are original imperial rank-and-file silhouettes, distinct but coherent. No lettering, names, logos, frames, grid lines, scenery, background texture, shadows on the background or glow haze. True transparent alpha outside each bust. Do not draw full bodies. All eight portraits must be separate, complete, evenly sized and correctly ordered.",
+  "notes": "Original class archetypes. Source pixels are unchanged. Atlas regions are inset to isolate cells; enemy TextureRects mirror the source to face their opponent."
+}
