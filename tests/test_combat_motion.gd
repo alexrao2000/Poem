@@ -3,6 +3,7 @@ const Actor=preload("res://scripts/fighter_actor.gd")
 const Trail=preload("res://scripts/combat_trail.gd")
 const Impact=preload("res://scripts/combat_impact.gd")
 const Projectile=preload("res://scripts/combat_projectile.gd")
+const Blades=preload("res://scripts/weapon_blades.gd")
 
 func _initialize():call_deferred("run")
 
@@ -12,7 +13,23 @@ func make_actor(mounted=false):
   var joint=Node3D.new();actor.add_child(joint);actor.register_bone(key,joint)
  return actor
 
+func verify_blades():
+ for entry in [[Blades.sword(),-1.075],[Blades.spear(),-1.62],[Blades.axe(),-.97]]:
+  var mesh=entry[0];var arrays=mesh.surface_get_arrays(0);var vertices=arrays[Mesh.ARRAY_VERTEX];var normals=arrays[Mesh.ARRAY_NORMAL];var edges={}
+  assert(mesh.get_aabb().size.y>.025,"Blade has real thickness")
+  assert(is_equal_approx(mesh.get_aabb().position.z,entry[1]),"Blade retains original reach")
+  for i in range(0,vertices.size(),3):
+   var cross=(vertices[i+1]-vertices[i]).cross(vertices[i+2]-vertices[i])
+   assert(cross.length()>.000001,"No degenerate steel faces")
+   assert(cross.normalized().dot(normals[i])<-.999,"Normals face outward from clockwise Godot triangles")
+   for j in range(3):
+    var a=str(vertices[i+j].snapped(Vector3.ONE*.000001));var b=str(vertices[i+(j+1)%3].snapped(Vector3.ONE*.000001))
+    var edge=a+":"+b if a<b else b+":"+a
+    edges[edge]=edges.get(edge,0)+1
+  for count in edges.values():assert(count==2,"Every blade edge is shared by two faces, with no open seams")
+
 func run():
+ verify_blades()
  var walker=make_actor()
  var advance=walker.pose("advance",.04)
  walker._process(.07)

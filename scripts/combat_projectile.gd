@@ -2,6 +2,7 @@ extends Node3D
 # Original arrow, thrown spear and spell presentations follow an explicit arc.
 # The tip tracks its flight tangent, including different mounted target heights.
 const Spell=preload("res://scripts/combat_spell.gd")
+const WeaponBlades=preload("res://scripts/weapon_blades.gd")
 var origin=Vector3.ZERO
 var destination=Vector3.ZERO
 var arc=0.0
@@ -20,8 +21,7 @@ func launch(from: Vector3,to: Vector3,weapon: String,duration=.23,spell_id="") -
   var length=.72 if kind=="bow" else 1.3
   var shaft=CylinderMesh.new();shaft.height=length;shaft.top_radius=.012 if kind=="bow" else .021;shaft.bottom_radius=shaft.top_radius;shaft.radial_segments=8
   var pole=piece(body,shaft,Color("78604a"));pole.rotation.x=PI/2
-  var point=CylinderMesh.new();point.height=.15 if kind=="bow" else .24;point.bottom_radius=.04 if kind=="bow" else .065;point.top_radius=0;point.radial_segments=4
-  var tip=piece(body,point,Color("d5dce1"));tip.name="Tip";tip.position.z=-length*.5;tip.rotation.x=-PI/2
+  var tip=piece(body,WeaponBlades.spear(-length*.5+.10,-length*.5,-length*.5-(.075 if kind=="bow" else .12),.04 if kind=="bow" else .065),Color("d5dce1"));tip.name="Tip"
   if kind=="bow":
    for angle in [0,TAU/3,TAU*2/3]:
     var surface=SurfaceTool.new();surface.begin(Mesh.PRIMITIVE_TRIANGLES)

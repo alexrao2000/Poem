@@ -6,6 +6,7 @@ const Actor=preload("res://scripts/fighter_actor.gd")
 const Mount=preload("res://scripts/mount_visuals.gd")
 const Hair=preload("res://scripts/character_hair.gd")
 const EnemyHeadgear=preload("res://scripts/enemy_headgear.gd")
+const WeaponBlades=preload("res://scripts/weapon_blades.gd")
 var profiles=JSON.parse_string(FileAccess.get_file_as_string("res://data/characters.json"))
 var surface_atlas=load("res://assets/art/character-materials.png")
 var surface_shader=preload("res://assets/shaders/character.gdshader")
@@ -235,13 +236,13 @@ func weapon(arm,kind,gold,steel,leather) -> Node3D:
   var grip=geo.cylinder(hand,Vector3(0,0,-.08),.23,.027,leather);grip.rotation.x=PI/2
   if kind=="lance":
    var shaft=geo.cylinder(hand,Vector3(0,0,-.5),1.8,.024,leather);shaft.rotation.x=PI/2
-   var tip=geo.cylinder(hand,Vector3(0,0,-1.48),.28,.075,steel,0);tip.rotation.x=-PI/2
+   var tip=geo.mesh(hand,WeaponBlades.spear(),Vector3.ZERO,Vector3.ONE,geo.material(steel));tip.name="SpearBlade"
   elif kind=="axe":
    var shaft=geo.cylinder(hand,Vector3(0,0,-.35),.9,.029,leather);shaft.rotation.x=PI/2
-   cloth(hand,[Vector3(-.20,0,-.65),Vector3(.20,0,-.65),Vector3(.29,0,-.97),Vector3(-.29,0,-.97)],steel)
+   var blade=geo.mesh(hand,WeaponBlades.axe(),Vector3.ZERO,Vector3.ONE,geo.material(steel));blade.name="AxeBlade"
   else:
    geo.block(hand,Vector3(0,0,-.21),Vector3(.24,.04,.055),gold)
-   var blade=geo.cylinder(hand,Vector3(0,0,-.65),.85,.055,steel,0);blade.rotation.x=-PI/2;blade.scale.x=.35
+   var blade=geo.mesh(hand,WeaponBlades.sword(),Vector3.ZERO,Vector3.ONE,geo.material(steel));blade.name="SwordBlade"
  return hand
 
 func face_surface(parent,index):
