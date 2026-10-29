@@ -274,12 +274,15 @@ const SAVE_VERSION=3
 func layout_signature() -> String:
 	return JSON.stringify([info().map,info().deployment_positions,info().enemies,info().objective_position]).sha256_text()
 
+func save_data(stage: String) -> Dictionary:
+	return {"version":SAVE_VERSION,"layout_signature":layout_signature(),"story_seen":story_seen,"chapter":chapter,"turn":turn,"phase":phase,"roster":roster,"units":units,"deployed":deployed,"completed":completed,"rng":str(rng.state),"stage":stage}
+
 func save_game(path: String,stage: String) -> bool:
-	var data={"version":SAVE_VERSION,"layout_signature":layout_signature(),"story_seen":story_seen,"chapter":chapter,"turn":turn,"phase":phase,"roster":roster,"units":units,"deployed":deployed,"completed":completed,"rng":str(rng.state),"stage":stage}
+	var data=save_data(stage)
 	var file=FileAccess.open(path+".tmp",FileAccess.WRITE)
 	if file==null:return false
 	file.store_string(JSON.stringify(data));file.flush();file.close()
-	if FileAccess.file_exists(path):DirAccess.copy_absolute(path,path+".bak")
+	if FileAccess.file_exists(path) and DirAccess.copy_absolute(path,path+".bak")!=OK:return false
 	return DirAccess.rename_absolute(path+".tmp",path)==OK
 
 func valid_save(data) -> bool:
@@ -287,20 +290,28 @@ func valid_save(data) -> bool:
 	for key in ["version","chapter","turn","phase","roster","units","deployed","completed","rng","stage"]:
 		if not data.has(key):return false
 	for key in ["version","chapter","turn"]:
-		if not (data[key] is float or data[key] is int):return false
+		if not (data[key] is float or data[key] is int) or not is_finite(float(data[key])) or data[key]!=int(data[key]):return false
 	if int(data.version) not in [1,2,SAVE_VERSION]:return false
 	if int(data.chapter)<0 or int(data.chapter)>=content.chapters.size() or int(data.turn)<1:return false
 	if data.phase not in ["player","enemy"] or data.stage not in ["camp","battle","ending"]:return false
 	if not data.completed is bool or not data.rng is String or not data.rng.is_valid_int():return false
 	if not data.roster is Array or data.roster.size()!=content.roster.size():return false
 	if not data.units is Array or not data.deployed is Array or not data.get("story_seen",[]) is Array:return false
+	if data.units.size()>64 or data.get("story_seen",[]).size()>128:return false
+	for flag in data.get("story_seen",[]):
+		if not flag is String or flag.length()>64:return false
 	var ids={}
 	for unit in data.roster:
 		if not valid_unit(unit,false) or ids.has(unit.id):return false
-		if not content.roster.any(func(original):return original.id==unit.id):return false
+		var originals=content.roster.filter(func(original):return original.id==unit.id)
+		if originals.is_empty():return false
+		if not unit.get("bio") is String or unit.bio.length()>2000:return false
+		if not (unit.get("join") is int or unit.get("join") is float) or unit.join!=originals[0].join:return false
 		ids[unit.id]=true
+	var deployment_ids={}
 	for id in data.deployed:
-		if not id is String or not ids.has(id):return false
+		if not id is String or not ids.has(id) or deployment_ids.has(id):return false
+		deployment_ids[id]=true
 	if data.deployed.size()>int(content.chapters[int(data.chapter)].deployment):return false
 	var combat_ids={}
 	for unit in data.units:
@@ -315,17 +326,27 @@ func valid_unit(unit,in_battle: bool) -> bool:
 	if not unit is Dictionary:return false
 	for key in ["id","name","job","weapon","color"]:
 		if not unit.get(key) is String:return false
+	if unit.name.length()>80 or not Color.html_is_valid(unit.color):return false
 	if not content.classes.has(unit.job):return false
 	if unit.weapon!=content.classes[unit.job].weapon:return false
 	if unit.has("item") and (not unit.item is String or not equipment.any(func(item):return item.id==unit.item and item.kind==unit.weapon)):return false
 	for key in ["hp","max_hp","pow","defense","speed","move","reach","level","xp"]:
 		if not (unit.get(key) is float or unit.get(key) is int):return false
 		if not is_finite(float(unit[key])) or unit[key]<0:return false
-	if unit.max_hp<=0 or unit.hp>unit.max_hp or unit.move>20 or unit.reach>10:return false
+	if unit.max_hp<=0 or unit.max_hp>999 or unit.hp>unit.max_hp or unit.move<1 or unit.move>20 or unit.reach<1 or unit.reach>10:return false
+	if unit.level<1 or unit.level>99 or unit.xp>=100 or unit.pow>255 or unit.defense>255 or unit.speed>255:return false
 	if in_battle:
 		if unit.get("team") not in ["player","enemy"] or not unit.get("acted") is bool:return false
 		for key in ["x","y"]:
-			if not (unit.get(key) is float or unit.get(key) is int):return false
+			if not (unit.get(key) is float or unit.get(key) is int) or not is_finite(float(unit[key])) or unit[key]!=int(unit[key]):return false
+		for key in ["moved","alerted","boss"]:
+			if unit.has(key) and not unit[key] is bool:return false
+		if unit.has("potions") and (not (unit.potions is int or unit.potions is float) or unit.potions<0 or unit.potions>2):return false
+		if unit.has("ai") and unit.ai not in ["guard","sentry","pursue"]:return false
+		if unit.has("move_origin"):
+			if not unit.move_origin is Array or unit.move_origin.size()!=2:return false
+			for coordinate in unit.move_origin:
+				if not (coordinate is int or coordinate is float) or not is_finite(float(coordinate)) or coordinate<0 or coordinate>100:return false
 	return true
 
 func load_game(path: String) -> String:
@@ -336,13 +357,18 @@ func load_game(path: String) -> String:
 		if parser.parse(FileAccess.get_file_as_string(candidate))!=OK:continue
 		var parsed=parser.data
 		if valid_save(parsed):data=parsed;break
-	if data==null:return ""
+	return restore_save(data)
+
+func restore_save(data) -> String:
+	if not valid_save(data):return ""
+	data=data.duplicate(true)
 	story_seen=data.get("story_seen",[])
 	chapter=int(data.chapter);turn=int(data.turn);phase=data.phase;roster=data.roster;units=data.units;deployed=data.deployed;completed=data.completed;rng.state=int(data.rng)
 	for unit in roster:normalize_equipment(unit)
 	for unit in units:
 		normalize_equipment(unit)
 		unit.moved=unit.get("moved",false)
+		if unit.team=="player":unit.potions=int(unit.get("potions",2))
 		if unit.team=="enemy":unit.ai=unit.get("ai","guard" if unit.get("boss",false) else "pursue")
 	# Old layouts cannot safely resume units on redesigned walls or water.
 	if data.stage=="battle" and data.get("layout_signature","")!=layout_signature():
@@ -367,3 +393,26 @@ func progress_since(snapshot: Dictionary) -> Array:
 		for key in ["max_hp","pow","defense","speed"]:record.gains[key]=int(unit[key])-before[key]
 		changes.append(record)
 	return changes
+
+func export_code(stage: String) -> String:
+	return "ASHEN1:"+Marshalls.utf8_to_base64(JSON.stringify(save_data(stage)))
+
+func export_saved_code(path: String) -> String:
+	for candidate in [path,path+".bak"]:
+		if not FileAccess.file_exists(candidate):continue
+		var parser=JSON.new()
+		if parser.parse(FileAccess.get_file_as_string(candidate))==OK and valid_save(parser.data):
+			return "ASHEN1:"+Marshalls.utf8_to_base64(JSON.stringify(parser.data))
+	return ""
+
+func import_code(code: String) -> String:
+	code=code.strip_edges().replace("\n","").replace("\r","").replace(" ","").replace("\t","")
+	if code.length()>1000000 or not code.begins_with("ASHEN1:"):return ""
+	var encoded=code.substr(7)
+	if encoded.is_empty() or encoded.length()%4!=0:return ""
+	if "=" in encoded.trim_suffix("=").trim_suffix("="):return ""
+	for character in encoded:
+		if character not in "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/=":return ""
+	var parser=JSON.new()
+	if parser.parse(Marshalls.base64_to_utf8(encoded))!=OK:return ""
+	return restore_save(parser.data)

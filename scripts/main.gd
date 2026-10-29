@@ -50,6 +50,9 @@ var preview_actor: Node3D
 var preview_unit: Dictionary
 var reward_panel: PanelContainer
 var reward_skip=false
+var transfer_text: TextEdit
+var transfer_return="title"
+var browser_transfer_callback
 const GOLD = Color("8d6a32")
 const INK = Color("e8e0cb")
 const SAVE = "user://campaign.json"
@@ -262,6 +265,7 @@ func show_title():
 	var spacer=Control.new();spacer.size_flags_vertical=Control.SIZE_EXPAND_FILL;v.add_child(spacer)
 	button_in(v,"Begin the chronicle",func():game.new_campaign();music.play();show_camp())
 	button_in(v,"Continue saved campaign",load_campaign,not FileAccess.file_exists(save_path) and not FileAccess.file_exists(save_path+".bak"))
+	button_in(v,"Transfer a local save",func():show_save_transfer("title"))
 	label_in(v,"Original playable prototype • Casual recovery\nFallen allies return next chapter. Losing everyone means retry.",14,Color("827b6c"))
 
 func show_camp():
@@ -290,6 +294,7 @@ func show_camp():
 	var sp=Control.new();sp.size_flags_vertical=Control.SIZE_EXPAND_FILL;left.add_child(sp)
 	button_in(left,"Deploy company  >",func():game.start_battle();make_map();show_battle();game.save_game(save_path,"battle"),game.deployed.is_empty())
 	button_in(left,"Save campaign",func():save_with_feedback("camp"))
+	button_in(left,"Transfer a local save",func():show_save_transfer("camp"))
 	button_in(left,"Return to title",show_title)
 	label_in(left,"Music: A Standard at Dawn · paired arrangements\nVisuals: original painted art and 3D models",13,Color("827b6c"))
 	var scroll=ScrollContainer.new();scroll.custom_minimum_size.x=650;scroll.size_flags_horizontal=Control.SIZE_EXPAND_FILL;row.add_child(scroll)
@@ -853,3 +858,39 @@ func show_progress(before: Dictionary):
 		while elapsed<(2.0 if leveled else .8) and not reward_skip:
 			await get_tree().process_frame;elapsed+=get_process_delta_time()
 		reward_panel.queue_free();reward_panel=null
+
+func show_save_transfer(return_screen: String):
+	screen="save_transfer";transfer_return=return_screen;reset_ui()
+	var panel=panel_at(ui,100,60,-100,-60)
+	label_in(panel,"LOCAL SAVE TRANSFER",36,GOLD)
+	label_in(panel,"Move your campaign between browsers or the desktop app. Copy the code below, then paste it into this screen on the other build.",21)
+	label_in(panel,"Import replaces this device’s current campaign and keeps its previous save as a backup. No code is sent to a server.",17)
+	transfer_text=TextEdit.new();transfer_text.name="SaveCode";transfer_text.size_flags_vertical=Control.SIZE_EXPAND_FILL
+	transfer_text.wrap_mode=TextEdit.LINE_WRAPPING_BOUNDARY;transfer_text.add_theme_font_size_override("font_size",14);panel.add_child(transfer_text)
+	transfer_text.text=game.export_code("camp") if return_screen=="camp" else game.export_saved_code(save_path)
+	transfer_text.placeholder_text="Paste an ASHEN1: save code here."
+	button_in(panel,"Copy code",func():DisplayServer.clipboard_set(transfer_text.text);show_notice("Save code copied. Keep it in a local text file or paste it into another build."))
+	if OS.has_feature("web"):button_in(panel,"Open browser copy / paste",open_browser_transfer)
+	else:button_in(panel,"Select all text",func():transfer_text.grab_focus();transfer_text.select_all())
+	button_in(panel,"Import pasted code",import_pasted_save)
+	button_in(panel,"Return",func():show_camp() if transfer_return=="camp" else show_title())
+
+func import_pasted_save():
+	var saved=game.import_code(transfer_text.text)
+	if saved=="":show_notice("This code is incomplete or invalid. Your campaign has not changed.");return
+	var persisted=game.save_game(save_path,saved)
+	if not music.playing:music.play()
+	if saved=="ending":show_ending()
+	elif saved=="battle":make_map();show_battle();await check_result()
+	else:show_camp()
+	show_notice("Campaign imported and saved on this device." if persisted else "Campaign imported, but this device could not write the save.")
+
+func open_browser_transfer():
+	if not OS.has_feature("web"):return
+	JavaScriptBridge.eval(FileAccess.get_file_as_string("res://scripts/web_save_transfer.js"),true)
+	if browser_transfer_callback==null:
+		browser_transfer_callback=JavaScriptBridge.create_callback(func(arguments):
+			if screen=="save_transfer" and is_instance_valid(transfer_text) and arguments.size()>0:transfer_text.text=str(arguments[0])
+		)
+	var bridge=JavaScriptBridge.get_interface("ashenSaveTransfer")
+	bridge.open(transfer_text.text,browser_transfer_callback)

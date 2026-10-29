@@ -21,6 +21,8 @@ The game stays local. Serve `build/web` using `python3 -m http.server 8060 --dir
 
 Select an ally, click a reachable tile, select an enemy and confirm the attack. Waiting commits movement. Right-click or Escape undoes an uncommitted move. Space ends the player phase. Tab skips the remainder of a combat scene. R toggles enemy threat ranges; clicking a foe inspects its stats and reach. A Warden heals by clicking an injured ally within the equipped staff’s range. Open a recruit’s portrait at the war council, then Equipment, to choose from 19 weapons and staves. Supplies unlock by chapter; equipment is freely shared. Weight reduces combat speed, and a four-point speed advantage grants a follow-up. Pale cross and golden objective tiles heal 6 HP at the start of a player turn.
 
+Use **Transfer a local save** on the title screen or war council to copy an ASHEN1 code into another build. In a browser, **Open browser copy / paste** provides a native text field; choose **Use code**, then **Import pasted code**. The previous save is retained as a backup. Nothing is uploaded.
+
 Save files are local to the device/browser origin. Browser storage can be cleared by the browser. Returning to the war council restarts the current map from its pre-battle roster.
 
 ## Develop
@@ -55,3 +57,5 @@ Browser build: `godot --headless --path . --export-release Web`, then `python3 s
 To import, run all seven test suites, and package both local builds in one step: `GODOT_BIN=/path/to/godot scripts/build_local.sh`.
 
 Apart from the openly licensed display font, all game assets and story content are original prototype work, including generated raster art and procedural 3D models. The game includes no Nintendo code, art, characters or music. Reference repositories informed mechanical architecture; the implementation is new GDScript.
+
+Local QA checkpoints can be generated with `godot --headless --path . --script scripts/make_qa_saves.gd`; codes are written under ignored `build/qa-saves/` and excluded from release archives.
