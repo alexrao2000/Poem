@@ -4,6 +4,7 @@ const Portraits = preload("res://scripts/portraits.gd")
 const WeaponIcons=preload("res://scripts/weapon_icons.gd")
 const MapUnit=preload("res://scripts/campaign_map_unit.gd")
 const MapOverlay=preload("res://scripts/map_overlay.gd")
+const FOG_FIELDS=["fog_enabled","fog_mode","fog_density","fog_depth_begin","fog_depth_end","fog_depth_curve","fog_light_color","fog_light_energy","fog_sky_affect"]
 var map_catalog=preload("res://visuals/catalog.gd").new()
 var map_facings: Dictionary={}
 const DISPLAY_FONT = preload("res://assets/fonts/CormorantGaramond.ttf")
@@ -736,7 +737,9 @@ func cinematic(a,b,events,initial_hp={}):
 
 func lighting_state() -> Dictionary:
 	var sky=environment.sky.sky_material
-	return {"energy":sunlight.light_energy,"color":sunlight.light_color,"ambient":environment.ambient_light_energy,"top":sky.sky_top_color,"horizon":sky.sky_horizon_color,"ground":sky.ground_horizon_color}
+	var fog={}
+	for field in FOG_FIELDS:fog[field]=environment.get(field)
+	return {"energy":sunlight.light_energy,"color":sunlight.light_color,"ambient":environment.ambient_light_energy,"top":sky.sky_top_color,"horizon":sky.sky_horizon_color,"ground":sky.ground_horizon_color,"fog":fog}
 
 func battle_lighting(theme: String) -> Dictionary:
 	var old=lighting_state()
@@ -751,12 +754,17 @@ func battle_lighting(theme: String) -> Dictionary:
 		sky.sky_top_color=Color("14243b") if theme=="observatory" else Color("3c343a")
 		sky.sky_horizon_color=Color("596179") if theme=="observatory" else Color("98725e")
 		sky.ground_horizon_color=sky.sky_horizon_color
+	environment.fog_enabled=true;environment.fog_mode=Environment.FOG_MODE_DEPTH
+	environment.fog_depth_begin=12.0;environment.fog_depth_end=65.0;environment.fog_depth_curve=1.3
+	environment.fog_density=.55 if theme=="forest" else .48 if theme in ["river","harbor","mountain"] else .28 if theme in ["observatory","engine","furnace","castle","abbey"] else .38
+	environment.fog_light_color=sky.sky_horizon_color.lerp(sky.sky_top_color,.3);environment.fog_light_energy=1.0;environment.fog_sky_affect=0.0
 	return old
 
 func restore_lighting(old: Dictionary):
 	var sky=environment.sky.sky_material
 	sunlight.light_energy=old.energy;sunlight.light_color=old.color;environment.ambient_light_energy=old.ambient
 	sky.sky_top_color=old.top;sky.sky_horizon_color=old.horizon;sky.ground_horizon_color=old.ground
+	for field in FOG_FIELDS:environment.set(field,old.fog[field])
 
 func projectile(from: Vector3,to: Vector3,kind: String,spell=""):
 	var visual=CombatProjectile.new();stage.add_child(visual)

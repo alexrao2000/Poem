@@ -37,6 +37,10 @@ func run():
 		for landmark in context.landmarks:assert(absf(landmark.x)<=11 and landmark.z<=-7,"Landmarks remain behind the action")
 		assert(arena.get_meta("batch_stats").sources>5,"Arena includes batched scenery")
 		arena.queue_free()
+		var lighting=app.lighting_state();var previous=app.battle_lighting(app.game.info().environment)
+		assert(previous==lighting and app.environment.fog_enabled,"Battle atmosphere saves the complete previous state")
+		assert(app.environment.fog_depth_begin>=12 and app.environment.fog_density<.6,"Distance haze starts behind combatants and remains translucent")
+		app.restore_lighting(previous);assert(app.lighting_state()==lighting,"Chapter atmosphere cannot leak into the tactical map")
 	for tile in [".","f","h","p","o","+"]:
 		var arena=Node3D.new();app.add_child(arena)
 		app.scenery.battle_landscape(arena,Vector3.ZERO,{"environment":"village","terrain":tile})
@@ -76,6 +80,8 @@ func run():
 	for control in app.side.get_children():
 		assert(control.get_global_rect().end.y<=app.ui.size.y,"Forecast and action controls fit viewport")
 	app.camera.size=15.25;app.camera.h_offset=1.5;app.camera.v_offset=.3;app.camera.fov=62
+	app.environment.fog_enabled=true;app.environment.fog_density=.08;app.environment.fog_light_color=Color("c2b491")
+	var original_lighting=app.lighting_state()
 	var events=app.game.combat(a,b)
 	inspect_combat_hud(app)
 	await app.cinematic(a,b,events)
@@ -85,6 +91,7 @@ func run():
 	assert(is_equal_approx(app.camera.size,15.25) and is_equal_approx(app.camera.h_offset,1.5),"Map zoom restored")
 	assert(is_equal_approx(app.camera.v_offset,.3) and is_equal_approx(app.camera.fov,62),"Battle framing does not overwrite map camera settings")
 	assert(app.world.visible and app.pieces.visible,"Map restored after arena")
+	assert(app.lighting_state()==original_lighting,"Full cinematic restores custom lighting and fog values")
 	app.music_mix(true)
 	await create_timer(.1).timeout
 	app.music_mix(false)
