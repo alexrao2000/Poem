@@ -17,6 +17,8 @@ var dialogue_name: Label
 var dialogue_portrait: TextureRect
 var dialogue_reveal=0.0
 const CombatTrail=preload("res://scripts/combat_trail.gd")
+const CombatImpact=preload("res://scripts/combat_impact.gd")
+const CombatProjectile=preload("res://scripts/combat_projectile.gd")
 const CombatCamera=preload("res://scripts/combat_camera.gd")
 const CombatHUD=preload("res://scripts/combat_hud.gd")
 const CombatTransition=preload("res://scripts/combat_transition.gd")
@@ -754,34 +756,11 @@ func restore_lighting(old: Dictionary):
 	sky.sky_top_color=old.top;sky.sky_horizon_color=old.horizon;sky.ground_horizon_color=old.ground
 
 func projectile(from: Vector3,to: Vector3,kind: String):
-	var visual=Node3D.new();stage.add_child(visual);visual.position=from
-	if kind in ["bow","lance"]:
-		var shaft=cube(visual,Vector3.ZERO,Vector3(1.3,.035,.035) if kind=="lance" else Vector3(.5,.018,.018),Color("695344"))
-		cube(shaft,Vector3(.5,0,0),Vector3(.12,3,3),Color("d2d8dc"))
-		if to.x<from.x:visual.rotation.y=PI
-	else:
-		var orb=sphere(visual,Vector3.ZERO,.15,Color("8ddae9"))
-		orb.material_override.shading_mode=BaseMaterial3D.SHADING_MODE_UNSHADED
-		var ring=TorusMesh.new();ring.inner_radius=.2;ring.outer_radius=.225
-		var n=MeshInstance3D.new();n.mesh=ring;n.rotation.z=PI/2;n.material_override=orb.material_override;visual.add_child(n)
-	var travel=create_tween().set_trans(Tween.TRANS_LINEAR);travel.tween_property(visual,"position",to,.23)
-	await travel.finished
-	visual.queue_free()
+	var visual=CombatProjectile.new();stage.add_child(visual)
+	await visual.launch(from,to,kind).finished
 
 func show_impact(point,event):
-	var root=Node3D.new();stage.add_child(root);root.position=point
-	var amount=Label3D.new();amount.text=str(int(event.damage)) if event.hit else "MISS"
-	amount.font_size=100 if event.crit else 76;amount.pixel_size=.006;amount.billboard=BaseMaterial3D.BILLBOARD_ENABLED
-	amount.modulate=Color("ffe2a0") if event.crit else Color("fff8e3");amount.outline_size=12;amount.position.y=.6;amount.no_depth_test=true;root.add_child(amount)
-	if event.hit:
-		for i in range(9):
-			var angle=i*TAU/9
-			var spark=cube(root,Vector3(cos(angle)*.17,sin(angle)*.17,.04),Vector3(.025,.3,.025),Color("ffd17c"))
-			spark.rotation.z=angle
-			var bright=spark.material_override;bright.shading_mode=BaseMaterial3D.SHADING_MODE_UNSHADED
-			var ray=create_tween().set_parallel(true);ray.tween_property(spark,"position",Vector3(cos(angle)*.55,sin(angle)*.55,.05),.23);ray.tween_property(spark,"scale",Vector3.ZERO,.23)
-	var drift=create_tween().set_parallel(true);drift.tween_property(amount,"position:y",1.1,.55);drift.tween_property(amount,"modulate:a",0.0,.55)
-	drift.chain().tween_callback(root.queue_free)
+	var impact=CombatImpact.new();stage.add_child(impact);impact.configure(point,event,camera)
 
 func check_result() -> bool:
 	var outcome=game.result()
