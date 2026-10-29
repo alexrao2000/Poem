@@ -1,5 +1,10 @@
 extends Node3D
 const Rules = preload("res://scripts/rules.gd")
+const Fighters = preload("res://scripts/fighters.gd")
+var fighters: RefCounted
+const Scenery = preload("res://scripts/scenery.gd")
+var scenery: RefCounted
+const CLASSES = ["Vanguard","Knight","Ranger","Arcanist","Warden","Rider","Corsair","Duelist"]
 var game = Rules.new()
 var camera: Camera3D
 var world: Node3D
@@ -21,25 +26,31 @@ var muted = false
 var sprites: Array = []
 var clock = 0.0
 var skip_combat = false
-const GOLD = Color("dec48c")
-const INK = Color("111d2b")
+const GOLD = Color("8d6a32")
+const INK = Color("e8e0cb")
 const SAVE = "user://campaign.json"
 
 func _ready():
-	RenderingServer.set_default_clear_color(Color("101b29"))
+	scenery=Scenery.new()
+	fighters=Fighters.new()
+	RenderingServer.set_default_clear_color(Color("b9c7ca"))
 	var env = WorldEnvironment.new()
 	var settings = Environment.new()
-	settings.background_mode=Environment.BG_COLOR
-	settings.background_color=Color("101b29")
+	settings.background_mode=Environment.BG_SKY
+	var sky=Sky.new();var sky_material=ProceduralSkyMaterial.new()
+	sky_material.sky_top_color=Color("648aa7");sky_material.sky_horizon_color=Color("d8dbce")
+	sky_material.ground_bottom_color=Color("7a8163");sky_material.ground_horizon_color=Color("d8dbce")
+	sky.sky_material=sky_material;settings.sky=sky
 	settings.ambient_light_source=Environment.AMBIENT_SOURCE_COLOR
 	settings.ambient_light_color=Color("aabbd1")
-	settings.ambient_light_energy=0.7
+	settings.ambient_light_energy=0.55
 	env.environment=settings
 	add_child(env)
 	var sun = DirectionalLight3D.new()
 	sun.rotation_degrees=Vector3(-55,-25,0)
 	sun.light_color=Color("ffe2ad")
-	sun.light_energy=1.3
+	sun.light_energy=1.1
+	sun.shadow_enabled=true
 	add_child(sun)
 	camera=Camera3D.new()
 	add_child(camera)
@@ -73,13 +84,15 @@ func music_mix(battle: bool):
 func _process(dt):
 	clock+=dt
 	for s in sprites:
-		if is_instance_valid(s):s.frame=int(clock*3)%3
+		if is_instance_valid(s):s.position.y=s.get_meta("base_y",.65)+sin(clock*3+s.position.x)*.015
 
 func box(color: Color) -> StyleBoxFlat:
 	var b=StyleBoxFlat.new()
 	b.bg_color=color
 	b.content_margin_left=18;b.content_margin_right=18;b.content_margin_top=12;b.content_margin_bottom=12
-	b.corner_radius_top_left=7;b.corner_radius_top_right=7;b.corner_radius_bottom_left=7;b.corner_radius_bottom_right=7
+	b.corner_radius_top_left=2;b.corner_radius_top_right=2;b.corner_radius_bottom_left=2;b.corner_radius_bottom_right=2
+	b.border_width_left=2;b.border_width_right=2;b.border_width_top=2;b.border_width_bottom=2;b.border_color=Color("ad9971")
+	b.shadow_color=Color(0.15,0.12,0.08,0.22);b.shadow_size=4
 	return b
 
 func reset_ui():
@@ -92,16 +105,19 @@ func reset_ui():
 	canvas.add_child(ui)
 	var theme=Theme.new()
 	theme.default_font_size=17
-	theme.set_color("font_color","Label",Color("e3e7ec"))
-	theme.set_stylebox("normal","Button",box(Color("26394a")))
-	theme.set_stylebox("hover","Button",box(Color("436074")))
-	theme.set_stylebox("pressed","Button",box(Color("647680")))
-	theme.set_stylebox("disabled","Button",box(Color("192633")))
-	theme.set_color("font_disabled_color","Button",Color("71828e"))
-	theme.set_stylebox("panel","PanelContainer",box(Color("152333")))
+	theme.set_color("font_color","Label",Color("443e36"))
+	theme.set_color("font_color","Button",Color("443e36"))
+	theme.set_color("font_hover_color","Button",Color("312a21"))
+	theme.set_color("font_pressed_color","Button",Color("312a21"))
+	theme.set_stylebox("normal","Button",box(Color("e9dfc5")))
+	theme.set_stylebox("hover","Button",box(Color("f8edce")))
+	theme.set_stylebox("pressed","Button",box(Color("c9b58b")))
+	theme.set_stylebox("disabled","Button",box(Color("d4cdbb")))
+	theme.set_color("font_disabled_color","Button",Color("9b9587"))
+	theme.set_stylebox("panel","PanelContainer",box(Color("f1ead6")))
 	ui.theme=theme
 
-func label_in(parent,text_value,size=18,color=Color("e3e7ec")) -> Label:
+func label_in(parent,text_value,size=18,color=Color("443e36")) -> Label:
 	var l=Label.new();l.text=text_value;l.add_theme_font_size_override("font_size",size);l.add_theme_color_override("font_color",color)
 	l.autowrap_mode=TextServer.AUTOWRAP_WORD_SMART
 	parent.add_child(l)
@@ -127,7 +143,9 @@ func clear_world():
 	sprites.clear()
 
 func mat(color: Color) -> StandardMaterial3D:
-	var m=StandardMaterial3D.new();m.albedo_color=color;m.roughness=0.95;return m
+	var m=StandardMaterial3D.new();m.albedo_color=color;m.roughness=0.95
+	if color.a<1:m.transparency=BaseMaterial3D.TRANSPARENCY_ALPHA
+	return m
 
 func cube(parent,position,scale_value,color) -> MeshInstance3D:
 	var n=MeshInstance3D.new();n.mesh=BoxMesh.new();n.position=position;n.scale=scale_value;n.material_override=mat(color);parent.add_child(n);return n
@@ -137,32 +155,15 @@ func sphere(parent,position,radius,color) -> MeshInstance3D:
 
 func map_camera():
 	camera.projection=Camera3D.PROJECTION_ORTHOGONAL
-	camera.size=18
-	camera.position=Vector3(13,17,19)
-	camera.look_at(Vector3(7,0,4))
+	camera.size=16
+	camera.position=Vector3(9,22,16)
+	camera.look_at(Vector3(6.5,0,4.5))
 	camera.h_offset=2.0
 
 func make_map():
 	clear_world()
 	map_camera()
-	var palette={".":Color("67776a"),"f":Color("455d4e"),"h":Color("888675"),"~":Color("375e72"),"=":Color("a09577"),"#":Color("727987"),"o":Color("c6ac72"),"+":Color("7e9890")}
-	for y in range(10):
-		for x in range(14):
-			var t=game.terrain(Vector2i(x,y));var col=palette[t]
-			if (x+y)%2==0:col=col.lightened(0.035)
-			cube(world,Vector3(x,-0.15,y),Vector3(.98,.28,.98),col)
-			if t=="f":
-				cube(world,Vector3(x,.3,y),Vector3(.12,.65,.12),Color("574c3a"))
-				sphere(world,Vector3(x,.85,y),.43,Color("3e6553"))
-			elif t=="#":cube(world,Vector3(x,.55,y),Vector3(.9,1.3,.9),col.lightened(.1))
-			elif t=="h":sphere(world,Vector3(x,0,y),.45,col)
-			elif t=="o":
-				cube(world,Vector3(x,.04,y),Vector3(.7,.12,.7),GOLD)
-				cube(world,Vector3(x+.3,.65,y),Vector3(.04,1.3,.04),GOLD)
-				cube(world,Vector3(x+.1,1.1,y),Vector3(.4,.3,.03),Color("a55357"))
-			elif t=="+":
-				cube(world,Vector3(x,.025,y),Vector3(.6,.06,.15),Color("d9d4b2"))
-				cube(world,Vector3(x,.025,y),Vector3(.15,.06,.6),Color("d9d4b2"))
+	scenery.landscape(world,game)
 	refresh_pieces()
 
 func refresh_pieces():
@@ -170,12 +171,26 @@ func refresh_pieces():
 	sprites.clear()
 	for u in game.units:
 		if u.hp<=0:continue
-		var s=Sprite3D.new();s.texture=load("res://assets/"+(u.id if u.team=="player" else "enemy")+".png")
-		s.hframes=3;s.pixel_size=.037;s.billboard=BaseMaterial3D.BILLBOARD_ENABLED;s.texture_filter=BaseMaterial3D.TEXTURE_FILTER_NEAREST
-		s.position=Vector3(u.x,.57,u.y);s.modulate=Color(.5,.5,.5) if u.acted else Color.WHITE
+		var s=Sprite3D.new();s.texture=unit_portrait(u)
+		s.pixel_size=.0022
+		s.billboard=BaseMaterial3D.BILLBOARD_ENABLED;s.texture_filter=BaseMaterial3D.TEXTURE_FILTER_NEAREST
+		s.alpha_cut=SpriteBase3D.ALPHA_CUT_DISCARD;s.alpha_scissor_threshold=.35
+		s.no_depth_test=true;s.render_priority=2
+		s.position=Vector3(u.x,.64,u.y);s.set_meta("base_y",.64)
+		s.modulate=(Color(.65,.65,.65) if u.acted else Color.WHITE) if u.team=="player" else Color(1,.66,.62)
 		pieces.add_child(s);sprites.append(s)
-		cube(pieces,Vector3(u.x,.045,u.y),Vector3(.7,.04,.7),Color("6cafd0") if u.team=="player" else Color("c66e70"))
-		var hp=Label3D.new();hp.text=str(int(u.hp));hp.font_size=34;hp.pixel_size=.009;hp.position=Vector3(u.x,1.25,u.y);hp.billboard=BaseMaterial3D.BILLBOARD_ENABLED;pieces.add_child(hp)
+		scenery.cylinder(pieces,Vector3(u.x,.035,u.y),.035,.31,Color("496f9c") if u.team=="player" else Color("a54b45"))
+		# Compact green health bars preserve map readability at normal zoom.
+		var health=Sprite3D.new();var image=Image.create(48,5,false,Image.FORMAT_RGBA8)
+		image.fill(Color("343b30"));image.fill_rect(Rect2i(1,1,maxi(1,int(46.0*u.hp/u.max_hp)),3),Color("8bc96c") if u.team=="player" else Color("d48c70"))
+		health.texture=ImageTexture.create_from_image(image);health.pixel_size=.013;health.billboard=BaseMaterial3D.BILLBOARD_ENABLED
+		health.position=Vector3(u.x,.16,u.y+.12);health.no_depth_test=true;health.render_priority=3;pieces.add_child(health)
+
+func unit_portrait(u) -> AtlasTexture:
+	var texture=AtlasTexture.new();texture.atlas=load("res://assets/art/class-sprites.png")
+	var index=maxi(0,CLASSES.find(u.job))
+	texture.region=Rect2((index%4)*384+12,(index/4)*512+10,360,492)
+	return texture
 
 func show_title():
 	screen="title";game.start_battle();make_map();reset_ui()
@@ -183,11 +198,11 @@ func show_title():
 	label_in(v,"A TACTICAL CHRONICLE",16,GOLD)
 	label_in(v,"ASHEN\nSTANDARD",64)
 	label_in(v,"A broken banner. A borrowed sun.\nTwenty-four lives caught between them.",22)
-	label_in(v,"12 chapters · 24 recruits · 8 classes\nSprite battlefields / cinematic 3D combat",17,Color("9eb1c0"))
+	label_in(v,"12 chapters · 24 recruits · 8 classes\nSprite battlefields / cinematic 3D combat",17,Color("766e5e"))
 	var spacer=Control.new();spacer.size_flags_vertical=Control.SIZE_EXPAND_FILL;v.add_child(spacer)
 	button_in(v,"Begin the chronicle",func():game.new_campaign();music.play();show_camp())
 	button_in(v,"Continue saved campaign",load_campaign,not FileAccess.file_exists(SAVE))
-	label_in(v,"Original playable prototype • Casual recovery\nFallen allies return next chapter. Losing everyone means retry.",14,Color("98a9b6"))
+	label_in(v,"Original playable prototype • Casual recovery\nFallen allies return next chapter. Losing everyone means retry.",14,Color("827b6c"))
 
 func show_camp():
 	screen="camp";busy=false;selected=null;target=null;origin=null
@@ -201,27 +216,27 @@ func show_camp():
 	var left=VBoxContainer.new();left.custom_minimum_size.x=350;left.size_flags_horizontal=Control.SIZE_EXPAND_FILL;row.add_child(left)
 	label_in(left,"ASHEN STANDARD / WAR COUNCIL",16,GOLD)
 	label_in(left,"%02d  %s"%[game.chapter+1,game.info().title],34)
-	label_in(left,game.info().place.to_upper(),17,Color("98b7be"))
+	label_in(left,game.info().place.to_upper(),17,Color("79755f"))
 	label_in(left,game.info().intro,21)
 	label_in(left,"OBJECTIVE  /  "+objective_text(),18,GOLD)
 	label_in(left,"Recruited %d / 24  ·  Deployed %d / 6"%[game.available().size(),game.deployed.size()],18)
-	label_in(left,"Select up to six allies. Healing tiles restore 6 HP each turn. Wardens heal adjacent allies; everyone carries two field tonics.",16,Color("9eb1c0"))
+	label_in(left,"Select up to six allies. Healing tiles restore 6 HP each turn. Wardens heal adjacent allies; everyone carries two field tonics.",16,Color("766e5e"))
 	var sp=Control.new();sp.size_flags_vertical=Control.SIZE_EXPAND_FILL;left.add_child(sp)
 	button_in(left,"Deploy company  >",func():game.start_battle();make_map();show_battle();game.save_game(SAVE,"battle"),game.deployed.is_empty())
 	button_in(left,"Save campaign",func():game.save_game(SAVE,"camp"))
 	button_in(left,"Return to title",show_title)
-	label_in(left,"Music: original synchronized sketch\nVisuals: original procedural prototype assets",13,Color("7e95a5"))
+	label_in(left,"Music: original synchronized sketch\nVisuals: original procedural prototype assets",13,Color("827b6c"))
 	var scroll=ScrollContainer.new();scroll.custom_minimum_size.x=650;scroll.size_flags_horizontal=Control.SIZE_EXPAND_FILL;row.add_child(scroll)
 	var cards=VBoxContainer.new();cards.size_flags_horizontal=Control.SIZE_EXPAND_FILL;scroll.add_child(cards)
 	for u in game.roster:
 		var unlocked=int(u.join)<=game.chapter
 		var panel=PanelContainer.new();cards.add_child(panel)
 		var content=HBoxContainer.new();panel.add_child(content)
-		var pic=TextureRect.new();pic.texture=load("res://assets/"+u.id+".png");pic.custom_minimum_size=Vector2(90,60);pic.expand_mode=TextureRect.EXPAND_IGNORE_SIZE;pic.stretch_mode=TextureRect.STRETCH_KEEP_ASPECT_CENTERED;pic.texture_filter=CanvasItem.TEXTURE_FILTER_NEAREST;content.add_child(pic)
+		var pic=TextureRect.new();pic.texture=unit_portrait(u);pic.custom_minimum_size=Vector2(90,60);pic.expand_mode=TextureRect.EXPAND_IGNORE_SIZE;pic.stretch_mode=TextureRect.STRETCH_KEEP_ASPECT_CENTERED;pic.texture_filter=CanvasItem.TEXTURE_FILTER_NEAREST;content.add_child(pic)
 		var texts=VBoxContainer.new();texts.size_flags_horizontal=Control.SIZE_EXPAND_FILL;content.add_child(texts)
-		label_in(texts,u.name+"  /  "+u.job+"  ·  Lv "+str(int(u.level)),19,Color(u.color) if unlocked else Color("697987"))
+		label_in(texts,u.name+"  /  "+u.job+"  ·  Lv "+str(int(u.level)),19,GOLD if unlocked else Color("9a9588"))
 		label_in(texts,u.bio if unlocked else "Joins in chapter "+str(int(u.join)+1),14)
-		label_in(texts,"HP %d   ATK %d   DEF %d   SPD %d   MOV %d"%[u.max_hp,u.pow,u.defense,u.speed,u.move],13,Color("9caebb"))
+		label_in(texts,"HP %d   ATK %d   DEF %d   SPD %d   MOV %d"%[u.max_hp,u.pow,u.defense,u.speed,u.move],13,Color("81775f"))
 		button_in(content,"Deployed" if u.id in game.deployed else "Deploy",func():
 			if u.id in game.deployed:game.deployed.erase(u.id)
 			elif game.deployed.size()<6:game.deployed.append(u.id)
@@ -245,7 +260,7 @@ func show_battle():
 	status.custom_minimum_size.x=300
 	status.autowrap_mode=TextServer.AUTOWRAP_OFF
 	var panel=PanelContainer.new();panel.set_anchors_and_offsets_preset(Control.PRESET_RIGHT_WIDE);panel.offset_left=-325;panel.offset_right=-22;panel.offset_top=118;panel.offset_bottom=-24;ui.add_child(panel)
-	side=VBoxContainer.new();side.add_theme_constant_override("separation",9);panel.add_child(side)
+	side=VBoxContainer.new();side.add_theme_constant_override("separation",5);panel.add_child(side)
 	var bottom=PanelContainer.new();bottom.set_anchors_and_offsets_preset(Control.PRESET_BOTTOM_WIDE);bottom.offset_left=22;bottom.offset_right=-343;bottom.offset_top=-78;bottom.offset_bottom=-22;ui.add_child(bottom)
 	label_in(bottom,"Select ally > move > select foe > confirm attack.\nRight-click / Esc: undo uncommitted move.  Space: end turn.  Tab: skip combat.",15)
 	update_side()
@@ -256,7 +271,7 @@ func update_side():
 	label_in(side,"THE COMPANY",15,GOLD)
 	label_in(side,"%d allies  ·  %d enemies"%[game.living("player").size(),game.living("enemy").size()],18)
 	if selected!=null:
-		label_in(side,selected.name,30,Color(selected.color))
+		label_in(side,selected.name,30,GOLD)
 		label_in(side,"%s · Lv %d · XP %d"%[selected.job,selected.level,selected.xp],16)
 		label_in(side,"HP %d / %d\nATK %d   DEF %d   SPD %d\n%s · range %d"%[selected.hp,selected.max_hp,selected.pow,selected.defense,selected.speed,selected.weapon.to_upper(),selected.reach],18)
 		if target!=null:
@@ -271,7 +286,7 @@ func update_side():
 			if selected.weapon=="staff":label_in(side,"Click an adjacent ally to heal 12 HP.",16,GOLD)
 	else:
 		label_in(side,"Choose your next move.",25)
-		label_in(side,"Forest and hills cost 2 movement and grant cover. Cross water at bridges. Golden tiles mark objectives; pale crosses restore health.",17,Color("a5b8c5"))
+		label_in(side,"Forest and hills cost 2 movement and grant cover. Cross water at bridges. Golden tiles mark objectives; pale crosses restore health.",17,Color("6f6c5e"))
 	var spacer=Control.new();spacer.size_flags_vertical=Control.SIZE_EXPAND_FILL;side.add_child(spacer)
 	button_in(side,"End player phase",end_turn,busy)
 	button_in(side,"Save battle",func():cancel_selection();game.save_game(SAVE,"battle"),busy)
@@ -283,9 +298,9 @@ func highlight():
 	if selected==null or selected.team!="player" or selected.acted:return
 	var range_map=game.reachable(selected) if origin==null else {game.pos(selected):0}
 	for p in range_map:
-		cube(markers,Vector3(p.x,.015,p.y),Vector3(.84,.025,.84),Color("527e9c"))
+		cube(markers,Vector3(p.x,.015,p.y),Vector3(.84,.025,.84),Color(0.16,0.46,0.85,0.48))
 	for e in game.living("enemy"):
-		if game.can_attack(selected,e):cube(markers,Vector3(e.x,.018,e.y),Vector3(.9,.03,.9),Color("c17d72"))
+		if game.can_attack(selected,e):cube(markers,Vector3(e.x,.018,e.y),Vector3(.9,.03,.9),Color(0.85,0.22,0.12,0.55))
 
 func _unhandled_input(event):
 	if event is InputEventKey and event.pressed:
@@ -334,8 +349,9 @@ func player_attack():
 	busy=true
 	update_side()
 	var a=selected;var b=target
+	var initial_hp={a.id:a.hp,b.id:b.hp}
 	var events=game.combat(a,b)
-	await cinematic(a,b,events)
+	await cinematic(a,b,events,initial_hp)
 	busy=false;finish_action()
 
 func finish_action():
@@ -369,8 +385,9 @@ func end_turn():
 			chosen=victims[0]
 			for a in victims:
 				if a.hp<chosen.hp:chosen=a
+			var initial_hp={e.id:e.hp,chosen.id:chosen.hp}
 			var events=game.combat(e,chosen)
-			await cinematic(e,chosen,events)
+			await cinematic(e,chosen,events,initial_hp)
 		else:e.acted=true
 		refresh_pieces()
 		if game.result()!="":break
@@ -379,28 +396,9 @@ func end_turn():
 	game.save_game(SAVE,"battle")
 
 func make_fighter(u,position) -> Node3D:
-	var actor=Node3D.new();stage.add_child(actor);actor.position=position
-	var color=Color(u.color);var dark=color.darkened(.45)
-	cube(actor,Vector3(0,.95,0),Vector3(.55,.7,.3),color)
-	cube(actor,Vector3(0,.9,.2),Vector3(.62,.8,.07),dark)
-	sphere(actor,Vector3(0,1.65,0),.23,Color("ddba96"))
-	sphere(actor,Vector3(0,1.82,.02),.22,dark)
-	for x in [-.18,.18]:
-		cube(actor,Vector3(x,.35,0),Vector3(.19,.7,.22),Color("344050"))
-		cube(actor,Vector3(x,.06,-.1),Vector3(.23,.16,.4),dark)
-	cube(actor,Vector3(-.38,.95,0),Vector3(.18,.65,.2),dark)
-	var arm=Node3D.new();arm.name="Arm";arm.position=Vector3(.38,1.25,0);actor.add_child(arm)
-	cube(arm,Vector3(0,-.27,0),Vector3(.18,.6,.2),color)
-	var weapon_color=Color("b7d6da") if u.weapon=="magic" else Color("dae0df")
-	cube(arm,Vector3(0,-.48,-.42),Vector3(.09,.08,1.0 if u.weapon=="lance" else .65),weapon_color)
-	if u.weapon=="axe":cube(arm,Vector3(0,-.48,-.7),Vector3(.4,.08,.3),weapon_color)
-	if u.weapon=="magic":sphere(arm,Vector3(0,-.4,-.5),.2,Color("9edbe1"))
-	if u.weapon=="bow":
-		cube(arm,Vector3(0,-.4,-.5),Vector3(.07,1.0,.07),Color("a58157"))
-		cube(arm,Vector3(0,-.4,-.3),Vector3(.025,.85,.025),Color("d4d7cf"))
-	return actor
+	return fighters.build(stage,u,position)
 
-func cinematic(a,b,events):
+func cinematic(a,b,events,initial_hp={}):
 	if events.is_empty():return
 	skip_combat=false;music_mix(true)
 	var old_pos=camera.position;var old_rot=camera.rotation
@@ -412,19 +410,33 @@ func cinematic(a,b,events):
 	var close=create_tween();close.tween_property(veil,"modulate:a",1.0,.12);await close.finished
 	for n in stage.get_children():n.queue_free()
 	stage.visible=true
-	cube(stage,Vector3(35,-.25,0),Vector3(24,.4,20),Color("657363"))
-	for i in range(12):
-		var x=27+(i*7)%17;var z=-3-(i%3)*2
-		cube(stage,Vector3(x,.4,z),Vector3(.3,1,.3),Color("615747"))
-		sphere(stage,Vector3(x,1.7,z),1.1,Color("3e5a4c"))
+	scenery.battle_landscape(stage,Vector3(35,0,0))
 	var actor=make_fighter(a,Vector3(33.7,0,0));var defender=make_fighter(b,Vector3(36.3,0,0))
 	actor.rotation.y=-PI/2;defender.rotation.y=PI/2
 	camera.projection=Camera3D.PROJECTION_PERSPECTIVE;camera.h_offset=0;camera.fov=48
-	camera.position=Vector3(35,2.4,6);camera.look_at(Vector3(35,1,0))
+	camera.position=Vector3(37,1.8,5.5);camera.look_at(Vector3(35,1,0))
 	var reveal=create_tween();reveal.tween_property(veil,"modulate:a",0.0,.18);await reveal.finished
 	veil.queue_free()
-	var banner=PanelContainer.new();banner.set_anchors_and_offsets_preset(Control.PRESET_BOTTOM_WIDE);banner.offset_left=100;banner.offset_right=-365;banner.offset_top=-180;banner.offset_bottom=-90;ui.add_child(banner)
-	var caption=label_in(banner,a.name+"  x  "+b.name+"\nTab to skip",25,GOLD)
+	var banner=PanelContainer.new();banner.set_anchors_and_offsets_preset(Control.PRESET_BOTTOM_WIDE)
+	banner.offset_left=70;banner.offset_right=-70;banner.offset_top=-140;banner.offset_bottom=-30;ui.add_child(banner)
+	var battle_ui=HBoxContainer.new();battle_ui.add_theme_constant_override("separation",45);banner.add_child(battle_ui)
+	var health_labels={};var health_bars={};var displayed_hp={}
+	for unit in [a,b]:
+		var column=VBoxContainer.new();column.size_flags_horizontal=Control.SIZE_EXPAND_FILL;battle_ui.add_child(column)
+		var hp=int(initial_hp.get(unit.id,unit.hp))
+		if initial_hp.is_empty():
+			for strike_event in events:
+				if strike_event.target==unit.id:hp+=strike_event.damage
+		displayed_hp[unit.id]=mini(hp,unit.max_hp)
+		health_labels[unit.id]=label_in(column,unit.name+"  /  "+unit.job,23,GOLD)
+		var bar=ProgressBar.new();bar.max_value=unit.max_hp;bar.value=displayed_hp[unit.id];bar.show_percentage=false;bar.custom_minimum_size.y=16
+		var fill=StyleBoxFlat.new();fill.bg_color=Color("718e56") if unit.team=="player" else Color("b35e51")
+		var backing=StyleBoxFlat.new();backing.bg_color=Color("c7c1ad")
+		bar.add_theme_stylebox_override("fill",fill);bar.add_theme_stylebox_override("background",backing);column.add_child(bar);health_bars[unit.id]=bar
+	var caption=Label.new();caption.set_anchors_and_offsets_preset(Control.PRESET_TOP_WIDE);caption.offset_top=36;caption.horizontal_alignment=HORIZONTAL_ALIGNMENT_CENTER
+	caption.add_theme_font_size_override("font_size",30);caption.add_theme_color_override("font_color",Color("f7edce"));caption.add_theme_color_override("font_outline_color",Color("373d42"));caption.add_theme_constant_override("outline_size",7)
+	caption.text="Tab to skip";ui.add_child(caption)
+
 	for event in events:
 		if skip_combat:break
 		var who=actor if event.actor==a.id else defender
@@ -439,17 +451,37 @@ func cinematic(a,b,events):
 		recoil.tween_property(whom,"rotation:z",.12 if who==actor else -.12,.12)
 		recoil.tween_property(arm,"rotation:x",.5,.12)
 		await recoil.finished
-		await get_tree().create_timer(.25).timeout
+		displayed_hp[event.target]=maxi(0,displayed_hp[event.target]-event.damage)
+		var hp_tween=create_tween();hp_tween.tween_property(health_bars[event.target],"value",float(displayed_hp[event.target]),.2)
+		show_impact(whom.position+Vector3(0,1.1,0),event)
+		var camera_home=camera.position
+		var shake=create_tween();shake.tween_property(camera,"position",camera_home+Vector3(.06,.025,0),.04);shake.tween_property(camera,"position",camera_home,.09)
+		await get_tree().create_timer(.35).timeout
 		var reset=create_tween().set_parallel(true)
 		reset.tween_property(who,"position",base,.2);reset.tween_property(arm,"rotation:x",0.0,.2);reset.tween_property(whom,"rotation:z",PI/2 if event.remaining<=0 else 0.0,.2)
 		await reset.finished
-	banner.queue_free()
+	banner.queue_free();caption.queue_free()
 	stage.visible=false
 	camera.projection=Camera3D.PROJECTION_ORTHOGONAL;camera.position=old_pos;camera.rotation=old_rot;camera.h_offset=2.0
-	var pull=create_tween();pull.tween_property(camera,"size",18.0,.25);await pull.finished
+	var pull=create_tween();pull.tween_property(camera,"size",16.0,.25);await pull.finished
 	for control in tactical_controls:
 		if is_instance_valid(control):control.show()
 	music_mix(false)
+
+func show_impact(point,event):
+	var root=Node3D.new();stage.add_child(root);root.position=point
+	var amount=Label3D.new();amount.text=str(int(event.damage)) if event.hit else "MISS"
+	amount.font_size=100 if event.crit else 76;amount.pixel_size=.006;amount.billboard=BaseMaterial3D.BILLBOARD_ENABLED
+	amount.modulate=Color("ffe2a0") if event.crit else Color("fff8e3");amount.outline_size=12;amount.position.y=.6;amount.no_depth_test=true;root.add_child(amount)
+	if event.hit:
+		for i in range(9):
+			var angle=i*TAU/9
+			var spark=cube(root,Vector3(cos(angle)*.17,sin(angle)*.17,.04),Vector3(.025,.3,.025),Color("ffd17c"))
+			spark.rotation.z=angle
+			var bright=spark.material_override;bright.shading_mode=BaseMaterial3D.SHADING_MODE_UNSHADED
+			var ray=create_tween().set_parallel(true);ray.tween_property(spark,"position",Vector3(cos(angle)*.55,sin(angle)*.55,.05),.23);ray.tween_property(spark,"scale",Vector3.ZERO,.23)
+	var drift=create_tween().set_parallel(true);drift.tween_property(amount,"position:y",1.1,.55);drift.tween_property(amount,"modulate:a",0.0,.55)
+	drift.chain().tween_callback(root.queue_free)
 
 func check_result() -> bool:
 	var outcome=game.result()

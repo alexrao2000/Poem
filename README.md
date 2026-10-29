@@ -7,16 +7,16 @@ An original, playable tactical RPG prototype in Godot 4.5.1 / GDScript.
 - 24 named recruits across 8 classes, biographies, deployment selection, persistent levels and experience.
 - 12 connected chapters with opening/closing narrative, a campaign ending, and rout, seize, boss and six-turn defense objectives.
 - Weighted terrain movement, occupancy, weapon triangle, two-roll hit checks, critical hits, counters, speed follow-ups, healing, enemy turns and casual recovery.
-- 2D map sprites on a 3D board and a camera handoff to animated procedural 3D combatants.
+- Detailed original class sprites on a textured 3D landscape, village scenery, parchment UI, and a camera handoff to articulated 3D combatants with armor, capes, weapons, impact effects and combat health bars.
 - Original synchronized calm/intense musical sketches. Both streams loop on the same timeline.
 - Save/load during the player phase and at camp; autosaves after actions. Saves include RNG state.
 - Browser and macOS exports.
 
-This is a complete campaign **prototype**, not finished commercial content. Models and animation are geometric placeholders, sprites share a base silhouette, music is a short synthesized sketch, and chapter maps use four layout families. There are no finished portraits, voice acting, support conversations, equipment inventory, weapon durability, promotions, or multiplayer. Campaign balance has not had a human playthrough. Recruitment occurs automatically at the relevant chapter's war council. Fallen units recover when the map is restarted or the chapter ends.
+This is a complete campaign **prototype**, not finished commercial content. The first visual rebuild adds painted materials and distinct class silhouettes, but 3D characters and animation still need substantial refinement to approach the Awakening/Fates reference quality. Map sprites currently share appearances within each class, music is a short synthesized sketch, and chapter maps use four layout families. There are no finished character portraits, voice acting, support conversations, equipment inventory, weapon durability, promotions, or multiplayer. Campaign balance has not had a human playthrough. Recruitment occurs automatically at the relevant chapter's war council. Fallen units recover when the map is restarted or the chapter ends.
 
 ## Play
 
-Open the hosted build or serve `build/web` using `python3 -m http.server 8060 --directory build/web`, then visit http://localhost:8060. Browser music starts after Begin/Continue. Use a desktop-size browser for the current interface.
+The game stays local. Serve `build/web` using `python3 -m http.server 8060 --directory build/web`, then visit http://localhost:8060. Browser music starts after Begin/Continue. Use a desktop-size browser for the current interface. Private source repository: https://github.com/alexrao2000/fe-clone.
 
 Select an ally, click a reachable tile, select an enemy and confirm the attack. Waiting commits movement. Right-click or Escape undoes an uncommitted move. Space ends the player phase. Tab skips the remainder of a combat scene. A Warden heals by clicking an adjacent injured ally. Pale cross and golden objective tiles heal 6 HP at the start of a player turn.
 
@@ -28,6 +28,9 @@ Open `project.godot` in Godot 4.5.1 (standard edition). Use the Compatibility re
 
 - `scripts/rules.gd`: scene-independent simulation, campaign state and persistence.
 - `scripts/main.gd`: menus, board renderer, input, AI orchestration, combat presentation and music.
+- `scripts/scenery.gd`: textured terrain, environment construction and material caching.
+- `scripts/fighters.gd`: articulated class actors and weapons.
+- `assets/art/`: original generated terrain atlas and class sprite atlas. Prompts and provenance are recorded in `docs/art-direction.md`.
 - `data/campaign.json`: editable roster, classes and chapter definitions.
 - `scripts/generate_content.py`: reproducible initial content, pixel sprites and music generation. Running it overwrites generated content/assets.
 - `tests/test_rules.gd`: headless rules, all-map connectivity, outcome and persistence tests.
@@ -42,4 +45,6 @@ Export templates are not checked in. Download the official 4.5.1 export template
 
 Browser build: `godot --headless --path . --export-release Web`, then `python3 scripts/pack_web.py`. The postprocessor compresses the WASM engine and uses the browser DecompressionStream API so static hosting needs no special response headers. Native build: `godot --headless --path . --export-release macOS`.
 
-All game assets and story content in this project are original procedural prototype work. The game includes no Nintendo code, art, characters or music. Reference repositories informed mechanical architecture; the implementation is new GDScript.
+To import, run both test suites, and package both local builds in one step: `GODOT_BIN=/path/to/godot scripts/build_local.sh`.
+
+All game assets and story content are original prototype work, including generated raster art and procedural 3D models. The game includes no Nintendo code, art, characters or music. Reference repositories informed mechanical architecture; the implementation is new GDScript.

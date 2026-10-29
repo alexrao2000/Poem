@@ -4,6 +4,14 @@ User direction: keep developing until explicitly stopped. The previous geometric
 
 ## Current work
 
+### Latest checkpoint: first visual rebuild
+
+Implemented and browser-inspected: original generated terrain atlas with world-space sampling/mipmaps; continuous terrain and canal beyond board edges; cobbled starting plaza, textured roofs, village houses, trees and distant hills; original eight-class sprite atlas and compact HP strips; translucent movement overlays; cream/gold UI; articulated 3D actors with faces, armor, capes, weapons and a mounted Rider; battle HP bars, damage numbers, hit sparks and camera shake. Modules split into `scenery.gd` and `fighters.gd`. Both local exports rebuilt with `scripts/build_local.sh`. All 528 rules checks pass; presentation checks cover 12 chapter scenes, all 24 actor constructions, cinematic return and ending. Browser console has been clean during observed gameplay. Representative captures are in ignored `build/map-v2.png` and `build/combat-v2.png` (combat capture is an earlier moment in this same pass).
+
+**Still visibly short of the reference:** 3D figures are procedural and stiff; foliage and houses are repetitive; sprite identities are shared by class; all combat arenas use one environment; UI has little ornament; transitions do not yet track the selected tile. Music, chapter layout depth, equipment and campaign balance remain prototype-level. Prioritize another meaningful visual improvement next, particularly animated character posing and environment-specific battle staging. Do not spend another run only restating the plan.
+
+Run `GODOT_BIN=/private/tmp/ashen-godot/Godot.app/Contents/MacOS/Godot scripts/build_local.sh` to import, test, build and package both targets. Logs are in ignored `build/logs`. Native staging avoids system Trash permissions. Private GitHub main is the delivery branch; commit/push tested changes. The `.openai/` hosting metadata is ignored and must not be used to publish.
+
 2026-10-29: private GitHub repository created and verified private. A 30-minute heartbeat named `build-ashen-standard` continues work in this chat until stopped. Source originally had no Git history; preserve the initial prototype in the first commit.
 
 Original prototype: Godot 4.5.1, GDScript, 24 recruits, 8 classes, 12 chapter campaign. Rules tests pass 528 assertions and presentation tests exercise all chapter scenes. No full balance playthrough yet. Browser and macOS exports work. Engine is locally at `/private/tmp/ashen-godot/Godot.app/Contents/MacOS/Godot`; pass `--log-file /private/tmp/ashen-<task>.log` in sandbox to avoid user-library logging errors. Custom export templates reside in ignored `.tools/templates`. Web postprocessor `python3 scripts/pack_web.py` compresses WASM. Local generated builds are ignored.
@@ -17,9 +25,9 @@ These are reference links only. Do not copy Nintendo assets into the game or rep
 
 ## Prioritized work
 
-1. Replace flat ground with painted textures, continuous landscape, paths, bridges, village props, atmospheric backdrop and readable camera.
-2. Replace identical map silhouettes with original class sprites; maintain clear unit picking and terrain overlays.
-3. Rework tactical UI into compact cream/parchment panels with dark text, ornate but restrained gold edges and readable forecasts.
+1. Refine the textured landscape, replacing repetitive round foliage and toy houses with richer original assets and distinct chapter environments.
+2. Give the shared class sprites individual character identity; maintain clear picking and terrain overlays.
+3. Add restrained ornament and portraits to the cream/parchment UI, keeping controls within the viewport at 1280x720.
 4. Build articulated original 3D battle actors, class-specific silhouettes, weapon animations, camera motion, impact VFX and live combat HP display. Do not substitute 2D combat characters.
 5. Character portraits and dialogue presentation; deepen recruitment scenes and chapter-specific maps.
 6. Extend paired music arrangements, seamless loop boundary, attack sounds and spell effects.
