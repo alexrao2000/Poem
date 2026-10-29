@@ -38,6 +38,9 @@ func run():
 	assert(lab.stage_area.size.y>350,"Header and footer cannot push the map out of the window")
 	assert(lab.view.get_global_rect().end.y<lab.get_global_rect().end.y,"World view fits within the window")
 	assert(lab.game.units.size()==10 and lab.game.living("player").size()==6)
+	var shortcut=InputEventKey.new();shortcut.pressed=true;shortcut.keycode=KEY_TAB
+	lab.mode_buttons[1].grab_focus();lab._input(shortcut);assert(lab.mode=="3d","Tab changes map even when a UI button has focus")
+	lab._input(shortcut);assert(lab.mode=="2d")
 	var outcomes=[]
 	for mode in ["2d","3d"]:
 		lab.reset_demo();lab.set_mode(mode);await process_frame
@@ -70,6 +73,14 @@ func run():
 		assert(unit.acted and not lab.busy)
 		outcomes.append({"units":lab.game.units.duplicate(true),"rng":lab.game.rng.state})
 		assert(not lab.game.can_act(unit),"Resolved action remains spent")
+		var guard=lab.game.living("enemy")[0];guard.x=4;guard.y=4;lab.target_id=guard.id;lab.refresh()
+		assert(lab.action_button.disabled,"Spent units cannot arm another attack")
+		lab.selected_id=guard.id;lab.target_id="";lab.refresh();lab.click_cell(lab.game.pos(unit))
+		assert(lab.selected_id==unit.id,"Inspecting an enemy does not stop selection of an adjacent ally")
+		var actor=lab.renderer.actors[unit.id];var home=actor.position
+		lab.renderer.play_action(unit.id,guard.id);await create_timer(.05).timeout;lab.renderer.skip_animations();await process_frame
+		assert(actor.position==home,"Skipping an action cancels its cosmetic lunge")
+		await create_timer(.3).timeout;assert(actor.position==home,"No old tween moves the actor after a skip")
 		lab.reset_demo();lab.set_mode(mode);await process_frame
 		var healer=lab.game.units.filter(func(u):return u.id=="ivo")[0];var patient=lab.game.units[0]
 		var archer=lab.game.units.filter(func(u):return u.id=="sera")[0];archer.x=1;archer.y=4

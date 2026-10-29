@@ -19,6 +19,10 @@ The renderer scripts currently use the `res://visuals/` resource root. Keep that
 
 These are prototype art sheets. North, east, and west idle clips hold their facing pose; south has an alternate idle. Actions share one release pose across facings, and defeat reuses recoil. Movement has two source poses per facing. This foundation supports the larger animation budgets in the requirements, but the current artwork is not an 80-frame-per-character production set. Individual recruit costumes, promoted appearances, flyers, and dedicated close-combat sprite sheets remain additional art work.
 
+## Previews
+
+[2D map](previews/2d-map.png) · [3D terrain with the same sprites](previews/3d-map.png)
+
 ## Asset contract
 
 `units.json` uses schema version 1 with explicit frame rectangles. Each asset has a stable ID, relative texture path, logical frame size, source frame rectangles and pivots, and five states with four directional clips. Each clip declares frame indices, millisecond durations, looping, and cue positions. The included profile draws a 122 by 124 source frame into a 49 by 50 logical canvas on 32-pixel map tiles; the visible figure is smaller than the padded canvas.

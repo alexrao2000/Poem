@@ -191,7 +191,7 @@ func refresh():
 		unit_stats.text="HP  %d / %d     MOV  %d\nATK  %d     DEF  %d     SPD  %d"%[unit.hp,unit.max_hp,unit.move,game.attack_power(unit),unit.defense,game.attack_speed(unit)]
 		portrait.texture=catalog.frame_texture("unit."+Map2D.JOB_VISUAL.get(unit.job,"vanguard"),0)
 	else:unit_title.text="Choose a unit";unit_stats.text="Six allies at the river crossing.";portrait.texture=null
-	var can_attack=unit!=null and other!=null and game.can_attack(unit,other)
+	var can_attack=unit!=null and unit.team=="player" and game.can_act(unit) and other!=null and game.can_attack(unit,other)
 	var can_heal=unit!=null and other!=null and game.can_heal(unit,other)
 	detail.text="Select an ally, then a lit cell to move. Select a foe in range to preview an attack."
 	if unit!=null and unit.acted:detail.text="This unit has acted. End the phase to ready the company."
@@ -233,7 +233,7 @@ func board_input(event: InputEvent):
 func click_cell(cell: Vector2i):
 	if busy or cell.x<0 or game.phase!="player" or not game.result().is_empty():return
 	cursor=cell;var unit=selected();var other=game.at(cell)
-	if unit!=null and other!=null and (game.can_attack(unit,other) or game.can_heal(unit,other)):
+	if unit!=null and unit.team=="player" and game.can_act(unit) and other!=null and (game.can_attack(unit,other) or game.can_heal(unit,other)):
 		if target_id==other.id:confirm_action()
 		else:target_id=other.id;refresh()
 		return
@@ -259,7 +259,7 @@ func wait_selected():
 func confirm_action():
 	if busy:return
 	var unit=selected();var other=target()
-	if unit==null or other==null:return
+	if unit==null or other==null or unit.team!="player" or not game.can_act(unit):return
 	if game.can_heal(unit,other):
 		var before=other.hp
 		if not game.heal(unit,other):return
@@ -311,6 +311,12 @@ func reset_demo():
 	new_demo();log_lines.clear();var previous=mode;renderer.queue_free();renderer=null
 	result_label.text="One sprite library. Two map renderers. The same battle.";set_mode(previous);message("Skirmish reset. Your campaign save is untouched.")
 
+func _input(event: InputEvent):
+	if event is InputEventKey and event.pressed and not event.echo and event.keycode==KEY_TAB:
+		if busy:renderer.skip_animations()
+		else:set_mode("3d" if mode=="2d" else "2d")
+		get_viewport().set_input_as_handled()
+
 func _unhandled_key_input(event: InputEvent):
 	if not event is InputEventKey or not event.pressed or event.echo:return
 	if event.keycode==KEY_TAB:
@@ -322,7 +328,10 @@ func _unhandled_key_input(event: InputEvent):
 		if event.keycode==KEY_ENTER:click_cell(cursor)
 		var directions={KEY_LEFT:Vector2i.LEFT,KEY_RIGHT:Vector2i.RIGHT,KEY_UP:Vector2i.UP,KEY_DOWN:Vector2i.DOWN}
 		if directions.has(event.keycode):
-			cursor+=directions[event.keycode];cursor.x=clampi(cursor.x,0,game.board_size().x-1);cursor.y=clampi(cursor.y,0,game.board_size().y-1);refresh()
+			cursor+=directions[event.keycode];cursor.x=clampi(cursor.x,0,game.board_size().x-1);cursor.y=clampi(cursor.y,0,game.board_size().y-1)
+			route.clear();var unit=selected()
+			if unit!=null and unit.team=="player" and not unit.acted and not unit.moved:route=game.movement_path(unit,cursor)
+			refresh()
 	get_viewport().set_input_as_handled()
 
 func _process(dt):
