@@ -40,6 +40,7 @@ var settings_path="user://preferences.json"
 var options_return="title"
 var tactics=preload("res://scripts/tactics.gd").new()
 var camera: Camera3D
+var map_navigation=preload("res://scripts/tactical_camera.gd").new()
 var environment: Environment
 var sunlight: DirectionalLight3D
 var default_lighting: Dictionary
@@ -256,6 +257,7 @@ func map_camera():
 	camera.position=center+Vector3(2.5,22,11.5)
 	camera.look_at(center)
 	camera.h_offset=2.0
+	map_navigation.configure(camera,game.board_size())
 
 func make_map():
 	cursor_visible=false
@@ -404,7 +406,7 @@ func show_battle():
 	var panel=PanelContainer.new();panel.set_anchors_and_offsets_preset(Control.PRESET_RIGHT_WIDE);panel.offset_left=-325;panel.offset_right=-22;panel.offset_top=118;panel.offset_bottom=-24;ui.add_child(panel)
 	side=VBoxContainer.new();side.add_theme_constant_override("separation",5);panel.add_child(side)
 	var bottom=PanelContainer.new();bottom.set_anchors_and_offsets_preset(Control.PRESET_BOTTOM_WIDE);bottom.offset_left=22;bottom.offset_right=-343;bottom.offset_top=-84;bottom.offset_bottom=-22;ui.add_child(bottom)
-	label_in(bottom,"Arrows: cursor · Enter: select / confirm · Q/E: next ally · W: wait · R: danger\nMouse: select > move > attack · Esc: undo · Space: end phase · Tab: skip battle",14)
+	label_in(bottom,"Arrows / Enter: select · Q/E: allies · W: wait · R: danger · Space: end phase\nWheel / + −: zoom · Middle drag: pan · Home: reset · Esc: undo · Tab: skip",14)
 	terrain_card=TerrainCard.new();terrain_card.configure(ui)
 	var inspected=game.pos(selected) if selected!=null else game.pos(game.living("player")[0]) if not game.living("player").is_empty() else Vector2i.ZERO
 	terrain_card.inspect(game,cursor_tile if cursor_visible else inspected)
@@ -483,7 +485,12 @@ func toggle_danger():
 	show_danger=not show_danger;highlight();update_side()
 
 func _input(event):
+	if event is InputEventMouseButton and event.button_index==MOUSE_BUTTON_MIDDLE and not event.pressed:map_navigation.dragging=false
 	if screen=="battle" and not busy and game.phase=="player" and event is InputEventKey and event.pressed:
+		if event.keycode==KEY_HOME:map_camera();get_viewport().set_input_as_handled();return
+		if event.keycode in [KEY_EQUAL,KEY_PLUS,KEY_MINUS]:
+			var anchor=camera.unproject_position(Vector3(cursor_tile.x,0,cursor_tile.y)) if cursor_visible else Vector2((ui.size.x-325)*.5,ui.size.y*.5)
+			map_navigation.zoom(-1 if event.keycode==KEY_MINUS else 1,anchor);get_viewport().set_input_as_handled();return
 		var steps={KEY_LEFT:Vector2i.LEFT,KEY_RIGHT:Vector2i.RIGHT,KEY_UP:Vector2i.UP,KEY_DOWN:Vector2i.DOWN}
 		if steps.has(event.keycode):
 			move_map_cursor(steps[event.keycode]);get_viewport().set_input_as_handled();return
@@ -517,10 +524,14 @@ func _unhandled_input(event):
 			if event.keycode==KEY_ENTER and not event.echo:activate_map_cursor();get_viewport().set_input_as_handled()
 	if screen!="battle" or busy or game.phase!="player":return
 	if event is InputEventMouseMotion:
+		if map_navigation.dragging:map_navigation.drag(event.position);return
 		var ray_start=camera.project_ray_origin(event.position);var ray_direction=camera.project_ray_normal(event.position)
 		var ground=Plane(Vector3.UP,0).intersects_ray(ray_start,ray_direction)
 		if ground!=null:preview_route(Vector2i(roundi(ground.x),roundi(ground.z)))
 	if event is InputEventMouseButton and event.pressed:
+		if event.button_index in [MOUSE_BUTTON_WHEEL_UP,MOUSE_BUTTON_WHEEL_DOWN]:
+			map_navigation.zoom(1 if event.button_index==MOUSE_BUTTON_WHEEL_UP else -1,event.position);return
+		if event.button_index==MOUSE_BUTTON_MIDDLE:map_navigation.begin_drag(event.position);return
 		if event.button_index==MOUSE_BUTTON_RIGHT:cancel_selection();return
 		if event.button_index!=MOUSE_BUTTON_LEFT:return
 		cursor_visible=false;highlight()
@@ -628,6 +639,7 @@ func make_fighter(u,position) -> Node3D:
 
 func cinematic(a,b,events,initial_hp={}):
 	if events.is_empty():return
+	map_navigation.stop()
 	if not preferences.show_cinematic(a.team):
 		await map_combat_feedback(events)
 		return
@@ -1209,6 +1221,7 @@ func move_map_cursor(direction: Vector2i):
 	if focus!=null:focus.release_focus()
 	var size=game.board_size();cursor_tile+=direction
 	cursor_tile=Vector2i(clampi(cursor_tile.x,0,size.x-1),clampi(cursor_tile.y,0,size.y-1))
+	map_navigation.keep_visible(Vector3(cursor_tile.x,0,cursor_tile.y))
 	highlight();preview_route(cursor_tile)
 
 func cycle_ready_ally(direction: int):
@@ -1222,6 +1235,7 @@ func cycle_ready_ally(direction: int):
 	var focus=get_viewport().gui_get_focus_owner()
 	if focus!=null:focus.release_focus()
 	click_tile(cursor_tile)
+	map_navigation.keep_visible(Vector3(cursor_tile.x,0,cursor_tile.y))
 
 func activate_map_cursor():
 	if screen!="battle" or busy or game.phase!="player":return

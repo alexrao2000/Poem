@@ -9,6 +9,8 @@ An original, playable tactical RPG prototype in Godot 4.5.1 / GDScript.
 - Authored enemy equipment across all 12 chapters, including ranged spears, longbows, stronger tomes and specialist weapons visible in enemy inspection and forecasts.
 - Weighted terrain movement, occupancy, weapon triangle, two-roll hit checks, critical hits, counters, speed follow-ups, healing, enemy turns and casual recovery.
 - Eight animated map-sprite classes with four facings on textured 3D terrain, directional walking, attack/recoil poses, selection rings and spent-action markers. Individual portraits identify all 24 recruits. Combat uses articulated 3D figures, weapon strokes, opposing portrait nameplates and animated health meters. Low three-quarter shots follow preparation and impact; a radial zoom transition joins map and arena.
+- Continuous counters/follow-ups, distinct Ember/Gale/Thunder spells, weapon-specific projectiles and critical contact bursts. Terrain-matched arenas use chapter lighting and distance haze.
+- Flat tactical range outlines, directional route arrows, live terrain inspection, pointer-centered zoom and bounded map panning.
 - Original 71-second, 32-bar stereo score with calm/Ablaze arrangements on the same sample timeline, rendered with CC0 orchestral recordings and synthetic percussion. Separate combat, healing and phase effects.
 - Save/load during the player phase and at camp; autosaves after actions. Saves include RNG state, validate loaded data, retain the previous save as a backup, and migrate changed map layouts back to preparation.
 - 36 original support conversations (192 lines) across 12 partnerships covering the full roster; earned ranks grant proximity bonuses.
@@ -25,6 +27,8 @@ Select an ally, hover a reachable tile to preview its route, click to travel alo
 
 Use **Transfer a local save** on the title screen or war council, or **Transfer code** in battle, to copy an ASHEN1 code into another build. Battle transfer exports the live state and returns to the same map. Failed autosaves show a warning and a phase-status marker; the transfer code remains available if device storage cannot be written. In a browser, **Open browser copy / paste** provides a native text field; choose **Use code**, then **Import pasted code**. The previous save is retained as a backup. Nothing is uploaded.
 
+Scroll the wheel or press **+ / −** to zoom the tactical map. Drag with the middle mouse button to pan; **Home** resets the view. Keyboard cursor movement keeps distant tiles in view. Zoom and pan survive the return from 3D combat. The terrain card follows the pointer or keyboard cursor and displays the same costs and bonuses used by the simulation.
+
 **Options** is available from the title, war council and battle sidebar. It controls full 3D/player-only/quick-map battles, music and effects volume, dialogue speed, and automatic phase ending. Preferences stay on the device separately from campaign saves.
 
 Save files are local to the device/browser origin. Browser storage can be cleared by the browser. Returning to the war council restarts the current map from its pre-battle roster.
@@ -40,6 +44,8 @@ Open **Visual workshop · 2D / 3D maps** from the title screen to play the same 
 - `scripts/main.gd`: menus, board renderer, input, AI orchestration, combat presentation and music.
 - `scripts/campaign_map_unit.gd`: campaign adapter for the reusable animated sprite catalog in `visuals/`, with directional movement, quick-battle reactions and projected mouse selection bounds.
 - `scripts/combat_camera.gd`, `combat_hud.gd`, `combat_transition.gd` and `combat_trail.gd`: isolated camera direction, portrait health displays, map/arena handoff and transient melee strokes.
+- `scripts/tactical_camera.gd`, `map_overlay.gd` and `terrain_card.gd`: map navigation, batched range/path geometry and shared-rule terrain inspection.
+- `scripts/combat_projectile.gd`, `combat_impact.gd` and `combat_spell.gd`: self-cleaning flight/contact effects and equipped spell identities.
 - `scripts/scenery.gd`: textured terrain, environment construction and material caching.
 - `scripts/static_batch.gd`: spatial/material batching for static scenery, with correct normals under nonuniform scaling. The current 12 maps combine 13,633 mesh objects into 674 batches; browser FPS has not yet been measured.
 - `scripts/fighters.gd` and `fighter_actor.gd`: articulated class actors, joint poses, weapons and class-specific attack animations.
@@ -60,7 +66,7 @@ Open **Visual workshop · 2D / 3D maps** from the title screen to play the same 
 
 Run all suites: `GODOT_BIN=/path/to/godot python3 scripts/test_local.py`. The runner detects script errors and times out hung assertions.
 
-Validation: 525 rules assertions, pathfinding/action tests, save recovery/migration, 60 chapter victories across three seeds and both promotion branches, dialogue/portrait checks, audio timeline tests and scene checks pass. Browser smoke testing covers loading, recruitment/deployment screens, movement, forecasts, attacks, enemy turns and save continuation. This is not a complete human campaign balance playthrough.
+Validation: 525 rules assertions, pathfinding/action tests, save recovery/migration, 60 chapter victories across three seeds and both promotion branches, dialogue/portrait checks, audio timeline tests and scene checks pass. Earlier browser smoke testing covered loading, deployment, movement, forecasts, attacks, enemy turns and save continuation. The latest presentation changes have headless geometry/layout/runtime checks; rendered gameplay review is pending. This is not a complete human campaign balance playthrough.
 
 Export templates are not checked in. Download the official 4.5.1 export templates and place `web_nothreads_debug.zip`, `web_nothreads_release.zip`, and `macos.zip` in `.tools/templates`, renaming the web files to `web_debug.zip` and `web_release.zip`. Alternatively clear custom template paths in the export settings and install standard templates through Godot.
 
