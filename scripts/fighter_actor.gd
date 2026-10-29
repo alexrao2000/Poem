@@ -22,6 +22,8 @@ func bone(key: String) -> Node3D:
 
 func _process(dt):
  elapsed+=dt
+ if bones.has("HorseTail"):bones.HorseTail.rotation.z=sin(elapsed*2.3)*(.10 if pose_name=="advance" else .045)
+ if bones.has("HorseHead"):bones.HorseHead.rotation.x=sin(elapsed*(8.0 if pose_name=="advance" else 1.6))*(.04 if pose_name=="advance" else .015)
  if bones.has("Cape"):
   bones.Cape.rotation.x=sin(elapsed*2.7)*.07+(.18 if pose_name in ["advance","strike"] else .04)
  if pose_name=="idle":

@@ -83,6 +83,20 @@ func run():
  await final_shot.launch(Vector3.ZERO,Vector3.RIGHT*4,"bow",.02).finished
  await process_frame;assert(reference.get_ref()==null,"Completed flight releases its meshes")
  stage.position=Vector3.ZERO
+ var coats=[];fighters.batching_enabled=false
+ for id in ["bram","una","elian"]:
+  var unit=rules.roster.filter(func(u):return u.id==id)[0].duplicate(true);unit.team="player"
+  var actor=fighters.build(stage,unit,Vector3.ZERO);actor.set_process(false)
+  var coat=actor.get_node("Horse/HorseBody").material_override.albedo_color
+  assert(coat==Color(actor.get_meta("mount_appearance").coat) and coat not in coats,"Mounted recruits retain distinct coats matching their map identities")
+  coats.append(coat)
+  var head=actor.bone("HorseHead");var tail=actor.bone("HorseTail")
+  fighters.batch_rig(actor)
+  assert(head==actor.bone("HorseHead") and tail==actor.bone("HorseTail"),"Mounted details retain head/tail joints after batching")
+  var origin=actor.position;actor.elapsed=.4;actor._process(0)
+  assert(absf(tail.rotation.z)>.02 and absf(head.rotation.x)>.005 and actor.position==origin,"Secondary mount motion animates without moving the tactical actor")
+  actor.queue_free()
+ fighters.batching_enabled=true
  for job in ["Ranger","Arcanist","Knight","Rider"]:
   var unit=rules.roster.filter(func(u):return u.job==job)[0].duplicate(true);unit.team="player"
   var actor=fighters.build(stage,unit,Vector3.ZERO);actor.rotation.y=-PI/2

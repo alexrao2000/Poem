@@ -3,11 +3,13 @@ extends RefCounted
 # preserving every animated joint, painted face and authored model adapter.
 var models=preload("res://scripts/combat_models.gd").new()
 const Actor=preload("res://scripts/fighter_actor.gd")
+const Mount=preload("res://scripts/mount_visuals.gd")
 var profiles=JSON.parse_string(FileAccess.get_file_as_string("res://data/characters.json"))
 var surface_atlas=load("res://assets/art/character-materials.png")
 var surface_shader=preload("res://assets/shaders/character.gdshader")
 var surface_cache={}
 var shading_cache={}
+var strand_materials={}
 var batching_enabled=true
 var face_atlas=load("res://assets/art/face-features.png")
 var face_materials={}
@@ -31,7 +33,7 @@ func joint(parent,node_name,p):
 func build(parent,u,p) -> Node3D:
  var imported=models.build(parent,u,p)
  if imported!=null:return imported
- shading_cache.clear()
+ shading_cache.clear();strand_materials.clear()
  var actor=Actor.new();parent.add_child(actor);actor.position=p;actor.kind=u.weapon
  var body=joint(actor,"Body",Vector3(0,1.1,0));actor.register_bone("Body",body)
  var tint=Color(u.color)
@@ -142,16 +144,7 @@ func build(parent,u,p) -> Node3D:
   for name_value in ["Body","LeftLeg","RightLeg"]:
    actor.bones[name_value].position.y+=.75
    actor.rest[name_value].position=actor.bones[name_value].position
-  var horse=joint(actor,"Horse",Vector3(0,.85,0))
-  ellipsoid(horse,Vector3.ZERO,Vector3(.34,.4,.68),Color("77513a"))
-  ellipsoid(horse,Vector3(0,.34,-.52),Vector3(.19,.47,.2),Color("77513a"))
-  ellipsoid(horse,Vector3(0,.63,-.66),Vector3(.16,.21,.30),Color("77513a"))
-  var i=0
-  for x in [-.23,.23]:
-   for z in [-.4,.43]:
-    var leg=joint(horse,"Leg"+str(i),Vector3(x,-.12,z));actor.register_bone("HorseLeg"+str(i),leg)
-    geo.cylinder(leg,Vector3(0,-.35,0),.7,.055,Color("5b3e32"))
-    ellipsoid(leg,Vector3(0,-.72,0),Vector3(.075,.055,.10),Color("30333a"));i+=1
+  Mount.build(self,actor,u.id,blue,gold,leather)
  apply_surfaces(actor,blue,tint,skin,steel,gold,leather,cape_color)
  if batching_enabled:batch_rig(actor)
  actor.pose("idle",.01)
@@ -288,5 +281,6 @@ func hair_lock(parent,points,radius,color):
     vertices.append(points[corner[0]]+Vector3(cos(angle)*radius*taper,0,sin(angle)*radius*taper))
    for vertex in [0,2,1,0,3,2]:st.add_vertex(vertices[vertex])
  st.generate_normals()
- var mat=geo.material(color).duplicate();mat.cull_mode=BaseMaterial3D.CULL_DISABLED;mat.diffuse_mode=BaseMaterial3D.DIFFUSE_TOON
- return geo.mesh(parent,st.commit(),Vector3.ZERO,Vector3.ONE,mat)
+ if not strand_materials.has(color):
+  var mat=geo.material(color).duplicate();mat.cull_mode=BaseMaterial3D.CULL_DISABLED;mat.diffuse_mode=BaseMaterial3D.DIFFUSE_TOON;strand_materials[color]=mat
+ return geo.mesh(parent,st.commit(),Vector3.ZERO,Vector3.ONE,strand_materials[color])
