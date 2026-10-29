@@ -1,0 +1,3608 @@
+{
+  "schema_version": 1,
+  "profile": {
+    "id": "tactical-pixel-v1-prototype",
+    "tile_size_px": [
+      32,
+      32
+    ],
+    "direction_axes": {
+      "east": "+x",
+      "south": "+y"
+    }
+  },
+  "assets": [
+    {
+      "id": "unit.vanguard",
+      "kind": "map_unit",
+      "texture": "assets/units-v2.png",
+      "logical_frame_px": [
+        49,
+        50
+      ],
+      "fallback_visual_id": null,
+      "frames": [
+        {
+          "rect": [
+            3,
+            2,
+            122,
+            124
+          ],
+          "pivot_px": [
+            61,
+            108
+          ]
+        },
+        {
+          "rect": [
+            131,
+            2,
+            122,
+            124
+          ],
+          "pivot_px": [
+            61,
+            108
+          ]
+        },
+        {
+          "rect": [
+            259,
+            2,
+            122,
+            124
+          ],
+          "pivot_px": [
+            61,
+            108
+          ]
+        },
+        {
+          "rect": [
+            387,
+            2,
+            122,
+            124
+          ],
+          "pivot_px": [
+            61,
+            108
+          ]
+        },
+        {
+          "rect": [
+            515,
+            2,
+            122,
+            124
+          ],
+          "pivot_px": [
+            61,
+            108
+          ]
+        },
+        {
+          "rect": [
+            643,
+            2,
+            122,
+            124
+          ],
+          "pivot_px": [
+            61,
+            108
+          ]
+        },
+        {
+          "rect": [
+            771,
+            2,
+            122,
+            124
+          ],
+          "pivot_px": [
+            61,
+            108
+          ]
+        },
+        {
+          "rect": [
+            899,
+            2,
+            122,
+            124
+          ],
+          "pivot_px": [
+            61,
+            108
+          ]
+        },
+        {
+          "rect": [
+            1027,
+            2,
+            122,
+            124
+          ],
+          "pivot_px": [
+            61,
+            108
+          ]
+        },
+        {
+          "rect": [
+            1155,
+            2,
+            122,
+            124
+          ],
+          "pivot_px": [
+            61,
+            108
+          ]
+        },
+        {
+          "rect": [
+            1283,
+            2,
+            122,
+            124
+          ],
+          "pivot_px": [
+            61,
+            108
+          ]
+        },
+        {
+          "rect": [
+            1411,
+            2,
+            122,
+            124
+          ],
+          "pivot_px": [
+            61,
+            108
+          ]
+        }
+      ],
+      "clips": {
+        "idle": {
+          "south": {
+            "frames": [
+              0,
+              1
+            ],
+            "duration_ms": [
+              350,
+              350
+            ],
+            "loop": true,
+            "cues": []
+          },
+          "west": {
+            "frames": [
+              2,
+              2
+            ],
+            "duration_ms": [
+              350,
+              350
+            ],
+            "loop": true,
+            "cues": []
+          },
+          "east": {
+            "frames": [
+              4,
+              4
+            ],
+            "duration_ms": [
+              350,
+              350
+            ],
+            "loop": true,
+            "cues": []
+          },
+          "north": {
+            "frames": [
+              6,
+              6
+            ],
+            "duration_ms": [
+              350,
+              350
+            ],
+            "loop": true,
+            "cues": []
+          }
+        },
+        "move": {
+          "south": {
+            "frames": [
+              8,
+              9
+            ],
+            "duration_ms": [
+              110,
+              110
+            ],
+            "loop": true,
+            "cues": []
+          },
+          "west": {
+            "frames": [
+              2,
+              3
+            ],
+            "duration_ms": [
+              110,
+              110
+            ],
+            "loop": true,
+            "cues": []
+          },
+          "east": {
+            "frames": [
+              4,
+              5
+            ],
+            "duration_ms": [
+              110,
+              110
+            ],
+            "loop": true,
+            "cues": []
+          },
+          "north": {
+            "frames": [
+              6,
+              7
+            ],
+            "duration_ms": [
+              110,
+              110
+            ],
+            "loop": true,
+            "cues": []
+          }
+        },
+        "act": {
+          "south": {
+            "frames": [
+              0,
+              10,
+              10,
+              0
+            ],
+            "duration_ms": [
+              120,
+              100,
+              90,
+              110
+            ],
+            "loop": false,
+            "cues": [
+              {
+                "frame_index": 1,
+                "name": "contact"
+              }
+            ]
+          },
+          "west": {
+            "frames": [
+              2,
+              10,
+              10,
+              2
+            ],
+            "duration_ms": [
+              120,
+              100,
+              90,
+              110
+            ],
+            "loop": false,
+            "cues": [
+              {
+                "frame_index": 1,
+                "name": "contact"
+              }
+            ]
+          },
+          "east": {
+            "frames": [
+              4,
+              10,
+              10,
+              4
+            ],
+            "duration_ms": [
+              120,
+              100,
+              90,
+              110
+            ],
+            "loop": false,
+            "cues": [
+              {
+                "frame_index": 1,
+                "name": "contact"
+              }
+            ]
+          },
+          "north": {
+            "frames": [
+              6,
+              10,
+              10,
+              6
+            ],
+            "duration_ms": [
+              120,
+              100,
+              90,
+              110
+            ],
+            "loop": false,
+            "cues": [
+              {
+                "frame_index": 1,
+                "name": "contact"
+              }
+            ]
+          }
+        },
+        "hurt": {
+          "south": {
+            "frames": [
+              11,
+              11
+            ],
+            "duration_ms": [
+              120,
+              160
+            ],
+            "loop": false,
+            "cues": []
+          },
+          "west": {
+            "frames": [
+              11,
+              11
+            ],
+            "duration_ms": [
+              120,
+              160
+            ],
+            "loop": false,
+            "cues": []
+          },
+          "east": {
+            "frames": [
+              11,
+              11
+            ],
+            "duration_ms": [
+              120,
+              160
+            ],
+            "loop": false,
+            "cues": []
+          },
+          "north": {
+            "frames": [
+              11,
+              11
+            ],
+            "duration_ms": [
+              120,
+              160
+            ],
+            "loop": false,
+            "cues": []
+          }
+        },
+        "defeated": {
+          "south": {
+            "frames": [
+              11,
+              11
+            ],
+            "duration_ms": [
+              200,
+              300
+            ],
+            "loop": false,
+            "cues": []
+          },
+          "west": {
+            "frames": [
+              11,
+              11
+            ],
+            "duration_ms": [
+              200,
+              300
+            ],
+            "loop": false,
+            "cues": []
+          },
+          "east": {
+            "frames": [
+              11,
+              11
+            ],
+            "duration_ms": [
+              200,
+              300
+            ],
+            "loop": false,
+            "cues": []
+          },
+          "north": {
+            "frames": [
+              11,
+              11
+            ],
+            "duration_ms": [
+              200,
+              300
+            ],
+            "loop": false,
+            "cues": []
+          }
+        }
+      },
+      "provenance": {
+        "generator": "built-in image_gen",
+        "record": "source/generation-prompts.json"
+      },
+      "art_status": "prototype: directional move pairs; shared attack and hurt pose; defeat reuses recoil"
+    },
+    {
+      "id": "unit.knight",
+      "kind": "map_unit",
+      "texture": "assets/units-v2.png",
+      "logical_frame_px": [
+        49,
+        50
+      ],
+      "fallback_visual_id": null,
+      "frames": [
+        {
+          "rect": [
+            3,
+            130,
+            122,
+            124
+          ],
+          "pivot_px": [
+            61,
+            108
+          ]
+        },
+        {
+          "rect": [
+            131,
+            130,
+            122,
+            124
+          ],
+          "pivot_px": [
+            61,
+            108
+          ]
+        },
+        {
+          "rect": [
+            259,
+            130,
+            122,
+            124
+          ],
+          "pivot_px": [
+            61,
+            108
+          ]
+        },
+        {
+          "rect": [
+            387,
+            130,
+            122,
+            124
+          ],
+          "pivot_px": [
+            61,
+            108
+          ]
+        },
+        {
+          "rect": [
+            515,
+            130,
+            122,
+            124
+          ],
+          "pivot_px": [
+            61,
+            108
+          ]
+        },
+        {
+          "rect": [
+            643,
+            130,
+            122,
+            124
+          ],
+          "pivot_px": [
+            61,
+            108
+          ]
+        },
+        {
+          "rect": [
+            771,
+            130,
+            122,
+            124
+          ],
+          "pivot_px": [
+            61,
+            108
+          ]
+        },
+        {
+          "rect": [
+            899,
+            130,
+            122,
+            124
+          ],
+          "pivot_px": [
+            61,
+            108
+          ]
+        },
+        {
+          "rect": [
+            1027,
+            130,
+            122,
+            124
+          ],
+          "pivot_px": [
+            61,
+            108
+          ]
+        },
+        {
+          "rect": [
+            1155,
+            130,
+            122,
+            124
+          ],
+          "pivot_px": [
+            61,
+            108
+          ]
+        },
+        {
+          "rect": [
+            1283,
+            130,
+            122,
+            124
+          ],
+          "pivot_px": [
+            61,
+            108
+          ]
+        },
+        {
+          "rect": [
+            1411,
+            130,
+            122,
+            124
+          ],
+          "pivot_px": [
+            61,
+            108
+          ]
+        }
+      ],
+      "clips": {
+        "idle": {
+          "south": {
+            "frames": [
+              0,
+              1
+            ],
+            "duration_ms": [
+              350,
+              350
+            ],
+            "loop": true,
+            "cues": []
+          },
+          "west": {
+            "frames": [
+              2,
+              2
+            ],
+            "duration_ms": [
+              350,
+              350
+            ],
+            "loop": true,
+            "cues": []
+          },
+          "east": {
+            "frames": [
+              4,
+              4
+            ],
+            "duration_ms": [
+              350,
+              350
+            ],
+            "loop": true,
+            "cues": []
+          },
+          "north": {
+            "frames": [
+              6,
+              6
+            ],
+            "duration_ms": [
+              350,
+              350
+            ],
+            "loop": true,
+            "cues": []
+          }
+        },
+        "move": {
+          "south": {
+            "frames": [
+              8,
+              9
+            ],
+            "duration_ms": [
+              110,
+              110
+            ],
+            "loop": true,
+            "cues": []
+          },
+          "west": {
+            "frames": [
+              2,
+              3
+            ],
+            "duration_ms": [
+              110,
+              110
+            ],
+            "loop": true,
+            "cues": []
+          },
+          "east": {
+            "frames": [
+              4,
+              5
+            ],
+            "duration_ms": [
+              110,
+              110
+            ],
+            "loop": true,
+            "cues": []
+          },
+          "north": {
+            "frames": [
+              6,
+              7
+            ],
+            "duration_ms": [
+              110,
+              110
+            ],
+            "loop": true,
+            "cues": []
+          }
+        },
+        "act": {
+          "south": {
+            "frames": [
+              0,
+              10,
+              10,
+              0
+            ],
+            "duration_ms": [
+              120,
+              100,
+              90,
+              110
+            ],
+            "loop": false,
+            "cues": [
+              {
+                "frame_index": 1,
+                "name": "contact"
+              }
+            ]
+          },
+          "west": {
+            "frames": [
+              2,
+              10,
+              10,
+              2
+            ],
+            "duration_ms": [
+              120,
+              100,
+              90,
+              110
+            ],
+            "loop": false,
+            "cues": [
+              {
+                "frame_index": 1,
+                "name": "contact"
+              }
+            ]
+          },
+          "east": {
+            "frames": [
+              4,
+              10,
+              10,
+              4
+            ],
+            "duration_ms": [
+              120,
+              100,
+              90,
+              110
+            ],
+            "loop": false,
+            "cues": [
+              {
+                "frame_index": 1,
+                "name": "contact"
+              }
+            ]
+          },
+          "north": {
+            "frames": [
+              6,
+              10,
+              10,
+              6
+            ],
+            "duration_ms": [
+              120,
+              100,
+              90,
+              110
+            ],
+            "loop": false,
+            "cues": [
+              {
+                "frame_index": 1,
+                "name": "contact"
+              }
+            ]
+          }
+        },
+        "hurt": {
+          "south": {
+            "frames": [
+              11,
+              11
+            ],
+            "duration_ms": [
+              120,
+              160
+            ],
+            "loop": false,
+            "cues": []
+          },
+          "west": {
+            "frames": [
+              11,
+              11
+            ],
+            "duration_ms": [
+              120,
+              160
+            ],
+            "loop": false,
+            "cues": []
+          },
+          "east": {
+            "frames": [
+              11,
+              11
+            ],
+            "duration_ms": [
+              120,
+              160
+            ],
+            "loop": false,
+            "cues": []
+          },
+          "north": {
+            "frames": [
+              11,
+              11
+            ],
+            "duration_ms": [
+              120,
+              160
+            ],
+            "loop": false,
+            "cues": []
+          }
+        },
+        "defeated": {
+          "south": {
+            "frames": [
+              11,
+              11
+            ],
+            "duration_ms": [
+              200,
+              300
+            ],
+            "loop": false,
+            "cues": []
+          },
+          "west": {
+            "frames": [
+              11,
+              11
+            ],
+            "duration_ms": [
+              200,
+              300
+            ],
+            "loop": false,
+            "cues": []
+          },
+          "east": {
+            "frames": [
+              11,
+              11
+            ],
+            "duration_ms": [
+              200,
+              300
+            ],
+            "loop": false,
+            "cues": []
+          },
+          "north": {
+            "frames": [
+              11,
+              11
+            ],
+            "duration_ms": [
+              200,
+              300
+            ],
+            "loop": false,
+            "cues": []
+          }
+        }
+      },
+      "provenance": {
+        "generator": "built-in image_gen",
+        "record": "source/generation-prompts.json"
+      },
+      "art_status": "prototype: directional move pairs; shared attack and hurt pose; defeat reuses recoil"
+    },
+    {
+      "id": "unit.ranger",
+      "kind": "map_unit",
+      "texture": "assets/units-v2.png",
+      "logical_frame_px": [
+        49,
+        50
+      ],
+      "fallback_visual_id": null,
+      "frames": [
+        {
+          "rect": [
+            3,
+            258,
+            122,
+            124
+          ],
+          "pivot_px": [
+            61,
+            108
+          ]
+        },
+        {
+          "rect": [
+            131,
+            258,
+            122,
+            124
+          ],
+          "pivot_px": [
+            61,
+            108
+          ]
+        },
+        {
+          "rect": [
+            259,
+            258,
+            122,
+            124
+          ],
+          "pivot_px": [
+            61,
+            108
+          ]
+        },
+        {
+          "rect": [
+            387,
+            258,
+            122,
+            124
+          ],
+          "pivot_px": [
+            61,
+            108
+          ]
+        },
+        {
+          "rect": [
+            515,
+            258,
+            122,
+            124
+          ],
+          "pivot_px": [
+            61,
+            108
+          ]
+        },
+        {
+          "rect": [
+            643,
+            258,
+            122,
+            124
+          ],
+          "pivot_px": [
+            61,
+            108
+          ]
+        },
+        {
+          "rect": [
+            771,
+            258,
+            122,
+            124
+          ],
+          "pivot_px": [
+            61,
+            108
+          ]
+        },
+        {
+          "rect": [
+            899,
+            258,
+            122,
+            124
+          ],
+          "pivot_px": [
+            61,
+            108
+          ]
+        },
+        {
+          "rect": [
+            1027,
+            258,
+            122,
+            124
+          ],
+          "pivot_px": [
+            61,
+            108
+          ]
+        },
+        {
+          "rect": [
+            1155,
+            258,
+            122,
+            124
+          ],
+          "pivot_px": [
+            61,
+            108
+          ]
+        },
+        {
+          "rect": [
+            1283,
+            258,
+            122,
+            124
+          ],
+          "pivot_px": [
+            61,
+            108
+          ]
+        },
+        {
+          "rect": [
+            1411,
+            258,
+            122,
+            124
+          ],
+          "pivot_px": [
+            61,
+            108
+          ]
+        }
+      ],
+      "clips": {
+        "idle": {
+          "south": {
+            "frames": [
+              0,
+              1
+            ],
+            "duration_ms": [
+              350,
+              350
+            ],
+            "loop": true,
+            "cues": []
+          },
+          "west": {
+            "frames": [
+              2,
+              2
+            ],
+            "duration_ms": [
+              350,
+              350
+            ],
+            "loop": true,
+            "cues": []
+          },
+          "east": {
+            "frames": [
+              4,
+              4
+            ],
+            "duration_ms": [
+              350,
+              350
+            ],
+            "loop": true,
+            "cues": []
+          },
+          "north": {
+            "frames": [
+              6,
+              6
+            ],
+            "duration_ms": [
+              350,
+              350
+            ],
+            "loop": true,
+            "cues": []
+          }
+        },
+        "move": {
+          "south": {
+            "frames": [
+              8,
+              9
+            ],
+            "duration_ms": [
+              110,
+              110
+            ],
+            "loop": true,
+            "cues": []
+          },
+          "west": {
+            "frames": [
+              2,
+              3
+            ],
+            "duration_ms": [
+              110,
+              110
+            ],
+            "loop": true,
+            "cues": []
+          },
+          "east": {
+            "frames": [
+              4,
+              5
+            ],
+            "duration_ms": [
+              110,
+              110
+            ],
+            "loop": true,
+            "cues": []
+          },
+          "north": {
+            "frames": [
+              6,
+              7
+            ],
+            "duration_ms": [
+              110,
+              110
+            ],
+            "loop": true,
+            "cues": []
+          }
+        },
+        "act": {
+          "south": {
+            "frames": [
+              0,
+              10,
+              10,
+              0
+            ],
+            "duration_ms": [
+              120,
+              100,
+              90,
+              110
+            ],
+            "loop": false,
+            "cues": [
+              {
+                "frame_index": 1,
+                "name": "contact"
+              }
+            ]
+          },
+          "west": {
+            "frames": [
+              2,
+              10,
+              10,
+              2
+            ],
+            "duration_ms": [
+              120,
+              100,
+              90,
+              110
+            ],
+            "loop": false,
+            "cues": [
+              {
+                "frame_index": 1,
+                "name": "contact"
+              }
+            ]
+          },
+          "east": {
+            "frames": [
+              4,
+              10,
+              10,
+              4
+            ],
+            "duration_ms": [
+              120,
+              100,
+              90,
+              110
+            ],
+            "loop": false,
+            "cues": [
+              {
+                "frame_index": 1,
+                "name": "contact"
+              }
+            ]
+          },
+          "north": {
+            "frames": [
+              6,
+              10,
+              10,
+              6
+            ],
+            "duration_ms": [
+              120,
+              100,
+              90,
+              110
+            ],
+            "loop": false,
+            "cues": [
+              {
+                "frame_index": 1,
+                "name": "contact"
+              }
+            ]
+          }
+        },
+        "hurt": {
+          "south": {
+            "frames": [
+              11,
+              11
+            ],
+            "duration_ms": [
+              120,
+              160
+            ],
+            "loop": false,
+            "cues": []
+          },
+          "west": {
+            "frames": [
+              11,
+              11
+            ],
+            "duration_ms": [
+              120,
+              160
+            ],
+            "loop": false,
+            "cues": []
+          },
+          "east": {
+            "frames": [
+              11,
+              11
+            ],
+            "duration_ms": [
+              120,
+              160
+            ],
+            "loop": false,
+            "cues": []
+          },
+          "north": {
+            "frames": [
+              11,
+              11
+            ],
+            "duration_ms": [
+              120,
+              160
+            ],
+            "loop": false,
+            "cues": []
+          }
+        },
+        "defeated": {
+          "south": {
+            "frames": [
+              11,
+              11
+            ],
+            "duration_ms": [
+              200,
+              300
+            ],
+            "loop": false,
+            "cues": []
+          },
+          "west": {
+            "frames": [
+              11,
+              11
+            ],
+            "duration_ms": [
+              200,
+              300
+            ],
+            "loop": false,
+            "cues": []
+          },
+          "east": {
+            "frames": [
+              11,
+              11
+            ],
+            "duration_ms": [
+              200,
+              300
+            ],
+            "loop": false,
+            "cues": []
+          },
+          "north": {
+            "frames": [
+              11,
+              11
+            ],
+            "duration_ms": [
+              200,
+              300
+            ],
+            "loop": false,
+            "cues": []
+          }
+        }
+      },
+      "provenance": {
+        "generator": "built-in image_gen",
+        "record": "source/generation-prompts.json"
+      },
+      "art_status": "prototype: directional move pairs; shared attack and hurt pose; defeat reuses recoil"
+    },
+    {
+      "id": "unit.arcanist",
+      "kind": "map_unit",
+      "texture": "assets/units-v2.png",
+      "logical_frame_px": [
+        49,
+        50
+      ],
+      "fallback_visual_id": null,
+      "frames": [
+        {
+          "rect": [
+            3,
+            386,
+            122,
+            124
+          ],
+          "pivot_px": [
+            61,
+            108
+          ]
+        },
+        {
+          "rect": [
+            131,
+            386,
+            122,
+            124
+          ],
+          "pivot_px": [
+            61,
+            108
+          ]
+        },
+        {
+          "rect": [
+            259,
+            386,
+            122,
+            124
+          ],
+          "pivot_px": [
+            61,
+            108
+          ]
+        },
+        {
+          "rect": [
+            387,
+            386,
+            122,
+            124
+          ],
+          "pivot_px": [
+            61,
+            108
+          ]
+        },
+        {
+          "rect": [
+            515,
+            386,
+            122,
+            124
+          ],
+          "pivot_px": [
+            61,
+            108
+          ]
+        },
+        {
+          "rect": [
+            643,
+            386,
+            122,
+            124
+          ],
+          "pivot_px": [
+            61,
+            108
+          ]
+        },
+        {
+          "rect": [
+            771,
+            386,
+            122,
+            124
+          ],
+          "pivot_px": [
+            61,
+            108
+          ]
+        },
+        {
+          "rect": [
+            899,
+            386,
+            122,
+            124
+          ],
+          "pivot_px": [
+            61,
+            108
+          ]
+        },
+        {
+          "rect": [
+            1027,
+            386,
+            122,
+            124
+          ],
+          "pivot_px": [
+            61,
+            108
+          ]
+        },
+        {
+          "rect": [
+            1155,
+            386,
+            122,
+            124
+          ],
+          "pivot_px": [
+            61,
+            108
+          ]
+        },
+        {
+          "rect": [
+            1283,
+            386,
+            122,
+            124
+          ],
+          "pivot_px": [
+            61,
+            108
+          ]
+        },
+        {
+          "rect": [
+            1411,
+            386,
+            122,
+            124
+          ],
+          "pivot_px": [
+            61,
+            108
+          ]
+        }
+      ],
+      "clips": {
+        "idle": {
+          "south": {
+            "frames": [
+              0,
+              1
+            ],
+            "duration_ms": [
+              350,
+              350
+            ],
+            "loop": true,
+            "cues": []
+          },
+          "west": {
+            "frames": [
+              2,
+              2
+            ],
+            "duration_ms": [
+              350,
+              350
+            ],
+            "loop": true,
+            "cues": []
+          },
+          "east": {
+            "frames": [
+              4,
+              4
+            ],
+            "duration_ms": [
+              350,
+              350
+            ],
+            "loop": true,
+            "cues": []
+          },
+          "north": {
+            "frames": [
+              6,
+              6
+            ],
+            "duration_ms": [
+              350,
+              350
+            ],
+            "loop": true,
+            "cues": []
+          }
+        },
+        "move": {
+          "south": {
+            "frames": [
+              8,
+              9
+            ],
+            "duration_ms": [
+              110,
+              110
+            ],
+            "loop": true,
+            "cues": []
+          },
+          "west": {
+            "frames": [
+              2,
+              3
+            ],
+            "duration_ms": [
+              110,
+              110
+            ],
+            "loop": true,
+            "cues": []
+          },
+          "east": {
+            "frames": [
+              4,
+              5
+            ],
+            "duration_ms": [
+              110,
+              110
+            ],
+            "loop": true,
+            "cues": []
+          },
+          "north": {
+            "frames": [
+              6,
+              7
+            ],
+            "duration_ms": [
+              110,
+              110
+            ],
+            "loop": true,
+            "cues": []
+          }
+        },
+        "act": {
+          "south": {
+            "frames": [
+              0,
+              10,
+              10,
+              0
+            ],
+            "duration_ms": [
+              120,
+              100,
+              90,
+              110
+            ],
+            "loop": false,
+            "cues": [
+              {
+                "frame_index": 1,
+                "name": "contact"
+              }
+            ]
+          },
+          "west": {
+            "frames": [
+              2,
+              10,
+              10,
+              2
+            ],
+            "duration_ms": [
+              120,
+              100,
+              90,
+              110
+            ],
+            "loop": false,
+            "cues": [
+              {
+                "frame_index": 1,
+                "name": "contact"
+              }
+            ]
+          },
+          "east": {
+            "frames": [
+              4,
+              10,
+              10,
+              4
+            ],
+            "duration_ms": [
+              120,
+              100,
+              90,
+              110
+            ],
+            "loop": false,
+            "cues": [
+              {
+                "frame_index": 1,
+                "name": "contact"
+              }
+            ]
+          },
+          "north": {
+            "frames": [
+              6,
+              10,
+              10,
+              6
+            ],
+            "duration_ms": [
+              120,
+              100,
+              90,
+              110
+            ],
+            "loop": false,
+            "cues": [
+              {
+                "frame_index": 1,
+                "name": "contact"
+              }
+            ]
+          }
+        },
+        "hurt": {
+          "south": {
+            "frames": [
+              11,
+              11
+            ],
+            "duration_ms": [
+              120,
+              160
+            ],
+            "loop": false,
+            "cues": []
+          },
+          "west": {
+            "frames": [
+              11,
+              11
+            ],
+            "duration_ms": [
+              120,
+              160
+            ],
+            "loop": false,
+            "cues": []
+          },
+          "east": {
+            "frames": [
+              11,
+              11
+            ],
+            "duration_ms": [
+              120,
+              160
+            ],
+            "loop": false,
+            "cues": []
+          },
+          "north": {
+            "frames": [
+              11,
+              11
+            ],
+            "duration_ms": [
+              120,
+              160
+            ],
+            "loop": false,
+            "cues": []
+          }
+        },
+        "defeated": {
+          "south": {
+            "frames": [
+              11,
+              11
+            ],
+            "duration_ms": [
+              200,
+              300
+            ],
+            "loop": false,
+            "cues": []
+          },
+          "west": {
+            "frames": [
+              11,
+              11
+            ],
+            "duration_ms": [
+              200,
+              300
+            ],
+            "loop": false,
+            "cues": []
+          },
+          "east": {
+            "frames": [
+              11,
+              11
+            ],
+            "duration_ms": [
+              200,
+              300
+            ],
+            "loop": false,
+            "cues": []
+          },
+          "north": {
+            "frames": [
+              11,
+              11
+            ],
+            "duration_ms": [
+              200,
+              300
+            ],
+            "loop": false,
+            "cues": []
+          }
+        }
+      },
+      "provenance": {
+        "generator": "built-in image_gen",
+        "record": "source/generation-prompts.json"
+      },
+      "art_status": "prototype: directional move pairs; shared attack and hurt pose; defeat reuses recoil"
+    },
+    {
+      "id": "unit.warden",
+      "kind": "map_unit",
+      "texture": "assets/units-v2.png",
+      "logical_frame_px": [
+        49,
+        50
+      ],
+      "fallback_visual_id": null,
+      "frames": [
+        {
+          "rect": [
+            3,
+            514,
+            122,
+            124
+          ],
+          "pivot_px": [
+            61,
+            108
+          ]
+        },
+        {
+          "rect": [
+            131,
+            514,
+            122,
+            124
+          ],
+          "pivot_px": [
+            61,
+            108
+          ]
+        },
+        {
+          "rect": [
+            259,
+            514,
+            122,
+            124
+          ],
+          "pivot_px": [
+            61,
+            108
+          ]
+        },
+        {
+          "rect": [
+            387,
+            514,
+            122,
+            124
+          ],
+          "pivot_px": [
+            61,
+            108
+          ]
+        },
+        {
+          "rect": [
+            515,
+            514,
+            122,
+            124
+          ],
+          "pivot_px": [
+            61,
+            108
+          ]
+        },
+        {
+          "rect": [
+            643,
+            514,
+            122,
+            124
+          ],
+          "pivot_px": [
+            61,
+            108
+          ]
+        },
+        {
+          "rect": [
+            771,
+            514,
+            122,
+            124
+          ],
+          "pivot_px": [
+            61,
+            108
+          ]
+        },
+        {
+          "rect": [
+            899,
+            514,
+            122,
+            124
+          ],
+          "pivot_px": [
+            61,
+            108
+          ]
+        },
+        {
+          "rect": [
+            1027,
+            514,
+            122,
+            124
+          ],
+          "pivot_px": [
+            61,
+            108
+          ]
+        },
+        {
+          "rect": [
+            1155,
+            514,
+            122,
+            124
+          ],
+          "pivot_px": [
+            61,
+            108
+          ]
+        },
+        {
+          "rect": [
+            1283,
+            514,
+            122,
+            124
+          ],
+          "pivot_px": [
+            61,
+            108
+          ]
+        },
+        {
+          "rect": [
+            1411,
+            514,
+            122,
+            124
+          ],
+          "pivot_px": [
+            61,
+            108
+          ]
+        }
+      ],
+      "clips": {
+        "idle": {
+          "south": {
+            "frames": [
+              0,
+              1
+            ],
+            "duration_ms": [
+              350,
+              350
+            ],
+            "loop": true,
+            "cues": []
+          },
+          "west": {
+            "frames": [
+              2,
+              2
+            ],
+            "duration_ms": [
+              350,
+              350
+            ],
+            "loop": true,
+            "cues": []
+          },
+          "east": {
+            "frames": [
+              4,
+              4
+            ],
+            "duration_ms": [
+              350,
+              350
+            ],
+            "loop": true,
+            "cues": []
+          },
+          "north": {
+            "frames": [
+              6,
+              6
+            ],
+            "duration_ms": [
+              350,
+              350
+            ],
+            "loop": true,
+            "cues": []
+          }
+        },
+        "move": {
+          "south": {
+            "frames": [
+              8,
+              9
+            ],
+            "duration_ms": [
+              110,
+              110
+            ],
+            "loop": true,
+            "cues": []
+          },
+          "west": {
+            "frames": [
+              2,
+              3
+            ],
+            "duration_ms": [
+              110,
+              110
+            ],
+            "loop": true,
+            "cues": []
+          },
+          "east": {
+            "frames": [
+              4,
+              5
+            ],
+            "duration_ms": [
+              110,
+              110
+            ],
+            "loop": true,
+            "cues": []
+          },
+          "north": {
+            "frames": [
+              6,
+              7
+            ],
+            "duration_ms": [
+              110,
+              110
+            ],
+            "loop": true,
+            "cues": []
+          }
+        },
+        "act": {
+          "south": {
+            "frames": [
+              0,
+              10,
+              10,
+              0
+            ],
+            "duration_ms": [
+              120,
+              100,
+              90,
+              110
+            ],
+            "loop": false,
+            "cues": [
+              {
+                "frame_index": 1,
+                "name": "contact"
+              }
+            ]
+          },
+          "west": {
+            "frames": [
+              2,
+              10,
+              10,
+              2
+            ],
+            "duration_ms": [
+              120,
+              100,
+              90,
+              110
+            ],
+            "loop": false,
+            "cues": [
+              {
+                "frame_index": 1,
+                "name": "contact"
+              }
+            ]
+          },
+          "east": {
+            "frames": [
+              4,
+              10,
+              10,
+              4
+            ],
+            "duration_ms": [
+              120,
+              100,
+              90,
+              110
+            ],
+            "loop": false,
+            "cues": [
+              {
+                "frame_index": 1,
+                "name": "contact"
+              }
+            ]
+          },
+          "north": {
+            "frames": [
+              6,
+              10,
+              10,
+              6
+            ],
+            "duration_ms": [
+              120,
+              100,
+              90,
+              110
+            ],
+            "loop": false,
+            "cues": [
+              {
+                "frame_index": 1,
+                "name": "contact"
+              }
+            ]
+          }
+        },
+        "hurt": {
+          "south": {
+            "frames": [
+              11,
+              11
+            ],
+            "duration_ms": [
+              120,
+              160
+            ],
+            "loop": false,
+            "cues": []
+          },
+          "west": {
+            "frames": [
+              11,
+              11
+            ],
+            "duration_ms": [
+              120,
+              160
+            ],
+            "loop": false,
+            "cues": []
+          },
+          "east": {
+            "frames": [
+              11,
+              11
+            ],
+            "duration_ms": [
+              120,
+              160
+            ],
+            "loop": false,
+            "cues": []
+          },
+          "north": {
+            "frames": [
+              11,
+              11
+            ],
+            "duration_ms": [
+              120,
+              160
+            ],
+            "loop": false,
+            "cues": []
+          }
+        },
+        "defeated": {
+          "south": {
+            "frames": [
+              11,
+              11
+            ],
+            "duration_ms": [
+              200,
+              300
+            ],
+            "loop": false,
+            "cues": []
+          },
+          "west": {
+            "frames": [
+              11,
+              11
+            ],
+            "duration_ms": [
+              200,
+              300
+            ],
+            "loop": false,
+            "cues": []
+          },
+          "east": {
+            "frames": [
+              11,
+              11
+            ],
+            "duration_ms": [
+              200,
+              300
+            ],
+            "loop": false,
+            "cues": []
+          },
+          "north": {
+            "frames": [
+              11,
+              11
+            ],
+            "duration_ms": [
+              200,
+              300
+            ],
+            "loop": false,
+            "cues": []
+          }
+        }
+      },
+      "provenance": {
+        "generator": "built-in image_gen",
+        "record": "source/generation-prompts.json"
+      },
+      "art_status": "prototype: directional move pairs; shared attack and hurt pose; defeat reuses recoil"
+    },
+    {
+      "id": "unit.rider",
+      "kind": "map_unit",
+      "texture": "assets/units-v2.png",
+      "logical_frame_px": [
+        49,
+        50
+      ],
+      "fallback_visual_id": null,
+      "frames": [
+        {
+          "rect": [
+            3,
+            642,
+            122,
+            124
+          ],
+          "pivot_px": [
+            61,
+            108
+          ]
+        },
+        {
+          "rect": [
+            131,
+            642,
+            122,
+            124
+          ],
+          "pivot_px": [
+            61,
+            108
+          ]
+        },
+        {
+          "rect": [
+            259,
+            642,
+            122,
+            124
+          ],
+          "pivot_px": [
+            61,
+            108
+          ]
+        },
+        {
+          "rect": [
+            387,
+            642,
+            122,
+            124
+          ],
+          "pivot_px": [
+            61,
+            108
+          ]
+        },
+        {
+          "rect": [
+            515,
+            642,
+            122,
+            124
+          ],
+          "pivot_px": [
+            61,
+            108
+          ]
+        },
+        {
+          "rect": [
+            643,
+            642,
+            122,
+            124
+          ],
+          "pivot_px": [
+            61,
+            108
+          ]
+        },
+        {
+          "rect": [
+            771,
+            642,
+            122,
+            124
+          ],
+          "pivot_px": [
+            61,
+            108
+          ]
+        },
+        {
+          "rect": [
+            899,
+            642,
+            122,
+            124
+          ],
+          "pivot_px": [
+            61,
+            108
+          ]
+        },
+        {
+          "rect": [
+            1027,
+            642,
+            122,
+            124
+          ],
+          "pivot_px": [
+            61,
+            108
+          ]
+        },
+        {
+          "rect": [
+            1155,
+            642,
+            122,
+            124
+          ],
+          "pivot_px": [
+            61,
+            108
+          ]
+        },
+        {
+          "rect": [
+            1283,
+            642,
+            122,
+            124
+          ],
+          "pivot_px": [
+            61,
+            108
+          ]
+        },
+        {
+          "rect": [
+            1411,
+            642,
+            122,
+            124
+          ],
+          "pivot_px": [
+            61,
+            108
+          ]
+        }
+      ],
+      "clips": {
+        "idle": {
+          "south": {
+            "frames": [
+              0,
+              1
+            ],
+            "duration_ms": [
+              350,
+              350
+            ],
+            "loop": true,
+            "cues": []
+          },
+          "west": {
+            "frames": [
+              2,
+              2
+            ],
+            "duration_ms": [
+              350,
+              350
+            ],
+            "loop": true,
+            "cues": []
+          },
+          "east": {
+            "frames": [
+              4,
+              4
+            ],
+            "duration_ms": [
+              350,
+              350
+            ],
+            "loop": true,
+            "cues": []
+          },
+          "north": {
+            "frames": [
+              6,
+              6
+            ],
+            "duration_ms": [
+              350,
+              350
+            ],
+            "loop": true,
+            "cues": []
+          }
+        },
+        "move": {
+          "south": {
+            "frames": [
+              8,
+              9
+            ],
+            "duration_ms": [
+              110,
+              110
+            ],
+            "loop": true,
+            "cues": []
+          },
+          "west": {
+            "frames": [
+              2,
+              3
+            ],
+            "duration_ms": [
+              110,
+              110
+            ],
+            "loop": true,
+            "cues": []
+          },
+          "east": {
+            "frames": [
+              4,
+              5
+            ],
+            "duration_ms": [
+              110,
+              110
+            ],
+            "loop": true,
+            "cues": []
+          },
+          "north": {
+            "frames": [
+              6,
+              7
+            ],
+            "duration_ms": [
+              110,
+              110
+            ],
+            "loop": true,
+            "cues": []
+          }
+        },
+        "act": {
+          "south": {
+            "frames": [
+              0,
+              10,
+              10,
+              0
+            ],
+            "duration_ms": [
+              120,
+              100,
+              90,
+              110
+            ],
+            "loop": false,
+            "cues": [
+              {
+                "frame_index": 1,
+                "name": "contact"
+              }
+            ]
+          },
+          "west": {
+            "frames": [
+              2,
+              10,
+              10,
+              2
+            ],
+            "duration_ms": [
+              120,
+              100,
+              90,
+              110
+            ],
+            "loop": false,
+            "cues": [
+              {
+                "frame_index": 1,
+                "name": "contact"
+              }
+            ]
+          },
+          "east": {
+            "frames": [
+              4,
+              10,
+              10,
+              4
+            ],
+            "duration_ms": [
+              120,
+              100,
+              90,
+              110
+            ],
+            "loop": false,
+            "cues": [
+              {
+                "frame_index": 1,
+                "name": "contact"
+              }
+            ]
+          },
+          "north": {
+            "frames": [
+              6,
+              10,
+              10,
+              6
+            ],
+            "duration_ms": [
+              120,
+              100,
+              90,
+              110
+            ],
+            "loop": false,
+            "cues": [
+              {
+                "frame_index": 1,
+                "name": "contact"
+              }
+            ]
+          }
+        },
+        "hurt": {
+          "south": {
+            "frames": [
+              11,
+              11
+            ],
+            "duration_ms": [
+              120,
+              160
+            ],
+            "loop": false,
+            "cues": []
+          },
+          "west": {
+            "frames": [
+              11,
+              11
+            ],
+            "duration_ms": [
+              120,
+              160
+            ],
+            "loop": false,
+            "cues": []
+          },
+          "east": {
+            "frames": [
+              11,
+              11
+            ],
+            "duration_ms": [
+              120,
+              160
+            ],
+            "loop": false,
+            "cues": []
+          },
+          "north": {
+            "frames": [
+              11,
+              11
+            ],
+            "duration_ms": [
+              120,
+              160
+            ],
+            "loop": false,
+            "cues": []
+          }
+        },
+        "defeated": {
+          "south": {
+            "frames": [
+              11,
+              11
+            ],
+            "duration_ms": [
+              200,
+              300
+            ],
+            "loop": false,
+            "cues": []
+          },
+          "west": {
+            "frames": [
+              11,
+              11
+            ],
+            "duration_ms": [
+              200,
+              300
+            ],
+            "loop": false,
+            "cues": []
+          },
+          "east": {
+            "frames": [
+              11,
+              11
+            ],
+            "duration_ms": [
+              200,
+              300
+            ],
+            "loop": false,
+            "cues": []
+          },
+          "north": {
+            "frames": [
+              11,
+              11
+            ],
+            "duration_ms": [
+              200,
+              300
+            ],
+            "loop": false,
+            "cues": []
+          }
+        }
+      },
+      "provenance": {
+        "generator": "built-in image_gen",
+        "record": "source/generation-prompts.json"
+      },
+      "art_status": "prototype: directional move pairs; shared attack and hurt pose; defeat reuses recoil"
+    },
+    {
+      "id": "unit.corsair",
+      "kind": "map_unit",
+      "texture": "assets/units-v2.png",
+      "logical_frame_px": [
+        49,
+        50
+      ],
+      "fallback_visual_id": null,
+      "frames": [
+        {
+          "rect": [
+            3,
+            770,
+            122,
+            124
+          ],
+          "pivot_px": [
+            61,
+            108
+          ]
+        },
+        {
+          "rect": [
+            131,
+            770,
+            122,
+            124
+          ],
+          "pivot_px": [
+            61,
+            108
+          ]
+        },
+        {
+          "rect": [
+            259,
+            770,
+            122,
+            124
+          ],
+          "pivot_px": [
+            61,
+            108
+          ]
+        },
+        {
+          "rect": [
+            387,
+            770,
+            122,
+            124
+          ],
+          "pivot_px": [
+            61,
+            108
+          ]
+        },
+        {
+          "rect": [
+            515,
+            770,
+            122,
+            124
+          ],
+          "pivot_px": [
+            61,
+            108
+          ]
+        },
+        {
+          "rect": [
+            643,
+            770,
+            122,
+            124
+          ],
+          "pivot_px": [
+            61,
+            108
+          ]
+        },
+        {
+          "rect": [
+            771,
+            770,
+            122,
+            124
+          ],
+          "pivot_px": [
+            61,
+            108
+          ]
+        },
+        {
+          "rect": [
+            899,
+            770,
+            122,
+            124
+          ],
+          "pivot_px": [
+            61,
+            108
+          ]
+        },
+        {
+          "rect": [
+            1027,
+            770,
+            122,
+            124
+          ],
+          "pivot_px": [
+            61,
+            108
+          ]
+        },
+        {
+          "rect": [
+            1155,
+            770,
+            122,
+            124
+          ],
+          "pivot_px": [
+            61,
+            108
+          ]
+        },
+        {
+          "rect": [
+            1283,
+            770,
+            122,
+            124
+          ],
+          "pivot_px": [
+            61,
+            108
+          ]
+        },
+        {
+          "rect": [
+            1411,
+            770,
+            122,
+            124
+          ],
+          "pivot_px": [
+            61,
+            108
+          ]
+        }
+      ],
+      "clips": {
+        "idle": {
+          "south": {
+            "frames": [
+              0,
+              1
+            ],
+            "duration_ms": [
+              350,
+              350
+            ],
+            "loop": true,
+            "cues": []
+          },
+          "west": {
+            "frames": [
+              2,
+              2
+            ],
+            "duration_ms": [
+              350,
+              350
+            ],
+            "loop": true,
+            "cues": []
+          },
+          "east": {
+            "frames": [
+              4,
+              4
+            ],
+            "duration_ms": [
+              350,
+              350
+            ],
+            "loop": true,
+            "cues": []
+          },
+          "north": {
+            "frames": [
+              6,
+              6
+            ],
+            "duration_ms": [
+              350,
+              350
+            ],
+            "loop": true,
+            "cues": []
+          }
+        },
+        "move": {
+          "south": {
+            "frames": [
+              8,
+              9
+            ],
+            "duration_ms": [
+              110,
+              110
+            ],
+            "loop": true,
+            "cues": []
+          },
+          "west": {
+            "frames": [
+              2,
+              3
+            ],
+            "duration_ms": [
+              110,
+              110
+            ],
+            "loop": true,
+            "cues": []
+          },
+          "east": {
+            "frames": [
+              4,
+              5
+            ],
+            "duration_ms": [
+              110,
+              110
+            ],
+            "loop": true,
+            "cues": []
+          },
+          "north": {
+            "frames": [
+              6,
+              7
+            ],
+            "duration_ms": [
+              110,
+              110
+            ],
+            "loop": true,
+            "cues": []
+          }
+        },
+        "act": {
+          "south": {
+            "frames": [
+              0,
+              10,
+              10,
+              0
+            ],
+            "duration_ms": [
+              120,
+              100,
+              90,
+              110
+            ],
+            "loop": false,
+            "cues": [
+              {
+                "frame_index": 1,
+                "name": "contact"
+              }
+            ]
+          },
+          "west": {
+            "frames": [
+              2,
+              10,
+              10,
+              2
+            ],
+            "duration_ms": [
+              120,
+              100,
+              90,
+              110
+            ],
+            "loop": false,
+            "cues": [
+              {
+                "frame_index": 1,
+                "name": "contact"
+              }
+            ]
+          },
+          "east": {
+            "frames": [
+              4,
+              10,
+              10,
+              4
+            ],
+            "duration_ms": [
+              120,
+              100,
+              90,
+              110
+            ],
+            "loop": false,
+            "cues": [
+              {
+                "frame_index": 1,
+                "name": "contact"
+              }
+            ]
+          },
+          "north": {
+            "frames": [
+              6,
+              10,
+              10,
+              6
+            ],
+            "duration_ms": [
+              120,
+              100,
+              90,
+              110
+            ],
+            "loop": false,
+            "cues": [
+              {
+                "frame_index": 1,
+                "name": "contact"
+              }
+            ]
+          }
+        },
+        "hurt": {
+          "south": {
+            "frames": [
+              11,
+              11
+            ],
+            "duration_ms": [
+              120,
+              160
+            ],
+            "loop": false,
+            "cues": []
+          },
+          "west": {
+            "frames": [
+              11,
+              11
+            ],
+            "duration_ms": [
+              120,
+              160
+            ],
+            "loop": false,
+            "cues": []
+          },
+          "east": {
+            "frames": [
+              11,
+              11
+            ],
+            "duration_ms": [
+              120,
+              160
+            ],
+            "loop": false,
+            "cues": []
+          },
+          "north": {
+            "frames": [
+              11,
+              11
+            ],
+            "duration_ms": [
+              120,
+              160
+            ],
+            "loop": false,
+            "cues": []
+          }
+        },
+        "defeated": {
+          "south": {
+            "frames": [
+              11,
+              11
+            ],
+            "duration_ms": [
+              200,
+              300
+            ],
+            "loop": false,
+            "cues": []
+          },
+          "west": {
+            "frames": [
+              11,
+              11
+            ],
+            "duration_ms": [
+              200,
+              300
+            ],
+            "loop": false,
+            "cues": []
+          },
+          "east": {
+            "frames": [
+              11,
+              11
+            ],
+            "duration_ms": [
+              200,
+              300
+            ],
+            "loop": false,
+            "cues": []
+          },
+          "north": {
+            "frames": [
+              11,
+              11
+            ],
+            "duration_ms": [
+              200,
+              300
+            ],
+            "loop": false,
+            "cues": []
+          }
+        }
+      },
+      "provenance": {
+        "generator": "built-in image_gen",
+        "record": "source/generation-prompts.json"
+      },
+      "art_status": "prototype: directional move pairs; shared attack and hurt pose; defeat reuses recoil"
+    },
+    {
+      "id": "unit.duelist",
+      "kind": "map_unit",
+      "texture": "assets/units-v2.png",
+      "logical_frame_px": [
+        49,
+        50
+      ],
+      "fallback_visual_id": null,
+      "frames": [
+        {
+          "rect": [
+            3,
+            898,
+            122,
+            124
+          ],
+          "pivot_px": [
+            61,
+            108
+          ]
+        },
+        {
+          "rect": [
+            131,
+            898,
+            122,
+            124
+          ],
+          "pivot_px": [
+            61,
+            108
+          ]
+        },
+        {
+          "rect": [
+            259,
+            898,
+            122,
+            124
+          ],
+          "pivot_px": [
+            61,
+            108
+          ]
+        },
+        {
+          "rect": [
+            387,
+            898,
+            122,
+            124
+          ],
+          "pivot_px": [
+            61,
+            108
+          ]
+        },
+        {
+          "rect": [
+            515,
+            898,
+            122,
+            124
+          ],
+          "pivot_px": [
+            61,
+            108
+          ]
+        },
+        {
+          "rect": [
+            643,
+            898,
+            122,
+            124
+          ],
+          "pivot_px": [
+            61,
+            108
+          ]
+        },
+        {
+          "rect": [
+            771,
+            898,
+            122,
+            124
+          ],
+          "pivot_px": [
+            61,
+            108
+          ]
+        },
+        {
+          "rect": [
+            899,
+            898,
+            122,
+            124
+          ],
+          "pivot_px": [
+            61,
+            108
+          ]
+        },
+        {
+          "rect": [
+            1027,
+            898,
+            122,
+            124
+          ],
+          "pivot_px": [
+            61,
+            108
+          ]
+        },
+        {
+          "rect": [
+            1155,
+            898,
+            122,
+            124
+          ],
+          "pivot_px": [
+            61,
+            108
+          ]
+        },
+        {
+          "rect": [
+            1283,
+            898,
+            122,
+            124
+          ],
+          "pivot_px": [
+            61,
+            108
+          ]
+        },
+        {
+          "rect": [
+            1411,
+            898,
+            122,
+            124
+          ],
+          "pivot_px": [
+            61,
+            108
+          ]
+        }
+      ],
+      "clips": {
+        "idle": {
+          "south": {
+            "frames": [
+              0,
+              1
+            ],
+            "duration_ms": [
+              350,
+              350
+            ],
+            "loop": true,
+            "cues": []
+          },
+          "west": {
+            "frames": [
+              2,
+              2
+            ],
+            "duration_ms": [
+              350,
+              350
+            ],
+            "loop": true,
+            "cues": []
+          },
+          "east": {
+            "frames": [
+              4,
+              4
+            ],
+            "duration_ms": [
+              350,
+              350
+            ],
+            "loop": true,
+            "cues": []
+          },
+          "north": {
+            "frames": [
+              6,
+              6
+            ],
+            "duration_ms": [
+              350,
+              350
+            ],
+            "loop": true,
+            "cues": []
+          }
+        },
+        "move": {
+          "south": {
+            "frames": [
+              8,
+              9
+            ],
+            "duration_ms": [
+              110,
+              110
+            ],
+            "loop": true,
+            "cues": []
+          },
+          "west": {
+            "frames": [
+              2,
+              3
+            ],
+            "duration_ms": [
+              110,
+              110
+            ],
+            "loop": true,
+            "cues": []
+          },
+          "east": {
+            "frames": [
+              4,
+              5
+            ],
+            "duration_ms": [
+              110,
+              110
+            ],
+            "loop": true,
+            "cues": []
+          },
+          "north": {
+            "frames": [
+              6,
+              7
+            ],
+            "duration_ms": [
+              110,
+              110
+            ],
+            "loop": true,
+            "cues": []
+          }
+        },
+        "act": {
+          "south": {
+            "frames": [
+              0,
+              10,
+              10,
+              0
+            ],
+            "duration_ms": [
+              120,
+              100,
+              90,
+              110
+            ],
+            "loop": false,
+            "cues": [
+              {
+                "frame_index": 1,
+                "name": "contact"
+              }
+            ]
+          },
+          "west": {
+            "frames": [
+              2,
+              10,
+              10,
+              2
+            ],
+            "duration_ms": [
+              120,
+              100,
+              90,
+              110
+            ],
+            "loop": false,
+            "cues": [
+              {
+                "frame_index": 1,
+                "name": "contact"
+              }
+            ]
+          },
+          "east": {
+            "frames": [
+              4,
+              10,
+              10,
+              4
+            ],
+            "duration_ms": [
+              120,
+              100,
+              90,
+              110
+            ],
+            "loop": false,
+            "cues": [
+              {
+                "frame_index": 1,
+                "name": "contact"
+              }
+            ]
+          },
+          "north": {
+            "frames": [
+              6,
+              10,
+              10,
+              6
+            ],
+            "duration_ms": [
+              120,
+              100,
+              90,
+              110
+            ],
+            "loop": false,
+            "cues": [
+              {
+                "frame_index": 1,
+                "name": "contact"
+              }
+            ]
+          }
+        },
+        "hurt": {
+          "south": {
+            "frames": [
+              11,
+              11
+            ],
+            "duration_ms": [
+              120,
+              160
+            ],
+            "loop": false,
+            "cues": []
+          },
+          "west": {
+            "frames": [
+              11,
+              11
+            ],
+            "duration_ms": [
+              120,
+              160
+            ],
+            "loop": false,
+            "cues": []
+          },
+          "east": {
+            "frames": [
+              11,
+              11
+            ],
+            "duration_ms": [
+              120,
+              160
+            ],
+            "loop": false,
+            "cues": []
+          },
+          "north": {
+            "frames": [
+              11,
+              11
+            ],
+            "duration_ms": [
+              120,
+              160
+            ],
+            "loop": false,
+            "cues": []
+          }
+        },
+        "defeated": {
+          "south": {
+            "frames": [
+              11,
+              11
+            ],
+            "duration_ms": [
+              200,
+              300
+            ],
+            "loop": false,
+            "cues": []
+          },
+          "west": {
+            "frames": [
+              11,
+              11
+            ],
+            "duration_ms": [
+              200,
+              300
+            ],
+            "loop": false,
+            "cues": []
+          },
+          "east": {
+            "frames": [
+              11,
+              11
+            ],
+            "duration_ms": [
+              200,
+              300
+            ],
+            "loop": false,
+            "cues": []
+          },
+          "north": {
+            "frames": [
+              11,
+              11
+            ],
+            "duration_ms": [
+              200,
+              300
+            ],
+            "loop": false,
+            "cues": []
+          }
+        }
+      },
+      "provenance": {
+        "generator": "built-in image_gen",
+        "record": "source/generation-prompts.json"
+      },
+      "art_status": "prototype: directional move pairs; shared attack and hurt pose; defeat reuses recoil"
+    }
+  ]
+}

@@ -33,7 +33,7 @@ Save files are local to the device/browser origin. Browser storage can be cleare
 
 Open `project.godot` in Godot 4.5.1 (standard edition). Use the Compatibility renderer for web parity. No third-party packages are needed.
 
-Visual exploration: [reusable 2D visual requirements](docs/visuals-2d/README.md) specify shared sprite assets for either 2D or 3D maps, with an example asset manifest and project integration notes. The proposed profile is separate from the current implementation.
+Open **Visual workshop · 2D / 3D maps** from the title screen to play the same skirmish with animated pixel sprites over either map renderer. The [reusable sprite package](visuals/README.md) includes eight class sheets, terrain art, shared playback, effects, and a standalone preview. [Visual requirements](docs/visuals-2d/README.md) describe the production targets. Run `python3 scripts/package_visuals.py` to create a clean starter project and `build/Reusable2DVisuals.zip` for another game.
 
 - `scripts/rules.gd`: scene-independent simulation, validated actions, campaign state and backup persistence.
 - `scripts/tactics.gd`: weighted pathfinding, guard/sentry/pursuit behavior, combat evaluation and automated playtest planning.
