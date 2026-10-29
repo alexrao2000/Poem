@@ -4,6 +4,7 @@ import os
 from pathlib import Path
 import subprocess
 import sys
+import tempfile
 
 ROOT = Path(__file__).resolve().parent.parent
 ENGINE = os.environ.get("GODOT_BIN", "godot")
@@ -14,8 +15,11 @@ for name in SUITES:
     script = ROOT / f"tests/test_{name}.gd"
     if not script.is_file():
         raise SystemExit(f"Unknown suite: {name}")
+    project_path = Path(tempfile.gettempdir()) if name == "export" else ROOT
     command = [ENGINE, "--headless", "--log-file", str(logs / f"{name}.log"),
-               "--path", str(ROOT), "--script", str(script)]
+               "--path", str(project_path), "--script", str(script)]
+    if name == "export":
+        command.extend(["--main-pack", str(ROOT / "build/web/index.pck")])
     try:
         result = subprocess.run(command, cwd=ROOT, stdout=subprocess.PIPE,
                                 stderr=subprocess.STDOUT, text=True, timeout=90)
