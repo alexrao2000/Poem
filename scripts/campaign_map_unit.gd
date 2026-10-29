@@ -6,13 +6,19 @@ var unit_id=""
 func configure(source: RefCounted,unit: Dictionary,facing="south"):
  unit_id=unit.id;team=unit.team;spent=unit.acted
  hp_ratio=clampf(float(unit.hp)/maxf(1,unit.max_hp),0,1)
- setup(source,"unit."+unit.job.to_lower())
+ var individual="recruit."+unit.id
+ setup(source,individual if team=="player" and source.assets.has(individual) else "unit."+unit.job.to_lower())
  sprite.no_depth_test=true;sprite.render_priority=2
  player.play("idle",facing);update_frame()
 
 func _process(dt):
  super._process(dt)
  if team=="enemy":sprite.modulate*=Color(1,.72,.68)
+
+func update_frame():
+ super.update_frame()
+ var density=player.asset.get("source_pixel_scale",0)
+ if density>0:sprite.scale=Vector3(density,density,1)
 
 func face_step(step: Vector2i):
  player.play("move",Player.facing_for_step(step));update_frame()

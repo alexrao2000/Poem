@@ -9,7 +9,8 @@ func run():
  var metadata=JSON.parse_string(FileAccess.get_file_as_string("res://assets/audio/score.json"))
  assert("CC0" in metadata.samples and metadata.frames==1568000,"Export uses the current orchestral arrangement")
  var app=load("res://main.tscn").instantiate();app.settings_path="";app.save_path="/private/tmp/ashen-export-test.json";root.add_child(app);await process_frame
- assert(app.map_catalog.assets.size()==8,"Release initializes sprite catalog without relying on assertions")
+ for job in app.CLASSES:assert(app.map_catalog.assets.has("unit."+job.to_lower()),"Release initializes every fallback class without relying on assertions")
+ assert(app.map_catalog.recruit_errors.is_empty(),"Packaged recruit artwork validates")
  for chapter in [0,11]:
   app.game.chapter=chapter;app.game.start_battle();app.make_map();app.show_battle();await process_frame
   assert(app.unit_nodes.size()==app.game.units.size(),"Packaged maps instantiate every living actor")

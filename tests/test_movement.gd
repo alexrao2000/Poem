@@ -75,7 +75,8 @@ func run():
  for recruit in app.game.roster:
   var data=recruit.duplicate(true);data.team="player";data.acted=false
   var visual=app.MapUnit.new();app.pieces.add_child(visual);visual.configure(app.map_catalog,data)
-  assert(visual.visual_id=="unit."+data.job.to_lower(),"Every recruit uses its own class animation set")
+  var expected="recruit."+data.id if app.map_catalog.assets.has("recruit."+data.id) else "unit."+data.job.to_lower()
+  assert(visual.visual_id==expected,"Every recruit uses individual animation when available, otherwise its class sheet")
   visual.queue_free()
  app.queue_free();await process_frame
  print("PASS: ",paths," legal weighted routes across 12 maps, movement animation, action lock and undo restoration")

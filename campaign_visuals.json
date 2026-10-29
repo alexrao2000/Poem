@@ -1,0 +1,3575 @@
+{
+  "schema_version": 1,
+  "profile": {
+    "id": "ashen-recruits-v1",
+    "tile_size_px": [
+      32,
+      32
+    ]
+  },
+  "assets": [
+    {
+      "id": "recruit.lyra",
+      "kind": "map_unit",
+      "texture": "assets/sprites/opening-animated-v1.png",
+      "logical_frame_px": [
+        64,
+        64
+      ],
+      "source_pixel_scale": 0.5,
+      "fallback_visual_id": null,
+      "frames": [
+        {
+          "rect": [
+            26,
+            40,
+            85,
+            85
+          ],
+          "pivot_px": [
+            38,
+            83
+          ]
+        },
+        {
+          "rect": [
+            152,
+            42,
+            80,
+            83
+          ],
+          "pivot_px": [
+            40,
+            81
+          ]
+        },
+        {
+          "rect": [
+            272,
+            40,
+            81,
+            86
+          ],
+          "pivot_px": [
+            48,
+            83
+          ]
+        },
+        {
+          "rect": [
+            402,
+            41,
+            82,
+            84
+          ],
+          "pivot_px": [
+            46,
+            82
+          ]
+        },
+        {
+          "rect": [
+            534,
+            43,
+            85,
+            83
+          ],
+          "pivot_px": [
+            42,
+            80
+          ]
+        },
+        {
+          "rect": [
+            653,
+            42,
+            93,
+            84
+          ],
+          "pivot_px": [
+            51,
+            81
+          ]
+        },
+        {
+          "rect": [
+            799,
+            40,
+            69,
+            85
+          ],
+          "pivot_px": [
+            33,
+            83
+          ]
+        },
+        {
+          "rect": [
+            921,
+            40,
+            87,
+            85
+          ],
+          "pivot_px": [
+            39,
+            83
+          ]
+        },
+        {
+          "rect": [
+            1046,
+            41,
+            85,
+            85
+          ],
+          "pivot_px": [
+            42,
+            82
+          ]
+        },
+        {
+          "rect": [
+            1176,
+            41,
+            80,
+            85
+          ],
+          "pivot_px": [
+            40,
+            82
+          ]
+        },
+        {
+          "rect": [
+            1302,
+            42,
+            117,
+            84
+          ],
+          "pivot_px": [
+            42,
+            81
+          ]
+        },
+        {
+          "rect": [
+            1436,
+            43,
+            77,
+            84
+          ],
+          "pivot_px": [
+            36,
+            80
+          ]
+        }
+      ],
+      "clips": {
+        "idle": {
+          "south": {
+            "frames": [
+              0,
+              1
+            ],
+            "duration_ms": [
+              350,
+              350
+            ],
+            "loop": true,
+            "cues": []
+          },
+          "west": {
+            "frames": [
+              2,
+              2
+            ],
+            "duration_ms": [
+              350,
+              350
+            ],
+            "loop": true,
+            "cues": []
+          },
+          "east": {
+            "frames": [
+              4,
+              4
+            ],
+            "duration_ms": [
+              350,
+              350
+            ],
+            "loop": true,
+            "cues": []
+          },
+          "north": {
+            "frames": [
+              6,
+              6
+            ],
+            "duration_ms": [
+              350,
+              350
+            ],
+            "loop": true,
+            "cues": []
+          }
+        },
+        "move": {
+          "south": {
+            "frames": [
+              8,
+              9
+            ],
+            "duration_ms": [
+              110,
+              110
+            ],
+            "loop": true,
+            "cues": []
+          },
+          "west": {
+            "frames": [
+              2,
+              3
+            ],
+            "duration_ms": [
+              110,
+              110
+            ],
+            "loop": true,
+            "cues": []
+          },
+          "east": {
+            "frames": [
+              4,
+              5
+            ],
+            "duration_ms": [
+              110,
+              110
+            ],
+            "loop": true,
+            "cues": []
+          },
+          "north": {
+            "frames": [
+              6,
+              7
+            ],
+            "duration_ms": [
+              110,
+              110
+            ],
+            "loop": true,
+            "cues": []
+          }
+        },
+        "act": {
+          "south": {
+            "frames": [
+              0,
+              10,
+              10,
+              0
+            ],
+            "duration_ms": [
+              120,
+              100,
+              90,
+              110
+            ],
+            "loop": false,
+            "cues": [
+              {
+                "frame_index": 1,
+                "name": "contact"
+              }
+            ]
+          },
+          "west": {
+            "frames": [
+              2,
+              10,
+              10,
+              2
+            ],
+            "duration_ms": [
+              120,
+              100,
+              90,
+              110
+            ],
+            "loop": false,
+            "cues": [
+              {
+                "frame_index": 1,
+                "name": "contact"
+              }
+            ]
+          },
+          "east": {
+            "frames": [
+              4,
+              10,
+              10,
+              4
+            ],
+            "duration_ms": [
+              120,
+              100,
+              90,
+              110
+            ],
+            "loop": false,
+            "cues": [
+              {
+                "frame_index": 1,
+                "name": "contact"
+              }
+            ]
+          },
+          "north": {
+            "frames": [
+              6,
+              10,
+              10,
+              6
+            ],
+            "duration_ms": [
+              120,
+              100,
+              90,
+              110
+            ],
+            "loop": false,
+            "cues": [
+              {
+                "frame_index": 1,
+                "name": "contact"
+              }
+            ]
+          }
+        },
+        "hurt": {
+          "south": {
+            "frames": [
+              11,
+              11
+            ],
+            "duration_ms": [
+              120,
+              160
+            ],
+            "loop": false,
+            "cues": []
+          },
+          "west": {
+            "frames": [
+              11,
+              11
+            ],
+            "duration_ms": [
+              120,
+              160
+            ],
+            "loop": false,
+            "cues": []
+          },
+          "east": {
+            "frames": [
+              11,
+              11
+            ],
+            "duration_ms": [
+              120,
+              160
+            ],
+            "loop": false,
+            "cues": []
+          },
+          "north": {
+            "frames": [
+              11,
+              11
+            ],
+            "duration_ms": [
+              120,
+              160
+            ],
+            "loop": false,
+            "cues": []
+          }
+        },
+        "defeated": {
+          "south": {
+            "frames": [
+              11,
+              11
+            ],
+            "duration_ms": [
+              200,
+              300
+            ],
+            "loop": false,
+            "cues": []
+          },
+          "west": {
+            "frames": [
+              11,
+              11
+            ],
+            "duration_ms": [
+              200,
+              300
+            ],
+            "loop": false,
+            "cues": []
+          },
+          "east": {
+            "frames": [
+              11,
+              11
+            ],
+            "duration_ms": [
+              200,
+              300
+            ],
+            "loop": false,
+            "cues": []
+          },
+          "north": {
+            "frames": [
+              11,
+              11
+            ],
+            "duration_ms": [
+              200,
+              300
+            ],
+            "loop": false,
+            "cues": []
+          }
+        }
+      }
+    },
+    {
+      "id": "recruit.oren",
+      "kind": "map_unit",
+      "texture": "assets/sprites/opening-animated-v1.png",
+      "logical_frame_px": [
+        64,
+        64
+      ],
+      "source_pixel_scale": 0.5,
+      "fallback_visual_id": null,
+      "frames": [
+        {
+          "rect": [
+            25,
+            157,
+            78,
+            90
+          ],
+          "pivot_px": [
+            39,
+            87
+          ]
+        },
+        {
+          "rect": [
+            149,
+            158,
+            77,
+            89
+          ],
+          "pivot_px": [
+            43,
+            86
+          ]
+        },
+        {
+          "rect": [
+            274,
+            157,
+            79,
+            91
+          ],
+          "pivot_px": [
+            46,
+            87
+          ]
+        },
+        {
+          "rect": [
+            401,
+            158,
+            86,
+            89
+          ],
+          "pivot_px": [
+            47,
+            86
+          ]
+        },
+        {
+          "rect": [
+            525,
+            158,
+            75,
+            89
+          ],
+          "pivot_px": [
+            51,
+            86
+          ]
+        },
+        {
+          "rect": [
+            648,
+            158,
+            87,
+            89
+          ],
+          "pivot_px": [
+            56,
+            86
+          ]
+        },
+        {
+          "rect": [
+            787,
+            157,
+            87,
+            90
+          ],
+          "pivot_px": [
+            45,
+            87
+          ]
+        },
+        {
+          "rect": [
+            917,
+            157,
+            85,
+            90
+          ],
+          "pivot_px": [
+            43,
+            87
+          ]
+        },
+        {
+          "rect": [
+            1046,
+            158,
+            78,
+            89
+          ],
+          "pivot_px": [
+            42,
+            86
+          ]
+        },
+        {
+          "rect": [
+            1167,
+            158,
+            88,
+            89
+          ],
+          "pivot_px": [
+            49,
+            86
+          ]
+        },
+        {
+          "rect": [
+            1296,
+            158,
+            114,
+            89
+          ],
+          "pivot_px": [
+            48,
+            86
+          ]
+        },
+        {
+          "rect": [
+            1436,
+            157,
+            74,
+            90
+          ],
+          "pivot_px": [
+            36,
+            87
+          ]
+        }
+      ],
+      "clips": {
+        "idle": {
+          "south": {
+            "frames": [
+              0,
+              1
+            ],
+            "duration_ms": [
+              350,
+              350
+            ],
+            "loop": true,
+            "cues": []
+          },
+          "west": {
+            "frames": [
+              2,
+              2
+            ],
+            "duration_ms": [
+              350,
+              350
+            ],
+            "loop": true,
+            "cues": []
+          },
+          "east": {
+            "frames": [
+              4,
+              4
+            ],
+            "duration_ms": [
+              350,
+              350
+            ],
+            "loop": true,
+            "cues": []
+          },
+          "north": {
+            "frames": [
+              6,
+              6
+            ],
+            "duration_ms": [
+              350,
+              350
+            ],
+            "loop": true,
+            "cues": []
+          }
+        },
+        "move": {
+          "south": {
+            "frames": [
+              8,
+              9
+            ],
+            "duration_ms": [
+              110,
+              110
+            ],
+            "loop": true,
+            "cues": []
+          },
+          "west": {
+            "frames": [
+              2,
+              3
+            ],
+            "duration_ms": [
+              110,
+              110
+            ],
+            "loop": true,
+            "cues": []
+          },
+          "east": {
+            "frames": [
+              4,
+              5
+            ],
+            "duration_ms": [
+              110,
+              110
+            ],
+            "loop": true,
+            "cues": []
+          },
+          "north": {
+            "frames": [
+              6,
+              7
+            ],
+            "duration_ms": [
+              110,
+              110
+            ],
+            "loop": true,
+            "cues": []
+          }
+        },
+        "act": {
+          "south": {
+            "frames": [
+              0,
+              10,
+              10,
+              0
+            ],
+            "duration_ms": [
+              120,
+              100,
+              90,
+              110
+            ],
+            "loop": false,
+            "cues": [
+              {
+                "frame_index": 1,
+                "name": "contact"
+              }
+            ]
+          },
+          "west": {
+            "frames": [
+              2,
+              10,
+              10,
+              2
+            ],
+            "duration_ms": [
+              120,
+              100,
+              90,
+              110
+            ],
+            "loop": false,
+            "cues": [
+              {
+                "frame_index": 1,
+                "name": "contact"
+              }
+            ]
+          },
+          "east": {
+            "frames": [
+              4,
+              10,
+              10,
+              4
+            ],
+            "duration_ms": [
+              120,
+              100,
+              90,
+              110
+            ],
+            "loop": false,
+            "cues": [
+              {
+                "frame_index": 1,
+                "name": "contact"
+              }
+            ]
+          },
+          "north": {
+            "frames": [
+              6,
+              10,
+              10,
+              6
+            ],
+            "duration_ms": [
+              120,
+              100,
+              90,
+              110
+            ],
+            "loop": false,
+            "cues": [
+              {
+                "frame_index": 1,
+                "name": "contact"
+              }
+            ]
+          }
+        },
+        "hurt": {
+          "south": {
+            "frames": [
+              11,
+              11
+            ],
+            "duration_ms": [
+              120,
+              160
+            ],
+            "loop": false,
+            "cues": []
+          },
+          "west": {
+            "frames": [
+              11,
+              11
+            ],
+            "duration_ms": [
+              120,
+              160
+            ],
+            "loop": false,
+            "cues": []
+          },
+          "east": {
+            "frames": [
+              11,
+              11
+            ],
+            "duration_ms": [
+              120,
+              160
+            ],
+            "loop": false,
+            "cues": []
+          },
+          "north": {
+            "frames": [
+              11,
+              11
+            ],
+            "duration_ms": [
+              120,
+              160
+            ],
+            "loop": false,
+            "cues": []
+          }
+        },
+        "defeated": {
+          "south": {
+            "frames": [
+              11,
+              11
+            ],
+            "duration_ms": [
+              200,
+              300
+            ],
+            "loop": false,
+            "cues": []
+          },
+          "west": {
+            "frames": [
+              11,
+              11
+            ],
+            "duration_ms": [
+              200,
+              300
+            ],
+            "loop": false,
+            "cues": []
+          },
+          "east": {
+            "frames": [
+              11,
+              11
+            ],
+            "duration_ms": [
+              200,
+              300
+            ],
+            "loop": false,
+            "cues": []
+          },
+          "north": {
+            "frames": [
+              11,
+              11
+            ],
+            "duration_ms": [
+              200,
+              300
+            ],
+            "loop": false,
+            "cues": []
+          }
+        }
+      }
+    },
+    {
+      "id": "recruit.sera",
+      "kind": "map_unit",
+      "texture": "assets/sprites/opening-animated-v1.png",
+      "logical_frame_px": [
+        64,
+        64
+      ],
+      "source_pixel_scale": 0.5,
+      "fallback_visual_id": null,
+      "frames": [
+        {
+          "rect": [
+            27,
+            282,
+            81,
+            93
+          ],
+          "pivot_px": [
+            37,
+            90
+          ]
+        },
+        {
+          "rect": [
+            150,
+            282,
+            80,
+            93
+          ],
+          "pivot_px": [
+            42,
+            90
+          ]
+        },
+        {
+          "rect": [
+            273,
+            282,
+            84,
+            93
+          ],
+          "pivot_px": [
+            47,
+            90
+          ]
+        },
+        {
+          "rect": [
+            405,
+            282,
+            79,
+            93
+          ],
+          "pivot_px": [
+            43,
+            90
+          ]
+        },
+        {
+          "rect": [
+            521,
+            283,
+            86,
+            92
+          ],
+          "pivot_px": [
+            55,
+            89
+          ]
+        },
+        {
+          "rect": [
+            649,
+            283,
+            88,
+            91
+          ],
+          "pivot_px": [
+            55,
+            89
+          ]
+        },
+        {
+          "rect": [
+            793,
+            282,
+            75,
+            93
+          ],
+          "pivot_px": [
+            39,
+            90
+          ]
+        },
+        {
+          "rect": [
+            916,
+            281,
+            75,
+            94
+          ],
+          "pivot_px": [
+            44,
+            91
+          ]
+        },
+        {
+          "rect": [
+            1049,
+            284,
+            79,
+            92
+          ],
+          "pivot_px": [
+            39,
+            88
+          ]
+        },
+        {
+          "rect": [
+            1177,
+            284,
+            77,
+            92
+          ],
+          "pivot_px": [
+            39,
+            88
+          ]
+        },
+        {
+          "rect": [
+            1300,
+            284,
+            98,
+            91
+          ],
+          "pivot_px": [
+            44,
+            88
+          ]
+        },
+        {
+          "rect": [
+            1432,
+            286,
+            79,
+            89
+          ],
+          "pivot_px": [
+            40,
+            86
+          ]
+        }
+      ],
+      "clips": {
+        "idle": {
+          "south": {
+            "frames": [
+              0,
+              1
+            ],
+            "duration_ms": [
+              350,
+              350
+            ],
+            "loop": true,
+            "cues": []
+          },
+          "west": {
+            "frames": [
+              2,
+              2
+            ],
+            "duration_ms": [
+              350,
+              350
+            ],
+            "loop": true,
+            "cues": []
+          },
+          "east": {
+            "frames": [
+              4,
+              4
+            ],
+            "duration_ms": [
+              350,
+              350
+            ],
+            "loop": true,
+            "cues": []
+          },
+          "north": {
+            "frames": [
+              6,
+              6
+            ],
+            "duration_ms": [
+              350,
+              350
+            ],
+            "loop": true,
+            "cues": []
+          }
+        },
+        "move": {
+          "south": {
+            "frames": [
+              8,
+              9
+            ],
+            "duration_ms": [
+              110,
+              110
+            ],
+            "loop": true,
+            "cues": []
+          },
+          "west": {
+            "frames": [
+              2,
+              3
+            ],
+            "duration_ms": [
+              110,
+              110
+            ],
+            "loop": true,
+            "cues": []
+          },
+          "east": {
+            "frames": [
+              4,
+              5
+            ],
+            "duration_ms": [
+              110,
+              110
+            ],
+            "loop": true,
+            "cues": []
+          },
+          "north": {
+            "frames": [
+              6,
+              7
+            ],
+            "duration_ms": [
+              110,
+              110
+            ],
+            "loop": true,
+            "cues": []
+          }
+        },
+        "act": {
+          "south": {
+            "frames": [
+              0,
+              10,
+              10,
+              0
+            ],
+            "duration_ms": [
+              120,
+              100,
+              90,
+              110
+            ],
+            "loop": false,
+            "cues": [
+              {
+                "frame_index": 1,
+                "name": "contact"
+              }
+            ]
+          },
+          "west": {
+            "frames": [
+              2,
+              10,
+              10,
+              2
+            ],
+            "duration_ms": [
+              120,
+              100,
+              90,
+              110
+            ],
+            "loop": false,
+            "cues": [
+              {
+                "frame_index": 1,
+                "name": "contact"
+              }
+            ]
+          },
+          "east": {
+            "frames": [
+              4,
+              10,
+              10,
+              4
+            ],
+            "duration_ms": [
+              120,
+              100,
+              90,
+              110
+            ],
+            "loop": false,
+            "cues": [
+              {
+                "frame_index": 1,
+                "name": "contact"
+              }
+            ]
+          },
+          "north": {
+            "frames": [
+              6,
+              10,
+              10,
+              6
+            ],
+            "duration_ms": [
+              120,
+              100,
+              90,
+              110
+            ],
+            "loop": false,
+            "cues": [
+              {
+                "frame_index": 1,
+                "name": "contact"
+              }
+            ]
+          }
+        },
+        "hurt": {
+          "south": {
+            "frames": [
+              11,
+              11
+            ],
+            "duration_ms": [
+              120,
+              160
+            ],
+            "loop": false,
+            "cues": []
+          },
+          "west": {
+            "frames": [
+              11,
+              11
+            ],
+            "duration_ms": [
+              120,
+              160
+            ],
+            "loop": false,
+            "cues": []
+          },
+          "east": {
+            "frames": [
+              11,
+              11
+            ],
+            "duration_ms": [
+              120,
+              160
+            ],
+            "loop": false,
+            "cues": []
+          },
+          "north": {
+            "frames": [
+              11,
+              11
+            ],
+            "duration_ms": [
+              120,
+              160
+            ],
+            "loop": false,
+            "cues": []
+          }
+        },
+        "defeated": {
+          "south": {
+            "frames": [
+              11,
+              11
+            ],
+            "duration_ms": [
+              200,
+              300
+            ],
+            "loop": false,
+            "cues": []
+          },
+          "west": {
+            "frames": [
+              11,
+              11
+            ],
+            "duration_ms": [
+              200,
+              300
+            ],
+            "loop": false,
+            "cues": []
+          },
+          "east": {
+            "frames": [
+              11,
+              11
+            ],
+            "duration_ms": [
+              200,
+              300
+            ],
+            "loop": false,
+            "cues": []
+          },
+          "north": {
+            "frames": [
+              11,
+              11
+            ],
+            "duration_ms": [
+              200,
+              300
+            ],
+            "loop": false,
+            "cues": []
+          }
+        }
+      }
+    },
+    {
+      "id": "recruit.ivo",
+      "kind": "map_unit",
+      "texture": "assets/sprites/opening-animated-v1.png",
+      "logical_frame_px": [
+        64,
+        64
+      ],
+      "source_pixel_scale": 0.5,
+      "fallback_visual_id": null,
+      "frames": [
+        {
+          "rect": [
+            25,
+            411,
+            78,
+            89
+          ],
+          "pivot_px": [
+            39,
+            86
+          ]
+        },
+        {
+          "rect": [
+            147,
+            412,
+            82,
+            88
+          ],
+          "pivot_px": [
+            45,
+            85
+          ]
+        },
+        {
+          "rect": [
+            273,
+            411,
+            79,
+            89
+          ],
+          "pivot_px": [
+            47,
+            86
+          ]
+        },
+        {
+          "rect": [
+            412,
+            411,
+            62,
+            88
+          ],
+          "pivot_px": [
+            36,
+            86
+          ]
+        },
+        {
+          "rect": [
+            527,
+            411,
+            69,
+            89
+          ],
+          "pivot_px": [
+            49,
+            86
+          ]
+        },
+        {
+          "rect": [
+            650,
+            411,
+            71,
+            89
+          ],
+          "pivot_px": [
+            54,
+            86
+          ]
+        },
+        {
+          "rect": [
+            791,
+            412,
+            74,
+            88
+          ],
+          "pivot_px": [
+            41,
+            85
+          ]
+        },
+        {
+          "rect": [
+            919,
+            412,
+            75,
+            87
+          ],
+          "pivot_px": [
+            41,
+            85
+          ]
+        },
+        {
+          "rect": [
+            1048,
+            411,
+            83,
+            89
+          ],
+          "pivot_px": [
+            40,
+            86
+          ]
+        },
+        {
+          "rect": [
+            1177,
+            412,
+            72,
+            88
+          ],
+          "pivot_px": [
+            39,
+            85
+          ]
+        },
+        {
+          "rect": [
+            1294,
+            412,
+            108,
+            88
+          ],
+          "pivot_px": [
+            50,
+            85
+          ]
+        },
+        {
+          "rect": [
+            1435,
+            412,
+            73,
+            88
+          ],
+          "pivot_px": [
+            37,
+            85
+          ]
+        }
+      ],
+      "clips": {
+        "idle": {
+          "south": {
+            "frames": [
+              0,
+              1
+            ],
+            "duration_ms": [
+              350,
+              350
+            ],
+            "loop": true,
+            "cues": []
+          },
+          "west": {
+            "frames": [
+              2,
+              2
+            ],
+            "duration_ms": [
+              350,
+              350
+            ],
+            "loop": true,
+            "cues": []
+          },
+          "east": {
+            "frames": [
+              4,
+              4
+            ],
+            "duration_ms": [
+              350,
+              350
+            ],
+            "loop": true,
+            "cues": []
+          },
+          "north": {
+            "frames": [
+              6,
+              6
+            ],
+            "duration_ms": [
+              350,
+              350
+            ],
+            "loop": true,
+            "cues": []
+          }
+        },
+        "move": {
+          "south": {
+            "frames": [
+              8,
+              9
+            ],
+            "duration_ms": [
+              110,
+              110
+            ],
+            "loop": true,
+            "cues": []
+          },
+          "west": {
+            "frames": [
+              2,
+              3
+            ],
+            "duration_ms": [
+              110,
+              110
+            ],
+            "loop": true,
+            "cues": []
+          },
+          "east": {
+            "frames": [
+              4,
+              5
+            ],
+            "duration_ms": [
+              110,
+              110
+            ],
+            "loop": true,
+            "cues": []
+          },
+          "north": {
+            "frames": [
+              6,
+              7
+            ],
+            "duration_ms": [
+              110,
+              110
+            ],
+            "loop": true,
+            "cues": []
+          }
+        },
+        "act": {
+          "south": {
+            "frames": [
+              0,
+              10,
+              10,
+              0
+            ],
+            "duration_ms": [
+              120,
+              100,
+              90,
+              110
+            ],
+            "loop": false,
+            "cues": [
+              {
+                "frame_index": 1,
+                "name": "contact"
+              }
+            ]
+          },
+          "west": {
+            "frames": [
+              2,
+              10,
+              10,
+              2
+            ],
+            "duration_ms": [
+              120,
+              100,
+              90,
+              110
+            ],
+            "loop": false,
+            "cues": [
+              {
+                "frame_index": 1,
+                "name": "contact"
+              }
+            ]
+          },
+          "east": {
+            "frames": [
+              4,
+              10,
+              10,
+              4
+            ],
+            "duration_ms": [
+              120,
+              100,
+              90,
+              110
+            ],
+            "loop": false,
+            "cues": [
+              {
+                "frame_index": 1,
+                "name": "contact"
+              }
+            ]
+          },
+          "north": {
+            "frames": [
+              6,
+              10,
+              10,
+              6
+            ],
+            "duration_ms": [
+              120,
+              100,
+              90,
+              110
+            ],
+            "loop": false,
+            "cues": [
+              {
+                "frame_index": 1,
+                "name": "contact"
+              }
+            ]
+          }
+        },
+        "hurt": {
+          "south": {
+            "frames": [
+              11,
+              11
+            ],
+            "duration_ms": [
+              120,
+              160
+            ],
+            "loop": false,
+            "cues": []
+          },
+          "west": {
+            "frames": [
+              11,
+              11
+            ],
+            "duration_ms": [
+              120,
+              160
+            ],
+            "loop": false,
+            "cues": []
+          },
+          "east": {
+            "frames": [
+              11,
+              11
+            ],
+            "duration_ms": [
+              120,
+              160
+            ],
+            "loop": false,
+            "cues": []
+          },
+          "north": {
+            "frames": [
+              11,
+              11
+            ],
+            "duration_ms": [
+              120,
+              160
+            ],
+            "loop": false,
+            "cues": []
+          }
+        },
+        "defeated": {
+          "south": {
+            "frames": [
+              11,
+              11
+            ],
+            "duration_ms": [
+              200,
+              300
+            ],
+            "loop": false,
+            "cues": []
+          },
+          "west": {
+            "frames": [
+              11,
+              11
+            ],
+            "duration_ms": [
+              200,
+              300
+            ],
+            "loop": false,
+            "cues": []
+          },
+          "east": {
+            "frames": [
+              11,
+              11
+            ],
+            "duration_ms": [
+              200,
+              300
+            ],
+            "loop": false,
+            "cues": []
+          },
+          "north": {
+            "frames": [
+              11,
+              11
+            ],
+            "duration_ms": [
+              200,
+              300
+            ],
+            "loop": false,
+            "cues": []
+          }
+        }
+      }
+    },
+    {
+      "id": "recruit.mara",
+      "kind": "map_unit",
+      "texture": "assets/sprites/opening-animated-v1.png",
+      "logical_frame_px": [
+        64,
+        64
+      ],
+      "source_pixel_scale": 0.5,
+      "fallback_visual_id": null,
+      "frames": [
+        {
+          "rect": [
+            29,
+            531,
+            96,
+            94
+          ],
+          "pivot_px": [
+            35,
+            91
+          ]
+        },
+        {
+          "rect": [
+            154,
+            531,
+            86,
+            95
+          ],
+          "pivot_px": [
+            38,
+            91
+          ]
+        },
+        {
+          "rect": [
+            265,
+            531,
+            96,
+            94
+          ],
+          "pivot_px": [
+            55,
+            91
+          ]
+        },
+        {
+          "rect": [
+            405,
+            531,
+            82,
+            94
+          ],
+          "pivot_px": [
+            43,
+            91
+          ]
+        },
+        {
+          "rect": [
+            520,
+            531,
+            100,
+            94
+          ],
+          "pivot_px": [
+            56,
+            91
+          ]
+        },
+        {
+          "rect": [
+            648,
+            531,
+            98,
+            94
+          ],
+          "pivot_px": [
+            56,
+            91
+          ]
+        },
+        {
+          "rect": [
+            790,
+            531,
+            78,
+            94
+          ],
+          "pivot_px": [
+            42,
+            91
+          ]
+        },
+        {
+          "rect": [
+            912,
+            531,
+            86,
+            94
+          ],
+          "pivot_px": [
+            48,
+            91
+          ]
+        },
+        {
+          "rect": [
+            1038,
+            532,
+            90,
+            94
+          ],
+          "pivot_px": [
+            50,
+            90
+          ]
+        },
+        {
+          "rect": [
+            1167,
+            533,
+            88,
+            92
+          ],
+          "pivot_px": [
+            49,
+            89
+          ]
+        },
+        {
+          "rect": [
+            1286,
+            533,
+            116,
+            92
+          ],
+          "pivot_px": [
+            58,
+            89
+          ]
+        },
+        {
+          "rect": [
+            1423,
+            533,
+            82,
+            92
+          ],
+          "pivot_px": [
+            49,
+            89
+          ]
+        }
+      ],
+      "clips": {
+        "idle": {
+          "south": {
+            "frames": [
+              0,
+              1
+            ],
+            "duration_ms": [
+              350,
+              350
+            ],
+            "loop": true,
+            "cues": []
+          },
+          "west": {
+            "frames": [
+              2,
+              2
+            ],
+            "duration_ms": [
+              350,
+              350
+            ],
+            "loop": true,
+            "cues": []
+          },
+          "east": {
+            "frames": [
+              4,
+              4
+            ],
+            "duration_ms": [
+              350,
+              350
+            ],
+            "loop": true,
+            "cues": []
+          },
+          "north": {
+            "frames": [
+              6,
+              6
+            ],
+            "duration_ms": [
+              350,
+              350
+            ],
+            "loop": true,
+            "cues": []
+          }
+        },
+        "move": {
+          "south": {
+            "frames": [
+              8,
+              9
+            ],
+            "duration_ms": [
+              110,
+              110
+            ],
+            "loop": true,
+            "cues": []
+          },
+          "west": {
+            "frames": [
+              2,
+              3
+            ],
+            "duration_ms": [
+              110,
+              110
+            ],
+            "loop": true,
+            "cues": []
+          },
+          "east": {
+            "frames": [
+              4,
+              5
+            ],
+            "duration_ms": [
+              110,
+              110
+            ],
+            "loop": true,
+            "cues": []
+          },
+          "north": {
+            "frames": [
+              6,
+              7
+            ],
+            "duration_ms": [
+              110,
+              110
+            ],
+            "loop": true,
+            "cues": []
+          }
+        },
+        "act": {
+          "south": {
+            "frames": [
+              0,
+              10,
+              10,
+              0
+            ],
+            "duration_ms": [
+              120,
+              100,
+              90,
+              110
+            ],
+            "loop": false,
+            "cues": [
+              {
+                "frame_index": 1,
+                "name": "contact"
+              }
+            ]
+          },
+          "west": {
+            "frames": [
+              2,
+              10,
+              10,
+              2
+            ],
+            "duration_ms": [
+              120,
+              100,
+              90,
+              110
+            ],
+            "loop": false,
+            "cues": [
+              {
+                "frame_index": 1,
+                "name": "contact"
+              }
+            ]
+          },
+          "east": {
+            "frames": [
+              4,
+              10,
+              10,
+              4
+            ],
+            "duration_ms": [
+              120,
+              100,
+              90,
+              110
+            ],
+            "loop": false,
+            "cues": [
+              {
+                "frame_index": 1,
+                "name": "contact"
+              }
+            ]
+          },
+          "north": {
+            "frames": [
+              6,
+              10,
+              10,
+              6
+            ],
+            "duration_ms": [
+              120,
+              100,
+              90,
+              110
+            ],
+            "loop": false,
+            "cues": [
+              {
+                "frame_index": 1,
+                "name": "contact"
+              }
+            ]
+          }
+        },
+        "hurt": {
+          "south": {
+            "frames": [
+              11,
+              11
+            ],
+            "duration_ms": [
+              120,
+              160
+            ],
+            "loop": false,
+            "cues": []
+          },
+          "west": {
+            "frames": [
+              11,
+              11
+            ],
+            "duration_ms": [
+              120,
+              160
+            ],
+            "loop": false,
+            "cues": []
+          },
+          "east": {
+            "frames": [
+              11,
+              11
+            ],
+            "duration_ms": [
+              120,
+              160
+            ],
+            "loop": false,
+            "cues": []
+          },
+          "north": {
+            "frames": [
+              11,
+              11
+            ],
+            "duration_ms": [
+              120,
+              160
+            ],
+            "loop": false,
+            "cues": []
+          }
+        },
+        "defeated": {
+          "south": {
+            "frames": [
+              11,
+              11
+            ],
+            "duration_ms": [
+              200,
+              300
+            ],
+            "loop": false,
+            "cues": []
+          },
+          "west": {
+            "frames": [
+              11,
+              11
+            ],
+            "duration_ms": [
+              200,
+              300
+            ],
+            "loop": false,
+            "cues": []
+          },
+          "east": {
+            "frames": [
+              11,
+              11
+            ],
+            "duration_ms": [
+              200,
+              300
+            ],
+            "loop": false,
+            "cues": []
+          },
+          "north": {
+            "frames": [
+              11,
+              11
+            ],
+            "duration_ms": [
+              200,
+              300
+            ],
+            "loop": false,
+            "cues": []
+          }
+        }
+      }
+    },
+    {
+      "id": "recruit.tarin",
+      "kind": "map_unit",
+      "texture": "assets/sprites/opening-animated-v1.png",
+      "logical_frame_px": [
+        64,
+        64
+      ],
+      "source_pixel_scale": 0.5,
+      "fallback_visual_id": null,
+      "frames": [
+        {
+          "rect": [
+            24,
+            659,
+            85,
+            90
+          ],
+          "pivot_px": [
+            40,
+            87
+          ]
+        },
+        {
+          "rect": [
+            151,
+            659,
+            91,
+            90
+          ],
+          "pivot_px": [
+            41,
+            87
+          ]
+        },
+        {
+          "rect": [
+            266,
+            659,
+            87,
+            89
+          ],
+          "pivot_px": [
+            54,
+            87
+          ]
+        },
+        {
+          "rect": [
+            399,
+            659,
+            81,
+            89
+          ],
+          "pivot_px": [
+            49,
+            87
+          ]
+        },
+        {
+          "rect": [
+            523,
+            659,
+            82,
+            89
+          ],
+          "pivot_px": [
+            53,
+            87
+          ]
+        },
+        {
+          "rect": [
+            648,
+            659,
+            86,
+            89
+          ],
+          "pivot_px": [
+            56,
+            87
+          ]
+        },
+        {
+          "rect": [
+            791,
+            659,
+            81,
+            90
+          ],
+          "pivot_px": [
+            41,
+            87
+          ]
+        },
+        {
+          "rect": [
+            914,
+            659,
+            84,
+            90
+          ],
+          "pivot_px": [
+            46,
+            87
+          ]
+        },
+        {
+          "rect": [
+            1050,
+            659,
+            82,
+            90
+          ],
+          "pivot_px": [
+            38,
+            87
+          ]
+        },
+        {
+          "rect": [
+            1174,
+            659,
+            77,
+            89
+          ],
+          "pivot_px": [
+            42,
+            87
+          ]
+        },
+        {
+          "rect": [
+            1296,
+            659,
+            81,
+            90
+          ],
+          "pivot_px": [
+            48,
+            87
+          ]
+        },
+        {
+          "rect": [
+            1433,
+            660,
+            78,
+            89
+          ],
+          "pivot_px": [
+            39,
+            86
+          ]
+        }
+      ],
+      "clips": {
+        "idle": {
+          "south": {
+            "frames": [
+              0,
+              1
+            ],
+            "duration_ms": [
+              350,
+              350
+            ],
+            "loop": true,
+            "cues": []
+          },
+          "west": {
+            "frames": [
+              2,
+              2
+            ],
+            "duration_ms": [
+              350,
+              350
+            ],
+            "loop": true,
+            "cues": []
+          },
+          "east": {
+            "frames": [
+              4,
+              4
+            ],
+            "duration_ms": [
+              350,
+              350
+            ],
+            "loop": true,
+            "cues": []
+          },
+          "north": {
+            "frames": [
+              6,
+              6
+            ],
+            "duration_ms": [
+              350,
+              350
+            ],
+            "loop": true,
+            "cues": []
+          }
+        },
+        "move": {
+          "south": {
+            "frames": [
+              8,
+              9
+            ],
+            "duration_ms": [
+              110,
+              110
+            ],
+            "loop": true,
+            "cues": []
+          },
+          "west": {
+            "frames": [
+              2,
+              3
+            ],
+            "duration_ms": [
+              110,
+              110
+            ],
+            "loop": true,
+            "cues": []
+          },
+          "east": {
+            "frames": [
+              4,
+              5
+            ],
+            "duration_ms": [
+              110,
+              110
+            ],
+            "loop": true,
+            "cues": []
+          },
+          "north": {
+            "frames": [
+              6,
+              7
+            ],
+            "duration_ms": [
+              110,
+              110
+            ],
+            "loop": true,
+            "cues": []
+          }
+        },
+        "act": {
+          "south": {
+            "frames": [
+              0,
+              10,
+              10,
+              0
+            ],
+            "duration_ms": [
+              120,
+              100,
+              90,
+              110
+            ],
+            "loop": false,
+            "cues": [
+              {
+                "frame_index": 1,
+                "name": "contact"
+              }
+            ]
+          },
+          "west": {
+            "frames": [
+              2,
+              10,
+              10,
+              2
+            ],
+            "duration_ms": [
+              120,
+              100,
+              90,
+              110
+            ],
+            "loop": false,
+            "cues": [
+              {
+                "frame_index": 1,
+                "name": "contact"
+              }
+            ]
+          },
+          "east": {
+            "frames": [
+              4,
+              10,
+              10,
+              4
+            ],
+            "duration_ms": [
+              120,
+              100,
+              90,
+              110
+            ],
+            "loop": false,
+            "cues": [
+              {
+                "frame_index": 1,
+                "name": "contact"
+              }
+            ]
+          },
+          "north": {
+            "frames": [
+              6,
+              10,
+              10,
+              6
+            ],
+            "duration_ms": [
+              120,
+              100,
+              90,
+              110
+            ],
+            "loop": false,
+            "cues": [
+              {
+                "frame_index": 1,
+                "name": "contact"
+              }
+            ]
+          }
+        },
+        "hurt": {
+          "south": {
+            "frames": [
+              11,
+              11
+            ],
+            "duration_ms": [
+              120,
+              160
+            ],
+            "loop": false,
+            "cues": []
+          },
+          "west": {
+            "frames": [
+              11,
+              11
+            ],
+            "duration_ms": [
+              120,
+              160
+            ],
+            "loop": false,
+            "cues": []
+          },
+          "east": {
+            "frames": [
+              11,
+              11
+            ],
+            "duration_ms": [
+              120,
+              160
+            ],
+            "loop": false,
+            "cues": []
+          },
+          "north": {
+            "frames": [
+              11,
+              11
+            ],
+            "duration_ms": [
+              120,
+              160
+            ],
+            "loop": false,
+            "cues": []
+          }
+        },
+        "defeated": {
+          "south": {
+            "frames": [
+              11,
+              11
+            ],
+            "duration_ms": [
+              200,
+              300
+            ],
+            "loop": false,
+            "cues": []
+          },
+          "west": {
+            "frames": [
+              11,
+              11
+            ],
+            "duration_ms": [
+              200,
+              300
+            ],
+            "loop": false,
+            "cues": []
+          },
+          "east": {
+            "frames": [
+              11,
+              11
+            ],
+            "duration_ms": [
+              200,
+              300
+            ],
+            "loop": false,
+            "cues": []
+          },
+          "north": {
+            "frames": [
+              11,
+              11
+            ],
+            "duration_ms": [
+              200,
+              300
+            ],
+            "loop": false,
+            "cues": []
+          }
+        }
+      }
+    },
+    {
+      "id": "recruit.nell",
+      "kind": "map_unit",
+      "texture": "assets/sprites/opening-animated-v1.png",
+      "logical_frame_px": [
+        64,
+        64
+      ],
+      "source_pixel_scale": 0.5,
+      "fallback_visual_id": null,
+      "frames": [
+        {
+          "rect": [
+            23,
+            778,
+            84,
+            85
+          ],
+          "pivot_px": [
+            41,
+            81
+          ]
+        },
+        {
+          "rect": [
+            149,
+            777,
+            83,
+            86
+          ],
+          "pivot_px": [
+            43,
+            82
+          ]
+        },
+        {
+          "rect": [
+            273,
+            779,
+            87,
+            83
+          ],
+          "pivot_px": [
+            47,
+            80
+          ]
+        },
+        {
+          "rect": [
+            400,
+            778,
+            84,
+            84
+          ],
+          "pivot_px": [
+            48,
+            81
+          ]
+        },
+        {
+          "rect": [
+            524,
+            778,
+            99,
+            84
+          ],
+          "pivot_px": [
+            52,
+            81
+          ]
+        },
+        {
+          "rect": [
+            653,
+            778,
+            97,
+            84
+          ],
+          "pivot_px": [
+            51,
+            81
+          ]
+        },
+        {
+          "rect": [
+            792,
+            778,
+            88,
+            84
+          ],
+          "pivot_px": [
+            40,
+            81
+          ]
+        },
+        {
+          "rect": [
+            914,
+            778,
+            90,
+            84
+          ],
+          "pivot_px": [
+            46,
+            81
+          ]
+        },
+        {
+          "rect": [
+            1039,
+            778,
+            94,
+            86
+          ],
+          "pivot_px": [
+            49,
+            81
+          ]
+        },
+        {
+          "rect": [
+            1173,
+            778,
+            83,
+            86
+          ],
+          "pivot_px": [
+            43,
+            81
+          ]
+        },
+        {
+          "rect": [
+            1305,
+            780,
+            110,
+            83
+          ],
+          "pivot_px": [
+            39,
+            79
+          ]
+        },
+        {
+          "rect": [
+            1427,
+            778,
+            81,
+            84
+          ],
+          "pivot_px": [
+            45,
+            81
+          ]
+        }
+      ],
+      "clips": {
+        "idle": {
+          "south": {
+            "frames": [
+              0,
+              1
+            ],
+            "duration_ms": [
+              350,
+              350
+            ],
+            "loop": true,
+            "cues": []
+          },
+          "west": {
+            "frames": [
+              2,
+              2
+            ],
+            "duration_ms": [
+              350,
+              350
+            ],
+            "loop": true,
+            "cues": []
+          },
+          "east": {
+            "frames": [
+              4,
+              4
+            ],
+            "duration_ms": [
+              350,
+              350
+            ],
+            "loop": true,
+            "cues": []
+          },
+          "north": {
+            "frames": [
+              6,
+              6
+            ],
+            "duration_ms": [
+              350,
+              350
+            ],
+            "loop": true,
+            "cues": []
+          }
+        },
+        "move": {
+          "south": {
+            "frames": [
+              8,
+              9
+            ],
+            "duration_ms": [
+              110,
+              110
+            ],
+            "loop": true,
+            "cues": []
+          },
+          "west": {
+            "frames": [
+              2,
+              3
+            ],
+            "duration_ms": [
+              110,
+              110
+            ],
+            "loop": true,
+            "cues": []
+          },
+          "east": {
+            "frames": [
+              4,
+              5
+            ],
+            "duration_ms": [
+              110,
+              110
+            ],
+            "loop": true,
+            "cues": []
+          },
+          "north": {
+            "frames": [
+              6,
+              7
+            ],
+            "duration_ms": [
+              110,
+              110
+            ],
+            "loop": true,
+            "cues": []
+          }
+        },
+        "act": {
+          "south": {
+            "frames": [
+              0,
+              10,
+              10,
+              0
+            ],
+            "duration_ms": [
+              120,
+              100,
+              90,
+              110
+            ],
+            "loop": false,
+            "cues": [
+              {
+                "frame_index": 1,
+                "name": "contact"
+              }
+            ]
+          },
+          "west": {
+            "frames": [
+              2,
+              10,
+              10,
+              2
+            ],
+            "duration_ms": [
+              120,
+              100,
+              90,
+              110
+            ],
+            "loop": false,
+            "cues": [
+              {
+                "frame_index": 1,
+                "name": "contact"
+              }
+            ]
+          },
+          "east": {
+            "frames": [
+              4,
+              10,
+              10,
+              4
+            ],
+            "duration_ms": [
+              120,
+              100,
+              90,
+              110
+            ],
+            "loop": false,
+            "cues": [
+              {
+                "frame_index": 1,
+                "name": "contact"
+              }
+            ]
+          },
+          "north": {
+            "frames": [
+              6,
+              10,
+              10,
+              6
+            ],
+            "duration_ms": [
+              120,
+              100,
+              90,
+              110
+            ],
+            "loop": false,
+            "cues": [
+              {
+                "frame_index": 1,
+                "name": "contact"
+              }
+            ]
+          }
+        },
+        "hurt": {
+          "south": {
+            "frames": [
+              11,
+              11
+            ],
+            "duration_ms": [
+              120,
+              160
+            ],
+            "loop": false,
+            "cues": []
+          },
+          "west": {
+            "frames": [
+              11,
+              11
+            ],
+            "duration_ms": [
+              120,
+              160
+            ],
+            "loop": false,
+            "cues": []
+          },
+          "east": {
+            "frames": [
+              11,
+              11
+            ],
+            "duration_ms": [
+              120,
+              160
+            ],
+            "loop": false,
+            "cues": []
+          },
+          "north": {
+            "frames": [
+              11,
+              11
+            ],
+            "duration_ms": [
+              120,
+              160
+            ],
+            "loop": false,
+            "cues": []
+          }
+        },
+        "defeated": {
+          "south": {
+            "frames": [
+              11,
+              11
+            ],
+            "duration_ms": [
+              200,
+              300
+            ],
+            "loop": false,
+            "cues": []
+          },
+          "west": {
+            "frames": [
+              11,
+              11
+            ],
+            "duration_ms": [
+              200,
+              300
+            ],
+            "loop": false,
+            "cues": []
+          },
+          "east": {
+            "frames": [
+              11,
+              11
+            ],
+            "duration_ms": [
+              200,
+              300
+            ],
+            "loop": false,
+            "cues": []
+          },
+          "north": {
+            "frames": [
+              11,
+              11
+            ],
+            "duration_ms": [
+              200,
+              300
+            ],
+            "loop": false,
+            "cues": []
+          }
+        }
+      }
+    },
+    {
+      "id": "recruit.bram",
+      "kind": "map_unit",
+      "texture": "assets/sprites/opening-animated-v1.png",
+      "logical_frame_px": [
+        64,
+        64
+      ],
+      "source_pixel_scale": 0.5,
+      "fallback_visual_id": null,
+      "frames": [
+        {
+          "rect": [
+            16,
+            885,
+            98,
+            107
+          ],
+          "pivot_px": [
+            48,
+            104
+          ]
+        },
+        {
+          "rect": [
+            140,
+            885,
+            98,
+            107
+          ],
+          "pivot_px": [
+            52,
+            104
+          ]
+        },
+        {
+          "rect": [
+            256,
+            885,
+            107,
+            107
+          ],
+          "pivot_px": [
+            64,
+            104
+          ]
+        },
+        {
+          "rect": [
+            390,
+            885,
+            100,
+            107
+          ],
+          "pivot_px": [
+            58,
+            104
+          ]
+        },
+        {
+          "rect": [
+            518,
+            887,
+            105,
+            104
+          ],
+          "pivot_px": [
+            58,
+            102
+          ]
+        },
+        {
+          "rect": [
+            650,
+            886,
+            102,
+            105
+          ],
+          "pivot_px": [
+            54,
+            103
+          ]
+        },
+        {
+          "rect": [
+            793,
+            885,
+            80,
+            106
+          ],
+          "pivot_px": [
+            39,
+            104
+          ]
+        },
+        {
+          "rect": [
+            915,
+            885,
+            82,
+            106
+          ],
+          "pivot_px": [
+            45,
+            104
+          ]
+        },
+        {
+          "rect": [
+            1036,
+            886,
+            110,
+            106
+          ],
+          "pivot_px": [
+            52,
+            103
+          ]
+        },
+        {
+          "rect": [
+            1162,
+            886,
+            93,
+            106
+          ],
+          "pivot_px": [
+            54,
+            103
+          ]
+        },
+        {
+          "rect": [
+            1289,
+            886,
+            124,
+            106
+          ],
+          "pivot_px": [
+            55,
+            103
+          ]
+        },
+        {
+          "rect": [
+            1421,
+            887,
+            95,
+            106
+          ],
+          "pivot_px": [
+            51,
+            102
+          ]
+        }
+      ],
+      "clips": {
+        "idle": {
+          "south": {
+            "frames": [
+              0,
+              1
+            ],
+            "duration_ms": [
+              350,
+              350
+            ],
+            "loop": true,
+            "cues": []
+          },
+          "west": {
+            "frames": [
+              2,
+              2
+            ],
+            "duration_ms": [
+              350,
+              350
+            ],
+            "loop": true,
+            "cues": []
+          },
+          "east": {
+            "frames": [
+              4,
+              4
+            ],
+            "duration_ms": [
+              350,
+              350
+            ],
+            "loop": true,
+            "cues": []
+          },
+          "north": {
+            "frames": [
+              6,
+              6
+            ],
+            "duration_ms": [
+              350,
+              350
+            ],
+            "loop": true,
+            "cues": []
+          }
+        },
+        "move": {
+          "south": {
+            "frames": [
+              8,
+              9
+            ],
+            "duration_ms": [
+              110,
+              110
+            ],
+            "loop": true,
+            "cues": []
+          },
+          "west": {
+            "frames": [
+              2,
+              3
+            ],
+            "duration_ms": [
+              110,
+              110
+            ],
+            "loop": true,
+            "cues": []
+          },
+          "east": {
+            "frames": [
+              4,
+              5
+            ],
+            "duration_ms": [
+              110,
+              110
+            ],
+            "loop": true,
+            "cues": []
+          },
+          "north": {
+            "frames": [
+              6,
+              7
+            ],
+            "duration_ms": [
+              110,
+              110
+            ],
+            "loop": true,
+            "cues": []
+          }
+        },
+        "act": {
+          "south": {
+            "frames": [
+              0,
+              10,
+              10,
+              0
+            ],
+            "duration_ms": [
+              120,
+              100,
+              90,
+              110
+            ],
+            "loop": false,
+            "cues": [
+              {
+                "frame_index": 1,
+                "name": "contact"
+              }
+            ]
+          },
+          "west": {
+            "frames": [
+              2,
+              10,
+              10,
+              2
+            ],
+            "duration_ms": [
+              120,
+              100,
+              90,
+              110
+            ],
+            "loop": false,
+            "cues": [
+              {
+                "frame_index": 1,
+                "name": "contact"
+              }
+            ]
+          },
+          "east": {
+            "frames": [
+              4,
+              10,
+              10,
+              4
+            ],
+            "duration_ms": [
+              120,
+              100,
+              90,
+              110
+            ],
+            "loop": false,
+            "cues": [
+              {
+                "frame_index": 1,
+                "name": "contact"
+              }
+            ]
+          },
+          "north": {
+            "frames": [
+              6,
+              10,
+              10,
+              6
+            ],
+            "duration_ms": [
+              120,
+              100,
+              90,
+              110
+            ],
+            "loop": false,
+            "cues": [
+              {
+                "frame_index": 1,
+                "name": "contact"
+              }
+            ]
+          }
+        },
+        "hurt": {
+          "south": {
+            "frames": [
+              11,
+              11
+            ],
+            "duration_ms": [
+              120,
+              160
+            ],
+            "loop": false,
+            "cues": []
+          },
+          "west": {
+            "frames": [
+              11,
+              11
+            ],
+            "duration_ms": [
+              120,
+              160
+            ],
+            "loop": false,
+            "cues": []
+          },
+          "east": {
+            "frames": [
+              11,
+              11
+            ],
+            "duration_ms": [
+              120,
+              160
+            ],
+            "loop": false,
+            "cues": []
+          },
+          "north": {
+            "frames": [
+              11,
+              11
+            ],
+            "duration_ms": [
+              120,
+              160
+            ],
+            "loop": false,
+            "cues": []
+          }
+        },
+        "defeated": {
+          "south": {
+            "frames": [
+              11,
+              11
+            ],
+            "duration_ms": [
+              200,
+              300
+            ],
+            "loop": false,
+            "cues": []
+          },
+          "west": {
+            "frames": [
+              11,
+              11
+            ],
+            "duration_ms": [
+              200,
+              300
+            ],
+            "loop": false,
+            "cues": []
+          },
+          "east": {
+            "frames": [
+              11,
+              11
+            ],
+            "duration_ms": [
+              200,
+              300
+            ],
+            "loop": false,
+            "cues": []
+          },
+          "north": {
+            "frames": [
+              11,
+              11
+            ],
+            "duration_ms": [
+              200,
+              300
+            ],
+            "loop": false,
+            "cues": []
+          }
+        }
+      }
+    }
+  ],
+  "sources": {
+    "assets/sprites/opening-animated-v1.png": "2406ec8616979d919e8ee3639dfabd8fc5181ae5aa0da1335e9b7ca022783858"
+  }
+}

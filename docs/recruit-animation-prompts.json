@@ -1,0 +1,25 @@
+{
+  "generator": "Built-in image_gen tool",
+  "date": "2026-10-29",
+  "asset": "assets/sprites/opening-animated-v1.png",
+  "rows": [
+    "lyra",
+    "oren",
+    "sera",
+    "ivo",
+    "mara",
+    "tarin",
+    "nell",
+    "bram"
+  ],
+  "prompts": {
+    "identity": "Use case: identity-preserve. Asset type: original game animation atlas, transparent RGBA. Edit Image 1 (the 12-column, 8-row animation atlas) into a NEW version for the eight original recruits shown in Image 2 (identity reference only). Preserve Image 1's compact detailed pixel-sprite style, slightly elevated three-quarter camera, 12-column by 8-row layout and animation pose structure. Replace row identities and costumes as follows, matching Image 2 reading order: row 1 Lyra, long chestnut-haired young woman, ivory mantle/navy light armor/sword; row 2 Oren, middle-aged short salt-and-pepper-haired man with stubble, bare head NO helmet, heavy silver/navy plate/lance/shield; row 3 Sera, auburn ponytail woman, olive cloak/brown leather/bow/quiver; row 4 Ivo, olive-skinned black wavy-haired young man, ivory/lavender healer robe/staff/satchel; row 5 Mara, tan copper-red braided ponytail woman, dark leather captain coat/ochre scarf/axe; row 6 Tarin, pale blond young man, navy scholarly coat/open spellbook; row 7 Nell, short black-haired woman, charcoal leather/blue scarf/short sword; row 8 Bram, sandy-blond young man in green cloak/leather, mounted on a complete chestnut horse with a lance. Each row must show ONE consistent recruit across all twelve poses. Exact columns: 1 south idle, 2 south alternate idle, 3 WEST facing LEFT idle, 4 WEST facing LEFT walking, 5 EAST facing RIGHT idle, 6 EAST facing RIGHT walking, 7 NORTH rear view idle, 8 NORTH rear view walking, 9 south left-foot walking, 10 south right-foot walking, 11 attack/cast/heal angled right, 12 recoil. Landscape 1536x1024, EXACT equal 128x128 cells, no grid lines. Consistent foot baseline y=114 within each cell. Entire body, weapon, hair, cape and mount must fit within its own cell with at least 8 pixels empty margin on all sides; shrink long spears/poses to fit. No row mixing or extra figures. No text, names, labels, background texture, ground, drop shadows, colored matte or glow clouds. Preserve actual fully transparent alpha everywhere outside the figures. These are our original characters, not existing game characters.",
+    "layout": "Use case: precise-object-edit. Make a LAYOUT-ONLY revision of this original 96-frame sprite atlas. Keep the 1536x1024 canvas, all eight row identities, exact twelve-pose order, costumes, colors and drawing style unchanged. The current figures cross cell boundaries; fix this by making EVERY figure much smaller and centering it exactly in its cell. The grid is EXACTLY 12 columns by 8 rows, each 128x128. For every cell, the COMPLETE sprite including every weapon, cape, hair strand, spell particle and horse must fit inside a maximum 94-pixel-wide by 94-pixel-high box. Center horizontally at local x=64 and put feet at local y=112. At least 16 pixels of genuinely empty transparent gutter on all four sides of EVERY cell. Shrink each whole figure uniformly; do not crop or cut weapons. In particular keep all long spears, attacking swords, horses and capes well inside their OWN cells. Think of 96 SMALL separate stickers in spacious invisible grid cells. No figure or stray particle can touch a grid boundary. Remove any background glow/haze/matte; fully transparent alpha everywhere outside the figures. No labels, text, lines, floor or shadows. Preserve identities and poses; change only scale, alignment and empty spacing.",
+    "weapon_consistency": "Use case: precise-object-edit. Correct ONLY weapon consistency in this original 96-frame sprite atlas. Keep every character's identity, face, hair, costume, pose, exact position, exact small size, row order, column order, spacing and 1536x1024 dimensions unchanged. Row 4 is Ivo the black-haired male healer in ivory/lavender robes: in EVERY pose where his staff is visible, its top must be the same ornate GOLD circular head with a BLUE central orb as in row 4 column 1. In particular replace the incorrect silver spear tip in row 4 column 5 with that gold-and-blue healer staff head. Row 7 is Nell the short black-haired woman in charcoal leather and blue scarf: in column 11 her attack weapon must be a SHORT, SLIM SILVER ONE-HANDED SWORD with a short dark grip and small gold crossguard, never a wooden-shaft spear, lance or polearm. Keep that whole sword inside the existing empty gap before the next figure. Do not alter any other rows or figures, do not enlarge or rearrange anything. Preserve genuine transparent alpha outside all sprites; no background, haze, floor, text, grid, labels or extra effects."
+  },
+  "reference_images": [
+    "visuals/assets/units-v2.png",
+    "assets/sprites/company-a.png"
+  ],
+  "notes": "Original project characters. Atlas indexing reads alpha bounds and records cropping/pivots; it does not edit source pixels."
+}
