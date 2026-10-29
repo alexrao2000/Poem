@@ -38,6 +38,7 @@ func new_campaign():
 		u.hp += int(u.join)*2
 		u.pow += int(u.join)
 		u.defense += int(u.join)/2
+		u.resistance += int(u.join)/2
 		u.max_hp = u.hp
 		normalize_equipment(u)
 	deployed = ["lyra", "oren", "sera", "ivo"]
@@ -80,7 +81,7 @@ func start_battle():
 		e.id="enemy_"+str(i)
 		e.name=info().boss if i==0 else ["Ash guard","Crown scout","Sun sworn","Black pennant"][i%4]
 		e.job=job;e.color="#ce7771";e.level=1+chapter;e.xp=0
-		e.hp+=chapter*2;e.pow+=chapter;e.defense+=chapter/2;e.max_hp=e.hp
+		e.hp+=chapter*2;e.pow+=chapter;e.defense+=chapter/2;e.resistance+=chapter/2;e.max_hp=e.hp
 		e.team="enemy";e.acted=false;e.moved=false;e.boss=i==0
 		e.ai=entry.get("ai","pursue");e.alerted=false
 		e.x=int(entry.position[0]);e.y=int(entry.position[1])
@@ -218,8 +219,9 @@ func forecast(a: Dictionary,b: Dictionary) -> Dictionary:
 	if beats.get(a.weapon,"")==b.weapon: advantage=1
 	if beats.get(b.weapon,"")==a.weapon: advantage=-1
 	var cover = 2 if terrain(pos(b)) in ["f","h","o"] else 0
-	var defense = int(b.defense)/2 if a.weapon=="magic" else int(b.defense)
-	return {"damage":maxi(1,attack_power(a)+advantage+(1 if support_attack==3 else 0)-defense-cover),"hit":clampi(85+(attack_speed(a)-attack_speed(b))*2+int(item_for(a).hit)+promotion_bonus(a,"hit")+(support_attack-support_defense)*5+advantage*15-cover*5,25,100),"crit":clampi(int(a.speed)/2+int(item_for(a).crit)+promotion_bonus(a,"crit"),0,50),"double":attack_speed(a)-attack_speed(b)>=4,"counter":can_attack(b,a)}
+	var defense = resistance_for(b) if a.weapon=="magic" else int(b.defense)
+	var effective=effectiveness(a,b)
+	return {"effective":effective>1,"damage":maxi(1,attack_power(a)+int(item_for(a).might)*(effective-1)+advantage+(1 if support_attack==3 else 0)-defense-cover),"hit":clampi(85+(attack_speed(a)-attack_speed(b))*2+int(item_for(a).hit)+promotion_bonus(a,"hit")+(support_attack-support_defense)*5+advantage*15-cover*5,25,100),"crit":clampi(int(a.speed)/2+int(item_for(a).crit)+promotion_bonus(a,"crit"),0,50),"double":attack_speed(a)-attack_speed(b)>=4,"counter":can_attack(b,a)}
 
 func strike(a: Dictionary,b: Dictionary) -> Dictionary:
 	var f = forecast(a,b)
@@ -253,7 +255,7 @@ func award_xp(u: Dictionary, amount: int):
 		u.hp+=2
 		u.pow+=1
 		u.defense+=1
-		if int(u.level)%2==0:u.speed+=1
+		if int(u.level)%2==0:u.speed+=1;u.resistance=resistance_for(u)+1
 
 func result() -> String:
 	if living("player").is_empty(): return "defeat"
@@ -275,7 +277,7 @@ func finish_chapter():
 		if u.team!="player": continue
 		for r in roster:
 			if r.id==u.id:
-				for key in ["level","xp","max_hp","pow","defense","speed","item","reach"]:r[key]=u[key]
+				for key in ["level","xp","max_hp","pow","defense","resistance","speed","item","reach"]:r[key]=u[key]
 	chapter+=1
 	if chapter>=content.chapters.size():
 		completed=true
@@ -360,6 +362,7 @@ func valid_unit(unit,in_battle: bool) -> bool:
 		if not is_finite(float(unit[key])) or unit[key]<0:return false
 	if unit.max_hp<=0 or unit.max_hp>999 or unit.hp>unit.max_hp or unit.move<1 or unit.move>20 or unit.reach<1 or unit.reach>10:return false
 	if unit.level<1 or unit.level>99 or unit.xp>=100 or unit.pow>255 or unit.defense>255 or unit.speed>255:return false
+	if unit.has("resistance") and (not (unit.resistance is int or unit.resistance is float) or not is_finite(float(unit.resistance)) or unit.resistance<0 or unit.resistance>255):return false
 	if in_battle:
 		if unit.get("team") not in ["player","enemy"] or not unit.get("acted") is bool:return false
 		for key in ["x","y"]:
@@ -390,9 +393,9 @@ func restore_save(data) -> String:
 	story_seen=data.get("story_seen",[])
 	supports.state=data.get("supports",{})
 	chapter=int(data.chapter);turn=int(data.turn);phase=data.phase;roster=data.roster;units=data.units;deployed=data.deployed;completed=data.completed;rng.state=int(data.rng)
-	for unit in roster:normalize_equipment(unit)
+	for unit in roster:normalize_equipment(unit);unit.resistance=resistance_for(unit)
 	for unit in units:
-		normalize_equipment(unit)
+		normalize_equipment(unit);unit.resistance=resistance_for(unit)
 		unit.moved=unit.get("moved",false)
 		if unit.team=="player":unit.potions=int(unit.get("potions",2))
 		if unit.team=="enemy":unit.ai=unit.get("ai","guard" if unit.get("boss",false) else "pursue")
@@ -405,7 +408,7 @@ func progress_snapshot() -> Dictionary:
 	var snapshot={}
 	for unit in living("player"):
 		snapshot[unit.id]={}
-		for key in ["level","xp","max_hp","pow","defense","speed"]:snapshot[unit.id][key]=int(unit[key])
+		for key in ["level","xp","max_hp","pow","defense","resistance","speed"]:snapshot[unit.id][key]=int(unit[key])
 	return snapshot
 
 func progress_since(snapshot: Dictionary) -> Array:
@@ -416,7 +419,7 @@ func progress_since(snapshot: Dictionary) -> Array:
 		var gain=(int(unit.level)-before.level)*100+int(unit.xp)-before.xp
 		if gain<=0:continue
 		var record={"unit":unit,"xp_gain":gain,"before":before,"gains":{}}
-		for key in ["max_hp","pow","defense","speed"]:record.gains[key]=int(unit[key])-before[key]
+		for key in ["max_hp","pow","defense","resistance","speed"]:record.gains[key]=int(unit[key])-before[key]
 		changes.append(record)
 	return changes
 
@@ -468,7 +471,16 @@ func can_promote(unit: Dictionary,id: String) -> bool:
 func promote(unit: Dictionary,id: String) -> bool:
 	if not can_promote(unit,id):return false
 	unit.promotion=id
-	for key in ["max_hp","pow","defense","speed","move"]:
+	for key in ["max_hp","pow","defense","resistance","speed","move"]:
 		unit[key]+=promotion_bonus(unit,key)
 	unit.hp=mini(unit.max_hp,unit.hp+promotion_bonus(unit,"max_hp"))
 	return true
+
+func resistance_for(unit: Dictionary) -> int:
+	return int(unit.get("resistance",int(content.classes[unit.job].resistance)+int((unit.level-1)/2)+promotion_bonus(unit,"resistance")))
+
+func effectiveness(attacker: Dictionary,defender: Dictionary) -> int:
+	var tags=content.classes[defender.job].get("tags",[])
+	for tag in item_for(attacker).get("effective_against",[]):
+		if tag in tags:return 3
+	return 1

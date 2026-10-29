@@ -358,7 +358,7 @@ func update_side():
 		label_in(details,game.class_name_for(selected),16)
 		var bond_rank=game.supports.nearby_rank(game,selected)
 		label_in(details,"Lv %d / XP %d"%[selected.level,selected.xp]+(" · Bond "+game.supports.RANKS[bond_rank] if bond_rank>0 else ""),15)
-		label_in(side,"HP %d / %d\nATK %d   DEF %d   SPD %d\n%s · range %s"%[selected.hp,selected.max_hp,game.attack_power(selected),selected.defense,game.attack_speed(selected),game.item_for(selected).name,game.range_text(selected)],18)
+		label_in(side,"HP %d/%d · ATK %d\nDEF %d · RES %d · SPD %d\n%s · %s tiles"%[selected.hp,selected.max_hp,game.attack_power(selected),selected.defense,game.resistance_for(selected),game.attack_speed(selected),game.item_for(selected).name,game.range_text(selected)],17)
 		if selected.team=="enemy":
 			var behavior={"guard":"Holds position","sentry":"Waits until approached","pursue":"Advances toward the company"}
 			label_in(side,behavior.get(selected.get("ai","pursue"),"Advances"),17,GOLD)
@@ -366,14 +366,15 @@ func update_side():
 			button_in(side,"All enemy ranges [R]: "+("on" if show_danger else "off"),toggle_danger,busy)
 		if target!=null:
 			var f=game.forecast(selected,target)
-			label_in(side,"VS  "+target.name,21,GOLD)
+			var versus=label_in(side,("Effective vs " if f.effective else "VS  ")+target.name,19,GOLD)
+			versus.autowrap_mode=TextServer.AUTOWRAP_OFF;versus.text_overrun_behavior=TextServer.OVERRUN_TRIM_ELLIPSIS;versus.tooltip_text=versus.text
 			var counter=game.forecast(target,selected)
 			var table=GridContainer.new();table.columns=3;table.add_theme_constant_override("h_separation",8);table.add_theme_constant_override("v_separation",2);side.add_child(table)
 			var entries=[["", "YOU", "FOE"],["HP", "%d/%d"%[selected.hp,selected.max_hp], "%d/%d"%[target.hp,target.max_hp]], ["Dmg",str(f.damage)+(" ×2" if f.double else ""),str(counter.damage)+(" ×2" if counter.double else "") if f.counter else "—"], ["Hit",str(f.hit)+"%",str(counter.hit)+"%" if f.counter else "—"], ["Crit",str(f.crit)+"%",str(counter.crit)+"%" if f.counter else "—"]]
 			for values in entries:
 				for value in values:
 					var cell=label_in(table,value,17);cell.custom_minimum_size.x=66;cell.size_flags_horizontal=Control.SIZE_EXPAND_FILL;cell.autowrap_mode=TextServer.AUTOWRAP_OFF
-			label_in(side,"Counter if both survive." if f.counter else "Foe cannot counter at this range.",14,GOLD)
+			label_in(side,("Foe has an effective counter!" if counter.effective else "Counter if both survive.") if f.counter else "Foe cannot counter at this range.",14,GOLD)
 			button_in(side,"Confirm attack",func():player_attack(),busy)
 		if selected.team=="player" and not selected.acted:
 			button_in(side,"Wait / secure position",wait_action,busy)
@@ -782,7 +783,7 @@ func show_dossier(unit):
 	var profile=profiles.get(unit.id,{})
 	label_in(info,unit.name,46,GOLD);label_in(info,profile.get("title",unit.job),26)
 	label_in(info,"%s  /  Level %d  /  %d XP"%[game.class_name_for(unit),unit.level,unit.xp],20)
-	label_in(info,"HP %d    ATK %d    DEF %d    SPD %d    MOV %d"%[unit.max_hp,game.attack_power(unit),unit.defense,game.attack_speed(unit),unit.move],21)
+	label_in(info,"HP %d    ATK %d    DEF %d    RES %d    SPD %d    MOV %d"%[unit.max_hp,game.attack_power(unit),unit.defense,game.resistance_for(unit),game.attack_speed(unit),unit.move],21)
 	label_in(info,profile.get("biography",unit.bio),22)
 	label_in(info,"PERSONAL NOTE",16,GOLD);label_in(info,profile.get("note",""),20)
 	var records=HBoxContainer.new();records.add_theme_constant_override("separation",12);panel.add_child(records)
@@ -821,6 +822,7 @@ func show_equipment(unit):
 		var card=PanelContainer.new();list.add_child(card)
 		var details=VBoxContainer.new();details.add_theme_constant_override("separation",5);card.add_child(details)
 		label_in(details,item.name,26,GOLD);label_in(details,item.description,17)
+		if item.has("effective_against"):label_in(details,"Triple weapon might against "+", ".join(item.effective_against)+" foes.",17,GOLD)
 		var reach=str(int(item.min_range)) if item.min_range==item.max_range else "%d–%d"%[item.min_range,item.max_range]
 		if item.kind=="staff":label_in(details,"Heal %d   Weight %d   Range %s"%[int(item.heal)+game.promotion_bonus(unit,"heal"),item.weight,reach],18)
 		else:label_in(details,"Might %d   Hit %+d   Crit +%d   Weight %d   Range %s"%[item.might,item.hit,item.crit,item.weight,reach],18)
@@ -875,7 +877,7 @@ func show_progress(before: Dictionary):
 		tween.tween_property(progress,"value",float(unit.xp),.35)
 		label_in(details,"%d / 100 XP"%unit.xp,16)
 		if leveled:
-			label_in(details,"HP +%d   Power +%d   Defense +%d   Speed +%d"%[change.gains.max_hp,change.gains.pow,change.gains.defense,change.gains.speed],17)
+			label_in(details,"HP +%d   Power +%d   Defense +%d   Resistance +%d   Speed +%d"%[change.gains.max_hp,change.gains.pow,change.gains.defense,change.gains.resistance,change.gains.speed],17)
 		label_in(details,"Space / Enter to continue",14)
 		var elapsed=0.0
 		while elapsed<(2.0 if leveled else .8) and not reward_skip:
@@ -933,7 +935,7 @@ func show_promotions(unit):
 		var card=PanelContainer.new();list.add_child(card)
 		var details=VBoxContainer.new();details.add_theme_constant_override("separation",10);card.add_child(details)
 		label_in(details,path.name,32,GOLD);label_in(details,path.description,19)
-		var gains=[];var names={"max_hp":"HP","pow":"Power","defense":"Defense","speed":"Speed","move":"Move","heal":"Staff healing","hit":"Hit","crit":"Crit"}
+		var gains=[];var names={"max_hp":"HP","pow":"Power","defense":"Defense","resistance":"Resistance","speed":"Speed","move":"Move","heal":"Staff healing","hit":"Hit","crit":"Crit"}
 		for key in path.bonuses:gains.append("%s +%d"%[names[key],path.bonuses[key]])
 		label_in(details,"   ·   ".join(gains),20)
 		var chosen=unit.get("promotion","")==path.id

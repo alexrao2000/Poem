@@ -235,7 +235,7 @@
     "max_range": 1,
     "unlock": 0,
     "heal": 12,
-    "description": "Restores an adjacent ally\u2019s health."
+    "description": "Restores an adjacent ally’s health."
   },
   {
     "id": "mend_staff",
@@ -264,5 +264,56 @@
     "unlock": 5,
     "heal": 10,
     "description": "Reaches allies up to two tiles away."
+  },
+  {
+    "id": "estoc",
+    "name": "Seamfinder",
+    "kind": "sword",
+    "might": 3,
+    "hit": -5,
+    "crit": 0,
+    "weight": 2,
+    "min_range": 1,
+    "max_range": 1,
+    "unlock": 2,
+    "heal": 0,
+    "effective_against": [
+      "armored"
+    ],
+    "description": "A narrow thrusting blade made to find the gaps in heavy armor."
+  },
+  {
+    "id": "riders_bane",
+    "name": "Rider-stop pike",
+    "kind": "lance",
+    "might": 4,
+    "hit": -10,
+    "crit": 0,
+    "weight": 4,
+    "min_range": 1,
+    "max_range": 1,
+    "unlock": 3,
+    "heal": 0,
+    "effective_against": [
+      "mounted"
+    ],
+    "description": "A braced pike designed to halt a mounted charge."
+  },
+  {
+    "id": "war_hammer",
+    "name": "War hammer",
+    "kind": "axe",
+    "might": 5,
+    "hit": -15,
+    "crit": 0,
+    "weight": 5,
+    "min_range": 1,
+    "max_range": 1,
+    "unlock": 4,
+    "heal": 0,
+    "effective_against": [
+      "armored"
+    ],
+    "description": "Heavy blows punish plate armor, at a cost to speed and accuracy."
   }
 ]

@@ -8,7 +8,8 @@
     "bonuses": {
       "max_hp": 5,
       "pow": 2,
-      "defense": 3
+      "defense": 3,
+      "resistance": 1
     }
   },
   {
@@ -97,7 +98,8 @@
       "max_hp": 5,
       "pow": 1,
       "defense": 3,
-      "speed": 1
+      "speed": 1,
+      "resistance": 3
     }
   },
   {
@@ -109,7 +111,8 @@
     "bonuses": {
       "max_hp": 3,
       "defense": 2,
-      "heal": 4
+      "heal": 4,
+      "resistance": 3
     }
   },
   {
@@ -198,7 +201,8 @@
       "max_hp": 5,
       "pow": 2,
       "defense": 3,
-      "hit": 5
+      "hit": 5,
+      "resistance": 1
     }
   }
 ]

@@ -13,7 +13,8 @@
       "speed": 7,
       "move": 5,
       "weapon": "sword",
-      "reach": 1
+      "reach": 1,
+      "resistance": 3
     },
     {
       "id": "oren",
@@ -28,7 +29,8 @@
       "speed": 3,
       "move": 4,
       "weapon": "lance",
-      "reach": 1
+      "reach": 1,
+      "resistance": 1
     },
     {
       "id": "sera",
@@ -43,7 +45,8 @@
       "speed": 8,
       "move": 5,
       "weapon": "bow",
-      "reach": 2
+      "reach": 2,
+      "resistance": 3
     },
     {
       "id": "ivo",
@@ -58,7 +61,8 @@
       "speed": 6,
       "move": 5,
       "weapon": "staff",
-      "reach": 1
+      "reach": 1,
+      "resistance": 8
     },
     {
       "id": "mara",
@@ -73,7 +77,8 @@
       "speed": 6,
       "move": 5,
       "weapon": "axe",
-      "reach": 1
+      "reach": 1,
+      "resistance": 1
     },
     {
       "id": "tarin",
@@ -88,7 +93,8 @@
       "speed": 6,
       "move": 5,
       "weapon": "magic",
-      "reach": 2
+      "reach": 2,
+      "resistance": 7
     },
     {
       "id": "nell",
@@ -103,7 +109,8 @@
       "speed": 11,
       "move": 6,
       "weapon": "sword",
-      "reach": 1
+      "reach": 1,
+      "resistance": 4
     },
     {
       "id": "bram",
@@ -118,7 +125,8 @@
       "speed": 7,
       "move": 7,
       "weapon": "lance",
-      "reach": 1
+      "reach": 1,
+      "resistance": 3
     },
     {
       "id": "esme",
@@ -133,7 +141,8 @@
       "speed": 6,
       "move": 5,
       "weapon": "staff",
-      "reach": 1
+      "reach": 1,
+      "resistance": 8
     },
     {
       "id": "rook",
@@ -148,7 +157,8 @@
       "speed": 3,
       "move": 4,
       "weapon": "lance",
-      "reach": 1
+      "reach": 1,
+      "resistance": 1
     },
     {
       "id": "faye",
@@ -163,7 +173,8 @@
       "speed": 8,
       "move": 5,
       "weapon": "bow",
-      "reach": 2
+      "reach": 2,
+      "resistance": 3
     },
     {
       "id": "cassian",
@@ -178,7 +189,8 @@
       "speed": 7,
       "move": 5,
       "weapon": "sword",
-      "reach": 1
+      "reach": 1,
+      "resistance": 3
     },
     {
       "id": "vela",
@@ -193,7 +205,8 @@
       "speed": 6,
       "move": 5,
       "weapon": "magic",
-      "reach": 2
+      "reach": 2,
+      "resistance": 7
     },
     {
       "id": "dax",
@@ -208,7 +221,8 @@
       "speed": 6,
       "move": 5,
       "weapon": "axe",
-      "reach": 1
+      "reach": 1,
+      "resistance": 1
     },
     {
       "id": "una",
@@ -223,7 +237,8 @@
       "speed": 7,
       "move": 7,
       "weapon": "lance",
-      "reach": 1
+      "reach": 1,
+      "resistance": 3
     },
     {
       "id": "silas",
@@ -238,7 +253,8 @@
       "speed": 11,
       "move": 6,
       "weapon": "sword",
-      "reach": 1
+      "reach": 1,
+      "resistance": 4
     },
     {
       "id": "petra",
@@ -253,7 +269,8 @@
       "speed": 3,
       "move": 4,
       "weapon": "lance",
-      "reach": 1
+      "reach": 1,
+      "resistance": 1
     },
     {
       "id": "ari",
@@ -268,7 +285,8 @@
       "speed": 8,
       "move": 5,
       "weapon": "bow",
-      "reach": 2
+      "reach": 2,
+      "resistance": 3
     },
     {
       "id": "noor",
@@ -283,7 +301,8 @@
       "speed": 6,
       "move": 5,
       "weapon": "magic",
-      "reach": 2
+      "reach": 2,
+      "resistance": 7
     },
     {
       "id": "galen",
@@ -298,13 +317,14 @@
       "speed": 6,
       "move": 5,
       "weapon": "staff",
-      "reach": 1
+      "reach": 1,
+      "resistance": 8
     },
     {
       "id": "yuna",
       "name": "Yuna",
       "job": "Duelist",
-      "bio": "A palace dancer who memorized the guards\u2019 patrols.",
+      "bio": "A palace dancer who memorized the guards’ patrols.",
       "color": "#d6a5ba",
       "join": 9,
       "hp": 23,
@@ -313,13 +333,14 @@
       "speed": 11,
       "move": 6,
       "weapon": "sword",
-      "reach": 1
+      "reach": 1,
+      "resistance": 4
     },
     {
       "id": "hale",
       "name": "Hale",
       "job": "Corsair",
-      "bio": "A miner who helped excavate the enemy\u2019s terrible engine.",
+      "bio": "A miner who helped excavate the enemy’s terrible engine.",
       "color": "#cda68c",
       "join": 9,
       "hp": 30,
@@ -328,7 +349,8 @@
       "speed": 6,
       "move": 5,
       "weapon": "axe",
-      "reach": 1
+      "reach": 1,
+      "resistance": 1
     },
     {
       "id": "elian",
@@ -343,13 +365,14 @@
       "speed": 7,
       "move": 7,
       "weapon": "lance",
-      "reach": 1
+      "reach": 1,
+      "resistance": 3
     },
     {
       "id": "rhea",
       "name": "Rhea",
       "job": "Vanguard",
-      "bio": "The regent\u2019s estranged daughter, carrying his last letter.",
+      "bio": "The regent’s estranged daughter, carrying his last letter.",
       "color": "#e2c78f",
       "join": 10,
       "hp": 27,
@@ -358,7 +381,8 @@
       "speed": 7,
       "move": 5,
       "weapon": "sword",
-      "reach": 1
+      "reach": 1,
+      "resistance": 3
     }
   ],
   "chapters": [
@@ -554,8 +578,8 @@
       "place": "Reed Crossing",
       "objective": "seize",
       "boss": "Tollmaster Renn",
-      "intro": "Mara\u2019s boats cannot pass the chain towers. Take the eastern tollhouse before the river closes.",
-      "outro": "The chains fall. Tarin finds the eclipse engine\u2019s seal on a confiscated cargo manifest.",
+      "intro": "Mara’s boats cannot pass the chain towers. Take the eastern tollhouse before the river closes.",
+      "outro": "The chains fall. Tarin finds the eclipse engine’s seal on a confiscated cargo manifest.",
       "map": [
         ".ff..~~.f...f.",
         "...+.~~.......",
@@ -652,7 +676,7 @@
           "ai": "pursue"
         }
       ],
-      "tactical_brief": "Choose the northern bridge for speed or the southern approach for cover. Tarin\u2019s magic cuts through the tollhouse knight\u2019s armor. Any ally can seize the marked gate.",
+      "tactical_brief": "Choose the northern bridge for speed or the southern approach for cover. Tarin’s magic cuts through the tollhouse knight’s armor. Any ally can seize the marked gate.",
       "landmarks": [
         {
           "kind": "tower",
@@ -791,7 +815,7 @@
       "place": "Hallow Abbey",
       "objective": "boss",
       "boss": "Prior Ash",
-      "intro": "The abbey bell has been melted for the regent\u2019s engine. Esme and Rook will help us silence its overseer.",
+      "intro": "The abbey bell has been melted for the regent’s engine. Esme and Rook will help us silence its overseer.",
       "outro": "The abbey opens its granaries. Inside the crypt, Lyra finds a map to the old royal causeway.",
       "map": [
         "pfpppppppppppp",
@@ -889,7 +913,7 @@
           "ai": "sentry"
         }
       ],
-      "tactical_brief": "The abbey\u2019s side chapels connect through narrow doors. Use both aisles to avoid a queue at the entrance. Defeat Prior Ash; clearing every guard is optional.",
+      "tactical_brief": "The abbey’s side chapels connect through narrow doors. Use both aisles to avoid a queue at the entrance. Defeat Prior Ash; clearing every guard is optional.",
       "landmarks": [
         {
           "kind": "spire",
@@ -1043,7 +1067,7 @@
       "place": "Glass Harbor",
       "objective": "rout",
       "boss": "Admiral Vale",
-      "intro": "The harbor is under siege. Vela\u2019s beacon and Dax\u2019s dockworkers can turn the tide if the occupation falls.",
+      "intro": "The harbor is under siege. Vela’s beacon and Dax’s dockworkers can turn the tide if the occupation falls.",
       "outro": "The harbor fleet joins the cause. Beyond the water, the engine begins to wake.",
       "map": [
         "f..ppppppppppp",
@@ -1180,8 +1204,8 @@
       "place": "Windscar Pass",
       "objective": "survive",
       "boss": "General Kest",
-      "intro": "Una\u2019s embassy has been betrayed. Hold the pass for six turns while Silas carries the proof to the cities.",
-      "outro": "The cities answer the message. For the first time, the regent\u2019s army faces a country instead of fugitives.",
+      "intro": "Una’s embassy has been betrayed. Hold the pass for six turns while Silas carries the proof to the cities.",
+      "outro": "The cities answer the message. For the first time, the regent’s army faces a country instead of fugitives.",
       "map": [
         "##############",
         "#####h.hhhhhh#",
@@ -1450,7 +1474,7 @@
       "objective": "boss",
       "boss": "Astrologer Sen",
       "intro": "Noor has calculated the cost: the engine will burn the valley to sustain the capital. Galen opens a path through the monastery.",
-      "outro": "The observatory goes dark. Its charts reveal the engine\u2019s three vulnerable anchors.",
+      "outro": "The observatory goes dark. Its charts reveal the engine’s three vulnerable anchors.",
       "map": [
         "pppppp#ppppppp",
         "pp##pp#ppppopp",
@@ -1563,7 +1587,7 @@
           "ai": "pursue"
         }
       ],
-      "tactical_brief": "Four observatory chambers connect at narrow doors. Choose the northern library or southern instrument hall, then converge on Sen\u2019s telescope chamber.",
+      "tactical_brief": "Four observatory chambers connect at narrow doors. Choose the northern library or southern instrument hall, then converge on Sen’s telescope chamber.",
       "landmarks": [
         {
           "kind": "observatory",
@@ -1732,9 +1756,9 @@
       "title": "The Last Oath",
       "place": "Crown Approach",
       "objective": "seize",
-      "boss": "Lord Regent\u2019s Guard",
+      "boss": "Lord Regent’s Guard",
       "intro": "Elian opens the outer defenses. Rhea brings an offer of surrender, but the inner guard refuses to stand down.",
-      "outro": "The doors open. Rhea\u2019s father waits beside a sun that no longer obeys him.",
+      "outro": "The doors open. Rhea’s father waits beside a sun that no longer obeys him.",
       "map": [
         "pfffpppp#ppppp",
         "pppppfpppppppp",
@@ -1886,7 +1910,7 @@
       "place": "The Sun Engine",
       "objective": "boss",
       "boss": "Regent Vael",
-      "intro": "The engine feeds on every oath sworn to the crown. Break its keeper\u2019s hold before the valley becomes its fuel.",
+      "intro": "The engine feeds on every oath sworn to the crown. Break its keeper’s hold before the valley becomes its fuel.",
       "outro": "The artificial sun breaks into a thousand harmless lights. In the valley, morning arrives on its own. Lyra plants the broken standard beside the river. No throne is raised in its place.",
       "map": [
         "##############",
@@ -2036,7 +2060,9 @@
       "speed": 7,
       "move": 5,
       "weapon": "sword",
-      "reach": 1
+      "reach": 1,
+      "resistance": 3,
+      "tags": []
     },
     "Knight": {
       "hp": 32,
@@ -2045,7 +2071,11 @@
       "speed": 3,
       "move": 4,
       "weapon": "lance",
-      "reach": 1
+      "reach": 1,
+      "resistance": 1,
+      "tags": [
+        "armored"
+      ]
     },
     "Ranger": {
       "hp": 24,
@@ -2054,7 +2084,9 @@
       "speed": 8,
       "move": 5,
       "weapon": "bow",
-      "reach": 2
+      "reach": 2,
+      "resistance": 3,
+      "tags": []
     },
     "Arcanist": {
       "hp": 22,
@@ -2063,7 +2095,9 @@
       "speed": 6,
       "move": 5,
       "weapon": "magic",
-      "reach": 2
+      "reach": 2,
+      "resistance": 7,
+      "tags": []
     },
     "Warden": {
       "hp": 25,
@@ -2072,7 +2106,9 @@
       "speed": 6,
       "move": 5,
       "weapon": "staff",
-      "reach": 1
+      "reach": 1,
+      "resistance": 8,
+      "tags": []
     },
     "Rider": {
       "hp": 28,
@@ -2081,7 +2117,11 @@
       "speed": 7,
       "move": 7,
       "weapon": "lance",
-      "reach": 1
+      "reach": 1,
+      "resistance": 3,
+      "tags": [
+        "mounted"
+      ]
     },
     "Corsair": {
       "hp": 30,
@@ -2090,7 +2130,9 @@
       "speed": 6,
       "move": 5,
       "weapon": "axe",
-      "reach": 1
+      "reach": 1,
+      "resistance": 1,
+      "tags": []
     },
     "Duelist": {
       "hp": 23,
@@ -2099,7 +2141,9 @@
       "speed": 11,
       "move": 6,
       "weapon": "sword",
-      "reach": 1
+      "reach": 1,
+      "resistance": 4,
+      "tags": []
     }
   }
 }
