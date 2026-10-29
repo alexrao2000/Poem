@@ -43,6 +43,10 @@ var sfx_players: Array=[]
 var music_transition: Tween
 var muted = false
 var sprites: Array = []
+var unit_nodes: Dictionary={}
+var moving_id=""
+var route_preview: Node3D
+var last_hover=Vector2i(-1,-1)
 var clock = 0.0
 var skip_combat = false
 var show_danger = false
@@ -130,7 +134,7 @@ func _process(dt):
 		dialogue_reveal+=dt*55
 		dialogue_label.visible_characters=int(dialogue_reveal)
 	for s in sprites:
-		if is_instance_valid(s):s.position.y=s.get_meta("base_y",.65)+sin(clock*3+s.position.x)*.015
+		if is_instance_valid(s):s.position.y=s.get_meta("base_y",.65)+sin(clock*3+float(s.get_meta("phase",0)))*.015
 
 func box(color: Color) -> StyleBoxFlat:
 	var b=StyleBoxFlat.new()
@@ -198,7 +202,7 @@ func clear_world():
 	markers=Node3D.new();add_child(markers)
 	pieces=Node3D.new();add_child(pieces)
 	stage=Node3D.new();add_child(stage)
-	sprites.clear()
+	sprites.clear();unit_nodes.clear()
 
 func mat(color: Color) -> StandardMaterial3D:
 	var m=StandardMaterial3D.new();m.albedo_color=color;m.roughness=0.95
@@ -228,24 +232,25 @@ func make_map():
 
 func refresh_pieces():
 	for n in pieces.get_children():n.queue_free()
-	sprites.clear()
+	sprites.clear();unit_nodes.clear()
 	for u in game.units:
 		if u.hp<=0:continue
+		var visual=Node3D.new();visual.name=str(u.id).validate_node_name();visual.position=Vector3(u.x,0,u.y);pieces.add_child(visual);unit_nodes[u.id]=visual
 		var s=Sprite3D.new();s.texture=unit_portrait(u)
 		var height=1.2 if u.job in ["Knight","Rider"] else 1.08
 		s.pixel_size=height/s.texture.get_height()
 		s.billboard=BaseMaterial3D.BILLBOARD_ENABLED;s.texture_filter=BaseMaterial3D.TEXTURE_FILTER_NEAREST
 		s.alpha_cut=SpriteBase3D.ALPHA_CUT_DISCARD;s.alpha_scissor_threshold=.35
 		s.no_depth_test=true;s.render_priority=2
-		s.position=Vector3(u.x,height*.5+.07,u.y);s.set_meta("base_y",height*.5+.07)
+		s.position=Vector3(0,height*.5+.07,0);s.set_meta("base_y",height*.5+.07);s.set_meta("phase",u.x)
 		s.modulate=(Color(.65,.65,.65) if u.acted else Color.WHITE) if u.team=="player" else Color(1,.66,.62)
-		pieces.add_child(s);sprites.append(s)
-		scenery.cylinder(pieces,Vector3(u.x,.035,u.y),.035,.31,Color("496f9c") if u.team=="player" else Color("a54b45"))
+		visual.add_child(s);sprites.append(s)
+		scenery.cylinder(visual,Vector3(0,.035,0),.035,.31,Color("496f9c") if u.team=="player" else Color("a54b45"))
 		# Compact green health bars preserve map readability at normal zoom.
 		var health=Sprite3D.new();var image=Image.create(48,5,false,Image.FORMAT_RGBA8)
 		image.fill(Color("343b30"));image.fill_rect(Rect2i(1,1,maxi(1,int(46.0*u.hp/u.max_hp)),3),Color("8bc96c") if u.team=="player" else Color("d48c70"))
 		health.texture=ImageTexture.create_from_image(image);health.pixel_size=.013;health.billboard=BaseMaterial3D.BILLBOARD_ENABLED
-		health.position=Vector3(u.x,.16,u.y+.12);health.no_depth_test=true;health.render_priority=3;pieces.add_child(health)
+		health.position=Vector3(0,.16,.12);health.no_depth_test=true;health.render_priority=3;visual.add_child(health)
 
 func unit_portrait(u) -> Texture2D:
 	var individual=portraits.get_map_sprite(u.id)
@@ -387,6 +392,7 @@ func update_side():
 	button_in(side,"War council (restart map)",show_camp,busy)
 
 func highlight():
+	route_preview=null;last_hover=Vector2i(-1,-1)
 	for n in markers.get_children():n.queue_free()
 	var danger={}
 	if show_danger:
@@ -427,6 +433,10 @@ func _unhandled_input(event):
 			if event.keycode==KEY_SPACE:end_turn()
 			if event.keycode==KEY_R:toggle_danger()
 	if screen!="battle" or busy or game.phase!="player":return
+	if event is InputEventMouseMotion:
+		var ray_start=camera.project_ray_origin(event.position);var ray_direction=camera.project_ray_normal(event.position)
+		var ground=Plane(Vector3.UP,0).intersects_ray(ray_start,ray_direction)
+		if ground!=null:preview_route(Vector2i(roundi(ground.x),roundi(ground.z)))
 	if event is InputEventMouseButton and event.pressed:
 		if event.button_index==MOUSE_BUTTON_RIGHT:cancel_selection();return
 		if event.button_index!=MOUSE_BUTTON_LEFT:return
@@ -444,6 +454,7 @@ func cancel_selection():
 	selected=null;target=null;origin=null;refresh_pieces();highlight();update_side()
 
 func click_tile(p: Vector2i):
+	if busy:return
 	var u=game.at(p)
 	if selected!=null and selected.team=="player" and not selected.acted and u!=null:
 		if game.can_attack(selected,u):target=u;update_side();return
@@ -457,7 +468,11 @@ func click_tile(p: Vector2i):
 		selected=u;target=null;play_sfx("select");highlight();update_side();return
 	if selected!=null and selected.team=="player" and not selected.acted and origin==null and u==null and game.reachable(selected).has(p):
 		origin=game.pos(selected)
-		if game.move_unit(selected,p):target=null;refresh_pieces();highlight();update_side()
+		var path=game.movement_path(selected,p)
+		if game.move_unit(selected,p):
+			target=null;busy=true;highlight();update_side()
+			await animate_map_move(selected,path)
+			busy=false;refresh_pieces();highlight();update_side()
 		else:origin=null
 
 func wait_action():
@@ -497,8 +512,10 @@ func end_turn():
 		var initial_hp={e.id:e.hp}
 		if chosen!=null:initial_hp[chosen.id]=chosen.hp
 		var before=game.progress_snapshot()
+		var path=game.movement_path(e,choice.position)
+		await animate_map_move(e,path)
 		var events=tactics.apply_plan(game,e,choice)
-		refresh_pieces();highlight();await get_tree().create_timer(.18).timeout
+		refresh_pieces();highlight();await get_tree().create_timer(.12).timeout
 		if chosen!=null and not events.is_empty():
 			await cinematic(e,chosen,events,initial_hp)
 			await show_progress(before)
@@ -977,3 +994,29 @@ func read_support(unit,entry,index: int):
 
 func supports_ready(unit) -> bool:
 	return unit.join<=game.chapter and game.supports.for_unit(unit.id).any(func(entry):return game.supports.can_read(entry.id,game.chapter))
+
+func animate_map_move(unit,path: Array):
+	if path.size()<2 or not unit_nodes.has(unit.id):return
+	var visual=unit_nodes[unit.id]
+	moving_id=unit.id
+	visual.position=Vector3(path[0].x,0,path[0].y)
+	var motion=create_tween()
+	for point in path.slice(1):
+		motion.tween_property(visual,"position",Vector3(point.x,0,point.y),.105).set_trans(Tween.TRANS_LINEAR)
+	await motion.finished
+	moving_id=""
+
+func preview_route(destination: Vector2i):
+	if destination==last_hover:return
+	last_hover=destination
+	if is_instance_valid(route_preview):
+		for child in route_preview.get_children():route_preview.remove_child(child);child.queue_free()
+	if busy or selected==null or selected.team!="player" or selected.acted or origin!=null:return
+	var path=game.movement_path(selected,destination)
+	if path.size()<2:return
+	if not is_instance_valid(route_preview):route_preview=Node3D.new();markers.add_child(route_preview)
+	for i in range(1,path.size()):
+		var a=path[i-1];var b=path[i]
+		cube(route_preview,Vector3((a.x+b.x)*.5,.055,(a.y+b.y)*.5),Vector3(1,.025,.075) if a.y==b.y else Vector3(.075,.025,1),Color("ffdf88"))
+	for offset in [Vector2(-.43,0),Vector2(.43,0),Vector2(0,-.43),Vector2(0,.43)]:
+		cube(route_preview,Vector3(destination.x+offset.x,.055,destination.y+offset.y),Vector3(.055,.025,.9) if offset.x!=0 else Vector3(.9,.025,.055),Color("ffdf88"))

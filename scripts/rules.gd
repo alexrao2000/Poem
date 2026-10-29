@@ -123,6 +123,21 @@ func reachable(u: Dictionary) -> Dictionary:
 				queue.append(q)
 	return costs
 
+func movement_path(unit: Dictionary,destination: Vector2i) -> Array:
+	var costs=reachable(unit);var start=pos(unit)
+	if not costs.has(destination):return []
+	if destination!=start and at(destination)!=null:return []
+	var path=[destination];var point=destination
+	while point!=start:
+		var cost=2 if terrain(point) in ["f","h"] else 1
+		var previous=point
+		for direction in [Vector2i.LEFT,Vector2i.RIGHT,Vector2i.UP,Vector2i.DOWN]:
+			var neighbor=point+direction
+			if costs.has(neighbor) and costs[neighbor]+cost==costs[point]:previous=neighbor;break
+		if previous==point:return []
+		path.push_front(previous);point=previous
+	return path
+
 func can_act(u: Dictionary) -> bool:
 	return u.hp>0 and u.team==phase and not u.acted
 
