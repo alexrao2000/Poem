@@ -1,6 +1,7 @@
 extends RefCounted
 const MapSurface=preload("res://scripts/map_surface.gd")
 const RiverBank=preload("res://scripts/river_bank.gd")
+const MapGround=preload("res://scripts/map_ground.gd")
 # Shared landscape construction for the tactical board and battle stage.
 # Masonry spans use closed wedge stones with small joints and an open underside.
 var materials: Dictionary = {}
@@ -45,21 +46,7 @@ func material(color: Color) -> StandardMaterial3D:
 func ground_material(tile: int) -> ShaderMaterial:
  var key="ground"+str(tile)
  if materials.has(key):return materials[key]
- var shader=Shader.new()
- shader.code="""shader_type spatial;
- uniform sampler2D atlas_texture : source_color, filter_linear_mipmap;
- uniform vec2 quadrant;
- varying vec3 world_position;
- void vertex() { world_position=(MODEL_MATRIX*vec4(VERTEX,1.0)).xyz; }
- void fragment() {
-  vec2 uv=fract(world_position.xz*0.5)*0.496+0.002+quadrant;
-  vec3 paint=texture(atlas_texture,uv).rgb;
-  float gray=dot(paint,vec3(0.299,0.587,0.114));
-  float variation=sin(world_position.x*0.37+world_position.z*0.29)*sin(world_position.z*0.53-world_position.x*0.19);
-  ALBEDO=mix(vec3(gray),paint,0.72)*vec3(0.88,0.94,0.94)*(0.93+variation*0.07);
-  ROUGHNESS=1.0;
- }
- """
+ var shader=preload("res://assets/shaders/ground.gdshader")
  var m=ShaderMaterial.new();m.shader=shader;m.set_shader_parameter("atlas_texture",atlas)
  m.set_shader_parameter("quadrant",Vector2((tile%2)*.5,(tile/2)*.5))
  materials[key]=m
@@ -71,9 +58,9 @@ func mesh(parent: Node3D,shape: Mesh,p: Vector3,scale_value: Vector3,m: Material
 func block(parent,p,size,color):
  return mesh(parent,BoxMesh.new(),p,size,material(color))
 
-func ground(parent,p,size,tile):
+func ground(parent,p,size,tile,blended: Material=null):
  var shape=PlaneMesh.new();shape.size=size
- return mesh(parent,shape,p,Vector3.ONE,ground_material(tile))
+ return mesh(parent,shape,p,Vector3.ONE,blended if blended!=null else ground_material(tile))
 
 func cylinder(parent,p,height,radius,color,top=-1.0):
  var shape=CylinderMesh.new();shape.height=height;shape.bottom_radius=radius;shape.top_radius=radius if top<0 else top;shape.radial_segments=8
@@ -172,7 +159,8 @@ func house(parent,p,scale_value=1.0):
 
 func landscape(parent,game):
  # Surrounding land continues beyond the playable cells instead of exposing a board edge.
- ground(parent,Vector3(7,-.15,5),Vector2(64,64),0)
+ var ground_paint=MapGround.material(game,atlas)
+ ground(parent,Vector3(7,-.15,5),Vector2(64,64),0,ground_paint)
  var theme=game.info().get("environment","village")
  var building_cells={}
  for item in game.info().get("landmarks",[]):
@@ -187,22 +175,20 @@ func landscape(parent,game):
  for y in range(game.board_size().y):
   for x in range(game.board_size().x):
    var t=game.terrain(Vector2i(x,y));var p=Vector3(x,0,y)
-   var surface=3 if theme in ["abbey","aqueduct","observatory","furnace","castle","engine"] else 0
-   if t in ["o","+","p"]:surface=3 if theme in ["observatory","engine","furnace"] else 1
-   elif t=="h":surface=2
-   if t=="~":
+   if t in ["~","="]:
     var water=water_material()
     var plane=PlaneMesh.new();plane.size=Vector2.ONE
-    mesh(parent,plane,p-Vector3(0,.07,0),Vector3.ONE,water)
-    if theme in ["river","forest","mountain","road"]:
+    var water_cell=mesh(parent,plane,p-Vector3(0,.07,0),Vector3.ONE,water);water_cell.name="MapWater"
+    if theme in MapGround.NATURAL and t=="~":
      var bank=RiverBank.build(game,Vector2i(x,y))
      if bank!=null:
-      var shore=mesh(parent,bank,p,Vector3.ONE,ground_material(2));shore.name="RiverBank"
-    else:
+      var shore=mesh(parent,bank,p,Vector3.ONE,ground_paint);shore.name="RiverBank"
+    elif t=="~":
      for direction in [Vector2i.LEFT,Vector2i.RIGHT,Vector2i.UP,Vector2i.DOWN]:
       if game.terrain(Vector2i(x,y)+direction) not in ["~","=","#"]:
        block(parent,p+Vector3(direction.x*.48,.015,direction.y*.48),Vector3(.08 if direction.x else 1,.16,.08 if direction.y else 1),Color("9d9e8e"))
-   else:ground(parent,p,Vector2.ONE,surface)
+   else:
+    var floor=ground(parent,p,Vector2.ONE,0,ground_paint);floor.name="MapGround"
    if t=="=":bridge(parent,p,theme in ["harbor","road"])
    elif t=="f":tree(parent,p+Vector3(.22,0,-.22),x+y*17)
    elif t=="h":boulder(parent,p+Vector3(.22,0,-.2),.32)

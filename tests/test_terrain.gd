@@ -6,6 +6,7 @@ const MapSurface=preload("res://scripts/map_surface.gd")
 const MapOverlay=preload("res://scripts/map_overlay.gd")
 const Scenery=preload("res://scripts/scenery.gd")
 const RiverBank=preload("res://scripts/river_bank.gd")
+const MapGround=preload("res://scripts/map_ground.gd")
 func _initialize():call_deferred("run")
 func surface_geometry():
  var scenery=Scenery.new();var parent=Node3D.new();root.add_child(parent)
@@ -29,6 +30,41 @@ func surface_geometry():
 func run():
  surface_geometry()
  var game=Rules.new();var seen={}
+ var scenery=Scenery.new();scenery.batching_enabled=false
+ var previous_paint: ShaderMaterial
+ var bridge_water=0
+ for chapter in range(12):
+  game.chapter=chapter;var state=game.rng.state;var board=game.board_size();var theme=game.info().environment
+  var world=Node3D.new();root.add_child(world);scenery.landscape(world,game)
+  var floors=world.get_children().filter(func(node):return node is MeshInstance3D and node.name.begins_with("MapGround"))
+  assert(not floors.is_empty())
+  var paint=floors[0].material_override
+  assert(paint!=previous_paint,"Each chapter owns its terrain control texture")
+  previous_paint=paint
+  assert(paint.get_shader_parameter("blend_edges")==true,"Tactical ground uses the blending shader")
+  var control=paint.get_shader_parameter("surface_weights").get_image()
+  assert(control.get_size()==board+Vector2i.ONE*4,"Control map includes grass padding around the board")
+  assert(control.get_pixel(0,0)==Color(1,0,0,0) and control.get_pixel(control.get_width()-1,control.get_height()-1)==Color(1,0,0,0),"Landscape beyond the board resolves to grass")
+  var floor_cells={};var water_cells={}
+  for floor in floors:
+   assert(floor.material_override==paint,"All ground cells share one batchable material")
+   floor_cells[Vector2i(roundi(floor.position.x),roundi(floor.position.z))]=true
+  for water in world.get_children().filter(func(node):return node is MeshInstance3D and node.name.begins_with("MapWater")):
+   water_cells[Vector2i(roundi(water.position.x),roundi(water.position.z))]=water.position.y
+  for y in range(board.y):
+   for x in range(board.x):
+    var cell=Vector2i(x,y);var symbol=game.terrain(cell);var weights=control.get_pixel(x+2,y+2)
+    if symbol in ["~","="]:
+     assert(not floor_cells.has(cell) and is_equal_approx(water_cells[cell],-.07),"Water and bridge cells have water below the deck, without grass sealing the opening")
+     if symbol=="=":bridge_water+=1
+     assert(weights==(Color(0,0,1,0) if theme in MapGround.NATURAL else Color(0,0,0,0)),"Natural shores blend to earth; masonry water contributes no ground color")
+    else:
+     assert(floor_cells.has(cell) and weights.r+weights.g+weights.b+weights.a==1,"Every land tile has one intact dominant ground painting")
+     if symbol=="h":assert(weights.b==1,"Hills retain earth")
+     elif symbol=="p":assert(weights.a==1 if theme in ["observatory","engine","furnace"] else weights.g==1,"Roads retain their chapter's stone painting")
+  assert(game.rng.state==state,"Ground painting does not consume campaign randomness")
+  world.free()
+ assert(bridge_water==38,"All authored bridge tiles reveal water beneath the planks")
  var banks=0;var exposed=0
  for chapter in range(12):
   game.chapter=chapter;var seams={};var state=game.rng.state
