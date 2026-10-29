@@ -14,6 +14,11 @@ func run():
   assert(profiles[u.id].biography.length()>100,"Dossier contains an individual biography")
   assert(profiles[u.id].ending.length()>40,"Individual epilogue")
   assert(portraits.get_portrait(u.id)!=null,"Individual portrait available")
+  var cutout=portraits.get_dialogue_portrait(u.id)
+  assert(cutout!=null and cutout.region.size.x>450,"Dialogue portrait has an individual measured region")
+  var image=cutout.atlas.get_image()
+  if image.is_compressed():image.decompress()
+  assert(image.get_pixel(int(cutout.region.position.x+2),int(cutout.region.position.y+2)).a<.13,"Transparent portrait corners reveal the map")
   assert(portraits.get_map_sprite(u.id)!=null,"Individual map sprite available")
  assert(story.chapters.size()==12)
  for chapter in range(12):
@@ -36,6 +41,44 @@ func run():
  app.show_camp();assert(app.screen=="camp","Reopening camp does not replay introduction")
  app.show_dossier(app.game.roster[0]);assert(app.screen=="dossier")
  app.show_camp();assert(app.screen=="camp")
+ var scenes=[]
+ for chapter in story.chapters:
+  scenes.append(chapter.opening);scenes.append(chapter.closing)
+ var supports=JSON.parse_string(FileAccess.get_file_as_string("res://data/supports.json"))
+ for pair in supports:
+  for scene in pair.scenes:scenes.append(scene.lines)
+ var checked=0
+ for dimensions in [Vector2(1024,640),Vector2(1280,720),Vector2(1440,900)]:
+  for scene in scenes:
+   app.show_dialogue(scene,app.show_camp)
+   app.ui.set_anchors_and_offsets_preset(Control.PRESET_TOP_LEFT);app.ui.size=dimensions
+   for index in range(scene.size()):
+    app.dialogue_index=index;app.refresh_dialogue();app.dialogue_stage.arrange()
+    await process_frame;await process_frame
+    var stage=app.dialogue_stage;var frame=Rect2(Vector2.ZERO,dimensions)
+    assert(frame.encloses(stage.panel.get_global_rect()),"Dialogue frame stays in the viewport")
+    for portrait in stage.portraits:
+     assert(frame.encloses(portrait.get_global_rect()),"Portrait hair and shoulders stay on screen")
+    for child in stage.panel.find_children("*","Control",true,false):
+     assert(stage.panel.get_global_rect().grow(1).encloses(child.get_global_rect()),"Every line and control fits the dialogue panel")
+    assert(stage.speech.get_line_count()<=stage.speech.get_visible_line_count(),"Long dialogue never clips its last line")
+    assert(stage.identities[stage.active]==scene[index].speaker,"Current speaker owns the highlighted portrait")
+    assert(stage.portraits[0].flip_h==false and stage.portraits[1].flip_h,"Portraits face into the conversation")
+    assert(stage.portraits[stage.active].modulate==Color.WHITE,"Active speaker remains fully lit")
+    checked+=1
+ app.show_dialogue(story.chapters[0].opening,app.show_camp)
+ var stage=app.dialogue_stage
+ stage.show_speaker("lyra","Lyra",portraits.get_dialogue_portrait("lyra"))
+ stage.show_speaker("oren","Oren",portraits.get_dialogue_portrait("oren"))
+ var oren_side=stage.active
+ stage.show_speaker("sera","Sera",portraits.get_dialogue_portrait("sera"))
+ assert(stage.identities[oren_side]=="oren" and stage.identities[1-oren_side]=="sera","Third speaker replaces the listener, preserving the previous speaker")
+ stage.show_speaker("oren","Oren",portraits.get_dialogue_portrait("oren"))
+ assert(stage.active==oren_side and stage.portraits[1-oren_side].modulate.r<1,"Returning speaker reuses the same side")
+ app.finish_dialogue();await process_frame
+ assert(app.screen=="camp","Skipping during an entrance cleans up the stage")
+ for player in app.sfx_players:player.stop()
+ app.music.stop();await create_timer(.15).timeout
  app.queue_free();await process_frame
- print("PASS: ",lines," dialogue lines, 24 portraits/dossiers/epilogues, scene controls and persistence")
+ print("PASS: ",lines," story lines, 24 transparent dialogue portraits, ",checked," story/support layouts, speaker continuity, scene controls and persistence")
  quit()

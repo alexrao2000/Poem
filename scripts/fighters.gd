@@ -7,6 +7,7 @@ const Mount=preload("res://scripts/mount_visuals.gd")
 const Hair=preload("res://scripts/character_hair.gd")
 const EnemyHeadgear=preload("res://scripts/enemy_headgear.gd")
 const WeaponBlades=preload("res://scripts/weapon_blades.gd")
+const Projectile=preload("res://scripts/combat_projectile.gd")
 const Outline=preload("res://scripts/character_outline.gd")
 var profiles=JSON.parse_string(FileAccess.get_file_as_string("res://data/characters.json"))
 var surface_atlas=load("res://assets/art/character-materials.png")
@@ -109,7 +110,9 @@ func build(parent,u,p) -> Node3D:
   ellipsoid(elbow,Vector3.ZERO,Vector3(.073,.073,.073),steel)
   geo.cylinder(elbow,Vector3(0,-.13,0),.25,.068,steel if armored else leather,.055)
   ellipsoid(elbow,Vector3(0,-.29,0),Vector3(.075,.085,.065),leather)
-  if sign_value>0:actor.register_bone("Weapon",weapon(elbow,u.weapon,gold,steel,leather))
+  if sign_value>0:
+   var hand=weapon(elbow,u.weapon,gold,steel,leather);actor.register_bone("Weapon",hand)
+   if hand.has_node("NockedArrow"):actor.register_bone("NockedArrow",hand.get_node("NockedArrow"))
   elif heavy:
    var shield=geo.cylinder(elbow,Vector3(-.04,-.16,-.17),.08,.29,blue)
    shield.rotation.x=PI/2;shield.scale=Vector3(.8,1,1.3)
@@ -235,6 +238,7 @@ func weapon(arm,kind,gold,steel,leather) -> Node3D:
    var segment=geo.cylinder(hand,(start+end)*.5,start.distance_to(end)+.008,.018,leather)
    segment.quaternion=Quaternion(Vector3.UP,(end-start).normalized())
   geo.block(hand,Vector3.ZERO,Vector3(.009,.9,.009),Color("d6c9a4"))
+  var arrow=joint(hand,"NockedArrow",Vector3(0,0,-.22));Projectile.physical_geometry(arrow,"bow")
  else:
   var grip=geo.cylinder(hand,Vector3(0,0,-.08),.23,.027,leather);grip.rotation.x=PI/2
   if kind=="lance":

@@ -20,6 +20,7 @@ var dialogue_callback: Callable
 var dialogue_label: Label
 var dialogue_name: Label
 var dialogue_portrait: TextureRect
+var dialogue_stage: Control
 var dialogue_reveal=0.0
 const CombatTrail=preload("res://scripts/combat_trail.gd")
 const CombatImpact=preload("res://scripts/combat_impact.gd")
@@ -177,6 +178,7 @@ func box(color: Color) -> StyleBoxFlat:
 
 func reset_ui():
 	dialogue_label=null
+	dialogue_stage=null
 	terrain_card=null
 	forecast_panel=null
 	battle_menu=null
@@ -884,26 +886,17 @@ func show_ending():
 func show_dialogue(lines: Array,on_complete: Callable):
 	screen="dialogue";reset_ui()
 	dialogue_lines=lines;dialogue_index=0;dialogue_callback=on_complete
-	var shade=ColorRect.new();shade.color=Color(.08,.10,.13,.55);shade.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT);ui.add_child(shade)
-	dialogue_portrait=TextureRect.new();dialogue_portrait.set_anchors_and_offsets_preset(Control.PRESET_BOTTOM_LEFT)
-	dialogue_portrait.offset_left=65;dialogue_portrait.offset_right=520;dialogue_portrait.offset_top=-710;dialogue_portrait.offset_bottom=-240
-	dialogue_portrait.expand_mode=TextureRect.EXPAND_IGNORE_SIZE;dialogue_portrait.stretch_mode=TextureRect.STRETCH_KEEP_ASPECT_CENTERED;ui.add_child(dialogue_portrait)
-	var panel=PanelContainer.new();panel.set_anchors_and_offsets_preset(Control.PRESET_BOTTOM_WIDE);panel.offset_left=65;panel.offset_right=-65;panel.offset_top=-265;panel.offset_bottom=-55;ui.add_child(panel)
-	var column=VBoxContainer.new();column.add_theme_constant_override("separation",14);panel.add_child(column)
-	dialogue_name=label_in(column,"",25,GOLD)
-	dialogue_label=label_in(column,"",25);dialogue_label.size_flags_vertical=Control.SIZE_EXPAND_FILL
-	var controls=HBoxContainer.new();column.add_child(controls)
-	var hint=label_in(controls,"Space / Enter: continue   ·   Escape: skip",15,Color("827b6c"));hint.size_flags_horizontal=Control.SIZE_EXPAND_FILL
-	button_in(controls,"Skip scene",finish_dialogue)
-	button_in(controls,"Continue  >",advance_dialogue)
+	dialogue_stage=preload("res://scripts/dialogue_stage.gd").new();ui.add_child(dialogue_stage)
+	dialogue_stage.configure(advance_dialogue,finish_dialogue)
+	dialogue_name=dialogue_stage.heading;dialogue_label=dialogue_stage.speech
 	refresh_dialogue()
 
 func refresh_dialogue():
 	if dialogue_index>=dialogue_lines.size():finish_dialogue();return
 	var line=dialogue_lines[dialogue_index]
 	var speaker=game.roster.filter(func(u):return u.id==line.speaker)
-	dialogue_name.text=speaker[0].name if not speaker.is_empty() else line.speaker.capitalize()
-	dialogue_portrait.texture=portraits.get_portrait(line.speaker)
+	var display_name=speaker[0].name if not speaker.is_empty() else line.speaker.capitalize()
+	dialogue_portrait=dialogue_stage.show_speaker(line.speaker,display_name,portraits.get_dialogue_portrait(line.speaker))
 	dialogue_label.text=line.text;dialogue_label.visible_characters=-1 if preferences.values.text_speed==0 else 0;dialogue_reveal=0.0
 
 func advance_dialogue():

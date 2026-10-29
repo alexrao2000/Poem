@@ -19,17 +19,7 @@ func launch(from: Vector3,to: Vector3,weapon: String,duration=.23,spell_id="") -
  arc=.14 if kind=="bow" else .08 if kind=="lance" else .04
  body=Node3D.new();body.name="FlightBody";add_child(body)
  if kind in ["bow","lance"]:
-  var length=.72 if kind=="bow" else 1.3
-  var shaft=CylinderMesh.new();shaft.height=length;shaft.top_radius=.012 if kind=="bow" else .021;shaft.bottom_radius=shaft.top_radius;shaft.radial_segments=8
-  var pole=piece(body,shaft,Color("78604a"));pole.rotation.x=PI/2
-  var tip=piece(body,WeaponBlades.spear(-length*.5+.10,-length*.5,-length*.5-(.075 if kind=="bow" else .12),.04 if kind=="bow" else .065),Color("d5dce1"));tip.name="Tip"
-  var reach=-tip.mesh.get_aabb().position.z
-  if kind=="bow":
-   for angle in [0,TAU/3,TAU*2/3]:
-    var surface=SurfaceTool.new();surface.begin(Mesh.PRIMITIVE_TRIANGLES)
-    for p in [Vector3(0,0,.20),Vector3(.075,0,.34),Vector3(0,0,.34)]:surface.add_vertex(p)
-    surface.generate_normals()
-    var feather=piece(body,surface.commit(),Color("c5d1c9"));feather.rotation.z=angle
+  var reach=physical_geometry(body,kind)
   for part in body.get_children():part.position.z+=reach
   origin=from+from.direction_to(to)*minf(reach,from.distance_to(to)*.5)
  else:
@@ -51,6 +41,22 @@ func launch(from: Vector3,to: Vector3,weapon: String,duration=.23,spell_id="") -
  motion=create_tween();motion.tween_property(self,"progress",1.0,duration).set_trans(Tween.TRANS_LINEAR)
  motion.tween_callback(func():_process(0);queue_free())
  return motion
+
+static func physical_geometry(parent: Node3D,weapon: String) -> float:
+ var length=.72 if weapon=="bow" else 1.3
+ var shaft=CylinderMesh.new();shaft.height=length;shaft.top_radius=.012 if weapon=="bow" else .021;shaft.bottom_radius=shaft.top_radius;shaft.radial_segments=8
+ var pole=piece(parent,shaft,Color("78604a"));pole.name="Shaft";pole.rotation.x=PI/2
+ var tip=piece(parent,WeaponBlades.spear(-length*.5+.10,-length*.5,-length*.5-(.075 if weapon=="bow" else .12),.04 if weapon=="bow" else .065),Color("d5dce1"));tip.name="Tip"
+ if weapon=="bow":
+  var feather_material: Material
+  for angle in [0,TAU/3,TAU*2/3]:
+   var surface=SurfaceTool.new();surface.begin(Mesh.PRIMITIVE_TRIANGLES)
+   for p in [Vector3(0,0,.20),Vector3(.075,0,.34),Vector3(0,0,.34)]:surface.add_vertex(p)
+   surface.generate_normals()
+   var feather=piece(parent,surface.commit(),Color("c5d1c9"));feather.rotation.z=angle
+   if feather_material==null:feather_material=feather.material_override
+   else:feather.material_override=feather_material
+ return -tip.mesh.get_aabb().position.z
 
 func point_at(t: float) -> Vector3:
  t=clampf(t,0,1)

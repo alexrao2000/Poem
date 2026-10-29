@@ -1,0 +1,27 @@
+{
+  "mode": "edit",
+  "transparent_background": true,
+  "sources": [
+    {
+      "source": "assets/portraits/company-a.png",
+      "generated_original": "/Users/alexr/.codex/generated_images/01a186ec-2764-7df2-8b28-7563faa2886d/exec-ea4df23a-c1c1-49e8-998c-2217b7e86e41.png",
+      "asset": "assets/portraits/dialogue-a-v1.png"
+    },
+    {
+      "source": "assets/portraits/company-b.png",
+      "generated_original": "/Users/alexr/.codex/generated_images/01a186ec-2764-7df2-8b28-7563faa2886d/exec-201f682f-96c2-42f6-8ab6-a8ccbff3c89c.png",
+      "asset": "assets/portraits/dialogue-b-v1.png"
+    },
+    {
+      "source": "assets/portraits/company-c.png",
+      "generated_original": "/Users/alexr/.codex/generated_images/01a186ec-2764-7df2-8b28-7563faa2886d/exec-54ffd267-6a37-44b1-806c-325a127640cf.png",
+      "asset": "assets/portraits/dialogue-c-v1.png"
+    },
+    {
+      "source": "assets/portraits/company-d.png",
+      "generated_original": "/Users/alexr/.codex/generated_images/01a186ec-2764-7df2-8b28-7563faa2886d/exec-463cb350-1abf-4612-829e-b50a2de25a52.png",
+      "asset": "assets/portraits/dialogue-d-v1.png"
+    }
+  ],
+  "processing": "Generated PNG files copied unchanged. Regions measured from transparent gutters; renderer discards alpha below 0.13."
+}

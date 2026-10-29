@@ -1,0 +1,218 @@
+{
+  "lyra": {
+    "path": "res://assets/portraits/dialogue-a-v1.png",
+    "region": [
+      0,
+      0,
+      509,
+      501
+    ]
+  },
+  "oren": {
+    "path": "res://assets/portraits/dialogue-a-v1.png",
+    "region": [
+      509,
+      0,
+      511,
+      501
+    ]
+  },
+  "sera": {
+    "path": "res://assets/portraits/dialogue-a-v1.png",
+    "region": [
+      1020,
+      0,
+      516,
+      501
+    ]
+  },
+  "ivo": {
+    "path": "res://assets/portraits/dialogue-a-v1.png",
+    "region": [
+      0,
+      501,
+      509,
+      523
+    ]
+  },
+  "mara": {
+    "path": "res://assets/portraits/dialogue-a-v1.png",
+    "region": [
+      509,
+      501,
+      511,
+      523
+    ]
+  },
+  "tarin": {
+    "path": "res://assets/portraits/dialogue-a-v1.png",
+    "region": [
+      1020,
+      501,
+      516,
+      523
+    ]
+  },
+  "nell": {
+    "path": "res://assets/portraits/dialogue-b-v1.png",
+    "region": [
+      0,
+      0,
+      495,
+      503
+    ]
+  },
+  "bram": {
+    "path": "res://assets/portraits/dialogue-b-v1.png",
+    "region": [
+      495,
+      0,
+      522,
+      503
+    ]
+  },
+  "esme": {
+    "path": "res://assets/portraits/dialogue-b-v1.png",
+    "region": [
+      1017,
+      0,
+      519,
+      503
+    ]
+  },
+  "rook": {
+    "path": "res://assets/portraits/dialogue-b-v1.png",
+    "region": [
+      0,
+      503,
+      513,
+      521
+    ]
+  },
+  "faye": {
+    "path": "res://assets/portraits/dialogue-b-v1.png",
+    "region": [
+      513,
+      503,
+      509,
+      521
+    ]
+  },
+  "cassian": {
+    "path": "res://assets/portraits/dialogue-b-v1.png",
+    "region": [
+      1022,
+      503,
+      514,
+      521
+    ]
+  },
+  "vela": {
+    "path": "res://assets/portraits/dialogue-c-v1.png",
+    "region": [
+      0,
+      0,
+      517,
+      493
+    ]
+  },
+  "dax": {
+    "path": "res://assets/portraits/dialogue-c-v1.png",
+    "region": [
+      517,
+      0,
+      514,
+      493
+    ]
+  },
+  "una": {
+    "path": "res://assets/portraits/dialogue-c-v1.png",
+    "region": [
+      1031,
+      0,
+      505,
+      493
+    ]
+  },
+  "silas": {
+    "path": "res://assets/portraits/dialogue-c-v1.png",
+    "region": [
+      0,
+      493,
+      510,
+      531
+    ]
+  },
+  "petra": {
+    "path": "res://assets/portraits/dialogue-c-v1.png",
+    "region": [
+      510,
+      493,
+      523,
+      531
+    ]
+  },
+  "ari": {
+    "path": "res://assets/portraits/dialogue-c-v1.png",
+    "region": [
+      1033,
+      493,
+      503,
+      531
+    ]
+  },
+  "noor": {
+    "path": "res://assets/portraits/dialogue-d-v1.png",
+    "region": [
+      0,
+      0,
+      508,
+      502
+    ]
+  },
+  "galen": {
+    "path": "res://assets/portraits/dialogue-d-v1.png",
+    "region": [
+      508,
+      0,
+      516,
+      502
+    ]
+  },
+  "yuna": {
+    "path": "res://assets/portraits/dialogue-d-v1.png",
+    "region": [
+      1024,
+      0,
+      512,
+      502
+    ]
+  },
+  "hale": {
+    "path": "res://assets/portraits/dialogue-d-v1.png",
+    "region": [
+      0,
+      502,
+      508,
+      522
+    ]
+  },
+  "elian": {
+    "path": "res://assets/portraits/dialogue-d-v1.png",
+    "region": [
+      508,
+      502,
+      517,
+      522
+    ]
+  },
+  "rhea": {
+    "path": "res://assets/portraits/dialogue-d-v1.png",
+    "region": [
+      1025,
+      502,
+      511,
+      522
+    ]
+  }
+}

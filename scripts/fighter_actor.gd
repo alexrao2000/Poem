@@ -67,6 +67,7 @@ func stance_height(target: Dictionary) -> float:
 func pose(key: String,duration=.18) -> Tween:
  if pose_tween and pose_tween.is_valid():pose_tween.kill()
  if bones.has("Weapon") and key not in ["throw","throw_windup"]:bones.Weapon.visible=true
+ if bones.has("NockedArrow") and key in ["idle","advance","windup"]:bones.NockedArrow.visible=true
  pose_name=key
  var target={
   "Body":Vector3(0,0,0),"Head":Vector3(0,0,0),
@@ -159,3 +160,4 @@ func socket_position(key: String) -> Vector3:
 
 func release_projectile():
  if kind=="lance" and bones.has("Weapon"):bones.Weapon.visible=false
+ elif kind=="bow" and bones.has("NockedArrow"):bones.NockedArrow.visible=false

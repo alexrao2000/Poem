@@ -3,7 +3,17 @@ const ORDER=["lyra","oren","sera","ivo","mara","tarin","nell","bram","esme","roo
 const ENEMY_CLASSES=["Vanguard","Knight","Ranger","Arcanist","Warden","Rider","Corsair","Duelist"]
 var textures: Dictionary={}
 var sprite_textures: Dictionary={}
+var dialogue_regions=JSON.parse_string(FileAccess.get_file_as_string("res://data/dialogue_portraits.json"))
 var regions=JSON.parse_string(FileAccess.get_file_as_string("res://data/sprite_regions.json"))
+
+func get_dialogue_portrait(id: String) -> Texture2D:
+ var key="dialogue."+id
+ if textures.has(key):return textures[key]
+ if not dialogue_regions.has(id):return get_portrait(id)
+ var entry=dialogue_regions[id]
+ var texture=AtlasTexture.new();texture.atlas=load(entry.path);texture.filter_clip=true
+ texture.region=Rect2(entry.region[0],entry.region[1],entry.region[2],entry.region[3])
+ textures[key]=texture;return texture
 
 func get_unit_portrait(unit: Dictionary) -> Texture2D:
  if unit.get("team","player")!="enemy":return get_portrait(unit.id)

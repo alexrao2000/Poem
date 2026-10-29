@@ -137,6 +137,7 @@ func run():
   var unit=rules.roster.filter(func(u):return u.job==job)[0].duplicate(true);unit.team="player"
   var actor=fighters.build(stage,unit,Vector3.ZERO);actor.rotation.y=-PI/2
   await actor.pose("idle",.01).finished;var resting=actor.socket_position("projectile")
+  if unit.weapon=="bow":assert(actor.bone("NockedArrow").visible and actor.bone("NockedArrow").get_parent()==actor.bone("Weapon"),"Ready archer holds an arrow attached to the bow after batching")
   await actor.pose("throw" if unit.weapon=="lance" else "strike",.01).finished
   var release=actor.socket_position("projectile")
   assert(release.x>.3 and release.distance_to(actor.bone("Weapon").global_position)<.25,"Ranged release follows the animated weapon instead of spawning from the torso")
@@ -144,8 +145,10 @@ func run():
   if job=="Rider":assert(release.y>1.8,"Mounted throw launches from the rider's hand")
   actor.release_projectile()
   assert(actor.bone("Weapon").visible==(unit.weapon!="lance"),"Thrown spear leaves the hand; bows and books stay held")
+  if unit.weapon=="bow":assert(not actor.bone("NockedArrow").visible,"Arrow leaves the bow at projectile release")
   await actor.pose("idle",.01).finished
   assert(actor.bone("Weapon").visible,"Ready stance restores a reusable thrown weapon")
+  if unit.weapon=="bow":assert(actor.bone("NockedArrow").visible,"Archer reloads before a counter or follow-up")
   actor.queue_free()
  for job in ["Vanguard","Knight","Corsair","Duelist","Rider"]:
   var unit=rules.roster.filter(func(u):return u.job==job)[0].duplicate(true);unit.team="player"
