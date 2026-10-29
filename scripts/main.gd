@@ -1223,7 +1223,7 @@ func move_map_cursor(direction: Vector2i):
 	if focus!=null:focus.release_focus()
 	var size=game.board_size();cursor_tile+=direction
 	cursor_tile=Vector2i(clampi(cursor_tile.x,0,size.x-1),clampi(cursor_tile.y,0,size.y-1))
-	map_navigation.keep_visible(Vector3(cursor_tile.x,0,cursor_tile.y))
+	map_navigation.keep_visible(Vector3(cursor_tile.x,0,cursor_tile.y),terrain_card.get_global_rect() if is_instance_valid(terrain_card) else Rect2())
 	highlight();preview_route(cursor_tile)
 
 func cycle_ready_ally(direction: int):
@@ -1237,7 +1237,7 @@ func cycle_ready_ally(direction: int):
 	var focus=get_viewport().gui_get_focus_owner()
 	if focus!=null:focus.release_focus()
 	click_tile(cursor_tile)
-	map_navigation.keep_visible(Vector3(cursor_tile.x,0,cursor_tile.y))
+	map_navigation.keep_visible(Vector3(cursor_tile.x,0,cursor_tile.y),terrain_card.get_global_rect() if is_instance_valid(terrain_card) else Rect2())
 
 func activate_map_cursor():
 	if screen!="battle" or busy or game.phase!="player":return

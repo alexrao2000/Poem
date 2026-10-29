@@ -53,9 +53,10 @@ func safe_rect() -> Rect2:
  var size=camera.get_viewport().get_visible_rect().size
  return Rect2(Vector2(42,122),Vector2(maxf(80,size.x-392),maxf(80,size.y-232)))
 
-func keep_visible(point: Vector3):
+func keep_visible(point: Vector3,occlusion=Rect2()):
  var projected=camera.unproject_position(point);var safe=safe_rect()
  var desired=projected.clamp(safe.position,safe.end)
+ if occlusion.has_area() and occlusion.grow(16).has_point(desired):desired.y=minf(safe.end.y,occlusion.end.y+20)
  if projected.distance_to(desired)<1:return
  stop();var target=ground_at(desired)
  if target!=null:camera.position+=point-target;limit_position()

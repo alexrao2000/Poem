@@ -24,6 +24,11 @@ func run():
  nav.zoom(100,anchor);await nav.motion.finished;assert(camera.size==8,"Zoom-in is bounded")
  nav.keep_visible(Vector3(13,0,9))
  assert(nav.safe_rect().grow(.01).has_point(camera.unproject_position(Vector3(13,0,9))),"Keyboard tracking keeps distant tiles away from command panels")
+ app.cursor_visible=true
+ for corner in [Vector2i.ZERO,Vector2i(13,0),Vector2i(0,9),Vector2i(13,9)]:
+  app.cursor_tile=corner;app.move_map_cursor(Vector2i.ZERO)
+  var projected=camera.unproject_position(Vector3(corner.x,0,corner.y))
+  assert(nav.safe_rect().grow(.01).has_point(projected) and not app.terrain_card.get_global_rect().has_point(projected),"Keyboard tracking keeps every board corner clear of terrain and command panels")
  nav.zoom(-100,anchor);await nav.motion.finished;assert(camera.size==24,"Zoom-out is bounded")
  app.map_camera()
  var wheel=InputEventMouseButton.new();wheel.pressed=true;wheel.button_index=MOUSE_BUTTON_WHEEL_UP;wheel.position=anchor
