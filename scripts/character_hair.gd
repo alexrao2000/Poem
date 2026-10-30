@@ -48,7 +48,8 @@ static func build(painter,head,appearance,gold):
    painter.ellipsoid(head,Vector3(cos(angle)*.065,-.015+sin(angle)*.07,.245),Vector3(.045,.045,.025),hair.lightened(.04))
   painter.ellipsoid(head,Vector3(.095,.015,.19),Vector3(.025,.025,.025),gold)
  elif style in ["beard","bald"]:
-  painter.ellipsoid(head,Vector3(0,-.12,-.07),Vector3(.13,.12,.1),hair)
+  var beard=preload("res://scripts/character_beard.gd").mesh(appearance.get("beard_style","full"))
+  var piece=painter.geo.mesh(head,beard,Vector3.ZERO,Vector3.ONE,painter.geo.material(hair));piece.name="Beard"
 
 static func fringe(painter,head,color,style):
  head.set_meta("hair_fringe",style)

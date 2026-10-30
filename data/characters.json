@@ -231,7 +231,8 @@
       "hair_style": "bald",
       "cloth": "b58b42",
       "cape": "355377",
-      "face_shape": "broad"
+      "face_shape": "broad",
+      "beard_style": "full"
     },
     "critical_quote": "We pull together!",
     "finish_quote": "Get everyone through."
@@ -331,7 +332,8 @@
       "cloth": "d8cdb3",
       "cape": "4e6544",
       "hair_fringe": "receding",
-      "face_shape": "angular"
+      "face_shape": "angular",
+      "beard_style": "long"
     },
     "critical_quote": "We will see another spring.",
     "finish_quote": "Breathe. We\u2019re still here."
@@ -365,7 +367,8 @@
       "cloth": "624d3d",
       "cape": "355377",
       "hair_fringe": "cropped",
-      "face_shape": "broad"
+      "face_shape": "broad",
+      "beard_style": "full"
     },
     "critical_quote": "We are getting out of here!",
     "finish_quote": "There\u2019s daylight ahead."

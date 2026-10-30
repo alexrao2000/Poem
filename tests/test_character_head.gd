@@ -6,6 +6,7 @@ const Fighters=preload("res://scripts/fighters.gd")
 const Rules=preload("res://scripts/rules.gd")
 func _initialize():call_deferred("run")
 func run():
+ verify_beards()
  var shape_signatures={}
  for shape in Head.SHAPES:
   var mesh=Head.mesh(shape);assert(mesh==Head.mesh(shape),"Head geometry is shared")
@@ -52,6 +53,10 @@ func run():
   var actor=painter.build(stage,unit,Vector3.ZERO)
   var head_shape=painter.profiles[unit.id].appearance.face_shape
   assert(actor.bones.Head.get_meta("face_shape")==head_shape and actor.bones.Head.get_node("SculptedHead").mesh.surface_get_arrays(0)[Mesh.ARRAY_VERTEX]==Head.mesh(head_shape).surface_get_arrays(0)[Mesh.ARRAY_VERTEX],"Recruit binds its selected sculpted jaw and nose")
+  if unit.id in ["dax","galen","hale"]:
+   var expected=preload("res://scripts/character_beard.gd").mesh(painter.profiles[unit.id].appearance.beard_style)
+   var beard=actor.bones.Head.get_node("Beard")
+   assert(beard.mesh.surface_get_arrays(0)[Mesh.ARRAY_VERTEX]==expected.surface_get_arrays(0)[Mesh.ARRAY_VERTEX],"Beard retains its portrait-specific shell and head attachment through outline preparation")
   var face=actor.find_child("PaintedFace",true,false)
   assert(face.mesh==Head.features(actor.bones.Head.get_meta("face_variant"),head_shape),"Recruit expression surface matches its personal head mesh")
   assert(face!=null and face.material_override.get_shader_parameter("open_face")==painter.face_atlas,"Every recruit uses the fitted original feature atlas")
@@ -79,5 +84,34 @@ func run():
  for signature in shapes.values():distinct[signature]=true
  assert(distinct.size()==5,"Front styles differ in actual geometry rather than names or colors")
  stage.queue_free();await process_frame
- print("PASS: four closed sculpted head profiles / 32 fitted face variants, outward jaw/crown, integrated nose, eight fitted decal UV regions, clean original alpha all 24 recruit bindings, five smoothed hair fronts, eye clearance and deterministic 21-recruit selection")
+ print("PASS: four closed sculpted head profiles / 32 fitted face variants, outward jaw/crown, integrated nose, eight fitted decal UV regions, clean original alpha all 24 recruit bindings, two closed mouth-framing beards, five smoothed hair fronts, eye clearance and deterministic 21-recruit selection")
  quit()
+
+func verify_beards():
+ var Beard=preload("res://scripts/character_beard.gd")
+ for style in ["full","long"]:
+  var mesh=Beard.mesh(style);assert(mesh==Beard.mesh(style),"Beard source geometry is shared")
+  var arrays=mesh.surface_get_arrays(0);var vertices=arrays[Mesh.ARRAY_VERTEX];var indices=arrays[Mesh.ARRAY_INDEX];var normals=arrays[Mesh.ARRAY_NORMAL];var edges={};var directions={}
+  assert(indices.size()==360,"Beard relief, rear and opening walls use 120 triangles")
+  for i in range(0,indices.size(),3):
+   var a=vertices[indices[i]];var b=vertices[indices[i+1]];var c=vertices[indices[i+2]]
+   var normal=(c-a).cross(b-a)
+   assert(normal.length()>.00000001,"Closed beard faces contain no collapsed triangles")
+   for corner in range(3):
+    var shading=normals[indices[i+corner]]
+    assert(is_equal_approx(shading.length(),1.0) and normal.normalized().dot(shading)>0,"Smooth beard normals stay in their actual triangle's outward hemisphere, including mouth-rim creases")
+   for direction in [-1,1]:
+    var ray=Vector3(sin(.58)*direction,0,cos(.58));var origin=Vector3(0,-.115,-.12)-ray*.4
+    var hit=Geometry3D.ray_intersects_triangle(origin,ray,a,b,c)
+    assert(hit==null or hit.distance_to(origin)>.4,"The mouth center remains unobstructed from both oblique combat angles")
+   for j in range(3):
+    var start=str(vertices[indices[i+j]].snapped(Vector3.ONE*.000001));var end=str(vertices[indices[i+(j+1)%3]].snapped(Vector3.ONE*.000001))
+    var edge=start+":"+end if start<end else end+":"+start
+    edges[edge]=edges.get(edge,0)+1;directions[edge]=directions.get(edge,0)+(1 if start<end else -1)
+   for x in [-.02,0,.02]:
+    for y in [-.105,-.115,-.125]:
+     assert(Geometry3D.ray_intersects_triangle(Vector3(x,y,-.4),Vector3.BACK,a,b,c)==null,"Actual beard shell leaves the painted lips visible through its mouth opening")
+   assert(Geometry3D.ray_intersects_triangle(Vector3(0,-.055,-.4),Vector3.BACK,a,b,c)==null,"Beard does not cover the integrated nose")
+  for edge in edges:assert(edges[edge]==2 and directions[edge]==0,"Beard body and mouth walls form a closed consistently oriented surface")
+  assert(is_equal_approx(mesh.get_aabb().position.y,-.37 if style=="long" else -.25),"Galen's longer beard has a distinct lower silhouette")
+ assert(Beard.mesh("unknown")==Beard.mesh("full"),"Unspecified enemy beards use the short fitted shell")
