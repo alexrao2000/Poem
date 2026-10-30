@@ -32,6 +32,9 @@ func get_dialogue_portrait(id: String) -> Texture2D:
  texture.region=Rect2(entry.region[0],entry.region[1],entry.region[2],entry.region[3])
  textures[key]=texture;return texture
 
+func get_forecast_portrait(unit: Dictionary) -> Texture2D:
+ return get_unit_portrait(unit) if unit.get("team","player")=="enemy" else get_dialogue_portrait(unit.id)
+
 func get_unit_portrait(unit: Dictionary) -> Texture2D:
  if unit.get("team","player")!="enemy":return get_portrait(unit.id)
  var commander=Commanders.profile(unit)

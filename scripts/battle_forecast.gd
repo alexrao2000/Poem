@@ -5,6 +5,35 @@ const Icons=preload("res://scripts/weapon_icons.gd")
 const HUD=preload("res://scripts/combat_hud.gd")
 const FONT=preload("res://assets/fonts/CormorantGaramond.ttf")
 var records=[]
+var target_anchor: Callable
+var target_cue: Control
+var cue_clock=0.0
+
+class TargetCue extends Control:
+ func _draw():
+  var edge=Color("e6ca8f")
+  var frame=PackedVector2Array([Vector2(4,0),Vector2(32,0),Vector2(36,4),Vector2(36,28),Vector2(32,32),Vector2(22,32),Vector2(18,39),Vector2(14,32),Vector2(4,32),Vector2(0,28),Vector2(0,4)])
+  draw_colored_polygon(frame,Color("243744"));frame.append(frame[0]);draw_polyline(frame,edge,1.5,true)
+  for side in [-1,1]:
+   var start=Vector2(18+side*8,24);var tip=Vector2(18-side*9,7)
+   draw_line(start,tip,Color("fff3d6"),2.8,true)
+   var guard=start.lerp(tip,.25);var cross=(tip-start).orthogonal().normalized()*4
+   draw_line(guard-cross,guard+cross,edge,2,true)
+
+func track_target(anchor: Callable):
+ target_anchor=anchor;target_cue=TargetCue.new();target_cue.name="AttackTarget"
+ target_cue.size=Vector2(36,40);target_cue.mouse_filter=Control.MOUSE_FILTER_IGNORE;add_child(target_cue)
+ _process(0)
+
+func _process(dt):
+ if not is_visible_in_tree() or target_cue==null or not target_anchor.is_valid():return
+ cue_clock+=dt
+ target_cue.position=target_anchor.call()-Vector2(18,46+sin(cue_clock*4)*1.5)
+ var bounds=target_cue.get_rect()
+ target_cue.visible=Rect2(Vector2(22,112),Vector2(size.x-365,size.y-222)).encloses(bounds)
+ for record in records:
+  if bounds.intersects(record.card.get_rect()) or bounds.intersects(record.portrait.get_rect()):target_cue.hide()
+
 
 class MatchupMarker extends Control:
  var advantage=0
@@ -21,7 +50,7 @@ class Card extends Control:
  func _draw():
   draw_style_box(background(),Rect2(Vector2.ZERO,size))
   draw_rect(Rect2(2,2,size.x-4,36),Color("773d46") if enemy else Color("304f6a"))
-  draw_line(Vector2(14,172),Vector2(size.x-14,172),Color("baa779"),1)
+  draw_line(Vector2(14,158),Vector2(size.x-14,158),Color("baa779"),1)
  func background() -> StyleBoxFlat:
   var style=StyleBoxFlat.new();style.bg_color=Color(.94,.89,.78,.97);style.border_color=Color("bca36a")
   style.set_border_width_all(2);style.set_corner_radius_all(4)
@@ -40,7 +69,7 @@ func configure(parent: Control,rules,a: Dictionary,b: Dictionary,faces: Array):
   var icon=TextureRect.new();icon.texture=Icons.get_icon(unit.weapon);icon.expand_mode=TextureRect.EXPAND_IGNORE_SIZE;icon.stretch_mode=TextureRect.STRETCH_KEEP_ASPECT_CENTERED;icon.mouse_filter=Control.MOUSE_FILTER_IGNORE;card.add_child(icon)
   var matchup=MatchupMarker.new();matchup.advantage=result.triangle;matchup.visible=available and result.triangle!=0
   matchup.tooltip_text="Weapon advantage" if result.triangle>0 else "Weapon disadvantage";card.add_child(matchup)
-  var portrait=TextureRect.new();portrait.texture=faces[index];portrait.expand_mode=TextureRect.EXPAND_IGNORE_SIZE;portrait.stretch_mode=TextureRect.STRETCH_KEEP_ASPECT_CENTERED;portrait.mouse_filter=Control.MOUSE_FILTER_IGNORE;card.add_child(portrait)
+  var portrait=TextureRect.new();portrait.texture=faces[index];portrait.expand_mode=TextureRect.EXPAND_IGNORE_SIZE;portrait.stretch_mode=TextureRect.STRETCH_KEEP_ASPECT_CENTERED;portrait.mouse_filter=Control.MOUSE_FILTER_IGNORE;add_child(portrait);move_child(portrait,0)
   portrait.flip_h=index==1
   var hp=label(card,"%d / %d"%[unit.hp,unit.max_hp],29)
   var caption=label(card,"HP",13,Color("766546"))
@@ -63,19 +92,20 @@ func arrange():
  var width=(size.x-386)*.5
  for i in range(records.size()):
   var r=records[i];var card=r.card
-  card.position=Vector2(22+i*(width+14),size.y-342);card.size=Vector2(width,232)
+  card.position=Vector2(22+i*(width+14),size.y-324);card.size=Vector2(width,214)
   r.name.position=Vector2(14,3);r.name.size=Vector2(width-28,34)
   r.icon.position=Vector2(14,43);r.icon.size=Vector2(24,24)
   r.weapon.position=Vector2(44,43);r.weapon.size=Vector2(width-(84 if r.matchup.visible else 58),24)
   r.matchup.position=Vector2(width-34,45);r.matchup.size=Vector2(20,20);r.matchup.queue_redraw()
-  r.portrait.position=Vector2(14 if i==0 else width-104,70);r.portrait.size=Vector2(90,100)
-  var x=118.0 if i==0 else 14.0;var content_width=width-132
-  r.caption.position=Vector2(x,70);r.caption.size=Vector2(content_width,20)
-  r.hp.position=Vector2(x,87);r.hp.size=Vector2(content_width,38)
-  r.meter.position=Vector2(x,128);r.meter.size=Vector2(content_width,10)
-  r.note.position=Vector2(x,142);r.note.size=Vector2(content_width,25)
+  var face_width=minf(220,width*.68);var face_height=minf(260,card.position.y-112)
+  r.portrait.size=Vector2(face_width,face_height)
+  r.portrait.position=card.position+Vector2(0 if i==0 else width-face_width,-face_height)
+  r.caption.position=Vector2(14,84);r.caption.size=Vector2(28,22)
+  r.hp.position=Vector2(48,74);r.hp.size=Vector2(width-62,38)
+  r.meter.position=Vector2(14,117);r.meter.size=Vector2(width-28,10)
+  r.note.position=Vector2(14,132);r.note.size=Vector2(width-28,25)
   for j in range(3):
    var stat=r.stats[j];var column=(width-28)/3
-   stat.title.position=Vector2(14+j*column,177);stat.title.size=Vector2(column,18)
-   stat.value.position=Vector2(14+j*column,195);stat.value.size=Vector2(column,28)
+   stat.title.position=Vector2(14+j*column,164);stat.title.size=Vector2(column,18)
+   stat.value.position=Vector2(14+j*column,182);stat.value.size=Vector2(column,28)
   card.queue_redraw()

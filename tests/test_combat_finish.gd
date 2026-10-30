@@ -6,6 +6,7 @@ const Finish=preload("res://scripts/combat_finish.gd")
 const Shutdown=preload("helpers/game_shutdown.gd")
 var observed=[]
 var skip_finish=false
+var expected_caption=""
 
 func watch_finish(node):
  if not node is Finish:return
@@ -14,6 +15,7 @@ func watch_finish(node):
  var actors=app.stage.get_children().filter(func(child):return child is Fighters.Actor and not child.is_queued_for_deletion())
  var standing=actors.filter(func(actor):return actor.pose_name=="victory")
  assert(standing.size()==1 and actors.any(func(actor):return actor.pose_name=="down"),"Only the surviving fighter finishes while the defeated actor stays down")
+ assert(app.ui.get_node("CombatCaption").text==expected_caption,"The confirmed survivor receives their own finishing line, with a name-only enemy fallback")
  observed.append(standing[0].kind)
  if skip_finish:
   var tab=InputEventKey.new();tab.keycode=KEY_TAB;tab.pressed=true;app._input(tab)
@@ -23,7 +25,17 @@ func run():
  var painter=Fighters.new();painter.batching_enabled=false
  var rules=Rules.new();var world=Node3D.new();root.add_child(world)
  var camera=Camera3D.new();world.add_child(camera);camera.current=true
- var samples=0
+ var samples=0;var lines=[]
+ for recruit in rules.roster:
+  var unit=recruit.duplicate(true);unit.team="player"
+  var line=Finish.quote_for(unit,painter.profiles)
+  assert(not line.is_empty() and line not in lines,"Every recruit has an individual original finishing line")
+  lines.append(line)
+  var label=Label.new();label.add_theme_font_size_override("font_size",30);label.text=unit.name+" — "+line;root.add_child(label)
+  assert(label.get_minimum_size().x<1024-48,"Name and full line fit the narrowest supported combat caption with outline margins")
+  label.queue_free()
+  unit.team="enemy";assert(Finish.quote_for(unit,painter.profiles).is_empty(),"Enemy IDs cannot borrow recruit dialogue")
+ assert(Finish.quote_for({"id":"unknown","team":"player"},painter.profiles).is_empty(),"Old/custom saves keep a name-only fallback")
  for recruit in rules.roster:
   for direction in [-1,1]:
    var unit=recruit.duplicate(true);unit.team="player"
@@ -63,6 +75,8 @@ func run():
  for mode in ["kill","counter","survive","skip"]:
   skip_finish=mode=="skip";observed.clear()
   var attacker=b if mode=="counter" else a;var target=a if mode=="counter" else b
+  var quote=Finish.quote_for(attacker,app.fighters.profiles)
+  expected_caption=attacker.name+(" — "+quote if not quote.is_empty() else "")
   var event={"actor":attacker.id,"target":target.id,"damage":1,"remaining":1 if mode=="survive" else 0,"hit":true,"crit":false}
   await app.cinematic(a,b,[event],{a.id:2,b.id:2})
   await process_frame
@@ -71,5 +85,5 @@ func run():
   assert(app.camera.transform.is_equal_approx(start_camera) and app.camera.projection==Camera3D.PROJECTION_ORTHOGONAL,"Finish shot cannot retain ownership of the tactical camera")
   assert(app.game.save_data("battle")==saved and app.game.rng.state==rng,"Finishing never resolves or changes combat results")
  await Shutdown.dispose(app);await process_frame
- print("PASS: %d finishing camera layouts, 48 planted weapon-rest poses, resolved kills/counters, no false finishes, Tab interruption and complete map restoration"%samples)
+ print("PASS: %d finishing camera layouts, 24 original caption fits, enemy/custom fallbacks, 48 planted weapon-rest poses, resolved kills/counters, no false finishes, Tab interruption and complete map restoration"%samples)
  quit()

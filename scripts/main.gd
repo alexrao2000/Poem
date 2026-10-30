@@ -552,8 +552,15 @@ func update_side():
 			var counter=game.forecast(target,selected)
 			var faces=[]
 			for unit in [selected,target]:
-				var face=portraits.get_unit_portrait(unit);faces.append(face if face!=null else unit_portrait(unit))
+				var face=portraits.get_forecast_portrait(unit);faces.append(face if face!=null else unit_portrait(unit))
 			forecast_panel=BattleForecast.new();forecast_panel.configure(ui,game,selected,target,faces)
+			var target_id=target.id
+			forecast_panel.track_target(func():
+				if not unit_nodes.has(target_id):return Vector2(-1000,-1000)
+				var figure=unit_nodes[target_id]
+				if camera.is_position_behind(figure.global_position):return Vector2(-1000,-1000)
+				var bounds=figure.screen_bounds(camera)
+				return Vector2(bounds.get_center().x,bounds.position.y))
 			label_in(side,("Foe has an effective counter!" if counter.effective else "Counter if both survive.") if f.counter else "Foe cannot counter at this range.",14,GOLD)
 			button_in(side,"Confirm attack",func():player_attack(),busy)
 		if selected.team=="player" and not selected.acted:
@@ -860,7 +867,7 @@ func cinematic(a,b,events,initial_hp={}):
 		displayed_hp[unit.id]=mini(hp,unit.max_hp)
 		entries.append({"unit":unit,"hp":displayed_hp[unit.id],"portrait":portraits.get_unit_portrait(unit),"class_name":game.class_name_for(unit),"weapon":game.item_for(unit).name})
 	var banner=CombatHUD.new();banner.configure(ui,entries)
-	var caption=Label.new();caption.set_anchors_and_offsets_preset(Control.PRESET_TOP_WIDE);caption.offset_top=36;caption.horizontal_alignment=HORIZONTAL_ALIGNMENT_CENTER
+	var caption=Label.new();caption.name="CombatCaption";caption.set_anchors_and_offsets_preset(Control.PRESET_TOP_WIDE);caption.offset_top=36;caption.horizontal_alignment=HORIZONTAL_ALIGNMENT_CENTER
 	caption.add_theme_font_size_override("font_size",30);caption.add_theme_color_override("font_color",Color("f7edce"));caption.add_theme_color_override("font_outline_color",Color("373d42"));caption.add_theme_constant_override("outline_size",7)
 	caption.text="Tab to skip";ui.add_child(caption)
 
@@ -961,10 +968,12 @@ func cinematic(a,b,events,initial_hp={}):
 		if event.remaining<=0:
 			await whom.pose("down",.3).finished
 			if skip_combat:break
-			finished_exchange=true;caption.text=unit.name
-			director.shot(who.position,whom.position,"finish",is_ranged,unit.job=="Rider",.28)
+			finished_exchange=true
 			var finish=preload("res://scripts/combat_finish.gd").new();stage.add_child(finish)
-			await finish.play(who,func():return skip_combat)
+			var line=finish.quote_for(unit,fighters.profiles)
+			caption.text=unit.name+(" — "+line if not line.is_empty() else "")
+			director.shot(who.position,whom.position,"finish",is_ranged,unit.job=="Rider",.28)
+			await finish.play(who,func():return skip_combat,.95 if not line.is_empty() else .60)
 			finish.queue_free()
 			break
 		else:

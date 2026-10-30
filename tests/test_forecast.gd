@@ -26,10 +26,10 @@ func run():
   host.size=size
   for source in game.roster:
    var unit=source.duplicate(true);unit.team="player";unit.x=4;unit.y=4;unit.hp=999;unit.max_hp=999;foe.x=5;foe.y=4
-   var before=game.rng.state;var forecast=Forecast.new();forecast.configure(host,game,unit,foe,[portraits.get_portrait(unit.id),portraits.get_unit_portrait(foe)])
+   var before=game.rng.state;var forecast=Forecast.new();forecast.configure(host,game,unit,foe,[portraits.get_forecast_portrait(unit),portraits.get_forecast_portrait(foe)])
    await process_frame
    var expected=game.forecast(unit,foe);var reverse=game.forecast(foe,unit)
-   assert(forecast.records[0].portrait.texture!=null,"Named recruit portrait appears in the comparison")
+   assert(forecast.records[0].portrait.texture==portraits.get_dialogue_portrait(unit.id),"Forecast uses the recruit's transparent dialogue cutout")
    assert(forecast.records[1].portrait.texture!=null and forecast.records[1].portrait.flip_h,"Enemy class portrait faces the recruit")
    assert(forecast.records[0].stats[0].value.text==str(expected.damage)+(" ×2" if expected.double else ""))
    assert(forecast.records[0].stats[1].value.text==str(expected.hit)+"%")
@@ -40,12 +40,27 @@ func run():
    for record in forecast.records:
     var bounds=record.card.get_rect()
     assert(bounds.position.x>=0 and bounds.position.y>=0 and bounds.end.x<size.x-325 and bounds.end.y<=size.y-110,"Forecast leaves the command sidebar and help strip clear")
+    var face=record.portrait.get_rect()
+    assert(face.position.y>=112 and face.end.y<=bounds.position.y+.01 and face.size.y>=200,"Large portraits fit below the top HUD and above the cards without hiding names or values")
+    assert(face.position.x>=bounds.position.x-.01 and face.end.x<=bounds.end.x+.01,"Each portrait stays within its side of the comparison")
+    assert(record.portrait.mouse_filter==Control.MOUSE_FILTER_IGNORE,"Portrait artwork does not intercept tactical input")
     for node in record.card.get_children():
      assert(node.position.x>=0 and node.position.y>=0 and node.get_rect().end.x<=record.card.size.x+.01 and node.get_rect().end.y<=record.card.size.y+.01,"All comparison content fits its card")
     if record.matchup.visible:assert(record.weapon.get_rect().end.x<record.matchup.position.x,"Weapon names leave a separate space for their matchup marker")
     var hp=record.hp
     assert(hp.get_theme_font("font").get_string_size(hp.text,HORIZONTAL_ALIGNMENT_LEFT,-1,hp.get_theme_font_size("font_size")).x<=hp.size.x,"Maximum health values fit without truncation")
    assert(forecast.records[0].card.get_rect().end.x<forecast.records[1].card.position.x)
+   assert(forecast.records[1].portrait.position.x-forecast.records[0].portrait.get_rect().end.x>200,"Facing portraits leave an open central strip of battlefield")
+   var anchor={"point":Vector2((size.x-343)*.5,210)}
+   forecast.track_target(func():return anchor.point)
+   assert(forecast.target_cue.visible and forecast.target_cue.mouse_filter==Control.MOUSE_FILTER_IGNORE,"Attack marker appears in the open battlefield and cannot intercept clicks")
+   anchor.point=forecast.records[0].portrait.get_rect().get_center();forecast._process(.1)
+   assert(not forecast.target_cue.visible,"Attack marker does not draw over a portrait")
+   anchor.point=Vector2(20,100);forecast._process(.1);assert(not forecast.target_cue.visible,"Marker stays clear of the HUD and viewport edges")
+   anchor.point=Vector2((size.x-343)*.5,210);forecast._process(.1);assert(forecast.target_cue.visible,"A concealed target marker reappears when the camera brings it into view")
+   var clock=forecast.cue_clock;forecast.hide();forecast._process(1)
+   assert(forecast.cue_clock==clock,"Hidden cinematic forecast suspends marker animation")
+   forecast.show()
    assert(game.rng.state==before,"Forecast display never consumes RNG")
    forecast.queue_free();await process_frame
  host.queue_free();await process_frame
@@ -53,6 +68,11 @@ func run():
  app.game.start_battle();app.make_map();app.show_battle();app.selected=app.game.units[0];app.target=app.game.living("enemy")[0]
  app.update_side();await process_frame
  assert(is_instance_valid(app.forecast_panel) and app.forecast_panel.visible)
+ for shift in [Vector3.ZERO,Vector3(.5,0,.3)]:
+  app.camera.position+=shift;app.forecast_panel._process(0)
+  var bounds=app.unit_nodes[app.target.id].screen_bounds(app.camera)
+  var anchor=app.forecast_panel.target_cue.position+Vector2(18,46+sin(app.forecast_panel.cue_clock*4)*1.5)
+  assert(anchor.distance_to(Vector2(bounds.get_center().x,bounds.position.y))<.01,"Real attack cue tracks the projected target sprite as the map camera pans")
  var attacker=app.selected;var defender=app.target;attacker.x=8;attacker.y=4;defender.x=9;defender.y=4
  watch_cinematic(app)
  await app.cinematic(attacker,defender,[{"actor":attacker.id,"target":defender.id,"damage":1,"remaining":19,"hit":true,"crit":false}],{attacker.id:20,defender.id:20})
@@ -68,5 +88,5 @@ func run():
  for player in app.sfx_players:player.stop()
  app.music.stop();await create_timer(.15).timeout
  await Shutdown.dispose(app);await process_frame
- print("PASS: all 36 triangle pairings, 24 paired forecasts at three viewport sizes, real damage/hit/counter values, isolated matchup arrows, health bounds, retargeting and screen cleanup")
+ print("PASS: all 36 triangle pairings, 24 paired forecasts at three viewport sizes, real damage/hit/counter values, large cutout bounds/open center, live target cue/occlusion, isolated matchup arrows, health bounds, retargeting and screen cleanup")
  quit()

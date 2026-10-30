@@ -122,6 +122,8 @@ Combat approaches and retreats now trigger quiet foot/hoof contacts from actual 
 
 Non-caster combatants now have original curled glove meshes with four separate fingers, mirrored thumbs and a clear longitudinal grip channel. They retain the prior wrist attachment and size envelope, with 1.5 mm finger outlines. Closed-surface/winding checks, all roster/enemy bindings, weapon poses and batching equivalence pass. The default roster remains 1,797 source meshes and now uses 1,060 joint batches; rendered review remains pending.
 
+The attack forecast now uses larger transparent recruit cutouts above compact paired stat cards, with inward-facing enemy portraits and an open central battlefield strip. A small original crossed-blade marker follows the projected target sprite, hiding under panels or outside the playable viewport. Health, weapon matchup and damage/hit/crit remain rules-driven and legible at all three desktop sizes. Confirmed player victories show one of 24 original character-specific lines during a skippable 0.95-second finishing stance; enemies and custom identities retain their name fallback. Layout, actual combat/retargeting and progression-isolation checks pass; rendered review remains pending.
+
 ## Earlier checkpoint notes
 
 ### Early campaign, materials and score

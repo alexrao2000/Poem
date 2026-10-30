@@ -11,7 +11,8 @@
       "cloth": "354c77",
       "cape": "e5dfce"
     },
-    "critical_quote": "For everyone behind me!"
+    "critical_quote": "For everyone behind me!",
+    "finish_quote": "Stay together."
   },
   "oren": {
     "title": "The gate left open",
@@ -25,7 +26,8 @@
       "cloth": "394651",
       "cape": "354c77"
     },
-    "critical_quote": "This line holds."
+    "critical_quote": "This line holds.",
+    "finish_quote": "Everyone still with us?"
   },
   "sera": {
     "title": "Roads beneath the stars",
@@ -39,7 +41,8 @@
       "cloth": "405c49",
       "cape": "4a6345"
     },
-    "critical_quote": "I see the way through."
+    "critical_quote": "I see the way through.",
+    "finish_quote": "The road is clear."
   },
   "ivo": {
     "title": "No one expendable",
@@ -53,7 +56,8 @@
       "cloth": "ded6c0",
       "cape": "847299"
     },
-    "critical_quote": "No one is expendable!"
+    "critical_quote": "No one is expendable!",
+    "finish_quote": "Let me see the wounded."
   },
   "mara": {
     "title": "A captain of borrowed tides",
@@ -67,7 +71,8 @@
       "cloth": "493a33",
       "cape": "af823f"
     },
-    "critical_quote": "You cannot bar this river!"
+    "critical_quote": "You cannot bar this river!",
+    "finish_quote": "Keep the channel open."
   },
   "tarin": {
     "title": "The inconvenient calculation",
@@ -81,7 +86,8 @@
       "cloth": "354c77",
       "cape": "354c77"
     },
-    "critical_quote": "I checked the numbers."
+    "critical_quote": "I checked the numbers.",
+    "finish_quote": "One less uncertainty."
   },
   "nell": {
     "title": "Every door has two sides",
@@ -95,7 +101,8 @@
       "cloth": "333c48",
       "cape": "355f98"
     },
-    "critical_quote": "Found your opening!"
+    "critical_quote": "Found your opening!",
+    "finish_quote": "And there\u2019s our way out."
   },
   "bram": {
     "title": "Good timber, good people",
@@ -109,7 +116,8 @@
       "cloth": "5a4d3c",
       "cape": "4b6744"
     },
-    "critical_quote": "Time to put this right."
+    "critical_quote": "Time to put this right.",
+    "finish_quote": "Easy now. We\u2019re all right."
   },
   "esme": {
     "title": "The names in the bell",
@@ -123,7 +131,8 @@
       "cloth": "e0d7c2",
       "cape": "87779b"
     },
-    "critical_quote": "We remember their names."
+    "critical_quote": "We remember their names.",
+    "finish_quote": "May the silence be kind."
   },
   "rook": {
     "title": "The work after regret",
@@ -137,7 +146,8 @@
       "cloth": "394651",
       "cape": "354c77"
     },
-    "critical_quote": "Let me make this count."
+    "critical_quote": "Let me make this count.",
+    "finish_quote": "Keep moving. I\u2019ll follow."
   },
   "faye": {
     "title": "The forest keeps its paths",
@@ -151,7 +161,8 @@
       "cloth": "415d43",
       "cape": "41664e"
     },
-    "critical_quote": "You missed the trail."
+    "critical_quote": "You missed the trail.",
+    "finish_quote": "The trail goes on."
   },
   "cassian": {
     "title": "Learning to lower a banner",
@@ -165,7 +176,8 @@
       "cloth": "354c77",
       "cape": "e5dfce"
     },
-    "critical_quote": "My oath is to these people!"
+    "critical_quote": "My oath is to these people!",
+    "finish_quote": "No crown is worth this."
   },
   "vela": {
     "title": "The light that answers",
@@ -179,7 +191,8 @@
       "cloth": "2f686a",
       "cape": "2f686a"
     },
-    "critical_quote": "There is still a light."
+    "critical_quote": "There is still a light.",
+    "finish_quote": "The light is still burning."
   },
   "dax": {
     "title": "Hands on the same rope",
@@ -193,7 +206,8 @@
       "cloth": "b58b42",
       "cape": "355377"
     },
-    "critical_quote": "We pull together!"
+    "critical_quote": "We pull together!",
+    "finish_quote": "Get everyone through."
   },
   "una": {
     "title": "Beyond the sealed letter",
@@ -207,7 +221,8 @@
       "cloth": "d6cbb6",
       "cape": "a76d76"
     },
-    "critical_quote": "Here are my terms."
+    "critical_quote": "Here are my terms.",
+    "finish_quote": "Let that be the last."
   },
   "silas": {
     "title": "A truth without a cover story",
@@ -221,7 +236,8 @@
       "cloth": "3b4355",
       "cape": "355377"
     },
-    "critical_quote": "No more cover stories."
+    "critical_quote": "No more cover stories.",
+    "finish_quote": "That\u2019s the truth of it."
   },
   "petra": {
     "title": "What a bridge is for",
@@ -235,7 +251,8 @@
       "cloth": "535e6b",
       "cape": "963f4a"
     },
-    "critical_quote": "I know the weak point."
+    "critical_quote": "I know the weak point.",
+    "finish_quote": "Still standing."
   },
   "ari": {
     "title": "Messages with wings",
@@ -249,7 +266,8 @@
       "cloth": "446e69",
       "cape": "446e69"
     },
-    "critical_quote": "The message gets through!"
+    "critical_quote": "The message gets through!",
+    "finish_quote": "I can get through now."
   },
   "noor": {
     "title": "The cost of borrowed light",
@@ -263,7 +281,8 @@
       "cloth": "3e3c6b",
       "cape": "3e3c6b"
     },
-    "critical_quote": "I know what this light costs."
+    "critical_quote": "I know what this light costs.",
+    "finish_quote": "We have work left to do."
   },
   "galen": {
     "title": "Seeds for the day after",
@@ -277,7 +296,8 @@
       "cloth": "d8cdb3",
       "cape": "4e6544"
     },
-    "critical_quote": "We will see another spring."
+    "critical_quote": "We will see another spring.",
+    "finish_quote": "Breathe. We\u2019re still here."
   },
   "yuna": {
     "title": "Steps through the palace",
@@ -291,7 +311,8 @@
       "cloth": "696079",
       "cape": "454366"
     },
-    "critical_quote": "One step ahead."
+    "critical_quote": "One step ahead.",
+    "finish_quote": "One more step toward home."
   },
   "hale": {
     "title": "The way back to daylight",
@@ -305,7 +326,8 @@
       "cloth": "624d3d",
       "cape": "355377"
     },
-    "critical_quote": "We are getting out of here!"
+    "critical_quote": "We are getting out of here!",
+    "finish_quote": "There\u2019s daylight ahead."
   },
   "elian": {
     "title": "An oath reconsidered",
@@ -319,7 +341,8 @@
       "cloth": "63798a",
       "cape": "3f5879"
     },
-    "critical_quote": "This oath is mine."
+    "critical_quote": "This oath is mine.",
+    "finish_quote": "My people come first."
   },
   "rhea": {
     "title": "The person behind the regent",
@@ -333,6 +356,7 @@
       "cloth": "354c77",
       "cape": "e5dfce"
     },
-    "critical_quote": "I choose what comes next."
+    "critical_quote": "I choose what comes next.",
+    "finish_quote": "It ends with our choices."
   }
 }

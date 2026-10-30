@@ -4,10 +4,14 @@ extends Node
 var motion: Tween
 var stance: Tween
 
-func play(actor: Node3D,cancelled: Callable):
+static func quote_for(unit: Dictionary,profiles: Dictionary) -> String:
+ if unit.get("team","")!="player":return ""
+ return str(profiles.get(unit.get("id",""),{}).get("finish_quote",""))
+
+func play(actor: Node3D,cancelled: Callable,hold=.60):
  name="CombatFinish"
  stance=actor.pose("victory",.28)
- motion=create_tween();motion.tween_interval(.60)
+ motion=create_tween();motion.tween_interval(hold)
  while motion.is_running():
   if cancelled.call():
    motion.kill()
