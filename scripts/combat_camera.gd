@@ -12,11 +12,11 @@ func configure(value: Camera3D):
  camera=value;anchor=camera.position;focus=camera.position-camera.basis.z;lens=camera.fov
  camera.projection=Camera3D.PROJECTION_PERSPECTIVE;camera.h_offset=0;camera.v_offset=0
 
-static func frame_pair(attacker: Vector3,defender: Vector3,phase: String,ranged: bool,mounted=false) -> Dictionary:
+static func frame_pair(attacker: Vector3,defender: Vector3,phase: String,_ranged: bool,mounted=false) -> Dictionary:
  var midpoint=(attacker+defender)*.5
- var height=1.45 if mounted else 1.08
+ var height=2.75 if mounted else 1.9
  var separation=attacker.distance_to(defender)
- var distance=maxf(5.8 if not ranged else 6.8,separation*1.4)
+ var distance=maxf(7.35 if mounted else 5.4,separation*1.25)
  var aim=midpoint+Vector3(0,height,0)
  var fov=48.0
  if phase=="finish":
@@ -24,12 +24,14 @@ static func frame_pair(attacker: Vector3,defender: Vector3,phase: String,ranged:
   aim=attacker+Vector3(0,1.45 if mounted else 1.05,0)
   return {"anchor":aim+Vector3(direction*1.8,.65,5.8 if mounted else 4.8),"focus":aim,"lens":46.0}
  if phase=="windup":
-  aim=aim.lerp(attacker+Vector3(0,height,0),.24)
-  distance*=.94;fov=46.0
+  aim=aim.lerp(attacker+Vector3(0,height,0),.10)
+  distance*=.99;fov=46.0
  elif phase=="impact":
-  aim=aim.lerp(defender+Vector3(0,height,0),.22)
-  distance*=.90;fov=46.0
- return {"anchor":aim+Vector3(1.25,.85,distance),"focus":aim,"lens":fov}
+  aim=aim.lerp(defender+Vector3(0,height,0),.08)
+  distance*=.98;fov=46.0
+ # Bias the composition above the HUD while making foreground depth visible.
+ aim.y=midpoint.y+height*.5-distance*tan(deg_to_rad(fov*.5))*.18
+ return {"anchor":aim+Vector3(sin(.57)*distance,.85,cos(.57)*distance),"focus":aim,"lens":fov}
 
 func shot(attacker: Vector3,defender: Vector3,phase: String,ranged: bool,mounted=false,duration=.24) -> Tween:
  if movement and movement.is_valid():movement.kill()

@@ -408,3 +408,9 @@ The heavy-infantry shield now has a clipped upper edge, tapered point and shallo
 ## Archer quivers
 
 The original back quiver now has an open annular lip, tapered leather walls and a recessed floor. Four staggered shafts enter this cavity; each has three small ivory feathers above the opening. A single tilted attachment keeps the container and arrow tails aligned through the body animation. Fine feather outlines use a 1 mm shell. Four cached material meshes replace the prior cylinder and four independent sticks; the roster now totals 1,794 sources / 1,066 joint batches. Actual opening/clearance rays, body topology, archer poses and batching equivalence pass; assembled rendering remains pending.
+
+## Foreground combat framing
+
+The Awakening reference uses strong perspective depth and a prominent foreground fighter. Combat now looks across the engagement axis at about 33 degrees, with a 5.4 m base infantry radius and 7.35 m mounted radius. The vertical composition leaves room for captions and the lower HUD; preparation/contact camera shifts are deliberately small. In the fixed 4 m ranged fixture, a 1.8 m foreground figure occupies 46.4% of view height, while the farther figure occupies 31.3%; the prior foreground result was 30.1%. The lens stays at 46–48 degrees.
+
+The camera audit uses actual SubViewport dimensions and transformed head/boot/hoof bounds: 2,304 layouts across all recruits, both sides, 1.3/4 m gaps, mixed mounts, idle/preparation/critical/impact poses and three desktop sizes. Heads and soles clear the caption, viewport edges and HUD. Finishing-camera behavior is retained. Projection, transition, recovery and restoration checks pass; rendered camera/art review is still unavailable.
