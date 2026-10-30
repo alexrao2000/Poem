@@ -20,7 +20,7 @@ Sword and axe contact now adapts the existing arm pose to the actual infantry, m
 
 The outfit viewer now fits the whole character, equipment and selectable actions beside the actual controls. A sampled orbit envelope keeps the camera stable while rotating and replaying; window changes reframe it. All 72 base/promoted outfits pass 33,696 geometry layouts across three sizes, with actual preview selection and return lifecycle checks. Rendered review remains pending.
 
-Current measured geometry: 13,554 static map sources / 616 batches across twelve chapters, plus separate cloth and atmosphere; 1,780 character sources / 1,063 joint batches across the roster, plus three separately animated rein meshes. The default runner has 64 suites. Earlier paragraphs below record prior checkpoints. Rendered game review and browser FPS measurements remain outstanding.
+Current measured geometry: 13,554 static map sources / 616 batches across twelve chapters, plus separate cloth and atmosphere; 1,780 character sources / 1,021 joint batches across the roster, plus three separately animated rein meshes. The default runner has 64 suites. Earlier paragraphs below record prior checkpoints. Rendered game review and browser FPS measurements remain outstanding.
 
 Quick-map result framing now budgets for the full floating label, outline and upward motion. This prevents guarded-hit text from clipping the left edge or rising behind the terrain card after a reverse pan; healing amounts are centered over their recipient. All 4,200 tile/text/view-size/pan-origin layouts and real damage, miss, guard and recovery cues pass without changing simulation.
 
@@ -44,7 +44,7 @@ Combat retains real 3D figures with individual clothing palettes, ponytail/braid
 
 The battlefield has surface-aware tactical overlays, a shared-rules terrain card, pointer-anchored zoom, bounded drag, keyboard tracking and paired portrait forecast cards. Bridge decks and sanctuary platforms share their elevation with units, routes, selection corners and healing effects; movement climbs before entering a raised tile. Combat zoom centers the engaged pair after panning and restores the previous view. Three original act-specific calm/Ablaze themes use pinned CC0 orchestral samples, with a shared timeline within each pair.
 
-Combat silhouettes use a thin reverse-culled outline pass, with separately smoothed edge directions so faceted steel keeps its base lighting without gaps in the outline. Painted face cards, transparent pieces and luminous details are excluded. The 1,063-batch figure counts rigid base geometry; outlined batches add a rendering pass, while the three dynamic rein meshes use one pass each. Browser frame rate and rendered appearance remain unmeasured.
+Combat silhouettes use a thin reverse-culled outline pass, with separately smoothed edge directions so faceted steel keeps its base lighting without gaps in the outline. Painted face cards, transparent pieces and luminous details are excluded. The 1,021-batch figure counts rigid base geometry; outlined batches add a rendering pass, while the three dynamic rein meshes use one pass each. Browser frame rate and rendered appearance remain unmeasured.
 
 Dock and bridge arena floors meet the fighters' foot plane. Physical projectile trajectories end at the actual arrow/spear tip, with the shaft trailing behind and launching near the animated grip. Bow users carry a matching nocked arrow, hide it on release and restore it for their next ready/windup pose.
 

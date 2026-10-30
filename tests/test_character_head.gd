@@ -41,13 +41,36 @@ func run():
    coverage[int(v)*4+int(u)]+=1
  for count in coverage:assert(count>1000,"Every feature variant contains visible artwork")
  var game=Rules.new();var stage=Node3D.new();root.add_child(stage);painter.batching_enabled=false
+ var fringes={};var shapes={};var fringe_actors=0
  for source in game.roster:
   var unit=source.duplicate(true);unit.team="player"
   var actor=painter.build(stage,unit,Vector3.ZERO)
   assert(actor.bone("Head").find_child("SculptedHead",false,false)!=null)
   var face=actor.find_child("PaintedFace",true,false)
   assert(face!=null and face.material_override.get_shader_parameter("open_face")==painter.face_atlas,"Every recruit uses the fitted original feature atlas")
+  var head=actor.bones.Head;var locks=head.get_children().filter(func(child):return str(child.name).begins_with("Fringe"))
+  if not locks.is_empty():
+   fringe_actors+=1;var signature="";var style=head.get_meta("hair_fringe");fringes[style]=true
+   assert(locks.size()==7,"Each front retains seven material-batched locks")
+   assert(style==painter.profiles[unit.id].appearance.hair_fringe,"Recruit portrait profile chooses its own hair front")
+   for lock in locks:
+    var points=lock.mesh.surface_get_arrays(0)[Mesh.ARRAY_VERTEX]
+    for point in points:
+     assert(absf(point.x)<.21 and point.y>-.1 and point.y<.25 and absf(point.z)<.20,"Front strands remain in their tested head envelope")
+     signature+=str(point.snapped(Vector3.ONE*.00001))
+    for i in range(0,points.size(),3):
+     assert((points[i+1]-points[i]).cross(points[i+2]-points[i]).length()>.000000001,"Smoothed hair tubes contain no collapsed triangles")
+     for x in [-.085,-.055,-.025,.025,.055,.085]:
+      var hit=Geometry3D.ray_intersects_triangle(Vector3(x,.025,-.3),Vector3.BACK,points[i],points[i+1],points[i+2])
+      assert(hit==null or hit.z>-.14,"Front locks leave both eyes visible from the front")
+   if not shapes.has(style):shapes[style]=signature.sha256_text()
+   else:assert(shapes[style]==signature.sha256_text(),"Matching styles retain deterministic geometry independent of recruit color")
+  else:assert(head.get_meta("hair_style") in ["bald","curls"],"Bald and curly silhouettes retain their distinct builders")
   actor.queue_free();await process_frame
+ assert(fringe_actors==21 and fringes.size()==5,"All eligible recruits use five distinct front silhouettes")
+ var distinct={}
+ for signature in shapes.values():distinct[signature]=true
+ assert(distinct.size()==5,"Front styles differ in actual geometry rather than names or colors")
  stage.queue_free();await process_frame
- print("PASS: closed sculpted head topology, outward jaw/crown, integrated nose, eight fitted decal UV regions, clean original alpha and all 24 recruit bindings")
+ print("PASS: closed sculpted head topology, outward jaw/crown, integrated nose, eight fitted decal UV regions, clean original alpha all 24 recruit bindings, five smoothed hair fronts, eye clearance and deterministic 21-recruit selection")
  quit()
