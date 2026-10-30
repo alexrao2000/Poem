@@ -212,7 +212,7 @@ func pose(key: String,duration=.18) -> Tween:
  if bones.has("NockedArrow") and key in ["idle","advance","windup","critical_windup"]:bones.NockedArrow.visible=true
  if key=="advance":travel_previous=global_position
  pose_name=key
- face_blink.update(0,key)
+ face_blink.begin_pose(key)
  var target={
   "Body":Vector3(0,0,0),"Head":Vector3(0,0,0),
   "Arm":Vector3(-.58,-.12,-.16),"Elbow":Vector3(-.48,0,0),

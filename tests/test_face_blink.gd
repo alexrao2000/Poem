@@ -51,8 +51,16 @@ func run():
   for pose in ["advance","windup","critical_windup","strike","recover","hit","critical_hit","evade","guard","down","cast_windup","cast","throw_windup","critical_throw_windup","throw"]:
    blink.clock=0;blink.update(0,"idle");assert(blink.closed)
    actor.pose(pose,.01);actor.pose_tween.kill()
-   assert(blink.closed==(pose=="down"),"Defeat closes the eyes; living action and reaction poses reopen them immediately")
+   assert(blink.closed==(pose in ["down","hit","critical_hit"]),"Damage briefly closes the eyes; active attacks, dodges and guards stay attentive")
    actor._process(.5);assert(blink.closed==(pose=="down"))
+  for reaction in ["hit","critical_hit"]:
+   actor.pose(reaction,.01);actor.pose_tween.kill();actor._process(.08)
+   assert(blink.closed,"Both hit reactions retain a readable initial eye flinch")
+   actor._process(.03)
+   assert(blink.closed==(reaction=="critical_hit"),"Critical recoil holds the flinch longer than ordinary damage")
+   actor._process(.04);assert(not blink.closed,"Flinch reopens before recovery, without waiting for a new pose")
+   actor.pose(reaction,.01);actor.pose_tween.kill()
+   assert(blink.closed and blink.reaction_clock==0,"Repeated reaction restarts its own expression timing")
   actor.pose("down",.01);actor.pose_tween.kill();actor._process(10)
   assert(blink.closed,"A defeated figure cannot resume idle blinking during the survivor's finish")
   actor.pose("victory",.01);actor.pose_tween.kill()
@@ -76,6 +84,12 @@ func run():
  for frame in range(3):await process_frame
  assert(held.face_blink.clock==held_clock and other.face_blink.clock!=other_clock,"Hit stop freezes only the participating actor's eyelid clock")
  freeze.queue_free();await process_frame
+ held.pose("critical_hit",.01);held.pose_tween.kill()
+ freeze=HitStop.new();root.add_child(freeze);freeze.play([held],.2);freeze.motion.pause()
+ var held_reaction=held.face_blink.reaction_clock
+ for frame in range(3):await process_frame
+ assert(held.face_blink.closed and held.face_blink.reaction_clock==held_reaction,"Hit-stop holds the visible flinch and its timer together")
+ freeze.queue_free();await process_frame;held.pose("idle",.01);held.pose_tween.kill()
  held.hide();held_clock=held.face_blink.clock;var body_clock=held.elapsed
  for frame in range(3):await process_frame
  assert(held.face_blink.clock==held_clock and held.elapsed==body_clock,"Hidden character previews suspend idle motion")
@@ -83,7 +97,7 @@ func run():
  for frame in range(3):await process_frame
  assert(held.face_blink.clock!=held_clock,"Visibility restores idle animation")
  stage.queue_free();await process_frame
- print("PASS: eight isolated eyelid regions, 24 recruits/seven visible enemy faces, registered critical expressions through release, independent idle blinks, immediate action reopening, sustained defeated eyelids, hidden suspension and local hit-stop restoration")
+ print("PASS: eight isolated eyelid regions, 24 recruits/seven visible enemy faces, registered critical expressions through release, independent idle blinks, timed normal/critical hit flinches, immediate action reopening, sustained defeated eyelids, hidden suspension and local hit-stop restoration")
  quit()
 
 func verify_focused_pixels(source: Image,focus: Image):

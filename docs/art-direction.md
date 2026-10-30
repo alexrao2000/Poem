@@ -506,3 +506,7 @@ Critical preparation selects the focused brow/eye region and retains it through 
 Existing armored outfits replace the open rounded chest shell with an original four-section cuirass. A narrow waist, broad upper chest and central ridge give the plate distinct front facets; upper and lower caps close the 64-triangle form. The existing steel material and personal costume palette remain in use.
 
 Two gold bands are fitted to the plate with a 1.5 mm surface clearance. Their shared 20-triangle mesh uses the same indexed format as the other gold fittings, retaining the existing batch count. Closed-edge, winding, UV, actual surface-ray, ground-clearance, promotion and before/after batching checks pass. The roster now uses 1,786 source meshes and 1,066 joint batches. This remains a procedural art pass; assembled rendering and frame rate are unmeasured.
+
+## Timed facial hit reactions
+
+Normal and critical damage briefly use the existing closed-eyelid artwork for 90 and 140 ms of actor animation time. The longer critical flinch remains synchronized with the stronger body recoil. Local hit-stop freezes both the expression and its timer; repeated hits restart it, while the next active pose restores attentive eyes. Defeat retains its sustained closure. Tests cover all visible faces, real critical contact, repeated reactions, hidden suspension and skipping. No additional raster asset is required.

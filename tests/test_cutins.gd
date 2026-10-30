@@ -21,6 +21,7 @@ func watch_contact(node):
  var actors=watched_app.stage.get_children().filter(func(actor):return actor is Actor and actor.pose_name=="critical_hit")
  if not actors.is_empty():
   critical_recoils+=1
+  assert(actors[0].face_blink.surface==null or actors[0].face_blink.closed,"Actual critical impact holds a brief eye flinch on visible defender faces")
   var attackers=watched_app.stage.get_children().filter(func(actor):return actor is Actor and actor.pose_name in ["strike","throw"])
   assert(attackers.size()==1 and attackers[0].face_blink.focused,"Critical focus remains on the attacking face during actual contact and hit-stop")
 

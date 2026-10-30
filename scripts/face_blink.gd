@@ -1,7 +1,8 @@
 extends RefCounted
 # Each actor owns its expression and idle clock. Defeat holds the existing
 # closed-eye artwork; critical preparation carries focused brows/eyes through
-# release. Atlases share UVs and leave the original nose and mouth untouched.
+# release. Brief hit flinches share the closed eyelids and pause with hit-stop.
+# Atlases share UVs and leave the original nose and mouth untouched.
 
 const SHADER=preload("res://assets/shaders/face-blink.gdshader")
 const CLOSED=preload("res://assets/art/face-features-blink-v1.png")
@@ -12,6 +13,7 @@ var interval=4.0
 var clock=0.0
 var closed=false
 var focused=false
+var reaction_clock=0.0
 
 func bind(face: MeshInstance3D,open_atlas: Texture2D,identity: String):
  surface=ShaderMaterial.new();surface.shader=SHADER
@@ -25,13 +27,17 @@ func bind(face: MeshInstance3D,open_atlas: Texture2D,identity: String):
  interval=3.1+(seed_value%1700)/1000.0
  clock=.3+((seed_value/1700)%2000)/1000.0
 
+func begin_pose(pose: String):
+ reaction_clock=0.0;update(0,pose)
+
 func update(delta: float,pose: String):
  if surface==null:return
  if pose in ["critical_windup","critical_throw_windup"]:set_focused(true)
  elif pose not in ["strike","throw"]:set_focused(false)
  if pose!="idle":
   clock=DURATION
-  set_closed(pose=="down")
+  if pose in ["hit","critical_hit"]:reaction_clock+=maxf(0,delta)
+  set_closed(pose=="down" or (pose in ["hit","critical_hit"] and reaction_clock<(.14 if pose=="critical_hit" else .09)))
   return
  clock=fposmod(clock+delta,interval)
  set_closed(clock<DURATION)
