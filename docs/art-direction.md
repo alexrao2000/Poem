@@ -614,3 +614,8 @@ Checks cover every infantry recruit's exact first-frame stance, gradual entry, c
 The combat health display now separates ordinary HP totals into individual beveled pips, informed by the segmented meters in the Fates reference linked above. When a larger total would make pips narrower than roughly four pixels, contiguous integer HP ranges share a segment. A tiny final remainder merges with its preceding group. The numeric readout, faction colors, delayed gold damage trail and existing animation durations retain their behavior.
 
 Checks cover eight HP totals from 1 to the 999 save cap at four meter widths, full/empty/partial fills, contiguous HP coverage, exact animated and delayed values, bounded segment counts and non-overlapping geometry. The 24-recruit HUD layouts, interrupted damage, real combat and healing checks pass. An isolated vector study of the pips was inspected at full, partial and grouped totals; assembled HUD review remains pending.
+
+
+## Estoc point trail
+
+The estoc's short thrust now leaves a narrow 3.2 cm ribbon centered on its actual tip, perpendicular to the blade. This matches its new point-first motion instead of carrying a broad sword's lengthwise sweep; spears retain their 5 cm tip ribbon. All 26 equipped/facing trail cases check transformed endpoints, exact tip/width alignment, nondegenerate bounded geometry and cleanup. Real cut and thrust exchanges preserve resolved state and own one trail each. Rendered effect review remains pending.

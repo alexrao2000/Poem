@@ -424,11 +424,11 @@ func socket_position(key: String) -> Vector3:
 func weapon_trail_points() -> PackedVector3Array:
  if trail_edge.size()!=2 or not bones.has("Weapon"):return PackedVector3Array()
  var grip=bones.Weapon;var tip=grip.to_global(trail_edge[1])
- if kind=="lance":
+ if kind=="lance" or (kind=="sword" and attack_style=="thrust"):
   var forward=(tip-grip.global_position).normalized()
   var side=Vector3.UP-forward*Vector3.UP.dot(forward)
-  if side.length_squared()<.001:side=global_basis.x
-  side=side.normalized()*.025
+  if side.length_squared()<.001:side=global_basis.x-forward*global_basis.x.dot(forward)
+  side=side.normalized()*(.016 if kind=="sword" else .025)
   return PackedVector3Array([tip-side,tip+side])
  return PackedVector3Array([grip.to_global(trail_edge[0]),tip])
 

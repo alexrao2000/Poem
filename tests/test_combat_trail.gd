@@ -39,6 +39,11 @@ func run():
    for step in range(16):
     motion.custom_step(1.0/16);actor.apply_constraints();trail.sample()
     var edge=actor.weapon_trail_points()
+    if look.kind=="lance" or item=="estoc":
+     var tip=actor.bones.Weapon.to_global(actor.trail_edge[1]);var width=.032 if item=="estoc" else .05
+     assert(((edge[0]+edge[1])*.5).distance_to(tip)<.0001 and absf(edge[0].distance_to(edge[1])-width)<.0001,"Point-first weapons leave a narrow trail centered on their actual tip")
+     var forward=tip-actor.bones.Weapon.global_position
+     assert(absf((edge[1]-edge[0]).normalized().dot(forward.normalized()))<.0003,"Thrust ribbons retain width perpendicular to the weapon, rather than collapsing along its shaft")
     assert(trail.to_global(trail.samples[-1][0]).distance_to(edge[0])<.0001 and trail.to_global(trail.samples[-1][1]).distance_to(edge[1])<.0001,"Ribbon follows both live weapon endpoints under transformed parents and either facing")
     assert(trail.samples.size()<=12,"Sweep history has a fixed geometry budget")
    assert(trail.stroke.mesh!=null and trail.stroke.mesh.get_surface_count()==1,"Sword, axe and thrust all form a real swept surface")
@@ -59,9 +64,11 @@ func run():
  app.game.start_battle();app.make_map();app.show_battle();app.busy=true;app.stage.child_entered_tree.connect(watch_trail)
  var a=app.game.units[0];var b=app.game.living("enemy")[0];a.x=8;a.y=4;b.x=9;b.y=4
  var saved=app.game.save_data("battle").duplicate(true);rng=app.game.rng.state
- await app.cinematic(a,b,[{"actor":a.id,"target":b.id,"damage":1,"remaining":19,"hit":true,"crit":false}],{a.id:20,b.id:20})
- assert(observed.size()==1 and observed[0].get_ref()==null,"Live cinematic owns and releases one swept melee trail")
- assert(app.game.save_data("battle")==saved and app.game.rng.state==rng,"Weapon trails never change resolved combat")
+ for item in ["iron_sword","estoc"]:
+  a.item=item;saved=app.game.save_data("battle").duplicate(true)
+  await app.cinematic(a,b,[{"actor":a.id,"target":b.id,"damage":1,"remaining":19,"hit":true,"crit":false}],{a.id:20,b.id:20})
+  assert(app.game.save_data("battle")==saved and app.game.rng.state==rng,"Weapon trails never change resolved combat")
+ assert(observed.size()==2 and observed.all(func(reference):return reference.get_ref()==null),"Live slash/thrust cinematics own and release one swept melee trail each")
  await Shutdown.dispose(app);await process_frame
- print("PASS: ",cases," equipped-weapon/facing sweeps, actual transformed endpoints, bounded nondegenerate ribbons, stationary suppression, fades, fallback and real cinematic lifecycle")
+ print("PASS: ",cases," equipped-weapon/facing sweeps, actual transformed endpoints, narrow estoc/lance tip ribbons, bounded nondegenerate ribbons, stationary suppression, fades, fallback and real cinematic lifecycle")
  quit()
