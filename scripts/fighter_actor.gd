@@ -2,6 +2,7 @@ extends Node3D
 # Presentation rig with separate pose and locomotion ownership. Actors face -Z;
 # arms lift forward with positive X, knees bend back, and mounted sockets rise.
 # Infantry hips and legs lower together to the lowest ellipsoidal boot sole.
+
 const Mount=preload("res://scripts/mount_visuals.gd")
 signal travel_contact(index: int)
 var contact_index=0
@@ -90,7 +91,6 @@ func update_locomotion():
  for contact in range(crossings):
   travel_contact.emit(contact_index);contact_index+=1
 
-## Analytic lowest point of the animated sole, independent of mesh batching.
 func ground_contact_position() -> Vector3:
  var lowest=Vector3(0,INF,0)
  var joints=[bones.LeftKnee,bones.RightKnee]

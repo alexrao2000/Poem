@@ -1,5 +1,6 @@
 extends RefCounted
 ## Original bowed heater shield, with a separate metal rim and river crest.
+
 const OUTLINE=[Vector2(-.19,.36),Vector2(.19,.36),Vector2(.232,.30),Vector2(.228,.03),Vector2(.18,-.19),Vector2(0,-.377),Vector2(-.18,-.19),Vector2(-.228,.03),Vector2(-.232,.30)]
 static var cached_body: ArrayMesh
 static var cached_trim: ArrayMesh
@@ -31,7 +32,6 @@ static func trim_mesh() -> ArrayMesh:
   var outer_a=front(a,.985,.0015);var outer_b=front(b,.985,.0015)
   var inner_a=front(a,.87,.0015);var inner_b=front(b,.87,.0015)
   triangle(surface,outer_a,outer_b,inner_b);triangle(surface,outer_a,inner_b,inner_a)
- # A diamond above paired flowing chevrons: Poem's river standard.
  polygon(surface,[Vector2(0,.20),Vector2(.045,.145),Vector2(0,.09),Vector2(-.045,.145)])
  for y in [.02,-.085]:
   polygon(surface,[Vector2(-.12,y+.045),Vector2(0,y-.015),Vector2(.12,y+.045),Vector2(.10,y-.005),Vector2(0,y-.055),Vector2(-.10,y-.005)])

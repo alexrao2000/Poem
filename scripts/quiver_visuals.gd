@@ -1,5 +1,6 @@
 extends RefCounted
 ## An open leather quiver with four aligned, staggered, feathered arrow tails.
+
 const SEGMENTS=16
 const TAILS=[Vector3(-.027,.46,-.027),Vector3(.027,.485,-.027),Vector3(-.027,.48,.027),Vector3(.027,.455,.027)]
 static var cached={}

@@ -1,6 +1,7 @@
 extends "res://visuals/catalog.gd"
 # Recruit and enemy artwork extend the campaign catalog without changing the
 # portable class package. Invalid optional art falls back to those class sheets.
+
 const Catalog=preload("res://visuals/catalog.gd")
 var recruit_errors: Array[String]=[]
 var enemy_errors: Array[String]=[]
@@ -44,7 +45,6 @@ func add_supplement(path: String,prefix: String,issues: Array[String]) -> bool:
  assets.merge(extra.assets);textures.merge(extra.textures)
  return true
 
-## On-demand presentation variants leave original atlases and frame pivots intact.
 func spent_frame_texture(id: String,index: int) -> Texture2D:
  var original=frame_texture(id,index)
  if original==null:return null

@@ -372,13 +372,18 @@ func fence(parent,p,length=3.0):
  for y in [.25,.55]:block(parent,p+Vector3(length*.5,y,0),Vector3(length,.07,.04),Color("897659"))
 
 func cart(parent,p):
- var root=Node3D.new();parent.add_child(root);root.position=p
+ var root=Node3D.new();root.name="RoadCart";parent.add_child(root);root.position=p
  block(root,Vector3(0,.4,0),Vector3(.9,.10,1.3),Color("816b4f"))
  for x in [-.44,.44]:
   block(root,Vector3(x,.63,0),Vector3(.045,.4,1.3),Color("927e5e"))
   for z in [-.42,.42]:
-   var wheel=cylinder(root,Vector3(x*1.22,.27,z),.06,.25,Color("544d41"));wheel.rotation.z=PI/2
-   var hub=cylinder(root,Vector3(x*1.3,.27,z),.07,.075,Color("a08a62"));hub.rotation.z=PI/2
+   var shape=preload("res://scripts/cart_wheel.gd")
+   var wheel=mesh(root,shape.mesh(),Vector3(x*1.22,.251,z),Vector3.ONE,shape.material());wheel.rotation.z=PI/2;wheel.name="SpokedWheel"
+   var hub=cylinder(root,Vector3(x*1.3,.251,z),.07,.075,Color("a08a62"));hub.rotation.z=PI/2;hub.name="WheelHub"
+ for z in [-.42,.42]:
+  var axle=block(root,Vector3(0,.251,z),Vector3(1.16,.045,.045),Color("695b45"));axle.name="WheelAxle"
+  for x in [-.36,.36]:
+   var bearing=block(root,Vector3(x,.30,z),Vector3(.09,.14,.09),Color("695b45"));bearing.name="AxleBearing"
  for z in [-.63,.63]:block(root,Vector3(0,.62,z),Vector3(.9,.35,.05),Color("8f7959"))
  for x in [-.25,.25]:block(root,Vector3(x,.35,1.2),Vector3(.055,.065,1.3),Color("695b45"))
  barrel(root,Vector3(-.15,.46,-.15),.8)

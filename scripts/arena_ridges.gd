@@ -1,5 +1,6 @@
 extends RefCounted
 ## Authored crest profiles form continuous distant hills; no gameplay RNG.
+
 const COLUMNS=48
 const ROWS=8
 const WIDTH=192.0

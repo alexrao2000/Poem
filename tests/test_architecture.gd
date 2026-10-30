@@ -8,6 +8,7 @@ func run():
  await verify_gate()
  await verify_towers()
  await verify_fountain()
+ await verify_cart()
  var colors=[]
  for variant in range(3):
   var roof=Roof.roof(variant);assert(roof==Roof.roof(variant),"Repeated houses share their immutable roof mesh")
@@ -213,3 +214,39 @@ func verify_gate():
    bounds=box if first else bounds.merge(box);first=false
  assert(bounds.position.x>=-17.501 and bounds.end.x<=17.501 and bounds.end.y<=5.101,"Detailed castle wall keeps its fixed battlefield backdrop footprint")
  arena.queue_free();await process_frame
+
+func wheel_hit(shape: Mesh,point: Vector2) -> bool:
+ var points=shape.surface_get_arrays(0)[Mesh.ARRAY_VERTEX]
+ for i in range(0,points.size(),3):
+  if Geometry3D.ray_intersects_triangle(Vector3(point.x,-1,point.y),Vector3.UP,points[i],points[i+1],points[i+2])!=null:return true
+ return false
+
+func verify_cart():
+ var wheel=preload("res://scripts/cart_wheel.gd");var shape=wheel.mesh()
+ assert(shape==wheel.mesh() and wheel.material()==wheel.material(),"Road carts share wheel geometry and material")
+ var arrays=shape.surface_get_arrays(0);var points=arrays[Mesh.ARRAY_VERTEX];var normals=arrays[Mesh.ARRAY_NORMAL]
+ assert(points.size()==696,"Six spokes, wooden rim and iron tire use 232 triangles")
+ for i in range(0,points.size(),3):
+  var normal=(points[i+1]-points[i]).cross(points[i+2]-points[i])
+  assert(normal.length()>.000001 and normal.normalized().dot(normals[i])<-.999,"All wheel faces have matching outward normals and clockwise winding")
+ for i in range(6):
+  var spoke=Vector2.from_angle(i*TAU/6);var gap=Vector2.from_angle((i+.5)*TAU/6)
+  assert(wheel_hit(shape,spoke*.13) and wheel_hit(shape,gap*.22),"Actual rays hit every spoke and the surrounding rim")
+  assert(not wheel_hit(shape,gap*.13),"Every spoke gap is physically open rather than painted on a solid disc")
+ var scenery=Scenery.new();var world=Node3D.new();root.add_child(world)
+ world.position=Vector3(35,.2,3);world.rotation.y=.4;world.scale=Vector3.ONE*1.7
+ scenery.cart(world,Vector3.ZERO)
+ var cart=world.get_node("RoadCart")
+ var wheels=cart.get_children().filter(func(node):return str(node.name).begins_with("SpokedWheel"))
+ var axles=cart.get_children().filter(func(node):return str(node.name).begins_with("WheelAxle"))
+ var bearings=cart.get_children().filter(func(node):return str(node.name).begins_with("AxleBearing"))
+ assert(wheels.size()==4 and axles.size()==2 and bearings.size()==4,"All four wheels share two supported axles")
+ for node in wheels:
+  var lowest=INF
+  for vertex in node.mesh.surface_get_arrays(0)[Mesh.ARRAY_VERTEX]:lowest=minf(lowest,node.to_global(vertex).y)
+  assert(absf(lowest-world.global_position.y)<.00001,"Iron tire touches the cart's ground plane under a rotated/scaled parent")
+  var axle=axles.filter(func(part):return is_equal_approx(part.position.z,node.position.z))[0]
+  assert(is_equal_approx(axle.position.y,node.position.y) and axle.scale.x*.5>absf(node.position.x),"Axle crosses the wheel centers and reaches their hubs")
+ for bearing in bearings:
+  assert(bearing.position.y-bearing.scale.y*.5<.251 and bearing.position.y+bearing.scale.y*.5>.35,"Bearings join the axle to the underside of the bed")
+ world.queue_free();await process_frame

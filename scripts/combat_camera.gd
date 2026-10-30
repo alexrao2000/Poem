@@ -1,5 +1,6 @@
 extends Node
 ## Continuous low three-quarter shots stay on one side of the combat axis.
+
 var camera: Camera3D
 var anchor=Vector3.ZERO
 var focus=Vector3.ZERO
@@ -29,7 +30,6 @@ static func frame_pair(attacker: Vector3,defender: Vector3,phase: String,_ranged
  elif phase=="impact":
   aim=aim.lerp(defender+Vector3(0,height,0),.08)
   distance*=.98;fov=46.0
- # Bias the composition above the HUD while making foreground depth visible.
  aim.y=midpoint.y+height*.5-distance*tan(deg_to_rad(fov*.5))*.18
  return {"anchor":aim+Vector3(sin(.57)*distance,.85,cos(.57)*distance),"focus":aim,"lens":fov}
 

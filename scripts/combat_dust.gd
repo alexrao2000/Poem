@@ -1,5 +1,6 @@
 extends Node3D
 ## Small grounded contact accents, separate from audio and gameplay randomness.
+
 const Impact=preload("res://scripts/combat_impact.gd")
 const LIFETIME=.30
 var elapsed=0.0
