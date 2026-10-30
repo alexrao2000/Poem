@@ -1,6 +1,8 @@
 extends RefCounted
-## Each procedural actor owns its expression and idle clock. The two unchanged
-## atlases share UVs; the shader substitutes only the eyelids, never the mouth.
+# Each actor owns its expression and idle clock. Defeat holds the existing
+# closed-eye artwork; living actions stay attentive. Matching atlases share UVs
+# and substitute only eyelids, never the mouth.
+
 const SHADER=preload("res://assets/shaders/face-blink.gdshader")
 const CLOSED=preload("res://assets/art/face-features-blink-v1.png")
 const DURATION=.105
@@ -23,7 +25,7 @@ func update(delta: float,pose: String):
  if surface==null:return
  if pose!="idle":
   clock=DURATION
-  set_closed(false)
+  set_closed(pose=="down")
   return
  clock=fposmod(clock+delta,interval)
  set_closed(clock<DURATION)

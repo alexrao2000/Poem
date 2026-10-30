@@ -64,6 +64,16 @@ func run():
     var motion=actor.pose(pose,1)
     for sample in range(4):
      motion.custom_step(.25);actor.apply_constraints();verify_mounted_geometry(actor)
+  else:
+   for pose in ["idle","critical_windup","strike","recover","idle","hit","down","idle","evade","idle","guard","idle"]:
+    var motion=actor.pose(pose,1)
+    for sample in range(8):
+     motion.custom_step(.125);actor.apply_constraints()
+     var height=lowest_boot(actor)
+     assert(height>=-.001 and height<.018,"Actual soles stay planted throughout anticipation, contact, recoil, defeat and recovery, not just at their endpoints")
+     assert(absf(actor.ground_contact_position().y-actor.global_position.y)<.0001,"The moving sole constraint follows the interpolated joints")
+     for leg in ["LeftLeg","RightLeg"]:
+      assert(is_equal_approx(actor.bones[leg].position.y-actor.rest[leg].position.y,actor.support_height),"Hips and upper legs retain the same support offset through each transition")
   actor.queue_free();await process_frame
  # Equivalent travel, subdivided into different frames, has identical stride.
  await verify_contacts(fighters,stage,game)
@@ -89,7 +99,7 @@ func run():
  assert(stopped!=null and stopped.pose_name=="advance" and stopped.position.distance_to(interrupted_position)<.1,"Tab kills the actual travel tween before preparation begins")
  assert(not app.stage.visible and app.camera.transform.is_equal_approx(camera) and app.game.save_data("battle")==saved,"Interrupted approach restores the tactical view without changing campaign state")
  await Shutdown.dispose(app);await process_frame
- print("PASS: ",samples," roster travel samples, planted actual boot geometry, mounted living/defeated saddle/hoof/stirrup contact, stationary/pose isolation, reversed travel, frame-independent stride/contacts, silent stationary/hidden poses and real Tab interruption")
+ print("PASS: ",samples," roster travel samples, planted actual boot geometry through 2,016 infantry transition samples, mounted living/defeated saddle/hoof/stirrup contact, stationary/pose isolation, reversed travel, frame-independent stride/contacts, silent stationary/hidden poses and real Tab interruption")
  quit()
 
 func verify_contacts(fighters,stage,game):

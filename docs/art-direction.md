@@ -442,3 +442,9 @@ Village and road carts now have open six-spoke wooden wheels with curved rims an
 ## Bowed wooden barrels
 
 The warehouse, cart and roadside barrels now use a twelve-stave bowed profile with a slightly recessed lid and fitted iron hoops. Three cached meshes provide 222 triangles in two shared materials; vertex colors distinguish the wood staves and lid marks. The closed wooden body, physical inset, hoop clearance and original footprint are verified from geometry. Existing placements and scales remain fixed. Replacing seven primitive pieces with three lowers the twelve-map total to 13,554 sources / 616 batches, with all map/arena geometry preserved through batching. This is not a measured frame-rate improvement.
+
+## Continuous pose contact and defeat expressions
+
+Infantry now derives its support height from the currently interpolated thigh/knee rotations after each pose update. It no longer interpolates between endpoint heights independently of the legs. This removes the measured 18 mm floor penetration during hit-to-defeat and 28 mm during the preview's return from defeat. Actual boot geometry is checked through 2,016 transition samples across all 21 infantry recruits; the pelvis and upper legs share the same support offset. Distance-driven travel retains the same constraint.
+
+Defeat holds the existing closed-eyelid atlas instead of reopening the eyes for every non-idle pose. Living reactions and finishing poses remain attentive. Per-actor materials, opaque helmets, hidden suspension and hit-stop behavior are retained; no source image is changed. Rendered animation review remains pending.

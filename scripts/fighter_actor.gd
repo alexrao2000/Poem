@@ -83,12 +83,7 @@ func update_locomotion():
   var gait=sin(gait_phase)*.55
   bones.LeftLeg.rotation.x=gait;bones.RightLeg.rotation.x=-gait
   bones.LeftKnee.rotation.x=-maxf(0,-gait)*.75;bones.RightKnee.rotation.x=-maxf(0,gait)*.75
-  if grounded_stance:
-   var target={}
-   for key in ["LeftLeg","RightLeg","LeftKnee","RightKnee"]:target[key]=bones[key].rotation
-   support_height=stance_height(target)
-   bones.Body.position.y=rest.Body.position.y+support_height
-   for side in ["LeftLeg","RightLeg"]:bones[side].position.y=rest[side].position.y+support_height
+  if grounded_stance:ground_infantry()
 
  for contact in range(crossings):
   travel_contact.emit(contact_index);contact_index+=1
@@ -106,6 +101,13 @@ func ground_contact_position() -> Vector3:
   var point=joint.to_global(center)-(axes.x*axes.x.y+axes.y*axes.y.y+axes.z*axes.z.y)/maxf(extent,.00001)
   if point.y<lowest.y:lowest=point
  return lowest
+
+func ground_infantry():
+ var rotations={}
+ for key in ["LeftLeg","RightLeg","LeftKnee","RightKnee"]:rotations[key]=bones[key].rotation
+ support_height=stance_height(rotations)
+ for key in ["Body","LeftLeg","RightLeg"]:bones[key].position.y=rest[key].position.y+support_height
+ if pose_name=="idle":bones.Body.position.y+=sin(elapsed*2.4)*.006
 
 func ground_mount():
  support_height=mount_stance_height()
@@ -130,6 +132,7 @@ static func approach_duration(distance: float) -> float:
 
 func apply_constraints():
  if mounted and bones.has("Horse"):ground_mount()
+ elif grounded_stance:ground_infantry()
  if kind=="magic" and pose_name!="down" and bones.has("Weapon"):
   var grip=bones.Weapon
   var reading_basis=global_basis*Basis(Vector3.RIGHT,PI*.5+.18)
@@ -332,12 +335,8 @@ func pose(key: String,duration=.18) -> Tween:
   if kind=="bow" and name_value in ["LeftArm","LeftElbow"]:
    pose_tween.tween_property(self,"drawing_arm_rotation" if name_value=="LeftArm" else "drawing_elbow_rotation",target[name_value],duration)
   elif bones.has(name_value):pose_tween.tween_property(bones[name_value],"rotation",target[name_value],duration)
- var lift=stance_height(target) if grounded_stance and key!="advance" else 0.0
- if key!="advance" and not mounted:pose_tween.tween_property(self,"support_height",lift,duration)
- if grounded_stance and key!="advance":
-  for side in ["LeftLeg","RightLeg"]:pose_tween.tween_property(bones[side],"position:y",rest[side].position.y+lift,duration)
- if bones.has("Body") and key!="advance" and not mounted:
-  pose_tween.tween_property(bones.Body,"position:y",rest.Body.position.y+lift-(.43 if key=="down" and not grounded_stance else 0.0),duration)
+ if bones.has("Body") and key!="advance" and not mounted and not grounded_stance:
+  pose_tween.tween_property(bones.Body,"position:y",rest.Body.position.y-(.43 if key=="down" else 0.0),duration)
  # Apply constraints after this frame's parallel pose writes, avoiding a frame
  # of separation between the drawing hand, nock and newly aimed weapon.
  pose_tween.tween_method(func(_progress):apply_constraints(),0.0,1.0,duration)

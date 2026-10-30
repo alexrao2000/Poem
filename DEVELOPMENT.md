@@ -8,6 +8,8 @@ User direction: keep developing continuously in this chat until the user returns
 
 Current measured geometry: 13,554 static map sources / 616 batches across twelve chapters, plus separate cloth and atmosphere; 1,794 character sources / 1,066 joint batches across the roster. The default runner has 60 suites. Earlier paragraphs below record prior checkpoints. Rendered game review and browser FPS measurements remain outstanding.
 
+Infantry ground contact now follows the interpolated leg joints throughout each pose, eliminating measured floor penetration during recoil and defeat transitions. The added 2,016 transition samples check actual boot vertices and shared hip/leg offsets. Defeated figures hold the existing closed-eye artwork, while living poses reopen immediately; no art or combat outcomes are replaced.
+
 Mounted defeats now keep riders seated as the torso slumps. The former pose sank the pelvis 38 cm into the saddle and reversed the legs away from their stirrups. All three mounts now keep saddle contact within 2 mm and boots aligned through the defeat transition; the actual finishing sequence preserves campaign and RNG state. Rendered animation review remains pending.
 
 All 24 recruits now have individual animated map artwork: 288 original source poses, four facings, walking, attack and recoil, with planted pivots and mirrored west-facing contact poses. Campaign rendering reduces the earlier scale by one third, keeping idle figures roughly one tile tall and matching enemy/fallback scale; projected click targets follow the smaller artwork. Eight class sheets remain the portable workshop package and enemy/fallback artwork. [Art provenance and current rendering details](docs/art-direction.md) are maintained separately.

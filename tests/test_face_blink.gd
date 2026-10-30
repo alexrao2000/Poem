@@ -48,8 +48,12 @@ func run():
   for pose in ["advance","windup","critical_windup","strike","recover","hit","evade","guard","down","cast_windup","cast","throw_windup","critical_throw_windup","throw"]:
    blink.clock=0;blink.update(0,"idle");assert(blink.closed)
    actor.pose(pose,.01);actor.pose_tween.kill()
-   assert(not blink.closed,"Action/reaction poses reopen eyes immediately")
-   actor._process(.5);assert(not blink.closed)
+   assert(blink.closed==(pose=="down"),"Defeat closes the eyes; living action and reaction poses reopen them immediately")
+   actor._process(.5);assert(blink.closed==(pose=="down"))
+  actor.pose("down",.01);actor.pose_tween.kill();actor._process(10)
+  assert(blink.closed,"A defeated figure cannot resume idle blinking during the survivor's finish")
+  actor.pose("victory",.01);actor.pose_tween.kill()
+  assert(not blink.closed,"Returning to a living preview pose restores an attentive expression")
   actor.pose("idle",.01);actor.pose_tween.kill()
  assert(offsets.size()>=20 and game.rng.state==saved_rng,"Presentation timing is staggered without consuming campaign RNG")
  var held=actors[0];var other=actors[2]
@@ -67,5 +71,5 @@ func run():
  for frame in range(3):await process_frame
  assert(held.face_blink.clock!=held_clock,"Visibility restores idle animation")
  stage.queue_free();await process_frame
- print("PASS: eight isolated eyelid regions, 24 recruits/seven visible enemy faces, independent idle blinks, immediate action reopening, hidden suspension and local hit-stop restoration")
+ print("PASS: eight isolated eyelid regions, 24 recruits/seven visible enemy faces, independent idle blinks, immediate action reopening, sustained defeated eyelids, hidden suspension and local hit-stop restoration")
  quit()
