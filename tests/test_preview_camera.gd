@@ -56,12 +56,26 @@ func run():
   assert(framing.actor==app.preview_actor and framing.camera==app.camera,"Real viewer owns the actual outfit and active camera")
   verify_gestures(app,framing)
   var selector=app.ui.find_child("PreviewAction",true,false)
-  selector.item_selected.emit(selector.item_count-2);await process_frame
-  assert(app.preview_actor.pose_name=="victory_flourish","Real action selector still plays the selected pose")
+  var actions=app.stage.get_node("PreviewActionPlayer")
+  selector.select(selector.item_count-2);selector.item_selected.emit(selector.selected)
+  assert(actions.playing and app.preview_actor.pose_name=="idle","Changing the action first returns through a readable ready pose")
+  await actions.finished
+  assert(app.preview_actor.pose_name=="victory_flourish","Real action selector reaches the selected pose")
+  var held=app.preview_actor.bones.Arm.rotation
+  var replay=app.ui.find_children("*","Button",true,false).filter(func(button):return button.text=="Play again")[0]
+  replay.pressed.emit();await create_timer(.12).timeout
+  assert(actions.playing and app.preview_actor.bones.Arm.rotation.distance_to(held)>.01,"Play again visibly leaves the held endpoint instead of doing nothing")
+  await actions.finished
+  assert(app.preview_actor.bones.Arm.rotation.distance_to(held)<.001,"Replay returns to the same selected endpoint")
+  actions.play("down");actions.play("strike" if job!="Warden" else "cast")
+  assert(app.preview_actor.pose_name==("windup" if job!="Warden" else "cast_windup"),"Attacks restart from their matching preparation after cancelling a prior selection")
+  await actions.finished
+  assert(app.preview_actor.pose_name==("strike" if job!="Warden" else "cast") and actions.pending.is_empty(),"Cancelled preview cannot later overwrite the selected action")
+  actions.play("recover");var interrupted=actions.current
   app.close_model_view();await process_frame
-  assert(app.screen=="dossier" and not is_instance_valid(framing),"Closing preview destroys its camera controller")
+  assert(app.screen=="dossier" and not is_instance_valid(framing) and not is_instance_valid(actions) and not interrupted.is_valid(),"Closing preview destroys camera/action controllers and cancels pending poses")
  await Shutdown.dispose(app);await process_frame
- print("PASS: ",looks," base/promoted outfits and ",samples," full-mesh preview layouts, stable rotation/action framing, bounded face-focused zoom, real drag/scroll/fit input, live expansion and viewer lifecycle")
+ print("PASS: ",looks," base/promoted outfits and ",samples," full-mesh preview layouts, stable rotation/action framing, bounded face-focused zoom, real drag/scroll/fit input, live expansion, actual action replay/cancellation and viewer lifecycle")
  quit()
 
 func pointer_button(point: Vector2,button: int,pressed=true,double=false):

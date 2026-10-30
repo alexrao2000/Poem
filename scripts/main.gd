@@ -1261,8 +1261,9 @@ func show_model_view(unit,on_close=Callable()):
 	for entry in actions:
 		choice.add_item(entry[0]);choice.set_item_metadata(choice.item_count-1,entry[1])
 	panel.add_child(choice)
-	choice.item_selected.connect(func(index):preview_actor.pose(str(choice.get_item_metadata(index))))
-	button_in(panel,"Play again",func():preview_actor.pose(str(choice.get_item_metadata(choice.selected))))
+	var action_player=preload("res://scripts/preview_action.gd").new();action_player.name="PreviewActionPlayer";stage.add_child(action_player);action_player.configure(preview_actor)
+	choice.item_selected.connect(func(index):action_player.play(str(choice.get_item_metadata(index))))
+	button_in(panel,"Play again",func():action_player.play(str(choice.get_item_metadata(choice.selected))))
 	button_in(panel,"Return to training [Esc]" if preview_return.is_valid() else "Return to record [Esc]",close_model_view)
 	var framing=preload("res://scripts/preview_camera.gd").new();framing.name="PreviewCamera";stage.add_child(framing)
 	framing.configure(preview_actor,camera,panel.get_parent(),actions.map(func(entry):return entry[1]))

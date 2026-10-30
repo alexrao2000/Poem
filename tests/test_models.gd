@@ -47,6 +47,14 @@ func run():
  await actor.pose("windup",.05).finished
  assert(actor.model.get_node("Hand").position.is_equal_approx(Vector3(0,.8,0)),"Windup ends at the authored attack split")
  assert(not actor.player.is_playing(),"Non-looping poses hold instead of resetting")
+ var preview=load("res://scripts/preview_action.gd").new();world.add_child(preview);preview.configure(actor)
+ preview.play("strike");await preview.finished
+ assert(actor.model.get_node("Hand").position.is_equal_approx(Vector3(0,2,0)),"Authored outfit replay reaches the original attack endpoint")
+ preview.play("strike");await create_timer(.08).timeout
+ assert(actor.model.get_node("Hand").position.y<.8,"Replaying a held authored strike returns through its preparation clip")
+ preview.play("hit");await preview.finished
+ assert(actor.pose_name=="hit" and actor.model.get_node("Hand").position.is_equal_approx(Vector3(0,.6,0)),"A replacement preview cancels pending authored actions")
+ preview.queue_free();await process_frame
  await actor.pose("strike",.05).finished
  assert(actor.model.get_node("Hand").position.is_equal_approx(Vector3(0,2,0)),"Strike reaches authored impact")
  assert(actor.model.get_node("Skeleton3D").get_bone_pose_rotation(0).is_equal_approx(Quaternion(Vector3.RIGHT,1)),"Skeleton animation tracks remain attached")
