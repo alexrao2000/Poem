@@ -714,6 +714,8 @@ func end_turn():
 		if game.result()!="":break
 	game.next_player_turn();update_side();refresh_pieces();highlight()
 	if await check_result():busy=false;return
+	var allies=game.living("player")
+	if not allies.is_empty():await frame_map_action([allies[0]])
 	await announce_phase("player");busy=false;update_side()
 	persist_campaign("battle")
 
@@ -1217,11 +1219,26 @@ func map_height(point: Vector2i) -> float:
 func map_position(point: Vector2i) -> Vector3:
 	return Vector3(point.x,map_height(point),point.y)
 
+func action_occlusion() -> Rect2:
+	return terrain_card.get_global_rect() if is_instance_valid(terrain_card) and terrain_card.visible else Rect2()
+
+func frame_map_action(units: Array):
+	var points=[]
+	for unit in units:
+		var point=map_position(game.pos(unit));points.append(point);points.append(point+Vector3.UP*1.1)
+	var pan=map_navigation.frame_action(points,action_occlusion())
+	if pan!=null:await pan.finished
+
+func track_map_actor(actor: Node3D):
+	map_navigation.follow_action([actor.position,actor.position+Vector3.UP*1.1],action_occlusion())
+
 func animate_map_move(unit,path: Array):
 	if path.size()<2 or not unit_nodes.has(unit.id):return
 	var visual=unit_nodes[unit.id]
 	moving_id=unit.id
 	visual.position=map_position(path[0])
+	var pan=map_navigation.frame_action([visual.position,visual.position+Vector3.UP*1.1],action_occlusion())
+	if pan!=null:await pan.finished
 	var motion=create_tween()
 	for i in range(1,path.size()):
 		var point=path[i];var step=point-path[i-1]
@@ -1229,7 +1246,9 @@ func animate_map_move(unit,path: Array):
 		var destination=map_position(point)
 		var crossing=MapSurface.crossing(map_position(path[i-1]),destination)
 		motion.tween_property(visual,"position",crossing,.0525).set_trans(Tween.TRANS_LINEAR)
+		motion.parallel().tween_method(func(_progress):track_map_actor(visual),0.0,1.0,.0525)
 		motion.tween_property(visual,"position",destination,.0525).set_trans(Tween.TRANS_LINEAR)
+		motion.parallel().tween_method(func(_progress):track_map_actor(visual),0.0,1.0,.0525)
 	await motion.finished
 	visual.finish_move()
 	moving_id=""
@@ -1294,6 +1313,7 @@ func map_combat_feedback(events: Array):
 		var unit=targets[0]
 		var attackers=game.units.filter(func(other):return other.id==event.actor)
 		var actor=unit_nodes.get(event.actor);var victim=unit_nodes.get(event.target)
+		await frame_map_action([unit]+attackers)
 		if actor!=null and not attackers.is_empty():
 			actor.act_toward(game.pos(unit),game.pos(attackers[0]));map_facings[event.actor]=actor.player.facing
 		await get_tree().create_timer(.12).timeout
@@ -1312,6 +1332,7 @@ func map_combat_feedback(events: Array):
 	refresh_pieces()
 
 func map_heal_feedback(healer,recipient,amount: int):
+	await frame_map_action([healer,recipient])
 	var actor=unit_nodes.get(healer.id);var patient=unit_nodes.get(recipient.id)
 	if actor!=null:
 		if healer.id!=recipient.id:actor.act_toward(game.pos(recipient),game.pos(healer))

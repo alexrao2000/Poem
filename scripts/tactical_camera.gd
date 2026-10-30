@@ -62,6 +62,46 @@ func safe_rect() -> Rect2:
  var size=camera.get_viewport().get_visible_rect().size
  return Rect2(Vector2(42,122),Vector2(maxf(80,size.x-392),maxf(80,size.y-232)))
 
+# Project the whole action, including sprite height, before choosing the smallest
+# camera correction. The same calculation drives the initial pan and tracking.
+func action_destination(points: Array,occlusion=Rect2()) -> Vector3:
+ if points.is_empty():return camera.position
+ var destination=camera.position;var safe=safe_rect()
+ # Clamping one world axis can shift both screen axes in the angled map view.
+ # Reproject a proposed translation to settle that correction before tweening.
+ for attempt in range(4):
+  var offset=destination-camera.position
+  var bounds=Rect2(camera.unproject_position(points[0]-offset),Vector2.ZERO)
+  for point in points:bounds=bounds.expand(camera.unproject_position(point-offset))
+  bounds=bounds.grow(18)
+  var shift=Vector2.ZERO
+  for axis in range(2):
+   shift[axis]=clampf(0,safe.position[axis]-bounds.position[axis],safe.end[axis]-bounds.end[axis]) if bounds.size[axis]<=safe.size[axis] else safe.get_center()[axis]-bounds.get_center()[axis]
+  var placed=Rect2(bounds.position+shift,bounds.size)
+  if occlusion.has_area() and placed.intersects(occlusion.grow(16)):
+   var down=occlusion.end.y+16-placed.position.y
+   var right=occlusion.end.x+16-placed.position.x
+   if placed.end.y+down<=safe.end.y:shift.y+=down
+   elif placed.end.x+right<=safe.end.x:shift.x+=right
+  if shift.length()<1:break
+  var source=ground_at(safe.get_center());var target=ground_at(safe.get_center()+shift)
+  if source==null or target==null:break
+  var previous=destination;destination+=source-target
+  destination.x=clampf(destination.x-eye_offset.x,-1.0,board.x)+eye_offset.x
+  destination.z=clampf(destination.z-eye_offset.z,-1.0,board.y)+eye_offset.z
+  if previous.distance_to(destination)<.0001:break
+ return destination
+
+func frame_action(points: Array,occlusion=Rect2(),duration=.22) -> Tween:
+ stop();var destination=action_destination(points,occlusion)
+ if camera.position.distance_to(destination)<.0001:return null
+ motion=camera.create_tween().set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN_OUT)
+ motion.tween_property(camera,"position",destination,duration)
+ return motion
+
+func follow_action(points: Array,occlusion=Rect2()):
+ camera.position=action_destination(points,occlusion)
+
 func keep_visible(point: Vector3,occlusion=Rect2()):
  var projected=camera.unproject_position(point);var safe=safe_rect()
  var desired=projected.clamp(safe.position,safe.end)
