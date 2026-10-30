@@ -549,3 +549,10 @@ All 1,024 cases cover three recruits and the enemy rider, both facings, sixteen 
 Each horse now has four lower-leg joints at the existing knee/hock centers. Distance-driven travel folds front and rear lower legs in opposite directions during the returning stride, with a smooth weight ramp into the existing approach transition. Standing, attack, reaction and finishing poses settle these joints back to their original stance. Ground support and footfall origins use the combined hip/knee transform, preserving the rider's seat and stirrup contacts. This remains a procedural gait rather than a claim of full foot-locking animation.
 
 Checks cover actual hoof geometry, both travel directions and facings, all three recruits, gradual entry/settling, frame-subdivision independence, quiet stationary/hidden actors, real approach skipping, reins and complete rigid batching. Reparenting existing lower legs adds articulation without additional meshes or batches: 1,780 rigid sources / 1,063 joint batches plus three dynamic rein meshes. Rendered motion review remains pending.
+
+
+## Direct outfit inspection
+
+The character viewer now accepts drag rotation and bounded scroll zoom in the area beside the controls. Zooming closer shifts the aim toward the character's face; double-click restores the stable full-outfit fit while retaining the chosen rotation. A compact hint sits below the model area. Existing turn buttons and action selection remain available. Release outside the viewer, a missing held-button state and focus loss all cancel dragging.
+
+The default 33,696 outfit layouts still fit. Another 432 projection cases keep the face visible at both zoom limits across every base/promoted outfit and three sizes. Actual input dispatch covers panel isolation, repeated wheel steps, both zoom limits, drag across the panel, release/focus cleanup and exact fit restoration, preserving roster/RNG. The 564 menu layouts and training return paths also pass. Pointer tests explicitly size the headless Window and send complete wheel press/release pairs. Rendered interaction review remains pending.

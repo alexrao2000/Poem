@@ -6,6 +6,8 @@ User direction: keep developing continuously in this chat until the user returns
 
 ## Current checkpoint
 
+The outfit viewer supports dragging to rotate, scrolling for bounded zoom, and double-clicking to restore full-outfit framing. Close inspection shifts the view toward the face, including mounted and promoted recruits. Controls keep their own pointer area; release outside the viewer and focus loss clear dragging. All 33,696 default layouts, 432 zoom/face checks, real input sequences, 564 menus and promotion-return flows pass.
+
 Horses now fold their lower legs during travel instead of swinging four rigid limbs. Front knees and rear hocks have separate joints; gait entry blends in over the existing approach transition, and combat/idle poses settle all joints. Ground support and dust contacts use the combined hip/knee transform, retaining the rider's saddle and stirrup contact. Source and batch totals are unchanged.
 
 Mounted reins now follow both bridle fittings and the free hand through poses, head motion and hit-stop. The old fixed ends sat 36–75 cm from the hand. Two closed curved straps use one 136-triangle dynamic mesh per rider, skip redundant unchanged rebuilds, and stay clear of the horse neck. All 1,024 mounted pose/transition cases and full rigid-geometry comparisons pass. Preview framing refreshes bounds when dynamic mesh geometry changes.

@@ -1237,6 +1237,7 @@ func show_model_view(unit,on_close=Callable()):
 	button_in(panel,"Return to training [Esc]" if preview_return.is_valid() else "Return to record [Esc]",close_model_view)
 	var framing=preload("res://scripts/preview_camera.gd").new();framing.name="PreviewCamera";stage.add_child(framing)
 	framing.configure(preview_actor,camera,panel.get_parent(),actions.map(func(entry):return entry[1]))
+	framing.add_hint(ui)
 
 func close_model_view():
 	var return_action=preview_return;preview_return=Callable()

@@ -13,6 +13,10 @@ var low=INF
 var high=-INF
 var last_rect=Rect2()
 var last_size=Vector2.ZERO
+var zoom=1.0
+var dragging=false
+var face_height=1.8
+var hint: Label
 
 func configure(subject: Node3D,view: Camera3D,panel: Control,poses: Array):
  actor=subject;camera=view;controls=panel
@@ -30,6 +34,7 @@ func configure(subject: Node3D,view: Camera3D,panel: Control,poses: Array):
   actor.pose("idle",1).custom_step(1);actor.apply_constraints()
  measure()
  radius+=.08;low-=.08;high+=.08
+ face_height=actor.socket_position("gaze").y-actor.global_position.y if actor.has_method("socket_position") else high-.2
  reframe()
 
 func measure() -> bool:
@@ -70,10 +75,48 @@ func reframe():
     var point=inverse*Vector3(x,y-(low+high)*.5,z)
     distance=maxf(distance,point.z+absf(point.x*focal+shift*point.z)/(area.size.x*.5))
     distance=maxf(distance,point.z+absf(point.y*focal)/(area.size.y*.5))
+ distance*=zoom
+ center.y=lerpf(center.y,actor.global_position.y+face_height-.1,clampf((1.0-zoom)/.4,0,1))
  camera.position=center+backward*distance
  camera.h_offset=-shift*distance/focal
+ if is_instance_valid(hint):
+  var host_size=hint.get_parent().size
+  hint.position=Vector2(area.position.x,host_size.y-25);hint.size=Vector2(maxf(0,host_size.x-area.position.x-28),20)
 
 func _process(_delta):
  if not is_instance_valid(actor) or not is_instance_valid(controls):return
  var expanded=measure()
  if expanded or last_size!=camera.get_viewport().get_visible_rect().size or last_rect!=controls.get_global_rect():reframe()
+
+func add_hint(parent: Control):
+ hint=Label.new();hint.name="PreviewHint";hint.mouse_filter=Control.MOUSE_FILTER_IGNORE
+ hint.text="Drag: turn · Scroll: zoom · Double-click: fit";hint.horizontal_alignment=HORIZONTAL_ALIGNMENT_CENTER
+ hint.add_theme_font_size_override("font_size",14);hint.add_theme_color_override("font_color",Color("f4e7c6"))
+ hint.add_theme_color_override("font_outline_color",Color("253342"));hint.add_theme_constant_override("outline_size",3)
+ parent.add_child(hint);reframe()
+
+func _unhandled_input(event):
+ if not is_instance_valid(actor) or not is_instance_valid(controls) or not actor.is_visible_in_tree():return
+ if not event is InputEventMouseButton or not event.pressed or not clear_rect().has_point(event.position):return
+ if event.button_index==MOUSE_BUTTON_LEFT:
+  if event.double_click:zoom=1.0;dragging=false;reframe()
+  else:dragging=true
+ elif event.button_index in [MOUSE_BUTTON_WHEEL_UP,MOUSE_BUTTON_WHEEL_DOWN]:
+  zoom=clampf(zoom*(.88 if event.button_index==MOUSE_BUTTON_WHEEL_UP else 1.0/.88),.6,1.3);reframe()
+ else:return
+ get_viewport().set_input_as_handled()
+
+func _input(event):
+ if not dragging:return
+ if event is InputEventMouseButton and event.button_index==MOUSE_BUTTON_LEFT and not event.pressed:
+  dragging=false;get_viewport().set_input_as_handled()
+ elif event is InputEventMouseMotion:
+  if (event.button_mask & MOUSE_BUTTON_MASK_LEFT)==0:dragging=false;return
+  actor.rotation.y=wrapf(actor.rotation.y+event.relative.x*.009,-PI,PI)
+  get_viewport().set_input_as_handled()
+
+func _notification(what):
+ if what==NOTIFICATION_APPLICATION_FOCUS_OUT:dragging=false
+
+func _exit_tree():
+ if is_instance_valid(hint):hint.queue_free()
