@@ -31,11 +31,15 @@ func run():
    var expected=game.forecast(unit,foe);var reverse=game.forecast(foe,unit)
    assert(forecast.records[0].portrait.texture==portraits.get_dialogue_portrait(unit.id),"Forecast uses the recruit's transparent dialogue cutout")
    assert(forecast.records[1].portrait.texture!=null and forecast.records[1].portrait.flip_h,"Enemy class portrait faces the recruit")
-   assert(forecast.records[0].stats[0].value.text==str(expected.damage)+(" ×2" if expected.double else ""))
+   assert(forecast.records[0].stats[0].value.text==str(expected.damage))
    assert(forecast.records[0].stats[1].value.text==str(expected.hit)+"%")
-   assert(forecast.records[1].stats[0].value.text==(str(reverse.damage)+(" ×2" if reverse.double else "") if expected.counter else "—"))
+   assert(forecast.records[1].stats[0].value.text==(str(reverse.damage) if expected.counter else "—"))
    for i in range(2):
     var marker=forecast.records[i].matchup;var result=expected if i==0 else reverse
+    var damage=forecast.records[i].stats[0]
+    assert(damage.repeat.visible==((i==0 or expected.counter) and result.double),"Follow-up badge follows the same rules result and is absent without a counter")
+    if damage.repeat.visible:
+     assert(damage.value.get_rect().end.x<damage.repeat.position.x and damage.repeat.get_rect().end.x<=14+(forecast.records[i].card.size.x-28)/3,"Damage and follow-up badge form one non-overlapping group inside their column")
     assert(marker.advantage==result.triangle and marker.visible==((i==0 or expected.counter) and result.triangle!=0),"Matchup arrows use the resolved rules modifier and hide when no attack is available")
    for record in forecast.records:
     var bounds=record.card.get_rect()
@@ -88,5 +92,5 @@ func run():
  for player in app.sfx_players:player.stop()
  app.music.stop();await create_timer(.15).timeout
  await Shutdown.dispose(app);await process_frame
- print("PASS: all 36 triangle pairings, 24 paired forecasts at three viewport sizes, real damage/hit/counter values, large cutout bounds/open center, live target cue/occlusion, isolated matchup arrows, health bounds, retargeting and screen cleanup")
+ print("PASS: all 36 triangle pairings, 24 paired forecasts at three viewport sizes, real damage/hit/counter values, large cutout bounds/open center, live target cue/occlusion, follow-up badges, isolated matchup arrows, health bounds, retargeting and screen cleanup")
  quit()

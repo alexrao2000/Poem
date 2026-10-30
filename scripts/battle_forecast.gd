@@ -78,11 +78,19 @@ func configure(parent: Control,rules,a: Dictionary,b: Dictionary,faces: Array):
   var meter=HUD.HealthMeter.new();meter.maximum=unit.max_hp;meter.accent=Color("b96268") if card.enemy else Color("5f9d91");card.add_child(meter);meter.change_to(unit.hp,true)
   var note=label(card,"No counter" if not available else "Effective!" if result.effective else rules.class_name_for(unit),14,Color("8d4942") if result.effective else Color("766546"))
   var stats=[]
-  var values=[str(result.damage)+(" ×2" if result.double else ""),str(result.hit)+"%",str(result.crit)+"%"] if available else ["—","—","—"]
+  var values=[str(result.damage),str(result.hit)+"%",str(result.crit)+"%"] if available else ["—","—","—"]
   for i in range(3):
    var title=label(card,["DAMAGE","HIT","CRIT"][i],12,Color("766546"));title.horizontal_alignment=HORIZONTAL_ALIGNMENT_CENTER
    var value=label(card,values[i],23);value.horizontal_alignment=HORIZONTAL_ALIGNMENT_CENTER
    stats.append({"title":title,"value":value})
+  var repeat=PanelContainer.new();repeat.name="FollowUp";repeat.mouse_filter=Control.MOUSE_FILTER_IGNORE
+  repeat.visible=available and result.double
+  var repeat_style=StyleBoxFlat.new();repeat_style.bg_color=Color("427b59");repeat_style.border_color=Color("a3c58a")
+  repeat_style.set_border_width_all(1);repeat_style.set_corner_radius_all(3)
+  repeat_style.content_margin_left=3;repeat_style.content_margin_right=3;repeat_style.content_margin_top=1;repeat_style.content_margin_bottom=1
+  repeat.add_theme_stylebox_override("panel",repeat_style);card.add_child(repeat)
+  var multiplier=label(repeat,"×2",14,Color("f5f3d8"));multiplier.horizontal_alignment=HORIZONTAL_ALIGNMENT_CENTER
+  stats[0].repeat=repeat
   records.append({"unit":unit.id,"card":card,"name":heading,"weapon":weapon,"icon":icon,"matchup":matchup,"portrait":portrait,"hp":hp,"caption":caption,"meter":meter,"note":note,"stats":stats})
  resized.connect(arrange);arrange()
 
@@ -110,4 +118,11 @@ func arrange():
    var stat=r.stats[j];var column=(width-28)/3
    stat.title.position=Vector2(14+j*column,164);stat.title.size=Vector2(column,18)
    stat.value.position=Vector2(14+j*column,182);stat.value.size=Vector2(column,28)
+   if j==0 and stat.repeat.visible:
+    var number_width=stat.value.get_theme_font("font").get_string_size(stat.value.text,HORIZONTAL_ALIGNMENT_LEFT,-1,23).x
+    var group_width=number_width+32
+    stat.value.position.x+=maxf(0,(column-group_width)*.5);stat.value.size.x=number_width
+    stat.repeat.position=Vector2(stat.value.position.x+number_width+4,185);stat.repeat.size=Vector2(28,22)
+   elif j==0:
+    stat.repeat.position=Vector2(14,185);stat.repeat.size=Vector2(28,22)
   card.queue_redraw()
