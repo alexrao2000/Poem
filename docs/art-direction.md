@@ -542,3 +542,10 @@ Pose samples cover all six weapon families and both normal/critical preparations
 The old fixed straps ended 36–75 cm away from the free-hand grip across sampled mounted poses. Each horse now has two closed curved leather straps connecting its animated bridle fittings to that hand. Outward curve controls keep the straps around the neck. The 136-triangle mesh follows joint motion, remains outside rigid batching, skips rebuilds when its endpoints are unchanged, and freezes with the actor during hit-stop. It adds no separate outline or shadow pass.
 
 All 1,024 cases cover three recruits and the enemy rider, both facings, sixteen poses sampled through transitions, and both batching modes under a transformed parent. Checks inspect actual mesh closure, normals, bounded geometry, bridle/hand attachment, neck clearance and hit-stop ownership. The full roster now has 1,780 rigid sources / 1,063 joint batches plus three moving rein meshes. Outfit preview bounds refresh when a moving mesh changes. These are geometry/runtime checks; rendered review remains pending.
+
+
+## Articulated mounted approaches
+
+Each horse now has four lower-leg joints at the existing knee/hock centers. Distance-driven travel folds front and rear lower legs in opposite directions during the returning stride, with a smooth weight ramp into the existing approach transition. Standing, attack, reaction and finishing poses settle these joints back to their original stance. Ground support and footfall origins use the combined hip/knee transform, preserving the rider's seat and stirrup contacts. This remains a procedural gait rather than a claim of full foot-locking animation.
+
+Checks cover actual hoof geometry, both travel directions and facings, all three recruits, gradual entry/settling, frame-subdivision independence, quiet stationary/hidden actors, real approach skipping, reins and complete rigid batching. Reparenting existing lower legs adds articulation without additional meshes or batches: 1,780 rigid sources / 1,063 joint batches plus three dynamic rein meshes. Rendered motion review remains pending.

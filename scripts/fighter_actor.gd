@@ -17,6 +17,7 @@ var reins: MeshInstance3D
 var pose_name = "idle"
 var elapsed = 0.0
 var gait_phase=0.0
+var mounted_gait_weight=0.0
 var travel_previous=Vector3.ZERO
 var travel_direction=Vector3.ZERO
 var pose_tween: Tween
@@ -82,7 +83,10 @@ func update_locomotion():
  if mounted:
   for i in range(4):
    var key="HorseLeg"+str(i)
-   if bones.has(key):bones[key].rotation.x=sin(gait_phase+i*PI*.5)*.42
+   var phase=gait_phase+i*PI*.5
+   if bones.has(key):bones[key].rotation.x=sin(phase)*.42*mounted_gait_weight
+   var knee="HorseKnee"+str(i)
+   if bones.has(knee):bones[knee].rotation.x=maxf(0,cos(phase))*(-.75 if i%2==0 else .75)*mounted_gait_weight
   if bones.has("Horse"):ground_mount()
  else:
   var gait=sin(gait_phase)*.55
@@ -100,6 +104,8 @@ func ground_contact_position() -> Vector3:
  if mounted:
   joints=[bones.HorseLeg0,bones.HorseLeg1,bones.HorseLeg2,bones.HorseLeg3]
   center=Mount.HOOF_CENTER;radii=Mount.HOOF_RADII
+  if bones.has("HorseKnee0"):
+   joints=[bones.HorseKnee0,bones.HorseKnee1,bones.HorseKnee2,bones.HorseKnee3];center=Mount.LOWER_HOOF_CENTER
  for joint in joints:
   var axes=joint.global_basis.scaled_local(radii)
   var extent=Vector3(axes.x.y,axes.y.y,axes.z.y).length()
@@ -128,6 +134,10 @@ func mount_stance_height() -> float:
  for i in range(4):
   var key="HorseLeg"+str(i);var rotation=bones[key].basis
   var center=rest.Horse.position+rest[key].position+rotation*Mount.HOOF_CENTER
+  var knee="HorseKnee"+str(i)
+  if bones.has(knee):
+   center=rest.Horse.position+rest[key].position+rotation*(rest[knee].position+bones[knee].basis*Mount.LOWER_HOOF_CENTER)
+   rotation=rotation*bones[knee].basis
   var radius=sqrt(pow(rotation.x.y*Mount.HOOF_RADII.x,2)+pow(rotation.y.y*Mount.HOOF_RADII.y,2)+pow(rotation.z.y*Mount.HOOF_RADII.z,2))
   lowest=minf(lowest,center.y-radius)
  return -lowest
@@ -352,7 +362,9 @@ func pose(key: String,duration=.18) -> Tween:
   target.LeftLeg.z=-Mount.RIDER_SPREAD;target.RightLeg.z=Mount.RIDER_SPREAD
   target.LeftKnee.x=1.25;target.RightKnee.x=1.25
   if key!="advance":
-   for i in range(4):target["HorseLeg"+str(i)]=Vector3.ZERO
+   for i in range(4):
+    target["HorseLeg"+str(i)]=Vector3.ZERO
+    if bones.has("HorseKnee"+str(i)):target["HorseKnee"+str(i)]=Vector3.ZERO
  if key=="advance" and not mounted:
   for leg in ["LeftLeg","RightLeg","LeftKnee","RightKnee"]:target.erase(leg)
  var aiming=kind in ["lance","bow"] and key in ["windup","critical_windup","strike","recover"] and bones.has("Weapon")
@@ -361,6 +373,7 @@ func pose(key: String,duration=.18) -> Tween:
  pose_tween=create_tween().set_parallel(true).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN_OUT)
  if key in ["strike","throw"]:pose_tween.set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_IN)
  elif key in ["hit","critical_hit"]:pose_tween.set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_OUT)
+ if mounted:pose_tween.tween_property(self,"mounted_gait_weight",1.0 if key=="advance" else 0.0,duration)
  if bones.has("Shield"):pose_tween.tween_property(self,"guard_weight",1.0 if key=="guard" else 0.0,duration)
  if kind=="bow":pose_tween.tween_property(self,"bow_draw",1.0 if key in ["windup","critical_windup"] else 0.0,duration)
  if kind=="bow":pose_tween.tween_property(self,"bow_hand_weight",1.0 if key in ["idle","advance","windup","critical_windup"] else 0.0,duration)

@@ -6,6 +6,8 @@ User direction: keep developing continuously in this chat until the user returns
 
 ## Current checkpoint
 
+Horses now fold their lower legs during travel instead of swinging four rigid limbs. Front knees and rear hocks have separate joints; gait entry blends in over the existing approach transition, and combat/idle poses settle all joints. Ground support and dust contacts use the combined hip/knee transform, retaining the rider's saddle and stirrup contact. Source and batch totals are unchanged.
+
 Mounted reins now follow both bridle fittings and the free hand through poses, head motion and hit-stop. The old fixed ends sat 36–75 cm from the hand. Two closed curved straps use one 136-triangle dynamic mesh per rider, skip redundant unchanged rebuilds, and stay clear of the horse neck. All 1,024 mounted pose/transition cases and full rigid-geometry comparisons pass. Preview framing refreshes bounds when dynamic mesh geometry changes.
 
 Attack releases now accelerate through their existing duration, while normal/critical reactions register quickly and settle. At the unchanged 35 ms pre-hit-stop delay, torso recoil reaches 64.5% of its target rather than 19.6%, so the freeze captures the impact pose. Endpoints, contact time, recovery and gameplay outcomes remain unchanged; focused timing and actual exchange/skip checks cover the change.
