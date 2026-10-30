@@ -933,8 +933,11 @@ func cinematic(a,b,events,initial_hp={}):
 			var distance_to_close=absf(whom.position.x-who.position.x)-Fighters.Actor.melee_spacing(unit.weapon)
 			if absf(distance_to_close)>.08:
 				who.pose("advance",.2)
-				var approach=create_tween().set_trans(Tween.TRANS_SINE)
-				approach.tween_property(who,"position:x",base.x+direction*distance_to_close,Fighters.Actor.approach_duration(distance_to_close))
+				var travel_duration=Fighters.Actor.approach_duration(distance_to_close)
+				var approach=create_tween().set_parallel(true).set_trans(Tween.TRANS_SINE)
+				approach.tween_property(who,"position:x",base.x+direction*distance_to_close,travel_duration)
+				if who.has_method("update_locomotion"):
+					approach.tween_method(func(_progress):who.update_locomotion(),0.0,1.0,travel_duration)
 				while approach.is_running():
 					if skip_combat:approach.kill();break
 					await get_tree().process_frame

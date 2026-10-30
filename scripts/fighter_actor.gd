@@ -3,6 +3,7 @@ extends Node3D
 # arms lift forward with positive X, knees bend back, and mounted sockets rise.
 # Infantry hips and legs lower together to articulated, level boot soles.
 
+const Stride=preload("res://scripts/infantry_stride.gd")
 const Boot=preload("res://scripts/infantry_boot.gd")
 const Mount=preload("res://scripts/mount_visuals.gd")
 const PELVIS_CENTER=Vector3(0,-.16,0)
@@ -82,7 +83,8 @@ func update_locomotion():
  if displacement.length_squared()>.00000001:travel_direction=displacement.normalized()
  var travelled=displacement.dot(-global_basis.z.normalized())
  travel_previous=global_position
- var next_phase=gait_phase+travelled*TAU/(2.8 if mounted else 1.6)
+ var stride=Stride.ROBE_LENGTH if kind in ["magic","staff"] else Stride.LENGTH
+ var next_phase=gait_phase+travelled*TAU/(2.8 if mounted else stride*global_basis.z.length())
  # Alternate contacts at each stride extremum, including reversed travel.
  var crossings=absi(floori((next_phase+PI*.5)/PI)-floori((gait_phase+PI*.5)/PI))
  gait_phase=wrapf(next_phase,-PI,PI)
@@ -95,9 +97,8 @@ func update_locomotion():
    if bones.has(knee):bones[knee].rotation.x=maxf(0,cos(phase))*(-.75 if i%2==0 else .75)*mounted_gait_weight
   if bones.has("Horse"):ground_mount()
  else:
-  var gait=sin(gait_phase)*.55
-  var target={"LeftLeg":gait,"RightLeg":-gait,"LeftKnee":-maxf(0,-gait)*.75,"RightKnee":-maxf(0,gait)*.75}
-  for key in target:bones[key].rotation.x=lerpf(infantry_gait_start.get(key,target[key]),target[key],infantry_gait_weight)
+  var target=Stride.solve(gait_phase,kind in ["magic","staff"])
+  for key in target:bones[key].rotation=infantry_gait_start.get(key,target[key]).lerp(target[key],infantry_gait_weight)
   if grounded_stance:ground_infantry()
 
  for contact in range(crossings):
@@ -252,7 +253,7 @@ func pose(key: String,duration=.18) -> Tween:
   travel_previous=global_position
   if not mounted:
    infantry_gait_weight=0.0
-   for joint_name in ["LeftLeg","RightLeg","LeftKnee","RightKnee"]:infantry_gait_start[joint_name]=bones[joint_name].rotation.x
+   for joint_name in ["LeftLeg","RightLeg","LeftKnee","RightKnee"]:infantry_gait_start[joint_name]=bones[joint_name].rotation
  pose_name=key
  face_blink.begin_pose(key)
  var target={

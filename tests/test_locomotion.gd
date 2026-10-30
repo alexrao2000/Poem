@@ -136,7 +136,7 @@ func verify_infantry_entry(actor):
  for key in prior:assert(actor.bones[key].rotation.distance_to(prior[key])<.14,"The first quarter of the approach eases into the returning stride")
  assert(lowest_boot(actor)>=-.001 and lowest_boot(actor)<.025,"Blend into travel keeps the actual supporting boot on the arena floor")
  motion.custom_step(.15);actor._process(0)
- assert(actor.infantry_gait_weight==1 and actor.bones.LeftLeg.rotation.distance_to(prior.LeftLeg)>.6,"The complete distance-driven stride takes ownership after preparation")
+ assert(actor.infantry_gait_weight==1 and actor.bones.LeftLeg.rotation.distance_to(prior.LeftLeg)>.3,"The complete distance-driven stride takes ownership after preparation")
  var stopping=actor.pose("windup",.2)
  for step in range(4):
   stopping.custom_step(.05);actor.apply_constraints()
