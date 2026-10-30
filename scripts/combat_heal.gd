@@ -2,6 +2,7 @@ extends Node3D
 # Staff light follows resolved healing. Fixed paths keep the effect independent
 # of combat RNG, and the arrival signal synchronizes the HP display with contact.
 signal arrived
+var has_arrived=false
 const Impact=preload("res://scripts/combat_impact.gd")
 var origin=Vector3.ZERO
 var destination=Vector3.ZERO
@@ -23,7 +24,7 @@ func flight_point(progress: float,strand=0) -> Vector3:
  return origin.lerp(destination,t)+Vector3(0,arc*(.24+sin(t*TAU+strand*TAU/3)*.10),arc*cos(t*TAU+strand*TAU/3)*.16)
 
 func play(from: Vector3,to: Vector3,ground: Vector3,healing: int) -> Tween:
- name="CombatHeal";origin=from;destination=to
+ name="CombatHeal";origin=from;destination=to;has_arrived=false
  for strand in range(3):
   for step in range(7):
    var mote=light(.18-step*.018,Color("e5efbd") if strand==0 else Color("86e2b9"))
@@ -42,7 +43,7 @@ func play(from: Vector3,to: Vector3,ground: Vector3,healing: int) -> Tween:
  motion=create_tween();motion.tween_method(travel,0.0,1.0,.32)
  motion.tween_callback(func():
   for entry in trails:entry.node.hide()
-  bloom(0);arrived.emit())
+  bloom(0);has_arrived=true;arrived.emit())
  motion.tween_method(bloom,0.0,1.0,.65)
  motion.finished.connect(queue_free)
  return motion

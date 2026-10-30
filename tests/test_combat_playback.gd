@@ -1,5 +1,6 @@
 extends SceneTree
 const Playback=preload("res://scripts/combat_playback.gd")
+const Impact=preload("res://scripts/combat_impact.gd")
 const Actor=preload("res://scripts/fighter_actor.gd")
 const Shutdown=preload("helpers/game_shutdown.gd")
 var mode="normal"
@@ -21,6 +22,55 @@ func watch_playback(node):
  while app.stage.visible==false:await process_frame
  while not app.stage.get_children().any(func(actor):return actor is Actor and actor.pose_name=="advance"):await process_frame
  var tab=InputEventKey.new();tab.keycode=KEY_TAB;tab.pressed=true;app._input(tab)
+
+func skip_phase(app,phase: String,report: Dictionary):
+ var deadline=Time.get_ticks_msec()+10000
+ while Time.get_ticks_msec()<deadline:
+  await process_frame
+  if not app.stage.visible:continue
+  var actors=app.stage.get_children().filter(func(node):return node is Actor and not node.is_queued_for_deletion())
+  var found=actors.any(func(actor):return actor.pose_name==phase)
+  if phase=="projectile":found=app.stage.has_node("CombatProjectile")
+  elif phase=="hold":found=app.stage.has_node("CombatHitStop")
+  elif phase in ["heal_flight","heal_bloom"]:
+   var heal=app.stage.get_node_or_null("CombatHeal")
+   found=heal!=null and heal.has_arrived==(phase=="heal_bloom")
+  if not found:continue
+  report.requested=true
+  var tab=InputEventKey.new();tab.keycode=KEY_TAB;tab.pressed=true;app._input(tab)
+  report.frames=0
+  while not app.ui.get_node("CombatTransition").visible and report.frames<6:
+   await process_frame;report.frames+=1
+  assert(report.frames<=2,"Tab starts the return transition within two frames during "+phase)
+  return
+ assert(false,"The actual cinematic reached the requested skip phase: "+phase)
+
+func verify_phase_skips(app,a,b):
+ app.preferences.values.combat="all";mode="normal"
+ var impact_count=[0]
+ var count_impact=func(node):
+  if node is Impact:impact_count[0]+=1
+ app.stage.child_entered_tree.connect(count_impact)
+ for phase in ["windup","strike","projectile","hit","hold","down","evade","heal_flight","heal_bloom"]:
+  var healing=phase.begins_with("heal_")
+  a.job="Warden" if healing else "Ranger" if phase=="projectile" else "Vanguard"
+  a.weapon="staff" if healing else "bow" if phase=="projectile" else "sword"
+  a.item="mend_staff" if healing else "iron_bow" if phase=="projectile" else "iron_sword"
+  b.team="player" if healing else "enemy"
+  var event={"actor":a.id,"target":b.id,"damage":0 if phase=="evade" else 1,"remaining":0 if phase=="down" else 19,"hit":phase!="evade","crit":false}
+  if healing:event={"actor":a.id,"target":b.id,"healing":3,"remaining":20}
+  var saved=app.game.save_data("battle").duplicate(true);var rng=app.game.rng.state
+  var camera=app.camera.transform;var score=app.score;var initial_impacts=impact_count[0]
+  var report={};skip_phase(app,phase,report)
+  await app.cinematic(a,b,[event],{a.id:20,b.id:17 if healing else 20})
+  await process_frame;await process_frame
+  assert(report.get("requested",false) and app.skip_combat,"Skip is exercised during "+phase)
+  assert(not app.stage.visible and app.world.visible and app.camera.transform.is_equal_approx(camera),"Every cancelled phase returns to the original map camera")
+  assert(app.game.save_data("battle")==saved and app.game.rng.state==rng and app.score==score and Engine.time_scale==1.0,"Presentation cancellation preserves resolved state, score ownership and clock")
+  for name in ["CombatProjectile","CombatHeal","CombatHitStop","CombatCharge","CombatTrail"]:assert(not app.stage.has_node(name),"Cancelled transient is released: "+name)
+  for actor in app.stage.get_children().filter(func(node):return node is Actor):assert(actor.can_process(),"Cancellation cannot strand a frozen fighter")
+  if phase in ["windup","strike","projectile","evade"]:assert(impact_count[0]==initial_impacts,"No delayed impact may appear after the user skips before contact")
+ app.stage.child_entered_tree.disconnect(count_impact)
 
 func run():
  var baseline=Engine.time_scale;var audio_speed=AudioServer.playback_speed_scale
@@ -65,6 +115,7 @@ func run():
  mode="fast";accelerated_seen=false;app.preferences.values.combat="map"
  await app.cinematic(a,b,events,{a.id:20,b.id:20})
  assert(not accelerated_seen and Engine.time_scale==baseline,"Map-only battles never acquire a cinematic speed override")
+ await verify_phase_skips(app,a,b)
  await Shutdown.dispose(app);await process_frame
- print("PASS: held/released speed, three hint layouts, focus loss, exact prior-scale cleanup, faster real combat, Tab skip, map-only isolation and unchanged simulation/audio/camera")
+ print("PASS: held/released speed, three hint layouts, focus loss, exact prior-scale cleanup, faster real combat, nine phase-specific skips within two frames, transient cleanup, map-only isolation and unchanged simulation/audio/camera")
  quit()

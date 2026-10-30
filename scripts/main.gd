@@ -876,7 +876,8 @@ func cinematic(a,b,events,initial_hp={}):
 	caption.hide();ui.add_child(caption)
 
 	var finished_exchange=false
-	await get_tree().create_timer(.3).timeout
+	var dodge: Tween
+	await combat_pause(.3)
 	for event in events:
 		if skip_combat:break
 		var who=actor if event.actor==a.id else defender
@@ -885,19 +886,22 @@ func cinematic(a,b,events,initial_hp={}):
 		if event.has("healing"):
 			banner.mark_actor(unit.id)
 			director.shot(who.position,whom.position,"windup",true,mounted,.28)
-			await who.pose("cast_windup",.36).finished
+			await combat_wait(who.pose("cast_windup",.36))
 			if skip_combat:break
-			await who.pose("cast",.18).finished
+			await combat_wait(who.pose("cast",.18))
 			if skip_combat:break
 			var recovery=CombatHeal.new();stage.add_child(recovery)
 			var healing_motion=recovery.play(who.socket_position("projectile"),whom.socket_position("impact"),whom.global_position,event.healing)
-			await recovery.arrived
+			while not recovery.has_arrived and not skip_combat:await get_tree().process_frame
+			if skip_combat:recovery.queue_free();break
 			var recipient=b if who==actor else a
 			play_sfx("heal");displayed_hp[event.target]=mini(recipient.max_hp,displayed_hp[event.target]+event.healing)
 			banner.set_health(event.target,int(displayed_hp[event.target]))
 			director.shot(who.position,whom.position,"impact",true,mounted,.24)
-			await healing_motion.finished
-			await who.pose("idle",.18).finished
+			if not await combat_wait(healing_motion):
+				if is_instance_valid(recovery):recovery.queue_free()
+				break
+			if not await combat_wait(who.pose("idle",.18)):break
 			continue
 		var spell=game.item_for(unit).id if unit.weapon=="magic" else ""
 		banner.mark_actor(unit.id)
@@ -923,7 +927,7 @@ func cinematic(a,b,events,initial_hp={}):
 		if unit.weapon=="magic":
 			gathering=preload("res://scripts/combat_charge.gd").new();stage.add_child(gathering)
 			gathering.begin(who,spell,.4 if event.crit else .28)
-		await who.pose(preparation,.4 if event.crit else .28).finished
+		await combat_wait(who.pose(preparation,.4 if event.crit else .28))
 		if skip_combat:
 			if is_instance_valid(gathering):gathering.queue_free()
 			break
@@ -936,7 +940,7 @@ func cinematic(a,b,events,initial_hp={}):
 		var contact_point=whom.socket_position("impact")
 		if not event.hit:
 			whom.pose("evade",.12)
-			var dodge=create_tween()
+			dodge=create_tween()
 			dodge.tween_property(whom,"position:z",-.32,.12)
 			dodge.tween_interval(.35 if is_ranged else .12)
 			dodge.tween_property(whom,"position:z",0.0,.16)
@@ -944,7 +948,10 @@ func cinematic(a,b,events,initial_hp={}):
 		if not is_ranged:
 			blade_trail=CombatTrail.new();stage.add_child(blade_trail)
 			if not blade_trail.follow(who,unit.weapon,event.crit):blade_trail.queue_free();blade_trail=null
-		await who.pose("throw" if is_ranged and unit.weapon=="lance" else "strike",.12).finished
+		if not await combat_wait(who.pose("throw" if is_ranged and unit.weapon=="lance" else "strike",.12)):
+			if is_instance_valid(blade_trail):blade_trail.queue_free()
+			if is_instance_valid(gathering):gathering.queue_free()
+			break
 		if not is_ranged:
 			if is_instance_valid(blade_trail):blade_trail.sample();blade_trail.finish()
 			else:
@@ -955,7 +962,7 @@ func cinematic(a,b,events,initial_hp={}):
 			if who.has_method("release_projectile"):who.release_projectile()
 			if is_instance_valid(gathering):gathering.release()
 			play_sfx(combat_release_sound(unit))
-			await projectile(release,contact_point,unit.weapon,spell,fighters.equipment_profile(unit))
+			if not await projectile(release,contact_point,unit.weapon,spell,fighters.equipment_profile(unit)):break
 		director.shot(who.position,whom.position,"impact",is_ranged,mounted,.16)
 		if event.hit:
 			play_sfx("guard" if event.damage<=0 else "critical" if event.crit else "hit")
@@ -967,14 +974,15 @@ func cinematic(a,b,events,initial_hp={}):
 		var hold=CombatHitStop.duration_for(event)
 		if hold>0:
 			# Let the recoil register before holding the contact silhouette.
-			await get_tree().create_timer(.035).timeout
+			if not await combat_pause(.035):break
 			var hit_stop=CombatHitStop.new();stage.add_child(hit_stop)
-			await hit_stop.play([who,whom],hold).finished
-		await get_tree().create_timer((.22 if not event.crit else .34)-(.035 if hold>0 else 0.0)).timeout
+			if not await combat_wait(hit_stop.play([who,whom],hold)):
+				hit_stop.restore();hit_stop.queue_free();break
+		await combat_pause((.22 if not event.crit else .34)-(.035 if hold>0 else 0.0))
 		if skip_combat:break
 		who.pose("recover",.16)
 		if event.remaining<=0:
-			await whom.pose("down",.3).finished
+			await combat_wait(whom.pose("down",.3))
 			if skip_combat:break
 			finished_exchange=true
 			var finish=preload("res://scripts/combat_finish.gd").new();stage.add_child(finish)
@@ -985,13 +993,14 @@ func cinematic(a,b,events,initial_hp={}):
 			finish.queue_free()
 			break
 		else:
-			await whom.pose("idle",.16).finished
+			await combat_wait(whom.pose("idle",.16))
 		if skip_combat:break
-		await who.pose("idle",.12).finished
+		await combat_wait(who.pose("idle",.12))
 	if not finished_exchange:
 		director.shot(actor.position,defender.position,"wide",ranged,mounted,.2)
-		if not skip_combat:await get_tree().create_timer(.18).timeout
+		if not skip_combat:await combat_pause(.18)
 
+	if dodge and dodge.is_valid():dodge.kill()
 	banner.queue_free();caption.queue_free()
 	veil.show();await veil.conceal(.12,false).finished
 	director.stop();director.queue_free()
@@ -1038,9 +1047,21 @@ func restore_lighting(old: Dictionary):
 	sky.sky_top_color=old.top;sky.sky_horizon_color=old.horizon;sky.ground_horizon_color=old.ground
 	for field in FOG_FIELDS:environment.set(field,old.fog[field])
 
-func projectile(from: Vector3,to: Vector3,kind: String,spell="",appearance={}):
+func combat_wait(motion: Tween) -> bool:
+	while motion.is_valid() and motion.is_running():
+		if skip_combat:motion.kill();return false
+		await get_tree().process_frame
+	return not skip_combat
+
+func combat_pause(duration: float) -> bool:
+	var motion=create_tween();motion.tween_interval(duration)
+	return await combat_wait(motion)
+
+func projectile(from: Vector3,to: Vector3,kind: String,spell="",appearance={}) -> bool:
 	var visual=CombatProjectile.new();stage.add_child(visual)
-	await visual.launch(from,to,kind,.23,spell,appearance).finished
+	var completed=await combat_wait(visual.launch(from,to,kind,.23,spell,appearance))
+	if is_instance_valid(visual):visual.queue_free()
+	return completed
 
 func show_impact(point,event,spell=""):
 	var impact=CombatImpact.new();stage.add_child(impact);impact.configure(point,event,camera,spell)

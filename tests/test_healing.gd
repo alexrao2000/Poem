@@ -82,7 +82,7 @@ func run():
   if mode!="map":
    assert(not observed_hp.is_empty() and observed_hp[0]==recipient.max_hp-6,"Close-up begins with the pre-heal HP")
    for i in range(1,observed_hp.size()):assert(observed_hp[i]>=observed_hp[i-1],"Recovery meter only rises")
-   if mode!="skip_windup":assert(is_equal_approx(observed_hp[-1],recipient.max_hp),"HP reaches the already-resolved recovery result")
+   if mode not in ["skip_windup","skip_light"]:assert(is_equal_approx(observed_hp[-1],recipient.max_hp),"HP reaches the already-resolved recovery result")
   await create_timer(.5).timeout
   assert(app.score==score and absf(app.score.get_sync_stream_volume(0))<.01 and app.score.get_sync_stream_volume(1)<-59,"Staff presentation returns the existing synchronized score to calm")
  assert(harmful_count==0,"Healing never emits damaging impact or hit-stop effects")
