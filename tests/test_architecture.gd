@@ -9,6 +9,7 @@ func run():
  await verify_towers()
  await verify_fountain()
  await verify_cart()
+ await verify_barrels()
  var colors=[]
  for variant in range(3):
   var roof=Roof.roof(variant);assert(roof==Roof.roof(variant),"Repeated houses share their immutable roof mesh")
@@ -249,4 +250,41 @@ func verify_cart():
   assert(is_equal_approx(axle.position.y,node.position.y) and axle.scale.x*.5>absf(node.position.x),"Axle crosses the wheel centers and reaches their hubs")
  for bearing in bearings:
   assert(bearing.position.y-bearing.scale.y*.5<.251 and bearing.position.y+bearing.scale.y*.5>.35,"Bearings join the axle to the underside of the bed")
+ world.queue_free();await process_frame
+
+func barrel_hit(shape: Mesh,position: Vector3,direction: Vector3) -> Variant:
+ var points=shape.surface_get_arrays(0)[Mesh.ARRAY_VERTEX];var closest=null;var distance=INF
+ for i in range(0,points.size(),3):
+  var hit=Geometry3D.ray_intersects_triangle(position,direction,points[i],points[i+1],points[i+2])
+  if hit!=null and position.distance_squared_to(hit)<distance:closest=hit;distance=position.distance_squared_to(hit)
+ return closest
+
+func verify_barrels():
+ var barrel=preload("res://scripts/barrel_visuals.gd");var total=0
+ for part in ["wood","hoops","lid_marks"]:
+  var shape=barrel.mesh(part);assert(shape==barrel.mesh(part),"Repeated barrels share immutable source geometry")
+  var arrays=shape.surface_get_arrays(0);var points=arrays[Mesh.ARRAY_VERTEX];var normals=arrays[Mesh.ARRAY_NORMAL];var edges={}
+  total+=points.size()/3
+  for i in range(0,points.size(),3):
+   var cross=(points[i+1]-points[i]).cross(points[i+2]-points[i])
+   assert(cross.length()>.000001 and cross.normalized().dot(normals[i])<-.98,"Barrel faces remain nondegenerate with outward normals and clockwise winding")
+   for j in range(3):
+    var point=points[i+j]
+    assert(point.y>=0 and point.y<=.40001 and Vector2(point.x,point.z).length()<=.16801,"New barrel stays inside the former body/hoop footprint")
+    var a=str(point.snapped(Vector3.ONE*.000001));var b=str(points[i+(j+1)%3].snapped(Vector3.ONE*.000001))
+    var edge=a+":"+b if a<b else b+":"+a;edges[edge]=edges.get(edge,0)+1
+  if part=="wood":
+   for count in edges.values():assert(count==2,"Bowed wooden shell, lip, recessed lid and bottom form one closed solid")
+ assert(total==222,"Three barrel parts share a fixed 222-triangle budget")
+ var body=barrel.mesh("wood")
+ var lid=barrel_hit(body,Vector3(0,1,0),Vector3.DOWN);var lip=barrel_hit(body,Vector3(.138,1,0),Vector3.DOWN)
+ assert(lid!=null and lip!=null and absf(lid.y-.392)<.00001 and absf(lip.y-.4)<.00001,"Actual rays find a recessed lid below the surrounding wooden lip")
+ var middle=barrel_hit(body,Vector3(1,.2,0),Vector3.LEFT);var end=barrel_hit(body,Vector3(1,.03,0),Vector3.LEFT)
+ assert(middle!=null and end!=null and middle.x>end.x+.015,"Actual side profile bows outward through the middle")
+ for y in [.06,.34]:
+  var wood=barrel_hit(body,Vector3(1,y,0),Vector3.LEFT);var hoop=barrel_hit(barrel.mesh("hoops"),Vector3(1,y,0),Vector3.LEFT)
+  assert(wood!=null and hoop!=null and hoop.x-wood.x>.002 and hoop.x-wood.x<.003,"Both iron hoops sit just outside the curved wood")
+ var scenery=Scenery.new();var world=Node3D.new();root.add_child(world);scenery.barrel(world,Vector3(3,.4,2),.75)
+ var prop=world.get_node("Barrel")
+ assert(prop.position==Vector3(3,.4,2) and prop.scale==Vector3.ONE*.75 and prop.get_child_count()==3,"Warehouse and cart callers retain their existing placements with three material pieces")
  world.queue_free();await process_frame

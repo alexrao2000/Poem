@@ -360,11 +360,7 @@ func battle_landscape(parent,center,context={}):
  return theme
 
 func barrel(parent,p,scale_value=1.0):
- var root=Node3D.new();parent.add_child(root);root.position=p;root.scale=Vector3.ONE*scale_value
- cylinder(root,Vector3(0,.20,0),.40,.16,Color("77634a"),.16)
- for y in [.06,.32]:cylinder(root,Vector3(0,y,0),.035,.168,Color("515754"))
- cylinder(root,Vector3(0,.405,0),.015,.145,Color("a08a66"))
- for x in [-.07,0,.07]:block(root,Vector3(x,.415,0),Vector3(.008,.008,.26),Color("695940"))
+ preload("res://scripts/barrel_visuals.gd").build(parent,p,scale_value)
 
 func fence(parent,p,length=3.0):
  for i in range(int(length)+1):
