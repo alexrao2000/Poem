@@ -2,6 +2,7 @@ extends RefCounted
 const MapSurface=preload("res://scripts/map_surface.gd")
 const RiverBank=preload("res://scripts/river_bank.gd")
 const MapGround=preload("res://scripts/map_ground.gd")
+const Architecture=preload("res://scripts/architecture.gd")
 const AmbientDrift=preload("res://scripts/ambient_drift.gd")
 # Shared landscape construction for the tactical board and battle stage.
 # Masonry spans use closed wedge stones with small joints and an open underside.
@@ -117,8 +118,11 @@ func sanctuary(parent,p):
  block(parent,p+Vector3(0,MapSurface.SANCTUARY_HEIGHT-.01,0),Vector3(.35,.02,.08),Color("f5e4ac"))
  block(parent,p+Vector3(0,MapSurface.SANCTUARY_HEIGHT-.01,0),Vector3(.08,.02,.35),Color("f5e4ac"))
 
-func house(parent,p,scale_value=1.0):
+func house(parent,p,scale_value=1.0,roof_variant=-1):
  var root=Node3D.new();parent.add_child(root);root.position=p;root.scale=Vector3.ONE*scale_value
+ root.name="House"
+ if roof_variant<0:roof_variant=Architecture.variant_at(p)
+ root.set_meta("roof_variant",roof_variant)
  block(root,Vector3(0,.6,0),Vector3(1.6,1.2,1.25),Color("c5bca4"))
  # Stone foundation, half-timber braces, door and windows.
  var foundation=block(root,Vector3(0,.08,0),Vector3(1.7,.16,1.34),Color("8b8a79"));foundation.material_override=detail_material(3)
@@ -142,13 +146,7 @@ func house(parent,p,scale_value=1.0):
   var plaster=material(Color("c5bca4")).duplicate();plaster.cull_mode=BaseMaterial3D.CULL_DISABLED
   mesh(root,gable.commit(),Vector3.ZERO,Vector3.ONE,plaster)
   block(root,Vector3(0,1.42,z),Vector3(.065,.55,.06),Color("695543"))
- for side in [-1,1]:
-  var roof=block(root,Vector3(side*.45,1.38,0),Vector3(1.1,.09,1.5),Color("626c70"))
-  roof.material_override=ground_material(3)
-  roof.rotation.z=-side*.48
-  for i in range(8):
-   var seam=block(root,Vector3(side*.45,1.4,(i-3.5)*.18),Vector3(1.1,.025,.025),Color("7b8280"))
-   seam.rotation.z=-side*.48
+ var roof=mesh(root,Architecture.roof(roof_variant),Vector3.ZERO,Vector3.ONE,Architecture.material());roof.name="TiledRoof"
  var chimney=block(root,Vector3(.5,1.6,-.3),Vector3(.23,.7,.25),Color("8d8271"));chimney.material_override=detail_material(3)
  block(root,Vector3(.5,1.97,-.3),Vector3(.29,.08,.3),Color("686c68"))
  for z in [-.25,.18]:barrel(root,Vector3(.95,0,z),.75)
@@ -220,10 +218,10 @@ func landscape(parent,game):
  atmosphere.position=Vector3((game.board_size().x-1)*.5,0,(game.board_size().y-1)*.5)
  atmosphere.configure(theme,Vector3(game.board_size().x+6,3,game.board_size().y+6),false,game.chapter)
 
-func landmark(parent,p,kind):
+func landmark(parent,p,kind,roof_variant=-1):
  var stone=Color("969b91");var gold=Color("bba16b")
  if kind in ["house","warehouse"]:
-  house(parent,p,1.4 if kind=="warehouse" else 1.2)
+  house(parent,p,1.4 if kind=="warehouse" else 1.2,roof_variant)
  elif kind=="fountain":
   cylinder(parent,p+Vector3(0,.08,0),.16,.46,stone)
   cylinder(parent,p+Vector3(0,.18,0),.12,.40,Color("5d8d9b"))
@@ -276,7 +274,7 @@ func combat_context(game,a,b) -> Dictionary:
  for item in game.info().get("landmarks",[]):
   var delta=Vector2(item.position[0],item.position[1])-midpoint
   if delta.length()>8:continue
-  candidates.append({"kind":item.kind,"distance":delta.length(),"x":clampf(delta.dot(axis)*2.2,-11,11),"z":-7-clampf(absf(delta.dot(depth))*1.8,0,10)})
+  candidates.append({"kind":item.kind,"roof_variant":Architecture.variant_at(Vector3(item.position[0],0,item.position[1])),"distance":delta.length(),"x":clampf(delta.dot(axis)*2.2,-11,11),"z":-7-clampf(absf(delta.dot(depth))*1.8,0,10)})
  candidates.sort_custom(func(left,right):return left.distance<right.distance)
  return {"chapter":game.chapter,"environment":game.info().get("environment","village"),"terrain":game.terrain(game.pos(b)),"landmarks":candidates.slice(0,2)}
 
@@ -316,7 +314,7 @@ func battle_landscape(parent,center,context={}):
  for item in backdrop:
   var group=Node3D.new();group.name="ArenaLandmark";parent.add_child(group);group.position=center+Vector3(item.x,0,item.z)
   group.scale=Vector3.ONE*(2.1 if item.kind in ["house","warehouse","tower","spire","arch"] else 1.4)
-  landmark(group,Vector3.ZERO,item.kind)
+  landmark(group,Vector3.ZERO,item.kind,item.get("roof_variant",0))
  if theme in ["village","road"]:
   cart(parent,center+Vector3(-6,0,-3.8));fence(parent,center+Vector3(3,0,-4),5.0)
   for i in range(3):barrel(parent,center+Vector3(6+i*.4,0,-4.3),1.0)

@@ -22,7 +22,7 @@ Natural river, forest, mountain and road water edges use continuous sloped banks
 
 Confirmed damaging contacts briefly hold only the two fighters (55 ms normal / 100 ms critical), after 35 ms of recoil. Camera motion, effects, UI and music continue. Procedural poses and imported AnimationPlayers resume on completion or cancellation; skipping during the hold returns to the map. Zero-damage hits use a guard pose, restrained steel glint, original 220 ms metallic sound and “No damage” text; map-only feedback uses the same cue without a hurt frame.
 
-Tactical ground uses one chapter-specific control texture to soften narrow road/grass/earth/stone boundaries, with slight world-space variation and mirrored paint repeats. Natural banks share the ground blend; masonry channels contribute no ground color. All 38 bridge tiles now expose water under their planks instead of a hidden grass floor. Static scenery retains 13,637 source meshes and combines into 635 batches across the twelve maps; geometry, UVs, materials and gameplay values are checked. This is not a measured frame-rate result.
+Tactical ground uses one chapter-specific control texture to soften narrow road/grass/earth/stone boundaries, with slight world-space variation and mirrored paint repeats. Natural banks share the ground blend; masonry channels contribute no ground color. All 38 bridge tiles now expose water under their planks instead of a hidden grass floor. Static scenery retains 13,501 source meshes and combines into 625 batches across the twelve maps; geometry, UVs, materials and gameplay values are checked. This is not a measured frame-rate result.
 
 The tactical action card now fits its contents rather than covering the full right edge, with a smaller terrain readout and one contextual hint line. The full keyboard guide lives in the battle menu. All actions, guide text and focus loops fit the three tested desktop sizes.
 
@@ -43,6 +43,8 @@ Critical preparation now has distinct melee, bow, magic and thrown-spear poses b
 The combat entry zoom now follows a continuous descending orbit from the tactical angle to 38 degrees, with a small yaw turn and a level horizon. It still centers the engaged pair and restores the exact prior tactical transform, zoom and offsets after combat or skip. Camera, presentation and staff checks pass.
 
 Progression now uses a compact XP panel for ordinary gains and a centered portrait/stat panel for level-ups. The XP rollover plays an original four-note chime, then reveals each resolved stat with a gain or dash. All 144 roster/mode layouts at three sizes, numeric reveals, zero growth, multiple levels, level cap, mouse/keyboard dismissal and unchanged rules/RNG are checked.
+
+House roofs now meet their existing gables exactly, with shallow overlapping tile courses, staggered seams, ridge caps and three restrained palettes. All eight campaign buildings retain their roof identity in nearby combat backdrops. Geometry/normal checks cover 204 gable intersections; cached roofs reduce the current map scenery to 13,501 source meshes / 625 static batches.
 
 The last delivered local browser/macOS checkpoint passed all 35 automated suites, five complete campaign simulations (60 chapter victories), model-catalog validation and an exported-resource-pack smoke check. These are runtime, geometry and layout checks, not a rendered review of the latest game. Full human balance and listening reviews remain outstanding. Routine non-destructive commits and private pushes are authorized.
 
