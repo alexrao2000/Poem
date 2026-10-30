@@ -60,7 +60,7 @@ func run():
   var rotation=actor.bones.LeftLeg.rotation;actor.position.x+=.2;actor._process(.02)
   assert(actor.bones.LeftLeg.rotation.is_equal_approx(rotation),"Combat poses reclaim locomotion joints")
   if actor.mounted:
-   for pose in ["idle","windup","critical_windup","strike","recover","guard","hit","evade","victory"]:
+   for pose in ["idle","windup","critical_windup","strike","recover","guard","hit","evade","victory","down"]:
     var motion=actor.pose(pose,1)
     for sample in range(4):
      motion.custom_step(.25);actor.apply_constraints();verify_mounted_geometry(actor)
@@ -89,7 +89,7 @@ func run():
  assert(stopped!=null and stopped.pose_name=="advance" and stopped.position.distance_to(interrupted_position)<.1,"Tab kills the actual travel tween before preparation begins")
  assert(not app.stage.visible and app.camera.transform.is_equal_approx(camera) and app.game.save_data("battle")==saved,"Interrupted approach restores the tactical view without changing campaign state")
  await Shutdown.dispose(app);await process_frame
- print("PASS: ",samples," roster travel samples, planted actual boot geometry, mounted saddle/hoof/stirrup contact, stationary/pose isolation, reversed travel, frame-independent stride/contacts, silent stationary/hidden poses and real Tab interruption")
+ print("PASS: ",samples," roster travel samples, planted actual boot geometry, mounted living/defeated saddle/hoof/stirrup contact, stationary/pose isolation, reversed travel, frame-independent stride/contacts, silent stationary/hidden poses and real Tab interruption")
  quit()
 
 func verify_contacts(fighters,stage,game):

@@ -7,6 +7,7 @@ const Shutdown=preload("helpers/game_shutdown.gd")
 var observed=[]
 var skip_finish=false
 var expected_caption=""
+var mounted_losses=0
 
 func watch_finish(node):
  if not node is Finish:return
@@ -16,6 +17,11 @@ func watch_finish(node):
  var standing=actors.filter(func(actor):return actor.pose_name=="victory")
  assert(standing.size()==1 and actors.any(func(actor):return actor.pose_name=="down"),"Only the surviving fighter finishes while the defeated actor stays down")
  assert(app.ui.get_node("CombatCaption").visible and app.ui.get_node("CombatCaption").text==expected_caption,"The confirmed survivor receives their own finishing line, with a name-only enemy fallback")
+ for actor in actors:
+  if actor.mounted and actor.pose_name=="down":
+   assert(is_equal_approx(actor.bones.LeftLeg.rotation.x,.85) and is_equal_approx(actor.bones.RightLeg.rotation.x,.85),"Defeated rider retains the seated leg orientation")
+   assert(actor.bones.Body.position.y>actor.rest.Body.position.y-.1,"Defeated rider cannot drop through the saddle while the horse stands")
+   mounted_losses+=1
  observed.append(standing[0].kind)
  if skip_finish:
   var tab=InputEventKey.new();tab.keycode=KEY_TAB;tab.pressed=true;app._input(tab)
@@ -84,6 +90,11 @@ func run():
   assert(not app.stage.has_node("CombatFinish") and app.world.visible and not app.stage.visible,"Finish/skip removes the sequence and restores the map")
   assert(app.camera.transform.is_equal_approx(start_camera) and app.camera.projection==Camera3D.PROJECTION_ORTHOGONAL,"Finish shot cannot retain ownership of the tactical camera")
   assert(app.game.save_data("battle")==saved and app.game.rng.state==rng,"Finishing never resolves or changes combat results")
+ skip_finish=false;b.job="Rider";b.weapon="lance";b.item="iron_lance"
+ saved=app.game.save_data("battle").duplicate(true);rng=app.game.rng.state
+ expected_caption=a.name+" — "+Finish.quote_for(a,app.fighters.profiles)
+ await app.cinematic(a,b,[{"actor":a.id,"target":b.id,"damage":2,"remaining":0,"hit":true,"crit":false}],{a.id:2,b.id:2})
+ assert(mounted_losses==1 and app.game.save_data("battle")==saved and app.game.rng.state==rng,"Actual mounted defeat retains its seating constraints and changes no resolved result")
  await Shutdown.dispose(app);await process_frame
  print("PASS: %d finishing camera layouts, 24 original caption fits, enemy/custom fallbacks, 48 planted weapon-rest poses, resolved kills/counters, no false finishes, Tab interruption and complete map restoration"%samples)
  quit()

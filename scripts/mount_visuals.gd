@@ -4,6 +4,8 @@ extends RefCounted
 
 const BODY_HEIGHT=1.035
 const RIDER_SPREAD=.5
+const SADDLE_CENTER=Vector3(0,.395,.055)
+const SADDLE_RADII=Vector3(.245,.07,.28)
 const HOOF_CENTER=Vector3(0,-.86,-.015)
 const HOOF_RADII=Vector3(.075,.055,.10)
 
@@ -46,7 +48,7 @@ static func build(painter,actor,id,cloth_color,gold,leather):
   strap.quaternion=Quaternion(Vector3.UP,(attachment-footrest).normalized())
   var stirrup=geo.block(horse,footrest,Vector3(.14,.025,.16),gold)
   stirrup.name="LeftStirrup" if side<0 else "RightStirrup"
- var saddle=painter.ellipsoid(horse,Vector3(0,.395,.055),Vector3(.245,.07,.28),leather);saddle.name="SaddleSeat"
+ var saddle=painter.ellipsoid(horse,SADDLE_CENTER,SADDLE_RADII,leather);saddle.name="SaddleSeat"
  painter.ellipsoid(horse,Vector3(0,.46,-.18),Vector3(.24,.10,.055),leather)
  painter.ellipsoid(horse,Vector3(0,.46,.29),Vector3(.25,.105,.055),leather)
  var tail=painter.joint(horse,"HorseTail",Vector3(0,.10,.62));actor.register_bone("HorseTail",tail)

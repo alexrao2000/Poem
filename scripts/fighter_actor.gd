@@ -4,6 +4,8 @@ extends Node3D
 # Infantry hips and legs lower together to the lowest ellipsoidal boot sole.
 
 const Mount=preload("res://scripts/mount_visuals.gd")
+const PELVIS_CENTER=Vector3(0,-.16,0)
+const PELVIS_RADII=Vector3(.19,.19,.14)
 signal travel_contact(index: int)
 var contact_index=0
 var bones: Dictionary = {}
@@ -109,6 +111,10 @@ func ground_mount():
  support_height=mount_stance_height()
  for key in ["Horse","Body","LeftLeg","RightLeg"]:bones[key].position.y=rest[key].position.y+support_height
  if pose_name=="idle":bones.Body.position.y+=sin(elapsed*2.4)*.006
+ elif pose_name=="down":
+  var axes=bones.Body.basis.scaled_local(PELVIS_RADII)
+  var lowest=(bones.Body.basis*PELVIS_CENTER).y-Vector3(axes.x.y,axes.y.y,axes.z.y).length()
+  bones.Body.position.y=bones.Horse.position.y+Mount.SADDLE_CENTER.y+Mount.SADDLE_RADII.y-lowest
 
 func mount_stance_height() -> float:
  var lowest=INF
@@ -123,7 +129,7 @@ static func approach_duration(distance: float) -> float:
  return clampf(absf(distance)/5.0,.18,.65)
 
 func apply_constraints():
- if mounted and bones.has("Horse") and pose_name!="down":ground_mount()
+ if mounted and bones.has("Horse"):ground_mount()
  if kind=="magic" and pose_name!="down" and bones.has("Weapon"):
   var grip=bones.Weapon
   var reading_basis=global_basis*Basis(Vector3.RIGHT,PI*.5+.18)
@@ -322,17 +328,15 @@ func pose(key: String,duration=.18) -> Tween:
  for name_value in target:
   if name_value in ["Arm","Elbow","LeftArm","LeftElbow","LeftKnee","RightKnee","Body","Head"]:
    target[name_value].x=-target[name_value].x
-  if key=="down" and name_value in ["LeftLeg","RightLeg"]:target[name_value].x=-target[name_value].x
+  if key=="down" and not mounted and name_value in ["LeftLeg","RightLeg"]:target[name_value].x=-target[name_value].x
   if kind=="bow" and name_value in ["LeftArm","LeftElbow"]:
    pose_tween.tween_property(self,"drawing_arm_rotation" if name_value=="LeftArm" else "drawing_elbow_rotation",target[name_value],duration)
   elif bones.has(name_value):pose_tween.tween_property(bones[name_value],"rotation",target[name_value],duration)
  var lift=stance_height(target) if grounded_stance and key!="advance" else 0.0
- if key!="advance" and (not mounted or key=="down"):pose_tween.tween_property(self,"support_height",lift,duration)
+ if key!="advance" and not mounted:pose_tween.tween_property(self,"support_height",lift,duration)
  if grounded_stance and key!="advance":
   for side in ["LeftLeg","RightLeg"]:pose_tween.tween_property(bones[side],"position:y",rest[side].position.y+lift,duration)
- if mounted and bones.has("Horse") and key=="down":
-  for joint in ["Horse","LeftLeg","RightLeg"]:pose_tween.tween_property(bones[joint],"position:y",rest[joint].position.y,duration)
- if bones.has("Body") and key!="advance" and (not mounted or key=="down"):
+ if bones.has("Body") and key!="advance" and not mounted:
   pose_tween.tween_property(bones.Body,"position:y",rest.Body.position.y+lift-(.43 if key=="down" and not grounded_stance else 0.0),duration)
  # Apply constraints after this frame's parallel pose writes, avoiding a frame
  # of separation between the drawing hand, nock and newly aimed weapon.

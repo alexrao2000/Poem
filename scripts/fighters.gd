@@ -62,7 +62,7 @@ func build(parent,u,p) -> Node3D:
  var cape_color=Color(appearance.get("cape","e5dfce" if company and u.id in ["lyra","ivo"] else tint.darkened(.25).to_html(false)))
  actor.set_meta("costume_colors",{"cloth":blue,"cape":cape_color})
  var torso=joint(body,"Torso",Vector3(0,.1,0))
- var pelvis=ellipsoid(body,Vector3(0,-.16,0),Vector3(.19,.19,.14),Color("3c3f48"));pelvis.name="Pelvis"
+ var pelvis=ellipsoid(body,Actor.PELVIS_CENTER,Actor.PELVIS_RADII,Color("3c3f48"));pelvis.name="Pelvis"
  shell(torso,Vector3.ZERO,[[-.1,.18,.12],[.15,.21,.14],[.35,.245,.12],[.41,.15,.1]],blue)
  if armored:shell(torso,Vector3(0,0,-.065),[[.02,.17,.10],[.22,.23,.11],[.37,.20,.08]],steel)
  elif not robe and not (company and u.id=="lyra"):shell(torso,Vector3(0,0,-.04),[[.02,.17,.105],[.22,.21,.12],[.34,.18,.08]],leather)
