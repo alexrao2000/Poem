@@ -56,7 +56,7 @@ func run():
  held.queue_free();other.queue_free();free_motion.queue_free()
  var walker=make_actor()
  var advance=walker.pose("advance",.04)
- walker._process(.07)
+ walker.position.z-=.3;walker._process(.07)
  var gait=walker.bone("LeftLeg").rotation.x
  assert(absf(gait)>.2,"Approach has an actual stride")
  await advance.finished
@@ -74,7 +74,7 @@ func run():
   await walker.pose("critical_windup",.01).finished
   assert(walker.bone("Body").rotation!=normal_body or walker.bone("Head").rotation!=normal_head,"Critical preparation has distinct body language for every weapon")
  var rider=make_actor(true)
- await rider.pose("advance",.01).finished;rider._process(.09)
+ await rider.pose("advance",.01).finished;rider.position.z-=.3;rider._process(.09)
  assert(absf(rider.bone("HorseLeg0").rotation.x)>.2,"Horse advances with a gait")
  await rider.pose("idle",.01).finished
  for i in range(4):assert(rider.bone("HorseLeg"+str(i)).rotation.is_zero_approx(),"Horse returns to a standing pose")

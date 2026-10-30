@@ -8,6 +8,8 @@ var kind = "sword"
 var mounted = false
 var pose_name = "idle"
 var elapsed = 0.0
+var gait_phase=0.0
+var travel_previous=Vector3.ZERO
 var pose_tween: Tween
 var facing = 1.0
 var weapon_aim=0.0
@@ -40,26 +42,41 @@ func _process(dt):
  hair_motion.update(elapsed,pose_name,dt)
  cape_motion.update(elapsed,pose_name,dt)
  if bones.has("HorseTail"):bones.HorseTail.rotation.z=sin(elapsed*2.3)*(.10 if pose_name=="advance" else .045)
- if bones.has("HorseHead"):bones.HorseHead.rotation.x=sin(elapsed*(8.0 if pose_name=="advance" else 1.6))*(.04 if pose_name=="advance" else .015)
  if bones.has("Cape"):
   bones.Cape.rotation.x=sin(elapsed*2.7)*.07+(.18 if pose_name in ["advance","strike","recover"] else .04)
  if pose_name=="idle":
   if bones.has("Body"):bones.Body.position.y=rest.Body.position.y+support_height+sin(elapsed*2.4)*.006
   if bones.has("Head"):bones.Head.rotation.z=sin(elapsed*1.3)*.012
- elif pose_name=="advance":
-  var gait=sin(elapsed*18)*.48
-  if mounted:
-   for i in range(4):
-    var key="HorseLeg"+str(i)
-    if bones.has(key):bones[key].rotation.x=sin(elapsed*15+i*PI*.5)*.42
-  else:
-   bones.LeftLeg.rotation.x=gait;bones.RightLeg.rotation.x=-gait
-   bones.LeftKnee.rotation.x=-maxf(0,-gait)*.75;bones.RightKnee.rotation.x=-maxf(0,gait)*.75
+ elif pose_name=="advance":update_locomotion()
+ if bones.has("HorseHead"):bones.HorseHead.rotation.x=sin(gait_phase*2 if pose_name=="advance" else elapsed*1.6)*(.04 if pose_name=="advance" else .015)
  apply_constraints()
  gaze_motion.update(pose_name,dt)
 
 func face_opponent(other: Node3D):
  gaze_motion.face_opponent(other)
+
+## Signed ground travel drives forward and backward steps at any frame rate.
+func update_locomotion():
+ var travelled=(global_position-travel_previous).dot(-global_basis.z.normalized())
+ travel_previous=global_position
+ gait_phase=wrapf(gait_phase+travelled*TAU/(2.8 if mounted else 1.6),-PI,PI)
+ if mounted:
+  for i in range(4):
+   var key="HorseLeg"+str(i)
+   if bones.has(key):bones[key].rotation.x=sin(gait_phase+i*PI*.5)*.42
+ else:
+  var gait=sin(gait_phase)*.55
+  bones.LeftLeg.rotation.x=gait;bones.RightLeg.rotation.x=-gait
+  bones.LeftKnee.rotation.x=-maxf(0,-gait)*.75;bones.RightKnee.rotation.x=-maxf(0,gait)*.75
+  if grounded_stance:
+   var target={}
+   for key in ["LeftLeg","RightLeg","LeftKnee","RightKnee"]:target[key]=bones[key].rotation
+   support_height=stance_height(target)
+   bones.Body.position.y=rest.Body.position.y+support_height
+   for side in ["LeftLeg","RightLeg"]:bones[side].position.y=rest[side].position.y+support_height
+
+static func approach_duration(distance: float) -> float:
+ return clampf(absf(distance)/5.0,.18,.65)
 
 func apply_constraints():
  if kind=="magic" and pose_name!="down" and bones.has("Weapon"):
@@ -131,6 +148,7 @@ func pose(key: String,duration=.18) -> Tween:
  if pose_tween and pose_tween.is_valid():pose_tween.kill()
  if bones.has("Weapon") and key not in ["throw","throw_windup","critical_throw_windup","recover"]:bones.Weapon.visible=true
  if bones.has("NockedArrow") and key in ["idle","advance","windup","critical_windup"]:bones.NockedArrow.visible=true
+ if key=="advance":travel_previous=global_position
  pose_name=key
  face_blink.update(0,key)
  var target={
@@ -264,10 +282,10 @@ func pose(key: String,duration=.18) -> Tween:
    pose_tween.tween_property(self,"drawing_arm_rotation" if name_value=="LeftArm" else "drawing_elbow_rotation",target[name_value],duration)
   elif bones.has(name_value):pose_tween.tween_property(bones[name_value],"rotation",target[name_value],duration)
  var lift=stance_height(target) if grounded_stance and key!="advance" else 0.0
- pose_tween.tween_property(self,"support_height",lift,duration)
- if grounded_stance:
+ if key!="advance":pose_tween.tween_property(self,"support_height",lift,duration)
+ if grounded_stance and key!="advance":
   for side in ["LeftLeg","RightLeg"]:pose_tween.tween_property(bones[side],"position:y",rest[side].position.y+lift,duration)
- if bones.has("Body"):
+ if bones.has("Body") and not (grounded_stance and key=="advance"):
   pose_tween.tween_property(bones.Body,"position:y",rest.Body.position.y+lift-(.43 if key=="down" and not grounded_stance else 0.0),duration)
  # Apply constraints after this frame's parallel pose writes, avoiding a frame
  # of separation between the drawing hand, nock and newly aimed weapon.

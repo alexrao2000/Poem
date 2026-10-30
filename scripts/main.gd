@@ -890,10 +890,13 @@ func cinematic(a,b,events,initial_hp={}):
 		if not is_ranged:
 			var distance_to_close=absf(whom.position.x-who.position.x)-Fighters.Actor.melee_spacing(unit.weapon)
 			if absf(distance_to_close)>.08:
-				who.pose("advance" if distance_to_close>0 else "idle",.2)
+				who.pose("advance",.2)
 				var approach=create_tween().set_trans(Tween.TRANS_SINE)
-				approach.tween_property(who,"position:x",base.x+direction*distance_to_close,.24)
-				await approach.finished
+				approach.tween_property(who,"position:x",base.x+direction*distance_to_close,Fighters.Actor.approach_duration(distance_to_close))
+				while approach.is_running():
+					if skip_combat:approach.kill();break
+					await get_tree().process_frame
+				if skip_combat:break
 		if who.has_method("aim_at"):who.aim_at(whom.socket_position("impact"))
 		director.shot(who.position,whom.position,"windup",is_ranged,mounted,.28)
 		var preparation="throw_windup" if is_ranged and unit.weapon=="lance" else "windup"
