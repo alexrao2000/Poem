@@ -6,6 +6,8 @@ User direction: keep developing continuously in this chat until the user returns
 
 ## Current checkpoint
 
+Capes now carry original embroidered edging and faction marks derived from the existing diamond-standard motif. Company and imperial SVG masks use mipmaps, remain sparse, and blend into the painted fabric on its outer face. Thread darkens for ivory capes and lightens for dark ones. All 24 base, 48 promoted and eight enemy bindings pass; no geometry or draw pass is added. Standalone artwork was inspected, while assembled rendering remains unverified.
+
 The outfit viewer supports dragging to rotate, scrolling for bounded zoom, and double-clicking to restore full-outfit framing. Close inspection shifts the view toward the face, including mounted and promoted recruits. Controls keep their own pointer area; release outside the viewer and focus loss clear dragging. All 33,696 default layouts, 432 zoom/face checks, real input sequences, 564 menus and promotion-return flows pass.
 
 Horses now fold their lower legs during travel instead of swinging four rigid limbs. Front knees and rear hocks have separate joints; gait entry blends in over the existing approach transition, and combat/idle poses settle all joints. Ground support and dust contacts use the combined hip/knee transform, retaining the rider's saddle and stirrup contact. Source and batch totals are unchanged.

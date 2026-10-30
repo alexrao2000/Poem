@@ -5,7 +5,26 @@ const Fighters=preload("res://scripts/fighters.gd")
 const Rules=preload("res://scripts/rules.gd")
 const HitStop=preload("res://scripts/combat_hit_stop.gd")
 func _initialize():call_deferred("run")
+func verify_marks():
+ for texture in [Fighters.COMPANY_CAPE,Fighters.IMPERIAL_CAPE]:
+  var picture=texture.get_image();var coverage=0.0
+  assert(picture.get_size()==Vector2i(256,384) and picture.has_mipmaps(),"Cape embroidery has a bounded atlas with mipmaps for perspective views")
+  for y in range(picture.get_height()):
+   for x in range(picture.get_width()):coverage+=picture.get_pixel(x,y).a
+  coverage/=picture.get_width()*picture.get_height()
+  assert(coverage>.04 and coverage<.12,"Sparse thread leaves the original cape color dominant")
+  for x in range(picture.get_width()):assert(picture.get_pixel(x,0).a==0 and picture.get_pixel(x,383).a==0,"Embroidery stays inside the fabric UV edges")
+  for y in range(picture.get_height()):assert(picture.get_pixel(0,y).a==0 and picture.get_pixel(255,y).a==0,"Side edging has a transparent margin")
+ assert(Fighters.COMPANY_CAPE.get_image().get_data()!=Fighters.IMPERIAL_CAPE.get_image().get_data(),"Company and imperial marks retain different original designs")
+
+func verify_trim(actor,company: bool):
+ var cloth=actor.cape_motion.surfaces[0]
+ assert(cloth.get_shader_parameter("cape_mark")== (Fighters.COMPANY_CAPE if company else Fighters.IMPERIAL_CAPE),"Actor team selects the embroidered mark through batching and outline setup")
+ var color=cloth.get_shader_parameter("tint");var trim=cloth.get_shader_parameter("cape_trim")
+ assert(absf(color.get_luminance()-trim.get_luminance())>.1,"Thread has contrast on both ivory and dark capes")
+
 func run():
+ verify_marks()
  var painter=Fighters.new();var game=Rules.new();var stage=Node3D.new();root.add_child(stage)
  var actors=[]
  for recruit in game.roster:
@@ -14,6 +33,7 @@ func run():
   assert(actor.cape_motion.surfaces.size()==2,"Each cape binds fabric and outline after batching")
   var cloth=actor.cape_motion.surfaces[0];var ink=actor.cape_motion.surfaces[1]
   assert(cloth.next_pass==ink and ink!=painter.Outline.material())
+  verify_trim(actor,true)
   assert(cloth.get_shader_parameter("tint")==Color(painter.profiles[unit.id].appearance.cape))
   for other in actors:
    assert(other.cape_motion.surfaces[0]!=cloth and other.cape_motion.surfaces[1]!=ink,"Cloth clocks cannot leak between actors sharing a palette")
@@ -36,7 +56,15 @@ func run():
   actor.pose_name="critical_hit";actor._process(.3)
   assert(actor.cape_motion.drive>recoil and actor.cape_motion.drive<=.9,"Critical recoil drives a stronger bounded cloth response")
   actors.append(actor)
- for material in painter.surface_cache.values():assert(material.get_shader_parameter("cloth_amount")!=1.0,"Shared body fabrics never opt into cloth deformation")
+ for recruit in game.roster:
+  for path in game.promotion_options(recruit):
+   var unit=recruit.duplicate(true);unit.team="player";unit.promotion=path.id
+   var promoted=painter.build(stage,unit,Vector3.ZERO);verify_trim(promoted,true);promoted.queue_free();await process_frame
+ for job in game.content.classes:
+  var unit=game.roster.filter(func(value):return value.job==job)[0].duplicate(true);unit.id="enemy_cape_"+job;unit.team="enemy"
+  var enemy=painter.build(stage,unit,Vector3.ZERO);verify_trim(enemy,false);enemy.queue_free();await process_frame
+ for material in painter.surface_cache.values():
+  assert(material.get_shader_parameter("cloth_amount")!=1.0 and material.get_shader_parameter("cape_mark")==null,"Shared body fabrics never inherit cape motion or embroidery")
  assert(painter.Outline.material().get_shader_parameter("cloth_amount")!=1.0,"Shared armor/weapon outline never opts into cloth deformation")
  var held=actors[0];var other=actors[1];held.set_process(true);other.set_process(true)
  var hold=HitStop.new();root.add_child(hold);hold.play([held],.2);hold.motion.pause()
@@ -49,5 +77,5 @@ func run():
  for frame in range(3):await process_frame
  assert(held.cape_motion.surfaces[0].get_shader_parameter("cloth_clock")>frozen,"Cloth resumes with the restored actor")
  stage.queue_free();await process_frame
- print("PASS: 24 independently animated cape pairs, anchored geometry, bounded motion, matching fabric/outline clocks, idle settling and local hit-stop restoration")
+ print("PASS: 24 independently animated cape pairs, 48 promoted and eight enemy embroidery bindings, transparent sparse mipmapped marks, contrasting thread, anchored geometry, bounded motion, matching fabric/outline clocks, idle settling and local hit-stop restoration")
  quit()

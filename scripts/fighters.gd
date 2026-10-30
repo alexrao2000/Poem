@@ -19,6 +19,8 @@ var profiles=JSON.parse_string(FileAccess.get_file_as_string("res://data/charact
 var enemy_looks=JSON.parse_string(FileAccess.get_file_as_string("res://data/enemy_looks.json"))
 var surface_atlas=load("res://assets/art/character-materials.png")
 var surface_shader=preload("res://assets/shaders/character.gdshader")
+const COMPANY_CAPE=preload("res://assets/art/cape-company.svg")
+const IMPERIAL_CAPE=preload("res://assets/art/cape-imperial.svg")
 var surface_cache={}
 var shading_cache={}
 var strand_materials={}
@@ -91,7 +93,7 @@ func build(parent,u,p) -> Node3D:
  if u.weapon=="bow":
   preload("res://scripts/quiver_visuals.gd").build(self,torso,leather,gold)
  var cape=joint(torso,"Cape",Vector3(0,.35,.12));actor.register_bone("Cape",cape)
- cape_surface(cape,cape_color)
+ cape_surface(cape,cape_color,company,gold)
  if company and u.id=="lyra":
   shell(torso,Vector3(0,0,.025),[[.34,.28,.16],[.43,.25,.15],[.47,.105,.085]],cape_color)
   for side_value in [-1,1]:
@@ -187,7 +189,7 @@ func batch_rig(actor):
  Outline.apply(actor)
  actor.cape_motion.bind(actor)
 
-func cape_surface(parent,color):
+func cape_surface(parent,color,company=true,thread=Color("bca26b")):
  var st=SurfaceTool.new();st.begin(Mesh.PRIMITIVE_TRIANGLES)
  for row in range(6):
   for column in range(6):
@@ -200,6 +202,8 @@ func cape_surface(parent,color):
  st.generate_normals()
  var material=geo.material(color).duplicate();material.cull_mode=BaseMaterial3D.CULL_DISABLED
  var cape_mesh=geo.mesh(parent,st.commit(),Vector3.ZERO,Vector3.ONE,material)
+ cape_mesh.set_meta("cape_mark",COMPANY_CAPE if company else IMPERIAL_CAPE)
+ cape_mesh.set_meta("cape_trim",thread.darkened(.35) if color.get_luminance()>.55 else thread.lightened(.10))
  cape_mesh.set_meta("cape_fabric",true);cape_mesh.extra_cull_margin=preload("res://scripts/cape_motion.gd").MARGIN
 
 func shell(parent,p,sections,color):
@@ -255,6 +259,8 @@ func apply_surfaces(root,blue,tint,skin,steel,gold,leather,cape_color):
   if mesh.get_meta("cape_fabric",false) and mesh.material_override is ShaderMaterial:
    mesh.material_override=mesh.material_override.duplicate()
    mesh.material_override.set_shader_parameter("cloth_amount",1.0)
+   mesh.material_override.set_shader_parameter("cape_mark",mesh.get_meta("cape_mark"))
+   mesh.material_override.set_shader_parameter("cape_trim",mesh.get_meta("cape_trim"))
 
 func equipment_profile(unit: Dictionary) -> Dictionary:
  return EquipmentVisuals.profiles[EquipmentVisuals.resolve(unit.weapon,str(unit.get("item","")))]

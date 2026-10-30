@@ -556,3 +556,12 @@ Checks cover actual hoof geometry, both travel directions and facings, all three
 The character viewer now accepts drag rotation and bounded scroll zoom in the area beside the controls. Zooming closer shifts the aim toward the character's face; double-click restores the stable full-outfit fit while retaining the chosen rotation. A compact hint sits below the model area. Existing turn buttons and action selection remain available. Release outside the viewer, a missing held-button state and focus loss all cancel dragging.
 
 The default 33,696 outfit layouts still fit. Another 432 projection cases keep the face visible at both zoom limits across every base/promoted outfit and three sizes. Actual input dispatch covers panel isolation, repeated wheel steps, both zoom limits, drag across the panel, release/focus cleanup and exact fit restoration, preserving roster/RNG. The 564 menu layouts and training return paths also pass. Pointer tests explicitly size the headless Window and send complete wheel press/release pairs. Rendered interaction review remains pending.
+
+
+## Cape edging and embroidered faction marks
+
+`assets/art/cape-company.svg` and `cape-imperial.svg` are original vector artwork authored directly for Poem. Their diamond motif develops the existing map standards: the company uses an open split mark and curved hem, while imperial capes use a closed mark and angular hem. Both preserve transparent margins and leave most of the fabric unmarked. Their standalone source previews were inspected.
+
+The existing cloth material blends the alpha mask into its painted linen on the cape's outer face. Thread color derives from the recruit's metal palette, darkening on ivory fabric and lightening on dark fabric. The lining retains its base fabric. The artwork moves with the existing cape UVs and deformation, adds no geometry or rendering pass, and uses mipmaps for perspective views. Shared body materials remain unmarked.
+
+Checks cover 24 base recruits, all 48 promoted outfits, eight enemy classes, contrasting thread, sparse transparent source masks, mipmaps, per-actor cloth/outline ownership and preserved rigid geometry. Counts remain 1,780 rigid sources / 1,063 batches plus three dynamic rein meshes. Current assembled character rendering remains unverified.
