@@ -907,6 +907,9 @@ func cinematic(a,b,events,initial_hp={}):
 			continue
 		var spell=game.item_for(unit).id if unit.weapon=="magic" else ""
 		banner.mark_actor(unit.id)
+		var blocked=event.hit and event.damage<=0
+		var contact_socket="guard" if blocked else "impact"
+		if blocked:whom.pose("guard",.18)
 		var base=who.position
 		var direction=1.0 if who==actor else -1.0
 		var is_ranged=unit.weapon in ["bow","magic"] or (unit.weapon=="lance" and game.distance(a,b)>1)
@@ -921,7 +924,7 @@ func cinematic(a,b,events,initial_hp={}):
 					await get_tree().process_frame
 				if skip_combat:break
 				if who.has_method("update_locomotion"):who.update_locomotion()
-		if who.has_method("aim_at"):who.aim_at(whom.socket_position("impact"))
+		if who.has_method("aim_at"):who.aim_at(whom.socket_position(contact_socket))
 		director.shot(who.position,whom.position,"windup",is_ranged,mounted,.28)
 		var preparation="throw_windup" if is_ranged and unit.weapon=="lance" else "windup"
 		if event.crit:preparation="critical_"+preparation
@@ -939,7 +942,8 @@ func cinematic(a,b,events,initial_hp={}):
 				if is_instance_valid(gathering):gathering.queue_free()
 				break
 		if not is_ranged:play_sfx(combat_release_sound(unit))
-		var contact_point=whom.socket_position("impact")
+		var contact_point=whom.socket_position(contact_socket)
+		if who.has_method("aim_at"):who.aim_at(contact_point)
 		if not event.hit:
 			whom.pose("evade",.12)
 			dodge=create_tween()
@@ -968,10 +972,10 @@ func cinematic(a,b,events,initial_hp={}):
 		director.shot(who.position,whom.position,"impact",is_ranged,mounted,.16)
 		if event.hit:
 			play_sfx("guard" if event.damage<=0 else "critical" if event.crit else "hit")
-			whom.pose("guard" if event.damage<=0 else "critical_hit" if event.crit else "hit",.12)
+			if not blocked:whom.pose("critical_hit" if event.crit else "hit",.12)
 		displayed_hp[event.target]=maxi(0,displayed_hp[event.target]-event.damage)
 		banner.set_health(event.target,int(displayed_hp[event.target]))
-		show_impact(whom.socket_position("impact"),event,spell)
+		show_impact(whom.socket_position(contact_socket),event,spell)
 		if event.hit and event.damage>0:director.impact(event.crit)
 		var hold=CombatHitStop.duration_for(event)
 		if hold>0:

@@ -129,11 +129,13 @@ func verify_shields(painter,rules,stage):
   for team in ["player","enemy"]:
    var unit=source.duplicate(true);unit.team=team
    var actor=painter.build(stage,unit,Vector3.ZERO);actor.set_process(false);actor.pose_tween.kill()
-   var elbow=actor.bones.LeftElbow
+   var elbow=actor.bones.Shield
    assert(elbow.get_node("ShieldBody").mesh.surface_get_arrays(0)[Mesh.ARRAY_VERTEX]==body.surface_get_arrays(0)[Mesh.ARRAY_VERTEX] and elbow.get_node("ShieldTrim").mesh.surface_get_arrays(0)[Mesh.ARRAY_VERTEX]==trim.surface_get_arrays(0)[Mesh.ARRAY_VERTEX],"Every heavy shield follows the actual off-hand forearm")
    for pose in ["idle","advance","windup","strike","guard","hit","victory"]:
     actor.pose(pose,1).custom_step(1);actor.apply_constraints()
     for vertex in body.surface_get_arrays(0)[Mesh.ARRAY_VERTEX]:assert(elbow.get_node("ShieldBody").to_global(vertex).y>0,"Shield stays above the floor in living combat poses")
+    assert(actor.socket_position("guard").distance_to(elbow.get_node("ShieldBody").to_global(center))<.00001,"Guard contact follows the actual bowed panel center through every pose")
+    if pose=="guard":assert((-elbow.global_basis.z).dot(-actor.global_basis.z)>.999,"Raised shield faces the incoming opponent instead of rotating backward with the forearm")
    actor.queue_free();await process_frame
 
 func quiver_floor(mesh: Mesh,point: Vector2) -> Variant:

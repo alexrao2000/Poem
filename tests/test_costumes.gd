@@ -37,7 +37,7 @@ func verify_shell_orientation(actor):
  assert(count>0,"Every procedural recruit has inspected clothing shells")
 
 func verify_promoted_shield(actor):
- var elbow=actor.bone("LeftElbow");var body=elbow.get_node("ShieldBody");var rim=elbow.get_node("PromotionShieldRim")
+ var elbow=actor.bone("Shield");var body=elbow.get_node("ShieldBody");var rim=elbow.get_node("PromotionShieldRim")
  var points=body.mesh.surface_get_arrays(0)[Mesh.ARRAY_VERTEX]
  var trim=rim.mesh.surface_get_arrays(0);var checked=0
  assert(not elbow.has_node("ShieldTrim"),"Promotion replaces the normal rim instead of stacking coincident gold surfaces")

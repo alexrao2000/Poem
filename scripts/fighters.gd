@@ -133,8 +133,9 @@ func build(parent,u,p) -> Node3D:
     actor.update_bow()
   elif heavy:
    var shield_shape=preload("res://scripts/knight_shield.gd")
-   var shield=geo.mesh(elbow,shield_shape.body_mesh(),Vector3(-.04,-.16,-.17),Vector3.ONE,geo.material(blue));shield.name="ShieldBody"
-   var shield_trim=geo.mesh(elbow,shield_shape.trim_mesh(),shield.position,Vector3.ONE,geo.material(gold));shield_trim.name="ShieldTrim"
+   var shield_joint=joint(elbow,"Shield",Vector3(-.04,-.16,-.17));actor.register_bone("Shield",shield_joint)
+   var shield=geo.mesh(shield_joint,shield_shape.body_mesh(),Vector3.ZERO,Vector3.ONE,geo.material(blue));shield.name="ShieldBody"
+   var shield_trim=geo.mesh(shield_joint,shield_shape.trim_mesh(),Vector3.ZERO,Vector3.ONE,geo.material(gold));shield_trim.name="ShieldTrim"
  geo.cylinder(body,Vector3(0,.53,0),.15,.075,skin)
  var gaze=joint(body,"Gaze",Vector3(0,.69,0));actor.register_bone("Gaze",gaze)
  var head=joint(gaze,"Head",Vector3.ZERO);head.scale=Vector3(.86,.83,.86);actor.register_bone("Head",head);actor.gaze_motion.bind(actor)

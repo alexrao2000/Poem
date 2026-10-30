@@ -21,6 +21,7 @@ var travel_direction=Vector3.ZERO
 var pose_tween: Tween
 var facing = 1.0
 var weapon_aim=0.0
+var guard_weight=0.0
 var aim_target=Vector3.ZERO
 var has_aim_target=false
 var grounded_stance=false
@@ -131,6 +132,10 @@ static func approach_duration(distance: float) -> float:
  return clampf(absf(distance)/5.0,.18,.65)
 
 func apply_constraints():
+ if bones.has("Shield"):
+  var shield=bones.Shield
+  var facing_basis=shield.get_parent().global_basis.inverse()*global_basis
+  shield.quaternion=Quaternion.from_euler(rest.Shield.rotation).slerp(facing_basis.get_rotation_quaternion(),guard_weight)
  if mounted and bones.has("Horse"):ground_mount()
  elif grounded_stance:ground_infantry()
  if kind=="magic" and pose_name!="down" and bones.has("Weapon"):
@@ -316,6 +321,7 @@ func pose(key: String,duration=.18) -> Tween:
  elif key=="guard":
   target.Body=Vector3(-.07,0,0)
   target.LeftArm=Vector3(-1.0,-.1,.1);target.LeftElbow=Vector3(-1.3,0,0)
+  if bones.has("Shield"):target.LeftArm=Vector3(-.55,-.1,.1);target.LeftElbow=Vector3(-.9,0,0)
  elif key in ["hit","critical_hit"]:
   target.Body=Vector3(-.25,0,0);target.Head=Vector3(-.15,0,.08)
   target.Arm=Vector3(.1,0,-.4);target.LeftArm=Vector3(.2,0,.4)
@@ -347,6 +353,7 @@ func pose(key: String,duration=.18) -> Tween:
  if aiming:target.erase("Weapon")
  elif key!="strike":weapon_aim=0.0
  pose_tween=create_tween().set_parallel(true).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN_OUT)
+ if bones.has("Shield"):pose_tween.tween_property(self,"guard_weight",1.0 if key=="guard" else 0.0,duration)
  if kind=="bow":pose_tween.tween_property(self,"bow_draw",1.0 if key in ["windup","critical_windup"] else 0.0,duration)
  if kind=="bow":pose_tween.tween_property(self,"bow_hand_weight",1.0 if key in ["idle","advance","windup","critical_windup"] else 0.0,duration)
  if aiming:pose_tween.tween_property(self,"weapon_aim",1.0,duration)
@@ -365,6 +372,7 @@ func pose(key: String,duration=.18) -> Tween:
  return pose_tween
 
 func socket_position(key: String) -> Vector3:
+ if key=="guard" and bones.has("Shield"):return bones.Shield.to_global(Vector3(0,0,-.05))
  if key=="gaze" and bones.has("Head"):return bones.Head.global_position
  if key=="projectile" and kind=="magic" and bones.has("RightHand"):return bones.RightHand.to_global(Vector3(0,0,-.10))
  if key=="projectile" and kind=="staff" and bones.has("Weapon"):return bones.Weapon.to_global(Vector3(0,.78,0))

@@ -14,6 +14,8 @@ var misses=[]
 var holds=0
 var skip_on_hold=false
 var blocked_poses=[]
+var shield_contacts=0
+var guard_flights=0
 var map_cues=[]
 var recoveries=[]
 var skip_on_recovery=false
@@ -57,6 +59,21 @@ func watch_block(node):
  var actors=node.get_parent().get_children().filter(func(child):return child is Actor and not child.is_queued_for_deletion())
  blocked_poses.append(actors.map(func(actor):return actor.pose_name))
  assert(node.amount.text=="NO DAMAGE" and node.burst==null,"Real blocked combat selects the restrained effect")
+ var shields=actors.filter(func(actor):return actor.pose_name=="guard" and actor.bones.has("Shield"))
+ if not shields.is_empty():
+  var defender=shields[0]
+  assert(node.global_position.distance_to(defender.socket_position("guard"))<.001,"Actual blocked impact glints at the bowed shield surface")
+  assert(defender.guard_weight>.999 and (-defender.bones.Shield.global_basis.z).dot(-defender.global_basis.z)>.999,"Shield is raised and facing the incoming attack before contact")
+  shield_contacts+=1
+
+func watch_guard_flight(node):
+ if not node is Projectile:return
+ await process_frame
+ var actors=node.get_parent().get_children().filter(func(child):return child is Actor and not child.is_queued_for_deletion())
+ var shields=actors.filter(func(actor):return actor.pose_name=="guard" and actor.bones.has("Shield"))
+ assert(shields.size()==1,"Defender raises the shield before the projectile is released")
+ assert(node.destination.distance_to(shields[0].socket_position("guard"))<.001,"Physical projectile flies to the shield instead of through the defender's torso")
+ guard_flights+=1
 
 func watch_hold(node):
  if not node is HitStop:return
@@ -193,6 +210,16 @@ func run():
  confirmed_holds=holds;a.weapon="sword";a.job="Vanguard";b.x=9
  await app.cinematic(a,b,[{"actor":a.id,"target":b.id,"damage":0,"remaining":20,"hit":true,"crit":false}],{a.id:20,b.id:20})
  assert(holds==confirmed_holds and blocked_poses.size()==1 and "guard" in blocked_poses[0],"Armor uses a guard response without damage hit stop")
+ app.stage.child_entered_tree.connect(watch_guard_flight)
+ b.job="Knight";b.weapon="lance";b.item="iron_lance"
+ for weapon in ["sword","bow"]:
+  a.weapon=weapon;a.job="Ranger" if weapon=="bow" else "Vanguard";a.item="iron_bow" if weapon=="bow" else "iron_sword";b.x=10 if weapon=="bow" else 9
+  for reverse in [false,true]:
+   var shield_saved=app.game.save_data("battle").duplicate(true);var shield_rng=app.game.rng.state
+   await app.cinematic(b if reverse else a,a if reverse else b,[{"actor":a.id,"target":b.id,"damage":0,"remaining":20,"hit":true,"crit":false}],{a.id:20,b.id:20})
+   assert(app.game.save_data("battle")==shield_saved and app.game.rng.state==shield_rng,"Prepared guards and shield contacts never change resolved results")
+ assert(shield_contacts==4 and guard_flights==2 and holds==confirmed_holds,"Melee and ranged guards work from either side without a damaging hit stop")
+ app.stage.child_entered_tree.disconnect(watch_guard_flight)
  app.ui.child_entered_tree.connect(watch_map_cue)
  await app.map_combat_feedback([{"actor":a.id,"target":b.id,"damage":0,"remaining":20,"hit":true,"crit":false}])
  assert(map_cues==["NO DAMAGE"],"Map-only combat shares the blocked-hit label")
