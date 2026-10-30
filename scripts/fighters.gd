@@ -133,9 +133,9 @@ func build(parent,u,p) -> Node3D:
     for key in ["BowStringTop","BowStringBottom"]:actor.register_bone(key,hand.get_node(key))
     actor.update_bow()
   elif heavy:
-   var shield=geo.cylinder(elbow,Vector3(-.04,-.16,-.17),.08,.29,blue)
-   shield.rotation.x=PI/2;shield.scale=Vector3(.8,1,1.3)
-   geo.block(elbow,Vector3(-.04,-.16,-.22),Vector3(.055,.45,.025),gold)
+   var shield_shape=preload("res://scripts/knight_shield.gd")
+   var shield=geo.mesh(elbow,shield_shape.body_mesh(),Vector3(-.04,-.16,-.17),Vector3.ONE,geo.material(blue));shield.name="ShieldBody"
+   var shield_trim=geo.mesh(elbow,shield_shape.trim_mesh(),shield.position,Vector3.ONE,geo.material(gold));shield_trim.name="ShieldTrim"
  geo.cylinder(body,Vector3(0,.53,0),.15,.075,skin)
  var gaze=joint(body,"Gaze",Vector3(0,.69,0));actor.register_bone("Gaze",gaze)
  var head=joint(gaze,"Head",Vector3.ZERO);head.scale=Vector3(.86,.83,.86);actor.register_bone("Head",head);actor.gaze_motion.bind(actor)

@@ -36,6 +36,7 @@ func visual_signature(hand: Node3D) -> String:
 func run():
  var rules=Rules.new();var painter=Fighters.new();painter.batching_enabled=false
  var stage=Node3D.new();root.add_child(stage);var signatures={};var samples=0
+ await verify_shields(painter,rules,stage)
  assert(Looks.profiles.size()==rules.equipment.size())
  for item in rules.equipment:
   assert(Looks.resolve(item.kind,item.id)==item.id and Looks.profiles[item.id].kind==item.kind)
@@ -93,3 +94,43 @@ func run():
  await Shutdown.dispose(app);await process_frame
  print("PASS: 22 distinct actual weapon appearances, closed cached blade/head geometry, retained reach, %d grounded pose samples, bowstring endpoints, enemy equipment and thrown spear continuity"%samples)
  quit()
+
+func shield_intersection(mesh: Mesh,xy: Vector2) -> Variant:
+ var points=mesh.surface_get_arrays(0)[Mesh.ARRAY_VERTEX];var nearest=null
+ for i in range(0,points.size(),3):
+  var hit=Geometry3D.ray_intersects_triangle(Vector3(xy.x,xy.y,-1),Vector3.BACK,points[i],points[i+1],points[i+2])
+  if hit!=null and (nearest==null or hit.z<nearest.z):nearest=hit
+ return nearest
+
+func verify_shields(painter,rules,stage):
+ var shape=preload("res://scripts/knight_shield.gd")
+ var body=shape.body_mesh();var trim=shape.trim_mesh()
+ assert(body==shape.body_mesh() and trim==shape.trim_mesh(),"Knights share cached shield geometry")
+ closed_mesh(body)
+ var vertex_total=0
+ for mesh in [body,trim]:
+  var arrays=mesh.surface_get_arrays(0);var points=arrays[Mesh.ARRAY_VERTEX];var normals=arrays[Mesh.ARRAY_NORMAL]
+  vertex_total+=points.size()
+  for i in range(0,points.size(),3):
+   var cross=(points[i+1]-points[i]).cross(points[i+2]-points[i])
+   assert(cross.length()>.000001 and cross.normalized().dot(normals[i])<-.999)
+  if mesh==trim:
+   for vertex in points:
+    var behind=shield_intersection(body,Vector2(vertex.x,vertex.y))
+    assert(behind!=null and behind.z-vertex.z>.0009 and behind.z-vertex.z<.04,"Metal rim and crest remain just in front of the bowed panel without buried trim")
+    assert(normals[0].z<-.9,"Shield ornament faces outward")
+ assert(vertex_total==192,"Shield body and ornament share a 64-triangle budget")
+ assert(shield_intersection(body,Vector2(0,-.35))!=null and shield_intersection(body,Vector2(.15,-.30))==null,"Heater shield tapers to a physical lower point")
+ var center=shield_intersection(body,Vector2.ZERO);var side=shield_intersection(body,Vector2(.2,0))
+ assert(center.z<side.z-.02,"Shield face bows outward from its rim")
+ var knights=rules.roster.filter(func(unit):return unit.job=="Knight")
+ for source in knights:
+  for team in ["player","enemy"]:
+   var unit=source.duplicate(true);unit.team=team
+   var actor=painter.build(stage,unit,Vector3.ZERO);actor.set_process(false);actor.pose_tween.kill()
+   var elbow=actor.bones.LeftElbow
+   assert(elbow.get_node("ShieldBody").mesh.surface_get_arrays(0)[Mesh.ARRAY_VERTEX]==body.surface_get_arrays(0)[Mesh.ARRAY_VERTEX] and elbow.get_node("ShieldTrim").mesh.surface_get_arrays(0)[Mesh.ARRAY_VERTEX]==trim.surface_get_arrays(0)[Mesh.ARRAY_VERTEX],"Every heavy shield follows the actual off-hand forearm")
+   for pose in ["idle","advance","windup","strike","guard","hit","victory"]:
+    actor.pose(pose,1).custom_step(1);actor.apply_constraints()
+    for vertex in body.surface_get_arrays(0)[Mesh.ARRAY_VERTEX]:assert(elbow.get_node("ShieldBody").to_global(vertex).y>0,"Shield stays above the floor in living combat poses")
+   actor.queue_free();await process_frame

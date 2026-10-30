@@ -400,3 +400,7 @@ Forecast damage keeps its large numeral and adds a separate small green ×2 badg
 ## Grounded approach dust
 
 Combat foot/hoof contacts create a bounded pair or trio of soft, non-additive billboards. Their origin comes from the animated sole ellipsoid instead of the actor center and survives joint mesh batching. Signed travel determines drift even during retreat. Soft ground uses muted tan, hard ground a fainter gray, and wooden decks no dust. The puffs remain below the knees, retain depth testing, fade over 300 ms and release when the arena hides; no gameplay random stream is used. Effects muting changes audio only. Geometry and a real muted cinematic are tested; rendered appearance remains pending.
+
+## Knight shield silhouette
+
+The heavy-infantry shield now has a clipped upper edge, tapered point and shallow bowed face. A raised metal border surrounds an original diamond and paired river chevrons. Body and trim share 64 cached source triangles and the existing left forearm attachment; both friendly and enemy knights inherit their own clothing/metal palettes. Closed topology, outward normals, actual surface separation, living-pose ground clearance and rig batching are checked. The source silhouette was reviewed as a standalone SVG study, not a gameplay render.
