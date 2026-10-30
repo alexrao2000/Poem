@@ -25,7 +25,18 @@ func approach_combat(focus: Vector3,duration=.42) -> Tween:
  motion.tween_property(camera,"size",5.0,duration)
  motion.tween_property(camera,"h_offset",0.0,duration)
  motion.tween_property(camera,"v_offset",0.0,duration)
- motion.tween_property(camera,"position",eye_offset+focus,duration)
+ # Orbit around a moving look point, keeping the pair centered as the map
+ # angle descends. A single owner also makes interruption/restoration exact.
+ var rotation=camera.rotation
+ var distance=eye_offset.length()
+ var start_focus=camera.position-camera.basis.z*distance
+ var heading=Vector3(eye_offset.x,0,eye_offset.z).normalized().rotated(Vector3.UP,.10)
+ var destination=(heading*cos(deg_to_rad(38))+Vector3.UP*sin(deg_to_rad(38)))*distance
+ var final_rotation=Basis.looking_at(-destination,Vector3.UP).get_euler()
+ motion.tween_method(func(weight):
+  camera.rotation=Vector3(lerp_angle(rotation.x,final_rotation.x,weight),lerp_angle(rotation.y,final_rotation.y,weight),0)
+  camera.position=start_focus.lerp(focus,weight)+camera.basis.z*distance
+ ,0.0,1.0,duration)
  return motion
 
 func ground_at(screen_point: Vector2):

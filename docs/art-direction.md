@@ -134,3 +134,7 @@ Camera-facing dust/embers and recovery glow explicitly preserve their scale. Tra
 Critical attacks deepen the preparation pose before the eye-level portrait strip. Sword/axe users raise and coil the weapon further; spears draw back with a stronger torso turn; magic opens both arms; thrown spears use a distinct overhead coil. Archers keep their proven shoulder/nock geometry and add a focused head pose. The original strike endpoint and reach remain unchanged.
 
 Optional authored `critical_windup` and `critical_throw_windup` clips take precedence when supplied. A critical throw falls back to a dedicated throw preparation before generic windup. Geometry checks cover grounded infantry, bow contact in both directions, melee reach after the stronger anticipation and all 24 rigs before/after batching. The live cinematic check confirms the pose is established before the portrait appears. Rendered appearance is still unverified.
+
+## Descending map-to-combat zoom
+
+The 420 ms map approach now moves its look point toward the engaged pair while lowering the camera from the tactical angle to 38 degrees and adding a small yaw turn. Orthographic size still closes to five units; the existing radial veil conceals the arena swap. Pitch/yaw interpolate separately so the horizon stays level throughout. The return restores the exact captured tactical transform and lens values. Checks measure continuous zoom/descent, initial transform continuity, final pair centering, interrupted navigation ownership and complete return through combat/healing.

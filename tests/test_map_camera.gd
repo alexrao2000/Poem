@@ -38,7 +38,17 @@ func run():
  nav.zoom(-100,anchor);await nav.motion.finished;assert(camera.size==24,"Zoom-out is bounded")
  app.map_camera()
  camera.position+=Vector3(3,0,-2)
- await nav.approach_combat(Vector3(8.5,0,4),.01).finished
+ var start_angle=camera.rotation.x;var initial_transform=camera.transform
+ var approach=nav.approach_combat(Vector3(8.5,0,4),.18)
+ assert(camera.transform==initial_transform,"Combat approach starts without a position or angle jump")
+ var previous_size=camera.size;var previous_pitch=camera.rotation.x
+ while approach.is_running():
+  await process_frame
+  assert(camera.size<=previous_size+.001,"Tactical zoom closes continuously")
+  assert(camera.rotation.x>=previous_pitch-.001,"Camera descends continuously toward the ground-level scene")
+  assert(is_zero_approx(camera.rotation.z),"Approach never rolls the horizon")
+  previous_size=camera.size;previous_pitch=camera.rotation.x
+ assert(camera.rotation.x>start_angle+.2 and is_equal_approx(camera.rotation.x,deg_to_rad(-38)),"Combat handoff lowers the overhead view to 38 degrees")
  assert(camera.unproject_position(Vector3(8.5,0,4)).distance_to(camera.get_viewport().get_visible_rect().size*.5)<.01,"Completed combat zoom centers the engaged pair after tactical panning")
  app.map_camera()
  var wheel=InputEventMouseButton.new();wheel.pressed=true;wheel.button_index=MOUSE_BUTTON_WHEEL_UP;wheel.position=anchor
