@@ -873,7 +873,7 @@ func cinematic(a,b,events,initial_hp={}):
 	var banner=CombatHUD.new();banner.configure(ui,entries)
 	var caption=Label.new();caption.name="CombatCaption";caption.set_anchors_and_offsets_preset(Control.PRESET_TOP_WIDE);caption.offset_top=36;caption.horizontal_alignment=HORIZONTAL_ALIGNMENT_CENTER
 	caption.add_theme_font_size_override("font_size",30);caption.add_theme_color_override("font_color",Color("f7edce"));caption.add_theme_color_override("font_outline_color",Color("373d42"));caption.add_theme_constant_override("outline_size",7)
-	caption.text="Tab to skip";ui.add_child(caption)
+	caption.hide();ui.add_child(caption)
 
 	var finished_exchange=false
 	await get_tree().create_timer(.3).timeout
@@ -883,7 +883,7 @@ func cinematic(a,b,events,initial_hp={}):
 		var whom=defender if who==actor else actor
 		var unit=a if who==actor else b
 		if event.has("healing"):
-			banner.mark_actor(unit.id);caption.text=unit.name+"  /  "+game.item_for(unit).name
+			banner.mark_actor(unit.id)
 			director.shot(who.position,whom.position,"windup",true,mounted,.28)
 			await who.pose("cast_windup",.36).finished
 			if skip_combat:break
@@ -894,7 +894,7 @@ func cinematic(a,b,events,initial_hp={}):
 			await recovery.arrived
 			var recipient=b if who==actor else a
 			play_sfx("heal");displayed_hp[event.target]=mini(recipient.max_hp,displayed_hp[event.target]+event.healing)
-			banner.set_health(event.target,int(displayed_hp[event.target]));caption.text=unit.name+" — "+str(int(event.healing))+" HP restored"
+			banner.set_health(event.target,int(displayed_hp[event.target]))
 			director.shot(who.position,whom.position,"impact",true,mounted,.24)
 			await healing_motion.finished
 			await who.pose("idle",.18).finished
@@ -904,7 +904,6 @@ func cinematic(a,b,events,initial_hp={}):
 		var base=who.position
 		var direction=1.0 if who==actor else -1.0
 		var is_ranged=unit.weapon in ["bow","magic"] or (unit.weapon=="lance" and game.distance(a,b)>1)
-		caption.text=unit.name+"  /  "+("Critical strike" if event.crit else unit.weapon.capitalize())
 		if not is_ranged:
 			var distance_to_close=absf(whom.position.x-who.position.x)-Fighters.Actor.melee_spacing(unit.weapon)
 			if absf(distance_to_close)>.08:
@@ -964,7 +963,6 @@ func cinematic(a,b,events,initial_hp={}):
 		displayed_hp[event.target]=maxi(0,displayed_hp[event.target]-event.damage)
 		banner.set_health(event.target,int(displayed_hp[event.target]))
 		show_impact(whom.socket_position("impact"),event,spell)
-		caption.text=unit.name+(" — CRITICAL! " if event.crit else " — ")+((str(int(event.damage))+" damage" if event.damage>0 else "No damage") if event.hit else "Miss")
 		if event.hit and event.damage>0:director.impact(event.crit)
 		var hold=CombatHitStop.duration_for(event)
 		if hold>0:
@@ -981,7 +979,7 @@ func cinematic(a,b,events,initial_hp={}):
 			finished_exchange=true
 			var finish=preload("res://scripts/combat_finish.gd").new();stage.add_child(finish)
 			var line=finish.quote_for(unit,fighters.profiles)
-			caption.text=unit.name+(" — "+line if not line.is_empty() else "")
+			caption.text=unit.name+(" — "+line if not line.is_empty() else "");caption.show()
 			director.shot(who.position,whom.position,"finish",is_ranged,unit.job=="Rider",.28)
 			await finish.play(who,func():return skip_combat,.95 if not line.is_empty() else .60)
 			finish.queue_free()

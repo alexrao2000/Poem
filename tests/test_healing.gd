@@ -64,6 +64,7 @@ func run():
    await process_frame
    var hud=app.ui.get_node_or_null("CombatHUD")
    if hud!=null and not hud.is_queued_for_deletion():
+    assert(not app.ui.get_node("CombatCaption").visible,"Healing uses its local number and health meter without a duplicate headline")
     observed_hp.append(hud.records[recipient.id].meter.value)
     assert(hud.records.values().all(func(record):return not record.plate.enemy),"Healing shows two allied nameplates")
    var actors=app.stage.get_children().filter(func(node):return node is Actor and not node.is_queued_for_deletion())

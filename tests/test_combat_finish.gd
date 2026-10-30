@@ -15,7 +15,7 @@ func watch_finish(node):
  var actors=app.stage.get_children().filter(func(child):return child is Fighters.Actor and not child.is_queued_for_deletion())
  var standing=actors.filter(func(actor):return actor.pose_name=="victory")
  assert(standing.size()==1 and actors.any(func(actor):return actor.pose_name=="down"),"Only the surviving fighter finishes while the defeated actor stays down")
- assert(app.ui.get_node("CombatCaption").text==expected_caption,"The confirmed survivor receives their own finishing line, with a name-only enemy fallback")
+ assert(app.ui.get_node("CombatCaption").visible and app.ui.get_node("CombatCaption").text==expected_caption,"The confirmed survivor receives their own finishing line, with a name-only enemy fallback")
  observed.append(standing[0].kind)
  if skip_finish:
   var tab=InputEventKey.new();tab.keycode=KEY_TAB;tab.pressed=true;app._input(tab)

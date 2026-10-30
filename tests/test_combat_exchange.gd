@@ -99,6 +99,7 @@ func observe(app,shots,skip_at):
   var active=actors.filter(func(node):return node.pose_name=="windup")
   var current=active[0].get_instance_id() if active.size()==1 else 0
   if current!=0 and current!=previous:
+   assert(not app.ui.get_node("CombatCaption").visible,"Routine attacks leave the action area clear of duplicate headlines")
    shots.append({"a":actors[0].position,"b":actors[1].position,"kind":active[0].kind})
    if shots.size()==skip_at:app.skip_combat=true
   previous=current

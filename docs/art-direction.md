@@ -426,3 +426,7 @@ The selected unit carries a shared flat blue corner mesh inside its tile, below 
 Village, road, forest, river and mountain arenas replace the separate ellipsoid hills with three continuous heightfields. Each layer has an original crest profile, a different depth and a slightly cooler palette. Countryside uses smooth hill transitions; mountain profiles use sharper rises. All boundaries taper to the distant ground plane. The nearest relief starts 26 m behind the fighters, beyond the landmarks and approach space.
 
 Six cached source meshes supply the two families; three layers total 2,304 triangles per arena. The distant geometry does not cast shadows into the fighter shadow atlas. Geometry checks cover exact shared seams, opaque restrained colors, normalized upward normals, nondegenerate clockwise faces, distinct skylines and arena placement. All map/arena batching and actual scene transitions pass. A separate SVG profile study was reviewed; this is not a rendered-game review or FPS measurement.
+
+## Quieter combat text
+
+The large top caption is reserved for the confirmed survivor’s finishing line. Routine weapon, damage, miss and healing headlines are removed because those events already have active nameplates, local numbers, health meters and critical cut-ins. The bottom Shift/Tab hint remains available throughout. Live exchange/healing checks keep the action area free of duplicate captions, while finishing checks require the character line to remain visible.
