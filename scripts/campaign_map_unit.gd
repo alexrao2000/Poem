@@ -1,7 +1,7 @@
 extends "res://visuals/unit_3d.gd"
 # Campaign adapter keeps the portable sprite renderer free of campaign rules.
-# Facing, animation and brief evasion offsets are presentation state; action
-# resolution stays in Rules. Owned evasion always returns to the original tile.
+# Facing, animation and brief reaction offsets are presentation state; action
+# resolution stays in Rules. Owned motion always returns to the original tile.
 
 const TACTICAL_PIXEL_SIZE=1.0/48.0
 static var contact_material: StandardMaterial3D
@@ -9,8 +9,8 @@ static var selected_mesh: ArrayMesh
 static var selected_material: StandardMaterial3D
 var unit_id=""
 var commander_insignia: Sprite3D
-var evade_motion: Tween
-var evade_origin=Vector3.ZERO
+var reaction_motion: Tween
+var reaction_origin=Vector3.ZERO
 
 func configure(source: RefCounted,unit: Dictionary,facing="south"):
  unit_id=unit.id;team=unit.team;spent=unit.acted
@@ -97,22 +97,30 @@ func face_step(step: Vector2i):
 func face_toward(point: Vector2i,origin: Vector2i):
  player.play("idle",Player.facing_for_step(point-origin));update_frame()
 
-func settle_evade():
- if evade_motion and evade_motion.is_valid():
-  evade_motion.kill();position=evade_origin
+func settle_reaction():
+ if reaction_motion and reaction_motion.is_valid():
+  reaction_motion.kill();position=reaction_origin
+
+func reaction_offset(offset: Vector3,outward: float,hold: float,returning: float) -> Tween:
+ settle_reaction();reaction_origin=position
+ reaction_motion=create_tween()
+ reaction_motion.tween_property(self,"position",reaction_origin+offset,outward).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_OUT)
+ reaction_motion.tween_interval(hold)
+ reaction_motion.tween_property(self,"position",reaction_origin,returning).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN_OUT)
+ return reaction_motion
 
 func evade_from(point: Vector2i,origin: Vector2i) -> Tween:
- settle_evade();evade_origin=position
  var side=Vector2(origin-point).orthogonal().normalized()
  if side.is_zero_approx():side=Vector2.RIGHT
- evade_motion=create_tween()
- evade_motion.tween_property(self,"position",evade_origin+Vector3(side.x,0,side.y)*.14,.08).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_OUT)
- evade_motion.tween_interval(.16)
- evade_motion.tween_property(self,"position",evade_origin,.12).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN_OUT)
- return evade_motion
+ return reaction_offset(Vector3(side.x,0,side.y)*.14,.08,.16,.12)
+
+func recoil_from(point: Vector2i,origin: Vector2i,critical=false) -> Tween:
+ var away=Vector2(origin-point).normalized()
+ if away.is_zero_approx():away=Vector2.DOWN
+ return reaction_offset(Vector3(away.x,0,away.y)*(.14 if critical else .08),.045,.055,.14)
 
 func finish_move():
- settle_evade()
+ settle_reaction()
  player.play("idle");update_frame()
 
 func act_toward(point: Vector2i,origin: Vector2i):

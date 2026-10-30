@@ -4,7 +4,7 @@ Target: the readable sprite-on-3D tactical presentation and close-up 3D combat o
 
 ## Exploratory 2D visual requirements
 
-The [reusable 2D requirements package](visuals-2d/README.md) explores animated pixel characters with either 2D tilemaps or 3D terrain, informed by Dyadem's presentation. The implemented [visual foundation](../visuals/README.md) contains original generated sprite and environment atlases, a validated catalog, shared animation playback, effects, two map adapters, and a portable preview. The title screen's Visual workshop runs both renderers against the same separate tactical skirmish. The main campaign's renderer and separate 3D combat remain in place. Exact art prompts and provenance are in `visuals/source/generation-prompts.json`; production gaps and integration context are in [integration notes](visuals-2d/integration-notes.md).
+The [reusable 2D requirements package](visuals-2d/README.md) explores animated pixel characters with either 2D tilemaps or 3D terrain, informed by Dyadem's presentation. The implemented [visual foundation](../visuals/README.md) contains original generated sprite and environment atlases, a validated catalog, shared animation playback, effects, two map adapters, and a portable preview. The title screen's Character & map workshop runs both renderers against the same separate tactical skirmish. The main campaign's renderer and separate 3D combat remain in place. Exact art prompts and provenance are in `visuals/source/generation-prompts.json`; production gaps and integration context are in [integration notes](visuals-2d/integration-notes.md).
 
 The first build's floating board, flat spheres, identical block sprites and wooden mannequin combatants were rejected by the user. Do not treat that aesthetic as the target. The current rebuild is an intermediate step, not an equivalent of the reference games.
 
@@ -51,7 +51,7 @@ The campaign map uses the [animated class catalog](../visuals/README.md) for all
 
 Water uses a shared world-space animated ripple shader. Ground receives broad color variation, tree crowns have varied heights/asymmetry, and village arenas include a cart, barrels and fences. These remain prototype art rather than a claim of matching finished 3DS character quality.
 
-Mounted combat figures use chestnut, ivory and gray coats for Bram, Una and Elian, following their map identities. The [mount builder](../scripts/mount_visuals.gd) adds saddles, bordered saddlecloths, bridles, reins, stirrups, tapered manes, ears, eyes and articulated tails. Head and tail motion stay separate from tactical actor movement. Shared strand materials allow rigid details to batch inside their own joints: the full 24-character roster now combines 1,794 source meshes into 1,066 batches, verified against unbatched positions, normals and UVs in eight poses. This measures mesh submissions, not browser frame rate.
+Mounted combat figures use chestnut, ivory and gray coats for Bram, Una and Elian, following their map identities. The [mount builder](../scripts/mount_visuals.gd) adds saddles, bordered saddlecloths, bridles, reins, stirrups, tapered manes, ears, eyes and articulated tails. Head and tail motion stay separate from tactical actor movement. Shared strand materials allow rigid details to batch inside their own joints: the full 24-character roster now combines 1,786 source meshes into 1,066 batches, verified against unbatched positions, normals and UVs in eight poses. This measures mesh submissions, not browser frame rate.
 
 The [recruit profiles](../data/characters.json) also select individual cloth and cape colors. The [hair builder](../scripts/character_hair.gd) provides ponytails for Sera and Yuna, braids for Mara/Faye/Vela, Esme's side braid, Una's bun and curls for Petra/Ari, alongside the existing long, short, bearded and bald silhouettes. These are procedural improvements to identity continuity, not imported production character models.
 
@@ -221,7 +221,7 @@ The unchanged generated PNG contains 96 poses. A spacing pass and targeted caval
 
 The existing cape joint still follows the character, while a shared shader function adds small bends toward the hem. The shoulder edge remains fixed. Advance, strike, recovery and reactions smoothly increase motion, then settle toward a restrained ready-state ripple. Displacement is bounded below 8 cm; mesh culling margins cover 10 cm. Analytic inverse-transpose normals follow the bend for lighting and the thin outline, and both passes use the same function and actor-owned clock. Local hit stop freezes that clock with the fighter instead of leaving cloth animated by global shader time.
 
-Each cape owns its fabric and outline materials. Shared armor, weapons and body fabric never opt into deformation. Rebinding after rigid batching preserves independent state; source geometry and this deformation adds no mesh batches (the current roster totals 1,794 sources / 1,066 joint batches). Tests exercise all 24 recruits, attachment geometry, per-actor material isolation, paired clocks, action-to-idle settling and real hit-stop pause/resume. Export checks include the new shader dependency. This is bounded procedural secondary motion, not physical cloth simulation; rendered tuning remains pending.
+Each cape owns its fabric and outline materials. Shared armor, weapons and body fabric never opt into deformation. Rebinding after rigid batching preserves independent state; source geometry and this deformation adds no mesh batches (the current roster totals 1,786 sources / 1,066 joint batches). Tests exercise all 24 recruits, attachment geometry, per-actor material isolation, paired clocks, action-to-idle settling and real hit-stop pause/resume. Export checks include the new shader dependency. This is bounded procedural secondary motion, not physical cloth simulation; rendered tuning remains pending.
 
 ## The campaign route
 
@@ -315,7 +315,7 @@ Existing long back lengths, ponytails, braids and the side braid now retain a de
 
 ### Equipped item silhouettes
 
-`data/equipment_looks.json` defines all 22 weapon appearances separately from combat statistics. `equipment_visuals.gd` builds cached closed blade/head meshes and keeps each class’s prior contact reach. The war hammer is blunt and beveled; the hatchet has one blade; narrow swords, broad tempered steel, braced pike lugs, three bow limb profiles, elemental folio covers/ribbons and different staff crowns distinguish the arsenal. Bowstrings use the actual limb height. Thrown spears inherit equipped head width and colors. Source geometry/material fingerprints distinguish all items; 880 pose samples and real javelin playback pass. Default roster: 1,794 sources / 1,066 joint batches. Final rendered inspection remains outstanding.
+`data/equipment_looks.json` defines all 22 weapon appearances separately from combat statistics. `equipment_visuals.gd` builds cached closed blade/head meshes and keeps each class’s prior contact reach. The war hammer is blunt and beveled; the hatchet has one blade; narrow swords, broad tempered steel, braced pike lugs, three bow limb profiles, elemental folio covers/ribbons and different staff crowns distinguish the arsenal. Bowstrings use the actual limb height. Thrown spears inherit equipped head width and colors. Source geometry/material fingerprints distinguish all items; 880 pose samples and real javelin playback pass. Default roster: 1,786 sources / 1,066 joint batches. Final rendered inspection remains outstanding.
 
 ### Tactical selection polish
 
@@ -363,7 +363,7 @@ Procedural actors emit alternating contact signals at stride extrema, driven by 
 
 ## Curled combat gloves
 
-`grip_hand.gd` replaces the non-caster oval gloves with original closed palm, finger and thumb surfaces. Four curved digits leave a central longitudinal grip channel, and thumb/palm geometry mirrors by hand. The meshes remain within the former 15 × 17 × 13 cm bounds and attach directly to the existing elbow joints; weapon sockets and reach are unchanged. A separately cached leather surface limits finger outlines to 1.5 mm. Geometry tests cover closed surfaces, outward faces, grip clearance, both handed shapes and roster/enemy wrist attachments through six poses. All 22 weapon appearances and rigid-batch geometry remain valid. The default roster uses 1,794 source meshes / 1,066 joint batches. Rendered review remains pending.
+`grip_hand.gd` replaces the non-caster oval gloves with original closed palm, finger and thumb surfaces. Four curved digits leave a central longitudinal grip channel, and thumb/palm geometry mirrors by hand. The meshes remain within the former 15 × 17 × 13 cm bounds and attach directly to the existing elbow joints; weapon sockets and reach are unchanged. A separately cached leather surface limits finger outlines to 1.5 mm. Geometry tests cover closed surfaces, outward faces, grip clearance, both handed shapes and roster/enemy wrist attachments through six poses. All 22 weapon appearances and rigid-batch geometry remain valid. The default roster uses 1,786 source meshes / 1,066 joint batches. Rendered review remains pending.
 
 ## Portrait-led forecasts and finishing lines
 
@@ -387,7 +387,7 @@ The already-resolved event sequence, roster state, RNG and restored tactical cam
 
 Headless inspection of actual source vertices found the mounted pelvis 18.5 cm above the saddle and the standing hooves 4.5 cm below the arena floor. The horse body and legs now meet the existing rider height: saddle/pelvis contact is exact at rest, and standing hoof minima are at ground level. Rider weapon sockets, reach, camera height and tactical position stay unchanged. The seated legs spread around the mount, and repositioned stirrup steps meet each boot's actual lowest point.
 
-A separate registered Horse root preserves the body, head, tail and leg hierarchy through batching. Ground correction uses the four animated hoof ellipsoids and moves the horse and rider roots together. It runs after pose writes as well as during signed-distance locomotion, so walking-to-attack transitions retain contact. Defeat retains a torso slump while the pelvis is constrained to the saddle and the legs stay seated. The 2,304 roster travel samples include 288 mounted samples; ten mounted poses, including defeat, are sampled through their transitions, with actual hoof, saddle and boot/stirrup checks. Weapon-motion, finishing-camera and complete rig-batching comparisons pass. Counts remain 1,794 sources / 1,066 batches. Rendered animation review remains pending.
+A separate registered Horse root preserves the body, head, tail and leg hierarchy through batching. Ground correction uses the four animated hoof ellipsoids and moves the horse and rider roots together. It runs after pose writes as well as during signed-distance locomotion, so walking-to-attack transitions retain contact. Defeat retains a torso slump while the pelvis is constrained to the saddle and the legs stay seated. The 2,304 roster travel samples include 288 mounted samples; ten mounted poses, including defeat, are sampled through their transitions, with actual hoof, saddle and boot/stirrup checks. Weapon-motion, finishing-camera and complete rig-batching comparisons pass. Counts remain 1,786 sources / 1,066 batches. Rendered animation review remains pending.
 
 ## Swept melee trails
 
@@ -407,13 +407,13 @@ The heavy-infantry shield now has a clipped upper edge, tapered point and shallo
 
 ## Archer quivers
 
-The original back quiver now has an open annular lip, tapered leather walls and a recessed floor. Four staggered shafts enter this cavity; each has three small ivory feathers above the opening. A single tilted attachment keeps the container and arrow tails aligned through the body animation. Fine feather outlines use a 1 mm shell. Four cached material meshes replace the prior cylinder and four independent sticks; the roster now totals 1,794 sources / 1,066 joint batches. Actual opening/clearance rays, body topology, archer poses and batching equivalence pass; assembled rendering remains pending.
+The original back quiver now has an open annular lip, tapered leather walls and a recessed floor. Four staggered shafts enter this cavity; each has three small ivory feathers above the opening. A single tilted attachment keeps the container and arrow tails aligned through the body animation. Fine feather outlines use a 1 mm shell. Four cached material meshes replace the prior cylinder and four independent sticks; the roster now totals 1,786 sources / 1,066 joint batches. Actual opening/clearance rays, body topology, archer poses and batching equivalence pass; assembled rendering remains pending.
 
 ## Foreground combat framing
 
 The Awakening reference uses strong perspective depth and a prominent foreground fighter. Combat now looks across the engagement axis at about 33 degrees, with a 5.4 m base infantry radius and 7.35 m mounted radius. The vertical composition leaves room for captions and the lower HUD; preparation/contact camera shifts are deliberately small. In the fixed 4 m ranged fixture, a 1.8 m foreground figure occupies 46.4% of view height, while the farther figure occupies 31.3%; the prior foreground result was 30.1%. The lens stays at 46–48 degrees.
 
-The camera audit uses actual SubViewport dimensions and transformed head/boot/hoof bounds: 2,304 layouts across all recruits, both sides, 1.3/4 m gaps, mixed mounts, idle/preparation/critical/impact poses and three desktop sizes. Heads and soles clear the caption, viewport edges and HUD. Finishing-camera behavior is retained. Projection, transition, recovery and restoration checks pass; rendered camera/art review is still unavailable.
+The camera audit uses actual SubViewport dimensions and transformed head/boot/hoof bounds: 2,880 layouts across all recruits, both sides, 1.3/4 m gaps, mixed mounts, idle/preparation/critical/impact/recoil poses and three desktop sizes. Heads and soles clear the caption, viewport edges and HUD. Finishing-camera behavior is retained. Projection, transition, recovery and restoration checks pass; rendered camera/art review is still unavailable.
 
 ## Tactical readiness and selection
 
@@ -445,7 +445,7 @@ The warehouse, cart and roadside barrels now use a twelve-stave bowed profile wi
 
 ## Continuous pose contact and defeat expressions
 
-Infantry now derives its support height from the currently interpolated thigh/knee rotations after each pose update. It no longer interpolates between endpoint heights independently of the legs. This removes the measured 18 mm floor penetration during hit-to-defeat and 28 mm during the preview's return from defeat. Actual boot geometry is checked through 2,016 transition samples across all 21 infantry recruits; the pelvis and upper legs share the same support offset. Distance-driven travel retains the same constraint.
+Infantry now derives its support height from the currently interpolated thigh/knee rotations after each pose update. It no longer interpolates between endpoint heights independently of the legs. This removes the measured 18 mm floor penetration during hit-to-defeat and 28 mm during the preview's return from defeat. Actual boot geometry is checked through 2,184 transition samples across all 21 infantry recruits; the pelvis and upper legs share the same support offset. Distance-driven travel retains the same constraint.
 
 Defeat holds the existing closed-eyelid atlas instead of reopening the eyes for every non-idle pose. Living reactions and finishing poses remain attentive. Per-actor materials, opaque helmets, hidden suspension and hit-stop behavior are retained; no source image is changed. Rendered animation review remains pending.
 
@@ -510,3 +510,7 @@ Two gold bands are fitted to the plate with a 1.5 mm surface clearance. Their sh
 ## Timed facial hit reactions
 
 Normal and critical damage briefly use the existing closed-eyelid artwork for 90 and 140 ms of actor animation time. The longer critical flinch remains synchronized with the stronger body recoil. Local hit-stop freezes both the expression and its timer; repeated hits restart it, while the next active pose restores attentive eyes. Defeat retains its sustained closure. Tests cover all visible faces, real critical contact, repeated reactions, hidden suspension and skipping. No additional raster asset is required.
+
+## Directional quick-map hit recoil
+
+Map-only damage moves the defender 0.08 m away from the attacker, or 0.14 m on a critical hit, then returns within the existing result-cue timing. Misses retain their sideways evasion and blocked hits remain planted. A shared reaction controller cancels prior motion and restores the exact tile before a new reaction or normal movement. Actual playback checks verify peak distance, direction, terrain height, interruption and unchanged simulation.

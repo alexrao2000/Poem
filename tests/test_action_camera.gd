@@ -5,7 +5,8 @@ var movement_done=false
 var saw_cue=false
 var cue_types={}
 var cue_layouts=0
-var miss_recipient: Dictionary={}
+var cue_recipient: Dictionary={}
+var cue_attacker: Dictionary={}
 
 func _initialize():call_deferred("run")
 
@@ -73,12 +74,12 @@ func run():
  assert(samples>3 and app.game.save_data("battle")==saved and app.game.rng.state==rng,"Following actual movement never changes simulation or RNG")
  assert(visual.position==app.map_position(path[-1]) and app.camera.size==8,"Movement reaches its destination at the player's zoom")
  app.ui.child_entered_tree.connect(func(node):watch_cue(node,app))
- var recipient=app.game.living("player")[0];unit.x=11;unit.y=8;recipient.x=13;recipient.y=8;app.refresh_pieces()
+ var recipient=app.game.living("player")[0];unit.x=11;unit.y=8;recipient.x=13;recipient.y=8;app.refresh_pieces();cue_recipient=recipient;cue_attacker=unit
  app.camera.position=app.map_navigation.eye_offset+Vector3(-1,0,-1)
  saved=app.game.save_data("battle").duplicate(true)
  await app.map_combat_feedback([{"actor":unit.id,"target":recipient.id,"damage":3,"hit":true,"crit":false,"remaining":recipient.hp}])
  assert(saw_cue and app.game.save_data("battle")==saved and app.game.rng.state==rng,"Off-screen map-only result is framed without reapplying damage")
- unit.x=1;unit.y=0;recipient.x=0;recipient.y=0;app.refresh_pieces();miss_recipient=recipient
+ unit.x=1;unit.y=0;recipient.x=0;recipient.y=0;app.refresh_pieces();cue_recipient=recipient
  saved=app.game.save_data("battle").duplicate(true)
  for content in ["NO DAMAGE","MISS","CRIT 999"]:
   app.camera.position=app.map_navigation.eye_offset+Vector3(14,0,10)
@@ -87,6 +88,12 @@ func run():
   assert(cue_types.has(content),"Actual map result text was observed: "+content)
   assert(app.unit_nodes[recipient.id].position==app.map_position(app.game.pos(recipient)),"Evasion returns the sprite to its canonical tile before field control resumes")
   assert(app.map_facings[recipient.id]=="east" and app.unit_nodes[recipient.id].player.facing=="east","Defenders face the incoming attacker and keep that facing after refresh")
+ var interrupted=app.unit_nodes[recipient.id];var tile_position=app.map_position(app.game.pos(recipient))
+ interrupted.recoil_from(app.game.pos(unit),app.game.pos(recipient),true)
+ await process_frame;await process_frame
+ assert(interrupted.position.distance_to(tile_position)>.001,"Interrupted recoil fixture has actually moved")
+ interrupted.finish_move()
+ assert(interrupted.position==tile_position and not interrupted.reaction_motion.is_valid(),"Cancelling a reaction restores the exact tile immediately")
  app.camera.position=app.map_navigation.eye_offset+Vector3(14,0,10)
  await app.map_heal_feedback(recipient,recipient,999)
  assert(cue_types.has("+999") and app.game.save_data("battle")==saved and app.game.rng.state==rng,"Recovery centering and text framing change no resolved game state")
@@ -104,11 +111,20 @@ func watch_cue(node,app):
  if node.text not in ["3","NO DAMAGE","MISS","CRIT 999","+999"]:return
  saw_cue=true;cue_types[node.text]=true
  if node.text=="MISS":
-  var victim=app.unit_nodes[miss_recipient.id];var base=app.map_position(app.game.pos(miss_recipient))
+  var victim=app.unit_nodes[cue_recipient.id];var base=app.map_position(app.game.pos(cue_recipient))
   assert(victim.position.distance_to(base)>.12 and is_equal_approx(victim.position.x,base.x) and is_equal_approx(victim.position.y,base.y),"Actual missed attack shows a perpendicular sidestep with unchanged tile height")
   assert(victim.player.facing=="east","Miss reaction keeps the defender looking toward the incoming attack")
+ var target=app.unit_nodes[cue_recipient.id];var tile=app.map_position(app.game.pos(cue_recipient));var largest_recoil=0.0;var content=node.text
+ var away=Vector2(app.game.pos(cue_recipient)-app.game.pos(cue_attacker)).normalized()
+ var direction=Vector3(away.x,0,away.y)
  while is_instance_valid(node) and not node.is_queued_for_deletion():
+  if node.text in ["3","CRIT 999"]:
+   var offset=target.position-tile;largest_recoil=maxf(largest_recoil,offset.length())
+   assert(absf(offset.y)<.00001 and offset.dot(direction)>=-.00001 and offset.cross(direction).length()<.00001,"Map damage recoils directly away from the attacker without changing tile height")
+  elif node.text=="NO DAMAGE":assert(target.position==tile,"A blocked quick-map hit stays planted")
   var bounds=node.get_global_rect().grow(5)
   assert(app.map_navigation.safe_rect().encloses(bounds),"Full floating result remains in the action area throughout its rise and fade")
   assert(not bounds.intersects(app.action_occlusion()),"Actual floating result never passes behind the terrain readout")
   await process_frame
+ if content in ["3","CRIT 999"]:
+  assert(largest_recoil>=(.138 if content=="CRIT 999" else .078),"Normal and critical map hits show their intended distinct recoil distance")

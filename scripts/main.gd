@@ -1495,15 +1495,16 @@ func map_combat_feedback(events: Array):
 		var actor=unit_nodes.get(event.actor);var victim=unit_nodes.get(event.target)
 		var cue_text="MISS" if not event.hit else "NO DAMAGE" if event.damage<=0 else ("CRIT " if event.crit else "")+str(int(event.damage))
 		await frame_map_action([unit]+attackers,map_cue_padding(cue_text))
-		var dodge: Tween
+		var reaction: Tween
 		if victim!=null and not attackers.is_empty():
 			victim.face_toward(game.pos(attackers[0]),game.pos(unit));map_facings[event.target]=victim.player.facing
-			if not event.hit:dodge=victim.evade_from(game.pos(attackers[0]),game.pos(unit))
+			if not event.hit:reaction=victim.evade_from(game.pos(attackers[0]),game.pos(unit))
 		if actor!=null and not attackers.is_empty():
 			actor.act_toward(game.pos(unit),game.pos(attackers[0]));map_facings[event.actor]=actor.player.facing
 		await get_tree().create_timer(.12).timeout
 		if victim!=null:
 			victim.react(event.hit and event.damage>0,int(event.remaining));victim.hp_ratio=clampf(float(event.remaining)/maxf(1,unit.max_hp),0,1);victim.refresh_health()
+			if event.hit and event.damage>0 and not attackers.is_empty():reaction=victim.recoil_from(game.pos(attackers[0]),game.pos(unit),event.crit)
 		var text_label=Label.new();ui.add_child(text_label)
 		text_label.text=cue_text
 		text_label.add_theme_font_size_override("font_size",28);text_label.add_theme_color_override("font_color",Color("ffe5a1"));text_label.add_theme_color_override("font_outline_color",Color("30353a"));text_label.add_theme_constant_override("outline_size",5)
@@ -1511,7 +1512,7 @@ func map_combat_feedback(events: Array):
 		play_sfx("swing" if not event.hit else "guard" if event.damage<=0 else "critical" if event.crit else "hit")
 		var fade=create_tween().set_parallel(true);fade.tween_property(text_label,"position:y",text_label.position.y-24,.24);fade.tween_property(text_label,"modulate:a",0.0,.24)
 		await fade.finished
-		if dodge and dodge.is_valid() and dodge.is_running():await dodge.finished
+		if reaction and reaction.is_valid() and reaction.is_running():await reaction.finished
 		text_label.queue_free()
 		if actor!=null:actor.finish_move()
 		if victim!=null and event.remaining>0:victim.finish_move()
