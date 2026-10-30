@@ -460,3 +460,7 @@ Arrows and thrown spears retain the original target and flight arc, then carry a
 ## Critical recoil
 
 Confirmed critical damage uses a stronger torso/head recoil and deeper knee bend, while maintaining the live ground or saddle constraint. Cape and loose hair have a stronger bounded response, and the gaze relaxes with the reaction. Guarded hits keep their existing pose and do not acquire a damage hold. The actual cut-in sequence is checked for critical recoil during hit-stop; 2,880 roster head/sole layouts, 2,184 infantry transition samples, mounted seating and authored-model fallback pass. An optional `critical_hit` clip overrides the normal `hit` fallback for imported models. Rendered motion tuning remains pending.
+
+## Combat weapon-matchup markers
+
+The paired combat nameplates reuse the forecast's green upward and red downward weapon-advantage arrows. Each marker sits between the weapon icon and name; neutral pairings and staff healing hide it. The cinematic supplies the existing rules' triangle value for both participants, so counters and follow-ups retain the same relationship without recalculating any outcome. Layout checks cover all recruits at three desktop sizes, with separate space for icon, marker, weapon name and health. Forecast behavior and all 36 weapon pairings remain unchanged.

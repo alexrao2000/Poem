@@ -100,7 +100,8 @@ func observe(app,shots,skip_at):
   var current=active[0].get_instance_id() if active.size()==1 else 0
   if current!=0 and current!=previous:
    assert(not app.ui.get_node("CombatCaption").visible,"Routine attacks leave the action area clear of duplicate headlines")
-   shots.append({"a":actors[0].position,"b":actors[1].position,"kind":active[0].kind})
+   var hud=app.ui.get_node("CombatHUD")
+   shots.append({"a":actors[0].position,"b":actors[1].position,"kind":active[0].kind,"matchups":hud.order.map(func(id):return hud.records[id].matchup.advantage)})
    if shots.size()==skip_at:app.skip_combat=true
   previous=current
   var recovering=actors.filter(func(node):return node.pose_name=="recover")
@@ -132,7 +133,9 @@ func run():
   observing=false;await process_frame
   assert(shots.size()==(1 if case in ["skip_hold","skip_recovery"] else 2 if case=="skip" else 3),"Counter/follow-up order and mid-exchange skip retained: %s had %d windups"%[case,shots.size()])
   assert(recoveries.size()==(0 if case=="skip_hold" else 1 if case in ["skip","skip_recovery"] else 3),"Every completed strike recovers once; skip interrupts the sequence")
+  var expected_matchup=1 if case=="mixed" else -1 if case=="axe" else 0
   for shot in shots:
+   assert(shot.matchups==[expected_matchup,-expected_matchup],"Actual nameplates carry the resolved matchup through initiation, counter and follow-up")
    assert(is_equal_approx(absf(shot.a.x-shot.b.x),Actor.melee_spacing(shot.kind)),"Each attack starts at its weapon's contact distance")
    assert(shot.a.x<shot.b.x,"Neither fighter crosses the combat axis")
   if case=="swords":

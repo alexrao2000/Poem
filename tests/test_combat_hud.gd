@@ -21,9 +21,10 @@ func run():
   host.size=viewport_size
   for recruit in game.roster:
    var unit=recruit.duplicate(true);unit.team="player"
+   var advantage=1 if unit.weapon=="axe" else -1 if unit.weapon=="sword" else 0
    var hud=HUD.new();hud.configure(host,[
-    {"unit":unit,"hp":unit.hp,"portrait":portraits.get_portrait(unit.id),"class_name":game.class_name_for(unit),"weapon":game.item_for(unit).name},
-    {"unit":foe,"hp":999,"portrait":portraits.get_unit_portrait(foe),"class_name":"Armored commander","weapon":"Rider-stop pike"}])
+    {"unit":unit,"hp":unit.hp,"portrait":portraits.get_portrait(unit.id),"class_name":game.class_name_for(unit),"weapon":game.item_for(unit).name,"triangle":advantage},
+    {"unit":foe,"hp":999,"portrait":portraits.get_unit_portrait(foe),"class_name":"Armored commander","weapon":"Rider-stop pike","triangle":-advantage}])
    await process_frame;await process_frame
    var left=hud.records[unit.id].plate;var right=hud.records.foe.plate
    assert(hud.records.foe.portrait.flip_h and not hud.records[unit.id].portrait.flip_h,"Enemy portrait faces inward toward its opponent")
@@ -35,6 +36,10 @@ func run():
     for child in r.plate.get_children():
      assert(child.position.x>=0 and child.position.y>=0 and child.get_rect().end.x<=r.plate.size.x+.1 and child.get_rect().end.y<=r.plate.size.y,"Portrait, labels and health fit nameplate")
     assert(r.weapon.get_rect().end.x<=r.hp.position.x,"Weapon and health text do not overlap")
+    var expected=advantage if id==unit.id else -advantage
+    assert(r.matchup.advantage==expected and r.matchup.visible==(expected!=0),"Both sides retain their directional weapon matchup, with neutral pairings hidden")
+    if r.matchup.visible:
+     assert(r.matchup.get_rect().position.x>=r.icon.get_rect().end.x and r.matchup.get_rect().end.x<=r.weapon.position.x,"Matchup arrow has its own space between icon and weapon name")
     var font=r.hp.get_theme_font("font");var font_size=r.hp.get_theme_font_size("font_size")
     assert(font.get_string_size(r.hp.text,HORIZONTAL_ALIGNMENT_LEFT,-1,font_size).x<=r.hp.size.x,"Full health numbers fit at the save cap")
    hud.mark_actor("foe");assert(hud.records.foe.plate.active and not hud.records[unit.id].plate.active)
