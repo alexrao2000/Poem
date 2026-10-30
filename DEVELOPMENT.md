@@ -6,7 +6,9 @@ User direction: keep developing continuously in this chat until the user returns
 
 ## Current checkpoint
 
-Current measured geometry: 13,554 static map sources / 616 batches across twelve chapters, plus separate cloth and atmosphere; 1,794 character sources / 1,066 joint batches across the roster. The default runner has 60 suites. Earlier paragraphs below record prior checkpoints. Rendered game review and browser FPS measurements remain outstanding.
+The outfit viewer now fits the whole character, equipment and selectable actions beside the actual controls. A sampled orbit envelope keeps the camera stable while rotating and replaying; window changes reframe it. All 72 base/promoted outfits pass 33,696 geometry layouts across three sizes, with actual preview selection and return lifecycle checks. Rendered review remains pending.
+
+Current measured geometry: 13,554 static map sources / 616 batches across twelve chapters, plus separate cloth and atmosphere; 1,786 character sources / 1,066 joint batches across the roster. The default runner has 62 suites. Earlier paragraphs below record prior checkpoints. Rendered game review and browser FPS measurements remain outstanding.
 
 Quick-map result framing now budgets for the full floating label, outline and upward motion. This prevents guarded-hit text from clipping the left edge or rising behind the terrain card after a reverse pan; healing amounts are centered over their recipient. All 4,200 tile/text/view-size/pan-origin layouts and real damage, miss, guard and recovery cues pass without changing simulation.
 

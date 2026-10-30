@@ -1214,8 +1214,6 @@ func show_model_view(unit,on_close=Callable()):
 	scenery.battle_landscape(stage,Vector3(35,0,0),{"environment":theme})
 	var actor_data=unit.duplicate(true);actor_data.team="player"
 	preview_actor=make_fighter(actor_data,Vector3(35,0,0));preview_actor.rotation.y=PI-.35
-	camera.projection=Camera3D.PROJECTION_PERSPECTIVE;camera.h_offset=-.25;camera.fov=35
-	camera.position=Vector3(35,1.4,4.7 if unit.job!="Rider" else 6.5);camera.look_at(Vector3(35,1.05,0))
 	var panel=menu_panel(310,true)
 	label_in(panel,"TRAINING / OUTFIT PREVIEW" if preview_return.is_valid() else "COMPANY / PREVIEW",15,GOLD);label_in(panel,unit.name,38)
 	var portrait=TextureRect.new();portrait.texture=portraits.get_portrait(unit.id)
@@ -1237,6 +1235,8 @@ func show_model_view(unit,on_close=Callable()):
 	choice.item_selected.connect(func(index):preview_actor.pose(str(choice.get_item_metadata(index))))
 	button_in(panel,"Play again",func():preview_actor.pose(str(choice.get_item_metadata(choice.selected))))
 	button_in(panel,"Return to training [Esc]" if preview_return.is_valid() else "Return to record [Esc]",close_model_view)
+	var framing=preload("res://scripts/preview_camera.gd").new();framing.name="PreviewCamera";stage.add_child(framing)
+	framing.configure(preview_actor,camera,panel.get_parent(),actions.map(func(entry):return entry[1]))
 
 func close_model_view():
 	var return_action=preview_return;preview_return=Callable()

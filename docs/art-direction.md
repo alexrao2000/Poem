@@ -514,3 +514,10 @@ Normal and critical damage briefly use the existing closed-eyelid artwork for 90
 ## Directional quick-map hit recoil
 
 Map-only damage moves the defender 0.08 m away from the attacker, or 0.14 m on a critical hit, then returns within the existing result-cue timing. Misses retain their sideways evasion and blocked hits remain planted. A shared reaction controller cancels prior motion and restores the exact tile before a new reaction or normal movement. Actual playback checks verify peak distance, direction, terrain height, interruption and unchanged simulation.
+
+
+## Whole-outfit viewer framing
+
+The former fixed camera placed geometry behind the controls or outside the screen in 532 of 2,016 sampled base-roster layouts at 1024×640. The viewer now measures the actual outfit and weapon through its available actions and builds a rotation-safe envelope. Its perspective camera centers that envelope in the remaining space beside the actual control panel, preserving a stable frame while the character turns or replays poses. Resizing the window recomputes the fit; unexpected geometry expansion also enlarges the frame.
+
+The audit covers all 24 recruits and both promotion branches: 72 outfits, thirteen sampled actions, twelve rotations and three viewport sizes, or 33,696 complete mesh-bound layouts. It also checks the real action selector, restoration of the ready face/pose after sampling, closing the viewer, and unchanged roster/RNG. This establishes bounds and interaction behavior, not rendered styling.
