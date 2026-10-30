@@ -1,0 +1,8 @@
+{
+  "prompt": "Edit this original transparent face-feature atlas for a short BLINK animation. Preserve the EXACT 4-column by 2-row arrangement, the 2:1 canvas aspect ratio, feature positions, brow shapes, noses, mouths, line colors, transparent margins and all eight individual identities. Change ONLY the eyes in each of the eight face cells: replace each open eye (iris, pupil and white) with a gently CLOSED eyelid drawn as a restrained dark-brown curved line with the same outer eye corners. A calm ordinary blink, not a smile, squint, frown or sleeping expression. Keep the closed-lid lines within the original eye footprints. Remove all visible irises and eye whites. Do not add skin fills, heads, lashes beyond the existing style, shadows, colors, cheeks, hair, or background. All spaces outside the original small facial marks remain genuinely transparent RGBA. Keep brows, nose and mouth unchanged and aligned exactly so they do not jump when switching textures. No text, no grid, no labels, no new faces.",
+  "reference": "assets/art/face-features-v2.png",
+  "source": "/Users/alexr/.codex/generated_images/01a186ec-2764-7df2-8b28-7563faa2886d/exec-54ebe186-074f-43a6-bc0e-81e5c1e69a83.png",
+  "saved": "assets/art/face-features-blink-v1.png",
+  "transparent_background": true,
+  "usage": "Only the eye strip (cell V .34–.55) is sampled at runtime. Original brows, nose and mouth always come from face-features-v2.png. Source images are unchanged."
+}

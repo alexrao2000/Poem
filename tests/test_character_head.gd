@@ -46,7 +46,7 @@ func run():
   var actor=painter.build(stage,unit,Vector3.ZERO)
   assert(actor.bone("Head").find_child("SculptedHead",false,false)!=null)
   var face=actor.find_child("PaintedFace",true,false)
-  assert(face!=null and face.material_override.albedo_texture==painter.face_atlas,"Every recruit uses the fitted original feature atlas")
+  assert(face!=null and face.material_override.get_shader_parameter("open_face")==painter.face_atlas,"Every recruit uses the fitted original feature atlas")
   actor.queue_free();await process_frame
  stage.queue_free();await process_frame
  print("PASS: closed sculpted head topology, outward jaw/crown, integrated nose, eight fitted decal UV regions, clean original alpha and all 24 recruit bindings")

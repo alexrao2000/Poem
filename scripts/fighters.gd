@@ -21,7 +21,6 @@ var shading_cache={}
 var strand_materials={}
 var batching_enabled=true
 var face_atlas=load("res://assets/art/face-features-v2.png")
-var face_materials={}
 var geo = preload("res://scripts/scenery.gd").new()
 
 func ellipsoid(parent,p,size,color):
@@ -141,7 +140,8 @@ func build(parent,u,p) -> Node3D:
   Hair.build(self,head,appearance,gold)
   var face_index={"lyra":0,"sera":1,"mara":3,"nell":2,"esme":2,"faye":3,"vela":1,"una":0,"petra":3,"noor":2,"yuna":1,"rhea":0,"oren":5,"ivo":4,"tarin":6,"bram":4,"rook":5,"cassian":6,"dax":5,"silas":6,"ari":4,"galen":7,"hale":7,"elian":6}.get(u.id,5)
   if not company:face_index=int(appearance.get("face_variant",5))
-  face_surface(head,face_index)
+  var face=face_surface(head,face_index)
+  actor.face_blink.bind(face,face_atlas,str(u.team)+":"+str(u.id)+":"+str(u.job))
   if company and u.id=="petra":
    for x in [-.07,.07]:
     var rim=geo.cylinder(head,Vector3(x,.13,-.10),.035,.05,gold);rim.rotation.x=PI/2
@@ -271,11 +271,8 @@ func weapon(arm,kind,gold,steel,leather) -> Node3D:
 
 func face_surface(parent,index):
  parent.set_meta("face_variant",index)
- if not face_materials.has(index):
-  var mat=StandardMaterial3D.new();mat.albedo_texture=face_atlas;mat.transparency=BaseMaterial3D.TRANSPARENCY_ALPHA_SCISSOR;mat.alpha_scissor_threshold=.22
-  mat.cull_mode=BaseMaterial3D.CULL_DISABLED;mat.roughness=1;mat.diffuse_mode=BaseMaterial3D.DIFFUSE_TOON
-  face_materials[index]=mat
- var visual=geo.mesh(parent,Head.features(index),Vector3.ZERO,Vector3.ONE,face_materials[index]);visual.name="PaintedFace";visual.cast_shadow=GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+ var visual=geo.mesh(parent,Head.features(index),Vector3.ZERO,Vector3.ONE,null);visual.name="PaintedFace";visual.cast_shadow=GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+ return visual
 
 func hair_lock(parent,points,radius,color):
  var st=SurfaceTool.new();st.begin(Mesh.PRIMITIVE_TRIANGLES)

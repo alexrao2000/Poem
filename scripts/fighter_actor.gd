@@ -22,6 +22,7 @@ var drawing_arm_rotation=Vector3.ZERO
 var drawing_elbow_rotation=Vector3.ZERO
 var bow_hand_weight=0.0
 var cape_motion=preload("res://scripts/cape_motion.gd").new()
+var face_blink=preload("res://scripts/face_blink.gd").new()
 
 func register_bone(key: String,node: Node3D):
  bones[key]=node
@@ -31,7 +32,9 @@ func bone(key: String) -> Node3D:
  return bones.get(key)
 
 func _process(dt):
+ if not is_visible_in_tree():return
  elapsed+=dt
+ face_blink.update(dt,pose_name)
  cape_motion.update(elapsed,pose_name,dt)
  if bones.has("HorseTail"):bones.HorseTail.rotation.z=sin(elapsed*2.3)*(.10 if pose_name=="advance" else .045)
  if bones.has("HorseHead"):bones.HorseHead.rotation.x=sin(elapsed*(8.0 if pose_name=="advance" else 1.6))*(.04 if pose_name=="advance" else .015)
@@ -121,6 +124,7 @@ func pose(key: String,duration=.18) -> Tween:
  if bones.has("Weapon") and key not in ["throw","throw_windup","critical_throw_windup","recover"]:bones.Weapon.visible=true
  if bones.has("NockedArrow") and key in ["idle","advance","windup","critical_windup"]:bones.NockedArrow.visible=true
  pose_name=key
+ face_blink.update(0,key)
  var target={
   "Body":Vector3(0,0,0),"Head":Vector3(0,0,0),
   "Arm":Vector3(-.58,-.12,-.16),"Elbow":Vector3(-.48,0,0),
