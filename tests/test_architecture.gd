@@ -5,6 +5,7 @@ const Scenery=preload("res://scripts/scenery.gd")
 const Rules=preload("res://scripts/rules.gd")
 func _initialize():call_deferred("run")
 func run():
+ await verify_gate()
  await verify_towers()
  await verify_fountain()
  var colors=[]
@@ -49,7 +50,7 @@ func run():
    world.queue_free();arena.queue_free();await process_frame;cases+=1
  assert(cases>0 and game.rng.state==state,"Architecture never consumes gameplay RNG")
  await verify_cloth()
- print("PASS: tiered fountain basins/jets, six shared fortified towers, battlement/deck rays, three cached roofs, 204 gable intersections, ",cases," house identities, 14 pinned cloth resources, bounded motion parameters and cleanup")
+ print("PASS: arched castle gate/portcullis, tiered fountain basins/jets, six shared fortified towers, battlement/deck rays, three cached roofs, 204 gable intersections, ",cases," house identities, 14 pinned cloth resources, bounded motion parameters and cleanup")
  quit()
 
 func verify_cloth():
@@ -177,3 +178,38 @@ func verify_fountain():
  var backdrop=arena.find_child("TieredFountain",true,false)
  assert(backdrop!=null and backdrop.get_node("CarvedStone").mesh==stone,"Nearby combat preserves the town fountain identity")
  world.queue_free();arena.queue_free();await process_frame
+
+func verify_gate():
+ var masonry=preload("res://scripts/fortification.gd")
+ var shape=masonry.gate_wall();assert(shape==masonry.gate_wall())
+ var arrays=shape.surface_get_arrays(0);var points=arrays[Mesh.ARRAY_VERTEX];var normals=arrays[Mesh.ARRAY_NORMAL]
+ assert(points.size()/3<=240,"Gatehouse masonry has a small fixed geometry budget")
+ for i in range(0,points.size(),3):
+  var cross=(points[i+1]-points[i]).cross(points[i+2]-points[i])
+  assert(cross.length_squared()>1e-12 and cross.normalized().dot(normals[i])<-.999,"Gate masonry uses closed, outward-lit clockwise faces")
+ for sample in [[Vector2(0,1),false],[Vector2(0,4.2),true],[Vector2(1,2.8),false],[Vector2(1,3.1),true],[Vector2(1.8,1),true]]:
+  var blocked=false
+  for i in range(0,points.size(),3):
+   if Geometry3D.ray_intersects_triangle(Vector3(sample[0].x,sample[0].y,2),Vector3.FORWARD,points[i],points[i+1],points[i+2])!=null:blocked=true
+  assert(blocked==sample[1],"Actual masonry leaves an arched passage below its header and between its piers")
+ var scenery=Scenery.new();scenery.batching_enabled=false
+ var arena=Node3D.new();root.add_child(arena)
+ scenery.battle_landscape(arena,Vector3(35,0,0),{"environment":"castle"})
+ var gates=arena.find_children("CastleGate","Node3D",true,false)
+ assert(gates.size()==1 and gates[0].position==Vector3(35,0,-9),"Castle combat replaces the old flat wall at the same background depth")
+ var gate=gates[0];assert(gate.get_node("GateMasonry").mesh==shape)
+ var bars=gate.get_children().filter(func(node):return str(node.name).begins_with("PortcullisBar"))
+ assert(bars.size()==11,"The gate contains a recessed open iron grille")
+ for bar in bars:
+  var top=(bar.transform*bar.get_aabb()).end.y
+  assert(bar.position.z<0 and top<2+sqrt(1.96-bar.position.x*bar.position.x),"Portcullis bars fit below the curved stone opening")
+ var supports=gate.get_children().filter(func(node):return str(node.name).begins_with("Buttress"))
+ assert(supports.size()==6)
+ for support in supports:assert(absf(support.position.x)>=4 and support.position.z<1,"Castle supports engage the side walls and keep the gate approach clear")
+ var bounds=AABB();var first=true
+ for node in gate.get_children():
+  if node is MeshInstance3D:
+   var box=node.transform*node.get_aabb()
+   bounds=box if first else bounds.merge(box);first=false
+ assert(bounds.position.x>=-17.501 and bounds.end.x<=17.501 and bounds.end.y<=5.101,"Detailed castle wall keeps its fixed battlefield backdrop footprint")
+ arena.queue_free();await process_frame

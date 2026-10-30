@@ -322,15 +322,14 @@ func battle_landscape(parent,center,context={}):
   cart(parent,center+Vector3(-6,0,-3.8));fence(parent,center+Vector3(3,0,-4),5.0)
   for i in range(3):barrel(parent,center+Vector3(6+i*.4,0,-4.3),1.0)
  if theme in ["abbey","aqueduct","observatory","castle"]:
-  for x in range(-12,13,4):
+  for x in ([] if theme=="castle" else range(-12,13,4)):
    cylinder(parent,center+Vector3(x,1.8,-5),3.6,.32,Color("9e9d8d"))
    cylinder(parent,center+Vector3(x,.12,-5),.24,.5,Color("7f8178"))
    cylinder(parent,center+Vector3(x,3.5,-5),.3,.48,Color("c2bea7"))
    if theme in ["aqueduct","abbey"] and x<12:
     arch_span(parent,center+Vector3(x+2,3.55,-5),1.65,.35,.8)
   if theme=="castle":
-   block(parent,center+Vector3(0,2,-9),Vector3(35,4,.7),Color("858b88"))
-   for x in range(-16,17,2):block(parent,center+Vector3(x,4.2,-9),Vector3(.8,.8,.9),Color("9a9d91"))
+   Fortification.build_castle_wall(self,parent,center+Vector3(0,0,-9))
   elif theme=="observatory":
    var ring=TorusMesh.new();ring.inner_radius=1.5;ring.outer_radius=1.58
    var orbit=mesh(parent,ring,center+Vector3(0,2.6,-10),Vector3.ONE,material(Color("b9a46f")))

@@ -352,3 +352,7 @@ Small original vector triangles now sit beside forecast weapon names: green/up f
 ### Dialogue readiness
 
 The active speaker’s name now sits on a compact blue plate with ivory display lettering and a restrained gold border. A small original diamond appears at the opposite side of the header only when the line has finished typing; its opacity pulses between 0.4 and 0.9. The existing action button shows “Reveal text” during typing and “Continue” afterward, with matching keyboard hints and tooltips. Main refresh/reveal actions update that state immediately; hidden stages suspend the pulse. Actual two-step button behavior, instant-text preference, speaker continuity and all 885 story/support layouts pass. No dialogue text or progression changes.
+
+## Castle gatehouse
+
+The castle arena's old flat wall and freestanding column row are replaced by a closed-mesh arched gatehouse, recessed open iron grille, cornices, battlements and six engaged square buttresses. The 35-meter backdrop remains nine meters behind the combat center; supports leave the central approach clear. Shared masonry has 216 triangles and an actual curved void, with separate wedge-stone arch trim. Ray tests verify the opening, header and piers; grille bounds follow the arch and the entire castle assembly retains its original width. All twelve map and arena batching comparisons pass. This is original procedural architecture; rendered review remains pending.

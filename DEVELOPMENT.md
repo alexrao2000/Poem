@@ -116,6 +116,8 @@ The last delivered local browser/macOS checkpoint passed all 58 automated suites
 
 The user explicitly allowed local browser testing, but the subsequent tool retry still returned a saved/managed permission denial. Localhost, the Quaternius asset site and native Codex access were blocked. Do not circumvent these denials with another browser surface, native game capture, raw browser/CDP access or alternate asset hosts. No Quaternius models have been acquired. Earlier screenshots and another chat's native workshop captures do not verify the current campaign visuals.
 
+Castle combat now frames the fighters with an open arched gatehouse, recessed iron portcullis, raised battlements and six wall buttresses. The old center column is removed to leave the entrance visible. Geometry rays verify the opening and all twelve arena batches preserve their source geometry; rendered review remains pending.
+
 ## Earlier checkpoint notes
 
 ### Early campaign, materials and score
