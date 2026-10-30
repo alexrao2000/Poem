@@ -9,6 +9,7 @@ const MapSurface=preload("res://scripts/map_surface.gd")
 const TerrainCard=preload("res://scripts/terrain_card.gd")
 const MenuLayout=preload("res://scripts/menu_layout.gd")
 const BattleForecast=preload("res://scripts/battle_forecast.gd")
+const CloudSky=preload("res://scripts/cloud_sky.gd")
 const FOG_FIELDS=["fog_enabled","fog_mode","fog_density","fog_depth_begin","fog_depth_end","fog_depth_curve","fog_light_color","fog_light_energy","fog_sky_affect"]
 var map_catalog=preload("res://scripts/campaign_catalog.gd").new()
 var map_facings: Dictionary={}
@@ -118,8 +119,9 @@ func _ready():
 	environment=settings
 	settings.background_mode=Environment.BG_SKY
 	var sky=Sky.new();var sky_material=ProceduralSkyMaterial.new()
-	sky_material.sky_top_color=Color("648aa7");sky_material.sky_horizon_color=Color("d8dbce")
+	sky_material.sky_top_color=Color("6c9dc5");sky_material.sky_horizon_color=Color("d8dbce")
 	sky_material.ground_bottom_color=Color("7a8163");sky_material.ground_horizon_color=Color("d8dbce")
+	sky_material.sky_cover=CloudSky.texture();sky_material.sky_cover_modulate=CloudSky.tint("road")
 	sky.sky_material=sky_material;settings.sky=sky
 	settings.ambient_light_source=Environment.AMBIENT_SOURCE_COLOR
 	settings.ambient_light_color=Color("aabbd1")
@@ -1026,12 +1028,13 @@ func lighting_state() -> Dictionary:
 	var sky=environment.sky.sky_material
 	var fog={}
 	for field in FOG_FIELDS:fog[field]=environment.get(field)
-	return {"energy":sunlight.light_energy,"color":sunlight.light_color,"ambient":environment.ambient_light_energy,"top":sky.sky_top_color,"horizon":sky.sky_horizon_color,"ground":sky.ground_horizon_color,"fog":fog}
+	return {"energy":sunlight.light_energy,"color":sunlight.light_color,"ambient":environment.ambient_light_energy,"top":sky.sky_top_color,"horizon":sky.sky_horizon_color,"ground":sky.ground_horizon_color,"clouds":sky.sky_cover_modulate,"fog":fog}
 
 func battle_lighting(theme: String,arena=true) -> Dictionary:
 	var old=lighting_state()
 	if not default_lighting.is_empty():restore_lighting(default_lighting)
 	var sky=environment.sky.sky_material
+	sky.sky_cover_modulate=CloudSky.tint(theme)
 	if theme in ["forest","mountain"]:
 		sunlight.light_energy=.7;environment.ambient_light_energy=.6
 		sky.sky_top_color=Color("536c82");sky.sky_horizon_color=Color("b5b9ab");sky.ground_horizon_color=Color("b5b9ab")
@@ -1050,7 +1053,7 @@ func battle_lighting(theme: String,arena=true) -> Dictionary:
 func restore_lighting(old: Dictionary):
 	var sky=environment.sky.sky_material
 	sunlight.light_energy=old.energy;sunlight.light_color=old.color;environment.ambient_light_energy=old.ambient
-	sky.sky_top_color=old.top;sky.sky_horizon_color=old.horizon;sky.ground_horizon_color=old.ground
+	sky.sky_top_color=old.top;sky.sky_horizon_color=old.horizon;sky.ground_horizon_color=old.ground;sky.sky_cover_modulate=old.clouds
 	for field in FOG_FIELDS:environment.set(field,old.fog[field])
 
 func combat_wait(motion: Tween) -> bool:

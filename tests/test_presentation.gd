@@ -40,6 +40,7 @@ func run():
 		assert(arena.get_meta("batch_stats").sources>5,"Arena includes batched scenery")
 		arena.queue_free()
 		var lighting=app.lighting_state();var previous=app.battle_lighting(app.game.info().environment)
+		assert(app.environment.sky.sky_material.sky_cover==app.CloudSky.texture() and app.environment.sky.sky_material.sky_cover_modulate==app.CloudSky.tint(app.game.info().environment),"Every chapter shares the cloud panorama with its own lighting contrast")
 		assert(previous==lighting and app.environment.fog_enabled,"Battle atmosphere saves the complete previous state")
 		assert(app.environment.fog_depth_begin>=12 and app.environment.fog_density<.6,"Distance haze starts behind combatants and remains translucent")
 		app.restore_lighting(previous);assert(app.lighting_state()==lighting,"Chapter atmosphere cannot leak into the tactical map")
@@ -83,6 +84,7 @@ func run():
 		assert(control.get_global_rect().end.y<=app.ui.size.y,"Forecast and action controls fit viewport")
 	app.camera.size=15.25;app.camera.h_offset=1.5;app.camera.v_offset=.3;app.camera.fov=62
 	app.environment.fog_enabled=true;app.environment.fog_density=.08;app.environment.fog_light_color=Color("c2b491")
+	app.environment.sky.sky_material.sky_cover_modulate=Color(.7,.6,.5,.17)
 	var original_lighting=app.lighting_state()
 	var events=app.game.combat(a,b)
 	inspect_combat_hud(app)
@@ -93,7 +95,7 @@ func run():
 	assert(is_equal_approx(app.camera.size,15.25) and is_equal_approx(app.camera.h_offset,1.5),"Map zoom restored")
 	assert(is_equal_approx(app.camera.v_offset,.3) and is_equal_approx(app.camera.fov,62),"Battle framing does not overwrite map camera settings")
 	assert(app.world.visible and app.pieces.visible,"Map restored after arena")
-	assert(app.lighting_state()==original_lighting,"Full cinematic restores custom lighting and fog values")
+	assert(app.lighting_state()==original_lighting,"Full cinematic restores custom lighting, cloud contrast and fog values")
 	app.music_mix(true)
 	await create_timer(.1).timeout
 	app.music_mix(false)

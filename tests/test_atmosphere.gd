@@ -1,4 +1,5 @@
 extends SceneTree
+const CloudSky=preload("res://scripts/cloud_sky.gd")
 const Drift=preload("res://scripts/ambient_drift.gd")
 const Rules=preload("res://scripts/rules.gd")
 const Scenery=preload("res://scripts/scenery.gd")
@@ -6,6 +7,7 @@ const Scenery=preload("res://scripts/scenery.gd")
 func _initialize():call_deferred("run")
 
 func run():
+ verify_clouds()
  var game=Rules.new();var rng=game.rng.state;var saved=game.save_data("camp").duplicate(true)
  var host=Node3D.new();root.add_child(host)
  for theme in Drift.THEMES:
@@ -59,5 +61,24 @@ func run():
   var reference=weakref(atmosphere);map.queue_free();arena.queue_free();await process_frame
   assert(reference.get_ref()==null,"Leaving a chapter releases its instanced atmosphere")
  host.queue_free();await process_frame
- print("PASS: twelve chapter atmospheres, 24 map/arena configurations, bounded instances, deterministic motion, hidden suspension, fade loops and cleanup")
+ print("PASS: seamless deterministic cloud panorama, cached cover, horizon/zenith continuity, theme contrast; twelve chapter atmospheres, 24 map/arena configurations, bounded instances, deterministic motion, hidden suspension, fade loops and cleanup")
  quit()
+
+func verify_clouds():
+ var image=CloudSky.image();var total=0.0;var bright=0;var clear=0
+ assert(image.get_size()==Vector2i(1024,512) and image.has_mipmaps(),"Cloud cover has the expected equirectangular dimensions and mipmaps")
+ assert(image.get_data()==CloudSky.image().get_data(),"Clouds regenerate deterministically without consuming game RNG")
+ assert(CloudSky.texture()==CloudSky.texture(),"Every map/arena shares one cached cloud texture")
+ for y in range(image.get_height()):
+  assert(absf(image.get_pixel(0,y).a-image.get_pixel(image.get_width()-1,y).a)<=1.0/255,"Cloud panorama closes its longitude seam")
+  for x in range(image.get_width()):
+   var alpha=image.get_pixel(x,y).a
+   if y>=image.get_height()/2:assert(alpha==0,"Cloud cover ends before the ground hemisphere")
+   else:
+    total+=alpha
+    if alpha>.8:bright+=1
+    if alpha<.02:clear+=1
+   if y==0:assert(image.get_pixel(x,y)==image.get_pixel(0,y),"The zenith has no directional pinching seam")
+ assert(total/(1024*256)>.15 and total/(1024*256)<.45 and bright>1000 and clear>10000,"Cloud cover keeps both substantial cloud banks and open sky")
+ for x in range(1024):assert(image.get_pixel(x,255).a==0,"Clouds fade out before meeting the distant horizon")
+ assert(CloudSky.tint("observatory").a<CloudSky.tint("village").a and CloudSky.tint("engine").a==0 and CloudSky.tint("furnace").a==0,"Night cloud contrast is reduced and enclosed industrial skies stay clear")
