@@ -146,6 +146,8 @@ func setup_audio():
 	music=score_director.player;score=score_director.score
 	for effect in ["select","swing","hit","critical","heal","magic","phase","guard","cutin","levelup"]:
 		sfx_streams[effect]=load("res://assets/audio/"+effect+".wav")
+	for family in ["sword","axe","lance","bow","ember","gale","thunder"]:
+		sfx_streams["release_"+family]=load("res://assets/audio/release_"+family+".wav")
 	for i in range(6):
 		var player=AudioStreamPlayer.new();player.volume_db=-12;sfx_players.append(player);add_child(player)
 
@@ -153,6 +155,11 @@ func play_sfx(effect: String):
 	for player in sfx_players:
 		if not player.playing:
 			player.stream=sfx_streams.get(effect);player.play();return
+
+func combat_release_sound(unit: Dictionary) -> String:
+	var family=game.item_for(unit).id if unit.weapon=="magic" else unit.weapon
+	var effect="release_"+family
+	return effect if sfx_streams.has(effect) else "magic" if unit.weapon=="magic" else "swing"
 
 func select_score_theme():
 	if score_director.current_id==score_director.profile_for(game.chapter).id:return
@@ -849,12 +856,20 @@ func cinematic(a,b,events,initial_hp={}):
 		director.shot(who.position,whom.position,"windup",is_ranged,mounted,.28)
 		var preparation="throw_windup" if is_ranged and unit.weapon=="lance" else "windup"
 		if event.crit:preparation="critical_"+preparation
+		var gathering: Node3D
+		if unit.weapon=="magic":
+			gathering=preload("res://scripts/combat_charge.gd").new();stage.add_child(gathering)
+			gathering.begin(who,spell,.4 if event.crit else .28)
 		await who.pose(preparation,.4 if event.crit else .28).finished
-		if skip_combat:break
+		if skip_combat:
+			if is_instance_valid(gathering):gathering.queue_free()
+			break
 		if event.crit:
 			await critical_cutin(unit)
-			if skip_combat:break
-		play_sfx("magic" if unit.weapon=="magic" else "swing")
+			if skip_combat:
+				if is_instance_valid(gathering):gathering.queue_free()
+				break
+		if not is_ranged:play_sfx(combat_release_sound(unit))
 		var contact_point=whom.socket_position("impact")
 		if not event.hit:
 			whom.pose("evade",.12)
@@ -869,6 +884,8 @@ func cinematic(a,b,events,initial_hp={}):
 		if is_ranged:
 			var release=who.socket_position("projectile")
 			if who.has_method("release_projectile"):who.release_projectile()
+			if is_instance_valid(gathering):gathering.release()
+			play_sfx(combat_release_sound(unit))
 			await projectile(release,contact_point,unit.weapon,spell)
 		director.shot(who.position,whom.position,"impact",is_ranged,mounted,.16)
 		if event.hit:
