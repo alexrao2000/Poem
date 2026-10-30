@@ -33,6 +33,7 @@ const CombatCamera=preload("res://scripts/combat_camera.gd")
 const CombatHUD=preload("res://scripts/combat_hud.gd")
 const CombatTransition=preload("res://scripts/combat_transition.gd")
 const ProgressReward=preload("res://scripts/progress_reward.gd")
+const ScoreDirector=preload("res://scripts/score_director.gd")
 const PhaseBanner=preload("res://scripts/phase_banner.gd")
 var phase_skip=false
 var phase_banner_active=false
@@ -71,6 +72,7 @@ var busy = false
 var screen = "title"
 var music: AudioStreamPlayer
 var score: AudioStreamSynchronized
+var score_director: ScoreDirector
 var sfx_streams: Dictionary={}
 var sfx_players: Array=[]
 var music_transition: Tween
@@ -137,20 +139,8 @@ func _ready():
 	show_title()
 
 func setup_audio():
-	music=AudioStreamPlayer.new()
-	music.volume_db=-12
-	music.playback_type=AudioServer.PLAYBACK_TYPE_STREAM
-	score=AudioStreamSynchronized.new()
-	score.stream_count=2
-	for i in range(2):
-		var stream = load("res://assets/"+("calm" if i==0 else "ablaze")+".wav") as AudioStreamWAV
-		stream.loop_mode=AudioStreamWAV.LOOP_FORWARD
-		stream.loop_begin=0
-		stream.loop_end=stream.data.size()/(4 if stream.stereo else 2)
-		score.set_sync_stream(i,stream)
-	score.set_sync_stream_volume(1,-60)
-	music.stream=score
-	add_child(music)
+	score_director=ScoreDirector.new();add_child(score_director);score_director.configure(preferences.volume_db("music"))
+	music=score_director.player;score=score_director.score
 	for effect in ["select","swing","hit","critical","heal","magic","phase","guard","cutin","levelup"]:
 		sfx_streams[effect]=load("res://assets/audio/"+effect+".wav")
 	for i in range(6):
@@ -160,6 +150,11 @@ func play_sfx(effect: String):
 	for player in sfx_players:
 		if not player.playing:
 			player.stream=sfx_streams.get(effect);player.play();return
+
+func select_score_theme():
+	if score_director.current_id==score_director.profile_for(game.chapter).id:return
+	if music_transition and music_transition.is_valid():music_transition.kill()
+	score_director.select_chapter(game.chapter);score=score_director.score
 
 func music_mix(battle: bool):
 	if music_transition and music_transition.is_valid():music_transition.kill()
@@ -296,6 +291,7 @@ func map_camera():
 	map_navigation.configure(camera,game.board_size())
 
 func make_map():
+	select_score_theme()
 	cursor_visible=false
 	clear_world()
 	map_camera()
@@ -344,8 +340,8 @@ func show_credits():
 	var panel=scrolling_column(frame)
 	label_in(panel,"POEM",42,GOLD)
 	label_in(panel,"An original tactical chronicle",22)
-	label_in(panel,"A STANDARD AT DAWN",20,GOLD)
-	label_in(panel,"Original composition and paired calm / Ablaze arrangements.",20)
+	label_in(panel,"ORIGINAL SCORE",20,GOLD)
+	label_in(panel,"A Standard at Dawn · The Road Beneath the Ash · Dawn Without Kings\nPaired calm / Ablaze arrangements for the campaign’s three acts.",18)
 	label_in(panel,"Instrument recordings: VSCO 2 Community Edition\nVersilian Studios · Sam Gossner and Simon Dalzell\nSample cutting: Elan Hickler / Soundemote\nReleased under CC0 1.0 Universal.",19)
 	label_in(panel,"ART & TYPE",20,GOLD)
 	label_in(panel,"Original generated illustrations and sprite artwork.\nOriginal 3D environments and character figures.\nCormorant Garamond · Cormorant Project Authors\nSIL Open Font License.",19)
@@ -361,6 +357,7 @@ func show_visual_workshop():
 		canvas.remove_child(workshop);workshop.queue_free();camera.current=true;show_title())
 
 func show_camp():
+	select_score_theme()
 	screen="camp";busy=false;selected=null;target=null;origin=null
 	game.phase="player"
 	var story_key="opening_"+str(game.chapter)
@@ -1263,7 +1260,7 @@ func preview_route(destination: Vector2i):
 	MapOverlay.route(route_preview,path,map_height)
 
 func apply_audio_preferences():
-	if is_instance_valid(music):music.volume_db=preferences.volume_db("music")
+	if is_instance_valid(score_director):score_director.set_volume(preferences.volume_db("music"))
 	for player in sfx_players:player.volume_db=preferences.volume_db("effects")
 
 func show_options(return_to: String):

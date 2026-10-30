@@ -1,0 +1,75 @@
+{
+  "version": 1,
+  "source": "scripts/render_campaign_music.py",
+  "samples": "VSCO 2 Community Edition, CC0; see orchestra-sources.json and VSCO-LICENSE.txt",
+  "profiles": [
+    {
+      "id": "standard",
+      "title": "A Standard at Dawn",
+      "first_chapter": 0,
+      "bpm": 108,
+      "bars": 32,
+      "frames": 1568000,
+      "sample_rate": 22050,
+      "channels": 2,
+      "arrangements": {
+        "calm": {
+          "path": "res://assets/calm.wav"
+        },
+        "ablaze": {
+          "path": "res://assets/ablaze.wav"
+        }
+      }
+    },
+    {
+      "id": "road",
+      "title": "The Road Beneath the Ash",
+      "first_chapter": 4,
+      "bpm": 96,
+      "bars": 32,
+      "frames": 1764000,
+      "sample_rate": 22050,
+      "channels": 2,
+      "arrangements": {
+        "calm": {
+          "path": "res://assets/audio/road-calm.wav",
+          "peak": 0.584650551644021,
+          "rms": 0.12000000000000001,
+          "boundary_step": 0.013283667801259183
+        },
+        "ablaze": {
+          "path": "res://assets/audio/road-ablaze.wav",
+          "peak": 0.87,
+          "rms": 0.12213606760642333,
+          "boundary_step": 0.015702411849667485
+        }
+      },
+      "composition_sha256": "338a48ce56cde8fceccb3ebf18d3198559590836a67f7d6b14ca92ce7b99d9c5"
+    },
+    {
+      "id": "dawnless",
+      "title": "Dawn Without Kings",
+      "first_chapter": 8,
+      "bpm": 120,
+      "bars": 32,
+      "frames": 1411200,
+      "sample_rate": 22050,
+      "channels": 2,
+      "arrangements": {
+        "calm": {
+          "path": "res://assets/audio/dawnless-calm.wav",
+          "peak": 0.7023764617761743,
+          "rms": 0.12,
+          "boundary_step": 0.005271556122968257
+        },
+        "ablaze": {
+          "path": "res://assets/audio/dawnless-ablaze.wav",
+          "peak": 0.8293634569450972,
+          "rms": 0.14999999999999997,
+          "boundary_step": 0.021227066968075053
+        }
+      },
+      "composition_sha256": "09ea86b567b5102cc9753bca11d96c9ed68e656624eac0cef5b19eaff3fc0efa"
+    }
+  ]
+}

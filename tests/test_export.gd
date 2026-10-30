@@ -11,11 +11,12 @@ func run():
  var app=load("res://main.tscn").instantiate();app.settings_path="";app.save_path="/private/tmp/poem-export-test.json";root.add_child(app);await process_frame
  for job in app.CLASSES:assert(app.map_catalog.assets.has("unit."+job.to_lower()),"Release initializes every fallback class without relying on assertions")
  assert(app.map_catalog.recruit_errors.is_empty(),"Packaged recruit artwork validates")
- for chapter in [0,11]:
+ for chapter in [0,4,8,11]:
   app.game.chapter=chapter;app.game.start_battle();app.make_map();app.show_battle();await process_frame
+  assert(app.score_director.current_id==["standard","road","dawnless"][chapter/4],"Export includes every act-specific score pair")
   assert(app.unit_nodes.size()==app.game.units.size(),"Packaged maps instantiate every living actor")
   for actor in app.unit_nodes.values():assert(actor.sprite.texture!=null and actor.player.asset.clips.has("move"),"Packaged actors have atlas frames and animations")
  app.show_credits();await process_frame;assert(app.screen=="credits")
  app.queue_free();await process_frame
- print("PASS: exported catalog, first/final chapter scenes, orchestral metadata, licenses and credits screen")
+ print("PASS: exported catalog, all three act score pairs and chapter scenes, orchestral metadata, licenses and credits screen")
  quit()

@@ -4,7 +4,11 @@ static func configure(ui: Control):
 	if ui.has_meta("menu_layout"):return
 	ui.set_meta("menu_layout",true)
 	ui.resized.connect(func():apply(ui))
-	apply.bind(ui).call_deferred()
+	# A menu may be replaced before its deferred layout runs.
+	var pending=weakref(ui)
+	(func():
+		var current=pending.get_ref()
+		if current!=null:apply(current)).call_deferred()
 
 static func apply(ui: Control):
 	if not is_instance_valid(ui) or ui.is_queued_for_deletion():return
