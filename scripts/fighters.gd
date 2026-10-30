@@ -113,7 +113,12 @@ func build(parent,u,p) -> Node3D:
   var elbow=joint(arm,"Elbow",Vector3(0,-.29,0));actor.register_bone("Elbow" if sign_value>0 else "LeftElbow",elbow)
   ellipsoid(elbow,Vector3.ZERO,Vector3(.073,.073,.073),steel)
   geo.cylinder(elbow,Vector3(0,-.13,0),.25,.068,steel if armored else leather,.055)
-  ellipsoid(elbow,Vector3(0,-.29,0),Vector3(.075,.085,.065),leather)
+  if u.weapon=="magic":
+   var palm=joint(elbow,"CastingHand" if sign_value>0 else "BookHand",Vector3(0,-.29,0))
+   actor.register_bone("RightHand" if sign_value>0 else "LeftHand",palm)
+   var hand_material=geo.material(skin).duplicate();hand_material.set_meta("outline_width",.0015)
+   geo.mesh(palm,preload("res://scripts/casting_hand.gd").mesh(sign_value),Vector3.ZERO,Vector3.ONE,hand_material)
+  else:ellipsoid(elbow,Vector3(0,-.29,0),Vector3(.075,.085,.065),leather)
   if sign_value==(-1 if u.weapon=="magic" else 1):
    var hand=weapon(elbow,u.weapon,gold,steel,leather);actor.register_bone("Weapon",hand)
    if hand.has_node("NockedArrow"):actor.register_bone("NockedArrow",hand.get_node("NockedArrow"))

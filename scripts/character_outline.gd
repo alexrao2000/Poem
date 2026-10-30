@@ -45,6 +45,9 @@ static func apply(actor: Node3D):
   mesh.mesh=smooth_directions(mesh.mesh)
   if not copies.has(surface):
    var copy=surface.duplicate();copy.next_pass=material()
+   var width=clampf(float(surface.get_meta("outline_width",WIDTH)),0,WIDTH)
+   if width!=WIDTH:
+    copy.next_pass=material().duplicate();copy.next_pass.set_shader_parameter("width",width)
    if surface is ShaderMaterial and surface.get_shader_parameter("cloth_amount")==1.0:
     copy.next_pass=material().duplicate();copy.next_pass.set_shader_parameter("cloth_amount",1.0)
    copies[surface]=copy

@@ -29,7 +29,7 @@ static func page_material() -> StandardMaterial3D:
  return paper
 
 static func build(fighters,hand: Node3D,gold: Color):
- var book=fighters.joint(hand,"Spellbook",Vector3.ZERO)
+ var book=fighters.joint(hand,"Spellbook",Vector3(0,0,-.03))
  fighters.geo.block(book,Vector3(0,0,.015),Vector3(.035,.30,.045),gold)
  for side in [-1,1]:
   var leaf=fighters.joint(book,"LeftLeaf" if side<0 else "RightLeaf",Vector3(side*.012,0,0));leaf.rotation.y=side*.25

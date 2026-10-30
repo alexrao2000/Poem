@@ -56,6 +56,11 @@ func apply_constraints():
   var grip=bones.Weapon
   var reading_basis=global_basis*Basis(Vector3.RIGHT,PI*.5+.18)
   grip.quaternion=(grip.get_parent().global_basis.inverse()*reading_basis).get_rotation_quaternion()
+  for key in ["LeftHand","RightHand"]:
+   if not bones.has(key):continue
+   var palm=bones[key]
+   var palm_basis=reading_basis if key=="LeftHand" else global_basis*Basis(Vector3.RIGHT,PI*.5)
+   palm.quaternion=(palm.get_parent().global_basis.inverse()*palm_basis).get_rotation_quaternion()
  if kind=="staff" and pose_name in ["cast_windup","cast"] and bones.has("Weapon"):
   var grip=bones.Weapon
   grip.quaternion=(grip.get_parent().global_basis.inverse()*global_basis).get_rotation_quaternion()
@@ -124,6 +129,8 @@ func pose(key: String,duration=.18) -> Tween:
   "RightLeg":Vector3(.12,0,.035),"RightKnee":Vector3(.20,0,0)
  }
  if rest.has("Weapon"):target.Weapon=rest.Weapon.rotation
+ for key_name in ["LeftHand","RightHand"]:
+  if rest.has(key_name):target[key_name]=rest[key_name].rotation
  if kind=="bow":
   target.Arm=Vector3(-1.35,.15,-.18);target.Elbow=Vector3(-.3,0,0)
   target.LeftArm=Vector3(-.9,0,.25);target.LeftElbow=Vector3(-.8,0,0)
@@ -246,7 +253,7 @@ func pose(key: String,duration=.18) -> Tween:
  return pose_tween
 
 func socket_position(key: String) -> Vector3:
- if key=="projectile" and kind=="magic" and bones.has("Elbow"):return bones.Elbow.to_global(Vector3(0,-.29,-.08))
+ if key=="projectile" and kind=="magic" and bones.has("RightHand"):return bones.RightHand.to_global(Vector3(0,0,-.10))
  if key=="projectile" and kind=="staff" and bones.has("Weapon"):return bones.Weapon.to_global(Vector3(0,.78,0))
  if key=="projectile" and kind=="bow" and bones.has("NockedArrow"):return bones.NockedArrow.global_position
  if key=="projectile" and bones.has("Weapon"):

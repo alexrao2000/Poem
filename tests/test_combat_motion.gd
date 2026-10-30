@@ -210,7 +210,7 @@ func run():
   if unit.weapon=="bow":assert(actor.bone("NockedArrow").visible and actor.bone("NockedArrow").get_parent()==actor.bone("Weapon"),"Ready archer holds an arrow attached to the bow after batching")
   await actor.pose("throw" if unit.weapon=="lance" else "strike",.01).finished
   var release=actor.socket_position("projectile")
-  var source=actor.bone("Elbow").to_global(Vector3(0,-.29,-.08)) if unit.weapon=="magic" else actor.bone("Weapon").global_position
+  var source=actor.bone("RightHand").global_position if unit.weapon=="magic" else actor.bone("Weapon").global_position
   assert(release.x>.3 and release.distance_to(source)<.25,"Ranged release follows the free casting hand or held weapon instead of spawning from the torso")
   assert(release.distance_to(resting)>.1,"Release socket follows pose changes")
   if job=="Rider":assert(release.y>1.8,"Mounted throw launches from the rider's hand")
