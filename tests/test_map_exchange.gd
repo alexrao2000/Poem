@@ -3,6 +3,7 @@ extends SceneTree
 # exposes the already-resolved roster before XP cards or the next actor can run.
 
 const Shutdown=preload("helpers/game_shutdown.gd")
+const MapUnit=preload("res://scripts/campaign_map_unit.gd")
 const Actor=preload("res://scripts/fighter_actor.gd")
 const Reward=preload("res://scripts/progress_reward.gd")
 var app
@@ -32,6 +33,7 @@ func setup():
 
 func run():
  app=load("res://main.tscn").instantiate();app.settings_path="";app.save_path="/private/tmp/poem-map-exchange.json";root.add_child(app);await process_frame
+ await verify_departures()
  var directions={"defeat":[Vector2i.RIGHT,"east","west"],"counter":[Vector2i.UP,"north","south"],"survive":[Vector2i.LEFT,"west","east"],"heal":[Vector2i.DOWN,"south","north"],"skip":[Vector2i.RIGHT,"east","west"]}
  for case in ["defeat","counter","survive","heal","skip"]:
   var pair=setup();var a=pair[0];var b=pair[1];mode="arena";app.busy=true;app.preferences.values.combat="all"
@@ -64,7 +66,7 @@ func run():
   assert(not app.unit_nodes.has(lost_id),"Defeated map figure disappears after feedback")
   if case=="enemy_counter":assert(saw_reward,"Counterattack XP begins after field synchronization")
  mode="";await Shutdown.dispose(app);await process_frame
- print("PASS: five arena returns (defeat/counter/survival/heal/skip), actual enemy kill/counter map reactions, updated health before XP, and unchanged resolved state")
+ print("PASS: five arena returns (defeat/counter/survival/heal/skip), actual enemy kill/counter map reactions, 25 coordinated sprite exits and teardown, updated health before XP, and unchanged resolved state")
  quit()
 
 func watch_return():
@@ -103,3 +105,34 @@ func watch_ui(node):
  if old_visual.player.state=="defeated":
   assert(old_visual.is_visible_in_tree() and old_visual.hp_ratio==0,"Defeated sprite receives its hit and empty health bar before removal")
   saw_contact=true
+  assert(old_visual.departing and old_visual.sprite.alpha_cut==SpriteBase3D.ALPHA_CUT_DISABLED,"Actual quick-map kills start their owned fade")
+  var minimum=old_visual.defeat_opacity;var maximum=minimum
+  while is_instance_valid(old_visual) and old_visual.is_visible_in_tree():
+   minimum=minf(minimum,old_visual.defeat_opacity);maximum=maxf(maximum,old_visual.defeat_opacity)
+   await process_frame
+  if is_instance_valid(old_visual):minimum=minf(minimum,old_visual.defeat_opacity)
+  assert(minimum<.3 and maximum>.7,"Actual enemy kill and counter-kill traverse the opacity range during existing feedback")
+
+func verify_departures():
+ var stage=Node3D.new();root.add_child(stage)
+ var units=app.game.roster.duplicate(true)
+ var commander=units[0].duplicate(true);commander.team="enemy";commander.boss=true;units.append(commander)
+ for source in units:
+  var unit=source.duplicate(true);unit.acted=false
+  if not unit.has("team"):unit.team="player"
+  var actor=MapUnit.new();stage.add_child(actor);actor.configure(app.map_catalog,unit);actor.selected=true
+  var shared=actor.marker.material_override;var original_alpha=shared.albedo_color.a
+  actor.react(true,0);var motion=actor.fade_defeat();motion.pause()
+  assert(actor.fade_defeat()==motion,"Repeated defeat notification cannot restart or lengthen the exit")
+  motion.custom_step(.13);actor._process(.01)
+  assert(actor.defeat_opacity>.3 and actor.defeat_opacity<.7 and actor.sprite.alpha_cut==SpriteBase3D.ALPHA_CUT_DISABLED,"Map defeat uses real translucent coverage after the hit pose registers")
+  assert(is_equal_approx(actor.sprite.modulate.a,actor.defeat_opacity) and is_equal_approx(actor.health.modulate.a,actor.defeat_opacity),"Sprite animation cannot overwrite the exit opacity; health fades together")
+  assert(actor.marker.material_override!=shared and is_equal_approx(shared.albedo_color.a,original_alpha),"Only the defeated unit owns a fading contact shadow")
+  if actor.commander_insignia!=null:assert(is_equal_approx(actor.commander_insignia.modulate.a,actor.defeat_opacity),"Commander insignia exits with its figure")
+  assert(not actor.ring.visible,"A defeated selected unit cannot leave a glowing selection marker")
+  motion.custom_step(.1);assert(not actor.visible and actor.defeat_opacity==0,"Complete map exit hides the whole figure before damage text finishes")
+  actor.queue_free();await process_frame
+ var actor=MapUnit.new();stage.add_child(actor);var unit=units[0].duplicate(true);unit.team="player";unit.acted=false;actor.configure(app.map_catalog,unit)
+ var interrupted=actor.fade_defeat();interrupted.pause();interrupted.custom_step(.1);actor.free();await process_frame
+ assert(not interrupted.is_valid(),"Scene teardown kills the bound exit tween")
+ stage.queue_free();await process_frame

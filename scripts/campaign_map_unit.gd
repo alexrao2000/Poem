@@ -11,6 +11,9 @@ var unit_id=""
 var commander_insignia: Sprite3D
 var reaction_motion: Tween
 var reaction_origin=Vector3.ZERO
+var departing=false
+var defeat_opacity=1.0
+var defeat_motion: Tween
 
 func configure(source: RefCounted,unit: Dictionary,facing="south"):
  unit_id=unit.id;team=unit.team;spent=unit.acted
@@ -79,6 +82,7 @@ func _process(dt):
  var breath=1.0+sin(clock*4)*.045
  ring.scale=Vector3(breath,1,breath)
  if team=="enemy" and not spent and not visual_id.begins_with("enemy."):sprite.modulate*=Color(1,.72,.68)
+ if departing:set_defeat_opacity(defeat_opacity);ring.hide()
 
 func update_frame():
  super.update_frame()
@@ -129,6 +133,21 @@ func act_toward(point: Vector2i,origin: Vector2i):
 func react(hit: bool,remaining: int):
  if hit:player.play("defeated" if remaining<=0 else "hurt","",true)
  update_frame()
+
+func fade_defeat() -> Tween:
+ if departing:return defeat_motion
+ departing=true;sprite.alpha_cut=SpriteBase3D.ALPHA_CUT_DISABLED
+ marker.material_override=marker.material_override.duplicate()
+ ring.hide();set_defeat_opacity(1.0)
+ defeat_motion=create_tween();defeat_motion.tween_interval(.04)
+ defeat_motion.tween_method(set_defeat_opacity,1.0,0.0,.18)
+ defeat_motion.tween_callback(hide)
+ return defeat_motion
+
+func set_defeat_opacity(value: float):
+ defeat_opacity=clampf(value,0,1);sprite.modulate.a=defeat_opacity;health.modulate.a=defeat_opacity
+ marker.material_override.albedo_color.a=defeat_opacity
+ if is_instance_valid(commander_insignia):commander_insignia.modulate.a=defeat_opacity
 
 func screen_bounds(camera: Camera3D) -> Rect2:
  var foot=global_position+sprite.position

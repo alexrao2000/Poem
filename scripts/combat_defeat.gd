@@ -38,7 +38,7 @@ func own(source: Material) -> Material:
   copy.shader=fade_shader(copy.shader);shaders.append(copy)
  elif copy is BaseMaterial3D:
   standards[copy]=copy.albedo_color.a
-  if copy.transparency==BaseMaterial3D.TRANSPARENCY_DISABLED:copy.transparency=BaseMaterial3D.TRANSPARENCY_ALPHA_HASH
+  if copy.transparency in [BaseMaterial3D.TRANSPARENCY_DISABLED,BaseMaterial3D.TRANSPARENCY_ALPHA_SCISSOR,BaseMaterial3D.TRANSPARENCY_ALPHA_HASH]:copy.transparency=BaseMaterial3D.TRANSPARENCY_ALPHA
  return copy
 
 func apply_visibility(value: float):

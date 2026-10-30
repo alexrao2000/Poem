@@ -41,6 +41,7 @@ func run():
    assert(material not in owned,"Defeat owns every body, face, weapon, rein and outline surface")
    if material is ShaderMaterial:assert("defeat_visibility" not in material.shader.code,"Ordinary characters retain their original opaque shaders")
   assert(not effect.shaders.is_empty() and not effect.standards.is_empty(),"Both painted cloth and standard skin/metal participate")
+  for surface in effect.standards:assert(surface.transparency==BaseMaterial3D.TRANSPARENCY_ALPHA,"Standard skin/metal uses supported partial transparency in the Compatibility renderer")
   assert(defeated.face_blink.surface==effect.copies[face],"Expression controller follows the cloned face")
   for surface in defeated.cape_motion.surfaces:assert(surface in owned,"Cape clock remains bound to the visible cloned passes")
   for visibility in [1.0,.75,.5,.25,0.0]:
@@ -65,7 +66,10 @@ func verify_authored_surfaces(world):
  var mesh=MeshInstance3D.new();actor.add_child(mesh)
  var shape=ArrayMesh.new();var box=BoxMesh.new()
  var opaque=StandardMaterial3D.new();var glass=StandardMaterial3D.new();glass.transparency=BaseMaterial3D.TRANSPARENCY_ALPHA;glass.albedo_color=Color(1,1,1,.4)
- for surface in [opaque,glass]:
+ var cutout=StandardMaterial3D.new();cutout.transparency=BaseMaterial3D.TRANSPARENCY_ALPHA_SCISSOR
+ var pixels=Image.create(2,2,false,Image.FORMAT_RGBA8);pixels.fill(Color(1,1,1,.5));cutout.albedo_texture=ImageTexture.create_from_image(pixels)
+ var hashed=StandardMaterial3D.new();hashed.transparency=BaseMaterial3D.TRANSPARENCY_ALPHA_HASH
+ for surface in [opaque,glass,cutout,hashed]:
   shape.add_surface_from_arrays(Mesh.PRIMITIVE_TRIANGLES,box.surface_get_arrays(0));shape.surface_set_material(shape.get_surface_count()-1,surface)
  mesh.mesh=shape
  var custom=MeshInstance3D.new();custom.mesh=BoxMesh.new();actor.add_child(custom)
@@ -75,6 +79,8 @@ func verify_authored_surfaces(world):
  var effect=Defeat.new();world.add_child(effect);effect.begin(actor);effect.motion.pause();effect.apply_visibility(.5)
  assert(mesh.get_active_material(0)!=opaque and mesh.get_active_material(1)!=glass,"Imported mesh surfaces receive private instance overrides")
  assert(is_equal_approx(mesh.get_active_material(1).albedo_color.a,.2) and is_equal_approx(glass.albedo_color.a,.4),"Existing authored transparency remains proportional and isolated")
+ assert(mesh.get_active_material(0).transparency==BaseMaterial3D.TRANSPARENCY_ALPHA and mesh.get_active_material(2).transparency==BaseMaterial3D.TRANSPARENCY_ALPHA and mesh.get_active_material(3).transparency==BaseMaterial3D.TRANSPARENCY_ALPHA,"Opaque and cutout authored surfaces use the browser-supported fade path")
+ assert(mesh.get_active_material(2).albedo_texture==cutout.albedo_texture and cutout.transparency==BaseMaterial3D.TRANSPARENCY_ALPHA_SCISSOR and hashed.transparency==BaseMaterial3D.TRANSPARENCY_ALPHA_HASH,"Authored alpha artwork and original modes remain untouched")
  assert(custom.material_override.shader==shader,"Unknown authored shaders retain their fall appearance")
  effect.finish();assert(not actor.visible,"All authored materials hide at the common endpoint")
  effect.queue_free();actor.queue_free()
