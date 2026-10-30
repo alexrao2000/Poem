@@ -1,4 +1,5 @@
 extends SceneTree
+const Cloth=preload("res://scripts/wind_cloth.gd")
 const Roof=preload("res://scripts/architecture.gd")
 const Scenery=preload("res://scripts/scenery.gd")
 const Rules=preload("res://scripts/rules.gd")
@@ -45,5 +46,60 @@ func run():
    assert(landmarks[0].get_node("House").get_meta("roof_variant")==expected,"Actual combat backdrop receives the preserved palette")
    world.queue_free();arena.queue_free();await process_frame;cases+=1
  assert(cases>0 and game.rng.state==state,"Architecture never consumes gameplay RNG")
- print("PASS: three cached tiled roofs, 204 measured gable intersections, outward normals, bounded geometry and ",cases," map/arena house identities")
+ await verify_cloth()
+ print("PASS: three cached roofs, 204 gable intersections, ",cases," house identities, 14 pinned cloth resources, bounded motion parameters and cleanup")
  quit()
+
+func verify_cloth():
+ var world=Node3D.new();root.add_child(world);world.position=Vector3(35,.3,-2);world.rotation.y=.3;world.scale=Vector3.ONE*2
+ var previous_material: ShaderMaterial
+ for standard in [true,false]:
+  var cloth=Cloth.new();world.add_child(cloth);cloth.set_process(false)
+  var extent=Vector2(.45,.32) if standard else Vector2(1.3,1.4)
+  cloth.configure(extent,Color("a54c47") if standard else Color("dcd4b9"),standard,Cloth.PERIOD-.01)
+  assert(cloth.material!=previous_material,"Each cloth owns its paused motion phase")
+  previous_material=cloth.material
+  var arrays=cloth.cloth.mesh.surface_get_arrays(0);var points=arrays[Mesh.ARRAY_VERTEX];var uv=arrays[Mesh.ARRAY_TEX_UV];var normals=arrays[Mesh.ARRAY_NORMAL]
+  assert(points.size()==432 and cloth.cloth.custom_aabb.size.z>0,"Cloth uses a fixed small grid with nonzero wind culling depth")
+  var pinned=0;var fork=0
+  for i in range(points.size()):
+   assert(cloth.cloth.custom_aabb.grow(.0001).has_point(points[i]),"Rest geometry remains in the explicit deformation bounds")
+   for depth in [-extent.x*.06,extent.x*.06]:
+    assert(cloth.cloth.custom_aabb.grow(.0001).has_point(points[i]+Vector3(0,-extent.y*.045,depth)),"Culling bounds cover the full documented wind and sag envelope")
+   if is_zero_approx(uv[i].x):
+    assert(points[i].x==0 and points[i].z==0,"The full attachment edge lies on the mast plane")
+    assert(cloth.to_global(points[i]).distance_to(world.to_global(Vector3(0,points[i].y,0)))<.0001,"Attachment survives a rotated and scaled parent")
+    pinned+=1
+   if is_equal_approx(uv[i].x,1) and is_equal_approx(uv[i].y,.5):
+    assert(is_equal_approx(points[i].x,extent.x*(.87 if standard else 1)),"Standards have a forked edge; sails remain rectangular")
+    fork+=1
+  assert(pinned>0 and fork>0)
+  for i in range(0,points.size(),3):assert((points[i+1]-points[i]).cross(points[i+2]-points[i]).normalized().dot(normals[i])<-.999,"Canvas has consistent front faces and normals")
+  assert(cloth.material.get_shader_parameter("linen_atlas")==Cloth.LINEN and cloth.material.get_shader_parameter("dimensions")==extent,"Shared painted linen and local dimensions reach the shader")
+  cloth._process(.02);assert(absf(cloth.phase-.01)<.00001,"Wind clock wraps at its common wave period")
+  var phase=cloth.phase;world.hide();cloth._process(4)
+  assert(cloth.phase==phase and cloth.material.get_shader_parameter("phase")==phase,"Hidden map/stage cloth stops updating")
+  world.show();cloth._process(.2);assert(cloth.phase>phase)
+  var batching=preload("res://scripts/static_batch.gd").new().combine(world)
+  assert(batching.sources==0 and cloth.cloth.get_parent()==cloth,"Static batching preserves shader-local cloth geometry")
+  cloth.queue_free();await process_frame
+ world.queue_free();await process_frame
+ var game=Rules.new();var scenery=Scenery.new();var flags=0;var sails=0;var state=game.rng.state
+ for chapter in range(12):
+  game.chapter=chapter;world=Node3D.new();root.add_child(world);scenery.landscape(world,game)
+  var pieces=world.find_children("*","Node3D",true,false).filter(func(node):return node is Cloth)
+  var expected_flags=0;var expected_sails=0
+  for row in game.info().map:expected_flags+=row.count("o")
+  for landmark in game.info().landmarks:
+   if landmark.kind=="boat":
+    expected_sails+=1
+    var at=landmark.position;var context=scenery.combat_context(game,{"x":int(at[0])-1,"y":int(at[1])},{"x":int(at[0]),"y":int(at[1])})
+    var arena=Node3D.new();root.add_child(arena);scenery.battle_landscape(arena,Vector3(35,0,0),context)
+    var arena_sails=arena.find_children("*","Node3D",true,false).filter(func(node):return node is Cloth and not node.standard)
+    assert(arena_sails.size()==context.landmarks.filter(func(item):return item.kind=="boat").size(),"Nearby boats keep their cloth sails in actual combat backdrops")
+    arena.queue_free()
+  assert(pieces.filter(func(piece):return piece.standard).size()==expected_flags and pieces.filter(func(piece):return not piece.standard).size()==expected_sails,"All objective standards and boat sails survive scene batching")
+  flags+=expected_flags;sails+=expected_sails
+  var references=pieces.map(func(piece):return weakref(piece));world.queue_free();await process_frame
+  for reference in references:assert(reference.get_ref()==null,"Cloth resources release with their map")
+ assert(flags==12 and sails==2 and game.rng.state==state,"All campaign cloth is bounded and independent of gameplay RNG")

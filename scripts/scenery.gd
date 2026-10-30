@@ -2,6 +2,7 @@ extends RefCounted
 const MapSurface=preload("res://scripts/map_surface.gd")
 const RiverBank=preload("res://scripts/river_bank.gd")
 const MapGround=preload("res://scripts/map_ground.gd")
+const WindCloth=preload("res://scripts/wind_cloth.gd")
 const Architecture=preload("res://scripts/architecture.gd")
 const AmbientDrift=preload("res://scripts/ambient_drift.gd")
 # Shared landscape construction for the tactical board and battle stage.
@@ -199,7 +200,8 @@ func landscape(parent,game):
       stone.material_override=detail_material(3)
    elif t=="o":
     cylinder(parent,p+Vector3(.3,.65,-.3),1.3,.025,Color("a99463"))
-    block(parent,p+Vector3(.5,1.05,-.3),Vector3(.4,.32,.015),Color("a54c47"))
+    var flag=WindCloth.new();parent.add_child(flag);flag.position=p+Vector3(.3,1.05,-.3)
+    flag.configure(Vector2(.45,.32),Color("a54c47"),true,x*.71+y*.37)
    elif t=="+":sanctuary(parent,p)
  # Authored landmarks communicate the chapter instead of a repeated village frame.
  for item in game.info().get("landmarks",[]):
@@ -243,9 +245,8 @@ func landmark(parent,p,kind,roof_variant=-1):
   var hull=cylinder(parent,p+Vector3(0,-.08,0),.4,.65,Color("605141"),.9);hull.scale.z=2.0
   block(parent,p+Vector3(0,.18,0),Vector3(1.2,.1,2.8),Color("9b886b"))
   cylinder(parent,p+Vector3(0,1.1,0),2.2,.045,Color("685644"))
-  var sail=PlaneMesh.new();sail.size=Vector2(1.3,1.4)
-  var material_value=material(Color("dcd4b9")).duplicate();material_value.cull_mode=BaseMaterial3D.CULL_DISABLED
-  var canvas=mesh(parent,sail,p+Vector3(.55,1.5,0),Vector3.ONE,material_value);canvas.rotation.x=PI/2
+  var sail=WindCloth.new();parent.add_child(sail);sail.position=p+Vector3(0,1.5,0)
+  sail.configure(Vector2(1.3,1.4),Color("dcd4b9"),false,p.x*.71+p.z*.37)
  elif kind=="camp":
   var tent=cylinder(parent,p+Vector3(0,.5,0),1,.8,Color("c7bba1"),0);tent.scale.z=1.5
   cylinder(parent,p+Vector3(1,.06,0),.1,.3,Color("6a5c4b"))
