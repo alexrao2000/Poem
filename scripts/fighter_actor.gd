@@ -24,6 +24,7 @@ var gait_phase=0.0
 var mounted_gait_weight=0.0
 var infantry_gait_weight=0.0
 var infantry_gait_start={}
+var infantry_upper_start={}
 var travel_previous=Vector3.ZERO
 var travel_direction=Vector3.ZERO
 var pose_tween: Tween
@@ -99,6 +100,12 @@ func update_locomotion():
  else:
   var target=Stride.solve(gait_phase,kind in ["magic","staff"])
   for key in target:bones[key].rotation=infantry_gait_start.get(key,target[key]).lerp(target[key],infantry_gait_weight)
+  if kind in ["sword","axe","lance"]:
+   var wave=sin(gait_phase)
+   var torso=Vector3(-.06,wave*.045,0)
+   var free_arm=Vector3(.25+wave*(.10 if bones.has("Shield") else .22),0,.18)
+   bones.Body.rotation=infantry_upper_start.get("Body",torso).lerp(torso,infantry_gait_weight)
+   bones.LeftArm.rotation=infantry_upper_start.get("LeftArm",free_arm).lerp(free_arm,infantry_gait_weight)
   if grounded_stance:ground_infantry()
 
  for contact in range(crossings):
@@ -253,6 +260,7 @@ func pose(key: String,duration=.18) -> Tween:
   travel_previous=global_position
   if not mounted:
    infantry_gait_weight=0.0
+   for key_name in ["Body","LeftArm"]:infantry_upper_start[key_name]=bones[key_name].rotation
    for joint_name in ["LeftLeg","RightLeg","LeftKnee","RightKnee"]:infantry_gait_start[joint_name]=bones[joint_name].rotation
  pose_name=key
  face_blink.begin_pose(key)

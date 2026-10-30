@@ -42,6 +42,7 @@ func run():
      actor.free()
  stage.transform=Transform3D.IDENTITY
  var outfits=verify_outfits(painter,rules,stage)
+ verify_upper_body(painter,rules,stage)
  assert(rules.rng.state==rng,"Stride and clothing checks consume no campaign randomness")
  stage.free()
  var app=load("res://main.tscn").instantiate();app.settings_path="";app.save_path="/private/tmp/poem-stride-test.json";root.add_child(app);await process_frame
@@ -102,3 +103,38 @@ func observe_approach(app):
      var point=foot.to_global(Vector3(0,-.075,-.07));current[key]=point
      if prior.has(key):assert(point.distance_to(prior[key])<.0001,"The real accelerating approach preserves its planted foot");live_samples+=1
   prior=current
+
+func verify_upper_body(painter,rules,stage):
+ for source in rules.roster:
+  var unit=source.duplicate(true);unit.team="player"
+  var actor=painter.build(stage,unit,Vector3.ZERO);actor.set_process(false);actor.pose("critical_windup",1).custom_step(1)
+  var active=not actor.mounted and actor.kind in ["sword","axe","lance"]
+  var before={"Body":actor.bones.Body.rotation,"LeftArm":actor.bones.LeftArm.rotation}
+  var entry=actor.pose("advance",.2);actor._process(0)
+  if active:
+   for key in before:assert(actor.bones[key].rotation.is_equal_approx(before[key]),"Running counterbalance starts from the current pose without snapping")
+  entry.custom_step(.05);actor._process(0)
+  if active:
+   for key in before:assert(actor.bones[key].rotation.distance_to(before[key])<.16,"Torso and free arm ease into the stride during the first quarter of entry")
+  entry.custom_step(.15);actor._process(0)
+  var settled={"Body":actor.bones.Body.rotation,"LeftArm":actor.bones.LeftArm.rotation}
+  var low=INF;var high=-INF
+  var stride=2.8 if actor.mounted else Stride.ROBE_LENGTH if actor.kind in ["magic","staff"] else Stride.LENGTH
+  for step in range(32):
+   actor.position.z-=stride/32;actor._process(.016)
+   if active:
+    assert(absf(actor.bones.Body.rotation.y)<.046 and is_equal_approx(actor.bones.Body.rotation.x,-.06),"Melee posture uses restrained shoulder rotation and forward lean")
+    low=minf(low,actor.bones.LeftArm.rotation.x);high=maxf(high,actor.bones.LeftArm.rotation.x)
+   else:
+    for key in settled:assert(actor.bones[key].rotation.is_equal_approx(settled[key]),"Seated, bow and book/staff arm ownership remains intact")
+  if active:
+   assert(high-low>.19 and high-low<.45,"Free-arm counterbalance follows the full step cycle")
+   if actor.bones.has("Shield"):assert(high-low<.21,"Shield carriers retain a smaller protected arm swing")
+  for key in settled:settled[key]=actor.bones[key].rotation
+  actor._process(1)
+  for key in settled:assert(actor.bones[key].rotation.is_equal_approx(settled[key]),"A stationary actor cannot pump its arms in place")
+  actor.pose("windup",1).custom_step(1)
+  for key in settled:settled[key]=actor.bones[key].rotation
+  actor._process(.1)
+  for key in settled:assert(actor.bones[key].rotation.is_equal_approx(settled[key]),"Weapon preparation reclaims torso and arm ownership after running")
+  actor.free()
