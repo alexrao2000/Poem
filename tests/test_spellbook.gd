@@ -6,6 +6,7 @@ const Hands=preload("res://scripts/casting_hand.gd")
 func _initialize():call_deferred("run")
 
 func run():
+ await verify_gloves()
  for side in [-1,1]:
   var shape=Hands.mesh(side);assert(shape==Hands.mesh(side),"Open hand meshes are cached by handedness")
   var arrays=shape.surface_get_arrays(0);var vertices=arrays[Mesh.ARRAY_VERTEX];var indices=arrays[Mesh.ARRAY_INDEX];var normals=arrays[Mesh.ARRAY_NORMAL];var edges={}
@@ -70,5 +71,43 @@ func run():
    assert(actor.bones.Weapon.global_position.distance_to(actor.bones.LeftElbow.to_global(Vector3(0,-.29,-.04)))<.0001,"Fallen caster keeps its folio attached")
    actor.queue_free();await process_frame
  stage.queue_free();await process_frame
- print("PASS: %d caster pose samples, left-hand open folios, shared original printed pages, free-hand spell sockets, facing/costume isolation and batching-safe materials"%poses)
+ print("PASS: mirrored closed gloves, grip clearance and wrist poses; %d caster pose samples, left-hand open folios, shared original printed pages, free-hand spell sockets, facing/costume isolation and batching-safe materials"%poses)
  quit()
+
+func verify_gloves():
+ var gloves=preload("res://scripts/grip_hand.gd")
+ for side in [-1,1]:
+  var shape=gloves.mesh(side);assert(shape==gloves.mesh(side))
+  var arrays=shape.surface_get_arrays(0);var points=arrays[Mesh.ARRAY_VERTEX];var indices=arrays[Mesh.ARRAY_INDEX];var normals=arrays[Mesh.ARRAY_NORMAL];var edges={}
+  assert(indices.size()/3<=420,"Detailed gloves keep a bounded triangle budget")
+  for point in points:assert(absf(point.x)<.075 and absf(point.y)<.085 and absf(point.z)<.065,"Curled fingers remain inside the previous glove envelope")
+  for i in range(0,indices.size(),3):
+   var a=points[indices[i]];var b=points[indices[i+1]];var c=points[indices[i+2]]
+   assert(Geometry3D.ray_intersects_triangle(Vector3(0,0,.2),Vector3.FORWARD,a,b,c)==null,"Curled fingers leave an actual central channel for the weapon grip")
+   var normal=(c-a).cross(b-a)
+   assert(normal.length_squared()>1e-18 and normal.dot(normals[indices[i]]+normals[indices[i+1]]+normals[indices[i+2]])>0,"Curled fingertips and mirrored thumbs retain outward nondegenerate faces")
+   for j in range(3):
+    var x=str(points[indices[i+j]].snapped(Vector3.ONE*.000001));var y=str(points[indices[i+(j+1)%3]].snapped(Vector3.ONE*.000001))
+    var edge=x+":"+y if x<y else y+":"+x;edges[edge]=edges.get(edge,0)+1
+  for count in edges.values():assert(count==2,"Every curled digit and palm has a closed surface")
+ var left=gloves.mesh(-1).get_aabb();var right=gloves.mesh(1).get_aabb()
+ assert(is_equal_approx(left.position.x,-right.end.x) and is_equal_approx(left.end.x,-right.position.x))
+ var fighters=Fighters.new();fighters.batching_enabled=false;var rules=Rules.new();var stage=Node3D.new();root.add_child(stage)
+ var units=[]
+ for source in rules.roster.filter(func(unit):return unit.weapon!="magic"):
+  var unit=source.duplicate(true);unit.team="player";units.append(unit)
+ for job in ["Vanguard","Knight","Ranger","Warden","Rider","Corsair","Duelist"]:
+  var unit=rules.roster.filter(func(entry):return entry.job==job)[0].duplicate(true);unit.id="glove_foe";unit.team="enemy";units.append(unit)
+ for unit in units:
+  var actor=fighters.build(stage,unit,Vector3.ZERO);actor.set_process(false)
+  var hands=actor.find_children("GripHand","MeshInstance3D",true,false);assert(hands.size()==2,"All non-casters receive two mirrored curled gloves")
+  for hand in hands:
+   assert(hand.material_override.next_pass.get_shader_parameter("width")<=.0015,"Fine glove silhouettes keep a restrained finger outline")
+   assert(hand.get_parent() in [actor.bones.Elbow,actor.bones.LeftElbow],"Gloves preserve existing arm articulation")
+  for pose in ["idle","advance","windup","strike","recover","guard"]:
+   var motion=actor.pose(pose,1);motion.custom_step(1)
+   for hand in hands:
+    var wrist=hand.get_parent().to_global(Vector3(0,-.29,0))
+    assert(hand.global_position.distance_to(wrist)<.0001,"Glove attachment stays at the animated wrist across combat poses")
+  actor.queue_free();await process_frame
+ stage.queue_free();await process_frame

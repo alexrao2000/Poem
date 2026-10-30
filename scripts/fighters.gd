@@ -122,7 +122,9 @@ func build(parent,u,p) -> Node3D:
    actor.register_bone("RightHand" if sign_value>0 else "LeftHand",palm)
    var hand_material=geo.material(skin).duplicate();hand_material.set_meta("outline_width",.0015)
    geo.mesh(palm,preload("res://scripts/casting_hand.gd").mesh(sign_value),Vector3.ZERO,Vector3.ONE,hand_material)
-  else:ellipsoid(elbow,Vector3(0,-.29,0),Vector3(.075,.085,.065),leather)
+  else:
+   var glove=geo.mesh(elbow,preload("res://scripts/grip_hand.gd").mesh(sign_value),Vector3(0,-.29,0),Vector3.ONE,geo.material(leather))
+   glove.name="GripHand"
   if sign_value==(-1 if u.weapon=="magic" else 1):
    var hand=EquipmentVisuals.build(self,elbow,u.weapon,str(u.get("item","")));actor.register_bone("Weapon",hand)
    if hand.has_node("NockedArrow"):actor.register_bone("NockedArrow",hand.get_node("NockedArrow"))
@@ -223,12 +225,19 @@ func painted(color: Color,tile: int,metal=false) -> ShaderMaterial:
  material.set_shader_parameter("metal",1.0 if metal else 0.0)
  surface_cache[key]=material;return material
 
+func glove_surface() -> ShaderMaterial:
+ if not surface_cache.has("glove"):
+  var surface=painted(Color("b1a797"),3).duplicate();surface.set_meta("outline_width",.0015)
+  surface_cache.glove=surface
+ return surface_cache.glove
+
 func apply_surfaces(root,blue,tint,skin,steel,gold,leather,cape_color):
  for mesh in root.find_children("*","MeshInstance3D",true,false):
   var material=mesh.material_override
   if not material is StandardMaterial3D:continue
   var color=material.albedo_color
-  if color==steel:mesh.material_override=painted(Color("d3d7dc") if steel==Color("a8b3bb") else steel.lightened(.12),1,true)
+  if mesh.name=="GripHand":mesh.material_override=glove_surface()
+  elif color==steel:mesh.material_override=painted(Color("d3d7dc") if steel==Color("a8b3bb") else steel.lightened(.12),1,true)
   elif color==leather:mesh.material_override=painted(Color("b1a797"),3)
   elif color==Color("69717a"):mesh.material_override=painted(Color("b8bfc8"),2)
   elif color in [blue,tint,cape_color,cape_color.darkened(.06)]:mesh.material_override=painted(color,0)

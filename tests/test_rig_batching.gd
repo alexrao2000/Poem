@@ -64,7 +64,8 @@ func run():
    elif surface is ShaderMaterial:
     var ink=surface.next_pass
     var is_cape=surface.get_shader_parameter("cloth_amount")==1.0
-    assert((ink!=fighters.Outline.material() if is_cape else ink==fighters.Outline.material()) and "cull_front" in ink.shader.code and "unshaded" in ink.shader.code,"Capes retain their own synchronized silhouette pass; rigid clothing and steel share one")
+    var custom_outline=is_cape or surface.get_meta("outline_width",fighters.Outline.WIDTH)!=fighters.Outline.WIDTH
+    assert((ink!=fighters.Outline.material() if custom_outline else ink==fighters.Outline.material()) and "cull_front" in ink.shader.code and "unshaded" in ink.shader.code,"Capes and fine fingers retain their own silhouette widths; other rigid clothing and steel share one")
     assert(ink.get_shader_parameter("width")<=.006 and not "depth_test_disabled" in ink.shader.code,"Outline stays thin and respects foreground geometry")
    if surface.next_pass==fighters.Outline.material():
     assert(mesh.extra_cull_margin>=fighters.Outline.WIDTH,"Expanded silhouette remains inside the culling margin after batching")
