@@ -74,8 +74,9 @@ func cylinder(parent,p,height,radius,color,top=-1.0):
  return mesh(parent,shape,p,Vector3.ONE,material(color))
 
 func boulder(parent,p,radius):
- var shape=SphereMesh.new();shape.radius=1;shape.height=2;shape.radial_segments=7;shape.rings=4
- return mesh(parent,shape,p,Vector3(radius,radius*.6,radius*.8),ground_material(1))
+ var forms=preload("res://scripts/rock_forms.gd")
+ var rock=mesh(parent,forms.mesh(forms.variant_at(p)),p,Vector3(radius,radius*.6,radius*.8),ground_material(1))
+ rock.name="Boulder";return rock
 
 func arch_span(parent,p,inner_radius=.5,thickness=.4,depth=.6):
  var surface=SurfaceTool.new();surface.begin(Mesh.PRIMITIVE_TRIANGLES)

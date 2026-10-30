@@ -430,3 +430,7 @@ Six cached source meshes supply the two families; three layers total 2,304 trian
 ## Quieter combat text
 
 The large top caption is reserved for the confirmed survivor’s finishing line. Routine weapon, damage, miss and healing headlines are removed because those events already have active nameplates, local numbers, health meters and critical cut-ins. The bottom Shift/Tab hint remains available throughout. Live exchange/healing checks keep the action area free of duplicate captions, while finishing checks require the character line to remain visible.
+
+## Fractured stone silhouettes
+
+Three original cached rock forms replace the shared spherical boulder shape. Uneven rings form broad shoulders, smaller upper planes and a buried base; face normals stay faceted. Each closed mesh uses 72 triangles, projects the existing stone material onto its faces, and stays within the former horizontal unit radius and upper envelope. Coordinate-derived variant selection preserves gameplay random state and every existing map/arena transform. Closed-edge, nondegenerate winding, outward normal, UV and batching checks pass. Source/batch counts remain unchanged; rendered review is pending.

@@ -31,6 +31,7 @@ func surface_geometry():
 func run():
  surface_geometry()
  verify_ridges()
+ verify_rocks()
  var game=Rules.new();var seen={}
  var scenery=Scenery.new();scenery.batching_enabled=false
  var previous_paint: ShaderMaterial
@@ -183,3 +184,33 @@ func verify_ridges():
   for layer in layers:assert(layer.position==center and layer.material_override.vertex_color_use_as_albedo and layer.cast_shadow==GeometryInstance3D.SHADOW_CASTING_SETTING_OFF,"Distant terrain aligns with the arena and avoids consuming fighter shadow-map coverage")
   stage.free()
  assert(game.rng.state==rng,"Distant landscape generation consumes no campaign random state")
+
+func verify_rocks():
+ var forms=preload("res://scripts/rock_forms.gd");var signatures=[]
+ for variant in range(3):
+  var shape=forms.mesh(variant);assert(shape==forms.mesh(variant+3),"Bounded rock variants reuse shared geometry")
+  var arrays=shape.surface_get_arrays(0);var points=arrays[Mesh.ARRAY_VERTEX];var normals=arrays[Mesh.ARRAY_NORMAL];var uv=arrays[Mesh.ARRAY_TEX_UV]
+  assert(points.size()==216,"Each fractured rock uses 72 closed triangles")
+  var edges={}
+  for i in range(0,points.size(),3):
+   var cross=(points[i+1]-points[i]).cross(points[i+2]-points[i])
+   assert(cross.length()>.00001 and cross.normalized().dot(normals[i])<-.999,"Faceted stone has nondegenerate faces and outward clockwise winding")
+   var center=(points[i]+points[i+1]+points[i+2])/3
+   assert(center.dot(normals[i])>0,"Every rock face points out from its interior")
+   for j in range(3):
+    var point=points[i+j]
+    assert(Vector2(point.x,point.z).length()<=1.00001 and point.y>-.75 and point.y<1.0,"Fractured silhouettes retain the former rock's footprint and top envelope")
+    assert(uv[i+j].x>=0 and uv[i+j].x<=1 and uv[i+j].y>=0 and uv[i+j].y<=1,"Face-projected stone UVs stay in the original material tile")
+    var a=str(point.snapped(Vector3.ONE*.00001));var b=str(points[i+(j+1)%3].snapped(Vector3.ONE*.00001))
+    var edge=a+":"+b if a<b else b+":"+a;edges[edge]=edges.get(edge,0)+1
+  for count in edges.values():assert(count==2,"Rock surfaces have no open edges")
+  var signature=str(points).sha256_text();assert(signature not in signatures,"The three rocks have distinct actual fracture silhouettes")
+  signatures.append(signature)
+ var scenery=Scenery.new();var stage=Node3D.new();root.add_child(stage)
+ var seen={}
+ for index in range(12):
+  var point=Vector3(index*.7,.2,-3-index%3);var radius=.32 if index%2 else 2.5
+  var rock=scenery.boulder(stage,point,radius);seen[forms.variant_at(point)]=true
+  assert(rock.mesh==forms.mesh(forms.variant_at(point)) and rock.position==point and rock.scale==Vector3(radius,radius*.6,radius*.8),"Map and arena rocks keep their existing placement, material scale and grounded attachment")
+ assert(seen.size()==3,"Deterministic placement distributes all stone variants")
+ stage.free()
