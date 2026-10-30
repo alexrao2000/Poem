@@ -100,7 +100,7 @@ func run():
  assert(walker.bone("Body").rotation.length()>normal_recoil*1.5,"A critical contact has a stronger body reaction than an ordinary hit")
  var rider=make_actor(true)
  await rider.pose("advance",.01).finished;rider.position.z-=.3;rider._process(.09)
- assert(absf(rider.bone("HorseLeg0").rotation.x)>.2,"Horse advances with a gait")
+ assert(absf(rider.bone("HorseLeg0").rotation.x-rider.bone("HorseLeg2").rotation.x)>.2,"Opposing horse legs separate into their distance-driven gait")
  await rider.pose("idle",.01).finished
  for i in range(4):assert(rider.bone("HorseLeg"+str(i)).rotation.is_zero_approx(),"Horse returns to a standing pose")
  assert(is_equal_approx(rider.bone("LeftLeg").rotation.x,.85),"Rider remains seated")

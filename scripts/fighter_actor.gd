@@ -3,6 +3,7 @@ extends Node3D
 # arms lift forward with positive X, knees bend back, and mounted sockets rise.
 # Infantry hips and legs lower together to articulated, level boot soles.
 
+const MountStride=preload("res://scripts/mount_stride.gd")
 const Stride=preload("res://scripts/infantry_stride.gd")
 const Boot=preload("res://scripts/infantry_boot.gd")
 const Mount=preload("res://scripts/mount_visuals.gd")
@@ -84,18 +85,15 @@ func update_locomotion():
  if displacement.length_squared()>.00000001:travel_direction=displacement.normalized()
  var travelled=displacement.dot(-global_basis.z.normalized())
  travel_previous=global_position
- var stride=Stride.ROBE_LENGTH if kind in ["magic","staff"] else Stride.LENGTH
- var next_phase=gait_phase+travelled*TAU/(2.8 if mounted else stride*global_basis.z.length())
+ var stride=MountStride.LENGTH if mounted else Stride.ROBE_LENGTH if kind in ["magic","staff"] else Stride.LENGTH
+ var next_phase=gait_phase+travelled*TAU/(stride*global_basis.z.length())
  # Alternate contacts at each stride extremum, including reversed travel.
  var crossings=absi(floori((next_phase+PI*.5)/PI)-floori((gait_phase+PI*.5)/PI))
  gait_phase=wrapf(next_phase,-PI,PI)
  if mounted:
-  for i in range(4):
-   var key="HorseLeg"+str(i)
-   var phase=gait_phase+i*PI*.5
-   if bones.has(key):bones[key].rotation.x=sin(phase)*.42*mounted_gait_weight
-   var knee="HorseKnee"+str(i)
-   if bones.has(knee):bones[knee].rotation.x=maxf(0,cos(phase))*(-.75 if i%2==0 else .75)*mounted_gait_weight
+  var target=MountStride.solve(gait_phase)
+  for key in target:
+   if bones.has(key):bones[key].rotation=target[key]*mounted_gait_weight
   if bones.has("Horse"):ground_mount()
  else:
   var target=Stride.solve(gait_phase,kind in ["magic","staff"])
@@ -126,6 +124,8 @@ func ground_contact_position() -> Vector3:
   center=Mount.HOOF_CENTER;radii=Mount.HOOF_RADII
   if bones.has("HorseKnee0"):
    joints=[bones.HorseKnee0,bones.HorseKnee1,bones.HorseKnee2,bones.HorseKnee3];center=Mount.LOWER_HOOF_CENTER
+  if bones.has("HorseFoot0"):
+   joints=[bones.HorseFoot0,bones.HorseFoot1,bones.HorseFoot2,bones.HorseFoot3];center=Mount.LEVEL_HOOF_CENTER
  for joint in joints:
   var axes=joint.global_basis.scaled_local(radii)
   var extent=Vector3(axes.x.y,axes.y.y,axes.z.y).length()
@@ -145,6 +145,11 @@ func ground_infantry():
  if pose_name=="idle":bones.Body.position.y+=sin(elapsed*2.4)*.006
 
 func ground_mount():
+ for index in range(4):
+  var foot="HorseFoot"+str(index)
+  if bones.has(foot):
+   var lower=bones["HorseLeg"+str(index)].basis*bones["HorseKnee"+str(index)].basis
+   bones[foot].quaternion=lower.get_rotation_quaternion().inverse()
  support_height=mount_stance_height()
  for key in ["Horse","Body","LeftLeg","RightLeg"]:bones[key].position.y=rest[key].position.y+support_height
  if pose_name=="idle":bones.Body.position.y+=sin(elapsed*2.4)*.006
@@ -162,6 +167,10 @@ func mount_stance_height() -> float:
   if bones.has(knee):
    center=rest.Horse.position+rest[key].position+rotation*(rest[knee].position+bones[knee].basis*Mount.LOWER_HOOF_CENTER)
    rotation=rotation*bones[knee].basis
+   var foot="HorseFoot"+str(i)
+   if bones.has(foot):
+    center=rest.Horse.position+rest[key].position+bones[key].basis*rest[knee].position+rotation*rest[foot].position+Mount.LEVEL_HOOF_CENTER
+    rotation=Basis.IDENTITY
   var radius=sqrt(pow(rotation.x.y*Mount.HOOF_RADII.x,2)+pow(rotation.y.y*Mount.HOOF_RADII.y,2)+pow(rotation.z.y*Mount.HOOF_RADII.z,2))
   lowest=minf(lowest,center.y-radius)
  return -lowest

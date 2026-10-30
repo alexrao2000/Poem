@@ -54,8 +54,8 @@ func run():
       verify_mounted_geometry(actor)
       for index in range(4):
        var knee=actor.bones["HorseKnee"+str(index)];var bend=knee.rotation.x
-       assert(knee.get_parent()==actor.bones["HorseLeg"+str(index)] and knee.has_node("Hoof"),"Lower leg and hoof articulate from their original knee center")
-       assert(absf(bend)<=.751 and (bend<=0 if index%2==0 else bend>=0),"Front knees and rear hocks fold in opposite anatomical directions")
+       assert(knee.get_parent()==actor.bones["HorseLeg"+str(index)] and actor.bones["HorseFoot"+str(index)].get_parent()==knee and actor.bones["HorseFoot"+str(index)].has_node("Hoof"),"Lower leg and hoof articulate from their original knee center")
+       assert(absf(bend)<=1.41 and (bend<=0 if index%2==0 else bend>=0),"Front knees and rear hocks fold in opposite anatomical directions")
        if absf(bend)>.6:bent[index%2]=true
       assert(is_equal_approx(actor.bones.LeftLeg.rotation.x,.85) and is_equal_approx(actor.bones.RightKnee.rotation.x,-1.25),"Distance-driven horse gait leaves the rider seated")
      var contact=actor.ground_contact_position()
@@ -149,10 +149,10 @@ func verify_gait_entry(actor):
  for index in range(4):
   assert(actor.bones["HorseLeg"+str(index)].rotation.is_zero_approx() and actor.bones["HorseKnee"+str(index)].rotation.is_zero_approx(),"Starting travel does not snap the mount into a full stride")
  motion.custom_step(.05);actor._process(0)
- for index in range(4):assert(absf(actor.bones["HorseKnee"+str(index)].rotation.x)<.12,"Initial knee flex blends gradually into travel")
+ for index in range(4):assert(absf(actor.bones["HorseKnee"+str(index)].rotation.x)<.22,"Initial knee flex blends gradually into travel")
  verify_mounted_geometry(actor)
  motion.custom_step(.15);actor._process(0)
- assert(actor.mounted_gait_weight==1 and absf(actor.bones.HorseKnee0.rotation.x)>.5,"The full articulated gait takes over after the entry transition")
+ assert(actor.mounted_gait_weight==1 and maxf(absf(actor.bones.HorseKnee0.rotation.x),absf(actor.bones.HorseKnee1.rotation.x))>.5,"The full articulated gait takes over after the entry transition")
  verify_mounted_geometry(actor)
  var stopping=actor.pose("idle",.2)
  for step in range(4):
@@ -169,13 +169,13 @@ func verify_contacts(fighters,stage,game):
     var actor=fighters.build(stage,unit,Vector3.ZERO);actor.set_process(false)
     await actor.pose("advance",.001).finished
     var contacts=[];actor.travel_contact.connect(func(index):contacts.append(index))
-    var stride=2.8 if actor.mounted else 1.6
+    var stride=Fighters.Actor.MountStride.LENGTH if actor.mounted else 1.6
     for step in range(subdivisions):
      actor.position.z-=stride*direction/subdivisions;actor._process(.016)
     assert(contacts==[0,1],"A complete forward or backward stride emits exactly two alternating contacts regardless of frame subdivision")
     if actor.mounted:
      for step in range(subdivisions):
-      actor.position.z-=.63*direction/subdivisions;actor._process(.016)
+      actor.position.z-=stride*.225*direction/subdivisions;actor._process(.016)
      knees.append([actor.bones.HorseKnee0.rotation,actor.bones.HorseKnee1.rotation,actor.bones.HorseKnee2.rotation,actor.bones.HorseKnee3.rotation])
     totals.append(actor.gait_phase)
     actor._process(1);assert(contacts.size()==2,"Stationary advance cannot play walking sounds")

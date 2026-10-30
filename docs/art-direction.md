@@ -743,3 +743,9 @@ Both tactical sprites now turn toward the exchange before the map-to-arena zoom.
 Confirmed lethal quick-map hits now retain the reaction briefly, then fade the sprite, health bar, commander insignia and soft contact shadow together over 180 ms. The 40 ms onset delay and fade fit inside the existing 240 ms damage-number animation; no extra combat wait is added. Selection brackets clear immediately. Only the departing sprite switches from alpha-cutout to translucent coverage, and only its shadow material is cloned. Ordinary map figures retain their prior rendering path.
 
 `map_exchange` checks all 24 recruits and a commander, animation/opacity ownership, shared-shadow isolation, repeated notifications, teardown during an exit and actual enemy kills/counter-kills. Existing map camera, recruit art and preference checks pass. Rendered blending quality remains pending.
+
+### Planted cavalry steps
+
+Mounted approaches now alternate diagonal support pairs with a two-segment leg solve. Each grounded hoof moves backward through local space at the horse's forward rate; the other pair lifts through a curved return. Separate ankle joints keep hoof soles level, and the existing support calculation carries the body, saddle, rider and stirrups together. Signed ground distance and transformed scale determine stride progress, so stationary or reversed motion does not pump the legs.
+
+The new `mount_stride` suite checks 8,936 consecutive transformed/reversed support samples (maximum measured drift 0.092 mm), ten full cavalry outfits and eight planted contacts in a real cinematic. Existing 2,304 roster travel samples, 2,184 infantry transitions, 1,024 rein poses, preview framing, finishing shots, skip cleanup and travel audio pass. An isolated eight-frame horse geometry study was inspected; assembled animation review remains pending. The default runner now has 70 suites, with unchanged 1,774 rigid sources / 1,057 joint batches plus three dynamic reins.

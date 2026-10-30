@@ -12,6 +12,8 @@ const HOOF_CENTER=Vector3(0,-.86,-.015)
 const HOOF_RADII=Vector3(.075,.055,.10)
 const KNEE_CENTER=Vector3(0,-.41,0)
 const LOWER_HOOF_CENTER=HOOF_CENTER-KNEE_CENTER
+const FOOT_CENTER=Vector3(0,-.45,0)
+const LEVEL_HOOF_CENTER=Vector3(0,0,-.015)
 
 static func palette(id: String) -> Dictionary:
  return {
@@ -65,7 +67,8 @@ static func build(painter,actor,id,cloth_color,gold,leather):
    painter.ellipsoid(leg,Vector3(0,-.41,0),Vector3(.07,.075,.07),coat)
    var knee=painter.joint(leg,"HorseKnee",KNEE_CENTER);actor.register_bone("HorseKnee"+str(index),knee)
    geo.cylinder(knee,Vector3(0,-.22,0),.44,.045,muzzle,.06)
-   var hoof=painter.ellipsoid(knee,LOWER_HOOF_CENTER,HOOF_RADII,Color("30333a"));hoof.name="Hoof";index+=1
+   var foot=painter.joint(knee,"HorseFoot",FOOT_CENTER);actor.register_bone("HorseFoot"+str(index),foot)
+   var hoof=painter.ellipsoid(foot,LEVEL_HOOF_CENTER,HOOF_RADII,Color("30333a"));hoof.name="Hoof";index+=1
 
  actor.reins=preload("res://scripts/mounted_reins.gd").new();actor.add_child(actor.reins)
  actor.reins.configure(actor,painter.painted(Color("b1a797"),3))
