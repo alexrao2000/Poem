@@ -88,8 +88,7 @@ func build(parent,u,p) -> Node3D:
  if robe:
   Garments.build(self,body,blue,gold)
  if u.weapon=="bow":
-  var quiver=geo.cylinder(torso,Vector3(.16,.14,.19),.48,.075,leather);quiver.rotation.z=-.22
-  for i in range(4):geo.cylinder(torso,Vector3(.12+i*.025,.43,.19),.4,.009,Color("9c8769"))
+  preload("res://scripts/quiver_visuals.gd").build(self,torso,leather,gold)
  var cape=joint(torso,"Cape",Vector3(0,.35,.12));actor.register_bone("Cape",cape)
  cape_surface(cape,cape_color)
  if company and u.id=="lyra":

@@ -37,6 +37,7 @@ func run():
  var rules=Rules.new();var painter=Fighters.new();painter.batching_enabled=false
  var stage=Node3D.new();root.add_child(stage);var signatures={};var samples=0
  await verify_shields(painter,rules,stage)
+ await verify_quivers(painter,rules,stage)
  assert(Looks.profiles.size()==rules.equipment.size())
  for item in rules.equipment:
   assert(Looks.resolve(item.kind,item.id)==item.id and Looks.profiles[item.id].kind==item.kind)
@@ -92,7 +93,7 @@ func run():
  assert(flights.size()==1 and is_equal_approx(flights[0],Looks.blade("javelin").get_aabb().size.x),"Actual thrown attack uses its equipped javelin head")
  assert(app.game.save_data("battle")==saved and app.game.rng.state==rng,"Item art never changes combat outcome or random state")
  await Shutdown.dispose(app);await process_frame
- print("PASS: 22 distinct actual weapon appearances, closed cached blade/head geometry, retained reach, %d grounded pose samples, bowstring endpoints, enemy equipment and thrown spear continuity"%samples)
+ print("PASS: 22 distinct actual weapon appearances, closed cached blade/head geometry, retained reach, %d grounded pose samples, bowed shields, open quivers/feather clearance, bowstring endpoints, enemy equipment and thrown spear continuity"%samples)
  quit()
 
 func shield_intersection(mesh: Mesh,xy: Vector2) -> Variant:
@@ -134,3 +135,38 @@ func verify_shields(painter,rules,stage):
     actor.pose(pose,1).custom_step(1);actor.apply_constraints()
     for vertex in body.surface_get_arrays(0)[Mesh.ARRAY_VERTEX]:assert(elbow.get_node("ShieldBody").to_global(vertex).y>0,"Shield stays above the floor in living combat poses")
    actor.queue_free();await process_frame
+
+func quiver_floor(mesh: Mesh,point: Vector2) -> Variant:
+ var points=mesh.surface_get_arrays(0)[Mesh.ARRAY_VERTEX];var nearest=null
+ for i in range(0,points.size(),3):
+  var hit=Geometry3D.ray_intersects_triangle(Vector3(point.x,1,point.y),Vector3.DOWN,points[i],points[i+1],points[i+2])
+  if hit!=null and (nearest==null or hit.y>nearest.y):nearest=hit
+ return nearest
+
+func verify_quivers(painter,rules,stage):
+ var shape=preload("res://scripts/quiver_visuals.gd")
+ var body=shape.mesh("body");closed_mesh(body)
+ var center=quiver_floor(body,Vector2.ZERO);var rim=quiver_floor(body,Vector2(.067,0))
+ assert(center!=null and is_equal_approx(center.y,-.20) and rim!=null and is_equal_approx(rim.y,.24),"Quiver has an actual open cavity, solid floor and annular lip")
+ assert(quiver_floor(body,Vector2(.09,0))==null)
+ for tail in shape.TAILS:
+  assert(tail.y>.45 and tail.y<.50)
+  var floor_hit=quiver_floor(body,Vector2(tail.x,tail.z))
+  assert(floor_hit!=null and is_equal_approx(floor_hit.y,-.20),"Each arrow is aligned with the opening rather than emerging through the cap or side")
+ var shafts=shape.mesh("shafts").get_aabb();var feathers=shape.mesh("feathers").get_aabb()
+ assert(shafts.position.y<.24 and shafts.end.y>.45 and feathers.position.y>.24,"Arrow shafts enter the container and all feathers clear the rim")
+ assert(feathers.size.x<.12 and feathers.size.z<.12,"Feathered tails retain the archer's compact back silhouette")
+ for part in ["body","rim","shafts","feathers"]:assert(shape.mesh(part)==shape.mesh(part),"Quiver source parts are cached")
+ for source in rules.roster.filter(func(unit):return unit.weapon=="bow"):
+  var unit=source.duplicate(true);unit.team="player"
+  var actor=painter.build(stage,unit,Vector3.ZERO);actor.set_process(false);actor.pose_tween.kill()
+  var quiver=actor.find_child("Quiver",true,false)
+  assert(quiver!=null and quiver.get_child_count()==4,"All four quiver parts share one tilted attachment")
+  assert(is_equal_approx(quiver.rotation.z,-.22))
+  var feather=quiver.get_node("QuiverFeathers")
+  assert(feather.material_override.next_pass.get_shader_parameter("width")==.001,"Fine feather edges retain their own narrow ink outline")
+  for pose in ["idle","advance","windup","critical_windup","strike","recover","victory"]:
+   actor.pose(pose,1).custom_step(1);actor.apply_constraints()
+   for part in quiver.get_children():
+    for vertex in part.mesh.surface_get_arrays(0)[Mesh.ARRAY_VERTEX]:assert(part.to_global(vertex).y>0,"Attached quiver clears the ground through bow animation")
+  actor.queue_free();await process_frame
