@@ -79,7 +79,7 @@ func run():
  assert(is_zero_approx(walker.bone("LeftLeg").rotation.x),"Approach retains the starting stance before its blend advances")
  await advance.finished;walker._process(0)
  var gait=walker.bone("LeftLeg").rotation.x
- assert(absf(gait)>.2,"The completed entry blend has an actual distance-driven stride")
+ assert(absf(gait-walker.bone("RightLeg").rotation.x)>.2,"The completed entry blend separates the legs into their distance-driven stride")
  walker._process(.07)
  assert(is_equal_approx(walker.bone("LeftLeg").rotation.x,gait),"Stationary pose processing cannot overwrite locomotion joints")
  await walker.pose("idle",.01).finished

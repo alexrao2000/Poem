@@ -9,6 +9,7 @@ var skip_finish=false
 var skip_hold=false
 var expected_caption=""
 var mounted_losses=0
+var completed_departures=0
 
 func watch_finish(node):
  if not node is Finish:return
@@ -23,11 +24,17 @@ func watch_finish(node):
    assert(is_equal_approx(actor.bones.LeftLeg.rotation.x,.85) and is_equal_approx(actor.bones.RightLeg.rotation.x,.85),"Defeated rider retains the seated leg orientation")
    assert(actor.bones.Body.position.y>actor.rest.Body.position.y-.1,"Defeated rider cannot drop through the saddle while the horse stands")
    mounted_losses+=1
+ var departure=app.stage.get_node("CombatDefeat")
+ assert(departure.actor.pose_name=="down" and departure.actor.visible,"Defeat fade starts only after the fall pose and remains visible initially")
  observed.append(standing[0].kind)
  if skip_hold:
   while standing[0].pose_name!="victory":await process_frame
  if skip_finish or skip_hold:
   var tab=InputEventKey.new();tab.keycode=KEY_TAB;tab.pressed=true;app._input(tab)
+ else:
+  while is_instance_valid(departure) and departure.actor.visible:await process_frame
+  assert(is_instance_valid(departure) and standing[0].visible,"Defeated actor disappears while the survivor is still finishing")
+  completed_departures+=1
 
 func _initialize():call_deferred("run")
 func run():
@@ -101,13 +108,14 @@ func run():
   await app.cinematic(a,b,[event],{a.id:2,b.id:2})
   await process_frame
   assert(observed.size()==(0 if mode=="survive" else 1),"A finishing pose requires a resolved defeat, including counters")
-  assert(not app.stage.has_node("CombatFinish") and app.world.visible and not app.stage.visible,"Finish/skip removes the sequence and restores the map")
+  assert(not app.stage.has_node("CombatFinish") and not app.stage.has_node("CombatDefeat") and app.world.visible and not app.stage.visible,"Finish/skip removes the sequence and restores the map")
   assert(app.camera.transform.is_equal_approx(start_camera) and app.camera.projection==Camera3D.PROJECTION_ORTHOGONAL,"Finish shot cannot retain ownership of the tactical camera")
   assert(app.game.save_data("battle")==saved and app.game.rng.state==rng,"Finishing never resolves or changes combat results")
  skip_finish=false;skip_hold=false;b.job="Rider";b.weapon="lance";b.item="iron_lance"
  saved=app.game.save_data("battle").duplicate(true);rng=app.game.rng.state
  expected_caption=a.name+" — "+Finish.quote_for(a,app.fighters.profiles)
  await app.cinematic(a,b,[{"actor":a.id,"target":b.id,"damage":2,"remaining":0,"hit":true,"crit":false}],{a.id:2,b.id:2})
+ assert(completed_departures==3,"Normal, counter and mounted defeats finish their fade before returning to the map")
  assert(mounted_losses==1 and app.game.save_data("battle")==saved and app.game.rng.state==rng,"Actual mounted defeat retains its seating constraints and changes no resolved result")
  await Shutdown.dispose(app);await process_frame
  print("PASS: %d finishing camera layouts, 24 original caption fits, enemy/custom fallbacks, 96 planted flourish/rest poses, resolved kills/counters, no false finishes, Tab interruption and complete map restoration"%samples)

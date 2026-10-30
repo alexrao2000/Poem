@@ -1,0 +1,94 @@
+extends SceneTree
+# The field preserves pre-exchange figures until presentation finishes, then
+# exposes the already-resolved roster before XP cards or the next actor can run.
+
+const Shutdown=preload("helpers/game_shutdown.gd")
+const Actor=preload("res://scripts/fighter_actor.gd")
+const Reward=preload("res://scripts/progress_reward.gd")
+var app
+var mode=""
+var lost_id=""
+var old_visual
+var saw_contact=false
+var saw_return=false
+var saw_reward=false
+var skip_arena=false
+
+func _initialize():call_deferred("run")
+
+func setup():
+ mode=""
+ app.game.new_campaign();app.game.start_battle();app.preferences.values.auto_end=false
+ var a=app.game.living("player")[0];var b=app.game.living("enemy")[0];var spare=app.game.living("player")[1]
+ a.x=8;a.y=4;b.x=9;b.y=4;spare.x=0;spare.y=0;b.ai="guard"
+ app.game.units=[a,spare,b];app.make_map();app.show_battle()
+ app.pieces.visibility_changed.connect(watch_return)
+ app.ui.child_entered_tree.connect(watch_ui)
+ app.stage.child_entered_tree.connect(watch_arena)
+ saw_contact=false;saw_return=false;saw_reward=false
+ return [a,b,spare]
+
+func run():
+ app=load("res://main.tscn").instantiate();app.settings_path="";app.save_path="/private/tmp/poem-map-exchange.json";root.add_child(app);await process_frame
+ for case in ["defeat","counter","survive","heal","skip"]:
+  var pair=setup();var a=pair[0];var b=pair[1];mode="arena";app.busy=true;app.preferences.values.combat="all"
+  lost_id="";skip_arena=case=="skip";var initial={a.id:a.hp,b.id:b.hp};var events=[]
+  if case=="heal":
+   b.team="player";b.hp-=6;app.refresh_pieces();initial[b.id]=b.hp;b.hp+=4
+   a.weapon="staff";a.item="heal_staff";events=[{"actor":a.id,"target":b.id,"healing":4}]
+  else:
+   var target=a if case=="counter" else b;var attacker=b if case=="counter" else a
+   var damage=3 if case=="survive" else target.hp;target.hp-=damage
+   lost_id=target.id if target.hp==0 else ""
+   events=[{"actor":attacker.id,"target":target.id,"damage":damage,"remaining":target.hp,"hit":true,"crit":false}]
+  var saved=app.game.save_data("battle").duplicate(true);var rng=app.game.rng.state
+  await app.cinematic(a,b,events,initial)
+  assert(saw_return,"Field return was observed for "+case)
+  assert(app.game.save_data("battle")==saved and app.game.rng.state==rng,"Field synchronization only presents resolved outcomes")
+  app.busy=false
+ for case in ["enemy_kill","enemy_counter"]:
+  var pair=setup();var a=pair[0];var b=pair[1];mode="map";app.preferences.values.combat="map"
+  if case=="enemy_kill":
+   a.hp=1;a.speed=0;b.speed=50;b.pow=100;lost_id=a.id
+  else:
+   b.hp=1;b.speed=0;b.defense=0;a.speed=50;a.pow=100;a.defense=30;lost_id=b.id
+  app.refresh_pieces()
+  app.end_turn();old_visual=app.unit_nodes[lost_id]
+  while app.busy:await process_frame
+  assert(saw_contact,"Resolved enemy turn still presents the defeated unit's actual map reaction: "+case)
+  assert(not app.unit_nodes.has(lost_id),"Defeated map figure disappears after feedback")
+  if case=="enemy_counter":assert(saw_reward,"Counterattack XP begins after field synchronization")
+ mode="";await Shutdown.dispose(app);await process_frame
+ print("PASS: five arena returns (defeat/counter/survival/heal/skip), actual enemy kill/counter map reactions, updated health before XP, and unchanged resolved state")
+ quit()
+
+func watch_return():
+ if mode!="arena" or not app.pieces.visible:return
+ saw_return=true;verify_field()
+
+func verify_field():
+ for unit in app.game.units:
+  assert(app.unit_nodes.has(unit.id)==(unit.hp>0),"Map visibility agrees with resolved health before the reveal or reward")
+  if unit.hp>0:
+   var visual=app.unit_nodes[unit.id]
+   assert(is_equal_approx(visual.hp_ratio,float(unit.hp)/unit.max_hp),"Returning health bars reflect damage and healing immediately")
+   assert(visual.spent==unit.acted,"Returning action tint agrees with the resolved turn state")
+
+func watch_arena(node):
+ if mode!="arena" or not skip_arena or not node is Actor:return
+ await process_frame;app.skip_combat=true
+
+func watch_ui(node):
+ if mode!="map":return
+ if node is Reward:
+  await process_frame
+  verify_field();saw_reward=true;node.requested_close=true
+ if not node is Label:return
+ await process_frame
+ if not is_instance_valid(node) or not node.text.is_valid_int() and not node.text.begins_with("CRIT "):return
+ if app.game.units.filter(func(unit):return unit.id==lost_id)[0].hp>0:return
+ if not is_instance_valid(old_visual):
+  assert(false,"Enemy turn removed its defeated sprite before presenting the hit");return
+ if old_visual.player.state=="defeated":
+  assert(old_visual.is_visible_in_tree() and old_visual.hp_ratio==0,"Defeated sprite receives its hit and empty health bar before removal")
+  saw_contact=true

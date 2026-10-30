@@ -812,7 +812,7 @@ func end_turn():
 		var path=game.movement_path(e,choice.position)
 		await animate_map_move(e,path)
 		var events=tactics.apply_plan(game,e,choice)
-		refresh_pieces();highlight();await get_tree().create_timer(.12).timeout
+		highlight();await get_tree().create_timer(.12).timeout
 		if chosen!=null and not events.is_empty():
 			await cinematic(e,chosen,events,initial_hp)
 			await show_progress(before)
@@ -1010,11 +1010,13 @@ func cinematic(a,b,events,initial_hp={}):
 			await combat_wait(whom.pose("down",.3))
 			if skip_combat:break
 			finished_exchange=true
+			var departure=preload("res://scripts/combat_defeat.gd").new();stage.add_child(departure);departure.begin(whom)
 			var finish=preload("res://scripts/combat_finish.gd").new();stage.add_child(finish)
 			var line=finish.quote_for(unit,fighters.profiles)
 			caption.text=unit.name+(" — "+line if not line.is_empty() else "");caption.show()
 			director.shot(who.position,whom.position,"finish",is_ranged,unit.job=="Rider",.28,unit.weapon)
 			await finish.play(who,func():return skip_combat,.95 if not line.is_empty() else .60)
+			departure.finish();departure.queue_free()
 			finish.queue_free()
 			break
 		else:
@@ -1031,6 +1033,7 @@ func cinematic(a,b,events,initial_hp={}):
 	banner.queue_free();caption.queue_free()
 	director.stop();director.queue_free()
 	stage.visible=false
+	refresh_pieces()
 	restore_lighting(old_lighting)
 	world.show();pieces.show();markers.show()
 	var pull=map_navigation.return_from_combat(close_map_view,tactical_view,.25)
