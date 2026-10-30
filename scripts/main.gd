@@ -386,6 +386,7 @@ func show_camp():
 	var tools_row=HBoxContainer.new();tools_row.add_theme_constant_override("separation",8);left.add_child(tools_row)
 	button_in(tools_row,"Save campaign",func():save_with_feedback("camp")).size_flags_horizontal=Control.SIZE_EXPAND_FILL
 	button_in(tools_row,"Options",func():show_options("camp")).size_flags_horizontal=Control.SIZE_EXPAND_FILL
+	button_in(tools_row,"Route",show_campaign_route).size_flags_horizontal=Control.SIZE_EXPAND_FILL
 	button_in(left,"Transfer a local save",func():show_save_transfer("camp"))
 	button_in(left,"Return to title",show_title)
 	var scroll=ScrollContainer.new();scroll.custom_minimum_size.x=420;scroll.horizontal_scroll_mode=ScrollContainer.SCROLL_MODE_DISABLED
@@ -409,6 +410,31 @@ func show_camp():
 			elif game.deployed.size()<6:game.deployed.append(u.id)
 			show_camp(),not unlocked or (game.deployed.size()>=6 and u.id not in game.deployed))
 	MenuLayout.configure(ui)
+
+func show_campaign_route():
+	screen="campaign_route";reset_ui()
+	var frame=menu_panel(1320)
+	label_in(frame,"THE MARCH OF THE STANDARD",30,GOLD)
+	label_in(frame,"A chronicle of the valley · Select a reached destination to review its briefing.",16)
+	var row=HBoxContainer.new();row.add_theme_constant_override("separation",20);row.size_flags_vertical=Control.SIZE_EXPAND_FILL;frame.add_child(row)
+	var route=preload("res://scripts/campaign_route.gd").new();route.name="CampaignRoute";row.add_child(route)
+	route.configure(game.content.chapters,game.chapter,game.completed)
+	var details=VBoxContainer.new();details.custom_minimum_size.x=260;row.add_child(details)
+	var progress=label_in(details,"",16,GOLD)
+	var title=label_in(details,"",28)
+	var place=label_in(details,"",17,GOLD)
+	var reading=scrolling_column(details)
+	var briefing=label_in(reading,"",20)
+	var tactics_text=label_in(reading,"",17,Color("766e5e"))
+	var refresh=func(index):
+		var chapter=game.content.chapters[index]
+		progress.text="CHAPTER %02d / %02d · %s"%[index+1,game.content.chapters.size(),"COMPLETED" if index<game.chapter or game.completed else "CURRENT"]
+		title.text=chapter.title;place.text=chapter.place.to_upper()
+		briefing.text=chapter.intro;tactics_text.text=chapter.get("tactical_brief","")
+		reading.get_parent().scroll_vertical=0
+	route.chapter_selected.connect(refresh);refresh.call(game.chapter)
+	label_in(frame,"Numbered seals mark the road traveled. The standard marks your company’s current chapter.",15,Color("766e5e"))
+	button_in(frame,"Return to war council",show_camp)
 
 func objective_text() -> String:
 	match game.info().objective:
@@ -596,7 +622,7 @@ func _unhandled_input(event):
 		show_title();get_viewport().set_input_as_handled();return
 	if screen=="model" and event is InputEventKey and event.pressed and event.keycode==KEY_ESCAPE:
 		close_model_view();get_viewport().set_input_as_handled();return
-	if screen=="dossier" and event is InputEventKey and event.pressed and event.keycode==KEY_ESCAPE:
+	if screen in ["dossier","campaign_route"] and event is InputEventKey and event.pressed and event.keycode==KEY_ESCAPE:
 		show_camp();get_viewport().set_input_as_handled();return
 	if screen=="dialogue" and event is InputEventKey and event.pressed:
 		if event.keycode in [KEY_SPACE,KEY_ENTER]:advance_dialogue();get_viewport().set_input_as_handled()

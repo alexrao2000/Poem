@@ -56,6 +56,7 @@ func run():
 			await inspect(app,dimensions)
 		for chapter in range(12):
 			app.game.chapter=chapter;app.show_camp();await inspect(app,dimensions)
+			app.show_campaign_route();await inspect(app,dimensions)
 		for unit in app.game.roster:
 			for screen in ["dossier","equipment","promotions","supports"]:
 				app.call("show_"+screen,unit);await inspect(app,dimensions)

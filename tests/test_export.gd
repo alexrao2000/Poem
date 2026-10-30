@@ -19,6 +19,9 @@ func run():
   assert(app.unit_nodes.size()==app.game.units.size(),"Packaged maps instantiate every living actor")
   for actor in app.unit_nodes.values():assert(actor.sprite.texture!=null and actor.player.asset.clips.has("move"),"Packaged actors have atlas frames and animations")
  app.show_credits();await process_frame;assert(app.screen=="credits")
+ app.show_campaign_route();await process_frame
+ var route=app.ui.find_child("CampaignRoute",true,false)
+ assert(route!=null and route.MAP.get_width()==1536 and route.markers.size()==12,"Release includes the illustrated campaign route and all chapter markers")
  for path in app.game.promotions:
   var unit=app.game.roster.filter(func(value):return value.job==path.base)[0].duplicate(true)
   unit.team="player";unit.promotion=path.id
