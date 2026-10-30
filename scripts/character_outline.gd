@@ -39,6 +39,7 @@ static func apply(actor: Node3D):
   if mesh.name=="PaintedFace":continue
   var surface=mesh.material_override
   if surface==null:continue
+  if surface.get_meta("no_character_outline",false):continue
   if surface is StandardMaterial3D and (surface.transparency!=BaseMaterial3D.TRANSPARENCY_DISABLED or surface.emission_enabled):continue
   if mesh.mesh.get_surface_count()!=1:continue
   mesh.mesh=smooth_directions(mesh.mesh)

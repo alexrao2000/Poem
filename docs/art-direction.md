@@ -258,3 +258,11 @@ Runtime checks exercise actual button signals and cursor movement, mute/volume, 
 The three folios also gather their element around the live casting socket during anticipation: warm embers, mint crescents or violet bolts inside a restrained ring. Four additive meshes remain within 36 cm of the socket, follow the actor through critical windup, and fade over 120 ms at the actual release position. No lights or gameplay randomness are added. Skipping anticipation removes the effect without launching a projectile or playing contact audio.
 
 Tests exercise transformed stage parents, all three caster identities in both directions, socket/facing attachment, geometry bounds, release anchoring and actor removal, along with actual counters, misses, all three spells and skip restoration. The effects preserve campaign state and RNG. These are runtime/resource checks; rendered appearance and listening review remain outstanding.
+
+## Open folios and a free casting hand
+
+Casters hold an open original folio in the left palm while the right hand gathers and releases magic. Two angled covers and page blocks, gold corner fittings, a binding and a narrow ribbon replace the closed block book. `scripts/spellbook.gd` creates a shared 128×192 manuscript texture from geometric strokes and a lozenge; it contains no borrowed alphabet or game artwork. The isolated page texture was inspected. Printed page surfaces retain their own material without an expanded silhouette shell.
+
+A bounded reading orientation keeps the book facing upward through locomotion, anticipation, release, recovery and reactions; the down pose releases that orientation while retaining hand attachment. The release pose separates the hands, and magic projectile sockets now come from the free hand. Staff and physical weapon sockets are unchanged.
+
+Nine hundred sampled poses cover all three casters, six promoted variants and the enemy mage in both directions. Checks cover palm attachment, actual printed-face normals, casting-hand clearance, material/texture sharing and batching. Full-roster animated geometry remains equivalent: 1,791 source meshes become 1,012 joint batches, six more batches than before. Elemental anticipation, real exchanges and all 48 promotion looks also pass. The assembled characters still need rendered inspection.

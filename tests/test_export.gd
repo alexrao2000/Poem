@@ -32,6 +32,9 @@ func run():
   var actor=app.make_fighter(unit,Vector3(35,0,0))
   assert(actor.get_meta("promotion_look","")==path.id,"Release includes every promotion costume profile and constructor")
   assert(actor.cape_motion.surfaces.size()==2,"Release binds cape fabric and outline motion")
+  if unit.weapon=="magic":
+   assert(actor.bones.Weapon.get_parent()==actor.bones.LeftElbow and actor.bones.Weapon.has_node("Spellbook"),"Packaged caster retains the open folio and free casting hand")
+   assert(actor.find_children("*","MeshInstance3D",true,false).any(func(mesh):return mesh.material_override.get_meta("no_character_outline",false) and mesh.material_override.albedo_texture!=null),"Packaged folio generates its original printed pages")
   actor.queue_free();await process_frame
  await Shutdown.dispose(app);await process_frame
  print("PASS: exported catalog, all three act scores, chapter scenes, sixteen promotion costumes, licenses and credits")

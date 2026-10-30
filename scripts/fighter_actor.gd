@@ -52,6 +52,10 @@ func _process(dt):
  apply_constraints()
 
 func apply_constraints():
+ if kind=="magic" and pose_name!="down" and bones.has("Weapon"):
+  var grip=bones.Weapon
+  var reading_basis=global_basis*Basis(Vector3.RIGHT,PI*.5+.18)
+  grip.quaternion=(grip.get_parent().global_basis.inverse()*reading_basis).get_rotation_quaternion()
  if kind=="staff" and pose_name in ["cast_windup","cast"] and bones.has("Weapon"):
   var grip=bones.Weapon
   grip.quaternion=(grip.get_parent().global_basis.inverse()*global_basis).get_rotation_quaternion()
@@ -203,6 +207,11 @@ func pose(key: String,duration=.18) -> Tween:
   target.Body=Vector3(.6,0,.25);target.Head=Vector3(.3,0,0)
   target.LeftLeg.x=-.7;target.LeftKnee.x=1.45;target.RightLeg.x=-.3;target.RightKnee.x=1.25
   target.Arm=Vector3(.2,0,-.3);target.LeftArm=Vector3(.3,0,.2)
+ if kind=="magic" and key!="down":
+  # The book stays in the left palm while the free right hand casts.
+  target.LeftArm=Vector3(-.55,-.12,-.22);target.LeftElbow=Vector3(-1.05,0,0)
+  if key=="strike":
+   target.Body=Vector3(.12,.06,0);target.Arm=Vector3(-1.3,-.12,.08);target.Elbow=Vector3(-.1,0,0)
  if mounted:
   for leg in ["LeftLeg","RightLeg"]:target[leg].x=.85
   target.LeftLeg.z=-.18;target.RightLeg.z=.18
@@ -237,10 +246,11 @@ func pose(key: String,duration=.18) -> Tween:
  return pose_tween
 
 func socket_position(key: String) -> Vector3:
+ if key=="projectile" and kind=="magic" and bones.has("Elbow"):return bones.Elbow.to_global(Vector3(0,-.29,-.08))
  if key=="projectile" and kind=="staff" and bones.has("Weapon"):return bones.Weapon.to_global(Vector3(0,.78,0))
  if key=="projectile" and kind=="bow" and bones.has("NockedArrow"):return bones.NockedArrow.global_position
  if key=="projectile" and bones.has("Weapon"):
-  var offset=Vector3(0,0,-.22) if kind=="bow" else Vector3(0,.14,-.12) if kind=="magic" else Vector3.ZERO
+  var offset=Vector3(0,0,-.22) if kind=="bow" else Vector3.ZERO
   return bones.Weapon.to_global(offset)
  return global_position+Vector3(0,(1.2 if key=="projectile" else 1.1)+(.75 if mounted else 0.0),0)
 

@@ -114,7 +114,7 @@ func build(parent,u,p) -> Node3D:
   ellipsoid(elbow,Vector3.ZERO,Vector3(.073,.073,.073),steel)
   geo.cylinder(elbow,Vector3(0,-.13,0),.25,.068,steel if armored else leather,.055)
   ellipsoid(elbow,Vector3(0,-.29,0),Vector3(.075,.085,.065),leather)
-  if sign_value>0:
+  if sign_value==(-1 if u.weapon=="magic" else 1):
    var hand=weapon(elbow,u.weapon,gold,steel,leather);actor.register_bone("Weapon",hand)
    if hand.has_node("NockedArrow"):actor.register_bone("NockedArrow",hand.get_node("NockedArrow"))
    if u.weapon=="bow":
@@ -234,13 +234,7 @@ func apply_surfaces(root,blue,tint,skin,steel,gold,leather,cape_color):
 func weapon(arm,kind,gold,steel,leather) -> Node3D:
  var hand=joint(arm,"Weapon",Vector3(0,-.29,-.04))
  if kind=="magic":
-  var book=joint(hand,"Spellbook",Vector3(0,.10,-.06));book.rotation.x=-.15
-  geo.block(book,Vector3.ZERO,Vector3(.22,.29,.075),Color("344d65"))
-  geo.block(book,Vector3(.006,0,-.043),Vector3(.195,.26,.025),Color("e8dfbf"))
-  geo.block(book,Vector3(-.108,0,0),Vector3(.025,.30,.09),gold)
-  for side_value in [-1,1]:
-   geo.block(book,Vector3(0,side_value*.12,-.059),Vector3(.18,.012,.005),gold)
-  var seal=geo.block(book,Vector3(0,0,-.062),Vector3(.075,.075,.008),gold);seal.rotation.z=PI/4
+  preload("res://scripts/spellbook.gd").build(self,hand,gold)
  elif kind=="staff":
   geo.cylinder(hand,Vector3(0,.05,0),1.35,.022,leather)
   var orb=ellipsoid(hand,Vector3(0,.78,0),Vector3(.11,.11,.11),Color("79cbdb"))
