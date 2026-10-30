@@ -4,6 +4,7 @@ extends "res://visuals/unit_3d.gd"
 const TACTICAL_PIXEL_SIZE=1.0/48.0
 static var contact_material: StandardMaterial3D
 var unit_id=""
+var commander_insignia: Sprite3D
 
 func configure(source: RefCounted,unit: Dictionary,facing="south"):
  unit_id=unit.id;team=unit.team;spent=unit.acted
@@ -18,6 +19,12 @@ func configure(source: RefCounted,unit: Dictionary,facing="south"):
  var shadow=PlaneMesh.new();shadow.size=Vector2(.58,.40);marker.mesh=shadow;marker.material_override=shadow_material()
  marker.cast_shadow=GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
  player.play("idle",facing);update_frame()
+ if unit.get("boss",false) and team=="enemy":
+  var insignia=Sprite3D.new();insignia.name="CommanderInsignia";insignia.texture=preload("res://assets/ui/commander.svg")
+  insignia.billboard=BaseMaterial3D.BILLBOARD_ENABLED;insignia.texture_filter=BaseMaterial3D.TEXTURE_FILTER_LINEAR
+  insignia.pixel_size=1.0/100;insignia.position=Vector3(.30,.93,0);insignia.no_depth_test=true;insignia.render_priority=3
+  insignia.cast_shadow=GeometryInstance3D.SHADOW_CASTING_SETTING_OFF;add_child(insignia)
+  commander_insignia=insignia
 
 static func shadow_material() -> StandardMaterial3D:
  if contact_material==null:
@@ -73,4 +80,14 @@ func screen_bounds(camera: Camera3D) -> Rect2:
  var pixel_scale=Vector2(sprite.scale.x,sprite.scale.y)*sprite.pixel_size*density
  var texture_size=sprite.texture.get_size()
  var corner=Vector2(sprite.offset.x,-texture_size.y-sprite.offset.y)*pixel_scale
- return Rect2(projected+corner,texture_size*pixel_scale)
+ var bounds=Rect2(projected+corner,texture_size*pixel_scale)
+ if is_instance_valid(commander_insignia) and commander_insignia.visible:
+  bounds=bounds.merge(commander_screen_bounds(camera))
+ return bounds
+
+func commander_screen_bounds(camera: Camera3D) -> Rect2:
+ if not is_instance_valid(commander_insignia) or not commander_insignia.is_visible_in_tree():return Rect2()
+ var center=camera.unproject_position(commander_insignia.global_position)
+ var density=center.distance_to(camera.unproject_position(commander_insignia.global_position+camera.global_basis.x))
+ var extent=commander_insignia.texture.get_size()*commander_insignia.pixel_size*density
+ return Rect2(center-extent*.5,extent)

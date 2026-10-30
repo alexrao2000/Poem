@@ -2,10 +2,10 @@ extends RefCounted
 # Original class headgear echoes the anonymous enemy portraits. Hoods remain
 # open toward -Z, preserving the painted eyes; all detail batches with the head.
 
-static func build(painter,head,job,steel,gold):
+static func build(painter,head,job,steel,gold,appearance={}):
  head.set_meta("enemy_headgear",job)
  if job in ["Ranger","Arcanist","Warden"]:
-  var color=Color({"Ranger":"565a3e","Arcanist":"4d364c","Warden":"ded5bd"}[job])
+  var color=Color(appearance.get("hood",{"Ranger":"565a3e","Arcanist":"4d364c","Warden":"ded5bd"}[job]))
   var cap=painter.ellipsoid(head,Vector3(0,.14,.02),Vector3(.18,.11,.18),color);cap.material_override=painter.painted(color,0)
   var surface=SurfaceTool.new();surface.begin(Mesh.PRIMITIVE_TRIANGLES)
   for i in range(10):
@@ -33,4 +33,7 @@ static func build(painter,head,job,steel,gold):
   painter.geo.block(head,Vector3(0,.255,.015),Vector3(.035,.035,.23),gold)
   for i in range(4):
    var x=(i-1.5)*.023
-   painter.hair_lock(head,[Vector3(x,.265,.02),Vector3(x,.30,.18),Vector3(x,.12,.28),Vector3(x,-.13,.30)],.04,Color("8b3943"))
+   painter.hair_lock(head,[Vector3(x,.265,.02),Vector3(x,.30,.18),Vector3(x,.12,.28),Vector3(x,-.13,.30)],.04,Color(appearance.get("crest","8b3943")))
+ if appearance.has("circlet"):
+  painter.shell(head,Vector3(0,.13,-.03),[[0,.174,.16],[.025,.174,.16]],gold)
+  var jewel=painter.ellipsoid(head,Vector3(0,.143,-.196),Vector3(.026,.029,.012),Color(appearance.circlet));jewel.name="CommanderJewel"

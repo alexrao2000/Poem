@@ -1,4 +1,5 @@
 extends RefCounted
+const Commanders=preload("res://scripts/commanders.gd")
 const ORDER=["lyra","oren","sera","ivo","mara","tarin","nell","bram","esme","rook","faye","cassian","vela","dax","una","silas","petra","ari","noor","galen","yuna","hale","elian","rhea"]
 const ENEMY_CLASSES=["Vanguard","Knight","Ranger","Arcanist","Warden","Rider","Corsair","Duelist"]
 var textures: Dictionary={}
@@ -9,11 +10,13 @@ var regions=JSON.parse_string(FileAccess.get_file_as_string("res://data/sprite_r
 
 func get_critical_portrait(unit: Dictionary) -> Texture2D:
  var identity="enemy."+unit.job if unit.get("team","player")=="enemy" else unit.id
+ var commander=Commanders.profile(unit)
+ if not commander.is_empty():identity="commander."+commander.id
  var key="critical."+identity
  if textures.has(key):return textures[key]
  var portrait=get_unit_portrait(unit)
  if portrait==null:return null
- var focus=critical_focus.get(identity,[.66,.28]);var dimensions=portrait.get_size()
+ var focus=commander.critical_focus if not commander.is_empty() else critical_focus.get(identity,[.66,.28]);var dimensions=portrait.get_size()
  var extent=dimensions*Vector2(.60,.22)
  var point=Vector2(focus[0],focus[1])*dimensions
  var corner=(point-extent*.5).clamp(Vector2.ZERO,dimensions-extent)
@@ -31,6 +34,13 @@ func get_dialogue_portrait(id: String) -> Texture2D:
 
 func get_unit_portrait(unit: Dictionary) -> Texture2D:
  if unit.get("team","player")!="enemy":return get_portrait(unit.id)
+ var commander=Commanders.profile(unit)
+ if not commander.is_empty():
+  var identity="commander."+commander.id
+  if not textures.has(identity):
+   var entry=commander.portrait;var picture=AtlasTexture.new();picture.atlas=load(entry.path);picture.filter_clip=true
+   picture.region=Rect2(entry.region[0],entry.region[1],entry.region[2],entry.region[3]);textures[identity]=picture
+  return textures[identity]
  var index=ENEMY_CLASSES.find(unit.job)
  if index<0:return null
  var key="enemy."+unit.job

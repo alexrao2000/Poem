@@ -13,6 +13,7 @@ const Outline=preload("res://scripts/character_outline.gd")
 const PromotionCostume=preload("res://scripts/promotion_costume.gd")
 const Garments=preload("res://scripts/garments.gd")
 const Head=preload("res://scripts/character_head.gd")
+const Commanders=preload("res://scripts/commanders.gd")
 var profiles=JSON.parse_string(FileAccess.get_file_as_string("res://data/characters.json"))
 var enemy_looks=JSON.parse_string(FileAccess.get_file_as_string("res://data/enemy_looks.json"))
 var surface_atlas=load("res://assets/art/character-materials.png")
@@ -49,8 +50,11 @@ func build(parent,u,p) -> Node3D:
  var palette={"Vanguard":"354c77","Knight":"394651","Ranger":"405c49","Arcanist":"434369","Warden":"c8c2ae","Rider":"3d566d","Corsair":"62463f","Duelist":"3b4355"}
  var company=u.team=="player"
  var appearance=profiles.get(u.id,{}).get("appearance",{}) if company else enemy_looks.get(u.job,{})
+ var commander=Commanders.profile(u)
+ if not commander.is_empty():
+  appearance=appearance.duplicate(true);appearance.merge(commander.appearance,true);actor.set_meta("commander",commander.id)
  var blue=Color(appearance.get("cloth",palette[u.job] if company else "853e43"))
- var skin=Color(appearance.get("skin","e0ba98"));var steel=Color("a8b3bb");var gold=Color("bca26b");var leather=Color("554337")
+ var skin=Color(appearance.get("skin","e0ba98"));var steel=Color(appearance.get("steel","a8b3bb"));var gold=Color(appearance.get("metal","bca26b"));var leather=Color("554337")
  var heavy=u.job=="Knight";var robe=u.weapon in ["magic","staff"]
  var armored=u.job in ["Knight","Vanguard","Rider"] and not (company and u.id=="lyra")
  var slender=appearance.get("slender",u.id in ["lyra","sera","mara","nell","esme","faye","vela","una","petra","noor","yuna","rhea"] if company else false)
@@ -150,7 +154,7 @@ func build(parent,u,p) -> Node3D:
    for x in [-.07,.07]:
     var rim=geo.cylinder(head,Vector3(x,.13,-.10),.035,.05,gold);rim.rotation.x=PI/2
     var lens=geo.cylinder(head,Vector3(x,.13,-.122),.015,.037,Color("445d6b"));lens.rotation.x=PI/2
- if u.team=="enemy":EnemyHeadgear.build(self,head,u.job,steel,gold)
+ if u.team=="enemy":EnemyHeadgear.build(self,head,u.job,steel,gold,appearance)
  if u.job=="Rider":
   actor.mounted=true
   for name_value in ["Body","LeftLeg","RightLeg"]:
@@ -223,7 +227,7 @@ func apply_surfaces(root,blue,tint,skin,steel,gold,leather,cape_color):
   var material=mesh.material_override
   if not material is StandardMaterial3D:continue
   var color=material.albedo_color
-  if color==steel:mesh.material_override=painted(Color("d3d7dc"),1,true)
+  if color==steel:mesh.material_override=painted(Color("d3d7dc") if steel==Color("a8b3bb") else steel.lightened(.12),1,true)
   elif color==leather:mesh.material_override=painted(Color("b1a797"),3)
   elif color==Color("69717a"):mesh.material_override=painted(Color("b8bfc8"),2)
   elif color in [blue,tint,cape_color,cape_color.darkened(.06)]:mesh.material_override=painted(color,0)

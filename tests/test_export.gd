@@ -29,6 +29,8 @@ func run():
   app.game.chapter=chapter;app.game.start_battle();app.make_map();app.show_battle();await process_frame
   assert(app.score_director.current_id==["standard","road","dawnless"][chapter/4],"Export includes every act-specific score pair")
   assert(app.unit_nodes.size()==app.game.units.size(),"Packaged maps instantiate every living actor")
+  var commander=app.game.units.filter(func(unit):return unit.get("boss",false))[0]
+  assert(app.unit_nodes[commander.id].has_node("CommanderInsignia") and app.portraits.get_unit_portrait(commander).atlas.get_width()==1254,"Release includes commander crowns and their separate portrait atlas")
   for actor in app.unit_nodes.values():assert(actor.sprite.texture!=null and actor.player.asset.clips.has("move"),"Packaged actors have atlas frames and animations")
  app.show_credits();await process_frame;assert(app.screen=="credits")
  app.show_campaign_route();await process_frame

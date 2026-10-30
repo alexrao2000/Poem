@@ -1,0 +1,316 @@
+{
+  "Captain Voss": {
+    "id": "voss",
+    "job": "Vanguard",
+    "appearance": {
+      "cloth": "853e43",
+      "cape": "76333b",
+      "hair": "292729",
+      "skin": "ddb592",
+      "steel": "a8b3bb",
+      "face_variant": 4
+    },
+    "portrait": {
+      "path": "res://assets/portraits/commanders-v1.png",
+      "region": [
+        4,
+        4,
+        304,
+        402
+      ]
+    },
+    "critical_focus": [
+      0.63,
+      0.35
+    ],
+    "critical_quote": "Hold the line."
+  },
+  "Tollmaster Renn": {
+    "id": "renn",
+    "job": "Knight",
+    "appearance": {
+      "cloth": "853e43",
+      "cape": "71313a",
+      "steel": "a8b3bb",
+      "metal": "bca26b",
+      "crest": "8b3943"
+    },
+    "portrait": {
+      "path": "res://assets/portraits/commanders-v1.png",
+      "region": [
+        316,
+        4,
+        306,
+        402
+      ]
+    },
+    "critical_focus": [
+      0.7,
+      0.4
+    ],
+    "critical_quote": "Pay in steel."
+  },
+  "Hunter Cale": {
+    "id": "cale",
+    "job": "Ranger",
+    "appearance": {
+      "cloth": "65513e",
+      "cape": "75343d",
+      "hair": "292729",
+      "skin": "cba17d",
+      "hood": "565a3e",
+      "face_variant": 1,
+      "slender": true
+    },
+    "portrait": {
+      "path": "res://assets/portraits/commanders-v1.png",
+      "region": [
+        630,
+        4,
+        306,
+        402
+      ]
+    },
+    "critical_focus": [
+      0.66,
+      0.4
+    ],
+    "critical_quote": "No road is safe."
+  },
+  "Prior Ash": {
+    "id": "ash",
+    "job": "Arcanist",
+    "appearance": {
+      "cloth": "4d364c",
+      "cape": "4a3446",
+      "hair": "24202a",
+      "skin": "e1bea9",
+      "hood": "4d364c",
+      "face_variant": 2,
+      "circlet": "9e5965"
+    },
+    "portrait": {
+      "path": "res://assets/portraits/commanders-v1.png",
+      "region": [
+        944,
+        4,
+        306,
+        402
+      ]
+    },
+    "critical_focus": [
+      0.71,
+      0.37
+    ],
+    "critical_quote": "Listen to the silence."
+  },
+  "Marshal Orr": {
+    "id": "orr",
+    "job": "Rider",
+    "appearance": {
+      "cloth": "3b4355",
+      "cape": "76333c",
+      "hair": "292729",
+      "skin": "d6ac89",
+      "steel": "a8b3bb",
+      "crest": "8b3943",
+      "face_variant": 7
+    },
+    "portrait": {
+      "path": "res://assets/portraits/commanders-v1.png",
+      "region": [
+        4,
+        414,
+        304,
+        402
+      ]
+    },
+    "critical_focus": [
+      0.73,
+      0.38
+    ],
+    "critical_quote": "The crown advances."
+  },
+  "Admiral Vale": {
+    "id": "vale",
+    "job": "Vanguard",
+    "appearance": {
+      "cloth": "304357",
+      "cape": "76333b",
+      "hair": "292729",
+      "skin": "d0a581",
+      "steel": "a8b3bb",
+      "face_variant": 1,
+      "slender": true
+    },
+    "portrait": {
+      "path": "res://assets/portraits/commanders-v1.png",
+      "region": [
+        316,
+        414,
+        306,
+        402
+      ]
+    },
+    "critical_focus": [
+      0.61,
+      0.35
+    ],
+    "critical_quote": "All roads end here."
+  },
+  "General Kest": {
+    "id": "kest",
+    "job": "Knight",
+    "appearance": {
+      "cloth": "4b3c40",
+      "cape": "70343a",
+      "steel": "55565b",
+      "metal": "baa273",
+      "crest": "dcd0b7"
+    },
+    "portrait": {
+      "path": "res://assets/portraits/commanders-v1.png",
+      "region": [
+        630,
+        414,
+        306,
+        402
+      ]
+    },
+    "critical_focus": [
+      0.68,
+      0.41
+    ],
+    "critical_quote": "Retreat is over."
+  },
+  "Engineer Mal": {
+    "id": "mal",
+    "job": "Knight",
+    "appearance": {
+      "cloth": "58443c",
+      "cape": "79453a",
+      "steel": "777a7e",
+      "metal": "b78a60",
+      "crest": "7b3137"
+    },
+    "portrait": {
+      "path": "res://assets/portraits/commanders-v1.png",
+      "region": [
+        944,
+        414,
+        306,
+        402
+      ]
+    },
+    "critical_focus": [
+      0.69,
+      0.38
+    ],
+    "critical_quote": "Every seam will fail."
+  },
+  "Astrologer Sen": {
+    "id": "sen",
+    "job": "Arcanist",
+    "appearance": {
+      "cloth": "343e5b",
+      "cape": "30384e",
+      "hair": "24202a",
+      "skin": "e3c1aa",
+      "hood": "343e5b",
+      "face_variant": 2,
+      "circlet": "779bbd"
+    },
+    "portrait": {
+      "path": "res://assets/portraits/commanders-v1.png",
+      "region": [
+        4,
+        824,
+        304,
+        426
+      ]
+    },
+    "critical_focus": [
+      0.66,
+      0.3
+    ],
+    "critical_quote": "The sky has judged."
+  },
+  "Warden Flint": {
+    "id": "flint",
+    "job": "Knight",
+    "appearance": {
+      "cloth": "443d3f",
+      "cape": "76333b",
+      "steel": "56555a",
+      "metal": "ad875e",
+      "crest": "7a3039"
+    },
+    "portrait": {
+      "path": "res://assets/portraits/commanders-v1.png",
+      "region": [
+        316,
+        824,
+        306,
+        426
+      ]
+    },
+    "critical_focus": [
+      0.68,
+      0.34
+    ],
+    "critical_quote": "Let the iron speak."
+  },
+  "Lord Regent’s Guard": {
+    "id": "regent_guard",
+    "job": "Knight",
+    "appearance": {
+      "cloth": "aab0b2",
+      "cape": "76333b",
+      "steel": "c5ccd0",
+      "metal": "c4aa71",
+      "crest": "e4d7be"
+    },
+    "portrait": {
+      "path": "res://assets/portraits/commanders-v1.png",
+      "region": [
+        630,
+        824,
+        306,
+        426
+      ]
+    },
+    "critical_focus": [
+      0.66,
+      0.34
+    ],
+    "critical_quote": "By the final oath."
+  },
+  "Regent Vael": {
+    "id": "vael",
+    "job": "Arcanist",
+    "appearance": {
+      "cloth": "4a365b",
+      "cape": "422d4b",
+      "hair": "24202a",
+      "skin": "d9b59c",
+      "hood": "4a365b",
+      "face_variant": 6,
+      "circlet": "9b79a9",
+      "slender": false
+    },
+    "portrait": {
+      "path": "res://assets/portraits/commanders-v1.png",
+      "region": [
+        944,
+        824,
+        306,
+        426
+      ]
+    },
+    "critical_focus": [
+      0.68,
+      0.31
+    ],
+    "critical_quote": "I will not yield the dawn."
+  }
+}

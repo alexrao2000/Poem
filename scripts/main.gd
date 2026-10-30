@@ -515,7 +515,7 @@ func update_side():
 		portrait.stretch_mode=TextureRect.STRETCH_KEEP_ASPECT_CENTERED;portrait.custom_minimum_size=Vector2(90,100);identity.add_child(portrait)
 		var details=VBoxContainer.new();details.size_flags_horizontal=Control.SIZE_EXPAND_FILL;identity.add_child(details)
 		label_in(details,selected.name,27,GOLD)
-		label_in(details,game.class_name_for(selected),16)
+		label_in(details,game.class_name_for(selected)+(" · Commander" if selected.get("boss",false) and selected.team=="enemy" else ""),16)
 		var bond_rank=game.supports.nearby_rank(game,selected)
 		label_in(details,("Lv %d / MAX"%selected.level if selected.level>=game.MAX_LEVEL else "Lv %d / XP %d"%[selected.level,selected.xp])+(" · Bond "+game.supports.RANKS[bond_rank] if bond_rank>0 else ""),15)
 		var health_row=HBoxContainer.new();health_row.add_theme_constant_override("separation",8);side.add_child(health_row)
@@ -701,6 +701,7 @@ func pick_map_unit(point: Vector2):
 	for unit in game.units:
 		if unit.hp<=0 or not unit_nodes.has(unit.id):continue
 		var actor=unit_nodes[unit.id]
+		if actor.commander_screen_bounds(camera).has_point(point):return unit
 		if not actor.screen_bounds(camera).has_point(point):continue
 		var depth=camera.unproject_position(actor.global_position).y
 		if depth>front:picked=unit;front=depth
@@ -1496,6 +1497,8 @@ func critical_cutin(unit: Dictionary):
 	if skip_combat:return
 	var cutin=CriticalCutin.new()
 	var quote=fighters.profiles.get(unit.id,{}).get("critical_quote","Stand aside!")
+	var commander=fighters.Commanders.profile(unit)
+	if not commander.is_empty():quote=commander.critical_quote
 	cutin.configure(ui,unit,portraits.get_critical_portrait(unit),quote)
 	play_sfx("cutin")
 	await cutin.play(func():return skip_combat,unit.team=="enemy")
