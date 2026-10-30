@@ -106,12 +106,16 @@ func build(parent,u,p) -> Node3D:
   var leg=joint(actor,leg_name,Vector3(sign_value*.13,.85,0));actor.register_bone(leg_name,leg)
   geo.cylinder(leg,Vector3(0,-.18,0),.37,.08,Color("3c3f48"),.10)
   var knee=joint(leg,"Knee",Vector3(0,-.36,0));actor.register_bone("LeftKnee" if sign_value<0 else "RightKnee",knee)
-  ellipsoid(knee,Vector3(0,0,-.02),Vector3(.10,.11,.09),steel)
+  var kneecap=geo.mesh(knee,preload("res://scripts/knee_guard.gd").mesh(),Vector3(0,0,-.02),Vector3.ONE,geo.material(steel));kneecap.name="KneeGuard"
   geo.cylinder(knee,Vector3(0,-.18,0),.32,.085,steel if heavy else leather,.07)
   geo.cylinder(knee,Vector3(0,-.04,0),.06,.091,gold if heavy else leather.lightened(.13))
   if not heavy:
    for j in range(3):geo.block(knee,Vector3(0,-.11-j*.065,-.077),Vector3(.10,.012,.014),Color("8e7a61"))
-  var boot=geo.mesh(knee,Actor.Boot.mesh(),Vector3(0,-.38,-.07),Vector3.ONE,geo.material(leather)) if actor.shaped_boots else ellipsoid(knee,Vector3(0,-.38,-.07),Vector3(.09,.075,.145),leather)
+  var boot: MeshInstance3D
+  if actor.shaped_boots:
+   var foot=joint(knee,"Foot",Vector3(0,-.38,0));actor.register_bone("LeftFoot" if sign_value<0 else "RightFoot",foot)
+   boot=geo.mesh(foot,Actor.Boot.mesh(),Vector3(0,0,-.07),Vector3.ONE,geo.material(leather))
+  else:boot=ellipsoid(knee,Vector3(0,-.38,-.07),Vector3(.09,.075,.145),leather)
   boot.name="Boot"
   var arm_name="Arm" if sign_value>0 else "LeftArm"
   var arm=joint(body,arm_name,Vector3(sign_value*(.225 if slender else .27),.4,0));actor.register_bone(arm_name,arm)

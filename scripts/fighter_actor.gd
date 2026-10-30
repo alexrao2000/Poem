@@ -1,7 +1,7 @@
 extends Node3D
 # Presentation rig with separate pose and locomotion ownership. Actors face -Z;
 # arms lift forward with positive X, knees bend back, and mounted sockets rise.
-# Infantry hips and legs lower together to the lowest ellipsoidal boot sole.
+# Infantry hips and legs lower together to articulated, level boot soles.
 
 const Boot=preload("res://scripts/infantry_boot.gd")
 const Mount=preload("res://scripts/mount_visuals.gd")
@@ -108,8 +108,9 @@ func ground_contact_position() -> Vector3:
  var joints=[bones.LeftKnee,bones.RightKnee]
  var center=Vector3(0,-.38,-.07);var radii=Vector3(.09,.075,.145)
  if shaped_boots:
-  for joint in joints:
-   var point=joint.to_global(center)+Boot.support(joint.global_basis)
+  for key in ["LeftFoot","RightFoot"]:
+   var joint=bones[key]
+   var point=joint.to_global(Vector3(0,0,-.07))+Boot.support(joint.global_basis)
    if point.y<lowest.y:lowest=point
   return lowest
  if mounted:
@@ -125,6 +126,10 @@ func ground_contact_position() -> Vector3:
  return lowest
 
 func ground_infantry():
+ if shaped_boots:
+  for side in ["Left","Right"]:
+   var lower=bones[side+"Leg"].basis*bones[side+"Knee"].basis
+   bones[side+"Foot"].quaternion=lower.get_rotation_quaternion().inverse()
  var rotations={}
  for key in ["LeftLeg","RightLeg","LeftKnee","RightKnee"]:rotations[key]=bones[key].rotation
  support_height=stance_height(rotations)
@@ -228,7 +233,9 @@ func stance_height(target: Dictionary) -> float:
  for side in ["Left","Right"]:
   var leg=Basis.from_euler(target[side+"Leg"]);var knee=leg*Basis.from_euler(target[side+"Knee"])
   var center=rest[side+"Leg"].position+leg*Vector3(0,-.36,0)+knee*Vector3(0,-.38,-.07)
-  if shaped_boots:lowest=minf(lowest,center.y+Boot.support(knee).y)
+  if shaped_boots:
+   center=rest[side+"Leg"].position+leg*Vector3(0,-.36,0)+knee*Vector3(0,-.38,0)+Vector3(0,0,-.07)
+   lowest=minf(lowest,center.y+Boot.support(Basis.IDENTITY).y)
   else:
    var radius=sqrt(pow(knee.x.y*.09,2)+pow(knee.y.y*.075,2)+pow(knee.z.y*.145,2))
    lowest=minf(lowest,center.y-radius)

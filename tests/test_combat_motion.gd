@@ -202,7 +202,7 @@ func run():
   for pose in ["idle","windup","critical_windup","critical_throw_windup","strike","recover","guard","hit","critical_hit","evade","down"]:
    await actor.pose(pose,.001).finished
    var lowest=INF
-   for side in ["LeftKnee","RightKnee"]:
+   for side in ["LeftFoot","RightFoot"]:
     var boot=actor.bone(side).get_node("Boot")
     for vertex in boot.mesh.surface_get_arrays(0)[Mesh.ARRAY_VERTEX]:lowest=minf(lowest,(boot.global_transform*vertex).y)
    assert(lowest>=-.001 and lowest<.018,"Every infantry pose keeps a supporting boot on the ground without sinking")

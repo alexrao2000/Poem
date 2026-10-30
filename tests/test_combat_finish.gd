@@ -65,7 +65,7 @@ func run():
     assert(actor.bones.Arm.rotation.distance_to(idle_arm)>.1,"Weapon arm has a distinct finishing silhouette")
     if not actor.mounted:
      var bottom=INF
-     for side in ["LeftKnee","RightKnee"]:
+     for side in ["LeftFoot","RightFoot"]:
       var boot=actor.bones[side].get_node("Boot")
       for vertex in boot.mesh.surface_get_arrays(0)[Mesh.ARRAY_VERTEX]:bottom=minf(bottom,boot.to_global(vertex).y)
      assert(bottom>=-.001 and bottom<.018,"Infantry retains a planted supporting foot")

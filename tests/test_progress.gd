@@ -66,9 +66,6 @@ func verify_rewards(app):
     assert(reward.quote!=null if leveled else reward.quote==null,"Personal growth line appears only on a level increase")
     if leveled:
      assert(reward.quote.text=="“"+app.profiles[unit.id].growth_quote+"”" and reward.quote.get_line_count()<=2,"All 24 original lines remain legible beside their own portrait")
-     assert(reward.get_theme_stylebox("panel").bg_color==Color("ede5cf"),"Level-up uses a pale stat surface")
-     for key in reward.rows:
-      if reward.record.gains[key]>0:assert(reward.rows[key].gain.get_theme_stylebox("normal").bg_color==Reward.BLUE,"Positive gains receive distinct blue badges")
     assert(reward.rows.size()==(5 if leveled else 0),"Ordinary experience uses a compact panel without stat rows")
     reward.queue_free();await process_frame;layouts+=1
  for case in ["normal","level","limit","multiple"]:

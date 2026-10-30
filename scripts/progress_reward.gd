@@ -72,7 +72,14 @@ func configure(parent: Control,change: Dictionary,portrait: Texture2D,job: Strin
  var earned=label("+%d XP"%change.xp_gain,Vector2(x+260,y+17),Vector2(width-260,24),16,BLUE);earned.horizontal_alignment=HORIZONTAL_ALIGNMENT_RIGHT
  close_button=Button.new();close_button.text="Continue";close_button.position=Vector2(x+width-120,374 if leveled else 112);close_button.size=Vector2(120,30);close_button.add_theme_font_size_override("font_size",16)
  var button_style=StyleBoxFlat.new();button_style.bg_color=Color("293f4d");button_style.border_color=Color("a69c7e");button_style.set_border_width_all(1)
- for state in ["normal","hover","pressed","focus"]:close_button.add_theme_stylebox_override(state,button_style)
+ for state in ["normal","hover","pressed"]:
+  var surface=button_style.duplicate()
+  if state=="hover":surface.bg_color=Color("36566a")
+  elif state=="pressed":surface.bg_color=Color("1a303e")
+  close_button.add_theme_stylebox_override(state,surface)
+ var focus=StyleBoxFlat.new();focus.bg_color=Color.TRANSPARENT;focus.border_color=Color("f4d489");focus.set_border_width_all(2)
+ close_button.add_theme_stylebox_override("focus",focus)
+ for state in ["font_color","font_hover_color","font_pressed_color","font_focus_color"]:close_button.add_theme_color_override(state,Color("f3efdf"))
  close_button.pressed.connect(func():requested_close=true);content.add_child(close_button)
  label("Space / Enter",Vector2(x,378 if leveled else 116),Vector2(170,22),14,Color("56666b"))
  if leveled and not line.is_empty():

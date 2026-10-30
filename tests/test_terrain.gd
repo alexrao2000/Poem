@@ -109,6 +109,19 @@ func run():
  assert(seen.size()==9,"All authored terrain symbols checked")
  var app=load("res://main.tscn").instantiate();app.settings_path="";app.save_path="/private/tmp/poem-terrain-test.json";root.add_child(app);await process_frame
  app.game.start_battle();app.make_map();app.show_battle();await process_frame
+ var terrain_icons={}
+ for chapter in range(12):
+  app.game.chapter=chapter
+  for y in range(app.game.board_size().y):
+   for x in range(app.game.board_size().x):
+    var point=Vector2i(x,y);var symbol=app.game.terrain(point)
+    if terrain_icons.has(symbol):continue
+    terrain_icons[symbol]=true;app.terrain_card.inspect(app.game,point)
+    assert(app.terrain_card.icon.texture.resource_path.ends_with("/"+app.game.terrain_profile(point).name.to_lower()+".svg"),"Real tile inspection chooses the emblem matching its terrain profile")
+    await process_frame;await process_frame
+    assert(app.terrain_card.icon.get_global_rect().end.x<=app.terrain_card.heading.get_global_rect().position.x,"Terrain emblem does not overlap its name")
+ assert(terrain_icons.size()==9,"Every campaign terrain has an original readout emblem")
+ app.game.chapter=0
  var actor=app.game.units[0];var tested={}
  for chapter in range(12):
   app.game.chapter=chapter

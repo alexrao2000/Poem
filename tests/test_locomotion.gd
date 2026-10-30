@@ -27,6 +27,7 @@ func lowest_boot(actor) -> float:
 
 func run():
  verify_boot_mesh()
+ verify_knee_mesh()
  var fighters=Fighters.new();fighters.batching_enabled=false;var game=Rules.new();var state=game.rng.state;var samples=0
  var stage=Node3D.new();root.add_child(stage)
  for entry in game.roster:
@@ -35,6 +36,8 @@ func run():
   var bent=[false,false]
   assert(actor.shaped_boots==(not actor.mounted),"Infantry use shaped boots while riders retain their fitted stirrup footwear")
   if not actor.mounted:
+   for side in ["Left","Right"]:
+    assert(actor.bones[side+"Foot"].get_parent()==actor.bones[side+"Knee"] and actor.bones[side+"Foot"].position==Vector3(0,-.38,0),"Ankle articulation retains the authored shin length")
    for boot in actor.find_children("Boot","MeshInstance3D",true,false):
     assert(boot.mesh.surface_get_arrays(0)[Mesh.ARRAY_VERTEX]==Fighters.Actor.Boot.mesh().surface_get_arrays(0)[Mesh.ARRAY_VERTEX],"Visible infantry soles use the same source geometry as their ground support")
   for facing in [-PI/2,PI/2]:
@@ -44,6 +47,7 @@ func run():
     for step in range(24):
      actor.position+=-actor.basis.z*.08*direction;actor._process(.016)
      if not actor.mounted:
+      verify_level_feet(actor)
       var height=lowest_boot(actor)
       assert(height>=-.001 and height<.025,"Actual boot vertices stay above the arena floor with a planted support foot")
      else:
@@ -85,11 +89,15 @@ func run():
     var motion=actor.pose(pose,1)
     for sample in range(8):
      motion.custom_step(.125);actor.apply_constraints()
+     verify_level_feet(actor)
      var height=lowest_boot(actor)
      assert(height>=-.001 and height<.018,"Actual soles stay planted throughout anticipation, contact, recoil, defeat and recovery, not just at their endpoints")
      assert(absf(actor.ground_contact_position().y-actor.global_position.y)<.0001,"The moving sole constraint follows the interpolated joints")
      for leg in ["LeftLeg","RightLeg"]:
       assert(is_equal_approx(actor.bones[leg].position.y-actor.rest[leg].position.y,actor.support_height),"Hips and upper legs retain the same support offset through each transition")
+  if unit.id in ["lyra","oren","bram"]:
+   for pose in ["idle","strike","critical_hit","windup"]:
+    actor.pose(pose,1).custom_step(1);actor.apply_constraints();verify_knee_clearance(actor)
   actor.queue_free();await process_frame
  # Equivalent travel, subdivided into different frames, has identical stride.
  await verify_contacts(fighters,stage,game)
@@ -221,3 +229,52 @@ func verify_boot_mesh():
    for vertex in vertices:
     var point=basis*vertex;minimum=minf(minimum,point.y);distance=minf(distance,point.distance_to(contact))
    assert(absf(contact.y-minimum)<.000001 and distance<.000001,"Ground support follows an actual lowest shoe vertex at every pose angle")
+
+func verify_level_feet(actor):
+ for side in ["Left","Right"]:
+  var foot=actor.bones[side+"Foot"]
+  assert(foot.global_basis.is_equal_approx(actor.global_basis),"Articulated soles remain level as hips and knees bend")
+  assert(foot.position==Vector3(0,-.38,0),"Grounding never stretches or translates an ankle")
+  var sole=[]
+  var boot=foot.get_node("Boot")
+  for point in boot.mesh.surface_get_arrays(0)[Mesh.ARRAY_VERTEX]:
+   if is_equal_approx(point.y,-.075):sole.append(boot.to_global(point).y)
+  assert(sole.size()>2 and absf(sole.max()-sole.min())<.00001,"Actual sole vertices form a level support plane")
+
+func verify_knee_mesh():
+ var Guard=preload("res://scripts/knee_guard.gd");var mesh=Guard.mesh();assert(mesh==Guard.mesh())
+ var arrays=mesh.surface_get_arrays(0);var points=arrays[Mesh.ARRAY_VERTEX];var indices=arrays[Mesh.ARRAY_INDEX];var normals=arrays[Mesh.ARRAY_NORMAL]
+ var edges={};var orientations={}
+ assert(indices.size()==312 and mesh.get_aabb().size.x<=.2001 and mesh.get_aabb().size.y<=.2201 and mesh.get_aabb().size.z<.18,"Closed knee shell uses 104 triangles within the former spherical cover bounds")
+ for i in range(0,indices.size(),3):
+  var a=points[indices[i]];var b=points[indices[i+1]];var c=points[indices[i+2]];var normal=(c-a).cross(b-a)
+  assert(normal.length_squared()>1e-14,"Forged shell has no collapsed faces")
+  for j in range(3):
+   assert(normal.normalized().dot(normals[indices[i+j]])>.99,"Every face lights from its outward normal")
+   var from=str(points[indices[i+j]].snapped(Vector3.ONE*.000001));var to=str(points[indices[i+(j+1)%3]].snapped(Vector3.ONE*.000001))
+   var key=from+":"+to if from<to else to+":"+from
+   edges[key]=edges.get(key,0)+1;orientations[key]=orientations.get(key,0)+(1 if from<to else -1)
+ for key in edges:assert(edges[key]==2 and orientations[key]==0,"Rim joins front and inner surfaces into one closed consistently oriented shell")
+
+func nearest_hit(mesh,origin,direction):
+ var inverse=mesh.global_transform.affine_inverse();var local=inverse*origin;var ray=inverse.basis*direction;var closest=INF
+ for surface in range(mesh.mesh.get_surface_count()):
+  var arrays=mesh.mesh.surface_get_arrays(surface);var points=arrays[Mesh.ARRAY_VERTEX];var indices=arrays[Mesh.ARRAY_INDEX]
+  if indices==null or indices.is_empty():indices=range(points.size())
+  for i in range(0,indices.size(),3):
+   var hit=Geometry3D.ray_intersects_triangle(local,ray,points[indices[i]],points[indices[i+1]],points[indices[i+2]])
+   if hit!=null:closest=minf(closest,origin.distance_to(mesh.to_global(hit)))
+ return closest
+
+func verify_knee_clearance(actor):
+ for side in ["Left","Right"]:
+  var knee=actor.bones[side+"Knee"];var guard=knee.get_node("KneeGuard")
+  var surfaces=actor.bones[side+"Leg"].find_children("*","MeshInstance3D",true,false)
+  for x in [-.075,-.04,0,.04,.075]:
+   for y in [-.04,0,.05]:
+    var origin=knee.to_global(Vector3(x,y,-.3));var direction=knee.global_basis.z.normalized()
+    var front=nearest_hit(guard,origin,direction)
+    assert(front<INF,"Authored knee shell covers the front sample: "+side+" "+actor.pose_name+" "+str(Vector2(x,y)))
+    for surface in surfaces:
+     if surface==guard:continue
+     assert(nearest_hit(surface,origin,direction)>front+.001,"Trouser, collar and greave remain behind the forged front in actual posed geometry")
