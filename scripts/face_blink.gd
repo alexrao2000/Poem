@@ -2,17 +2,21 @@ extends RefCounted
 # Each actor owns its expression and idle clock. Defeat holds the existing
 # closed-eye artwork; critical preparation carries focused brows/eyes through
 # release. Brief hit flinches share the closed eyelids and pause with hit-stop.
-# Atlases share UVs and leave the original nose and mouth untouched.
+# Atlases share UVs; a separate mouth region sets a restrained combat expression
+# while the original nose remains untouched. Opponents are weak references.
 
 const SHADER=preload("res://assets/shaders/face-blink.gdshader")
 const CLOSED=preload("res://assets/art/face-features-blink-v1.png")
 const FOCUSED=preload("res://assets/art/face-features-focus-v1.png")
+const SERIOUS=preload("res://assets/art/face-features-serious-v1.png")
 const DURATION=.105
 var surface: ShaderMaterial
 var interval=4.0
 var clock=0.0
 var closed=false
 var focused=false
+var serious=false
+var opponent: WeakRef
 var reaction_clock=0.0
 
 func bind(face: MeshInstance3D,open_atlas: Texture2D,identity: String):
@@ -20,6 +24,8 @@ func bind(face: MeshInstance3D,open_atlas: Texture2D,identity: String):
  surface.set_shader_parameter("open_face",open_atlas)
  surface.set_shader_parameter("closed_face",CLOSED)
  surface.set_shader_parameter("focused_face",FOCUSED)
+ surface.set_shader_parameter("serious_face",SERIOUS)
+ surface.set_shader_parameter("serious",false)
  surface.set_shader_parameter("focused",false)
  surface.set_shader_parameter("eyes_closed",false)
  face.material_override=surface
@@ -32,6 +38,9 @@ func begin_pose(pose: String):
 
 func update(delta: float,pose: String):
  if surface==null:return
+ var other=opponent.get_ref() if opponent!=null else null
+ var engaged=is_instance_valid(other) and other.is_inside_tree()
+ set_serious((engaged or pose!="idle") and pose not in ["victory","victory_flourish"])
  if pose in ["critical_windup","critical_throw_windup"]:set_focused(true)
  elif pose not in ["strike","throw"]:set_focused(false)
  if pose!="idle":
@@ -49,3 +58,7 @@ func set_closed(value: bool):
 func set_focused(value: bool):
  if focused==value:return
  focused=value;surface.set_shader_parameter("focused",value)
+
+func set_serious(value: bool):
+ if serious==value:return
+ serious=value;surface.set_shader_parameter("serious",value)

@@ -73,6 +73,7 @@ func _process(dt):
 
 func face_opponent(other: Node3D):
  gaze_motion.face_opponent(other)
+ face_blink.opponent=gaze_motion.target;face_blink.update(0,pose_name)
 
 ## Signed ground travel drives forward and backward steps at any frame rate.
 func update_locomotion():

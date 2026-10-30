@@ -13,6 +13,7 @@ func run():
  var focus=Blink.FOCUSED.get_image()
  assert(focus.get_size()==source.get_size(),"Critical expression preserves the existing eight-cell UV layout")
  verify_focused_pixels(source,focus)
+ verify_serious_pixels(source,Blink.SERIOUS.get_image())
  var counts=[0,0,0,0,0,0,0,0];var open_counts=counts.duplicate()
  for y in range(lids.get_height()):
   var v=float(y)/lids.get_height()*2;var local_v=fposmod(v,1)
@@ -41,6 +42,7 @@ func run():
   assert(face.material_override==blink.surface and blink.surface.next_pass==null,"Blink binds the actual unbatched face without an outline")
   assert(blink.surface.get_shader_parameter("open_face")==painter.face_atlas and blink.surface.get_shader_parameter("closed_face")==Blink.CLOSED)
   assert(not blink.closed and blink.interval>=3.1 and blink.interval<4.8)
+  assert(not blink.serious and blink.surface.get_shader_parameter("serious_face")==Blink.SERIOUS,"Relaxed preview binds its own serious-mouth variant without enabling it")
   offsets[blink.clock]=true
   for other in actors:
    if other!=actor:assert(other.face_blink.surface!=blink.surface,"Two characters never share expression state")
@@ -51,6 +53,7 @@ func run():
   for pose in ["advance","windup","critical_windup","strike","recover","hit","critical_hit","evade","guard","down","cast_windup","cast","throw_windup","critical_throw_windup","throw"]:
    blink.clock=0;blink.update(0,"idle");assert(blink.closed)
    actor.pose(pose,.01);actor.pose_tween.kill()
+   assert(blink.serious and blink.surface.get_shader_parameter("serious"),"Active combat, guard and damage poses use restrained lips independently of the eyes")
    assert(blink.closed==(pose in ["down","hit","critical_hit"]),"Damage briefly closes the eyes; active attacks, dodges and guards stay attentive")
    actor._process(.5);assert(blink.closed==(pose=="down"))
   for reaction in ["hit","critical_hit"]:
@@ -64,7 +67,7 @@ func run():
   actor.pose("down",.01);actor.pose_tween.kill();actor._process(10)
   assert(blink.closed,"A defeated figure cannot resume idle blinking during the survivor's finish")
   actor.pose("victory",.01);actor.pose_tween.kill()
-  assert(not blink.closed,"Returning to a living preview pose restores an attentive expression")
+  assert(not blink.closed and not blink.serious,"Victory restores relaxed eyes and mouth")
   for preparation in ["critical_windup","critical_throw_windup"]:
    actor.pose(preparation,.01);actor.pose_tween.kill()
    assert(blink.focused and blink.surface.get_shader_parameter("focused") and not blink.closed,"Critical preparation selects the actor's focused upper-face artwork")
@@ -75,6 +78,12 @@ func run():
   actor.pose("critical_windup",.01);actor.pose_tween.kill();actor.pose("down",.01);actor.pose_tween.kill()
   assert(not blink.focused and blink.closed,"Defeat replaces critical focus with the existing closed eyelids")
   actor.pose("idle",.01);actor.pose_tween.kill()
+  var opponent=Node3D.new();stage.add_child(opponent);actor.face_opponent(opponent)
+  assert(blink.serious and not blink.focused,"An engaged idle fighter stays serious between attacks without borrowing critical brows")
+  actor.pose("victory_flourish",.01);actor.pose_tween.kill();assert(not blink.serious,"Finishing overrides the live opponent with a relaxed mouth")
+  actor.pose("idle",.01);actor.pose_tween.kill();assert(blink.serious)
+  opponent.queue_free();await process_frame;blink.update(0,"idle")
+  assert(not blink.serious,"A released weak opponent cannot leave a casual preview stuck in its combat expression")
  assert(offsets.size()>=20 and game.rng.state==saved_rng,"Presentation timing is staggered without consuming campaign RNG")
  var held=actors[0];var other=actors[2]
  held.set_process(true);other.set_process(true)
@@ -97,7 +106,7 @@ func run():
  for frame in range(3):await process_frame
  assert(held.face_blink.clock!=held_clock,"Visibility restores idle animation")
  stage.queue_free();await process_frame
- print("PASS: eight isolated eyelid regions, 24 recruits/seven visible enemy faces, registered critical expressions through release, independent idle blinks, timed normal/critical hit flinches, immediate action reopening, sustained defeated eyelids, hidden suspension and local hit-stop restoration")
+ print("PASS: eight isolated eyelid regions, 24 recruits/seven visible enemy faces, registered critical expressions through release, independent idle blinks, registered serious mouths / relaxed victory / weak opponent cleanup, timed normal/critical hit flinches, immediate action reopening, sustained defeated eyelids, hidden suspension and local hit-stop restoration")
  quit()
 
 func verify_focused_pixels(source: Image,focus: Image):
@@ -116,3 +125,22 @@ func verify_focused_pixels(source: Image,focus: Image):
  for cell in range(8):
   assert(changed[cell]>500,"All eight identities have an authored focused brow variant")
   assert(eye_samples[cell]>100 and eye_error[cell]/eye_samples[cell]<.15,"Critical artwork retains each identity's iris colors and registration")
+
+func verify_serious_pixels(source: Image,serious: Image):
+ assert(serious.get_size()==source.get_size(),"Serious mouth atlas preserves exact feature registration")
+ var counts=[0,0,0,0,0,0,0,0];var changed=counts.duplicate();var original_counts=counts.duplicate();var centers=[];var original_centers=[]
+ for i in range(8):centers.append(Vector2.ZERO);original_centers.append(Vector2.ZERO)
+ for y in range(source.get_height()):
+  var v=float(y)/source.get_height()*2;var local_v=fposmod(v,1)
+  if local_v<.72 or local_v>.90:continue
+  for x in range(source.get_width()):
+   var u=float(x)/source.get_width()*4;var index=int(v)*4+int(u);var ink=serious.get_pixel(x,y);var original=source.get_pixel(x,y)
+   if ink!=original:changed[index]+=1
+   if original.a>=.22:original_counts[index]+=1;original_centers[index]+=Vector2(x,y)
+   if ink.a<.22:continue
+   assert(fposmod(u,1)>.30 and fposmod(u,1)<.70 and local_v>.73 and local_v<.88,"Replacement ink stays within its mouth region, away from the nose and atlas seams")
+   assert(not (ink.r>.7 and ink.g>.6 and ink.b<.24),"No bright mask fringe survives the mouth alpha cutoff")
+   counts[index]+=1;centers[index]+=Vector2(x,y)
+ for i in range(8):
+  assert(counts[i]>500 and counts[i]<2000 and changed[i]>300,"Every identity has a distinct visible closed-mouth replacement")
+  assert((centers[i]/counts[i]).distance_to(original_centers[i]/original_counts[i])<3,"Mouth centers stay within three source pixels of the original face fit")

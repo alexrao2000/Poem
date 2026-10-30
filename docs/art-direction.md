@@ -626,3 +626,10 @@ The estoc's short thrust now leaves a narrow 3.2 cm ribbon centered on its actua
 Infantry now wear an original closed leather boot with a tapered toe, defined flat sole and narrower ankle collar, replacing the oval foot primitive. The shared 80-triangle mesh retains the same overall footwear bounds and existing material/joint attachment. Riders retain their established stirrup-fitted footwear.
 
 Infantry ground support and dust origins now use the actual cached boot vertices under the current leg transforms. This keeps the flat soles on the arena floor through movement and combat instead of treating them as the former ellipsoid. Checks cover closed oriented topology, outward lighting normals, exact support points across pose angles, actual visible-geometry binding, all roster movement/pose samples and preserved rider contacts. The infantry camera aim rises by 5 cm to retain head/caption clearance with the flat sole support; the closer foreground framing stays in place. An isolated front/side mesh study was inspected. Rendered character review remains pending.
+
+
+## Restrained combat mouths
+
+`assets/art/face-features-serious-v1.png` is an original edit of the existing eight-face atlas made with the built-in image-generation tool. The exact input, output and prompt are recorded in `docs/face-mouth-prompt.json`. Generated pixels and alpha are stored unchanged in the versioned output; the 1774 × 887 canvas retains all eight mouth centers within three pixels of the original fit. The output was inspected separately from the game.
+
+The face shader selects only the lower mouth region for active combat poses or an idle fighter watching a live opponent. Focused critical eyes and hit-flinch eyelids remain independent, and the nose stays on the original texture. Victory/flourish restore the relaxed mouth; casual previews return to it when a weak opponent reference expires. Authored model materials retain their own expression ownership. Pixel registration, alpha isolation, all visible recruit/enemy faces, lifecycle and real critical-contact checks cover the change. Assembled expression review remains pending.

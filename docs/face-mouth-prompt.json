@@ -1,0 +1,10 @@
+{
+  "date": "2026-10-30",
+  "tool": "built-in image_gen",
+  "intent": "edit",
+  "input": "assets/art/face-features-v2.png",
+  "output": "assets/art/face-features-serious-v1.png",
+  "transparent_background": true,
+  "prompt": "Use case: precise-object-edit.\nAsset type: transparent eight-cell facial-feature texture atlas for the original tactical RPG Poem.\nInput image 1 is the edit target, the project's own original face-features-v2.png. Preserve its exact 1774 by 887 pixel canvas, four columns by two rows, cell positions, alpha background, eyes, eyebrows and noses. Change ONLY the eight small smiling mouth drawings, one per cell, into restrained closed, level or very slightly downturned determined lips suitable for battle. Keep every mouth centered at precisely the original mouth center, within its original width and lower-face area; keep each identity's existing warm brown outline and muted lip palette. Use a fine dark closed lip line with subtle lower-lip shading, not an open mouth. The expression should be calm and serious, not exaggerated rage. No teeth, tongue, blood, scars, new skin, full heads, borders, labels, text or background. The output must retain true transparent alpha everywhere the source is transparent outside the small edited mouth features. Keep the unchanged upper-face pixels and every mouth's normalized atlas registration. This is a texture edit, not a portrait sheet redesign.",
+  "generated_source": "/Users/alexr/.codex/generated_images/01a186ec-2764-7df2-8b28-7563faa2886d/exec-ca717c43-e7c5-4153-8e14-5c423a09f937.png"
+}
