@@ -1,0 +1,10 @@
+{
+  "date": "2026-10-30",
+  "tool": "built-in image_gen",
+  "intent": "edit",
+  "input": "assets/art/face-features-v2.png",
+  "output": "assets/art/face-features-focus-v1.png",
+  "transparent_background": true,
+  "prompt": "Use case: precise-object-edit. Asset type: transparent facial-feature texture atlas for an original low-poly fantasy tactical RPG. Input image 1 is the edit target. Create a critical-attack expression variant of this exact atlas: change ONLY the eyebrows and upper eyelid shapes to a restrained, determined, focused expression. Lower the inner eyebrows slightly and narrow the eyes just a little; eyes remain open and alert, not squinting shut. Preserve the original eight identities, iris colors, iris sizes and pupil centers exactly. Keep all eight noses and mouths exactly as they are. Maintain the exact 4-column by 2-row layout, 2:1 canvas aspect, equal square cells, and exact feature positions and scale within each cell. Input is 1774 by 887 pixels: preserve those dimensions if possible. Keep the same crisp brown linework, subtle anime eye shading and clean alpha edges. No heads, skin, hair, faces behind the features, rectangles, cell borders, text, background, lighting effects or glow. All empty areas must remain fully transparent. This is a production alternate expression atlas, not a reinterpretation or new composition.",
+  "integration": "Only the upper 55% of each cell is sampled for critical preparation and release; the original nose and mouth remain in use. Source alpha and all pixels are copied unchanged."
+}

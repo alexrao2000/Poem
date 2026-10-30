@@ -14,11 +14,15 @@ func watch(node):
   if app.stage.visible:
    var prepared=app.stage.get_children().filter(func(actor):return actor is Actor and actor.pose_name in ["critical_windup","critical_throw_windup"])
    assert(prepared.size()==1,"Portrait appears after the active fighter adopts critical preparation")
+   assert(prepared[0].face_blink.focused,"Actual critical cut-in keeps the 3D fighter in its focused expression")
 func watch_contact(node):
  if not node is HitStop:return
  await process_frame
  var actors=watched_app.stage.get_children().filter(func(actor):return actor is Actor and actor.pose_name=="critical_hit")
- if not actors.is_empty():critical_recoils+=1
+ if not actors.is_empty():
+  critical_recoils+=1
+  var attackers=watched_app.stage.get_children().filter(func(actor):return actor is Actor and actor.pose_name in ["strike","throw"])
+  assert(attackers.size()==1 and attackers[0].face_blink.focused,"Critical focus remains on the attacking face during actual contact and hit-stop")
 
 func check_layout(cutin,host):
  assert(cutin.get_global_rect().position.x>=0 and cutin.get_global_rect().end.x<=host.size.x and cutin.get_global_rect().end.y<host.size.y-140,"Cutin stays clear of combat HP")

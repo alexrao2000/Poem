@@ -494,3 +494,9 @@ Bounds come from [Label3D’s generated text geometry](https://docs.godotengine.
 A resolved block raises the defender’s guard during attack preparation. The knight’s shield has an independent joint: it turns smoothly toward the opponent instead of inheriting the forearm’s backward tilt, then returns to its resting orientation with the next pose. A lower guard stance keeps the panel in front of the upper body.
 
 Blocked arrows and spears aim at the shield’s bowed surface, and the restrained guard flash appears there. Other defenders keep their normal impact attachment. Authored models can provide a `guard` socket; omission falls back to their configured impact socket. Actual melee and ranged sequences are checked from both sides, including early preparation, contact position, no damage hold, unchanged results and skip cleanup. The additional joint does not increase roster source or batch counts.
+
+## Focused critical expressions
+
+`assets/art/face-features-focus-v1.png` is an original expression variant of the existing eight-face atlas, created with the built-in image-generation tool. The [prompt record](face-focus-prompt.json) includes the exact source, request and output. Both atlases are 1774×887; no raster pixels were modified after generation. The standalone atlas was inspected for stronger brows, matching eye colors, isolated cells and transparency.
+
+Critical preparation selects the focused brow/eye region and retains it through strike or throw. Recovery and reactions restore the ordinary face; defeat still closes the eyes. The shader samples the original nose and mouth throughout. Each fighter owns its expression material. Tests verify transparent seams, iris registration, all 31 visible roster/enemy faces, real cut-in/contact timing, recovery and defeat reset, and hit-stop/visibility behavior. Rendered in-game expression tuning remains pending.

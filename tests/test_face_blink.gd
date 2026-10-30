@@ -10,6 +10,9 @@ func run():
  var painter=Fighters.new();var game=Rules.new();var stage=Node3D.new();root.add_child(stage)
  var source=painter.face_atlas.get_image();var lids=Blink.CLOSED.get_image()
  assert(lids.get_size()==source.get_size(),"Both unchanged atlases use identical pixel coordinates")
+ var focus=Blink.FOCUSED.get_image()
+ assert(focus.get_size()==source.get_size(),"Critical expression preserves the existing eight-cell UV layout")
+ verify_focused_pixels(source,focus)
  var counts=[0,0,0,0,0,0,0,0];var open_counts=counts.duplicate()
  for y in range(lids.get_height()):
   var v=float(y)/lids.get_height()*2;var local_v=fposmod(v,1)
@@ -54,6 +57,15 @@ func run():
   assert(blink.closed,"A defeated figure cannot resume idle blinking during the survivor's finish")
   actor.pose("victory",.01);actor.pose_tween.kill()
   assert(not blink.closed,"Returning to a living preview pose restores an attentive expression")
+  for preparation in ["critical_windup","critical_throw_windup"]:
+   actor.pose(preparation,.01);actor.pose_tween.kill()
+   assert(blink.focused and blink.surface.get_shader_parameter("focused") and not blink.closed,"Critical preparation selects the actor's focused upper-face artwork")
+   actor.pose("throw" if preparation=="critical_throw_windup" else "strike",.01);actor.pose_tween.kill()
+   assert(blink.focused,"Critical expression persists through weapon release")
+   actor.pose("recover",.01);actor.pose_tween.kill()
+   assert(not blink.focused,"Recovery restores the ordinary expression")
+  actor.pose("critical_windup",.01);actor.pose_tween.kill();actor.pose("down",.01);actor.pose_tween.kill()
+  assert(not blink.focused and blink.closed,"Defeat replaces critical focus with the existing closed eyelids")
   actor.pose("idle",.01);actor.pose_tween.kill()
  assert(offsets.size()>=20 and game.rng.state==saved_rng,"Presentation timing is staggered without consuming campaign RNG")
  var held=actors[0];var other=actors[2]
@@ -71,5 +83,22 @@ func run():
  for frame in range(3):await process_frame
  assert(held.face_blink.clock!=held_clock,"Visibility restores idle animation")
  stage.queue_free();await process_frame
- print("PASS: eight isolated eyelid regions, 24 recruits/seven visible enemy faces, independent idle blinks, immediate action reopening, sustained defeated eyelids, hidden suspension and local hit-stop restoration")
+ print("PASS: eight isolated eyelid regions, 24 recruits/seven visible enemy faces, registered critical expressions through release, independent idle blinks, immediate action reopening, sustained defeated eyelids, hidden suspension and local hit-stop restoration")
  quit()
+
+func verify_focused_pixels(source: Image,focus: Image):
+ var changed=[0,0,0,0,0,0,0,0];var eye_error=[0.,0.,0.,0.,0.,0.,0.,0.];var eye_samples=[0,0,0,0,0,0,0,0]
+ for y in range(source.get_height()):
+  var v=y*2.0/source.get_height();var local_v=fposmod(v,1)
+  if local_v>.57:continue
+  for x in range(source.get_width()):
+   var u=x*4.0/source.get_width();var local_u=fposmod(u,1);var cell=int(v)*4+int(u)
+   var original=source.get_pixel(x,y);var focused_pixel=focus.get_pixel(x,y)
+   if local_v<.34 and (original.a>=.22 or focused_pixel.a>=.22) and original!=focused_pixel:changed[cell]+=1
+   if local_v>=.535 and local_v<=.565:assert(focused_pixel.a<.22 and original.a<.22,"Expression boundary lies in transparent space between eyes and nose")
+   if focused_pixel.a>=.22:assert(local_u>.03 and local_u<.97 and local_v>.20,"Focused features stay isolated inside each face cell")
+   if local_v>.38 and local_v<.50 and ((local_u>.2 and local_u<.34) or (local_u>.66 and local_u<.8)):
+    eye_error[cell]+=Vector3(original.r-focused_pixel.r,original.g-focused_pixel.g,original.b-focused_pixel.b).length();eye_samples[cell]+=1
+ for cell in range(8):
+  assert(changed[cell]>500,"All eight identities have an authored focused brow variant")
+  assert(eye_samples[cell]>100 and eye_error[cell]/eye_samples[cell]<.15,"Critical artwork retains each identity's iris colors and registration")
