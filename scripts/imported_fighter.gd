@@ -43,7 +43,8 @@ func number(value) -> bool:
 func pose(key: String,duration=.18) -> Tween:
  if pose_tween and pose_tween.is_valid():pose_tween.kill()
  pose_name=key
- var fallback="windup" if key in ["throw_windup","cast_windup"] else "strike" if key in ["throw","cast"] else "idle"
+ var fallback="windup" if key in ["throw_windup","cast_windup","critical_windup","critical_throw_windup"] else "strike" if key in ["throw","cast"] else "idle"
+ if key=="critical_throw_windup" and poses.has("throw_windup"):fallback="throw_windup"
  var mapping=poses.get(key,poses[fallback])
  var animation=player.get_animation(mapping.clip)
  var looping=key in ["idle","advance"]

@@ -809,7 +809,9 @@ func cinematic(a,b,events,initial_hp={}):
 				await approach.finished
 		if who.has_method("aim_at"):who.aim_at(whom.socket_position("impact"))
 		director.shot(who.position,whom.position,"windup",is_ranged,mounted,.28)
-		await who.pose("throw_windup" if is_ranged and unit.weapon=="lance" else "windup",.28 if not event.crit else .4).finished
+		var preparation="throw_windup" if is_ranged and unit.weapon=="lance" else "windup"
+		if event.crit:preparation="critical_"+preparation
+		await who.pose(preparation,.4 if event.crit else .28).finished
 		if skip_combat:break
 		if event.crit:
 			await critical_cutin(unit)

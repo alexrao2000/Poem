@@ -78,7 +78,7 @@ func run():
   var cape=baked.bone("Cape").find_children("*","MeshInstance3D",true,false)[0]
   assert(cape.material_override is ShaderMaterial and cape.material_override.get_shader_parameter("tint")==Color(appearance.cape),"Batched cape keeps the recruit's individual costume palette")
   assert(baked.bone("Head").get_meta("hair_style")==appearance.hair_style,"Recruit hair selection survives batching")
-  for pose in ["idle","advance","windup","strike","guard","hit","evade","down"]:
+  for pose in ["idle","advance","windup","critical_windup","critical_throw_windup","strike","guard","hit","evade","down"]:
    original.pose(pose,.001);var motion=baked.pose(pose,.001);await motion.finished
    original.elapsed=.2;baked.elapsed=.2;original._process(0);baked._process(0)
    equivalent(signature(original),signature(baked))

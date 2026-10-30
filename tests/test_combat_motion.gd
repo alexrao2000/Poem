@@ -64,6 +64,12 @@ func run():
  var sword_windup=walker.bone("Arm").rotation
  walker.kind="axe";await walker.pose("windup",.01).finished
  assert(not walker.bone("Arm").rotation.is_equal_approx(sword_windup),"Axes have distinct overhead preparation")
+ for weapon in ["sword","axe","lance","bow","magic","staff"]:
+  walker.kind=weapon
+  await walker.pose("windup",.01).finished
+  var normal_body=walker.bone("Body").rotation;var normal_head=walker.bone("Head").rotation
+  await walker.pose("critical_windup",.01).finished
+  assert(walker.bone("Body").rotation!=normal_body or walker.bone("Head").rotation!=normal_head,"Critical preparation has distinct body language for every weapon")
  var rider=make_actor(true)
  await rider.pose("advance",.01).finished;rider._process(.09)
  assert(absf(rider.bone("HorseLeg0").rotation.x)>.2,"Horse advances with a gait")
@@ -147,7 +153,7 @@ func run():
  for job in ["Vanguard","Knight","Ranger","Arcanist","Warden","Corsair","Duelist"]:
   var unit=rules.roster.filter(func(u):return u.job==job)[0].duplicate(true);unit.team="player"
   var actor=fighters.build(stage,unit,Vector3.ZERO);actor.set_process(false)
-  for pose in ["idle","windup","strike","guard","hit","evade","down"]:
+  for pose in ["idle","windup","critical_windup","critical_throw_windup","strike","guard","hit","evade","down"]:
    await actor.pose(pose,.001).finished
    var lowest=INF
    for side in ["LeftKnee","RightKnee"]:
@@ -164,7 +170,7 @@ func run():
    var archer=fighters.build(stage,unit,Vector3.ZERO);archer.rotation.y=-direction*PI/2
    var target=Vector3(direction*4,1.85 if direction<0 else 1.1,0);archer.aim_at(target)
    await archer.pose("idle",.01).finished
-   var drawing=archer.pose("windup",.12)
+   var drawing=archer.pose("critical_windup",.12)
    while drawing.is_running():
     await process_frame
     var nock=archer.bone("NockedArrow").to_global(Vector3(0,0,Projectile.ARROW_LENGTH*.5))
@@ -215,7 +221,7 @@ func run():
   var unit=rules.roster.filter(func(u):return u.job==job)[0].duplicate(true);unit.team="player"
   var actor=fighters.build(stage,unit,Vector3.ZERO);actor.rotation.y=-PI/2
   var target=Vector3(Actor.melee_spacing(unit.weapon),1.1,0);actor.aim_at(target)
-  await actor.pose("windup",.01).finished;await actor.pose("strike",.01).finished;actor._process(0)
+  await actor.pose("critical_windup",.01).finished;await actor.pose("strike",.01).finished;actor._process(0)
   var tip=Vector3(0,0,-1.62 if unit.weapon=="lance" else -.97 if unit.weapon=="axe" else -1.075)
   var contact=actor.bone("Weapon").to_global(tip)
   assert(contact.distance_to(target)<.45,"Melee weapon reaches the opponent's torso rather than passing above it")

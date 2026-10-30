@@ -46,6 +46,15 @@ func run():
  assert(actor.model.get_node("Skeleton3D").get_bone_pose_rotation(0).is_equal_approx(Quaternion(Vector3.RIGHT,1)),"Skeleton animation tracks remain attached")
  await actor.pose("throw_windup",.01).finished;assert(actor.pose_name=="throw_windup")
  await actor.pose("throw",.01).finished;assert(actor.model.get_node("Hand").position.y==2)
+ for preparation in ["critical_windup","critical_throw_windup"]:
+  await actor.pose(preparation,.01).finished
+  assert(actor.model.get_node("Hand").position.is_equal_approx(Vector3(0,.8,0)),"Optional critical preparation falls back to an authored windup")
+ actor.poses.throw_windup={"clip":"swing","from":0.0,"to":.6}
+ await actor.pose("critical_throw_windup",.01).finished
+ assert(actor.model.get_node("Hand").position.is_equal_approx(Vector3(0,1.2,0)),"Critical throw prefers a dedicated authored throw when available")
+ actor.poses.critical_windup={"clip":"swing","from":0.0,"to":.7}
+ await actor.pose("critical_windup",.01).finished
+ assert(actor.model.get_node("Hand").position.is_equal_approx(Vector3(0,1.4,0)),"Dedicated authored critical preparation takes precedence")
  await actor.pose("cast_windup",.01).finished
  assert(actor.model.get_node("Hand").position.is_equal_approx(Vector3(0,.8,0)),"Optional staff preparation falls back to authored windup")
  await actor.pose("cast",.01).finished

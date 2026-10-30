@@ -1,9 +1,16 @@
 extends SceneTree
+const Actor=preload("res://scripts/fighter_actor.gd")
 const Cutin=preload("res://scripts/critical_cutin.gd")
 var observed=0
+var watched_app
 func _initialize():call_deferred("run")
 func watch(node):
- if node.name=="CriticalCutin":observed+=1
+ if node.name=="CriticalCutin":
+  observed+=1
+  var app=watched_app
+  if app.stage.visible:
+   var prepared=app.stage.get_children().filter(func(actor):return actor is Actor and actor.pose_name in ["critical_windup","critical_throw_windup"])
+   assert(prepared.size()==1,"Portrait appears after the active fighter adopts critical preparation")
 func check_layout(cutin,host):
  assert(cutin.get_global_rect().position.x>=0 and cutin.get_global_rect().end.x<=host.size.x and cutin.get_global_rect().end.y<host.size.y-140,"Cutin stays clear of combat HP")
  for child in cutin.get_children():
@@ -47,6 +54,7 @@ func run():
    previous=cutin.position.x
   assert(saw_hold and not cutin.visible,"Moving streaks continue while the readable portrait holds, then the strip exits")
   cutin.queue_free();await process_frame
+ watched_app=app
  app.game.start_battle();app.make_map();app.show_battle();app.ui.child_entered_tree.connect(watch)
  var a=app.game.units[0];var b=app.game.living("enemy")[0];a.x=8;a.y=4;b.x=9;b.y=4
  var events=app.game.combat(a,b);events[0].crit=true

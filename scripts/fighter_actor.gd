@@ -53,7 +53,7 @@ func apply_constraints():
  if kind=="staff" and pose_name in ["cast_windup","cast"] and bones.has("Weapon"):
   var grip=bones.Weapon
   grip.quaternion=(grip.get_parent().global_basis.inverse()*global_basis).get_rotation_quaternion()
- if kind in ["lance","bow"] and pose_name in ["windup","strike"] and bones.has("Weapon"):
+ if kind in ["lance","bow"] and pose_name in ["windup","critical_windup","strike"] and bones.has("Weapon"):
   var grip=bones.Weapon
   var direction=aim_target-grip.global_position if has_aim_target else -global_transform.basis.z
   if direction.length_squared()>.001:
@@ -107,8 +107,8 @@ func stance_height(target: Dictionary) -> float:
 
 func pose(key: String,duration=.18) -> Tween:
  if pose_tween and pose_tween.is_valid():pose_tween.kill()
- if bones.has("Weapon") and key not in ["throw","throw_windup"]:bones.Weapon.visible=true
- if bones.has("NockedArrow") and key in ["idle","advance","windup"]:bones.NockedArrow.visible=true
+ if bones.has("Weapon") and key not in ["throw","throw_windup","critical_throw_windup"]:bones.Weapon.visible=true
+ if bones.has("NockedArrow") and key in ["idle","advance","windup","critical_windup"]:bones.NockedArrow.visible=true
  pose_name=key
  var target={
   "Body":Vector3(0,0,0),"Head":Vector3(0,0,0),
@@ -123,7 +123,7 @@ func pose(key: String,duration=.18) -> Tween:
   target.LeftArm=Vector3(-.9,0,.25);target.LeftElbow=Vector3(-.8,0,0)
  elif kind in ["magic","staff"]:
   target.Arm=Vector3(-.1,0,-.12);target.Elbow=Vector3(-.18,0,0)
- if key=="windup":
+ if key in ["windup","critical_windup"]:
   target.Body=Vector3(.08,-.25,0)
   target.Arm=Vector3(-2.2,-.15,-.45);target.Elbow=Vector3(-.8,0,0)
   target.LeftArm=Vector3(-.3,0,.5)
@@ -139,6 +139,17 @@ func pose(key: String,duration=.18) -> Tween:
   elif kind in ["magic","staff"]:
    target.Arm=Vector3(-1.8,0,-.4);target.Elbow=Vector3(-.2,0,0)
    target.LeftArm=Vector3(-.9,0,.45);target.LeftElbow=Vector3(-.5,0,0)
+  if key=="critical_windup":
+   # A stronger anticipation resolves into the same tested contact pose.
+   # Keep the bow shoulder geometry so the hand can still reach the nock.
+   target.Head=Vector3(.08,.12,-.04)
+   if kind!="bow":
+    target.Body.y-=.2;target.LeftLeg.x=-.38;target.RightLeg.x=.4;target.RightKnee.x=.58
+    if kind in ["sword","axe"]:
+     target.Arm.x-=.28;target.Elbow.x-=.15;target.LeftArm.z+=.15
+    elif kind=="lance":target.Elbow.x-=.18;target.LeftArm=Vector3(-.8,0,.5)
+    elif kind in ["magic","staff"]:
+     target.Arm=Vector3(-2.15,0,-.55);target.LeftArm=Vector3(-1.5,0,.65)
  elif key=="strike":
   target.Body=Vector3(.17,.3,0)
   target.Arm=Vector3(-.45,-.25,.23);target.Elbow=Vector3(-.1,0,0)
@@ -157,8 +168,12 @@ func pose(key: String,duration=.18) -> Tween:
   target.Body=Vector3(0,-.08,0)
   target.Arm=Vector3(-1.1 if key=="cast_windup" else -.9,0,-.18);target.Elbow=Vector3(-.55,0,0)
   target.LeftArm=Vector3(-.6 if key=="cast_windup" else -1.0,0,.3);target.LeftElbow=Vector3(-.35,0,0)
- elif key=="throw_windup":
+ elif key in ["throw_windup","critical_throw_windup"]:
   target.Body=Vector3(.08,-.4,0);target.Arm=Vector3(-2.5,0,-.25);target.Elbow=Vector3(-1.1,0,0)
+  if key=="critical_throw_windup":
+   target.Body.y=-.65;target.Arm.x=-2.8;target.Elbow.x=-1.25
+   target.LeftArm=Vector3(-.7,0,.65);target.Head=Vector3(.06,.15,0)
+   target.LeftLeg.x=-.38;target.RightLeg.x=.4;target.RightKnee.x=.58
  elif key=="throw":
   target.Body=Vector3(.15,.35,0);target.Arm=Vector3(-1.3,0,.05);target.Elbow=Vector3(0,0,0)
  elif key=="guard":
@@ -182,12 +197,12 @@ func pose(key: String,duration=.18) -> Tween:
    for i in range(4):target["HorseLeg"+str(i)]=Vector3.ZERO
  if key=="advance" and not mounted:
   for leg in ["LeftLeg","RightLeg","LeftKnee","RightKnee"]:target.erase(leg)
- var aiming=kind in ["lance","bow"] and key in ["windup","strike"] and bones.has("Weapon")
+ var aiming=kind in ["lance","bow"] and key in ["windup","critical_windup","strike"] and bones.has("Weapon")
  if aiming:target.erase("Weapon")
  elif key!="strike":weapon_aim=0.0
  pose_tween=create_tween().set_parallel(true).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN_OUT)
- if kind=="bow":pose_tween.tween_property(self,"bow_draw",1.0 if key=="windup" else 0.0,duration)
- if kind=="bow":pose_tween.tween_property(self,"bow_hand_weight",1.0 if key in ["idle","advance","windup"] else 0.0,duration)
+ if kind=="bow":pose_tween.tween_property(self,"bow_draw",1.0 if key in ["windup","critical_windup"] else 0.0,duration)
+ if kind=="bow":pose_tween.tween_property(self,"bow_hand_weight",1.0 if key in ["idle","advance","windup","critical_windup"] else 0.0,duration)
  if aiming:pose_tween.tween_property(self,"weapon_aim",1.0,duration)
  for name_value in target:
   if name_value in ["Arm","Elbow","LeftArm","LeftElbow","LeftKnee","RightKnee","Body","Head"]:
