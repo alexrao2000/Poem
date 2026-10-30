@@ -340,3 +340,7 @@ Six authored tower landmarks now use `fortification.gd` instead of plain cylinde
 ### Combat travel footwork
 
 Procedural approach gait now advances by signed distance along the fighter’s facing direction: 1.6 m per infantry cycle and 2.8 m for mounts. Stationary fighters hold the stride; backward reach adjustments reverse it. Infantry hips and legs share the computed supporting-foot height, and pose tweens relinquish those translations during travel. Horse head movement follows its gait phase while the rider retains a seated pose. Approach duration scales with distance at 5 m/s within 0.18–0.65 seconds, and Tab cancels the travel tween before preparation begins. Tests sample actual boot vertices over 2,304 roster/facing/direction steps, stationary behavior, consistent frame subdivision, mounted seating, pose ownership and a real skipped approach with full tactical restoration. This is improved procedural travel; it is not a claim of authored animation or complete horizontal foot locking, and rendered review remains pending.
+
+### Forecast weapon matchups
+
+Small original vector triangles now sit beside forecast weapon names: green/up for advantage and red/down for disadvantage, with text tooltips and separate horizontal space. Neutral pairings and unavailable counters hide the marker. `Rules.forecast()` exposes its existing triangle modifier so presentation does not duplicate matchup logic or change damage/hit calculations. Tests cover all 36 family pairings, both sides, no-counter cases and roster layouts at 1024×640, 1280×720 and 1440×900.

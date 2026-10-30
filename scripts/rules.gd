@@ -238,7 +238,7 @@ func forecast(a: Dictionary,b: Dictionary) -> Dictionary:
 	var terrain_stats=terrain_profile(pos(b));var cover=terrain_stats.cover
 	var defense = resistance_for(b) if a.weapon=="magic" else int(b.defense)
 	var effective=effectiveness(a,b)
-	return {"effective":effective>1,"damage":maxi(1,attack_power(a)+int(item_for(a).might)*(effective-1)+advantage+(1 if support_attack==3 else 0)-defense-cover),"hit":clampi(85+(attack_speed(a)-attack_speed(b))*2+int(item_for(a).hit)+promotion_bonus(a,"hit")+(support_attack-support_defense)*5+advantage*15-terrain_stats.avoid,25,100),"crit":clampi(int(a.speed)/2+int(item_for(a).crit)+promotion_bonus(a,"crit"),0,50),"double":attack_speed(a)-attack_speed(b)>=4,"counter":can_attack(b,a)}
+	return {"triangle":advantage,"effective":effective>1,"damage":maxi(1,attack_power(a)+int(item_for(a).might)*(effective-1)+advantage+(1 if support_attack==3 else 0)-defense-cover),"hit":clampi(85+(attack_speed(a)-attack_speed(b))*2+int(item_for(a).hit)+promotion_bonus(a,"hit")+(support_attack-support_defense)*5+advantage*15-terrain_stats.avoid,25,100),"crit":clampi(int(a.speed)/2+int(item_for(a).crit)+promotion_bonus(a,"crit"),0,50),"double":attack_speed(a)-attack_speed(b)>=4,"counter":can_attack(b,a)}
 
 func strike(a: Dictionary,b: Dictionary) -> Dictionary:
 	var f = forecast(a,b)

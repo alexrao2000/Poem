@@ -13,6 +13,13 @@ func watch_cinematic(app):
 func _initialize():call_deferred("run")
 func run():
  var game=Rules.new();game.chapter=5;game.start_battle();var portraits=Portraits.new()
+ var favorable=[["sword","axe"],["axe","lance"],["lance","sword"]]
+ for left in ["sword","axe","lance","bow","magic","staff"]:
+  for right in ["sword","axe","lance","bow","magic","staff"]:
+   var a=game.units[0].duplicate(true);var b=game.living("enemy")[0].duplicate(true)
+   a.weapon=left;b.weapon=right;a.x=4;a.y=4;b.x=5;b.y=4
+   var expected=1 if [left,right] in favorable else -1 if [right,left] in favorable else 0
+   assert(game.forecast(a,b).triangle==expected and game.forecast(b,a).triangle==-expected,"All 36 weapon-family pairings expose the existing triangle relationship")
  var host=Control.new();root.add_child(host)
  var foe=game.living("enemy")[0]
  for size in [Vector2(1024,640),Vector2(1280,720),Vector2(1440,900)]:
@@ -27,11 +34,15 @@ func run():
    assert(forecast.records[0].stats[0].value.text==str(expected.damage)+(" ×2" if expected.double else ""))
    assert(forecast.records[0].stats[1].value.text==str(expected.hit)+"%")
    assert(forecast.records[1].stats[0].value.text==(str(reverse.damage)+(" ×2" if reverse.double else "") if expected.counter else "—"))
+   for i in range(2):
+    var marker=forecast.records[i].matchup;var result=expected if i==0 else reverse
+    assert(marker.advantage==result.triangle and marker.visible==((i==0 or expected.counter) and result.triangle!=0),"Matchup arrows use the resolved rules modifier and hide when no attack is available")
    for record in forecast.records:
     var bounds=record.card.get_rect()
     assert(bounds.position.x>=0 and bounds.position.y>=0 and bounds.end.x<size.x-325 and bounds.end.y<=size.y-110,"Forecast leaves the command sidebar and help strip clear")
     for node in record.card.get_children():
      assert(node.position.x>=0 and node.position.y>=0 and node.get_rect().end.x<=record.card.size.x+.01 and node.get_rect().end.y<=record.card.size.y+.01,"All comparison content fits its card")
+    if record.matchup.visible:assert(record.weapon.get_rect().end.x<record.matchup.position.x,"Weapon names leave a separate space for their matchup marker")
     var hp=record.hp
     assert(hp.get_theme_font("font").get_string_size(hp.text,HORIZONTAL_ALIGNMENT_LEFT,-1,hp.get_theme_font_size("font_size")).x<=hp.size.x,"Maximum health values fit without truncation")
    assert(forecast.records[0].card.get_rect().end.x<forecast.records[1].card.position.x)
@@ -57,5 +68,5 @@ func run():
  for player in app.sfx_players:player.stop()
  app.music.stop();await create_timer(.15).timeout
  await Shutdown.dispose(app);await process_frame
- print("PASS: 24 paired forecasts at three viewport sizes, real damage/hit/counter values, health bounds, retargeting and screen cleanup")
+ print("PASS: all 36 triangle pairings, 24 paired forecasts at three viewport sizes, real damage/hit/counter values, isolated matchup arrows, health bounds, retargeting and screen cleanup")
  quit()
