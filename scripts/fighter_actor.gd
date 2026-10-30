@@ -69,7 +69,7 @@ func _process(dt):
   if bones.has("Body"):bones.Body.position.y=rest.Body.position.y+support_height+sin(elapsed*2.4)*.006
   if bones.has("Head"):bones.Head.rotation.z=sin(elapsed*1.3)*.012
  elif pose_name=="advance":update_locomotion()
- if bones.has("HorseHead"):bones.HorseHead.rotation.x=sin(gait_phase*2 if pose_name=="advance" else elapsed*1.6)*(.04 if pose_name=="advance" else .015)
+ if bones.has("HorseHead"):bones.HorseHead.rotation.x=rest.HorseHead.rotation.x+sin(gait_phase*2 if pose_name=="advance" else elapsed*1.6)*(.04 if pose_name=="advance" else .015)
  apply_constraints()
  gaze_motion.update(pose_name,dt)
 

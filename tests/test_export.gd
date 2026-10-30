@@ -51,6 +51,12 @@ func run():
   if unit.weapon=="magic":
    assert(actor.bones.Weapon.get_parent()==actor.bones.LeftElbow and actor.bones.Weapon.has_node("Spellbook"),"Packaged caster retains the open folio and free casting hand")
    assert(actor.find_children("*","MeshInstance3D",true,false).any(func(mesh):return mesh.material_override.get_meta("no_character_outline",false) and mesh.material_override.albedo_texture!=null),"Packaged folio generates its original printed pages")
+  if path==app.game.promotions[0]:
+   assert(ResourceLoader.exists("res://assets/shaders/defeat-mask.gdshaderinc"),"Release includes the dynamically selected defeat shader include")
+   var departure=load("res://scripts/combat_defeat.gd").new();app.stage.add_child(departure);departure.begin(actor)
+   departure.motion.custom_step(.5)
+   assert(not actor.visible and departure.visibility==0,"Packaged material variants complete the defeated actor exit")
+   departure.queue_free()
   actor.queue_free();await process_frame
  await Shutdown.dispose(app);await process_frame
  print("PASS: exported catalog, all three act scores, chapter scenes, sixteen promotion costumes, licenses and credits")
