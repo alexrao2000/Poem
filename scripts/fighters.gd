@@ -148,9 +148,11 @@ func build(parent,u,p) -> Node3D:
  var head_skin=geo.mesh(head,Head.mesh(head_shape),Vector3.ZERO,Vector3.ONE,geo.material(skin));head_skin.name="SculptedHead"
  for x in [-.14,.14]:ellipsoid(head,Vector3(x,-.015,0),Vector3(.025,.05,.025),skin)
  if heavy and u.team!="player":
-  ellipsoid(head,Vector3(0,.045,.015),Vector3(.16,.19,.16),steel)
-  geo.block(head,Vector3(0,.005,-.15),Vector3(.24,.045,.025),Color("303841"))
-  geo.block(head,Vector3(0,-.055,-.16),Vector3(.05,.15,.03),gold)
+  var helmet=preload("res://scripts/knight_helmet.gd")
+  var shell_mesh=geo.mesh(head,helmet.mesh(),Vector3.ZERO,Vector3.ONE,geo.material(steel));shell_mesh.name="HelmetShell"
+  var lining_material=geo.material(Color("252c38")).duplicate();lining_material.set_meta("no_character_outline",true)
+  var liner=geo.mesh(head,helmet.visor_lining(),Vector3.ZERO,Vector3.ONE,lining_material);liner.name="HelmetLining"
+  var nasal=geo.mesh(head,helmet.nasal_trim(),Vector3.ZERO,Vector3.ONE,geo.material(gold));nasal.name="HelmetNasal"
  else:
   Hair.build(self,head,appearance,gold)
   var loose_hair=head.get_node_or_null("HairFall")

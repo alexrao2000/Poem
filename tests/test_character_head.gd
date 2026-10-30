@@ -7,6 +7,7 @@ const Rules=preload("res://scripts/rules.gd")
 func _initialize():call_deferred("run")
 func run():
  verify_beards()
+ await verify_helmets()
  var shape_signatures={}
  for shape in Head.SHAPES:
   var mesh=Head.mesh(shape);assert(mesh==Head.mesh(shape),"Head geometry is shared")
@@ -84,7 +85,7 @@ func run():
  for signature in shapes.values():distinct[signature]=true
  assert(distinct.size()==5,"Front styles differ in actual geometry rather than names or colors")
  stage.queue_free();await process_frame
- print("PASS: four closed sculpted head profiles / 32 fitted face variants, outward jaw/crown, integrated nose, eight fitted decal UV regions, clean original alpha all 24 recruit bindings, two closed mouth-framing beards, five smoothed hair fronts, eye clearance and deterministic 21-recruit selection")
+ print("PASS: four closed sculpted head profiles / 32 fitted face variants, outward jaw/crown, integrated nose, eight fitted decal UV regions, clean original alpha all 24 recruit bindings, two closed mouth-framing beards, fitted hollow knight helmets / recessed eye slits / closed nasal trim, five smoothed hair fronts, eye clearance and deterministic 21-recruit selection")
  quit()
 
 func verify_beards():
@@ -115,3 +116,53 @@ func verify_beards():
   for edge in edges:assert(edges[edge]==2 and directions[edge]==0,"Beard body and mouth walls form a closed consistently oriented surface")
   assert(is_equal_approx(mesh.get_aabb().position.y,-.37 if style=="long" else -.25),"Galen's longer beard has a distinct lower silhouette")
  assert(Beard.mesh("unknown")==Beard.mesh("full"),"Unspecified enemy beards use the short fitted shell")
+
+func verify_helmets():
+ var Helmet=preload("res://scripts/knight_helmet.gd")
+ assert(Helmet.mesh()==Helmet.mesh() and Helmet.nasal_trim()==Helmet.nasal_trim() and Helmet.visor_lining()==Helmet.visor_lining(),"Helmet pieces are shared immutable source meshes")
+ var metal=Helmet.mesh().surface_get_arrays(0)[Mesh.ARRAY_VERTEX]
+ for mesh in [Helmet.mesh(),Helmet.nasal_trim()]:
+  var arrays=mesh.surface_get_arrays(0);var points=arrays[Mesh.ARRAY_VERTEX];var normals=arrays[Mesh.ARRAY_NORMAL];var edges={};var directions={}
+  for i in range(0,points.size(),3):
+   var normal=(points[i+2]-points[i]).cross(points[i+1]-points[i])
+   assert(normal.length_squared()>1e-16,"Helmet and fitted trim omit collapsed triangles")
+   for j in range(3):
+    assert(is_equal_approx(normals[i+j].length(),1) and normal.normalized().dot(normals[i+j])>.999,"Faceted metal has finite outward face normals")
+    var a=str(points[i+j].snapped(Vector3.ONE*.000001));var b=str(points[i+(j+1)%3].snapped(Vector3.ONE*.000001));var edge=a+":"+b if a<b else b+":"+a
+    edges[edge]=edges.get(edge,0)+1;directions[edge]=directions.get(edge,0)+(1 if a<b else -1)
+  for count in edges.values():assert(count==2,"Helmet wall and eye-slit rims form a closed solid")
+  for value in directions.values():assert(value==0,"Shared metal edges retain opposite winding")
+  for point in points:assert(absf(point.x)<=.167 and point.y>=-.19 and point.y<=.243 and point.z>=-.195 and point.z<.19,"Helmet stays within its new fitted head envelope")
+ for x in [-.09,-.06,.06,.09]:
+  assert(helmet_ray(metal,Vector3(x,.006,-1))>.10,"Eye opening passes through the front shell to the back wall")
+  var lining=Helmet.visor_lining().surface_get_arrays(0)[Mesh.ARRAY_VERTEX]
+  assert(helmet_ray(lining,Vector3(x,.006,-1))<-.13,"Dark lining is recessed behind the eye opening")
+  assert(helmet_ray(metal,Vector3(x,-.06,-1))<-.13,"Solid cheeks remain below the opening")
+ var nose=Helmet.nasal_trim().surface_get_arrays(0)[Mesh.ARRAY_VERTEX]
+ assert(helmet_ray(nose,Vector3(0,.006,-1))<-.18,"Nasal trim bridges the middle of the eye slit")
+ for point in nose:
+  if point.y>-.018 and point.y<.03:continue
+  var shell_z=helmet_ray(metal,Vector3(point.x,point.y,-1))
+  if shell_z>=1:continue
+  assert(shell_z-point.z>.0009,"Even the back of the fitted nose strip clears the actual curved metal surface")
+ var rules=Rules.new();var painter=Fighters.new();painter.batching_enabled=false;var stage=Node3D.new();root.add_child(stage)
+ var unit=rules.roster.filter(func(entry):return entry.job=="Knight")[0].duplicate(true);unit.team="enemy";unit.id="helmet_test"
+ for direction in [-1,1]:
+  var actor=painter.build(stage,unit,Vector3.ZERO);actor.rotation.y=direction*PI/2;actor.set_process(false)
+  var head=actor.bones.Head
+  assert(head.get_node("HelmetShell").mesh.surface_get_arrays(0)[Mesh.ARRAY_VERTEX]==metal,"Enemy knight binds the shaped helmet before and after outline preparation")
+  assert(head.get_node("HelmetLining").material_override.next_pass==null,"Recessed lining does not grow an outline across the slit")
+  assert(actor.face_blink.surface==null and not head.has_node("PaintedFace"),"Closed helmet retains the anonymous armored identity")
+  for pose in ["idle","windup","strike","guard","hit","down"]:
+   actor.pose(pose,1).custom_step(1)
+   for key in ["HelmetShell","HelmetLining","HelmetNasal"]:
+    assert(head.get_node(key).transform==Transform3D.IDENTITY,"All fitted pieces follow the same animated head without floating offsets")
+  actor.queue_free();await process_frame
+ stage.queue_free();await process_frame
+
+func helmet_ray(points: PackedVector3Array,origin: Vector3) -> float:
+ var nearest=1.0
+ for i in range(0,points.size(),3):
+  var hit=Geometry3D.ray_intersects_triangle(origin,Vector3.BACK,points[i],points[i+1],points[i+2])
+  if hit!=null:nearest=minf(nearest,hit.z)
+ return nearest
