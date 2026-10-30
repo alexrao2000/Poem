@@ -50,6 +50,9 @@ func _process(dt):
  apply_constraints()
 
 func apply_constraints():
+ if kind=="staff" and pose_name in ["cast_windup","cast"] and bones.has("Weapon"):
+  var grip=bones.Weapon
+  grip.quaternion=(grip.get_parent().global_basis.inverse()*global_basis).get_rotation_quaternion()
  if kind in ["lance","bow"] and pose_name in ["windup","strike"] and bones.has("Weapon"):
   var grip=bones.Weapon
   var direction=aim_target-grip.global_position if has_aim_target else -global_transform.basis.z
@@ -150,6 +153,10 @@ func pose(key: String,duration=.18) -> Tween:
    target.LeftArm=Vector3(-.8,.9,.7);target.LeftElbow=Vector3(-1.6,0,0)
   elif kind in ["magic","staff"]:
    target.Arm=Vector3(-1.1,0,-.35);target.LeftArm=Vector3(-1.3,0,.3)
+ elif key in ["cast_windup","cast"]:
+  target.Body=Vector3(0,-.08,0)
+  target.Arm=Vector3(-1.1 if key=="cast_windup" else -.9,0,-.18);target.Elbow=Vector3(-.55,0,0)
+  target.LeftArm=Vector3(-.6 if key=="cast_windup" else -1.0,0,.3);target.LeftElbow=Vector3(-.35,0,0)
  elif key=="throw_windup":
   target.Body=Vector3(.08,-.4,0);target.Arm=Vector3(-2.5,0,-.25);target.Elbow=Vector3(-1.1,0,0)
  elif key=="throw":
@@ -201,6 +208,7 @@ func pose(key: String,duration=.18) -> Tween:
  return pose_tween
 
 func socket_position(key: String) -> Vector3:
+ if key=="projectile" and kind=="staff" and bones.has("Weapon"):return bones.Weapon.to_global(Vector3(0,.78,0))
  if key=="projectile" and kind=="bow" and bones.has("NockedArrow"):return bones.NockedArrow.global_position
  if key=="projectile" and bones.has("Weapon"):
   var offset=Vector3(0,0,-.22) if kind=="bow" else Vector3(0,.14,-.12) if kind=="magic" else Vector3.ZERO

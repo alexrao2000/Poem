@@ -98,3 +98,11 @@ The map action card fits its contents, freeing its previously empty lower area. 
 ## Campaign menu layouts
 
 The war council, dossiers, equipment, title, options, credits, training confirmations, results and model viewer now fit 1024×640 through 1440×900. Primary actions remain visible outside scrolling narrative/reading areas. The council preserves its roster and briefing in two responsive columns. All menu scroll areas follow keyboard focus; save transfer keeps at least 160 px of editable code area. The `menus` suite checks 492 layouts across the full roster, every chapter and both training choices, including last-entry reachability and unchanged progression. This verifies bounds and interaction state, not rendered styling.
+
+## Staff recovery presentation
+
+Staff healing follows the battle-animation preference: full/player modes use the shared map zoom and arena return; map-only mode retains its short field cue. Tonic use remains a field action. The existing rules resolve health, 30 XP and support gain once before the sequence. Both participants keep allied nameplates, with the recipient's meter starting at pre-heal HP and rising when the light arrives.
+
+Procedural staff users have separate preparation/release poses with an upright staff constraint. Light leaves the actual crown, follows three fixed curved strands, then blooms around the recipient's chest with two foot-level rings, rising motes and a green recovery number. Mounted recipients use rider-height contact while the rings stay at the ground. The effect uses additive geometry and no extra lights or gameplay RNG. Healing never triggers recoil, dodge, hit stop or damaging sparks. Early skip and skip during the light return to the map with the resolved result intact. The synchronized score blends through the same existing calm/Ablaze timeline.
+
+The recovery suite checks all three staff rigs in both directions, transformed effect parents, mounted height, actual field actions, repeated-input locking, rising HP, animation preferences, skip cleanup, score restoration and unchanged resolved progression. Imported actors accept optional cast mappings and otherwise use their windup/strike sections. These are runtime and geometry checks, not a rendered review.

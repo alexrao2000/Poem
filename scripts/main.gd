@@ -26,6 +26,7 @@ var dialogue_reveal=0.0
 const CombatTrail=preload("res://scripts/combat_trail.gd")
 const CombatImpact=preload("res://scripts/combat_impact.gd")
 const CombatHitStop=preload("res://scripts/combat_hit_stop.gd")
+const CombatHeal=preload("res://scripts/combat_heal.gd")
 const CombatProjectile=preload("res://scripts/combat_projectile.gd")
 const CombatCamera=preload("res://scripts/combat_camera.gd")
 const CombatHUD=preload("res://scripts/combat_hud.gd")
@@ -269,7 +270,7 @@ func clear_world():
 	world=Node3D.new();add_child(world)
 	markers=Node3D.new();add_child(markers)
 	pieces=Node3D.new();add_child(pieces)
-	stage=Node3D.new();add_child(stage)
+	stage=Node3D.new();add_child(stage);stage.hide()
 	sprites.clear();unit_nodes.clear();map_facings.clear()
 
 func mat(color: Color) -> StandardMaterial3D:
@@ -649,7 +650,7 @@ func click_tile(p: Vector2i):
 			var before=game.progress_snapshot()
 			var old_hp=u.hp
 			if game.heal(selected,u):
-				play_sfx("heal");busy=true;update_side();await map_heal_feedback(selected,u,u.hp-old_hp);await show_progress(before);busy=false;finish_action();return
+				busy=true;update_side();await staff_healing(selected,u,u.hp-old_hp);await show_progress(before);busy=false;finish_action();return
 	if u!=null and u.team=="player":
 		cancel_selection();selected=u;play_sfx("select");highlight();update_side();return
 	if u!=null and u.team=="enemy" and (selected==null or selected.team=="enemy"):
@@ -719,6 +720,11 @@ func end_turn():
 func make_fighter(u,position) -> Node3D:
 	return fighters.build(stage,u,position)
 
+func staff_healing(healer,recipient,amount: int):
+	if not preferences.show_cinematic(healer.team):
+		play_sfx("heal");await map_heal_feedback(healer,recipient,amount);return
+	await cinematic(healer,recipient,[{"actor":healer.id,"target":recipient.id,"healing":amount}],{healer.id:healer.hp,recipient.id:recipient.hp-amount})
+
 func cinematic(a,b,events,initial_hp={}):
 	if events.is_empty():return
 	map_navigation.stop()
@@ -741,7 +747,7 @@ func cinematic(a,b,events,initial_hp={}):
 	var old_lighting=battle_lighting(game.info().get("environment","village"))
 	scenery.battle_landscape(stage,Vector3(35,0,0),scenery.combat_context(game,a,b))
 	world.hide();pieces.hide()
-	var ranged=game.distance(a,b)>1 or a.weapon in ["bow","magic"] or b.weapon in ["bow","magic"]
+	var ranged=events[0].has("healing") or game.distance(a,b)>1 or a.weapon in ["bow","magic"] or b.weapon in ["bow","magic"]
 	var spacing=2.0 if ranged else 1.6
 	var actor=make_fighter(a,Vector3(35-spacing,0,0));var defender=make_fighter(b,Vector3(35+spacing,0,0))
 	actor.rotation.y=-PI/2;defender.rotation.y=PI/2
@@ -755,7 +761,7 @@ func cinematic(a,b,events,initial_hp={}):
 		var hp=int(initial_hp.get(unit.id,unit.hp))
 		if initial_hp.is_empty():
 			for strike_event in events:
-				if strike_event.target==unit.id:hp+=strike_event.damage
+				if strike_event.target==unit.id:hp+=strike_event.get("damage",0)-strike_event.get("healing",0)
 		displayed_hp[unit.id]=mini(hp,unit.max_hp)
 		entries.append({"unit":unit,"hp":displayed_hp[unit.id],"portrait":portraits.get_unit_portrait(unit),"class_name":game.class_name_for(unit),"weapon":game.item_for(unit).name})
 	var banner=CombatHUD.new();banner.configure(ui,entries)
@@ -769,6 +775,23 @@ func cinematic(a,b,events,initial_hp={}):
 		var who=actor if event.actor==a.id else defender
 		var whom=defender if who==actor else actor
 		var unit=a if who==actor else b
+		if event.has("healing"):
+			banner.mark_actor(unit.id);caption.text=unit.name+"  /  "+game.item_for(unit).name
+			director.shot(who.position,whom.position,"windup",true,mounted,.28)
+			await who.pose("cast_windup",.36).finished
+			if skip_combat:break
+			await who.pose("cast",.18).finished
+			if skip_combat:break
+			var recovery=CombatHeal.new();stage.add_child(recovery)
+			var healing_motion=recovery.play(who.socket_position("projectile"),whom.socket_position("impact"),whom.global_position,event.healing)
+			await recovery.arrived
+			var recipient=b if who==actor else a
+			play_sfx("heal");displayed_hp[event.target]=mini(recipient.max_hp,displayed_hp[event.target]+event.healing)
+			banner.set_health(event.target,int(displayed_hp[event.target]));caption.text=unit.name+" — "+str(int(event.healing))+" HP restored"
+			director.shot(who.position,whom.position,"impact",true,mounted,.24)
+			await healing_motion.finished
+			await who.pose("idle",.18).finished
+			continue
 		var spell=game.item_for(unit).id if unit.weapon=="magic" else ""
 		banner.mark_actor(unit.id)
 		var base=who.position

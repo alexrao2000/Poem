@@ -46,6 +46,10 @@ func run():
  assert(actor.model.get_node("Skeleton3D").get_bone_pose_rotation(0).is_equal_approx(Quaternion(Vector3.RIGHT,1)),"Skeleton animation tracks remain attached")
  await actor.pose("throw_windup",.01).finished;assert(actor.pose_name=="throw_windup")
  await actor.pose("throw",.01).finished;assert(actor.model.get_node("Hand").position.y==2)
+ await actor.pose("cast_windup",.01).finished
+ assert(actor.model.get_node("Hand").position.is_equal_approx(Vector3(0,.8,0)),"Optional staff preparation falls back to authored windup")
+ await actor.pose("cast",.01).finished
+ assert(actor.model.get_node("Hand").position.y==2,"Optional staff release falls back to authored strike")
  actor.pose("advance",.01);await process_frame;assert(actor.player.is_playing() and actor.player.current_animation=="walk","Approach plays locomotion")
  var other=models.build(world,unit,Vector3.ZERO)
  var hold=preload("res://scripts/combat_hit_stop.gd").new();root.add_child(hold)
