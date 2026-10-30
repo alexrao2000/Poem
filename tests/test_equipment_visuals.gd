@@ -37,6 +37,7 @@ func run():
  var rules=Rules.new();var painter=Fighters.new();painter.batching_enabled=false
  var stage=Node3D.new();root.add_child(stage);var signatures={};var samples=0
  verify_pauldrons()
+ verify_elbow_guard()
  await verify_cuirasses(painter,rules,stage)
  await verify_shields(painter,rules,stage)
  await verify_quivers(painter,rules,stage)
@@ -209,6 +210,13 @@ func verify_cuirasses(painter,rules,stage):
   assert((armor!=null)==expected,"Only existing armored outfits receive plate geometry")
   for arm_side in [-1,1]:
    var arm=actor.bones.LeftArm if arm_side<0 else actor.bones.Arm
+   var elbow=actor.bones.LeftElbow if arm_side<0 else actor.bones.Elbow
+   var cover=elbow.get_node("ElbowCover")
+   assert(cover.get_meta("armored")==expected and cover.position==Vector3.ZERO,"Elbow covering follows the original joint and armor classification")
+   if expected:
+    assert(cover.mesh.surface_get_arrays(0)[Mesh.ARRAY_VERTEX]==preload("res://scripts/elbow_guard.gd").mesh().surface_get_arrays(0)[Mesh.ARRAY_VERTEX],"Armored joints bind the shaped forged cup through outline setup")
+   else:
+    assert(cover.material_override is ShaderMaterial and cover.material_override.get_shader_parameter("tint")==actor.get_meta("costume_colors").cloth,"Soft sleeves continue across unarmored elbows instead of exposing a metal ball")
    var shoulder=arm.get_node_or_null("Pauldron");var rim=arm.get_node_or_null("PauldronRim")
    assert((shoulder!=null)==expected and (rim!=null)==expected,"Existing armor classes receive fitted metal shoulders; cloth sleeves keep their own shape")
    if expected:
@@ -249,3 +257,12 @@ func verify_pauldrons():
      if hit!=null:nearest=minf(nearest,origin.distance_to(hit))
     assert(nearest>.1005 and nearest<.103,"Actual rim faces sit just outside the plate instead of passing through its lower facets")
   assert(left.size()==right.size() and left.keys().all(func(point):return right.has(point)),"Left/right plate silhouettes are exact mirrored geometry")
+
+func verify_elbow_guard():
+ var shape=preload("res://scripts/elbow_guard.gd");var mesh=shape.mesh();closed_mesh(mesh)
+ var arrays=mesh.surface_get_arrays(0);var vertices=arrays[Mesh.ARRAY_VERTEX];var volume=0.0
+ assert(mesh==shape.mesh() and vertices.size()==360,"Armored elbows share one closed 120-triangle cup")
+ for index in range(0,vertices.size(),3):volume+=vertices[index].dot(vertices[index+1].cross(vertices[index+2]))/6.0
+ assert(volume<0,"Forged cup uses outward Godot winding throughout its closed volume")
+ for uv in arrays[Mesh.ARRAY_TEX_UV]:assert(Rect2(Vector2.ZERO,Vector2.ONE).grow(.00001).has_point(uv),"Painted steel stays within its existing texture coordinates")
+ assert(mesh.get_aabb().end.z>.11 and mesh.get_aabb().size.x>.18 and mesh.get_aabb().size.y<.181,"Elbow silhouette has a rear point and side wings inside the joint envelope")

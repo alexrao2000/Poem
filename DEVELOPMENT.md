@@ -6,7 +6,9 @@ User direction: keep developing continuously in this chat until the user returns
 
 ## Current checkpoint
 
-Latest delivered presentation work includes world-planted infantry/cavalry steps, level soles/hooves, shaped cavalry skull/body/neck, fitted animated reins, coordinated arena/map defeat exits and a descending push through the arena reveal. The default runner contains 70 suites. Current measured totals are 1,774 rigid character sources / 1,057 joint batches plus three dynamic reins, and 13,554 static map sources / 616 batches plus cloth and atmosphere. Local browser/macOS packages and the private GitHub repository are kept in sync after focused verification. Assembled visual/audio review and browser FPS measurements remain outstanding.
+**Paused by user request on 2026-10-30. Resume only when asked. See [RESUME.md](RESUME.md) for the complete handoff.**
+
+Latest delivered presentation work includes world-planted infantry/cavalry steps, level soles/hooves, shaped cavalry skull/body/neck, fitted animated reins, coordinated arena/map defeat exits and a descending push through the arena reveal. The default runner contains 70 suites. Current measured totals are 1,774 rigid character sources / 1,073 joint batches plus three dynamic reins, and 13,554 static map sources / 616 batches plus cloth and atmosphere. Local browser/macOS packages and the private GitHub repository are kept in sync after focused verification. Assembled visual/audio review and browser FPS measurements remain outstanding.
 
 ## Earlier checkpoints
 
@@ -368,3 +370,5 @@ The outfit viewer now truly replays actions from a matching preparation/ready po
 The combat-camera audit now covers 24 recruits, eight ordinary enemy classes and twelve commanders, each with five gaze orientations. Helmet crests exposed tight caption overlap in close shots; slightly greater headroom and a constant 48-degree action lens resolve it while retaining inward movement. All 5,280 action and 5,280 entry layouts, combat text, real playback and map handoffs pass.
 
 Class silhouettes now use five shared cloak cuts: full, cropped mantle, ranger half-cloak, forked duelist and riding. The ranger cut exposes the quiver that the old full cloak covered, with actual geometry clearance checked across its base and promotion outfits. Isolated cuts were inspected; full motion/embroidery, outfit framing, promotions, batching and defeat ownership pass. Mesh/batch totals are unchanged.
+
+Armored elbows now use closed faceted guards with rear points and side wings; unarmored elbows continue the sleeve cloth instead of showing a metal sphere. Joint positions and weapon sockets are retained. Explicit flat normals, topology, UVs, roster bindings, actual slash contact, locomotion, all outfit previews/promotions and defeat ownership pass. An isolated arm study was inspected; assembled rendering remains unreviewed. Roster totals are 1,774 sources / 1,073 joint batches plus three dynamic reins.

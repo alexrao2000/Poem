@@ -128,7 +128,8 @@ func build(parent,u,p) -> Node3D:
   else:shell(arm,Vector3(sign_value*.025,0,0),[[-.12,.095,.13],[.02,.11,.15],[.10,.09,.09]],shoulder_color)
   geo.cylinder(arm,Vector3(0,-.14,0),.28,.07,Color("69717a") if armored else blue,.085)
   var elbow=joint(arm,"Elbow",Vector3(0,-.29,0));actor.register_bone("Elbow" if sign_value>0 else "LeftElbow",elbow)
-  ellipsoid(elbow,Vector3.ZERO,Vector3(.073,.073,.073),steel)
+  var elbow_cover=geo.mesh(elbow,preload("res://scripts/elbow_guard.gd").mesh(),Vector3.ZERO,Vector3.ONE,geo.material(steel)) if armored else ellipsoid(elbow,Vector3.ZERO,Vector3(.073,.073,.073),blue)
+  elbow_cover.name="ElbowCover";elbow_cover.set_meta("armored",armored)
   geo.cylinder(elbow,Vector3(0,-.13,0),.25,.068,steel if armored else leather,.055)
   if u.weapon=="magic":
    var palm=joint(elbow,"CastingHand" if sign_value>0 else "BookHand",Vector3(0,-.29,0))

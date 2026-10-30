@@ -785,3 +785,9 @@ All 5,280 recruit/enemy/commander head-and-sole layouts and 5,280 entrance layou
 Five original cached cuts now distinguish the company silhouettes: the existing full cloak for vanguards and casters, cropped mantles for knights/corsairs, a left-shoulder half-cloak for rangers, forked tails for duelists and a shorter riding cloak. Class defaults support an optional `appearance.cape_cut` override. Each cut keeps the original 72-triangle budget, shoulder attachment, full embroidery UVs and bounded cloth/outline motion.
 
 The previous full cloak covered 192 of 384 sampled quiver-body vertex rays from behind. The ranger half-cloak covers none; all nine base/promoted ranger outfits retain more than 25 mm of lateral clearance to the actual quiver parts, including cloth motion and outline allowance. An isolated five-cut geometry study was inspected. Motion, hit-stop, faction/thread ownership, all 72 viewer outfits, sixteen promotion profiles, batching and defeat-material isolation pass. Roster totals remain 1,774 sources / 1,057 batches plus three dynamic reins. Rendered in-game review is pending.
+
+### Elbow armor and sleeve continuity
+
+A shared original 120-triangle closed guard replaces spherical metal elbow covers on armored outfits. Its tapered cup has a rear point and lateral wings, with explicit flat normals retaining the forged silhouette. Unarmored outfits instead continue their existing cloth color across the joint. Animation joints, forearm lengths, hand and weapon sockets are unchanged.
+
+An isolated arm comparison was inspected. Closed topology, outward normals, UV bounds, all roster armor/cloth bindings, 288 equipped slash contacts, actual exchanges, locomotion, 72 outfit previews, promotions and private defeat materials pass focused checks. Rigid roster totals become 1,774 sources / 1,073 batches plus three dynamic reins. This verifies geometry and behavior; in-game material appearance still needs rendered review.
