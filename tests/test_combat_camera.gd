@@ -71,8 +71,15 @@ func verify_roster_framing():
  var view=Camera3D.new();world.add_child(view);view.current=true
  var painter=preload("res://scripts/fighters.gd").new();painter.batching_enabled=false
  var rules=preload("res://scripts/rules.gd").new();var samples=0;var entrance_samples=0
- for source in rules.roster:
-  var unit=source.duplicate(true);unit.team="player"
+ var subjects=rules.roster.duplicate(true)
+ for unit in subjects:unit.team="player"
+ for job in painter.enemy_looks:
+  var unit=rules.roster.filter(func(recruit):return recruit.job==job)[0].duplicate(true)
+  unit.team="enemy";unit.id="enemy_camera_"+job;subjects.append(unit)
+ for chapter in range(12):
+  rules.chapter=chapter;rules.start_battle();subjects.append(rules.units.filter(func(unit):return unit.get("boss",false))[0].duplicate(true))
+ for source in subjects:
+  var unit=source.duplicate(true)
   var actor=painter.build(world,unit,Vector3.ZERO);actor.set_process(false);actor.pose_tween.kill()
   for side in [-1,1]:
    actor.rotation.y=side*PI/2
@@ -82,7 +89,10 @@ func verify_roster_framing():
     for phase in ["wide","windup","critical_windup","impact","critical_hit"]:
      actor.pose({"wide":"idle","windup":"windup","critical_windup":"critical_windup","impact":"strike","critical_hit":"critical_hit"}[phase],1).custom_step(1);actor.apply_constraints()
      var points=[]
-     for mesh in actor.bones.Head.find_children("*","MeshInstance3D",true,false):points.append_array(bounds_points(mesh))
+     for gaze in [Vector2.ZERO,Vector2(-.32,-.45),Vector2(-.32,.45),Vector2(.32,-.45),Vector2(.32,.45)]:
+      actor.bones.Gaze.rotation=Vector3(gaze.x,gaze.y,0)
+      for mesh in actor.bones.Head.find_children("*","MeshInstance3D",true,false):points.append_array(bounds_points(mesh))
+     actor.bones.Gaze.rotation=Vector3.ZERO
      for mesh in actor.find_children("Hoof" if actor.mounted else "Boot","MeshInstance3D",true,false):points.append_array(bounds_points(mesh))
      if phase=="wide":
       for partner_mounted in [false,true]:
@@ -104,7 +114,7 @@ func verify_roster_framing():
        assert(viewport.get_visible_rect().size==Vector2(size_value),"Projection uses actual test viewport dimensions")
        for point in points:
         var screen=view.unproject_position(point)
-        assert(screen.x>24 and screen.x<size_value.x-24 and screen.y>88 and screen.y<size_value.y-160,"Live head/sole geometry clears screen edges, caption and HUD: "+unit.id+" "+phase+" "+str(side)+" "+str(separation)+" "+str(partner_mounted)+" "+str(size_value)+" "+str(screen))
+        assert(screen.x>24 and screen.x<size_value.x-24 and screen.y>88 and screen.y<size_value.y-160,"Live head/sole geometry clears screen edges, caption and HUD: "+unit.name+" "+phase+" "+str(side)+" "+str(separation)+" "+str(partner_mounted)+" "+str(size_value)+" "+str(screen))
        samples+=1
   actor.queue_free();await process_frame
  viewport.size=Vector2i(1280,720)
@@ -114,4 +124,4 @@ func verify_roster_framing():
  var far_height=view.unproject_position(Vector3(-2,0,0)).y-view.unproject_position(Vector3(-2,1.8,0)).y
  assert(near_height/720>.45 and near_height/720<.55 and near_height/far_height>1.4,"Ranged composition has a larger foreground silhouette and visible perspective depth")
  viewport.queue_free();await process_frame
- print("PASS: ",samples," actual roster head/sole projection layouts and ",entrance_samples," descending entrance layouts, both sides, mixed mounts, melee/ranged gaps and stronger foreground framing")
+ print("PASS: ",samples," recruit/enemy/commander head/sole layouts with five gaze orientations and ",entrance_samples," descending entrance layouts, both sides, mixed mounts, melee/ranged gaps and stronger foreground framing")

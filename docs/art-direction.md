@@ -773,3 +773,9 @@ Rules captures both forecasts and HP maxima before any strike, support gain or l
 The outfit viewer's action playback now returns through a meaningful starting pose. Attack, cast and throw previews use their preparation; recovery previews include the preceding strike; reactions and finishing poses return through ready. Previously Play again merely reapplied the held endpoint and could show no movement. A single controller cancels queued poses when the selection changes or the viewer closes.
 
 Actual selection/replay, rapid replacement and close-during-playback pass for infantry, cavalry and staff users. The authored-animation adapter also replays its clip sections and cancels replacement actions correctly. All 72 outfit bounds, 564 menu layouts and promotion preview flows remain checked without changing progression.
+
+### Commander headroom through close shots
+
+The framing audit now includes all eight ordinary enemy classes and all twelve chapter commanders, with five bounded gaze orientations per pose. It exposed helmet crests entering the caption area during ranged windup/impact shots. The camera now budgets for the taller silhouettes and retains the wide shot's 48-degree lens through preparation/contact, while keeping the small inward movement and directional focus shift.
+
+All 5,280 recruit/enemy/commander head-and-sole layouts and 5,280 entrance layouts pass at three sizes, including mixed cavalry. Combat text remains bounded across 1,440 moving-shot layouts; real playback, skip, healing and field-return cases pass. This verifies projection clearance rather than rendered composition.

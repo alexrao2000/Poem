@@ -15,7 +15,7 @@ func configure(value: Camera3D):
 
 static func frame_pair(attacker: Vector3,defender: Vector3,phase: String,_ranged: bool,mounted=false,weapon="") -> Dictionary:
  var midpoint=(attacker+defender)*.5
- var height=2.75 if mounted else 2.0
+ var height=2.90 if mounted else 2.08
  var separation=attacker.distance_to(defender)
  var distance=maxf(7.35 if mounted else 5.4,separation*1.25)
  var aim=midpoint+Vector3(0,height,0)
@@ -26,10 +26,10 @@ static func frame_pair(attacker: Vector3,defender: Vector3,phase: String,_ranged
   return {"anchor":aim+Vector3(direction*1.8,.65,5.8 if mounted else 4.8),"focus":aim,"lens":46.0}
  if phase=="windup":
   aim=aim.lerp(attacker+Vector3(0,height,0),.10)
-  distance*=.99;fov=46.0
+  distance*=.99
  elif phase=="impact":
   aim=aim.lerp(defender+Vector3(0,height,0),.08)
-  distance*=.98;fov=46.0
+  distance*=.98
  aim.y=midpoint.y+height*.5-distance*tan(deg_to_rad(fov*.5))*.18
  return {"anchor":aim+Vector3(sin(.57)*distance,.85,cos(.57)*distance),"focus":aim,"lens":fov}
 
