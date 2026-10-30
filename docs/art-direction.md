@@ -654,3 +654,10 @@ Actual equipped folios select these cues at confirmed damaging contact in both a
 Enemy knights replace the oval helmet/flat face bars with three original cached meshes: a hollow faceted shell (516 triangles), recessed dark eye-slit lining (8), and a closed fitted nasal strip (68). The shell has a narrower jaw, raised crown and actual opening through its front; the dark liner stays behind that opening without an outline pass. Segmented trim follows the front surface, with its back maintaining approximately 1 mm of clearance. The existing animated head attachment, red/commander crest and anonymous closed-helmet identity remain in place.
 
 An isolated depth-tested software mesh study was inspected from three angles. Checks cover closed oriented metal topology, nondegenerate faces/normals, front/back ray intersections, trim clearance and actual animated enemy binding. Full roster batching, all commander appearances, face states and 2,880 combat camera layouts pass. The player roster remains 1,780 rigid sources / 1,021 batches plus three moving reins; rendered in-game helmet review remains pending.
+
+
+## Closed fitted shoulder armor
+
+Existing armored Vanguard, Knight and Rider outfits now use capped shoulder plates rather than open sleeves. Four cached variants cover mirrored light/heavy forms: a raised crown and an outer edge dropping 6.5 cm below the inner edge, with a fitted narrow gold rim. Each plate has 96 triangles and its rim 24; the two pieces replace the prior shoulder shell and cylindrical band one-for-one. Cloth sleeves and promotion layers retain their own silhouettes.
+
+An isolated three-angle mesh study was inspected. Checks verify closed outward topology, exact left/right mirroring, actual rim-to-plate clearance, player/enemy bindings, the existing shoulder attachments and posed ground clearance. All 48 promotion looks, 33,696 outfit-viewer layouts, 2,880 combat camera layouts and full rigid batching pass. The roster remains 1,780 rigid source meshes / 1,021 batches plus three moving reins. Rendered in-game armor review remains pending.

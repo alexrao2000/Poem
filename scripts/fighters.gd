@@ -116,8 +116,11 @@ func build(parent,u,p) -> Node3D:
   var arm_name="Arm" if sign_value>0 else "LeftArm"
   var arm=joint(body,arm_name,Vector3(sign_value*(.225 if slender else .27),.4,0));actor.register_bone(arm_name,arm)
   var shoulder_color=steel if armored else blue
-  shell(arm,Vector3(sign_value*.025,0,0),[[-.12,.13 if heavy else .095,.13],[.02,.16 if heavy else .11,.15],[.10,.09,.09]],shoulder_color)
-  if armored:geo.cylinder(arm,Vector3(0,-.12,0),.025,.13 if heavy else .10,gold)
+  if armored:
+   var pauldron=preload("res://scripts/pauldron.gd")
+   var plate=geo.mesh(arm,pauldron.mesh(sign_value,heavy),Vector3(sign_value*.025,0,0),Vector3.ONE,geo.material(shoulder_color));plate.name="Pauldron"
+   var rim=geo.mesh(arm,pauldron.rim(sign_value,heavy),plate.position,Vector3.ONE,geo.material(gold));rim.name="PauldronRim"
+  else:shell(arm,Vector3(sign_value*.025,0,0),[[-.12,.095,.13],[.02,.11,.15],[.10,.09,.09]],shoulder_color)
   geo.cylinder(arm,Vector3(0,-.14,0),.28,.07,Color("69717a") if armored else blue,.085)
   var elbow=joint(arm,"Elbow",Vector3(0,-.29,0));actor.register_bone("Elbow" if sign_value>0 else "LeftElbow",elbow)
   ellipsoid(elbow,Vector3.ZERO,Vector3(.073,.073,.073),steel)

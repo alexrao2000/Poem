@@ -36,6 +36,7 @@ func visual_signature(hand: Node3D) -> String:
 func run():
  var rules=Rules.new();var painter=Fighters.new();painter.batching_enabled=false
  var stage=Node3D.new();root.add_child(stage);var signatures={};var samples=0
+ verify_pauldrons()
  await verify_cuirasses(painter,rules,stage)
  await verify_shields(painter,rules,stage)
  await verify_quivers(painter,rules,stage)
@@ -94,7 +95,7 @@ func run():
  assert(flights.size()==1 and is_equal_approx(flights[0],Looks.blade("javelin").get_aabb().size.x),"Actual thrown attack uses its equipped javelin head")
  assert(app.game.save_data("battle")==saved and app.game.rng.state==rng,"Item art never changes combat outcome or random state")
  await Shutdown.dispose(app);await process_frame
- print("PASS: 22 distinct actual weapon appearances, closed cached blade/head geometry, retained reach, %d grounded pose samples, closed ridged breastplates/fitted trim, bowed shields, open quivers/feather clearance, bowstring endpoints, enemy equipment and thrown spear continuity"%samples)
+ print("PASS: 22 distinct actual weapon appearances, closed cached blade/head geometry, retained reach, %d grounded pose samples, closed ridged breastplates / mirrored capped pauldrons / fitted trim, bowed shields, open quivers/feather clearance, bowstring endpoints, enemy equipment and thrown spear continuity"%samples)
  quit()
 
 func shield_intersection(mesh: Mesh,xy: Vector2) -> Variant:
@@ -196,13 +197,24 @@ func verify_cuirasses(painter,rules,stage):
   var a=gold[Mesh.ARRAY_VERTEX][i];var b=gold[Mesh.ARRAY_VERTEX][i+1];var c=gold[Mesh.ARRAY_VERTEX][i+2]
   var normal=(b-a).cross(c-a)
   assert(normal.length()>.000001 and normal.normalized().dot(gold[Mesh.ARRAY_NORMAL][i])<-.999 and gold[Mesh.ARRAY_NORMAL][i].z<-.8,"Chest ornament faces outward without degenerate folds")
- var seen=0
+ var seen=0;var units=[]
  for source in rules.roster:
-  var unit=source.duplicate(true);unit.team="player"
+  var unit=source.duplicate(true);unit.team="player";units.append(unit)
+ for job in ["Knight","Vanguard","Rider"]:
+  var unit=rules.roster.filter(func(entry):return entry.job==job)[0].duplicate(true);unit.team="enemy";unit.id="pauldron_"+job;units.append(unit)
+ for unit in units:
   var actor=painter.build(stage,unit,Vector3.ZERO);actor.set_process(false);actor.pose_tween.kill()
   var armor=actor.bones.Body.get_node_or_null("Torso/Cuirass")
-  var expected=unit.job in ["Knight","Vanguard","Rider"] and unit.id!="lyra"
+  var expected=unit.job in ["Knight","Vanguard","Rider"] and not (unit.team=="player" and unit.id=="lyra")
   assert((armor!=null)==expected,"Only existing armored outfits receive plate geometry")
+  for arm_side in [-1,1]:
+   var arm=actor.bones.LeftArm if arm_side<0 else actor.bones.Arm
+   var shoulder=arm.get_node_or_null("Pauldron");var rim=arm.get_node_or_null("PauldronRim")
+   assert((shoulder!=null)==expected and (rim!=null)==expected,"Existing armor classes receive fitted metal shoulders; cloth sleeves keep their own shape")
+   if expected:
+    var pauldron=preload("res://scripts/pauldron.gd")
+    assert(shoulder.mesh.surface_get_arrays(0)[Mesh.ARRAY_VERTEX]==pauldron.mesh(arm_side,unit.job=="Knight").surface_get_arrays(0)[Mesh.ARRAY_VERTEX],"Visible shoulder binds its mirrored light/heavy plate after outline preparation")
+    assert(rim.position==shoulder.position and shoulder.position==Vector3(arm_side*.025,0,0),"Fitted trim and plate share the existing animated shoulder attachment")
   if expected:
    seen+=1
    assert(armor.mesh.surface_get_arrays(0)[Mesh.ARRAY_VERTEX]==points,"Outline preparation preserves the authored plate silhouette")
@@ -211,3 +223,29 @@ func verify_cuirasses(painter,rules,stage):
     for vertex in points:assert(armor.to_global(vertex).y>0,"Breastplate remains above the floor throughout combat and finishing")
   actor.queue_free();await process_frame
  assert(seen>0)
+
+func verify_pauldrons():
+ var Plate=preload("res://scripts/pauldron.gd")
+ for heavy in [false,true]:
+  var left={};var right={}
+  for side in [-1,1]:
+   var mesh=Plate.mesh(side,heavy);closed_mesh(mesh)
+   var points=mesh.surface_get_arrays(0)[Mesh.ARRAY_VERTEX]
+   assert(mesh==Plate.mesh(side,heavy) and points.size()==288,"Mirrored closed shoulder plates share four cached 96-triangle variants")
+   for point in points:
+    assert(point.y>=-.156 and point.y<=.106 and absf(point.x)<=.161 and absf(point.z)<=.151,"Closed plate retains the shoulder's bounded envelope")
+    if side<0:left[Vector3(-point.x,point.y,point.z).snapped(Vector3.ONE*.000001)]=true
+    else:right[point.snapped(Vector3.ONE*.000001)]=true
+   assert(Plate.point(0,0 if side>0 else 6,side,heavy).y<Plate.point(0,6 if side>0 else 0,side,heavy).y-.06,"Outer arm edge drops below the inner neck-facing edge")
+   var rim=Plate.rim(side,heavy);assert(rim==Plate.rim(side,heavy))
+   var gold=rim.surface_get_arrays(0)[Mesh.ARRAY_VERTEX]
+   assert(gold.size()==72 and rim.surface_get_format(0)&Mesh.ARRAY_FORMAT_INDEX,"Fitted rim uses 24 indexed triangles and shares the other fittings' batch format")
+   for i in range(0,gold.size(),3):
+    assert((gold[i+1]-gold[i]).cross(gold[i+2]-gold[i]).length_squared()>1e-16)
+    var sample=(gold[i]+gold[i+1]+gold[i+2])/3
+    var direction=Vector3(sample.x,0,sample.z).normalized();var origin=sample+direction*.1;var nearest=INF
+    for j in range(0,points.size(),3):
+     var hit=Geometry3D.ray_intersects_triangle(origin,-direction,points[j],points[j+1],points[j+2])
+     if hit!=null:nearest=minf(nearest,origin.distance_to(hit))
+    assert(nearest>.1005 and nearest<.103,"Actual rim faces sit just outside the plate instead of passing through its lower facets")
+  assert(left.size()==right.size() and left.keys().all(func(point):return right.has(point)),"Left/right plate silhouettes are exact mirrored geometry")
