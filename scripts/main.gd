@@ -1204,7 +1204,8 @@ func show_model_view(unit,on_close=Callable()):
 	screen="model";preview_unit=unit;preview_return=on_close;reset_ui()
 	for child in stage.get_children():stage.remove_child(child);child.queue_free()
 	world.hide();pieces.hide();markers.hide();stage.show()
-	scenery.battle_landscape(stage,Vector3(35,0,0),{"environment":game.info().get("environment","village")})
+	var theme=game.info().get("environment","village");battle_lighting(theme)
+	scenery.battle_landscape(stage,Vector3(35,0,0),{"environment":theme})
 	var actor_data=unit.duplicate(true);actor_data.team="player"
 	preview_actor=make_fighter(actor_data,Vector3(35,0,0));preview_actor.rotation.y=PI-.35
 	camera.projection=Camera3D.PROJECTION_PERSPECTIVE;camera.h_offset=-.25;camera.fov=35
