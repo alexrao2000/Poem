@@ -300,3 +300,7 @@ A full-screen input surface prevents a skip click from becoming a tactical order
 ### Idle eyelids
 
 `assets/art/face-features-blink-v1.png` is an unchanged transparent image-generation edit of the current face atlas. Exact prompt/reference/source provenance is in `docs/face-blink-prompt.json`. Both images are 1774×887. The face shader samples the closed variant only within cell V 0.34–0.55, preserving the original brows, nose and mouth, and retains the 0.22 alpha cutoff and toon diffuse response. Individual actors blink for 105 ms at staggered 3.1–4.8-second idle intervals without using gameplay RNG. Hidden actors and local hit-stop suspend those clocks. Geometry, texture isolation and runtime states are tested; final rendered appearance is unverified.
+
+### Finishing a combat exchange
+
+A resolved defeat holds the surviving fighter in a restrained weapon-rest stance for 0.6 seconds (0.28 seconds settling). Sword, axe, lance, bow, folio and staff poses use distinct arm positions; infantry keeps its supporting foot planted and mounted actors retain their seat. The finishing camera moves toward the fighter’s facing side while staying on the established side of the combat axis, with extra distance for mounts. Tab cancels the hold and restores the map. Tested geometry and layout bounds do not replace a rendered animation review.

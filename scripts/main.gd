@@ -832,6 +832,7 @@ func cinematic(a,b,events,initial_hp={}):
 	caption.add_theme_font_size_override("font_size",30);caption.add_theme_color_override("font_color",Color("f7edce"));caption.add_theme_color_override("font_outline_color",Color("373d42"));caption.add_theme_constant_override("outline_size",7)
 	caption.text="Tab to skip";ui.add_child(caption)
 
+	var finished_exchange=false
 	await get_tree().create_timer(.3).timeout
 	for event in events:
 		if skip_combat:break
@@ -923,12 +924,20 @@ func cinematic(a,b,events,initial_hp={}):
 		who.pose("recover",.16)
 		if event.remaining<=0:
 			await whom.pose("down",.3).finished
+			if skip_combat:break
+			finished_exchange=true;caption.text=unit.name
+			director.shot(who.position,whom.position,"finish",is_ranged,unit.job=="Rider",.28)
+			var finish=preload("res://scripts/combat_finish.gd").new();stage.add_child(finish)
+			await finish.play(who,func():return skip_combat)
+			finish.queue_free()
+			break
 		else:
 			await whom.pose("idle",.16).finished
 		if skip_combat:break
 		await who.pose("idle",.12).finished
-	director.shot(actor.position,defender.position,"wide",ranged,mounted,.2)
-	await get_tree().create_timer(.18).timeout
+	if not finished_exchange:
+		director.shot(actor.position,defender.position,"wide",ranged,mounted,.2)
+		if not skip_combat:await get_tree().create_timer(.18).timeout
 
 	banner.queue_free();caption.queue_free()
 	veil.show();await veil.conceal(.12,false).finished

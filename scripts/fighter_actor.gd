@@ -205,6 +205,16 @@ func pose(key: String,duration=.18) -> Tween:
    target.LeftLeg.x=-.38;target.RightLeg.x=.4;target.RightKnee.x=.58
  elif key=="throw":
   target.Body=Vector3(.15,.35,0);target.Arm=Vector3(-1.3,0,.05);target.Elbow=Vector3(0,0,0)
+ elif key=="victory":
+  # A restrained finishing silhouette, with each held weapon brought to rest.
+  target.Body=Vector3(0,-.10,0);target.Head=Vector3(.04,.08,-.025)
+  target.LeftArm=Vector3(-.1,0,.18);target.LeftElbow=Vector3(-.35,0,0)
+  target.Arm=Vector3(-.2,0,-.18);target.Elbow=Vector3(-.34,0,0)
+  if kind=="axe":target.Elbow=Vector3(-1.45,0,0)
+  elif kind=="lance":target.Arm=Vector3(-.3,0,-.15);target.Elbow=Vector3(-1.1,0,0)
+  elif kind=="bow":target.Arm=Vector3(-.3,0,-.22);target.Elbow=Vector3(-.6,0,0)
+  elif kind=="magic":target.Arm=Vector3(-.22,0,-.32);target.Elbow=Vector3(-.65,0,0)
+  elif kind=="staff":target.Arm=Vector3(-.1,0,-.18);target.Elbow=Vector3(-.22,0,0)
  elif key=="guard":
   target.Body=Vector3(-.07,0,0)
   target.LeftArm=Vector3(-1.0,-.1,.1);target.LeftElbow=Vector3(-1.3,0,0)

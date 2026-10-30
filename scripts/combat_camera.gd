@@ -19,6 +19,10 @@ static func frame_pair(attacker: Vector3,defender: Vector3,phase: String,ranged:
  var distance=maxf(5.8 if not ranged else 6.8,separation*1.4)
  var aim=midpoint+Vector3(0,height,0)
  var fov=48.0
+ if phase=="finish":
+  var direction=signf(defender.x-attacker.x)
+  aim=attacker+Vector3(0,1.45 if mounted else 1.05,0)
+  return {"anchor":aim+Vector3(direction*1.8,.65,5.8 if mounted else 4.8),"focus":aim,"lens":46.0}
  if phase=="windup":
   aim=aim.lerp(attacker+Vector3(0,height,0),.24)
   distance*=.94;fov=46.0

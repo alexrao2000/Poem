@@ -47,7 +47,7 @@ Example entry inside `characters` (the example asset is not shipped):
 }
 ```
 
-`from` defaults to zero and `to` defaults to the clip length, in seconds. Named animation libraries use Godot's `library/clip` name. Optional `throw_windup` / `throw` and `cast_windup` / `cast` mappings fall back to windup and strike. Supply dedicated staff-casting clips for healers; their `projectile` socket should sit at the staff crown. Optional `guard` falls back to idle. All paths are relative to the instantiated model root. Each actor gets its own animation resources, so sharing a clip between an idle loop and an attack segment does not change the other actor's playback.
+`from` defaults to zero and `to` defaults to the clip length, in seconds. Named animation libraries use Godot's `library/clip` name. Optional `throw_windup` / `throw` and `cast_windup` / `cast` mappings fall back to windup and strike. Supply dedicated staff-casting clips for healers; their `projectile` socket should sit at the staff crown. Optional `guard`, `recover` and `victory` fall back to idle. Supply a `victory` section for the brief finishing hold after a resolved defeat. All paths are relative to the instantiated model root. Each actor gets its own animation resources, so sharing a clip between an idle loop and an attack segment does not change the other actor's playback.
 
 Run `GODOT_BIN=/path/to/godot python3 scripts/test_local.py models` for adapter and full cinematic checks using an in-memory authored scene fixture. The fixture is never included in the game. Run `scripts/check_combat_models.gd` through Godot after adding assets to validate the actual catalog. Headless checks cannot establish visual quality; a final art review is still required.
 
