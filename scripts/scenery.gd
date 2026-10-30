@@ -5,6 +5,7 @@ const MapGround=preload("res://scripts/map_ground.gd")
 const WindCloth=preload("res://scripts/wind_cloth.gd")
 const Architecture=preload("res://scripts/architecture.gd")
 const Fortification=preload("res://scripts/fortification.gd")
+const Fountain=preload("res://scripts/fountain.gd")
 const AmbientDrift=preload("res://scripts/ambient_drift.gd")
 const GroundCover=preload("res://scripts/ground_cover.gd")
 # Shared landscape construction for the tactical board and battle stage.
@@ -229,10 +230,7 @@ func landmark(parent,p,kind,roof_variant=-1):
  if kind in ["house","warehouse"]:
   house(parent,p,1.4 if kind=="warehouse" else 1.2,roof_variant)
  elif kind=="fountain":
-  cylinder(parent,p+Vector3(0,.08,0),.16,.46,stone)
-  cylinder(parent,p+Vector3(0,.18,0),.12,.40,Color("5d8d9b"))
-  cylinder(parent,p+Vector3(0,.42,0),.65,.09,stone)
-  cylinder(parent,p+Vector3(0,.7,0),.08,.24,stone)
+  Fountain.build(parent,p,water_material())
  elif kind=="tower":
   var tower=mesh(parent,Fortification.tower(),p,Vector3.ONE,Fortification.material());tower.name="FortifiedTower"
  elif kind=="spire":

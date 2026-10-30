@@ -49,7 +49,7 @@ Open **Visual workshop · 2D / 3D maps** from the title screen to play the same 
 - `scripts/tactical_camera.gd`, `map_overlay.gd` and `terrain_card.gd`: map navigation, batched range/path geometry and shared-rule terrain inspection.
 - `scripts/combat_projectile.gd`, `combat_impact.gd` and `combat_spell.gd`: self-cleaning flight/contact effects and equipped spell identities.
 - `scripts/scenery.gd`: textured terrain, environment construction and material caching.
-- `scripts/static_batch.gd`: spatial/material batching for static scenery, with correct normals under nonuniform scaling. The current 12 maps combine 13,619 mesh objects into 625 batches; browser FPS has not yet been measured.
+- `scripts/static_batch.gd`: spatial/material batching for static scenery, with correct normals under nonuniform scaling. The current 12 maps combine 13,618 mesh objects into 626 batches; browser FPS has not yet been measured.
 - `scripts/fighters.gd` and `fighter_actor.gd`: articulated class actors, joint poses, weapons and class-specific attack animations.
 - `scripts/combat_models.gd`, `imported_fighter.gd` and `data/combat_models.json`: optional authored glTF/scene replacement with animation segments and effect sockets. The catalog is initially empty; see `docs/combat-models.md` for asset integration.
 - `assets/art/`: original generated terrain atlas and class sprite atlas. Prompts and provenance are recorded in `docs/art-direction.md`.

@@ -6,6 +6,7 @@ const Rules=preload("res://scripts/rules.gd")
 func _initialize():call_deferred("run")
 func run():
  await verify_towers()
+ await verify_fountain()
  var colors=[]
  for variant in range(3):
   var roof=Roof.roof(variant);assert(roof==Roof.roof(variant),"Repeated houses share their immutable roof mesh")
@@ -48,7 +49,7 @@ func run():
    world.queue_free();arena.queue_free();await process_frame;cases+=1
  assert(cases>0 and game.rng.state==state,"Architecture never consumes gameplay RNG")
  await verify_cloth()
- print("PASS: six shared fortified towers, battlement/deck rays, three cached roofs, 204 gable intersections, ",cases," house identities, 14 pinned cloth resources, bounded motion parameters and cleanup")
+ print("PASS: tiered fountain basins/jets, six shared fortified towers, battlement/deck rays, three cached roofs, 204 gable intersections, ",cases," house identities, 14 pinned cloth resources, bounded motion parameters and cleanup")
  quit()
 
 func verify_cloth():
@@ -136,3 +137,43 @@ func verify_towers():
    for node in visible:assert(node.mesh==shape)
    world.queue_free();arena.queue_free();await process_frame;count+=1
  assert(count==6,"Every authored castle tower is covered")
+
+func mesh_top(shape: ArrayMesh,point: Vector2) -> float:
+ var vertices=shape.surface_get_arrays(0)[Mesh.ARRAY_VERTEX];var highest=-INF
+ for i in range(0,vertices.size(),3):
+  var hit=Geometry3D.ray_intersects_triangle(Vector3(point.x,3,point.y),Vector3.DOWN,vertices[i],vertices[i+1],vertices[i+2])
+  if hit!=null:highest=maxf(highest,hit.y)
+ return highest
+
+func verify_fountain():
+ var fountain=preload("res://scripts/fountain.gd")
+ var stone=fountain.stone();var pools=fountain.pools();var streams=fountain.flows()
+ assert(stone==fountain.stone() and pools==fountain.pools() and streams==fountain.flows(),"Repeated town/combat fountains share their immutable meshes")
+ var triangles=0
+ for shape in [stone,pools,streams]:
+  var arrays=shape.surface_get_arrays(0);var vertices=arrays[Mesh.ARRAY_VERTEX];var normals=arrays[Mesh.ARRAY_NORMAL];triangles+=vertices.size()/3
+  for i in range(0,vertices.size(),3):
+   var cross=(vertices[i+1]-vertices[i]).cross(vertices[i+2]-vertices[i])
+   assert(cross.length_squared()>1e-12 and cross.normalized().dot(normals[i])<-.9999,"Basin and water faces have nondegenerate geometry and matching clockwise normals")
+  for point in vertices:assert(Vector2(point.x,point.z).length()<.5 and point.y>=0 and point.y<.8,"All fountain detail remains inside its existing occupied tile")
+ var tangents=pools.surface_get_arrays(0)[Mesh.ARRAY_TANGENT]
+ assert(tangents!=null and tangents.size()==pools.surface_get_arrays(0)[Mesh.ARRAY_VERTEX].size()*4,"Water ripples have a real tangent frame")
+ for index in range(0,tangents.size(),4):assert(absf(tangents[index])>.999 and absf(tangents[index+1])+absf(tangents[index+2])<.001,"Pool UVs orient the water normal map consistently")
+ assert(triangles<1200,"Small landmark stays within its fixed geometry budget")
+ for point in [Vector2(.28,.01),Vector2(.14,.01)]:
+  assert(mesh_top(pools,point)>mesh_top(stone,point)+.01,"Actual water disks sit above each basin floor")
+ assert(mesh_top(stone,Vector2(.4,.01))>.24 and mesh_top(stone,Vector2(.22,.01))>.76,"Both basin rims remain above their water surface")
+ for jet in range(4):
+  var top=fountain.jet_point(0,jet*PI*.5);var bottom=fountain.jet_point(1,jet*PI*.5)
+  assert(top.y>.70 and absf(bottom.y-.18)<.001 and Vector2(bottom.x,bottom.z).length()<.335,"Each narrow jet lands just above the lower pool")
+ assert("fog_disabled" in fountain.stream_material().shader.code and not "depth_test_disabled" in fountain.stream_material().shader.code,"Transparent jets retain depth testing without painting fog on faded edges")
+ var game=Rules.new();var scenery=Scenery.new();scenery.batching_enabled=false
+ var item=game.info().landmarks.filter(func(value):return value.kind=="fountain")[0]
+ var world=Node3D.new();root.add_child(world);var point=Vector3(item.position[0],0,item.position[1]);scenery.landmark(world,point,"fountain")
+ var node=world.get_node("TieredFountain")
+ assert(node.get_child_count()==3 and node.get_node("CarvedStone").mesh==stone and node.get_node("BasinWater").mesh==pools,"Actual town landmark uses stone, water and falling-stream meshes")
+ var context=scenery.combat_context(game,{"x":int(point.x)-1,"y":int(point.z)},{"x":int(point.x),"y":int(point.z)})
+ var arena=Node3D.new();root.add_child(arena);scenery.battle_landscape(arena,Vector3(35,0,0),context)
+ var backdrop=arena.find_child("TieredFountain",true,false)
+ assert(backdrop!=null and backdrop.get_node("CarvedStone").mesh==stone,"Nearby combat preserves the town fountain identity")
+ world.queue_free();arena.queue_free();await process_frame
