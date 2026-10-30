@@ -21,7 +21,7 @@ func run():
    assert(actor.pose_name=="idle" and not actor.face_blink.focused and not actor.face_blink.closed,"Measuring a new outfit restores its ready stance and attentive face")
    var radius=framing.radius;var low=framing.low;var high=framing.high
    for pose_key in POSES:
-    actor.pose(pose_key,1).custom_step(1);actor.apply_constraints()
+    actor.pose(pose_key,1).custom_step(1);actor.apply_constraints();framing._process(0)
     for size_value in [Vector2i(1024,640),Vector2i(1280,720),Vector2i(1440,900)]:
      viewport.size=size_value;framing.reframe();var fixed=camera.transform;var offset=camera.h_offset
      for turn in range(12):

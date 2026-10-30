@@ -34,7 +34,6 @@ static func build(painter,actor,id,cloth_color,gold,leather):
   painter.ellipsoid(head,Vector3(side*.08,-.055,-.335),Vector3(.02,.016,.008),Color("302d2d"))
   var cheek=geo.block(head,Vector3(side*.147,-.005,-.06),Vector3(.018,.04,.35),leather);cheek.rotation.x=.22
   painter.ellipsoid(head,Vector3(side*.15,-.025,-.22),Vector3(.022,.03,.028),gold)
-  painter.hair_lock(horse,[Vector3(side*.14,.60,-.84),Vector3(side*.23,.39,-.54),Vector3(side*.23,.36,-.18)],.015,leather)
  var noseband=geo.block(head,Vector3(0,-.005,-.275),Vector3(.26,.045,.025),leather);noseband.rotation.x=-.15
  for i in range(7):
   var z=-.55+i*.075;var y=.70-i*.075
@@ -63,3 +62,6 @@ static func build(painter,actor,id,cloth_color,gold,leather):
    painter.ellipsoid(leg,Vector3(0,-.41,0),Vector3(.07,.075,.07),coat)
    geo.cylinder(leg,Vector3(0,-.63,0),.44,.045,muzzle,.06)
    var hoof=painter.ellipsoid(leg,HOOF_CENTER,HOOF_RADII,Color("30333a"));hoof.name="Hoof";index+=1
+
+ actor.reins=preload("res://scripts/mounted_reins.gd").new();actor.add_child(actor.reins)
+ actor.reins.configure(actor,painter.painted(Color("b1a797"),3))

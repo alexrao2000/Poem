@@ -61,6 +61,8 @@ func run():
   for mesh in baked.find_children("*","MeshInstance3D",true,false):
    var surface=mesh.material_override
    if mesh.name=="PaintedFace":assert(surface.next_pass==null,"Painted features cannot grow into an opaque face rectangle")
+   elif mesh==baked.reins:
+    assert(surface.next_pass==null and surface.get_meta("no_character_outline",false),"Moving reins retain a single thin leather pass outside rigid batches")
    elif surface is ShaderMaterial:
     var ink=surface.next_pass
     var is_cape=surface.get_shader_parameter("cloth_amount")==1.0

@@ -13,6 +13,7 @@ var rest: Dictionary = {}
 var kind = "sword"
 var trail_edge=PackedVector3Array()
 var mounted = false
+var reins: MeshInstance3D
 var pose_name = "idle"
 var elapsed = 0.0
 var gait_phase=0.0
@@ -162,6 +163,7 @@ func apply_constraints():
    var local_basis=grip.get_parent().global_transform.basis.inverse()*desired
    grip.quaternion=Quaternion.from_euler(rest.Weapon.rotation).slerp(local_basis.get_rotation_quaternion(),weapon_aim)
  if kind=="bow":align_drawing_hand()
+ if reins!=null:reins.update()
 
 func align_drawing_hand():
  if not bones.has("NockedArrow") or not bones.has("LeftElbow"):return

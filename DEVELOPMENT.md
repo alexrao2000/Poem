@@ -6,13 +6,15 @@ User direction: keep developing continuously in this chat until the user returns
 
 ## Current checkpoint
 
+Mounted reins now follow both bridle fittings and the free hand through poses, head motion and hit-stop. The old fixed ends sat 36–75 cm from the hand. Two closed curved straps use one 136-triangle dynamic mesh per rider, skip redundant unchanged rebuilds, and stay clear of the horse neck. All 1,024 mounted pose/transition cases and full rigid-geometry comparisons pass. Preview framing refreshes bounds when dynamic mesh geometry changes.
+
 Attack releases now accelerate through their existing duration, while normal/critical reactions register quickly and settle. At the unchanged 35 ms pre-hit-stop delay, torso recoil reaches 64.5% of its target rather than 19.6%, so the freeze captures the impact pose. Endpoints, contact time, recovery and gameplay outcomes remain unchanged; focused timing and actual exchange/skip checks cover the change.
 
 Sword and axe contact now adapts the existing arm pose to the actual infantry, mounted or shield target. The old mounted axe endpoint missed by up to 0.987 m. A bounded two-segment solve preserves bone lengths and grip, blends in during the strike and out during recovery, and retains the original miss aim. All 288 equipment/side/height/preparation cases and four real mounted/shield exchanges pass; close guards are checked against the solid blade, not only its tip.
 
 The outfit viewer now fits the whole character, equipment and selectable actions beside the actual controls. A sampled orbit envelope keeps the camera stable while rotating and replaying; window changes reframe it. All 72 base/promoted outfits pass 33,696 geometry layouts across three sizes, with actual preview selection and return lifecycle checks. Rendered review remains pending.
 
-Current measured geometry: 13,554 static map sources / 616 batches across twelve chapters, plus separate cloth and atmosphere; 1,786 character sources / 1,066 joint batches across the roster. The default runner has 63 suites. Earlier paragraphs below record prior checkpoints. Rendered game review and browser FPS measurements remain outstanding.
+Current measured geometry: 13,554 static map sources / 616 batches across twelve chapters, plus separate cloth and atmosphere; 1,780 character sources / 1,063 joint batches across the roster, plus three separately animated rein meshes. The default runner has 64 suites. Earlier paragraphs below record prior checkpoints. Rendered game review and browser FPS measurements remain outstanding.
 
 Quick-map result framing now budgets for the full floating label, outline and upward motion. This prevents guarded-hit text from clipping the left edge or rising behind the terrain card after a reverse pan; healing amounts are centered over their recipient. All 4,200 tile/text/view-size/pan-origin layouts and real damage, miss, guard and recovery cues pass without changing simulation.
 
@@ -36,7 +38,7 @@ Combat retains real 3D figures with individual clothing palettes, ponytail/braid
 
 The battlefield has surface-aware tactical overlays, a shared-rules terrain card, pointer-anchored zoom, bounded drag, keyboard tracking and paired portrait forecast cards. Bridge decks and sanctuary platforms share their elevation with units, routes, selection corners and healing effects; movement climbs before entering a raised tile. Combat zoom centers the engaged pair after panning and restores the previous view. Three original act-specific calm/Ablaze themes use pinned CC0 orchestral samples, with a shared timeline within each pair.
 
-Combat silhouettes use a thin reverse-culled outline pass, with separately smoothed edge directions so faceted steel keeps its base lighting without gaps in the outline. Painted face cards, transparent pieces and luminous details are excluded. The 1,066-batch figure counts base geometry; outlined batches add a rendering pass. Browser frame rate and rendered appearance remain unmeasured.
+Combat silhouettes use a thin reverse-culled outline pass, with separately smoothed edge directions so faceted steel keeps its base lighting without gaps in the outline. Painted face cards, transparent pieces and luminous details are excluded. The 1,063-batch figure counts rigid base geometry; outlined batches add a rendering pass, while the three dynamic rein meshes use one pass each. Browser frame rate and rendered appearance remain unmeasured.
 
 Dock and bridge arena floors meet the fighters' foot plane. Physical projectile trajectories end at the actual arrow/spear tip, with the shaft trailing behind and launching near the animated grip. Bow users carry a matching nocked arrow, hide it on release and restore it for their next ready/windup pose.
 

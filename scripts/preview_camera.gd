@@ -20,7 +20,7 @@ func configure(subject: Node3D,view: Camera3D,panel: Control,poses: Array):
   if mesh.mesh==null:continue
   var corners=[];var box=mesh.mesh.get_aabb()
   for index in range(8):corners.append(box.get_endpoint(index))
-  geometry.append([mesh,corners])
+  geometry.append([mesh,corners,mesh.mesh])
  if actor is Actor:
   for key in poses:
    actor.pose("idle",1).custom_step(1)
@@ -38,6 +38,9 @@ func measure() -> bool:
  for entry in geometry:
   var mesh=entry[0]
   if not is_instance_valid(mesh) or not mesh.visible:continue
+  if entry[2]!=mesh.mesh:
+   entry[1].clear();entry[2]=mesh.mesh
+   for index in range(8):entry[1].append(mesh.mesh.get_aabb().get_endpoint(index))
   var local=inverse*mesh.global_transform
   for point in entry[1]:
    var vertex=local*point
