@@ -304,3 +304,7 @@ A full-screen input surface prevents a skip click from becoming a tactical order
 ### Finishing a combat exchange
 
 A resolved defeat holds the surviving fighter in a restrained weapon-rest stance for 0.6 seconds (0.28 seconds settling). Sword, axe, lance, bow, folio and staff poses use distinct arm positions; infantry keeps its supporting foot planted and mounted actors retain their seat. The finishing camera moves toward the fighter’s facing side while staying on the established side of the combat axis, with extra distance for mounts. Tab cancels the hold and restores the map. Tested geometry and layout bounds do not replace a rendered animation review.
+
+### Loose hair motion
+
+Existing long back lengths, ponytails, braids and the side braid now retain a dedicated `HairFall` joint beneath the head. Root placement preserves every source transform, and rigid batching remains within that joint. A deterministic critically damped rotation uses restrained style-specific limits (0.06–0.14 radians); cap/bang/face geometry stays on the head. Actual vertices stay within a tested 12 cm displacement envelope. Ten recruits and the two long-haired enemy profiles share this behavior; hit-stop and hidden presentation suspend it. The roster uses 1,791 sources / 1,028 batches, with no measured FPS claim.

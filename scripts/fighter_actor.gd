@@ -23,6 +23,7 @@ var drawing_elbow_rotation=Vector3.ZERO
 var bow_hand_weight=0.0
 var cape_motion=preload("res://scripts/cape_motion.gd").new()
 var face_blink=preload("res://scripts/face_blink.gd").new()
+var hair_motion=preload("res://scripts/hair_motion.gd").new()
 
 func register_bone(key: String,node: Node3D):
  bones[key]=node
@@ -35,6 +36,7 @@ func _process(dt):
  if not is_visible_in_tree():return
  elapsed+=dt
  face_blink.update(dt,pose_name)
+ hair_motion.update(elapsed,pose_name,dt)
  cape_motion.update(elapsed,pose_name,dt)
  if bones.has("HorseTail"):bones.HorseTail.rotation.z=sin(elapsed*2.3)*(.10 if pose_name=="advance" else .045)
  if bones.has("HorseHead"):bones.HorseHead.rotation.x=sin(elapsed*(8.0 if pose_name=="advance" else 1.6))*(.04 if pose_name=="advance" else .015)

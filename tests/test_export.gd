@@ -38,6 +38,7 @@ func run():
   var actor=app.make_fighter(unit,Vector3(35,0,0))
   assert(actor.get_meta("promotion_look","")==path.id,"Release includes every promotion costume profile and constructor")
   assert(actor.cape_motion.surfaces.size()==2,"Release binds cape fabric and outline motion")
+  if actor.bones.has("HairFall"):assert(actor.hair_motion.root==actor.bones.HairFall,"Release binds loose hair after outfit batching")
   assert(actor.face_blink.surface.get_shader_parameter("closed_face").get_width()==1774,"Release includes the original eyelids on every promoted actor")
   if unit.weapon=="magic":
    assert(actor.bones.Weapon.get_parent()==actor.bones.LeftElbow and actor.bones.Weapon.has_node("Spellbook"),"Packaged caster retains the open folio and free casting hand")

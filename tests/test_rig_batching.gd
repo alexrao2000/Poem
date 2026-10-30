@@ -40,7 +40,7 @@ func run():
   var head=Node3D.new();stage.add_child(head);fighters.Hair.build(fighters,head,{"hair":"623c31","hair_style":style},Color("bca26b"))
   var bounds=AABB();var first=true
   for mesh in head.find_children("*","MeshInstance3D",true,false):
-   var part=mesh.transform*mesh.get_aabb();bounds=part if first else bounds.merge(part);first=false
+   var part=head.global_transform.affine_inverse()*mesh.global_transform*mesh.get_aabb();bounds=part if first else bounds.merge(part);first=false
   if style=="ponytail":assert(bounds.end.z>.3 and bounds.position.y<-.45,"Ponytail extends behind the crown and below the neck")
   elif style in ["braid","side_braid"]:assert(bounds.position.y<-.5,"Plait has a distinct long silhouette")
   elif style=="bun":assert(bounds.end.z>.25 and bounds.position.y>-.2,"Bun stays compact behind the head")
