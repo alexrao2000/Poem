@@ -11,6 +11,7 @@ const Projectile=preload("res://scripts/combat_projectile.gd")
 const Outline=preload("res://scripts/character_outline.gd")
 const PromotionCostume=preload("res://scripts/promotion_costume.gd")
 const Garments=preload("res://scripts/garments.gd")
+const Head=preload("res://scripts/character_head.gd")
 var profiles=JSON.parse_string(FileAccess.get_file_as_string("res://data/characters.json"))
 var surface_atlas=load("res://assets/art/character-materials.png")
 var surface_shader=preload("res://assets/shaders/character.gdshader")
@@ -18,7 +19,7 @@ var surface_cache={}
 var shading_cache={}
 var strand_materials={}
 var batching_enabled=true
-var face_atlas=load("res://assets/art/face-features.png")
+var face_atlas=load("res://assets/art/face-features-v2.png")
 var face_materials={}
 var geo = preload("res://scripts/scenery.gd").new()
 
@@ -123,8 +124,7 @@ func build(parent,u,p) -> Node3D:
    geo.block(elbow,Vector3(-.04,-.16,-.22),Vector3(.055,.45,.025),gold)
  geo.cylinder(body,Vector3(0,.53,0),.15,.075,skin)
  var head=joint(body,"Head",Vector3(0,.69,0));head.scale=Vector3(.86,.83,.86);actor.register_bone("Head",head)
- ellipsoid(head,Vector3.ZERO,Vector3(.145,.19,.14),skin)
- ellipsoid(head,Vector3(0,-.035,-.135),Vector3(.010,.025,.012),skin)
+ var head_skin=geo.mesh(head,Head.mesh(),Vector3.ZERO,Vector3.ONE,geo.material(skin));head_skin.name="SculptedHead"
  for x in [-.14,.14]:ellipsoid(head,Vector3(x,-.015,0),Vector3(.025,.05,.025),skin)
  if heavy and u.team!="player":
   ellipsoid(head,Vector3(0,.045,.015),Vector3(.16,.19,.16),steel)
@@ -268,22 +268,11 @@ func weapon(arm,kind,gold,steel,leather) -> Node3D:
  return hand
 
 func face_surface(parent,index):
- var st=SurfaceTool.new();st.begin(Mesh.PRIMITIVE_TRIANGLES)
- for row in range(16):
-  for column in range(16):
-   var points=[];var uvs=[]
-   for corner in [[column,row],[column+1,row],[column+1,row+1],[column,row+1]]:
-    var u=corner[0]/16.0;var v=corner[1]/16.0
-    var x=(u-.5)*.286;var y=.19-v*.38
-    var z=-.14*sqrt(maxf(.015,1.0-pow(x/.145,2)-pow(y/.19,2)))-.003
-    points.append(Vector3(x,y,z));uvs.append(Vector2((index%4+u)*.25,(index/4+v)*.5))
-   for vertex in [0,2,1,0,3,2]:st.set_uv(uvs[vertex]);st.add_vertex(points[vertex])
- st.generate_normals()
  if not face_materials.has(index):
   var mat=StandardMaterial3D.new();mat.albedo_texture=face_atlas;mat.transparency=BaseMaterial3D.TRANSPARENCY_ALPHA_SCISSOR;mat.alpha_scissor_threshold=.22
   mat.cull_mode=BaseMaterial3D.CULL_DISABLED;mat.roughness=1;mat.diffuse_mode=BaseMaterial3D.DIFFUSE_TOON
   face_materials[index]=mat
- var visual=geo.mesh(parent,st.commit(),Vector3.ZERO,Vector3.ONE,face_materials[index]);visual.name="PaintedFace";visual.cast_shadow=GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+ var visual=geo.mesh(parent,Head.features(index),Vector3.ZERO,Vector3.ONE,face_materials[index]);visual.name="PaintedFace";visual.cast_shadow=GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
 
 func hair_lock(parent,points,radius,color):
  var st=SurfaceTool.new();st.begin(Mesh.PRIMITIVE_TRIANGLES)
