@@ -607,3 +607,10 @@ Standalone shell silhouettes were inspected. Checks cover all 120 triangles per 
 Beginning an infantry approach previously replaced the current leg angles immediately; a sampled critical-preparation-to-travel transition jumped the hip by 0.775 radians before any travel occurred. Infantry now capture their current hip/knee angles and ease into the distance-driven stride over the existing 200 ms approach preparation. Weapon poses regain ownership through their existing transitions. This changes neither travel duration nor the signed-distance gait/contact schedule.
 
 Checks cover every infantry recruit's exact first-frame stance, gradual entry, complete stride ownership, grounded boot geometry throughout entry and stopping, stationary/reverse movement, frame subdivision and real approach interruption. This is transition smoothing, not horizontal foot locking or authored motion capture. Rendered motion review remains pending.
+
+
+## Point-by-point combat health pips
+
+The combat health display now separates ordinary HP totals into individual beveled pips, informed by the segmented meters in the Fates reference linked above. When a larger total would make pips narrower than roughly four pixels, contiguous integer HP ranges share a segment. A tiny final remainder merges with its preceding group. The numeric readout, faction colors, delayed gold damage trail and existing animation durations retain their behavior.
+
+Checks cover eight HP totals from 1 to the 999 save cap at four meter widths, full/empty/partial fills, contiguous HP coverage, exact animated and delayed values, bounded segment counts and non-overlapping geometry. The 24-recruit HUD layouts, interrupted damage, real combat and healing checks pass. An isolated vector study of the pips was inspected at full, partial and grouped totals; assembled HUD review remains pending.

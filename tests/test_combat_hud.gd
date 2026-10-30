@@ -6,6 +6,7 @@ const Portraits=preload("res://scripts/portraits.gd")
 func _initialize():call_deferred("run")
 
 func run():
+ verify_segments()
  var game=Rules.new();game.new_campaign();var portraits=Portraits.new()
  var host=Control.new();root.add_child(host)
  var regions=[]
@@ -58,5 +59,25 @@ func run():
  hud.set_health("foe",0,true);assert(meter.value==0 and meter.trailing==0,"Instant skip state stays consistent")
  hud.set_health("foe",2000,true);assert(meter.value==999,"Presentation caps HP to maximum")
  hud.queue_free();host.queue_free();await process_frame
- print("PASS: 24 combat portraits at three desktop sizes, text bounds, active side, damage trails and interrupted HP animation")
+ print("PASS: 24 combat portraits at three desktop sizes, text bounds, per-point/grouped pip geometry, exact partial fill, active side, damage trails and interrupted HP animation")
  quit()
+
+func verify_segments():
+ var meter=HUD.HealthMeter.new();root.add_child(meter)
+ for width in [90,160,261,392]:
+  meter.size=Vector2(width,12)
+  for maximum in [1,2,23,40,60,99,481,999]:
+   meter.maximum=maximum
+   for fraction in [0.0,.17,.5,1.0]:
+    meter.value=maximum*fraction;meter.trailing=minf(maximum,meter.value+5)
+    var parts=meter.segments();var health=0.0;var ghost=0.0;var previous=0.0;var right=0.0
+    assert(parts.size()<=maxi(1,floori((width-2)/4)),"Large HP totals keep a bounded number of readable segments")
+    if maximum<=floori((width-2)/4):assert(parts.size()==maximum,"Normal health totals show one pip per HP")
+    for part in parts:
+     assert(part.start==previous and part.end>part.start,"Segment ranges cover HP contiguously without skipped points")
+     assert(part.rect.position.x>=right and part.rect.end.x<=width-1+.001 and part.rect.size.x>0,"Actual pip geometry stays separated inside the meter")
+     assert(part.rect.position.y==2 and part.rect.end.y==10,"Beveled pips retain the existing health meter height")
+     health+=part.fill*(part.end-part.start);ghost+=part.ghost*(part.end-part.start)
+     previous=part.end;right=part.rect.end.x
+    assert(previous==maximum and absf(health-meter.value)<.001 and absf(ghost-meter.trailing)<.001,"Pip fill and delayed damage carry the exact animated HP, including partial final groups")
+ meter.queue_free()

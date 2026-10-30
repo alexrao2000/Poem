@@ -17,17 +17,31 @@ class HealthMeter extends Control:
   set(next):trailing=next;queue_redraw()
  var accent=Color("86c9cb")
  var motion: Tween
+ func segments() -> Array:
+  var inside=Rect2(Vector2(1,2),(size-Vector2(2,4)).max(Vector2.ZERO));var result=[]
+  if inside.size.x<=0 or inside.size.y<=0 or maximum<=0:return result
+  var budget=maxi(1,floori(inside.size.x/4));var step=maxi(1,ceili(float(maximum)/budget));var start=0.0
+  while start<maximum:
+   var end=minf(maximum,start+step)
+   if maximum-end<step*.5:end=maximum
+   var width=inside.size.x*(end-start)/maximum
+   var rect=Rect2(Vector2(inside.position.x+inside.size.x*start/maximum,inside.position.y),Vector2(width-(minf(1,width*.2) if end<maximum else 0),inside.size.y))
+   result.append({"rect":rect,"start":start,"end":end,"fill":clampf((value-start)/(end-start),0,1),"ghost":clampf((trailing-start)/(end-start),0,1)})
+   start=end
+  return result
  func _draw():
-  var inside=Rect2(Vector2(1,2),size-Vector2(2,4))
   draw_rect(Rect2(Vector2.ZERO,size),Color("ad986b"),false,1)
-  draw_rect(inside,Color("18222a"))
-  var ghost=inside;ghost.size.x*=clampf(trailing/maximum,0,1);draw_rect(ghost,Color("e3bd73"))
-  var fill=inside;fill.size.x*=clampf(value/maximum,0,1);draw_rect(fill,accent)
-  if fill.size.x>0:draw_line(fill.position+Vector2(0,2),fill.position+Vector2(fill.size.x,2),accent.lightened(.3),2)
-  var divisions=clampi(ceili(maximum/5.0),1,16)
-  for i in range(1,divisions):
-   var x=inside.position.x+inside.size.x*i/divisions
-   draw_line(Vector2(x,inside.position.y),Vector2(x,inside.end.y),Color(0.08,.12,.16,.55),1)
+  draw_rect(Rect2(Vector2(1,2),(size-Vector2(2,4)).max(Vector2.ZERO)),Color("18222a"))
+  for segment in segments():
+   var rect=segment.rect
+   draw_rect(rect,Color("283c49"))
+   var ghost=rect;ghost.size.x*=segment.ghost
+   if ghost.size.x>0:draw_rect(ghost,Color("e3bd73"))
+   var fill=rect;fill.size.x*=segment.fill
+   if fill.size.x<=0:continue
+   draw_rect(fill,accent)
+   draw_line(fill.position+Vector2(0,1),fill.position+Vector2(fill.size.x,1),accent.lightened(.35),1)
+   draw_line(Vector2(fill.position.x,fill.end.y-1),fill.end-Vector2(0,1),accent.darkened(.25),1)
  func change_to(amount: float,instant=false):
   if motion and motion.is_valid():motion.kill()
   amount=clampf(amount,0,maximum)
