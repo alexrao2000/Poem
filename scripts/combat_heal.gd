@@ -4,12 +4,13 @@ extends Node3D
 signal arrived
 var has_arrived=false
 const Impact=preload("res://scripts/combat_impact.gd")
+const FloatingText=preload("res://scripts/combat_text.gd")
 var origin=Vector3.ZERO
 var destination=Vector3.ZERO
 var trails: Array=[]
 var rings: Array=[]
 var motes: Array=[]
-var amount: Label3D
+var amount: FloatingText
 var glow: MeshInstance3D
 var motion: Tween
 
@@ -36,9 +37,9 @@ func play(from: Vector3,to: Vector3,ground: Vector3,healing: int) -> Tween:
  glow=light(1.1,Color("a0e6c0"));glow.position=to_local(to);glow.hide()
  for i in range(12):
   var mote=light(.10 if i%3 else .15,Color("ebf4d3"));mote.hide();motes.append(mote)
- amount=Label3D.new();amount.name="Recovery";amount.text="+"+str(healing);amount.font_size=80;amount.pixel_size=.0055
+ amount=FloatingText.new();amount.name="Recovery";amount.text="+"+str(healing);amount.font_size=80;amount.pixel_size=.0055
  amount.billboard=BaseMaterial3D.BILLBOARD_ENABLED;amount.modulate=Color("c6f6d2");amount.outline_modulate=Color("263e36");amount.outline_size=14;amount.no_depth_test=true
- add_child(amount);amount.hide()
+ add_child(amount);amount.follow(get_viewport().get_camera_3d(),destination);amount.hide()
  travel(0)
  motion=create_tween();motion.tween_method(travel,0.0,1.0,.32)
  motion.tween_callback(func():
@@ -65,4 +66,4 @@ func bloom(progress: float):
   var t=fposmod(progress+float(i)/motes.size(),1.0);var angle=i*2.39996+progress*.7
   motes[i].show();motes[i].position=to_local(destination+Vector3(cos(angle)*.4,(t-.5)*1.1,sin(angle)*.4))
   motes[i].material_override.albedo_color.a=sin(t*PI)*(1-progress)
- amount.show();amount.position=to_local(destination+Vector3.UP*(.5+progress*.45));amount.modulate.a=1-smoothstep(.65,1.0,progress)
+ amount.show();amount.rise=.5+progress*.45;amount.modulate.a=1-smoothstep(.65,1.0,progress)

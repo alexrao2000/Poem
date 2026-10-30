@@ -482,3 +482,9 @@ The finishing camera aims 0.5 m higher for lance wielders to keep their raised t
 ## Fitted Bastion shield ornament
 
 The Bastion promotion widens the existing gold border along the pointed heater-shield outline and keeps its river crest. It replaces the standard trim rather than overlaying a round torus or duplicating gold surfaces. All ornament vertices are supported by the bowed panel; the previous circular trim left 103 of 153 vertices outside it. The replacement retains the base ornament’s 28 triangles, follows the off-hand joint, and passes costume/batching checks for all promoted recruits.
+
+## Readable floating combat results
+
+Damage, missed attacks, guarded hits and recovery text follow their existing rise/pop/fade animation, with a small screen correction when the full outline would leave the shot or overlap the lower health panels. The contact flash and healing bloom remain at the resolved impact position. Correction preserves camera depth, so the text keeps its perspective size.
+
+Bounds come from [Label3D’s generated text geometry](https://docs.godotengine.org/en/4.5/classes/class_label3d.html#class-label3d-method-generate-triangle-mesh), expanded for the outline. The new audit covers 1,440 moving-camera layouts, both sides, mixed mounted/infantry pairs, melee/ranged spacing and three viewport sizes. Only 91 layouts require correction. Actual combat, staff healing and skip tests retain their timing and cleanup. Rendered typography review remains pending.

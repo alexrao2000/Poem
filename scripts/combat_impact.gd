@@ -2,25 +2,26 @@ extends Node3D
 # Original local impact accents: additive glow, tapered sparks and angular
 # critical forks. Fixed geometry keeps presentation independent of game RNG.
 const Spell=preload("res://scripts/combat_spell.gd")
+const FloatingText=preload("res://scripts/combat_text.gd")
 var camera: Camera3D
 var plane: Node3D
 var burst: MeshInstance3D
 var glow: MeshInstance3D
-var amount: Label3D
+var amount: FloatingText
 var motion: Tween
 static var glow_texture: GradientTexture2D
 
 func configure(point: Vector3,event: Dictionary,view: Camera3D,spell=""):
  name="CombatImpact";position=point;camera=view
  var blocked=event.hit and event.damage<=0
- amount=Label3D.new();amount.name="Damage";amount.text=("NO DAMAGE" if blocked else str(int(event.damage))) if event.hit else "MISS"
+ amount=FloatingText.new();amount.name="Damage";amount.text=("NO DAMAGE" if blocked else str(int(event.damage))) if event.hit else "MISS"
  amount.font_size=52 if blocked else 110 if event.crit else 80;amount.pixel_size=.0055;amount.billboard=BaseMaterial3D.BILLBOARD_ENABLED
  amount.modulate=Color("ffdb73") if event.crit else Color("fff8e3") if event.hit else Color("d4e6ec")
- amount.outline_modulate=Color("302a35");amount.outline_size=14;amount.position.y=.52;amount.no_depth_test=true
- add_child(amount)
+ amount.outline_modulate=Color("302a35");amount.outline_size=14;amount.no_depth_test=true
+ add_child(amount);amount.follow(view,point);amount.rise=.52
  motion=create_tween().set_parallel(true)
- motion.tween_property(amount,"position:y",1.1,.62).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
- motion.tween_property(amount,"scale",Vector3.ONE,.13).from(Vector3.ONE*1.3)
+ motion.tween_property(amount,"rise",1.1,.62).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
+ motion.tween_property(amount,"pop",1.0,.13).from(1.3)
  motion.tween_property(amount,"modulate:a",0.0,.22).set_delay(.4)
  if event.hit:
   plane=Node3D.new();add_child(plane)
