@@ -521,3 +521,10 @@ Map-only damage moves the defender 0.08 m away from the attacker, or 0.14 m on a
 The former fixed camera placed geometry behind the controls or outside the screen in 532 of 2,016 sampled base-roster layouts at 1024×640. The viewer now measures the actual outfit and weapon through its available actions and builds a rotation-safe envelope. Its perspective camera centers that envelope in the remaining space beside the actual control panel, preserving a stable frame while the character turns or replays poses. Resizing the window recomputes the fit; unexpected geometry expansion also enlarges the frame.
 
 The audit covers all 24 recruits and both promotion branches: 72 outfits, thirteen sampled actions, twelve rotations and three viewport sizes, or 33,696 complete mesh-bound layouts. It also checks the real action selector, restoration of the ready face/pose after sampling, closing the viewer, and unchanged roster/RNG. This establishes bounds and interaction behavior, not rendered styling.
+
+
+## Sword and axe contact at target height
+
+Measured fixed slash poses missed the mounted impact point by up to 0.987 m. Sword and axe strikes now blend their upper arm and forearm toward the resolved target during contact, preserving the existing windup, torso/leg stance, weapon grip and bone lengths. Recovery blends back into its authored follow-through. The solve retains the elbow side and twist, clamps unreachable external targets, and does not move the fighter root or track a dodging defender.
+
+Checks cover all nine sword/axe recruits with every compatible equipped blade or hammer, both directions, infantry/mounted heights and normal/critical preparation: 288 cases with intermediate grounded-weapon and repeated-constraint checks. Four real exchanges additionally verify mounted targets and prepared shields. At very close axe guards the shield meets the solid head a few centimetres inward from its tip; rays against actual weapon triangles confirm contact rather than requiring an impossible folded-arm endpoint. Simulation, saves, RNG, hit stop, misses, counters and recovery retain their existing ownership. Rendered animation review remains pending.

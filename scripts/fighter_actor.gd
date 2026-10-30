@@ -22,6 +22,9 @@ var pose_tween: Tween
 var facing = 1.0
 var weapon_aim=0.0
 var guard_weight=0.0
+var slash_weight=0.0
+var slash_arm_rotation=Vector3.ZERO
+var slash_elbow_rotation=Vector3.ZERO
 var aim_target=Vector3.ZERO
 var has_aim_target=false
 var grounded_stance=false
@@ -138,6 +141,7 @@ func apply_constraints():
   shield.quaternion=Quaternion.from_euler(rest.Shield.rotation).slerp(facing_basis.get_rotation_quaternion(),guard_weight)
  if mounted and bones.has("Horse"):ground_mount()
  elif grounded_stance:ground_infantry()
+ preload("res://scripts/slash_contact.gd").apply(self)
  if kind=="magic" and pose_name!="down" and bones.has("Weapon"):
   var grip=bones.Weapon
   var reading_basis=global_basis*Basis(Vector3.RIGHT,PI*.5+.18)
@@ -357,12 +361,15 @@ func pose(key: String,duration=.18) -> Tween:
  if kind=="bow":pose_tween.tween_property(self,"bow_draw",1.0 if key in ["windup","critical_windup"] else 0.0,duration)
  if kind=="bow":pose_tween.tween_property(self,"bow_hand_weight",1.0 if key in ["idle","advance","windup","critical_windup"] else 0.0,duration)
  if aiming:pose_tween.tween_property(self,"weapon_aim",1.0,duration)
+ if kind in ["sword","axe"]:pose_tween.tween_property(self,"slash_weight",1.0 if key=="strike" and has_aim_target else 0.0,duration)
  for name_value in target:
   if name_value in ["Arm","Elbow","LeftArm","LeftElbow","LeftKnee","RightKnee","Body","Head"]:
    target[name_value].x=-target[name_value].x
   if key=="down" and not mounted and name_value in ["LeftLeg","RightLeg"]:target[name_value].x=-target[name_value].x
   if kind=="bow" and name_value in ["LeftArm","LeftElbow"]:
    pose_tween.tween_property(self,"drawing_arm_rotation" if name_value=="LeftArm" else "drawing_elbow_rotation",target[name_value],duration)
+  elif kind in ["sword","axe"] and name_value in ["Arm","Elbow"]:
+   pose_tween.tween_property(self,"slash_arm_rotation" if name_value=="Arm" else "slash_elbow_rotation",target[name_value],duration)
   elif bones.has(name_value):pose_tween.tween_property(bones[name_value],"rotation",target[name_value],duration)
  if bones.has("Body") and key!="advance" and not mounted and not grounded_stance:
   pose_tween.tween_property(bones.Body,"position:y",rest.Body.position.y-(.43 if key=="down" else 0.0),duration)
