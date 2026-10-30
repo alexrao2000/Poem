@@ -148,7 +148,8 @@ func build(parent,u,p) -> Node3D:
  PromotionCostume.build(self,actor,u,torso,blue,cape_color,steel,gold,leather)
  apply_surfaces(actor,blue,tint,skin,steel,gold,leather,cape_color)
  if batching_enabled:batch_rig(actor)
- else:Outline.apply(actor)
+ else:
+  Outline.apply(actor);actor.cape_motion.bind(actor)
  actor.grounded_stance=not actor.mounted
  actor.pose("idle",.01)
  return actor
@@ -163,6 +164,7 @@ func batch_rig(actor):
   for key in totals:totals[key]+=stats[key]
  actor.set_meta("rig_batch_stats",totals)
  Outline.apply(actor)
+ actor.cape_motion.bind(actor)
 
 func cape_surface(parent,color):
  var st=SurfaceTool.new();st.begin(Mesh.PRIMITIVE_TRIANGLES)
@@ -176,7 +178,8 @@ func cape_surface(parent,color):
    for index in [0,1,2,0,2,3]:st.set_uv(uvs[index]);st.add_vertex(points[index])
  st.generate_normals()
  var material=geo.material(color).duplicate();material.cull_mode=BaseMaterial3D.CULL_DISABLED
- geo.mesh(parent,st.commit(),Vector3.ZERO,Vector3.ONE,material)
+ var cape_mesh=geo.mesh(parent,st.commit(),Vector3.ZERO,Vector3.ONE,material)
+ cape_mesh.set_meta("cape_fabric",true);cape_mesh.extra_cull_margin=preload("res://scripts/cape_motion.gd").MARGIN
 
 func shell(parent,p,sections,color):
  var st=SurfaceTool.new();st.begin(Mesh.PRIMITIVE_TRIANGLES)
@@ -220,6 +223,10 @@ func apply_surfaces(root,blue,tint,skin,steel,gold,leather,cape_color):
    if not shading_cache.has(material):
     var shaded=material.duplicate();shaded.diffuse_mode=BaseMaterial3D.DIFFUSE_TOON;shading_cache[material]=shaded
    mesh.material_override=shading_cache[material]
+
+  if mesh.get_meta("cape_fabric",false) and mesh.material_override is ShaderMaterial:
+   mesh.material_override=mesh.material_override.duplicate()
+   mesh.material_override.set_shader_parameter("cloth_amount",1.0)
 
 func weapon(arm,kind,gold,steel,leather) -> Node3D:
  var hand=joint(arm,"Weapon",Vector3(0,-.29,-.04))

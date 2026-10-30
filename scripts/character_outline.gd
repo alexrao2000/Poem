@@ -43,6 +43,9 @@ static func apply(actor: Node3D):
   if mesh.mesh.get_surface_count()!=1:continue
   mesh.mesh=smooth_directions(mesh.mesh)
   if not copies.has(surface):
-   var copy=surface.duplicate();copy.next_pass=material();copies[surface]=copy
+   var copy=surface.duplicate();copy.next_pass=material()
+   if surface is ShaderMaterial and surface.get_shader_parameter("cloth_amount")==1.0:
+    copy.next_pass=material().duplicate();copy.next_pass.set_shader_parameter("cloth_amount",1.0)
+   copies[surface]=copy
   mesh.material_override=copies[surface]
   mesh.extra_cull_margin=maxf(mesh.extra_cull_margin,WIDTH*2.0)

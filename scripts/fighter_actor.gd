@@ -21,6 +21,7 @@ var bow_draw=0.0:
 var drawing_arm_rotation=Vector3.ZERO
 var drawing_elbow_rotation=Vector3.ZERO
 var bow_hand_weight=0.0
+var cape_motion=preload("res://scripts/cape_motion.gd").new()
 
 func register_bone(key: String,node: Node3D):
  bones[key]=node
@@ -31,6 +32,7 @@ func bone(key: String) -> Node3D:
 
 func _process(dt):
  elapsed+=dt
+ cape_motion.update(elapsed,pose_name,dt)
  if bones.has("HorseTail"):bones.HorseTail.rotation.z=sin(elapsed*2.3)*(.10 if pose_name=="advance" else .045)
  if bones.has("HorseHead"):bones.HorseHead.rotation.x=sin(elapsed*(8.0 if pose_name=="advance" else 1.6))*(.04 if pose_name=="advance" else .015)
  if bones.has("Cape"):

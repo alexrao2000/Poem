@@ -24,6 +24,7 @@ func run():
   unit.team="player";unit.promotion=path.id
   var actor=app.make_fighter(unit,Vector3(35,0,0))
   assert(actor.get_meta("promotion_look","")==path.id,"Release includes every promotion costume profile and constructor")
+  assert(actor.cape_motion.surfaces.size()==2,"Release binds cape fabric and outline motion")
   actor.queue_free();await process_frame
  app.queue_free();await process_frame
  print("PASS: exported catalog, all three act scores, chapter scenes, sixteen promotion costumes, licenses and credits")

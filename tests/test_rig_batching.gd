@@ -63,7 +63,8 @@ func run():
    if mesh.name=="PaintedFace":assert(surface.next_pass==null,"Painted features cannot grow into an opaque face rectangle")
    elif surface is ShaderMaterial:
     var ink=surface.next_pass
-    assert(ink==fighters.Outline.material() and "cull_front" in ink.shader.code and "unshaded" in ink.shader.code,"Batched clothing and steel retain the shared silhouette pass")
+    var is_cape=surface.get_shader_parameter("cloth_amount")==1.0
+    assert((ink!=fighters.Outline.material() if is_cape else ink==fighters.Outline.material()) and "cull_front" in ink.shader.code and "unshaded" in ink.shader.code,"Capes retain their own synchronized silhouette pass; rigid clothing and steel share one")
     assert(ink.get_shader_parameter("width")<=.006 and not "depth_test_disabled" in ink.shader.code,"Outline stays thin and respects foreground geometry")
    if surface.next_pass==fighters.Outline.material():
     assert(mesh.extra_cull_margin>=fighters.Outline.WIDTH,"Expanded silhouette remains inside the culling margin after batching")
