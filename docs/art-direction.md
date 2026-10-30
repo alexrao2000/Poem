@@ -579,3 +579,10 @@ Checks cover every sword recruit on both sides against infantry and rider height
 Twenty-one recruits now select swept, parted, tousled, cropped or receding fronts from their appearance profiles, following the existing original portrait sheets. Seven smoothed, tapered locks form each front; the receding version moves its scalp cap to the back of the head. Bald and curly styles retain their separate silhouettes, and braids, ponytails and loose lengths retain their motion ownership. Isolated geometry silhouettes were inspected from the front and an oblique angle.
 
 Three shared strand shades replace five near-duplicate shades in the fronts, preserving the same 1,780 rigid source meshes while reducing the full roster to 1,021 joint batches, plus three dynamic rein meshes. Head checks cover nondegenerate strand triangles, eye clearance, five distinct deterministic shapes and every recruit binding. Hair motion, batching equivalence, promotion outfits and full-mesh viewer bounds remain required. Assembled character rendering remains unreviewed.
+
+
+## Individual jaw and nose profiles
+
+Recruit appearance profiles now select one of four original head meshes: tapered, soft, angular or broad. Three lower-face rings vary the chin and jaw, with a smaller or stronger integrated nose. Scalp, ears, overall height, feature-cell layout and attachment points stay shared. Each of the eight expression variants uses the selected head's exact front triangles at the existing 3 mm offset, giving 32 cached fitted feature meshes. Unknown profiles and ordinary enemies use the original tapered shape.
+
+Standalone head geometry was inspected from front and oblique views. Tests cover closed topology, outward normals, nondegenerate faces, distinct geometry, fitted expression vertices and UV isolation for all four shapes and 32 feature combinations, plus every recruit's actual mesh binding. Facial-state, cut-in, rigid batching and outfit checks cover their existing behavior. No roster mesh count or rendering pass is added; assembled facial appearance remains unreviewed.

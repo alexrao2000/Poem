@@ -143,7 +143,8 @@ func build(parent,u,p) -> Node3D:
  geo.cylinder(body,Vector3(0,.53,0),.15,.075,skin)
  var gaze=joint(body,"Gaze",Vector3(0,.69,0));actor.register_bone("Gaze",gaze)
  var head=joint(gaze,"Head",Vector3.ZERO);head.scale=Vector3(.86,.83,.86);actor.register_bone("Head",head);actor.gaze_motion.bind(actor)
- var head_skin=geo.mesh(head,Head.mesh(),Vector3.ZERO,Vector3.ONE,geo.material(skin));head_skin.name="SculptedHead"
+ var head_shape=Head.shape_key(appearance.get("face_shape","tapered"));head.set_meta("face_shape",head_shape)
+ var head_skin=geo.mesh(head,Head.mesh(head_shape),Vector3.ZERO,Vector3.ONE,geo.material(skin));head_skin.name="SculptedHead"
  for x in [-.14,.14]:ellipsoid(head,Vector3(x,-.015,0),Vector3(.025,.05,.025),skin)
  if heavy and u.team!="player":
   ellipsoid(head,Vector3(0,.045,.015),Vector3(.16,.19,.16),steel)
@@ -156,7 +157,7 @@ func build(parent,u,p) -> Node3D:
    actor.register_bone("HairFall",loose_hair);actor.hair_motion.bind(actor,str(u.id))
   var face_index={"lyra":0,"sera":1,"mara":3,"nell":2,"esme":2,"faye":3,"vela":1,"una":0,"petra":3,"noor":2,"yuna":1,"rhea":0,"oren":5,"ivo":4,"tarin":6,"bram":4,"rook":5,"cassian":6,"dax":5,"silas":6,"ari":4,"galen":7,"hale":7,"elian":6}.get(u.id,5)
   if not company:face_index=int(appearance.get("face_variant",5))
-  var face=face_surface(head,face_index)
+  var face=face_surface(head,face_index,head_shape)
   actor.face_blink.bind(face,face_atlas,str(u.team)+":"+str(u.id)+":"+str(u.job))
   if company and u.id=="petra":
    for x in [-.07,.07]:
@@ -266,9 +267,9 @@ func apply_surfaces(root,blue,tint,skin,steel,gold,leather,cape_color):
 func equipment_profile(unit: Dictionary) -> Dictionary:
  return EquipmentVisuals.profiles[EquipmentVisuals.resolve(unit.weapon,str(unit.get("item","")))]
 
-func face_surface(parent,index):
+func face_surface(parent,index,shape="tapered"):
  parent.set_meta("face_variant",index)
- var visual=geo.mesh(parent,Head.features(index),Vector3.ZERO,Vector3.ONE,null);visual.name="PaintedFace";visual.cast_shadow=GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+ var visual=geo.mesh(parent,Head.features(index,shape),Vector3.ZERO,Vector3.ONE,null);visual.name="PaintedFace";visual.cast_shadow=GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
  return visual
 
 func hair_lock(parent,points,radius,color):

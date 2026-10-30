@@ -10,7 +10,8 @@
       "hair_style": "long",
       "cloth": "354c77",
       "cape": "e5dfce",
-      "hair_fringe": "parted"
+      "hair_fringe": "parted",
+      "face_shape": "soft"
     },
     "critical_quote": "For everyone behind me!",
     "finish_quote": "Stay together."
@@ -26,7 +27,8 @@
       "hair_style": "short",
       "cloth": "394651",
       "cape": "354c77",
-      "hair_fringe": "cropped"
+      "hair_fringe": "cropped",
+      "face_shape": "broad"
     },
     "critical_quote": "This line holds.",
     "finish_quote": "Everyone still with us?"
@@ -42,7 +44,8 @@
       "hair_style": "ponytail",
       "cloth": "405c49",
       "cape": "4a6345",
-      "hair_fringe": "swept"
+      "hair_fringe": "swept",
+      "face_shape": "soft"
     },
     "critical_quote": "I see the way through.",
     "finish_quote": "The road is clear."
@@ -58,7 +61,8 @@
       "hair_style": "short",
       "cloth": "ded6c0",
       "cape": "847299",
-      "hair_fringe": "tousled"
+      "hair_fringe": "tousled",
+      "face_shape": "angular"
     },
     "critical_quote": "No one is expendable!",
     "finish_quote": "Let me see the wounded."
@@ -74,7 +78,8 @@
       "hair_style": "braid",
       "cloth": "493a33",
       "cape": "af823f",
-      "hair_fringe": "swept"
+      "hair_fringe": "swept",
+      "face_shape": "angular"
     },
     "critical_quote": "You cannot bar this river!",
     "finish_quote": "Keep the channel open."
@@ -90,7 +95,8 @@
       "hair_style": "short",
       "cloth": "354c77",
       "cape": "354c77",
-      "hair_fringe": "parted"
+      "hair_fringe": "parted",
+      "face_shape": "tapered"
     },
     "critical_quote": "I checked the numbers.",
     "finish_quote": "One less uncertainty."
@@ -106,7 +112,8 @@
       "hair_style": "short",
       "cloth": "333c48",
       "cape": "355f98",
-      "hair_fringe": "tousled"
+      "hair_fringe": "tousled",
+      "face_shape": "tapered"
     },
     "critical_quote": "Found your opening!",
     "finish_quote": "And there\u2019s our way out."
@@ -122,7 +129,8 @@
       "hair_style": "short",
       "cloth": "5a4d3c",
       "cape": "4b6744",
-      "hair_fringe": "tousled"
+      "hair_fringe": "tousled",
+      "face_shape": "soft"
     },
     "critical_quote": "Time to put this right.",
     "finish_quote": "Easy now. We\u2019re all right."
@@ -138,7 +146,8 @@
       "hair_style": "side_braid",
       "cloth": "e0d7c2",
       "cape": "87779b",
-      "hair_fringe": "parted"
+      "hair_fringe": "parted",
+      "face_shape": "angular"
     },
     "critical_quote": "We remember their names.",
     "finish_quote": "May the silence be kind."
@@ -154,7 +163,8 @@
       "hair_style": "short",
       "cloth": "394651",
       "cape": "354c77",
-      "hair_fringe": "cropped"
+      "hair_fringe": "cropped",
+      "face_shape": "broad"
     },
     "critical_quote": "Let me make this count.",
     "finish_quote": "Keep moving. I\u2019ll follow."
@@ -170,7 +180,8 @@
       "hair_style": "braid",
       "cloth": "415d43",
       "cape": "41664e",
-      "hair_fringe": "parted"
+      "hair_fringe": "parted",
+      "face_shape": "soft"
     },
     "critical_quote": "You missed the trail.",
     "finish_quote": "The trail goes on."
@@ -186,7 +197,8 @@
       "hair_style": "long",
       "cloth": "354c77",
       "cape": "e5dfce",
-      "hair_fringe": "parted"
+      "hair_fringe": "parted",
+      "face_shape": "angular"
     },
     "critical_quote": "My oath is to these people!",
     "finish_quote": "No crown is worth this."
@@ -202,7 +214,8 @@
       "hair_style": "braid",
       "cloth": "2f686a",
       "cape": "2f686a",
-      "hair_fringe": "swept"
+      "hair_fringe": "swept",
+      "face_shape": "tapered"
     },
     "critical_quote": "There is still a light.",
     "finish_quote": "The light is still burning."
@@ -217,7 +230,8 @@
       "hair": "2e2827",
       "hair_style": "bald",
       "cloth": "b58b42",
-      "cape": "355377"
+      "cape": "355377",
+      "face_shape": "broad"
     },
     "critical_quote": "We pull together!",
     "finish_quote": "Get everyone through."
@@ -233,7 +247,8 @@
       "hair_style": "bun",
       "cloth": "d6cbb6",
       "cape": "a76d76",
-      "hair_fringe": "parted"
+      "hair_fringe": "parted",
+      "face_shape": "soft"
     },
     "critical_quote": "Here are my terms.",
     "finish_quote": "Let that be the last."
@@ -249,7 +264,8 @@
       "hair_style": "short",
       "cloth": "3b4355",
       "cape": "355377",
-      "hair_fringe": "swept"
+      "hair_fringe": "swept",
+      "face_shape": "angular"
     },
     "critical_quote": "No more cover stories.",
     "finish_quote": "That\u2019s the truth of it."
@@ -264,7 +280,8 @@
       "hair": "985034",
       "hair_style": "curls",
       "cloth": "535e6b",
-      "cape": "963f4a"
+      "cape": "963f4a",
+      "face_shape": "soft"
     },
     "critical_quote": "I know the weak point.",
     "finish_quote": "Still standing."
@@ -279,7 +296,8 @@
       "hair": "4a342b",
       "hair_style": "curls",
       "cloth": "446e69",
-      "cape": "446e69"
+      "cape": "446e69",
+      "face_shape": "soft"
     },
     "critical_quote": "The message gets through!",
     "finish_quote": "I can get through now."
@@ -295,7 +313,8 @@
       "hair_style": "long",
       "cloth": "3e3c6b",
       "cape": "3e3c6b",
-      "hair_fringe": "swept"
+      "hair_fringe": "swept",
+      "face_shape": "angular"
     },
     "critical_quote": "I know what this light costs.",
     "finish_quote": "We have work left to do."
@@ -311,7 +330,8 @@
       "hair_style": "beard",
       "cloth": "d8cdb3",
       "cape": "4e6544",
-      "hair_fringe": "receding"
+      "hair_fringe": "receding",
+      "face_shape": "angular"
     },
     "critical_quote": "We will see another spring.",
     "finish_quote": "Breathe. We\u2019re still here."
@@ -327,7 +347,8 @@
       "hair_style": "ponytail",
       "cloth": "696079",
       "cape": "454366",
-      "hair_fringe": "swept"
+      "hair_fringe": "swept",
+      "face_shape": "tapered"
     },
     "critical_quote": "One step ahead.",
     "finish_quote": "One more step toward home."
@@ -343,7 +364,8 @@
       "hair_style": "beard",
       "cloth": "624d3d",
       "cape": "355377",
-      "hair_fringe": "cropped"
+      "hair_fringe": "cropped",
+      "face_shape": "broad"
     },
     "critical_quote": "We are getting out of here!",
     "finish_quote": "There\u2019s daylight ahead."
@@ -359,7 +381,8 @@
       "hair_style": "short",
       "cloth": "63798a",
       "cape": "3f5879",
-      "hair_fringe": "parted"
+      "hair_fringe": "parted",
+      "face_shape": "angular"
     },
     "critical_quote": "This oath is mine.",
     "finish_quote": "My people come first."
@@ -375,7 +398,8 @@
       "hair_style": "long",
       "cloth": "354c77",
       "cape": "e5dfce",
-      "hair_fringe": "parted"
+      "hair_fringe": "parted",
+      "face_shape": "soft"
     },
     "critical_quote": "I choose what comes next.",
     "finish_quote": "It ends with our choices."
