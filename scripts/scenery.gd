@@ -335,9 +335,7 @@ func battle_landscape(parent,center,context={}):
    var orbit=mesh(parent,ring,center+Vector3(0,2.6,-10),Vector3.ONE,material(Color("b9a46f")))
    orbit.rotation.z=.7
  if theme in ["mountain","road","forest","river","village"]:
-  for i in range(9):
-   var shape=SphereMesh.new();shape.radius=1;shape.height=2;shape.radial_segments=18;shape.rings=8
-   mesh(parent,shape,center+Vector3(-45+i*11,-1,-35-(i%3)*4),Vector3(13,(9 if theme=="mountain" else 4)+i%3,9),material(Color("586c69").lightened(i%3*.035)))
+  preload("res://scripts/arena_ridges.gd").build(parent,center,theme=="mountain")
   if theme=="mountain":
    for i in range(16):boulder(parent,center+Vector3(-12+(i*7)%25,.4,-4-i%3),1.0+i%3*.3)
  if theme in ["engine","furnace"]:

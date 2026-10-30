@@ -420,3 +420,9 @@ The camera audit uses actual SubViewport dimensions and transformed head/boot/ho
 Spent campaign sprites now use cached grayscale frames plus even dimming, rather than retaining colored clothing beneath a tint. Frames are created only when requested, preserve source transparency and crop dimensions, and are discarded when the catalog reloads. Ready units restore the original cached frame immediately. This uses Godot’s [Image.adjust_bcs](https://docs.godotengine.org/en/4.5/classes/class_image.html#class-image-method-adjust-bcs) at zero saturation; source assets remain unchanged.
 
 The selected unit carries a shared flat blue corner mesh inside its tile, below the ivory keyboard cursor and above route overlays. The old raised gold ring and spent check mark are removed from campaign presentation. HP fills and blue/red faction borders stay colored. Pixel, pivot, source-integrity, cache and actual controls/terrain checks pass; the portable sprite workshop retains its independent presentation.
+
+## Layered outdoor ridgelines
+
+Village, road, forest, river and mountain arenas replace the separate ellipsoid hills with three continuous heightfields. Each layer has an original crest profile, a different depth and a slightly cooler palette. Countryside uses smooth hill transitions; mountain profiles use sharper rises. All boundaries taper to the distant ground plane. The nearest relief starts 26 m behind the fighters, beyond the landmarks and approach space.
+
+Six cached source meshes supply the two families; three layers total 2,304 triangles per arena. The distant geometry does not cast shadows into the fighter shadow atlas. Geometry checks cover exact shared seams, opaque restrained colors, normalized upward normals, nondegenerate clockwise faces, distinct skylines and arena placement. All map/arena batching and actual scene transitions pass. A separate SVG profile study was reviewed; this is not a rendered-game review or FPS measurement.

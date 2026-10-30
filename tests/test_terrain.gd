@@ -30,6 +30,7 @@ func surface_geometry():
  parent.free()
 func run():
  surface_geometry()
+ verify_ridges()
  var game=Rules.new();var seen={}
  var scenery=Scenery.new();scenery.batching_enabled=false
  var previous_paint: ShaderMaterial
@@ -146,3 +147,39 @@ func run():
  await Shutdown.dispose(app);await process_frame
  print("PASS: nine terrain profiles across twelve maps, real movement/cover/healing values, cursor readout and visibility restoration")
  quit()
+
+func verify_ridges():
+ var ridges=preload("res://scripts/arena_ridges.gd")
+ var game=Rules.new();var rng=game.rng.state;var signatures=[]
+ for mountain in [false,true]:
+  for layer in range(3):
+   var mesh=ridges.mesh(layer,mountain);assert(mesh==ridges.mesh(layer,mountain),"Distant relief reuses cached source meshes")
+   var arrays=mesh.surface_get_arrays(0);var points=arrays[Mesh.ARRAY_VERTEX];var normals=arrays[Mesh.ARRAY_NORMAL];var colors=arrays[Mesh.ARRAY_COLOR]
+   assert(points.size()==ridges.COLUMNS*ridges.ROWS*6,"Each ridge has a fixed 768-triangle budget")
+   var shared={};var heights=[]
+   for i in range(points.size()):
+    var point=points[i];var key=Vector2(point.x,point.z)
+    assert(point.z<=-26 and point.y>=-.061 and point.y<18,"Relief remains behind the landmarks and out of combat space")
+    assert(absf(normals[i].length()-1)<.001 and normals[i].y>0,"Terrain lighting normals remain normalized and upward")
+    assert(colors[i].a==1 and colors[i].r>.79 and colors[i].r<1.07,"Ridge color variation remains opaque and restrained")
+    if shared.has(key):assert(shared[key]==point.y,"Adjacent heightfield cells share exact seam elevations")
+    shared[key]=point.y
+    if is_equal_approx(point.z,ridges.DEPTHS[layer].x) or is_equal_approx(point.z,ridges.DEPTHS[layer].y) or is_equal_approx(absf(point.x),ridges.WIDTH*.5):
+     assert(is_equal_approx(point.y,-.06),"Every boundary settles continuously to the distant ground plane")
+   for i in range(0,points.size(),3):
+    var cross=(points[i+1]-points[i]).cross(points[i+2]-points[i])
+    assert(cross.length()>.001 and cross.y<0,"No collapsed or downward-wound terrain triangles")
+   for column in range(ridges.COLUMNS+1):
+    var x=-ridges.WIDTH*.5+float(column)/ridges.COLUMNS*ridges.WIDTH
+    heights.append(ridges.height_at(x,lerpf(ridges.DEPTHS[layer].x,ridges.DEPTHS[layer].y,.45),layer,mountain))
+   var signature=str(heights).sha256_text();assert(signature not in signatures,"Every hill/mountain layer has its own authored skyline")
+   signatures.append(signature)
+ var scenery=Scenery.new();scenery.batching_enabled=false
+ for theme in ["mountain","road","forest","river","village","harbor","castle"]:
+  var stage=Node3D.new();root.add_child(stage);var center=Vector3(35,0,0)
+  scenery.battle_landscape(stage,center,{"environment":theme})
+  var layers=stage.get_children().filter(func(node):return node.name.begins_with("ArenaRidge"))
+  assert(layers.size()==(0 if theme in ["harbor","castle"] else 3),"Only outdoor land arenas receive layered terrain")
+  for layer in layers:assert(layer.position==center and layer.material_override.vertex_color_use_as_albedo and layer.cast_shadow==GeometryInstance3D.SHADOW_CASTING_SETTING_OFF,"Distant terrain aligns with the arena and avoids consuming fighter shadow-map coverage")
+  stage.free()
+ assert(game.rng.state==rng,"Distant landscape generation consumes no campaign random state")
