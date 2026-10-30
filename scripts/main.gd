@@ -330,7 +330,8 @@ func unit_portrait(u) -> Texture2D:
 
 func show_title():
 	screen="title";game.start_battle();make_map();reset_ui()
-	var v=menu_panel(560,true)
+	title_backdrop()
+	var v=menu_panel(500,true)
 	label_in(v,"A TACTICAL CHRONICLE",16,GOLD)
 	label_in(v,"POEM",64)
 	label_in(v,"A broken banner. A borrowed sun.\nTwenty-four lives caught between them.",22)
@@ -347,6 +348,7 @@ func show_title():
 
 func show_credits():
 	screen="credits";reset_ui()
+	title_backdrop()
 	var frame=menu_panel(900)
 	var panel=scrolling_column(frame)
 	label_in(panel,"POEM",42,GOLD)
@@ -358,6 +360,10 @@ func show_credits():
 	label_in(panel,"Original generated illustrations and sprite artwork.\nOriginal 3D environments and character figures.\nCormorant Garamond · Cormorant Project Authors\nSIL Open Font License.",19)
 	label_in(panel,"Created with Godot Engine.",19)
 	button_in(frame,"Return to title",show_title)
+
+func title_backdrop():
+	var backdrop=preload("res://scripts/title_backdrop.gd").new()
+	backdrop.configure(ui,[world,pieces,markers])
 
 func show_visual_workshop():
 	screen="visual_workshop"
@@ -1143,6 +1149,7 @@ func show_save_transfer(return_screen: String):
 		if busy or game.phase!="player":return
 		cancel_selection()
 	screen="save_transfer";transfer_return=return_screen;reset_ui()
+	if return_screen=="title":title_backdrop()
 	var panel=menu_panel()
 	label_in(panel,"LOCAL SAVE TRANSFER",36,GOLD)
 	label_in(panel,"Move your campaign between browsers or the desktop app. Copy the code below, then paste it into this screen on the other build.",21)
@@ -1324,6 +1331,7 @@ func apply_audio_preferences():
 func show_options(return_to: String):
 	if return_to=="battle":cancel_selection()
 	options_return=return_to;screen="options";reset_ui()
+	if return_to=="title":title_backdrop()
 	var frame=menu_panel(800)
 	var panel=scrolling_column(frame)
 	label_in(panel,"PLAYBACK & CONTROLS",17,GOLD)
