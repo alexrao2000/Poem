@@ -1079,11 +1079,12 @@ func refresh_dialogue():
 	var display_name=speaker[0].name if not speaker.is_empty() else line.speaker.capitalize()
 	dialogue_portrait=dialogue_stage.show_speaker(line.speaker,display_name,portraits.get_dialogue_portrait(line.speaker))
 	dialogue_label.text=line.text;dialogue_label.visible_characters=-1 if preferences.values.text_speed==0 else 0;dialogue_reveal=0.0
+	dialogue_stage.refresh_prompt()
 
 func advance_dialogue():
 	if screen!="dialogue":return
 	if dialogue_label.visible_characters>=0 and dialogue_label.visible_characters<dialogue_label.text.length():
-		dialogue_reveal=dialogue_label.text.length();dialogue_label.visible_characters=dialogue_label.text.length();return
+		dialogue_reveal=dialogue_label.text.length();dialogue_label.visible_characters=dialogue_label.text.length();dialogue_stage.refresh_prompt();return
 	dialogue_index+=1;refresh_dialogue()
 
 func finish_dialogue():

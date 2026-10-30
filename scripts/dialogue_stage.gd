@@ -8,6 +8,19 @@ var panel: PanelContainer
 var heading: Label
 var speech: Label
 var hint: Label
+var next_button: Button
+var ready_indicator: Control
+var ready_to_continue=false
+var ready_clock=0.0
+
+class ReadyIndicator extends Control:
+	func _draw():
+		var center=size*.5
+		var diamond=PackedVector2Array([center+Vector2(0,-7),center+Vector2(7,0),center+Vector2(0,7),center+Vector2(-7,0)])
+		draw_colored_polygon(diamond,Color("9b773c"))
+		draw_line(center+Vector2(-3,-2),center+Vector2(1,0),Color("fff1cc"),1.3,true)
+		draw_line(center+Vector2(1,0),center+Vector2(-3,2),Color("fff1cc"),1.3,true)
+
 
 func configure(next_line: Callable,skip_scene: Callable):
 	set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
@@ -22,8 +35,17 @@ func configure(next_line: Callable,skip_scene: Callable):
 		portrait.material=material;add_child(portrait);portraits.append(portrait)
 	panel=PanelContainer.new();add_child(panel)
 	var column=VBoxContainer.new();column.add_theme_constant_override("separation",10);panel.add_child(column)
+	var header=HBoxContainer.new();column.add_child(header)
+	var nameplate=PanelContainer.new();nameplate.custom_minimum_size.x=150;header.add_child(nameplate)
+	var plate=StyleBoxFlat.new();plate.bg_color=Color("304f6a");plate.border_color=Color("bba371");plate.set_border_width_all(1)
+	plate.content_margin_left=10;plate.content_margin_right=10;plate.content_margin_top=0;plate.content_margin_bottom=0
+	nameplate.add_theme_stylebox_override("panel",plate)
 	heading=Label.new();heading.add_theme_font_size_override("font_size",25)
-	heading.add_theme_color_override("font_color",Color("8f6e35"));column.add_child(heading)
+	heading.add_theme_font_override("font",preload("res://assets/fonts/CormorantGaramond.ttf"))
+	heading.add_theme_color_override("font_color",Color("fff2d5"));nameplate.add_child(heading)
+	var spacer=Control.new();spacer.size_flags_horizontal=Control.SIZE_EXPAND_FILL;header.add_child(spacer)
+	ready_indicator=ReadyIndicator.new();ready_indicator.name="LineReady";ready_indicator.custom_minimum_size=Vector2(24,24)
+	ready_indicator.mouse_filter=Control.MOUSE_FILTER_IGNORE;header.add_child(ready_indicator)
 	speech=Label.new();speech.autowrap_mode=TextServer.AUTOWRAP_WORD_SMART
 	speech.size_flags_vertical=Control.SIZE_EXPAND_FILL;column.add_child(speech)
 	var controls=HBoxContainer.new();controls.add_theme_constant_override("separation",12);column.add_child(controls)
@@ -32,7 +54,23 @@ func configure(next_line: Callable,skip_scene: Callable):
 	for entry in [["Skip scene",skip_scene],["Continue  >",next_line]]:
 		var button=Button.new();button.text=entry[0];button.custom_minimum_size.y=42
 		button.pressed.connect(entry[1]);controls.add_child(button)
-	resized.connect(arrange);arrange()
+		if entry[0]=="Continue  >":next_button=button;button.custom_minimum_size.x=140
+	resized.connect(arrange);arrange();refresh_prompt()
+
+func refresh_prompt():
+	if speech==null or next_button==null:return
+	ready_to_continue=speech.visible_characters<0 or speech.visible_characters>=speech.text.length()
+	ready_indicator.visible=ready_to_continue
+	next_button.text="Continue  >" if ready_to_continue else "Reveal text"
+	next_button.tooltip_text="Go to the next line" if ready_to_continue else "Show the rest of this line"
+	hint.text="Space / Enter: continue   ·   Escape: skip" if ready_to_continue else "Space / Enter: reveal   ·   Escape: skip"
+	if not ready_to_continue:ready_clock=0;ready_indicator.modulate.a=1
+
+func _process(delta):
+	if not is_visible_in_tree():return
+	refresh_prompt()
+	if ready_to_continue:
+		ready_clock+=delta;ready_indicator.modulate.a=.65+sin(ready_clock*4)*.25
 
 func arrange():
 	if not is_instance_valid(panel):return

@@ -21,7 +21,7 @@ func run():
  app.close_options();await process_frame
  assert(restored.load_file(app.settings_path) and restored.values.text_speed==0)
  app.show_dialogue([{"speaker":"lyra","text":"Instant text."},{"speaker":"oren","text":"Second line."}],func():app.show_title())
- assert(app.dialogue_label.visible_characters==-1);app.advance_dialogue()
+ assert(app.dialogue_label.visible_characters==-1 and app.dialogue_stage.ready_indicator.visible and app.dialogue_stage.next_button.text=="Continue  >");app.advance_dialogue()
  assert(app.dialogue_index==1,"Instant dialogue advances with one press")
  app.finish_dialogue();app.game.start_battle();app.make_map();app.show_battle()
  var a=app.game.units[0];var b=app.game.living("enemy")[0];a.x=8;a.y=4;b.x=9;b.y=4

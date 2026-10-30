@@ -36,8 +36,14 @@ func run():
  var app=load("res://main.tscn").instantiate();app.settings_path="";app.save_path="/private/tmp/poem-test_story-ui-save.json";root.add_child(app);await process_frame
  app.game.new_campaign();app.show_camp();await process_frame
  assert(app.screen=="dialogue","New chapter begins with dialogue")
- app.advance_dialogue();assert(app.dialogue_index==0,"First press completes typewriter text")
- app.advance_dialogue();assert(app.dialogue_index==1,"Second press advances scene")
+ assert(not app.dialogue_stage.ready_indicator.visible and app.dialogue_stage.next_button.text=="Reveal text","Typing line offers reveal and hides the ready diamond")
+ app.dialogue_stage.next_button.pressed.emit();assert(app.dialogue_index==0,"First press completes typewriter text")
+ assert(app.dialogue_stage.ready_indicator.visible and app.dialogue_stage.next_button.text=="Continue  >","Completed line offers continuation immediately")
+ var pulse=app.dialogue_stage;var before_clock=pulse.ready_clock
+ pulse._process(.1);assert(pulse.ready_clock>before_clock and pulse.ready_indicator.modulate.a>=.4 and pulse.ready_indicator.modulate.a<=.9,"Completed-line diamond pulses within bounded opacity")
+ pulse.hide();before_clock=pulse.ready_clock;pulse._process(.2);assert(pulse.ready_clock==before_clock,"Hidden dialogue suspends prompt motion");pulse.show()
+ app.dialogue_stage.next_button.pressed.emit();assert(app.dialogue_index==1,"Second press advances scene")
+ assert(not app.dialogue_stage.ready_indicator.visible,"Next typing line resets the ready prompt")
  app.finish_dialogue();assert(app.screen=="camp","Skip returns to preparation")
  app.show_camp();assert(app.screen=="camp","Reopening camp does not replay introduction")
  app.show_dossier(app.game.roster[0]);assert(app.screen=="dossier")
