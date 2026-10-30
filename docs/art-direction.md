@@ -452,3 +452,7 @@ Defeat holds the existing closed-eyelid atlas instead of reopening the eyes for 
 ## Responsive combat skip
 
 Tab cancels active pose tweens, pauses, projectile flight and healing travel/bloom as soon as the cinematic processes input. Returning to the map retains its short conceal/reveal transition. Hit-stop cancellation restores both actors explicitly; interrupted trails, projectiles, spell gathering and recovery effects release their nodes, and a skipped pre-contact strike produces no later impact. Nine phase-specific integration cases enforce a two-frame response while preserving resolved HP, saves, RNG, score ownership and camera restoration. Headless timing improved from 277–511 ms to 6–8 ms across windup, strike, projectile, hit and defeat; rendered/browser latency remains unmeasured.
+
+## Missed physical projectiles
+
+Arrows and thrown spears retain the original target and flight arc, then carry along their arrival tangent on a resolved miss. Follow-through is capped at 0.9 m and 35% of the original 230 ms flight time, keeping the projectile clear of the dodging figure with a bounded extension to the exchange. The actual leading tip stays on the continued path; both directions and mounted/infantry height differences are checked. Hits and magical projectiles retain their existing trajectories. Skip releases the flight immediately. These geometry and integration checks do not replace rendered review.

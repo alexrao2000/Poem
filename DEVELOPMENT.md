@@ -8,6 +8,8 @@ User direction: keep developing continuously in this chat until the user returns
 
 Current measured geometry: 13,554 static map sources / 616 batches across twelve chapters, plus separate cloth and atmosphere; 1,794 character sources / 1,066 joint batches across the roster. The default runner has 60 suites. Earlier paragraphs below record prior checkpoints. Rendered game review and browser FPS measurements remain outstanding.
 
+Missed arrows and thrown spears now continue beyond their original aim point along the arrival tangent, for at most 0.9 m and 81 ms of extra flight. The defender still dodges the original aim; hit trajectories, damage and RNG remain unchanged. Tip geometry, path continuity, real missed exchanges and prompt cancellation pass.
+
 Tab now interrupts active combat poses, projectile flight, contact holds and healing immediately, while retaining the short return transition. Nine phase-specific checks require that transition to begin within two frames and verify transient cleanup, unfrozen actors, unchanged resolved outcomes and restored map/audio ownership. A headless measurement dropped the prior 277–511 ms mid-combat wait to 6–8 ms; this is input-loop timing, not a browser FPS measurement.
 
 Infantry ground contact now follows the interpolated leg joints throughout each pose, eliminating measured floor penetration during recoil and defeat transitions. The added 2,016 transition samples check actual boot vertices and shared hip/leg offsets. Defeated figures hold the existing closed-eye artwork, while living poses reopen immediately; no art or combat outcomes are replaced.

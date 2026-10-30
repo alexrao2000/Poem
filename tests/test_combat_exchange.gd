@@ -73,7 +73,7 @@ func watch_miss(node):
  misses.append(record)
  if node is Projectile:
   await process_frame
-  record.destination=node.destination
+  record.destination=node.destination;record.travel_end=node.travel_end
 
 func watch_spell(node):
  if node is Projectile:
@@ -158,7 +158,9 @@ func run():
   assert(sound_cues==["release_"+weapon],"A missed attack has its release cue without a false impact sound")
   for sample in misses:
    assert(sample.position.z<-.25 and sample.pose=="evade","Defender dodges before projectile release or melee contact")
-   if sample.has("destination"):assert(is_zero_approx(sample.destination.z),"Missed projectile keeps its original aim instead of tracking the dodge")
+   if sample.has("destination"):
+    assert(is_zero_approx(sample.destination.z),"Missed projectile keeps its original aim instead of tracking the dodge")
+    assert(sample.travel_end>1,"Actual missed arrows and spears carry beyond their original aim point")
   for actor in app.stage.get_children().filter(func(node):return node is Actor):assert(is_zero_approx(actor.position.z),"Dodge settles before returning to the map")
   assert(app.game.save_data("battle")==saved and app.game.rng.state==rng,"Dodge presentation never changes the miss result")
  app.stage.child_entered_tree.disconnect(watch_miss)

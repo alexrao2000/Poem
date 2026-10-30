@@ -2,6 +2,8 @@ extends Node3D
 # Original arrow, thrown spear and spell presentations follow an explicit arc.
 # Physical flights track the leading tip to contact, with the shaft behind it.
 # Launch advances the tip from the hand so the shaft begins near the grip.
+# Missed physical shots continue along their arrival tangent beyond the target.
+
 const Spell=preload("res://scripts/combat_spell.gd")
 const WeaponBlades=preload("res://scripts/weapon_blades.gd")
 const ARROW_LENGTH=.72
@@ -9,13 +11,14 @@ var origin=Vector3.ZERO
 var destination=Vector3.ZERO
 var arc=0.0
 var progress=0.0
+var travel_end=1.0
 var kind="bow"
 var spell=""
 var body: Node3D
 var trail: Array=[]
 var motion: Tween
 
-func launch(from: Vector3,to: Vector3,weapon: String,duration=.23,spell_id="",appearance={}) -> Tween:
+func launch(from: Vector3,to: Vector3,weapon: String,duration=.23,spell_id="",appearance={},miss=false) -> Tween:
  name="CombatProjectile";origin=from;destination=to;kind=weapon;spell=spell_id
  arc=.14 if kind=="bow" else .08 if kind=="lance" else .04
  body=Node3D.new();body.name="FlightBody";add_child(body)
@@ -38,8 +41,10 @@ func launch(from: Vector3,to: Vector3,weapon: String,duration=.23,spell_id="",ap
    core.scale=Vector3(.85,.85,1.45) if spell=="ember" else Vector3.ONE
   for i in range(6):
    var mote=piece(self,orb,colors.wake,true);mote.name="Wake"+str(i);trail.append(mote)
+ var tangent=destination-origin-Vector3.UP*PI*arc
+ travel_end=1.0+minf(.35,.9/maxf(tangent.length(),.001)) if miss and kind in ["bow","lance"] else 1.0
  _process(0)
- motion=create_tween();motion.tween_property(self,"progress",1.0,duration).set_trans(Tween.TRANS_LINEAR)
+ motion=create_tween();motion.tween_property(self,"progress",travel_end,duration*travel_end).set_trans(Tween.TRANS_LINEAR)
  motion.tween_callback(func():_process(0);queue_free())
  return motion
 
@@ -61,13 +66,14 @@ static func physical_geometry(parent: Node3D,weapon: String,appearance={}) -> fl
  return -tip.mesh.get_aabb().position.z
 
 func point_at(t: float) -> Vector3:
- t=clampf(t,0,1)
+ t=clampf(t,0,travel_end)
+ if t>1:return destination+(destination-origin-Vector3.UP*PI*arc)*(t-1)
  return origin.lerp(destination,t)+Vector3.UP*sin(t*PI)*arc
 
 func _process(_dt):
  if body==null:return
  global_position=point_at(progress)
- var direction=destination-origin+Vector3.UP*cos(progress*PI)*PI*arc
+ var direction=destination-origin+Vector3.UP*cos(minf(progress,1.0)*PI)*PI*arc
  if direction.length_squared()>.0001:
   body.look_at(global_position+direction,Vector3.FORWARD if direction.normalized().cross(Vector3.UP).length_squared()<.001 else Vector3.UP)
  if kind=="magic" and spell=="gale":body.rotate_object_local(Vector3.FORWARD,progress*TAU*2)

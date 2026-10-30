@@ -962,7 +962,7 @@ func cinematic(a,b,events,initial_hp={}):
 			if who.has_method("release_projectile"):who.release_projectile()
 			if is_instance_valid(gathering):gathering.release()
 			play_sfx(combat_release_sound(unit))
-			if not await projectile(release,contact_point,unit.weapon,spell,fighters.equipment_profile(unit)):break
+			if not await projectile(release,contact_point,unit.weapon,spell,fighters.equipment_profile(unit),not event.hit):break
 		director.shot(who.position,whom.position,"impact",is_ranged,mounted,.16)
 		if event.hit:
 			play_sfx("guard" if event.damage<=0 else "critical" if event.crit else "hit")
@@ -1057,9 +1057,9 @@ func combat_pause(duration: float) -> bool:
 	var motion=create_tween();motion.tween_interval(duration)
 	return await combat_wait(motion)
 
-func projectile(from: Vector3,to: Vector3,kind: String,spell="",appearance={}) -> bool:
+func projectile(from: Vector3,to: Vector3,kind: String,spell="",appearance={},miss=false) -> bool:
 	var visual=CombatProjectile.new();stage.add_child(visual)
-	var completed=await combat_wait(visual.launch(from,to,kind,.23,spell,appearance))
+	var completed=await combat_wait(visual.launch(from,to,kind,.23,spell,appearance,miss))
 	if is_instance_valid(visual):visual.queue_free()
 	return completed
 

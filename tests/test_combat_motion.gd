@@ -135,6 +135,24 @@ func run():
    assert(shot.global_position.distance_to(to)<.0001,"Projectile reaches mounted or infantry impact socket")
    if weapon=="magic":assert(shot.trail.size()==6 and shot.trail[0].visible,"Magic leaves a bounded trailing wake")
    shot.queue_free()
+ for weapon in ["bow","lance"]:
+  for direction in [-1,1]:
+   for distance in [1.5,4.0]:
+    var from=Vector3(35,1.95 if direction<0 else 1.2,0)
+    var target=from+Vector3(direction*distance,-.65 if direction<0 else .65,0)
+    var miss=Projectile.new();stage.add_child(miss);miss.launch(from,target,weapon,1,"",{},true).kill();miss.set_process(false)
+    assert(miss.travel_end>1 and miss.travel_end<=1.35,"Missed physical flights have a bounded follow-through")
+    assert(miss.destination==target and miss.point_at(1).distance_to(target)<.0001,"The original aim point and contact time remain fixed")
+    var arrival=(miss.point_at(1)-miss.point_at(.999)).normalized()
+    var departing=(miss.point_at(1.001)-miss.point_at(1)).normalized()
+    assert(arrival.dot(departing)>.9999,"Overflight leaves the arrival arc without a direction discontinuity")
+    for t in [1.0,(1.0+miss.travel_end)*.5,miss.travel_end]:
+     miss.progress=t;miss._process(0)
+     var tip=miss.body.get_node("Tip")
+     var lead=tip.to_global(Vector3(0,0,tip.mesh.get_aabb().position.z))
+     assert(lead.distance_to(miss.point_at(t))<.0001 and (-miss.body.global_basis.z).dot(departing)>.999,"The actual arrow/spear tip follows the continuation tangent")
+    assert(miss.global_position.distance_to(target)>.1 and miss.global_position.distance_to(target)<=.901,"Miss flies past the target by a visible bounded distance")
+    miss.queue_free()
  var final_shot=Projectile.new();stage.add_child(final_shot);var reference=weakref(final_shot)
  await final_shot.launch(Vector3.ZERO,Vector3.RIGHT*4,"bow",.02).finished
  await process_frame;assert(reference.get_ref()==null,"Completed flight releases its meshes")
