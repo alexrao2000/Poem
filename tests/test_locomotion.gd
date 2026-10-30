@@ -41,6 +41,7 @@ func run():
       var height=lowest_boot(actor)
       assert(height>=-.001 and height<.025,"Actual boot vertices stay above the arena floor with a planted support foot")
      else:
+      verify_mounted_geometry(actor)
       assert(is_equal_approx(actor.bones.LeftLeg.rotation.x,.85) and is_equal_approx(actor.bones.RightKnee.rotation.x,-1.25),"Distance-driven horse gait leaves the rider seated")
      samples+=1
     var phase=actor.gait_phase;var key="HorseLeg0" if actor.mounted else "LeftLeg"
@@ -50,6 +51,11 @@ func run():
   await actor.pose("windup",.001).finished
   var rotation=actor.bones.LeftLeg.rotation;actor.position.x+=.2;actor._process(.02)
   assert(actor.bones.LeftLeg.rotation.is_equal_approx(rotation),"Combat poses reclaim locomotion joints")
+  if actor.mounted:
+   for pose in ["idle","windup","critical_windup","strike","recover","guard","hit","evade","victory"]:
+    var motion=actor.pose(pose,1)
+    for sample in range(4):
+     motion.custom_step(.25);actor.apply_constraints();verify_mounted_geometry(actor)
   actor.queue_free();await process_frame
  # Equivalent travel, subdivided into different frames, has identical stride.
  await verify_contacts(fighters,stage,game)
@@ -75,7 +81,7 @@ func run():
  assert(stopped!=null and stopped.pose_name=="advance" and stopped.position.distance_to(interrupted_position)<.1,"Tab kills the actual travel tween before preparation begins")
  assert(not app.stage.visible and app.camera.transform.is_equal_approx(camera) and app.game.save_data("battle")==saved,"Interrupted approach restores the tactical view without changing campaign state")
  await Shutdown.dispose(app);await process_frame
- print("PASS: ",samples," roster travel samples, planted actual boot geometry, mounted seating, stationary/pose isolation, reversed travel, frame-independent stride/contacts, silent stationary/hidden poses and real Tab interruption")
+ print("PASS: ",samples," roster travel samples, planted actual boot geometry, mounted saddle/hoof/stirrup contact, stationary/pose isolation, reversed travel, frame-independent stride/contacts, silent stationary/hidden poses and real Tab interruption")
  quit()
 
 func verify_contacts(fighters,stage,game):
@@ -98,3 +104,26 @@ func verify_contacts(fighters,stage,game):
     assert(contacts.size()==2,"Weapon poses do not borrow locomotion contacts")
     actor.queue_free();await process_frame
    assert(absf(totals[0]-totals[1])<.0001)
+
+func mesh_vertical_span(mesh: MeshInstance3D) -> Vector2:
+ var span=Vector2(INF,-INF)
+ for vertex in mesh.mesh.surface_get_arrays(0)[Mesh.ARRAY_VERTEX]:
+  var y=mesh.to_global(vertex).y;span.x=minf(span.x,y);span.y=maxf(span.y,y)
+ return span
+
+func verify_mounted_geometry(actor):
+ var lowest=INF
+ for hoof in actor.find_children("Hoof","MeshInstance3D",true,false):lowest=minf(lowest,mesh_vertical_span(hoof).x-actor.global_position.y)
+ assert(lowest>=-.001 and lowest<.02,"Actual hoof vertices retain ground contact through the mounted stride and combat poses")
+ var pelvis=actor.bones.Body.get_node("Pelvis");var saddle=actor.bones.Horse.get_node("SaddleSeat")
+ var gap=mesh_vertical_span(pelvis).x-mesh_vertical_span(saddle).y
+ assert(gap>=-.008 and gap<.025,"Rider pelvis stays seated on the saddle as the mount settles and the torso acts")
+
+ for side in ["Left","Right"]:
+  var boot=actor.bones[side+"Knee"].get_node("Boot");var bottom=Vector3(0,INF,0)
+  for vertex in boot.mesh.surface_get_arrays(0)[Mesh.ARRAY_VERTEX]:
+   var point=boot.to_global(vertex)
+   if point.y<bottom.y:bottom=point
+  var stirrup=actor.bones.Horse.get_node(side+"Stirrup")
+  var local=stirrup.to_local(bottom);var box=stirrup.get_aabb()
+  assert(absf(local.y-box.end.y)<.003 and local.x>box.position.x and local.x<box.end.x and local.z>box.position.z and local.z<box.end.z,"Actual lowest boot point rests on its stirrup through every mounted pose")

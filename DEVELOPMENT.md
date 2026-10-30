@@ -128,6 +128,8 @@ Combat nameplates and forecast headers now share an original low-contrast river-
 
 Combat has an optional hold-Shift fast-forward control with a small persistent hint. It doubles the presentation clock while keeping audio at normal speed, restores the exact prior clock after release/skip/cleanup, and resets on focus loss. Map-only combat never acquires it. Input, full accelerated/normal exchanges, cleanup, caption bounds and unchanged save/RNG/camera/audio ownership pass focused checks.
 
+Mounted geometry now joins the rider to the saddle and puts the standing hooves on the floor; prior measured gaps were +18.5 cm at the seat and −4.5 cm at the hooves. Adjusted horse/leg proportions retain rider socket height and weapon reach. A shared mount/root height correction follows actual hoof extents through stride and pose transitions, while a wider seated leg stance places the boots on repositioned stirrups. Actual saddle/hoof/boot vertices, combat/finish poses and all rigid batches pass focused checks; the roster remains 1,797 sources / 1,060 batches.
+
 ## Earlier checkpoint notes
 
 ### Early campaign, materials and score

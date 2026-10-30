@@ -2,6 +2,11 @@ extends RefCounted
 # Original mounted silhouettes share the actor's existing joint batching. Coat
 # palettes follow each rider's map artwork; head and tail remain articulated.
 
+const BODY_HEIGHT=1.035
+const RIDER_SPREAD=.5
+const HOOF_CENTER=Vector3(0,-.86,-.015)
+const HOOF_RADII=Vector3(.075,.055,.10)
+
 static func palette(id: String) -> Dictionary:
  return {
   "bram":{"coat":"8b5d43","mane":"392e29","muzzle":"665044"},
@@ -13,7 +18,7 @@ static func build(painter,actor,id,cloth_color,gold,leather):
  var colors=palette(id);actor.set_meta("mount_appearance",colors)
  var coat=Color(colors.coat);var mane=Color(colors.mane);var muzzle=Color(colors.muzzle)
  var geo=painter.geo
- var horse=painter.joint(actor,"Horse",Vector3(0,.85,0))
+ var horse=painter.joint(actor,"Horse",Vector3(0,BODY_HEIGHT,0));actor.register_bone("Horse",horse)
  var body=painter.ellipsoid(horse,Vector3.ZERO,Vector3(.34,.4,.68),coat);body.name="HorseBody"
  painter.ellipsoid(horse,Vector3(0,.34,-.52),Vector3(.19,.47,.2),coat)
  var head=painter.joint(horse,"HorseHead",Vector3(0,.63,-.66));actor.register_bone("HorseHead",head)
@@ -36,9 +41,12 @@ static func build(painter,actor,id,cloth_color,gold,leather):
  for side in [-1,1]:
   painter.cloth(horse,[Vector3(side*.14,.36,-.25),Vector3(side*.14,.36,.35),Vector3(side*.36,-.10,.35),Vector3(side*.36,-.10,-.25)],cloth_color)
   painter.cloth(horse,[Vector3(side*.355,-.065,-.25),Vector3(side*.355,-.065,.35),Vector3(side*.36,-.10,.35),Vector3(side*.36,-.10,-.25)],gold)
-  var stirrup=geo.block(horse,Vector3(side*.38,-.05,.02),Vector3(.055,.34,.035),leather)
-  geo.block(horse,Vector3(side*.38,-.22,-.01),Vector3(.09,.025,.13),gold)
- painter.ellipsoid(horse,Vector3(0,.395,.055),Vector3(.245,.07,.28),leather)
+  var attachment=Vector3(side*.245,.395,-.20);var footrest=Vector3(side*.4124,-.1035,-.20)
+  var strap=geo.block(horse,(attachment+footrest)*.5,Vector3(.035,attachment.distance_to(footrest),.025),leather)
+  strap.quaternion=Quaternion(Vector3.UP,(attachment-footrest).normalized())
+  var stirrup=geo.block(horse,footrest,Vector3(.14,.025,.16),gold)
+  stirrup.name="LeftStirrup" if side<0 else "RightStirrup"
+ var saddle=painter.ellipsoid(horse,Vector3(0,.395,.055),Vector3(.245,.07,.28),leather);saddle.name="SaddleSeat"
  painter.ellipsoid(horse,Vector3(0,.46,-.18),Vector3(.24,.10,.055),leather)
  painter.ellipsoid(horse,Vector3(0,.46,.29),Vector3(.25,.105,.055),leather)
  var tail=painter.joint(horse,"HorseTail",Vector3(0,.10,.62));actor.register_bone("HorseTail",tail)
@@ -49,7 +57,7 @@ static func build(painter,actor,id,cloth_color,gold,leather):
  for x in [-.23,.23]:
   for z in [-.4,.43]:
    var leg=painter.joint(horse,"Leg"+str(index),Vector3(x,-.12,z));actor.register_bone("HorseLeg"+str(index),leg)
-   geo.cylinder(leg,Vector3(0,-.17,0),.34,.065,coat,.085)
-   painter.ellipsoid(leg,Vector3(0,-.34,0),Vector3(.07,.075,.07),coat)
-   geo.cylinder(leg,Vector3(0,-.52,0),.34,.045,muzzle,.06)
-   painter.ellipsoid(leg,Vector3(0,-.72,-.015),Vector3(.075,.055,.10),Color("30333a"));index+=1
+   geo.cylinder(leg,Vector3(0,-.205,0),.41,.065,coat,.085)
+   painter.ellipsoid(leg,Vector3(0,-.41,0),Vector3(.07,.075,.07),coat)
+   geo.cylinder(leg,Vector3(0,-.63,0),.44,.045,muzzle,.06)
+   var hoof=painter.ellipsoid(leg,HOOF_CENTER,HOOF_RADII,Color("30333a"));hoof.name="Hoof";index+=1

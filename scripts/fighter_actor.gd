@@ -2,6 +2,7 @@ extends Node3D
 # Presentation rig with separate pose and locomotion ownership. Actors face -Z;
 # arms lift forward with positive X, knees bend back, and mounted sockets rise.
 # Infantry hips and legs lower together to the lowest ellipsoidal boot sole.
+const Mount=preload("res://scripts/mount_visuals.gd")
 signal travel_contact(index: int)
 var contact_index=0
 var bones: Dictionary = {}
@@ -69,6 +70,7 @@ func update_locomotion():
   for i in range(4):
    var key="HorseLeg"+str(i)
    if bones.has(key):bones[key].rotation.x=sin(gait_phase+i*PI*.5)*.42
+  if bones.has("Horse"):ground_mount()
  else:
   var gait=sin(gait_phase)*.55
   bones.LeftLeg.rotation.x=gait;bones.RightLeg.rotation.x=-gait
@@ -83,10 +85,25 @@ func update_locomotion():
  for contact in range(crossings):
   travel_contact.emit(contact_index);contact_index+=1
 
+func ground_mount():
+ support_height=mount_stance_height()
+ for key in ["Horse","Body","LeftLeg","RightLeg"]:bones[key].position.y=rest[key].position.y+support_height
+ if pose_name=="idle":bones.Body.position.y+=sin(elapsed*2.4)*.006
+
+func mount_stance_height() -> float:
+ var lowest=INF
+ for i in range(4):
+  var key="HorseLeg"+str(i);var rotation=bones[key].basis
+  var center=rest.Horse.position+rest[key].position+rotation*Mount.HOOF_CENTER
+  var radius=sqrt(pow(rotation.x.y*Mount.HOOF_RADII.x,2)+pow(rotation.y.y*Mount.HOOF_RADII.y,2)+pow(rotation.z.y*Mount.HOOF_RADII.z,2))
+  lowest=minf(lowest,center.y-radius)
+ return -lowest
+
 static func approach_duration(distance: float) -> float:
  return clampf(absf(distance)/5.0,.18,.65)
 
 func apply_constraints():
+ if mounted and bones.has("Horse") and pose_name!="down":ground_mount()
  if kind=="magic" and pose_name!="down" and bones.has("Weapon"):
   var grip=bones.Weapon
   var reading_basis=global_basis*Basis(Vector3.RIGHT,PI*.5+.18)
@@ -269,7 +286,7 @@ func pose(key: String,duration=.18) -> Tween:
    target.Body=Vector3(.12,.06,0);target.Arm=Vector3(-1.3,-.12,.08);target.Elbow=Vector3(-.1,0,0)
  if mounted:
   for leg in ["LeftLeg","RightLeg"]:target[leg].x=.85
-  target.LeftLeg.z=-.18;target.RightLeg.z=.18
+  target.LeftLeg.z=-Mount.RIDER_SPREAD;target.RightLeg.z=Mount.RIDER_SPREAD
   target.LeftKnee.x=1.25;target.RightKnee.x=1.25
   if key!="advance":
    for i in range(4):target["HorseLeg"+str(i)]=Vector3.ZERO
@@ -290,10 +307,12 @@ func pose(key: String,duration=.18) -> Tween:
    pose_tween.tween_property(self,"drawing_arm_rotation" if name_value=="LeftArm" else "drawing_elbow_rotation",target[name_value],duration)
   elif bones.has(name_value):pose_tween.tween_property(bones[name_value],"rotation",target[name_value],duration)
  var lift=stance_height(target) if grounded_stance and key!="advance" else 0.0
- if key!="advance":pose_tween.tween_property(self,"support_height",lift,duration)
+ if key!="advance" and (not mounted or key=="down"):pose_tween.tween_property(self,"support_height",lift,duration)
  if grounded_stance and key!="advance":
   for side in ["LeftLeg","RightLeg"]:pose_tween.tween_property(bones[side],"position:y",rest[side].position.y+lift,duration)
- if bones.has("Body") and not (grounded_stance and key=="advance"):
+ if mounted and bones.has("Horse") and key=="down":
+  for joint in ["Horse","LeftLeg","RightLeg"]:pose_tween.tween_property(bones[joint],"position:y",rest[joint].position.y,duration)
+ if bones.has("Body") and key!="advance" and (not mounted or key=="down"):
   pose_tween.tween_property(bones.Body,"position:y",rest.Body.position.y+lift-(.43 if key=="down" and not grounded_stance else 0.0),duration)
  # Apply constraints after this frame's parallel pose writes, avoiding a frame
  # of separation between the drawing hand, nock and newly aimed weapon.
