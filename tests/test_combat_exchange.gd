@@ -31,6 +31,7 @@ func watch_charge(node):
  await process_frame
  gathered.append(node.spell)
  assert(not node.released and node.caster!=null,"Gathering starts during anticipation")
+ assert(node.seal!=null and node.seal.global_position.distance_to(node.caster.global_position+Vector3.UP*.025)<.001,"Real folio anticipation places its seal at the caster floor")
  if skip_on_charge:node.get_parent().get_parent().skip_combat=true
 
 func watch_voices(app):
