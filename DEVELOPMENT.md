@@ -124,6 +124,8 @@ Non-caster combatants now have original curled glove meshes with four separate f
 
 The attack forecast now uses larger transparent recruit cutouts above compact paired stat cards, with inward-facing enemy portraits and an open central battlefield strip. A small original crossed-blade marker follows the projected target sprite, hiding under panels or outside the playable viewport. Health, weapon matchup and damage/hit/crit remain rules-driven and legible at all three desktop sizes. Confirmed player victories show one of 24 original character-specific lines during a skippable 0.95-second finishing stance; enemies and custom identities retain their name fallback. Layout, actual combat/retargeting and progression-isolation checks pass; rendered review remains pending.
 
+Combat nameplates and forecast headers now share an original low-contrast river-leaf scroll pattern. The hand-authored SVG was inspected separately on blue/red backgrounds, imports with transparent spacing, and stays behind existing text and borders. HUD/forecast layout checks pass; assembled game review remains pending.
+
 ## Earlier checkpoint notes
 
 ### Early campaign, materials and score

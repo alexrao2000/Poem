@@ -46,10 +46,12 @@ class MatchupMarker extends Control:
   points.append(points[0]);draw_polyline(points,Color("34444a"),1.2,true)
 
 class Card extends Control:
+ const ORNAMENT=preload("res://assets/ui/river-scroll.svg")
  var enemy=false
  func _draw():
   draw_style_box(background(),Rect2(Vector2.ZERO,size))
   draw_rect(Rect2(2,2,size.x-4,36),Color("773d46") if enemy else Color("304f6a"))
+  draw_texture_rect(ORNAMENT,Rect2(2,2,size.x-4,36),true,Color(1,.9,.7,.12))
   draw_line(Vector2(14,158),Vector2(size.x-14,158),Color("baa779"),1)
  func background() -> StyleBoxFlat:
   var style=StyleBoxFlat.new();style.bg_color=Color(.94,.89,.78,.97);style.border_color=Color("bca36a")

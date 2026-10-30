@@ -37,15 +37,20 @@ class HealthMeter extends Control:
   motion.tween_property(self,"trailing",amount,.34).set_delay(.14)
 
 class Nameplate extends Control:
+ const ORNAMENT=preload("res://assets/ui/river-scroll.svg")
  var enemy=false
  var mirrored=false
  var active=false
+ func _init():texture_repeat=CanvasItem.TEXTURE_REPEAT_ENABLED
  func _draw():
   var w=size.x;var h=size.y
   var points=PackedVector2Array([Vector2(0,8),Vector2(w-22,0),Vector2(w,h-14),Vector2(18,h)])
   if mirrored:
    for i in range(points.size()):points[i].x=w-points[i].x
   draw_colored_polygon(points,Color("38252e") if enemy else Color("172c3d"))
+  var uvs=PackedVector2Array()
+  for point in points:uvs.append(point/96.0)
+  draw_colored_polygon(points,Color(1,.9,.7,.10),uvs,ORNAMENT)
   var edge=Color("e7ce91") if active else Color("9b927a")
   var outline=points.duplicate();outline.append(points[0]);draw_polyline(outline,edge,2 if active else 1,true)
   var y=29.0;var x=12.0 if not mirrored else w-12
