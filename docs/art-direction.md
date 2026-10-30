@@ -308,3 +308,7 @@ A resolved defeat holds the surviving fighter in a restrained weapon-rest stance
 ### Loose hair motion
 
 Existing long back lengths, ponytails, braids and the side braid now retain a dedicated `HairFall` joint beneath the head. Root placement preserves every source transform, and rigid batching remains within that joint. A deterministic critically damped rotation uses restrained style-specific limits (0.06–0.14 radians); cap/bang/face geometry stays on the head. Actual vertices stay within a tested 12 cm displacement envelope. Ten recruits and the two long-haired enemy profiles share this behavior; hit-stop and hidden presentation suspend it. The roster uses 1,791 sources / 1,028 batches, with no measured FPS claim.
+
+### Tactical travel audio
+
+`scripts/travel_accents.py` renders six original deterministic mono 22.05 kHz PCM clips, each 100 ms (foot) or 150 ms (paired hoof), using filtered noise and short inharmonic resonances. No external samples are used. Peak amplitudes are 0.103–0.161, with zero endpoints and negligible DC. `travel_audio.gd` selects soft/hard/wood contacts through the map surface mapping and keeps two voices separate from UI, combat and paired music. Effects volume/mute applies, with travel seven dB quieter; alternating contacts vary pitch by three percent. Cues occur at tile arrival every other movement step and at the final planted stop. Listening review remains pending.

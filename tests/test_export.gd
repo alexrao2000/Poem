@@ -21,6 +21,7 @@ func run():
  assert(app.map_catalog.enemy_errors.is_empty(),"Packaged enemy artwork validates")
  assert(app.fighters.enemy_looks.size()==8 and app.fighters.face_atlas.resource_path.ends_with("face-features-v2.png"),"Release includes the matching enemy profiles and current painted facial features")
  assert(app.interface_audio.streams.size()==3 and app.interface_audio.streams.confirm.get_length()>.14,"Release includes the original interface cues")
+ assert(app.travel_audio.streams.size()==6 and app.travel_audio.streams.hoof_wood.get_length()>.14,"Release includes all original terrain foot/hoof contacts")
  for family in ["sword","axe","lance","bow","ember","gale","thunder"]:assert(app.sfx_streams["release_"+family].get_length()>.13,"Packaged combat includes every original weapon/element release cue")
  for job in app.CLASSES:assert(app.map_catalog.assets.has("enemy."+job.to_lower()),"Release includes every dedicated enemy class atlas")
  for chapter in [0,4,8,11]:

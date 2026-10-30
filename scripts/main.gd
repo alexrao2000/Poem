@@ -78,6 +78,7 @@ var score_director: ScoreDirector
 var sfx_streams: Dictionary={}
 var sfx_players: Array=[]
 var interface_audio=preload("res://scripts/ui_audio.gd").new()
+var travel_audio=preload("res://scripts/travel_audio.gd").new()
 var music_transition: Tween
 var sprites: Array = []
 var unit_nodes: Dictionary={}
@@ -144,6 +145,7 @@ func _ready():
 
 func setup_audio():
 	add_child(interface_audio);interface_audio.configure(preferences.volume_db("effects"))
+	add_child(travel_audio);travel_audio.configure(preferences.volume_db("effects"))
 	score_director=ScoreDirector.new();add_child(score_director);score_director.configure(preferences.volume_db("music"))
 	music=score_director.player;score=score_director.score
 	for effect in ["select","swing","hit","critical","heal","magic","phase","guard","cutin","levelup"]:
@@ -1330,6 +1332,9 @@ func animate_map_move(unit,path: Array):
 		motion.parallel().tween_method(func(_progress):track_map_actor(visual),0.0,1.0,.0525)
 		motion.tween_property(visual,"position",destination,.0525).set_trans(Tween.TRANS_LINEAR)
 		motion.parallel().tween_method(func(_progress):track_map_actor(visual),0.0,1.0,.0525)
+		if i%2==1 or i==path.size()-1:
+			var stride=i/2+1
+			motion.tween_callback(func():travel_audio.step(game.terrain(point),unit.job,stride,game.info().get("environment","village")))
 	await motion.finished
 	visual.finish_move()
 	moving_id=""
@@ -1348,6 +1353,7 @@ func preview_route(destination: Vector2i):
 
 func apply_audio_preferences():
 	interface_audio.player.volume_db=preferences.volume_db("effects")
+	travel_audio.set_volume(preferences.volume_db("effects"))
 	if is_instance_valid(score_director):score_director.set_volume(preferences.volume_db("music"))
 	for player in sfx_players:player.volume_db=preferences.volume_db("effects")
 
