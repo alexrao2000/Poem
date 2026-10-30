@@ -991,11 +991,12 @@ func check_result() -> bool:
 			var portrait=TextureRect.new();portrait.texture=portraits.get_portrait(unit.id);portrait.custom_minimum_size=Vector2(55,55);portrait.expand_mode=TextureRect.EXPAND_IGNORE_SIZE;portrait.stretch_mode=TextureRect.STRETCH_KEEP_ASPECT_CENTERED;row.add_child(portrait)
 			label_in(row,"%s · Lv %d\n%s"%[unit.name,unit.level,"Ready for the next march" if unit.hp>0 else "Recovering at camp"],16)
 		button_in(frame,"Continue the chronicle",func():
-			show_dialogue(story.chapters[game.chapter].closing,func():
+			var onward=func():
 				game.finish_chapter()
 				persist_campaign("ending" if game.completed else "camp")
 				if game.completed:show_ending()
-				else:show_camp()))
+				else:show_camp()
+			show_dialogue(story.chapters[game.chapter].closing,onward,"closing"))
 	else:
 		label_in(v,"THE STANDARD FALLS",38,GOLD)
 		label_in(v,"Your company is scattered. Regroup at the war council and choose a new approach.",24)
@@ -1014,8 +1015,10 @@ func show_ending():
 		label_in(list,profiles.get(u.id,{}).get("ending",u.bio),17)
 	button_in(v,"Return to title",show_title)
 
-func show_dialogue(lines: Array,on_complete: Callable):
+func show_dialogue(lines: Array,on_complete: Callable,kind="opening"):
 	screen="dialogue";reset_ui()
+	var backdrop=preload("res://scripts/dialogue_backdrop.gd").new()
+	backdrop.begin(ui,[world,pieces,markers],game.chapter,kind)
 	dialogue_lines=lines;dialogue_index=0;dialogue_callback=on_complete
 	dialogue_stage=preload("res://scripts/dialogue_stage.gd").new();ui.add_child(dialogue_stage)
 	dialogue_stage.configure(advance_dialogue,finish_dialogue)
@@ -1260,13 +1263,14 @@ func show_supports(unit):
 func read_support(unit,entry,index: int):
 	var rank=int(game.supports.progress(entry.id).rank)
 	if index>rank or (index==rank and not game.supports.can_read(entry.id,game.chapter)):return
-	show_dialogue(entry.scenes[index].lines,func():
+	var completed=func():
 		if index==int(game.supports.progress(entry.id).rank):
 			game.supports.complete_scene(entry.id,game.chapter)
 			var saved=persist_campaign("camp",false)
 			show_supports(unit)
 			show_notice("Bond strengthened. Campaign saved." if saved else "Bond strengthened. Save failed; keep the game open and try saving again.")
-		else:show_supports(unit))
+		else:show_supports(unit)
+	show_dialogue(entry.scenes[index].lines,completed,"support")
 
 func supports_ready(unit) -> bool:
 	return unit.join<=game.chapter and game.supports.for_unit(unit.id).any(func(entry):return game.supports.can_read(entry.id,game.chapter))

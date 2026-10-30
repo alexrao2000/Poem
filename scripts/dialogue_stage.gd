@@ -11,7 +11,7 @@ var hint: Label
 
 func configure(next_line: Callable,skip_scene: Callable):
 	set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
-	var shade=ColorRect.new();shade.color=Color(.08,.10,.13,.42)
+	var shade=ColorRect.new();shade.color=Color(.08,.10,.13,.20)
 	shade.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT);add_child(shade)
 	for index in range(2):
 		var portrait=TextureRect.new();portrait.name="Speaker"+str(index)

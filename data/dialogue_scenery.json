@@ -1,0 +1,132 @@
+{
+  "chapters": [
+    {
+      "asset": "res://assets/art/dialogue-places-1-v1.png",
+      "region": [
+        2,
+        2,
+        764,
+        508
+      ]
+    },
+    {
+      "asset": "res://assets/art/dialogue-places-1-v1.png",
+      "region": [
+        770,
+        2,
+        764,
+        508
+      ]
+    },
+    {
+      "asset": "res://assets/art/dialogue-places-1-v1.png",
+      "region": [
+        2,
+        514,
+        764,
+        508
+      ]
+    },
+    {
+      "asset": "res://assets/art/dialogue-places-1-v1.png",
+      "region": [
+        770,
+        514,
+        764,
+        508
+      ]
+    },
+    {
+      "asset": "res://assets/art/dialogue-places-2-v1.png",
+      "region": [
+        2,
+        2,
+        764,
+        508
+      ]
+    },
+    {
+      "asset": "res://assets/art/dialogue-places-2-v1.png",
+      "region": [
+        770,
+        2,
+        764,
+        508
+      ]
+    },
+    {
+      "asset": "res://assets/art/dialogue-places-2-v1.png",
+      "region": [
+        2,
+        514,
+        764,
+        508
+      ]
+    },
+    {
+      "asset": "res://assets/art/dialogue-places-2-v1.png",
+      "region": [
+        770,
+        514,
+        764,
+        508
+      ]
+    },
+    {
+      "asset": "res://assets/art/dialogue-places-3-v1.png",
+      "region": [
+        2,
+        2,
+        764,
+        508
+      ]
+    },
+    {
+      "asset": "res://assets/art/dialogue-places-3-v1.png",
+      "region": [
+        770,
+        2,
+        764,
+        508
+      ]
+    },
+    {
+      "asset": "res://assets/art/dialogue-places-3-v1.png",
+      "region": [
+        2,
+        514,
+        764,
+        508
+      ]
+    },
+    {
+      "asset": "res://assets/art/dialogue-places-3-v1.png",
+      "region": [
+        770,
+        514,
+        764,
+        508
+      ]
+    }
+  ],
+  "closing": {
+    "1": {
+      "asset": "res://assets/art/dialogue-river-open-v1.png",
+      "region": [
+        0,
+        0,
+        1536,
+        1024
+      ]
+    },
+    "11": {
+      "asset": "res://assets/art/title-dawn-v1.png",
+      "region": [
+        0,
+        0,
+        1536,
+        1024
+      ]
+    }
+  }
+}

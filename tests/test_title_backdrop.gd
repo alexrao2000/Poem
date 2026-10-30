@@ -43,8 +43,9 @@ func run():
  press(app,"Transfer a local save");inspect(app);press(app,"Return");inspect(app)
  assert(app.game.roster==roster,"Title browsing preserves character progression")
  press(app,"Begin the chronicle");assert(app.screen=="dialogue" and not app.ui.has_node("TitleBackdrop"))
- assert(app.world.visible and app.pieces.visible and app.pieces.process_mode==Node.PROCESS_MODE_INHERIT,"Starting the campaign restores its underlying scene")
+ assert(app.ui.get_node("DialogueBackdrop").covered.all(func(entry):return entry.visible and entry.process_mode==Node.PROCESS_MODE_INHERIT),"Title releases its scene before the conversation acquires it")
  app.finish_dialogue();assert(app.screen=="camp")
+ assert(app.world.visible and app.pieces.visible and app.pieces.process_mode==Node.PROCESS_MODE_INHERIT,"Finishing the opening restores its underlying scene")
  app.show_options("camp");assert(not app.ui.has_node("TitleBackdrop"),"Camp options retain their campaign context")
  await Shutdown.dispose(app);await process_frame
  print("PASS: %d title crop samples, banner visibility, nonblocking input, hidden-scene suspension/restoration and real title-menu navigation"%frames)

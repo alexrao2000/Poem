@@ -11,6 +11,11 @@ func run():
  assert("CC0" in metadata.samples and metadata.frames==1568000,"Export uses the current orchestral arrangement")
  var app=load("res://main.tscn").instantiate();app.settings_path="";app.save_path="/private/tmp/poem-export-test.json";root.add_child(app);await process_frame
  assert(app.ui.get_node("TitleBackdrop").ART.get_width()==1536,"Release includes the original dawn title illustration")
+ var dialogue_art=load("res://scripts/dialogue_backdrop.gd")
+ for chapter in range(12):
+  for kind in ["opening","closing"]:
+   var picture=dialogue_art.texture_for(chapter,kind)
+   assert(picture.atlas.get_width()==1536 and picture.region.size.x>=764 and picture.filter_clip,"Release includes all twelve dialogue locations and closing variants")
  for job in app.CLASSES:assert(app.map_catalog.assets.has("unit."+job.to_lower()),"Release initializes every fallback class without relying on assertions")
  assert(app.map_catalog.recruit_errors.is_empty(),"Packaged recruit artwork validates")
  assert(app.map_catalog.enemy_errors.is_empty(),"Packaged enemy artwork validates")
