@@ -518,7 +518,15 @@ func update_side():
 		label_in(details,game.class_name_for(selected),16)
 		var bond_rank=game.supports.nearby_rank(game,selected)
 		label_in(details,("Lv %d / MAX"%selected.level if selected.level>=game.MAX_LEVEL else "Lv %d / XP %d"%[selected.level,selected.xp])+(" · Bond "+game.supports.RANKS[bond_rank] if bond_rank>0 else ""),15)
-		label_in(side,"HP %d/%d · ATK %d\nDEF %d · RES %d · SPD %d"%[selected.hp,selected.max_hp,game.attack_power(selected),selected.defense,game.resistance_for(selected),game.attack_speed(selected)],17)
+		var health_row=HBoxContainer.new();health_row.add_theme_constant_override("separation",8);side.add_child(health_row)
+		var hp_text=label_in(health_row,"HP %d/%d"%[selected.hp,selected.max_hp],16);hp_text.autowrap_mode=TextServer.AUTOWRAP_OFF
+		var meter=CombatHUD.HealthMeter.new();meter.name="SelectedHealth";meter.maximum=maxf(1,selected.max_hp)
+		meter.custom_minimum_size=Vector2(40,9);meter.size_flags_horizontal=Control.SIZE_EXPAND_FILL;meter.size_flags_vertical=Control.SIZE_SHRINK_CENTER
+		var ratio=float(selected.hp)/meter.maximum
+		meter.accent=Color("96bd82") if ratio>.5 else Color("e0b366") if ratio>.25 else Color("d47d6e")
+		health_row.add_child(meter);meter.change_to(selected.hp,true)
+		var attack_text=label_in(health_row,"ATK %d"%game.attack_power(selected),16);attack_text.autowrap_mode=TextServer.AUTOWRAP_OFF
+		label_in(side,"DEF %d · RES %d · SPD %d"%[selected.defense,game.resistance_for(selected),game.attack_speed(selected)],17)
 		weapon_label(side,selected.weapon,game.item_for(selected).name+" · "+game.range_text(selected)+" tiles",15)
 		if selected.team=="enemy":
 			var behavior={"guard":"Holds position","sentry":"Waits until approached","pursue":"Advances toward the company"}
@@ -1482,12 +1490,7 @@ func activate_map_cursor():
 	highlight()
 
 func draw_map_cursor():
-	var root=Node3D.new();root.name="MapCursor";markers.add_child(root)
-	root.position.y=map_height(cursor_tile)
-	for sign_x in [-1,1]:
-		for sign_y in [-1,1]:
-			cube(root,Vector3(cursor_tile.x+sign_x*.36,.085,cursor_tile.y+sign_y*.46),Vector3(.22,.035,.055),Color("fff6d6"))
-			cube(root,Vector3(cursor_tile.x+sign_x*.46,.085,cursor_tile.y+sign_y*.36),Vector3(.055,.035,.22),Color("fff6d6"))
+	preload("res://scripts/tactical_cursor.gd").new().build(markers,map_position(cursor_tile))
 
 func critical_cutin(unit: Dictionary):
 	if skip_combat:return

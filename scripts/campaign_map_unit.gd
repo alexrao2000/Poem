@@ -39,7 +39,10 @@ func refresh_health():
  health.texture=ImageTexture.create_from_image(image);health.visible=true
 
 func _process(dt):
+ if not is_visible_in_tree():return
  super._process(dt)
+ var breath=1.0+sin(clock*4)*.045
+ ring.scale=Vector3(breath,.45,breath)
  if team=="enemy" and not visual_id.begins_with("enemy."):sprite.modulate*=Color(1,.72,.68)
 
 func update_frame():

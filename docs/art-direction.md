@@ -316,3 +316,7 @@ Existing long back lengths, ponytails, braids and the side braid now retain a de
 ### Equipped item silhouettes
 
 `data/equipment_looks.json` defines all 22 weapon appearances separately from combat statistics. `equipment_visuals.gd` builds cached closed blade/head meshes and keeps each class’s prior contact reach. The war hammer is blunt and beveled; the hatchet has one blade; narrow swords, broad tempered steel, braced pike lugs, three bow limb profiles, elemental folio covers/ribbons and different staff crowns distinguish the arsenal. Bowstrings use the actual limb height. Thrown spears inherit equipped head width and colors. Source geometry/material fingerprints distinguish all items; 880 pose samples and real javelin playback pass. Default roster: 1,797 sources / 1,034 joint batches. Final rendered inspection remains outstanding.
+
+### Tactical selection polish
+
+The keyboard cursor is now one flat corner mesh with ivory marks and a dark blue outline, replacing eight shaded blocks. A 2.5% scale pulse stays within the selected tile. Selected-unit rings flatten to 45% of their former tube height and pulse by 4.5%; hidden campaign sprites suspend idle motion. The selected-unit card reuses the combat health gauge at a compact size with ratio-dependent green, amber and red fill, alongside exact HP/ATK values. Existing interaction and layout checks cover the integration; rendered appearance remains unreviewed.
