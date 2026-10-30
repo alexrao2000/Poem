@@ -29,6 +29,7 @@ func run():
  app.game.units[0].xp=90;before=app.game.progress_snapshot();app.game.award_xp(app.game.units[0],45)
  app.show_progress(before);await process_frame
  assert(is_instance_valid(app.reward_panel),"Growth panel is visible")
+ assert(app.reward_panel.quote.text.contains(app.profiles[app.game.units[0].id].growth_quote),"Real progression uses the recruit’s authored reaction")
  await process_frame
  assert(app.reward_panel.get_global_rect().end.y<app.ui.size.y,"Growth fits viewport")
  app.reward_skip=true;await process_frame;await process_frame
@@ -56,12 +57,18 @@ func verify_rewards(app):
   host.size=dimensions
   for unit in app.game.roster:
    for leveled in [false,true]:
-    var reward=Reward.new();reward.configure(host,change_for(unit,leveled),app.portraits.get_dialogue_portrait(unit.id),app.game.class_name_for(unit))
+    var reward=Reward.new();reward.configure(host,change_for(unit,leveled),app.portraits.get_dialogue_portrait(unit.id),app.game.class_name_for(unit),app.game.MAX_LEVEL,app.profiles[unit.id].growth_quote)
     await process_frame;await process_frame
     assert(Rect2(Vector2.ZERO,host.size).encloses(reward.get_rect()),"Reward stays within every tested viewport")
     for child in reward.content.get_children():
      assert(Rect2(Vector2.ZERO,reward.content.size).encloses(child.get_rect()),"Portrait, values and controls fit the reward panel")
      if child is Label:assert(child.get_visible_line_count()==child.get_line_count() and child.size.x>=child.get_minimum_size().x,"Names, classes and numeric stats remain readable")
+    assert(reward.quote!=null if leveled else reward.quote==null,"Personal growth line appears only on a level increase")
+    if leveled:
+     assert(reward.quote.text=="“"+app.profiles[unit.id].growth_quote+"”" and reward.quote.get_line_count()<=2,"All 24 original lines remain legible beside their own portrait")
+     assert(reward.get_theme_stylebox("panel").bg_color==Color("ede5cf"),"Level-up uses a pale stat surface")
+     for key in reward.rows:
+      if reward.record.gains[key]>0:assert(reward.rows[key].gain.get_theme_stylebox("normal").bg_color==Reward.BLUE,"Positive gains receive distinct blue badges")
     assert(reward.rows.size()==(5 if leveled else 0),"Ordinary experience uses a compact panel without stat rows")
     reward.queue_free();await process_frame;layouts+=1
  for case in ["normal","level","limit","multiple"]:
@@ -69,10 +76,16 @@ func verify_rewards(app):
   if case=="limit":change.unit.level=99;change.unit.xp=0;change.before.level=98;change.xp_gain=10
   elif case=="multiple":change.unit.level=4;change.xp_gain=245
   var reward=Reward.new();reward.configure(host,change,app.portraits.get_dialogue_portrait(change.unit.id),"Vanguard")
+  var initial_position=reward.position
   var cues=[0];reward.begin(func():cues[0]+=1)
+  reward.appearance.custom_step(.08)
+  assert(reward.entrance>0 and reward.entrance<1 and reward.position.y<initial_position.y,"Reward settles upward with a short fade")
+  host.size+=Vector2(40,20);reward.arrange()
+  assert(Rect2(Vector2.ZERO,host.size).encloses(reward.get_rect()),"Resize preserves the animated reward bounds")
   if reward.leveled:
    for row in reward.rows.values():assert(row.gain.modulate.a==0,"Stat gains wait for the experience rollover")
   await reward.motion.finished;await create_timer(.2).timeout
+  assert(is_equal_approx(reward.entrance,1) and is_equal_approx(reward.modulate.a,1),"Card finishes entering independently of the XP count")
   assert(cues[0]==(1 if reward.leveled else 0),"Only a level rollover plays the growth cue")
   assert(reward.meter.value==(100 if case=="limit" else change.unit.xp),"Meter settles on resolved XP, including the level limit")
   if case=="limit":assert(reward.experience.text=="LEVEL LIMIT REACHED")
@@ -82,5 +95,9 @@ func verify_rewards(app):
    assert(row.gain.text==("+%d"%change.gains[key] if change.gains[key]>0 else "—"),"Zero growth never displays a misleading plus")
   reward.close_button.pressed.emit();assert(reward.requested_close,"Mouse dismissal is available alongside keyboard skip")
   reward.queue_free();await process_frame
+ var interrupted=Reward.new();interrupted.configure(host,change_for(app.game.roster[0],true),app.portraits.get_dialogue_portrait("lyra"),"Vanguard")
+ interrupted.begin(func():assert(false,"Dismissal before rollover cannot play a delayed level-up cue"))
+ var weak=weakref(interrupted);interrupted.queue_free();await process_frame;await create_timer(.3).timeout
+ assert(weak.get_ref()==null,"Early dismissal releases entrance and reveal animation together")
  assert(layouts==144 and app.game.roster==original and app.game.rng.state==rng,"Reward presentation preserves roster and RNG")
  host.queue_free();await process_frame

@@ -14,7 +14,8 @@
       "face_shape": "soft"
     },
     "critical_quote": "For everyone behind me!",
-    "finish_quote": "Stay together."
+    "finish_quote": "Stay together.",
+    "growth_quote": "One more reason to trust me with the standard."
   },
   "oren": {
     "title": "The gate left open",
@@ -31,7 +32,8 @@
       "face_shape": "broad"
     },
     "critical_quote": "This line holds.",
-    "finish_quote": "Everyone still with us?"
+    "finish_quote": "Everyone still with us?",
+    "growth_quote": "Still a few good years in these arms."
   },
   "sera": {
     "title": "Roads beneath the stars",
@@ -48,7 +50,8 @@
       "face_shape": "soft"
     },
     "critical_quote": "I see the way through.",
-    "finish_quote": "The road is clear."
+    "finish_quote": "The road is clear.",
+    "growth_quote": "The next road looks a little shorter."
   },
   "ivo": {
     "title": "No one expendable",
@@ -65,7 +68,8 @@
       "face_shape": "angular"
     },
     "critical_quote": "No one is expendable!",
-    "finish_quote": "Let me see the wounded."
+    "finish_quote": "Let me see the wounded.",
+    "growth_quote": "Steadier hands. That will matter."
   },
   "mara": {
     "title": "A captain of borrowed tides",
@@ -82,7 +86,8 @@
       "face_shape": "angular"
     },
     "critical_quote": "You cannot bar this river!",
-    "finish_quote": "Keep the channel open."
+    "finish_quote": "Keep the channel open.",
+    "growth_quote": "Well, this should improve our bargaining position."
   },
   "tarin": {
     "title": "The inconvenient calculation",
@@ -99,7 +104,8 @@
       "face_shape": "tapered"
     },
     "critical_quote": "I checked the numbers.",
-    "finish_quote": "One less uncertainty."
+    "finish_quote": "One less uncertainty.",
+    "growth_quote": "The practice is working. I should trust that."
   },
   "nell": {
     "title": "Every door has two sides",
@@ -116,7 +122,8 @@
       "face_shape": "tapered"
     },
     "critical_quote": "Found your opening!",
-    "finish_quote": "And there\u2019s our way out."
+    "finish_quote": "And there\u2019s our way out.",
+    "growth_quote": "Try keeping up with me now."
   },
   "bram": {
     "title": "Good timber, good people",
@@ -133,7 +140,8 @@
       "face_shape": "soft"
     },
     "critical_quote": "Time to put this right.",
-    "finish_quote": "Easy now. We\u2019re all right."
+    "finish_quote": "Easy now. We\u2019re all right.",
+    "growth_quote": "Good. I can carry a little more."
   },
   "esme": {
     "title": "The names in the bell",
@@ -150,7 +158,8 @@
       "face_shape": "angular"
     },
     "critical_quote": "We remember their names.",
-    "finish_quote": "May the silence be kind."
+    "finish_quote": "May the silence be kind.",
+    "growth_quote": "Let this strength be useful to someone."
   },
   "rook": {
     "title": "The work after regret",
@@ -167,7 +176,8 @@
       "face_shape": "broad"
     },
     "critical_quote": "Let me make this count.",
-    "finish_quote": "Keep moving. I\u2019ll follow."
+    "finish_quote": "Keep moving. I\u2019ll follow.",
+    "growth_quote": "Better than yesterday. It has to mean something."
   },
   "faye": {
     "title": "The forest keeps its paths",
@@ -184,7 +194,8 @@
       "face_shape": "soft"
     },
     "critical_quote": "You missed the trail.",
-    "finish_quote": "The trail goes on."
+    "finish_quote": "The trail goes on.",
+    "growth_quote": "Less wasted motion. The forest would approve."
   },
   "cassian": {
     "title": "Learning to lower a banner",
@@ -201,7 +212,8 @@
       "face_shape": "angular"
     },
     "critical_quote": "My oath is to these people!",
-    "finish_quote": "No crown is worth this."
+    "finish_quote": "No crown is worth this.",
+    "growth_quote": "I would rather earn the praise this time."
   },
   "vela": {
     "title": "The light that answers",
@@ -218,7 +230,8 @@
       "face_shape": "tapered"
     },
     "critical_quote": "There is still a light.",
-    "finish_quote": "The light is still burning."
+    "finish_quote": "The light is still burning.",
+    "growth_quote": "A steadier flame, even in this wind."
   },
   "dax": {
     "title": "Hands on the same rope",
@@ -235,7 +248,8 @@
       "beard_style": "full"
     },
     "critical_quote": "We pull together!",
-    "finish_quote": "Get everyone through."
+    "finish_quote": "Get everyone through.",
+    "growth_quote": "There. We can take a little more weight together."
   },
   "una": {
     "title": "Beyond the sealed letter",
@@ -252,7 +266,8 @@
       "face_shape": "soft"
     },
     "critical_quote": "Here are my terms.",
-    "finish_quote": "Let that be the last."
+    "finish_quote": "Let that be the last.",
+    "growth_quote": "Now I have more than words to offer."
   },
   "silas": {
     "title": "A truth without a cover story",
@@ -269,7 +284,8 @@
       "face_shape": "angular"
     },
     "critical_quote": "No more cover stories.",
-    "finish_quote": "That\u2019s the truth of it."
+    "finish_quote": "That\u2019s the truth of it.",
+    "growth_quote": "It seems honest work does have its advantages."
   },
   "petra": {
     "title": "What a bridge is for",
@@ -285,7 +301,8 @@
       "face_shape": "soft"
     },
     "critical_quote": "I know the weak point.",
-    "finish_quote": "Still standing."
+    "finish_quote": "Still standing.",
+    "growth_quote": "That held. Time to test the next limit."
   },
   "ari": {
     "title": "Messages with wings",
@@ -301,7 +318,8 @@
       "face_shape": "soft"
     },
     "critical_quote": "The message gets through!",
-    "finish_quote": "I can get through now."
+    "finish_quote": "I can get through now.",
+    "growth_quote": "I might give the birds a proper race yet."
   },
   "noor": {
     "title": "The cost of borrowed light",
@@ -318,7 +336,8 @@
       "face_shape": "angular"
     },
     "critical_quote": "I know what this light costs.",
-    "finish_quote": "We have work left to do."
+    "finish_quote": "We have work left to do.",
+    "growth_quote": "A measurable improvement. I will take it."
   },
   "galen": {
     "title": "Seeds for the day after",
@@ -336,7 +355,8 @@
       "beard_style": "long"
     },
     "critical_quote": "We will see another spring.",
-    "finish_quote": "Breathe. We\u2019re still here."
+    "finish_quote": "Breathe. We\u2019re still here.",
+    "growth_quote": "Some things still grow in difficult ground."
   },
   "yuna": {
     "title": "Steps through the palace",
@@ -353,7 +373,8 @@
       "face_shape": "tapered"
     },
     "critical_quote": "One step ahead.",
-    "finish_quote": "One more step toward home."
+    "finish_quote": "One more step toward home.",
+    "growth_quote": "I choose where the next step takes me."
   },
   "hale": {
     "title": "The way back to daylight",
@@ -371,7 +392,8 @@
       "beard_style": "full"
     },
     "critical_quote": "We are getting out of here!",
-    "finish_quote": "There\u2019s daylight ahead."
+    "finish_quote": "There\u2019s daylight ahead.",
+    "growth_quote": "Strong enough for one more person on the way out."
   },
   "elian": {
     "title": "An oath reconsidered",
@@ -388,7 +410,8 @@
       "face_shape": "angular"
     },
     "critical_quote": "This oath is mine.",
-    "finish_quote": "My people come first."
+    "finish_quote": "My people come first.",
+    "growth_quote": "A better soldier, I hope. For better reasons."
   },
   "rhea": {
     "title": "The person behind the regent",
@@ -405,6 +428,7 @@
       "face_shape": "soft"
     },
     "critical_quote": "I choose what comes next.",
-    "finish_quote": "It ends with our choices."
+    "finish_quote": "It ends with our choices.",
+    "growth_quote": "I can help. I need to remember that."
   }
 }

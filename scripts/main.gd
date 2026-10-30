@@ -1267,10 +1267,10 @@ func show_progress(before: Dictionary):
 	for change in game.progress_since(before):
 		reward_skip=false
 		reward_panel=ProgressReward.new()
-		reward_panel.configure(ui,change,portraits.get_dialogue_portrait(change.unit.id),game.class_name_for(change.unit),game.MAX_LEVEL)
+		reward_panel.configure(ui,change,portraits.get_dialogue_portrait(change.unit.id),game.class_name_for(change.unit),game.MAX_LEVEL,profiles.get(change.unit.id,{}).get("growth_quote",""))
 		reward_panel.begin(func():play_sfx("levelup"))
 		var elapsed=0.0
-		while elapsed<(2.0 if reward_panel.leveled else .8) and not reward_skip and not reward_panel.requested_close:
+		while elapsed<(3.0 if reward_panel.leveled else .8) and not reward_skip and not reward_panel.requested_close:
 			await get_tree().process_frame;elapsed+=get_process_delta_time()
 		reward_panel.queue_free();reward_panel=null
 
