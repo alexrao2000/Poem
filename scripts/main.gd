@@ -830,6 +830,7 @@ func cinematic(a,b,events,initial_hp={}):
 	markers.hide()
 	var tactical_controls={}
 	for control in ui.get_children():tactical_controls[control]=control.visible;control.hide()
+	var playback=preload("res://scripts/combat_playback.gd").new();playback.configure(ui)
 	var veil=CombatTransition.new();veil.configure(ui,func():return camera.unproject_position(focus))
 	veil.conceal()
 	var push=map_navigation.approach_combat(focus)
@@ -994,7 +995,7 @@ func cinematic(a,b,events,initial_hp={}):
 	veil.reveal(.25)
 	var pull=create_tween();pull.tween_property(camera,"size",old_size,.25);await pull.finished
 	if veil.motion.is_running():await veil.motion.finished
-	veil.queue_free()
+	veil.queue_free();playback.stop();playback.queue_free()
 	for control in tactical_controls:
 		if is_instance_valid(control):control.visible=tactical_controls[control]
 	music_mix(false)

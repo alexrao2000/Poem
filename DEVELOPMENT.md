@@ -112,7 +112,7 @@ The opening-town fountain now has two shaped stone basins, inset animated water 
 
 Dialogue now uses a compact blue/ivory speaker nameplate and a small pulsing ready diamond. The action says “Reveal text” while typing and changes to “Continue” as soon as the line is complete; instant text still advances in one press. Prompt motion suspends when hidden, and all 885 story/support layouts retain their readable text and controls.
 
-The last delivered local browser/macOS checkpoint passed all 58 automated suites, five complete campaign simulations (60 chapter victories), model-catalog validation and an exported-resource-pack smoke check. These are runtime, geometry and layout checks, not a rendered review of the latest game. Full human balance and listening reviews remain outstanding. Routine non-destructive commits and private pushes are authorized.
+The last delivered local browser/macOS checkpoint passed all 59 automated suites, five complete campaign simulations (60 chapter victories), model-catalog validation and an exported-resource-pack smoke check. These are runtime, geometry and layout checks, not a rendered review of the latest game. Full human balance and listening reviews remain outstanding. Routine non-destructive commits and private pushes are authorized.
 
 The user explicitly allowed local browser testing, but the subsequent tool retry still returned a saved/managed permission denial. Localhost, the Quaternius asset site and native Codex access were blocked. Do not circumvent these denials with another browser surface, native game capture, raw browser/CDP access or alternate asset hosts. No Quaternius models have been acquired. Earlier screenshots and another chat's native workshop captures do not verify the current campaign visuals.
 
@@ -125,6 +125,8 @@ Non-caster combatants now have original curled glove meshes with four separate f
 The attack forecast now uses larger transparent recruit cutouts above compact paired stat cards, with inward-facing enemy portraits and an open central battlefield strip. A small original crossed-blade marker follows the projected target sprite, hiding under panels or outside the playable viewport. Health, weapon matchup and damage/hit/crit remain rules-driven and legible at all three desktop sizes. Confirmed player victories show one of 24 original character-specific lines during a skippable 0.95-second finishing stance; enemies and custom identities retain their name fallback. Layout, actual combat/retargeting and progression-isolation checks pass; rendered review remains pending.
 
 Combat nameplates and forecast headers now share an original low-contrast river-leaf scroll pattern. The hand-authored SVG was inspected separately on blue/red backgrounds, imports with transparent spacing, and stays behind existing text and borders. HUD/forecast layout checks pass; assembled game review remains pending.
+
+Combat has an optional hold-Shift fast-forward control with a small persistent hint. It doubles the presentation clock while keeping audio at normal speed, restores the exact prior clock after release/skip/cleanup, and resets on focus loss. Map-only combat never acquires it. Input, full accelerated/normal exchanges, cleanup, caption bounds and unchanged save/RNG/camera/audio ownership pass focused checks.
 
 ## Earlier checkpoint notes
 
