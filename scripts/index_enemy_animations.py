@@ -14,7 +14,7 @@ from PIL import Image
 from index_recruit_animations import separators
 
 ROOT = Path(__file__).resolve().parent.parent
-PATH = ROOT / "assets/art/enemy-units-v1.png"
+PATH = ROOT / "assets/art/enemy-units-v2.png"
 
 
 def main():
@@ -49,7 +49,7 @@ def main():
         assets.append({
             "id": template["id"].replace("unit.", "enemy.", 1),
             "kind": "map_unit", "texture": PATH.relative_to(ROOT).as_posix(),
-            "logical_frame_px": [64, 64], "source_pixel_scale": .46,
+            "logical_frame_px": [64, 64], "source_pixel_scale": .44 if template["id"] == "unit.rider" else .46,
             "right_facing_frames": [10], "fallback_visual_id": None,
             "frames": frames, "clips": copy.deepcopy(template["clips"]),
         })

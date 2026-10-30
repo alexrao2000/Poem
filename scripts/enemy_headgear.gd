@@ -29,8 +29,6 @@ static func build(painter,head,job,steel,gold):
   for side in [-1,1]:
    painter.ellipsoid(head,Vector3(side*.15,-.02,.01),Vector3(.035,.13,.12),steel)
    var edge=painter.geo.block(head,Vector3(side*.14,.12,-.105),Vector3(.026,.025,.14),gold);edge.rotation.z=side*.12
- elif job=="Corsair":
-  painter.ellipsoid(head,Vector3(0,-.12,-.07),Vector3(.14,.13,.105),Color("392d29"))
  if job in ["Knight","Rider"]:
   painter.geo.block(head,Vector3(0,.255,.015),Vector3(.035,.035,.23),gold)
   for i in range(4):

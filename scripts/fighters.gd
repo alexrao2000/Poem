@@ -13,6 +13,7 @@ const PromotionCostume=preload("res://scripts/promotion_costume.gd")
 const Garments=preload("res://scripts/garments.gd")
 const Head=preload("res://scripts/character_head.gd")
 var profiles=JSON.parse_string(FileAccess.get_file_as_string("res://data/characters.json"))
+var enemy_looks=JSON.parse_string(FileAccess.get_file_as_string("res://data/enemy_looks.json"))
 var surface_atlas=load("res://assets/art/character-materials.png")
 var surface_shader=preload("res://assets/shaders/character.gdshader")
 var surface_cache={}
@@ -46,19 +47,20 @@ func build(parent,u,p) -> Node3D:
  var body=joint(actor,"Body",Vector3(0,1.1,0));actor.register_bone("Body",body)
  var tint=Color(u.color)
  var palette={"Vanguard":"354c77","Knight":"394651","Ranger":"405c49","Arcanist":"434369","Warden":"c8c2ae","Rider":"3d566d","Corsair":"62463f","Duelist":"3b4355"}
- var appearance=profiles.get(u.id,{}).get("appearance",{})
- var blue=Color(appearance.get("cloth",palette[u.job])) if u.team=="player" else Color("853e43")
+ var company=u.team=="player"
+ var appearance=profiles.get(u.id,{}).get("appearance",{}) if company else enemy_looks.get(u.job,{})
+ var blue=Color(appearance.get("cloth",palette[u.job] if company else "853e43"))
  var skin=Color(appearance.get("skin","e0ba98"));var steel=Color("a8b3bb");var gold=Color("bca26b");var leather=Color("554337")
  var heavy=u.job=="Knight";var robe=u.weapon in ["magic","staff"]
- var armored=u.job in ["Knight","Vanguard","Rider"] and u.id!="lyra"
- var slender=u.id in ["lyra","sera","mara","nell","esme","faye","vela","una","petra","noor","yuna","rhea"]
- var cape_color=Color(appearance.get("cape","e5dfce" if u.id in ["lyra","ivo"] else tint.darkened(.25).to_html(false))) if u.team=="player" else tint.darkened(.25)
+ var armored=u.job in ["Knight","Vanguard","Rider"] and not (company and u.id=="lyra")
+ var slender=appearance.get("slender",u.id in ["lyra","sera","mara","nell","esme","faye","vela","una","petra","noor","yuna","rhea"] if company else false)
+ var cape_color=Color(appearance.get("cape","e5dfce" if company and u.id in ["lyra","ivo"] else tint.darkened(.25).to_html(false)))
  actor.set_meta("costume_colors",{"cloth":blue,"cape":cape_color})
  var torso=joint(body,"Torso",Vector3(0,.1,0))
  ellipsoid(body,Vector3(0,-.16,0),Vector3(.19,.19,.14),Color("3c3f48"))
  shell(torso,Vector3.ZERO,[[-.1,.18,.12],[.15,.21,.14],[.35,.245,.12],[.41,.15,.1]],blue)
  if armored:shell(torso,Vector3(0,0,-.065),[[.02,.17,.10],[.22,.23,.11],[.37,.20,.08]],steel)
- elif not robe and u.id!="lyra":shell(torso,Vector3(0,0,-.04),[[.02,.17,.105],[.22,.21,.12],[.34,.18,.08]],leather)
+ elif not robe and not (company and u.id=="lyra"):shell(torso,Vector3(0,0,-.04),[[.02,.17,.105],[.22,.21,.12],[.34,.18,.08]],leather)
  geo.cylinder(torso,Vector3(0,-.09,0),.08,.205,leather)
  geo.block(torso,Vector3(0,-.09,-.21),Vector3(.08,.07,.025),gold)
  # Collar, leather harness, chest fittings and layered hems.
@@ -85,7 +87,7 @@ func build(parent,u,p) -> Node3D:
   for i in range(4):geo.cylinder(torso,Vector3(.12+i*.025,.43,.19),.4,.009,Color("9c8769"))
  var cape=joint(torso,"Cape",Vector3(0,.35,.12));actor.register_bone("Cape",cape)
  cape_surface(cape,cape_color)
- if u.id=="lyra":
+ if company and u.id=="lyra":
   shell(torso,Vector3(0,0,.025),[[.34,.28,.16],[.43,.25,.15],[.47,.105,.085]],cape_color)
   for side_value in [-1,1]:
    cloth(torso,[Vector3(side_value*.09,.44,-.11),Vector3(side_value*.27,.34,-.10),Vector3(side_value*.24,.20,-.15),Vector3(0,.34,-.17)],cape_color)
@@ -133,8 +135,9 @@ func build(parent,u,p) -> Node3D:
  else:
   Hair.build(self,head,appearance,gold)
   var face_index={"lyra":0,"sera":1,"mara":3,"nell":2,"esme":2,"faye":3,"vela":1,"una":0,"petra":3,"noor":2,"yuna":1,"rhea":0,"oren":5,"ivo":4,"tarin":6,"bram":4,"rook":5,"cassian":6,"dax":5,"silas":6,"ari":4,"galen":7,"hale":7,"elian":6}.get(u.id,5)
+  if not company:face_index=int(appearance.get("face_variant",5))
   face_surface(head,face_index)
-  if u.id=="petra":
+  if company and u.id=="petra":
    for x in [-.07,.07]:
     var rim=geo.cylinder(head,Vector3(x,.13,-.10),.035,.05,gold);rim.rotation.x=PI/2
     var lens=geo.cylinder(head,Vector3(x,.13,-.122),.015,.037,Color("445d6b"));lens.rotation.x=PI/2
@@ -144,7 +147,7 @@ func build(parent,u,p) -> Node3D:
   for name_value in ["Body","LeftLeg","RightLeg"]:
    actor.bones[name_value].position.y+=.75
    actor.rest[name_value].position=actor.bones[name_value].position
-  Mount.build(self,actor,u.id,blue,gold,leather)
+  Mount.build(self,actor,u.id if company else "enemy_rider",blue,gold,leather)
  PromotionCostume.build(self,actor,u,torso,blue,cape_color,steel,gold,leather)
  apply_surfaces(actor,blue,tint,skin,steel,gold,leather,cape_color)
  if batching_enabled:batch_rig(actor)
@@ -268,6 +271,7 @@ func weapon(arm,kind,gold,steel,leather) -> Node3D:
  return hand
 
 func face_surface(parent,index):
+ parent.set_meta("face_variant",index)
  if not face_materials.has(index):
   var mat=StandardMaterial3D.new();mat.albedo_texture=face_atlas;mat.transparency=BaseMaterial3D.TRANSPARENCY_ALPHA_SCISSOR;mat.alpha_scissor_threshold=.22
   mat.cull_mode=BaseMaterial3D.CULL_DISABLED;mat.roughness=1;mat.diffuse_mode=BaseMaterial3D.DIFFUSE_TOON

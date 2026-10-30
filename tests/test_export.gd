@@ -12,6 +12,7 @@ func run():
  for job in app.CLASSES:assert(app.map_catalog.assets.has("unit."+job.to_lower()),"Release initializes every fallback class without relying on assertions")
  assert(app.map_catalog.recruit_errors.is_empty(),"Packaged recruit artwork validates")
  assert(app.map_catalog.enemy_errors.is_empty(),"Packaged enemy artwork validates")
+ assert(app.fighters.enemy_looks.size()==8 and app.fighters.face_atlas.resource_path.ends_with("face-features-v2.png"),"Release includes the matching enemy profiles and current painted facial features")
  for job in app.CLASSES:assert(app.map_catalog.assets.has("enemy."+job.to_lower()),"Release includes every dedicated enemy class atlas")
  for chapter in [0,4,8,11]:
   app.game.chapter=chapter;app.game.start_battle();app.make_map();app.show_battle();await process_frame

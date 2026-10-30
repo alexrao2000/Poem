@@ -4,11 +4,14 @@ extends SceneTree
 const Catalog=preload("res://scripts/campaign_catalog.gd")
 const Unit=preload("res://scripts/campaign_map_unit.gd")
 const Rules=preload("res://scripts/rules.gd")
+const Fighters=preload("res://scripts/fighters.gd")
+const RigTest=preload("res://tests/test_rig_batching.gd")
 func _initialize():call_deferred("run")
 func run():
  var catalog=Catalog.new();assert(catalog.open("res://visuals/units.json") and catalog.enemy_errors.is_empty())
  var stage=Node3D.new();root.add_child(stage)
  var game=Rules.new();var seen={};var poses=0
+ var painter=Fighters.new()
  for source in game.roster:
   if seen.has(source.job):continue
   seen[source.job]=true
@@ -30,7 +33,7 @@ func run():
    for facing in ["north","south","east","west"]:
     actor.player.play(state,facing,true);actor._process(0)
     assert(actor.sprite.modulate==Color.WHITE,"Enemy skin, horses and steel keep authored colors")
-    assert(actor.sprite.scale==Vector3(.46,.46,1),"Animation frames retain consistent source density")
+    assert(actor.sprite.scale==Vector3(entry.source_pixel_scale,entry.source_pixel_scale,1),"Animation frames retain consistent source density")
     actor.spent=true;actor._process(0)
     assert(actor.sprite.modulate==Color(.70,.72,.73),"Spent enemy remains legible without an additional red tint")
     actor.spent=false
@@ -43,11 +46,27 @@ func run():
   actor=Unit.new();stage.add_child(actor);actor.configure(catalog,unit);actor._process(0)
   assert(actor.visual_id=="unit."+unit.job.to_lower() and actor.sprite.modulate==Color(1,.72,.68),"Missing enemy art retains the compatible tinted class fallback")
   actor.queue_free();catalog.assets[id]=entry
+  # Reusing a recruit-like ID cannot leak goggles, hair, signature armor or a
+  # pale named horse into an anonymous enemy class.
+  unit.id="enemy_qa_"+unit.job
+  var anonymous=painter.build(stage,unit,Vector3.ZERO);anonymous.set_process(false);anonymous.pose_tween.kill()
+  var profile=painter.enemy_looks[unit.job]
+  assert(anonymous.get_meta("costume_colors")=={"cloth":Color(profile.cloth),"cape":Color(profile.cape)})
+  if unit.job!="Knight":
+   assert(anonymous.bone("Head").get_meta("hair_style")==profile.hair_style and anonymous.bone("Head").get_meta("face_variant")==int(profile.face_variant),"Close-up hair and facial features follow the class portrait archetype")
+  if unit.job=="Rider":assert(anonymous.get_meta("mount_appearance").coat=="77513a","Enemy cavalry retain natural brown horses")
+  var reference=RigTest.signature(anonymous)
+  for recruit_id in ["lyra","petra","una"]:
+   unit.id=recruit_id
+   var named=painter.build(stage,unit,Vector3.ZERO);named.set_process(false);named.pose_tween.kill()
+   RigTest.equivalent(reference,RigTest.signature(named))
+   named.queue_free()
+  anonymous.queue_free()
  assert(poses==96 and seen.size()==8)
  var before=catalog.assets.keys()
  assert(not catalog.add_enemies("res://campaign_visuals.json") and catalog.assets.keys()==before,"Enemy supplements cannot inject recruit identities")
  assert(not catalog.add_enemies("res://visuals/units.json") and catalog.assets.keys()==before,"Enemy supplements cannot replace class art")
  assert(catalog.open("res://visuals/units.json") and catalog.enemy_errors.is_empty(),"Reopening clears supplemental errors")
  stage.queue_free();await process_frame
- print("PASS: 8 original enemy classes, 96 isolated poses, un-tinted authored colors, spent-state contrast, directional pivots and class fallback")
+ print("PASS: 8 matching enemy archetypes, 96 isolated poses, authored colors, directional pivots, 24 recruit-ID collision checks, natural mounts and class fallback")
  quit()

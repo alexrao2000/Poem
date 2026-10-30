@@ -1,0 +1,10 @@
+{
+  "Vanguard": {"cloth":"853e43","cape":"66313b","hair":"292729","skin":"e0ba98","hair_style":"short","face_variant":4,"slender":false},
+  "Knight": {"cloth":"853e43","cape":"76333c","hair":"292729","skin":"e0ba98","hair_style":"short","face_variant":5,"slender":false},
+  "Ranger": {"cloth":"65513e","cape":"75343d","hair":"292729","skin":"cba17d","hair_style":"short","face_variant":4,"slender":false},
+  "Arcanist": {"cloth":"4d364c","cape":"4a3446","hair":"24202a","skin":"e1bea9","hair_style":"long","face_variant":2,"slender":true},
+  "Warden": {"cloth":"c8c2ae","cape":"ded5bd","hair":"d8c8a5","skin":"e3c2a6","hair_style":"long","face_variant":0,"slender":true},
+  "Rider": {"cloth":"3b4355","cape":"76333c","hair":"292729","skin":"d6ac89","hair_style":"short","face_variant":7,"slender":false},
+  "Corsair": {"cloth":"62463f","cape":"75343d","hair":"392d29","skin":"c99b78","hair_style":"beard","face_variant":7,"slender":false},
+  "Duelist": {"cloth":"33343e","cape":"75343d","hair":"242329","skin":"d6ac89","hair_style":"short","face_variant":4,"slender":false}
+}

@@ -9,7 +9,7 @@ const Rules=preload("res://scripts/rules.gd")
 
 func _initialize():call_deferred("run")
 
-func signature(actor):
+static func signature(actor):
  var count=0;var px=0.0;var py=0.0;var pz=0.0;var u=0.0;var v=0.0;var nx=0.0;var ny=0.0;var nz=0.0
  var inverse=actor.global_transform.affine_inverse()
  for node in actor.find_children("*","MeshInstance3D",true,false):
@@ -27,7 +27,7 @@ func signature(actor):
      var normal=(normals_basis*normals[i]).normalized();nx+=normal.x;ny+=normal.y;nz+=normal.z
  return {"count":count,"sum":Vector3(px,py,pz),"uv":Vector2(u,v),"normal":Vector3(nx,ny,nz)}
 
-func equivalent(a,b):
+static func equivalent(a,b):
  assert(a.count==b.count,"Triangle vertices retained")
  assert(a.sum.distance_to(b.sum)<maxf(.02,a.sum.length()*.000001),"Joint-relative geometry retained")
  assert(a.uv.distance_to(b.uv)<maxf(.01,a.uv.length()*.000001),"Texture UVs retained")
