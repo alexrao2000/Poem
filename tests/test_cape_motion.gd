@@ -25,11 +25,13 @@ func verify_trim(actor,company: bool):
 
 func run():
  verify_marks()
+ verify_cuts()
  var painter=Fighters.new();var game=Rules.new();var stage=Node3D.new();root.add_child(stage)
  var actors=[]
  for recruit in game.roster:
   var unit=recruit.duplicate(true);unit.team="player"
   var actor=painter.build(stage,unit,Vector3.ZERO);actor.set_process(false);actor.pose_tween.kill()
+  assert(actor.bones.Cape.get_meta("cape_cut")==Fighters.Capes.cut_for(unit.job),"The actual recruit uses its class-specific cloak silhouette")
   assert(actor.cape_motion.surfaces.size()==2,"Each cape binds fabric and outline after batching")
   var cloth=actor.cape_motion.surfaces[0];var ink=actor.cape_motion.surfaces[1]
   assert(cloth.next_pass==ink and ink!=painter.Outline.material())
@@ -77,5 +79,37 @@ func run():
  for frame in range(3):await process_frame
  assert(held.cape_motion.surfaces[0].get_shader_parameter("cloth_clock")>frozen,"Cloth resumes with the restored actor")
  stage.queue_free();await process_frame
- print("PASS: 24 independently animated cape pairs, 48 promoted and eight enemy embroidery bindings, transparent sparse mipmapped marks, contrasting thread, anchored geometry, bounded motion, matching fabric/outline clocks, idle settling and local hit-stop restoration")
+ print("PASS: five distinct shared cloak cuts, exposed ranger quivers, 24 independently animated cape pairs, 48 promoted and eight enemy embroidery bindings, transparent sparse mipmapped marks, contrasting thread, anchored geometry, bounded motion, matching fabric/outline clocks, idle settling and local hit-stop restoration")
  quit()
+
+func verify_cuts():
+ var shapes=[]
+ for cut in Fighters.Capes.CUTS:
+  var mesh=Fighters.Capes.mesh(cut);assert(mesh==Fighters.Capes.mesh(cut),"Each original cut shares immutable geometry across the roster")
+  var arrays=mesh.surface_get_arrays(0);var vertices=arrays[Mesh.ARRAY_VERTEX];var normals=arrays[Mesh.ARRAY_NORMAL];var uv=arrays[Mesh.ARRAY_TEX_UV]
+  assert(vertices.size()==216,"Distinct cape cuts retain the existing 72-triangle budget")
+  assert(vertices.to_byte_array() not in shapes,"Class cuts differ in geometry rather than only metadata or palette");shapes.append(vertices.to_byte_array())
+  for i in range(0,vertices.size(),3):
+   var cross=(vertices[i+1]-vertices[i]).cross(vertices[i+2]-vertices[i])
+   assert(cross.length()>.000001 and cross.dot(normals[i])<0,"Each cut retains nondegenerate outward-lit fabric")
+  for index in range(vertices.size()):
+   assert(Rect2(Vector2.ZERO,Vector2.ONE).grow(.00001).has_point(uv[index]),"Embroidered fabric keeps its complete 0–1 UV layout")
+   assert(vertices[index].y>=-1 and vertices[index].y<=0,"All cuts remain inside the existing bounded cloth domain")
+   if is_zero_approx(uv[index].y):assert(is_zero_approx(vertices[index].y),"Every cut retains the fixed shoulder attachment")
+ assert(Fighters.Capes.mesh("mantle").get_aabb().size.y<.6 and Fighters.Capes.mesh("riding").get_aabb().size.y<.8,"Mantles and riding cloaks shorten the silhouette")
+ assert(Fighters.Capes.point("forked",.5,1).y>Fighters.Capes.point("forked",1.0/3,1).y+.20,"Duelist hem has an actual open V between its tails")
+ var painter=Fighters.new();painter.batching_enabled=false;var rules=Rules.new();var stage=Node3D.new();root.add_child(stage)
+ var paths=[""];paths.append_array(rules.promotions.filter(func(path):return path.base=="Ranger").map(func(path):return path.id))
+ for source in rules.roster.filter(func(unit):return unit.job=="Ranger"):
+  for promotion in paths:
+   var unit=source.duplicate(true);unit.team="player";unit.promotion=promotion
+   var actor=painter.build(stage,unit,Vector3.ZERO);actor.set_process(false);actor.pose("idle",1).custom_step(1);actor.apply_constraints()
+   var cape=actor.bones.Cape;var torso=cape.get_parent();var furthest=-INF
+   for mesh in cape.find_children("*","MeshInstance3D",true,false):
+    for point in mesh.mesh.surface_get_arrays(0)[Mesh.ARRAY_VERTEX]:furthest=maxf(furthest,torso.to_local(mesh.to_global(point)).x)
+   var quiver=actor.find_child("Quiver",true,false);var closest=INF
+   for mesh in quiver.find_children("*","MeshInstance3D",true,false):
+    for point in mesh.mesh.surface_get_arrays(0)[Mesh.ARRAY_VERTEX]:closest=minf(closest,torso.to_local(mesh.to_global(point)).x)
+   assert(closest-furthest>.025,"Ranger cloak clears every actual quiver part, including lateral cloth motion and outline width")
+   actor.free()
+ stage.free()

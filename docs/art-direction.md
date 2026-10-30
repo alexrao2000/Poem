@@ -779,3 +779,9 @@ Actual selection/replay, rapid replacement and close-during-playback pass for in
 The framing audit now includes all eight ordinary enemy classes and all twelve chapter commanders, with five bounded gaze orientations per pose. It exposed helmet crests entering the caption area during ranged windup/impact shots. The camera now budgets for the taller silhouettes and retains the wide shot's 48-degree lens through preparation/contact, while keeping the small inward movement and directional focus shift.
 
 All 5,280 recruit/enemy/commander head-and-sole layouts and 5,280 entrance layouts pass at three sizes, including mixed cavalry. Combat text remains bounded across 1,440 moving-shot layouts; real playback, skip, healing and field-return cases pass. This verifies projection clearance rather than rendered composition.
+
+### Class-specific cloak cuts
+
+Five original cached cuts now distinguish the company silhouettes: the existing full cloak for vanguards and casters, cropped mantles for knights/corsairs, a left-shoulder half-cloak for rangers, forked tails for duelists and a shorter riding cloak. Class defaults support an optional `appearance.cape_cut` override. Each cut keeps the original 72-triangle budget, shoulder attachment, full embroidery UVs and bounded cloth/outline motion.
+
+The previous full cloak covered 192 of 384 sampled quiver-body vertex rays from behind. The ranger half-cloak covers none; all nine base/promoted ranger outfits retain more than 25 mm of lateral clearance to the actual quiver parts, including cloth motion and outline allowance. An isolated five-cut geometry study was inspected. Motion, hit-stop, faction/thread ownership, all 72 viewer outfits, sixteen promotion profiles, batching and defeat-material isolation pass. Roster totals remain 1,774 sources / 1,057 batches plus three dynamic reins. Rendered in-game review is pending.

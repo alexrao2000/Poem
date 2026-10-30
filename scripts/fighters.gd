@@ -4,6 +4,7 @@ extends RefCounted
 var models=preload("res://scripts/combat_models.gd").new()
 const Actor=preload("res://scripts/fighter_actor.gd")
 const Mount=preload("res://scripts/mount_visuals.gd")
+const Capes=preload("res://scripts/character_cape.gd")
 const Hair=preload("res://scripts/character_hair.gd")
 const EnemyHeadgear=preload("res://scripts/enemy_headgear.gd")
 const EquipmentVisuals=preload("res://scripts/equipment_visuals.gd")
@@ -94,7 +95,7 @@ func build(parent,u,p) -> Node3D:
  if u.weapon=="bow":
   preload("res://scripts/quiver_visuals.gd").build(self,torso,leather,gold)
  var cape=joint(torso,"Cape",Vector3(0,.35,.12));actor.register_bone("Cape",cape)
- cape_surface(cape,cape_color,company,gold)
+ cape_surface(cape,cape_color,company,gold,Capes.cut_for(u.job,appearance.get("cape_cut","")))
  if company and u.id=="lyra":
   shell(torso,Vector3(0,0,.025),[[.34,.28,.16],[.43,.25,.15],[.47,.105,.085]],cape_color)
   for side_value in [-1,1]:
@@ -201,19 +202,10 @@ func batch_rig(actor):
  Outline.apply(actor)
  actor.cape_motion.bind(actor)
 
-func cape_surface(parent,color,company=true,thread=Color("bca26b")):
- var st=SurfaceTool.new();st.begin(Mesh.PRIMITIVE_TRIANGLES)
- for row in range(6):
-  for column in range(6):
-   var points=[];var uvs=[]
-   for corner in [[column,row],[column+1,row],[column+1,row+1],[column,row+1]]:
-    var u=corner[0]/6.0;var v=corner[1]/6.0
-    points.append(Vector3((u-.5)*(.5+v*.25),-v*(.94+.04*sin(u*PI)),v*.42+sin(u*PI)*.10+sin(u*PI*6)*v*.025))
-    uvs.append(Vector2(u,v))
-   for index in [0,1,2,0,2,3]:st.set_uv(uvs[index]);st.add_vertex(points[index])
- st.generate_normals()
+func cape_surface(parent,color,company=true,thread=Color("bca26b"),cut="standard"):
+ parent.set_meta("cape_cut",cut)
  var material=geo.material(color).duplicate();material.cull_mode=BaseMaterial3D.CULL_DISABLED
- var cape_mesh=geo.mesh(parent,st.commit(),Vector3.ZERO,Vector3.ONE,material)
+ var cape_mesh=geo.mesh(parent,Capes.mesh(cut),Vector3.ZERO,Vector3.ONE,material)
  cape_mesh.set_meta("cape_mark",COMPANY_CAPE if company else IMPERIAL_CAPE)
  cape_mesh.set_meta("cape_trim",thread.darkened(.35) if color.get_luminance()>.55 else thread.lightened(.10))
  cape_mesh.set_meta("cape_fabric",true);cape_mesh.extra_cull_margin=preload("res://scripts/cape_motion.gd").MARGIN
