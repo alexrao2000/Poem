@@ -831,12 +831,19 @@ func cinematic(a,b,events,initial_hp={}):
 	for n in stage.get_children():n.queue_free()
 	stage.visible=true
 	var old_lighting=battle_lighting(game.info().get("environment","village"))
-	scenery.battle_landscape(stage,Vector3(35,0,0),scenery.combat_context(game,a,b))
+	var arena_context=scenery.combat_context(game,a,b)
+	scenery.battle_landscape(stage,Vector3(35,0,0),arena_context)
 	world.hide();pieces.hide()
 	var ranged=events[0].has("healing") or game.distance(a,b)>1 or a.weapon in ["bow","magic"] or b.weapon in ["bow","magic"]
 	var spacing=2.0 if ranged else 1.6
 	var actor=make_fighter(a,Vector3(35-spacing,0,0));var defender=make_fighter(b,Vector3(35+spacing,0,0))
 	actor.rotation.y=-PI/2;defender.rotation.y=PI/2
+	var contact_terrain="=" if arena_context.environment=="harbor" else arena_context.terrain
+	for pair in [[actor,a],[defender,b]]:
+		var combatant=pair[0];var job=pair[1].job
+		if combatant.has_signal("travel_contact"):
+			combatant.travel_contact.connect(func(index):
+				if stage.visible and not skip_combat:travel_audio.step(contact_terrain,job,index,arena_context.environment))
 	if actor.has_method("face_opponent"):actor.face_opponent(defender)
 	if defender.has_method("face_opponent"):defender.face_opponent(actor)
 	var director=CombatCamera.new();stage.add_child(director);director.configure(camera)
@@ -897,6 +904,7 @@ func cinematic(a,b,events,initial_hp={}):
 					if skip_combat:approach.kill();break
 					await get_tree().process_frame
 				if skip_combat:break
+				if who.has_method("update_locomotion"):who.update_locomotion()
 		if who.has_method("aim_at"):who.aim_at(whom.socket_position("impact"))
 		director.shot(who.position,whom.position,"windup",is_ranged,mounted,.28)
 		var preparation="throw_windup" if is_ranged and unit.weapon=="lance" else "windup"

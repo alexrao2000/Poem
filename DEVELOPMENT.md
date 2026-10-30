@@ -118,6 +118,8 @@ The user explicitly allowed local browser testing, but the subsequent tool retry
 
 Castle combat now frames the fighters with an open arched gatehouse, recessed iron portcullis, raised battlements and six wall buttresses. The old center column is removed to leave the entrance visible. Geometry rays verify the opening and all twelve arena batches preserve their source geometry; rendered review remains pending.
 
+Combat approaches and retreats now trigger quiet foot/hoof contacts from actual gait distance. Stationary, hidden and weapon poses remain silent; harbor decking selects wood even when the underlying tactical tile is a path. Final travel is applied before anticipation begins. Frame subdivision, actual sword counters and mounted harbor exchanges preserve campaign state and score ownership; listening review remains pending.
+
 ## Earlier checkpoint notes
 
 ### Early campaign, materials and score

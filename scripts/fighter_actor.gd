@@ -2,6 +2,8 @@ extends Node3D
 # Presentation rig with separate pose and locomotion ownership. Actors face -Z;
 # arms lift forward with positive X, knees bend back, and mounted sockets rise.
 # Infantry hips and legs lower together to the lowest ellipsoidal boot sole.
+signal travel_contact(index: int)
+var contact_index=0
 var bones: Dictionary = {}
 var rest: Dictionary = {}
 var kind = "sword"
@@ -59,7 +61,10 @@ func face_opponent(other: Node3D):
 func update_locomotion():
  var travelled=(global_position-travel_previous).dot(-global_basis.z.normalized())
  travel_previous=global_position
- gait_phase=wrapf(gait_phase+travelled*TAU/(2.8 if mounted else 1.6),-PI,PI)
+ var next_phase=gait_phase+travelled*TAU/(2.8 if mounted else 1.6)
+ # Alternate contacts at each stride extremum, including reversed travel.
+ var crossings=absi(floori((next_phase+PI*.5)/PI)-floori((gait_phase+PI*.5)/PI))
+ gait_phase=wrapf(next_phase,-PI,PI)
  if mounted:
   for i in range(4):
    var key="HorseLeg"+str(i)
@@ -74,6 +79,9 @@ func update_locomotion():
    support_height=stance_height(target)
    bones.Body.position.y=rest.Body.position.y+support_height
    for side in ["LeftLeg","RightLeg"]:bones[side].position.y=rest[side].position.y+support_height
+
+ for contact in range(crossings):
+  travel_contact.emit(contact_index);contact_index+=1
 
 static func approach_duration(distance: float) -> float:
  return clampf(absf(distance)/5.0,.18,.65)

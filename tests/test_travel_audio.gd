@@ -52,6 +52,15 @@ func run():
  app.preferences.values.effects=.5;app.apply_audio_preferences()
  assert(is_equal_approx(sound.volume,app.preferences.volume_db("effects")-7),"Travel stays seven dB below the effects setting")
  assert(app.game.save_data("battle")==saved and app.game.rng.state==rng and app.score==score,"Travel never changes campaign, RNG or synchronized score ownership")
+ sound.step_played.disconnect(record_contact)
+ app.game.chapter=5;app.game.start_battle();app.make_map();app.show_battle()
+ var a=app.game.units[0];var b=app.game.living("enemy")[0]
+ a.job="Rider";a.weapon="lance";a.item="iron_lance";a.x=8;a.y=4;b.x=9;b.y=4
+ var arena_cues=[];sound.step_played.connect(func(family):arena_cues.append(family))
+ saved=app.game.save_data("battle").duplicate(true);rng=app.game.rng.state
+ await app.cinematic(a,b,[{"actor":a.id,"target":b.id,"damage":1,"remaining":19,"hit":true,"crit":false}],{a.id:20,b.id:20})
+ assert(not arena_cues.is_empty() and arena_cues.all(func(family):return family=="hoof_wood"),"Actual mounted harbor approach uses hoof contacts on the wooden arena floor")
+ assert(app.game.save_data("battle")==saved and app.game.rng.state==rng,"Arena contacts do not change campaign outcomes")
  await Shutdown.dispose(app);await process_frame
- print("PASS: six original contacts, 84 matching terrain/chapter surfaces, real movement timing, planted final step, mounted cues, isolated voices, volume/mute and unchanged simulation/score")
+ print("PASS: six original contacts, 84 matching terrain/chapter surfaces, real movement timing, planted final step, mounted map/harbor arena cues, isolated voices, volume/mute and unchanged simulation/score")
  quit()

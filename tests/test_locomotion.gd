@@ -52,6 +52,7 @@ func run():
   assert(actor.bones.LeftLeg.rotation.is_equal_approx(rotation),"Combat poses reclaim locomotion joints")
   actor.queue_free();await process_frame
  # Equivalent travel, subdivided into different frames, has identical stride.
+ await verify_contacts(fighters,stage,game)
  var unit=game.roster[0].duplicate(true);unit.team="player"
  var one=fighters.build(stage,unit,Vector3.ZERO);var many=fighters.build(stage,unit,Vector3.ZERO)
  for actor in [one,many]:
@@ -74,5 +75,26 @@ func run():
  assert(stopped!=null and stopped.pose_name=="advance" and stopped.position.distance_to(interrupted_position)<.1,"Tab kills the actual travel tween before preparation begins")
  assert(not app.stage.visible and app.camera.transform.is_equal_approx(camera) and app.game.save_data("battle")==saved,"Interrupted approach restores the tactical view without changing campaign state")
  await Shutdown.dispose(app);await process_frame
- print("PASS: ",samples," roster travel samples, planted actual boot geometry, mounted seating, stationary/pose isolation, reversed travel, frame-independent stride and real Tab interruption")
+ print("PASS: ",samples," roster travel samples, planted actual boot geometry, mounted seating, stationary/pose isolation, reversed travel, frame-independent stride/contacts, silent stationary/hidden poses and real Tab interruption")
  quit()
+
+func verify_contacts(fighters,stage,game):
+ for job in ["Vanguard","Rider"]:
+  var unit=game.roster.filter(func(entry):return entry.job==job)[0].duplicate(true);unit.team="player"
+  for direction in [-1,1]:
+   var totals=[]
+   for subdivisions in [1,40]:
+    var actor=fighters.build(stage,unit,Vector3.ZERO);actor.set_process(false)
+    await actor.pose("advance",.001).finished
+    var contacts=[];actor.travel_contact.connect(func(index):contacts.append(index))
+    var stride=2.8 if actor.mounted else 1.6
+    for step in range(subdivisions):
+     actor.position.z-=stride*direction/subdivisions;actor._process(.016)
+    assert(contacts==[0,1],"A complete forward or backward stride emits exactly two alternating contacts regardless of frame subdivision")
+    totals.append(actor.gait_phase)
+    actor._process(1);assert(contacts.size()==2,"Stationary advance cannot play walking sounds")
+    actor.hide();actor.position.z-=.9;actor._process(1);assert(contacts.size()==2,"Covered actors do not emit travel cues")
+    actor.show();await actor.pose("windup",.001).finished;actor.position.z-=.9;actor._process(.02)
+    assert(contacts.size()==2,"Weapon poses do not borrow locomotion contacts")
+    actor.queue_free();await process_frame
+   assert(absf(totals[0]-totals[1])<.0001)

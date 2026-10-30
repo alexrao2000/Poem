@@ -356,3 +356,7 @@ The active speaker’s name now sits on a compact blue plate with ivory display 
 ## Castle gatehouse
 
 The castle arena's old flat wall and freestanding column row are replaced by a closed-mesh arched gatehouse, recessed open iron grille, cornices, battlements and six engaged square buttresses. The 35-meter backdrop remains nine meters behind the combat center; supports leave the central approach clear. Shared masonry has 216 triangles and an actual curved void, with separate wedge-stone arch trim. Ray tests verify the opening, header and piers; grille bounds follow the arch and the entire castle assembly retains its original width. All twelve map and arena batching comparisons pass. This is original procedural architecture; rendered review remains pending.
+
+## Combat travel contacts
+
+Procedural actors emit alternating contact signals at stride extrema, driven by signed ground travel rather than a timer. The existing six original foot/hoof samples play through the separate travel voices at the effects setting minus seven dB. Arena surface selection follows the actual backdrop floor, including wooden harbor decking. Final tween travel is applied before the attack pose takes ownership; stationary counters, hidden actors and non-travel poses emit no extra steps. Imported models retain their animation ownership and may opt into the same contact signal. Forward/reverse and single/multiple-frame strides, real sword exchanges and mounted harbor combat are tested without changing simulation or music. Listening review remains pending.

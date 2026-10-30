@@ -18,6 +18,7 @@ var map_cues=[]
 var recoveries=[]
 var skip_on_recovery=false
 var sound_cues=[]
+var travel_cues=[]
 var heard_playbacks={}
 var gathered=[]
 var skip_on_charge=false
@@ -112,12 +113,15 @@ func run():
  var app=load("res://main.tscn").instantiate();app.settings_path="";app.save_path="/private/tmp/poem-exchange-test.json"
  root.add_child(app);await process_frame
  var sound_observer=watch_voices.bind(app);process_frame.connect(sound_observer)
+ app.travel_audio.step_played.connect(func(family):
+  travel_cues.append(family)
+  assert(app.stage.visible and app.stage.get_children().any(func(node):return node is Actor and node.pose_name=="advance"),"Actual arena travel cues occur while a fighter advances or retreats"))
  app.game.start_battle();app.make_map();app.show_battle()
  app.stage.child_entered_tree.connect(watch_hold)
  var a=app.game.units[0];var b=app.game.living("enemy")[0]
  a.x=8;a.y=4;b.x=9;b.y=4;b.weapon="sword"
  for case in ["swords","mixed","axe","skip","skip_hold","skip_recovery"]:
-  sound_cues.clear()
+  sound_cues.clear();travel_cues.clear()
   skip_on_hold=case=="skip_hold";skip_on_recovery=case=="skip_recovery";recoveries.clear()
   a.weapon="lance" if case=="mixed" else "axe" if case=="axe" else "sword"
   var events=[{"actor":a.id,"target":b.id,"damage":1,"remaining":19,"hit":true,"crit":false},{"actor":b.id,"target":a.id,"damage":1,"remaining":19,"hit":true,"crit":false},{"actor":a.id,"target":b.id,"damage":1,"remaining":18,"hit":true,"crit":false}]
@@ -131,6 +135,7 @@ func run():
    assert(is_equal_approx(absf(shot.a.x-shot.b.x),Actor.melee_spacing(shot.kind)),"Each attack starts at its weapon's contact distance")
    assert(shot.a.x<shot.b.x,"Neither fighter crosses the combat axis")
   if case=="swords":
+   assert(travel_cues.size()==2 and travel_cues.all(func(family):return family.begins_with("foot_")),"A sword approach has two footfalls; stationary counters add none")
    assert(shots[0].a==shots[1].a and shots[0].b==shots[1].b and shots[0].a==shots[2].a,"Counter and follow-up hold engagement instead of repeating the approach")
   if case=="mixed":
    assert(shots[2].a.x<shots[1].a.x,"Long weapon steps back to regain reach after a short-weapon counter")
