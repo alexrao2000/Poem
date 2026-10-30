@@ -32,6 +32,8 @@ Campaign menus now adapt to shorter windows. The council keeps deployment and na
 
 Staff actions now use the shared 3D cutaway when battle animations are enabled, with upright cast poses, crown-to-ally light, grounded recovery rings and rising HP on contact. Mounted targets, repeated input, map-only preferences, early/mid-cast skip and calm-score restoration are covered without changing resolved health, XP, support or RNG. Tonics retain their field feedback.
 
+Critical hits now use an eye-level portrait strip with measured focus points for all 24 recruits and eight enemy classes, mirrored enemy placement, moving background streaks and an original short air/chime cue. All 96 portrait layouts, both entrance directions, readable calls, battle integration and skip cleanup are checked; source portrait sheets and combat results remain unchanged.
+
 The last delivered local browser/macOS checkpoint passed all 33 automated suites, five complete campaign simulations (60 chapter victories), model-catalog validation and an exported-resource-pack smoke check. These are runtime, geometry and layout checks, not a rendered review of the latest game. Full human balance and listening reviews remain outstanding. Routine non-destructive commits and private pushes are authorized.
 
 The user explicitly allowed local browser testing, but the subsequent tool retry still returned a saved/managed permission denial. Localhost, the Quaternius asset site and native Codex access were blocked. Do not circumvent these denials with another browser surface, native game capture, raw browser/CDP access or alternate asset hosts. No Quaternius models have been acquired. Earlier screenshots and another chat's native workshop captures do not verify the current campaign visuals.

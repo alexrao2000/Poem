@@ -4,7 +4,21 @@ const ENEMY_CLASSES=["Vanguard","Knight","Ranger","Arcanist","Warden","Rider","C
 var textures: Dictionary={}
 var sprite_textures: Dictionary={}
 var dialogue_regions=JSON.parse_string(FileAccess.get_file_as_string("res://data/dialogue_portraits.json"))
+var critical_focus=JSON.parse_string(FileAccess.get_file_as_string("res://data/critical_portraits.json"))
 var regions=JSON.parse_string(FileAccess.get_file_as_string("res://data/sprite_regions.json"))
+
+func get_critical_portrait(unit: Dictionary) -> Texture2D:
+ var identity="enemy."+unit.job if unit.get("team","player")=="enemy" else unit.id
+ var key="critical."+identity
+ if textures.has(key):return textures[key]
+ var portrait=get_unit_portrait(unit)
+ if portrait==null:return null
+ var focus=critical_focus.get(identity,[.66,.28]);var dimensions=portrait.get_size()
+ var extent=dimensions*Vector2(.60,.22)
+ var point=Vector2(focus[0],focus[1])*dimensions
+ var corner=(point-extent*.5).clamp(Vector2.ZERO,dimensions-extent)
+ var texture=AtlasTexture.new();texture.atlas=portrait;texture.region=Rect2(corner,extent);texture.filter_clip=true
+ textures[key]=texture;return texture
 
 func get_dialogue_portrait(id: String) -> Texture2D:
  var key="dialogue."+id

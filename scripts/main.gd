@@ -149,7 +149,7 @@ func setup_audio():
 	score.set_sync_stream_volume(1,-60)
 	music.stream=score
 	add_child(music)
-	for effect in ["select","swing","hit","critical","heal","magic","phase","guard"]:
+	for effect in ["select","swing","hit","critical","heal","magic","phase","guard","cutin"]:
 		sfx_streams[effect]=load("res://assets/audio/"+effect+".wav")
 	for i in range(6):
 		var player=AudioStreamPlayer.new();player.volume_db=-12;sfx_players.append(player);add_child(player)
@@ -1381,7 +1381,8 @@ func critical_cutin(unit: Dictionary):
 	if skip_combat:return
 	var cutin=CriticalCutin.new()
 	var quote=fighters.profiles.get(unit.id,{}).get("critical_quote","Stand aside!")
-	cutin.configure(ui,unit,portraits.get_unit_portrait(unit),quote)
+	cutin.configure(ui,unit,portraits.get_critical_portrait(unit),quote)
+	play_sfx("cutin")
 	await cutin.play(func():return skip_combat,unit.team=="enemy")
 	cutin.queue_free()
 
