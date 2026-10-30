@@ -76,10 +76,12 @@ func run():
  var walker=make_actor()
  var advance=walker.pose("advance",.04)
  walker.position.z-=.3;walker._process(.07)
+ assert(is_zero_approx(walker.bone("LeftLeg").rotation.x),"Approach retains the starting stance before its blend advances")
+ await advance.finished;walker._process(0)
  var gait=walker.bone("LeftLeg").rotation.x
- assert(absf(gait)>.2,"Approach has an actual stride")
- await advance.finished
- assert(is_equal_approx(walker.bone("LeftLeg").rotation.x,gait),"Pose tween cannot overwrite locomotion joints")
+ assert(absf(gait)>.2,"The completed entry blend has an actual distance-driven stride")
+ walker._process(.07)
+ assert(is_equal_approx(walker.bone("LeftLeg").rotation.x,gait),"Stationary pose processing cannot overwrite locomotion joints")
  await walker.pose("idle",.01).finished
  assert(is_equal_approx(walker.bone("LeftLeg").rotation.x,-.14),"Idle owns legs after locomotion ends")
  await walker.pose("windup",.01).finished

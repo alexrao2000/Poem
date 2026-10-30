@@ -600,3 +600,10 @@ One cached 1024 × 512 texture feeds [ProceduralSkyMaterial.sky_cover](https://d
 The former oval beard blocked all three sampled mouth rays for Dax, Galen and Hale. Original closed beard shells now frame a real mouth opening beneath the nose, with raised cheek/chin relief and separate full/long lower silhouettes. Galen uses the longer shape from his portrait; the other recruits and generic bearded enemies use the full shape. Each replaces the prior single mesh at the same head attachment, preserving palette, animation and batching.
 
 Standalone shell silhouettes were inspected. Checks cover all 120 triangles per variant, closed consistently oriented edges, lip/nose clearance through actual geometry, shared caches, default fallback and real recruit attachments after outline processing. Full-roster counts remain 1,780 rigid sources / 1,021 joint batches plus three dynamic rein meshes. Assembled face rendering remains unreviewed.
+
+
+## Infantry approach blending
+
+Beginning an infantry approach previously replaced the current leg angles immediately; a sampled critical-preparation-to-travel transition jumped the hip by 0.775 radians before any travel occurred. Infantry now capture their current hip/knee angles and ease into the distance-driven stride over the existing 200 ms approach preparation. Weapon poses regain ownership through their existing transitions. This changes neither travel duration nor the signed-distance gait/contact schedule.
+
+Checks cover every infantry recruit's exact first-frame stance, gradual entry, complete stride ownership, grounded boot geometry throughout entry and stopping, stationary/reverse movement, frame subdivision and real approach interruption. This is transition smoothing, not horizontal foot locking or authored motion capture. Rendered motion review remains pending.

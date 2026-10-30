@@ -19,6 +19,8 @@ var pose_name = "idle"
 var elapsed = 0.0
 var gait_phase=0.0
 var mounted_gait_weight=0.0
+var infantry_gait_weight=0.0
+var infantry_gait_start={}
 var travel_previous=Vector3.ZERO
 var travel_direction=Vector3.ZERO
 var pose_tween: Tween
@@ -91,8 +93,8 @@ func update_locomotion():
   if bones.has("Horse"):ground_mount()
  else:
   var gait=sin(gait_phase)*.55
-  bones.LeftLeg.rotation.x=gait;bones.RightLeg.rotation.x=-gait
-  bones.LeftKnee.rotation.x=-maxf(0,-gait)*.75;bones.RightKnee.rotation.x=-maxf(0,gait)*.75
+  var target={"LeftLeg":gait,"RightLeg":-gait,"LeftKnee":-maxf(0,-gait)*.75,"RightKnee":-maxf(0,gait)*.75}
+  for key in target:bones[key].rotation.x=lerpf(infantry_gait_start.get(key,target[key]),target[key],infantry_gait_weight)
   if grounded_stance:ground_infantry()
 
  for contact in range(crossings):
@@ -229,7 +231,11 @@ func pose(key: String,duration=.18) -> Tween:
  if pose_tween and pose_tween.is_valid():pose_tween.kill()
  if bones.has("Weapon") and key not in ["throw","throw_windup","critical_throw_windup","recover"]:bones.Weapon.visible=true
  if bones.has("NockedArrow") and key in ["idle","advance","windup","critical_windup"]:bones.NockedArrow.visible=true
- if key=="advance":travel_previous=global_position
+ if key=="advance":
+  travel_previous=global_position
+  if not mounted:
+   infantry_gait_weight=0.0
+   for joint_name in ["LeftLeg","RightLeg","LeftKnee","RightKnee"]:infantry_gait_start[joint_name]=bones[joint_name].rotation.x
  pose_name=key
  face_blink.begin_pose(key)
  var target={
@@ -382,6 +388,7 @@ func pose(key: String,duration=.18) -> Tween:
  if key in ["strike","throw"]:pose_tween.set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_IN)
  elif key in ["hit","critical_hit"]:pose_tween.set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_OUT)
  if mounted:pose_tween.tween_property(self,"mounted_gait_weight",1.0 if key=="advance" else 0.0,duration)
+ else:pose_tween.tween_property(self,"infantry_gait_weight",1.0 if key=="advance" else 0.0,duration)
  if bones.has("Shield"):pose_tween.tween_property(self,"guard_weight",1.0 if key=="guard" else 0.0,duration)
  if kind=="bow":pose_tween.tween_property(self,"bow_draw",1.0 if key in ["windup","critical_windup"] else 0.0,duration)
  if kind=="bow":pose_tween.tween_property(self,"bow_hand_weight",1.0 if key in ["idle","advance","windup","critical_windup"] else 0.0,duration)

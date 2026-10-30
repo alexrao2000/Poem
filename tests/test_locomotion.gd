@@ -65,6 +65,7 @@ func run():
   if actor.mounted:
    assert(bent.all(func(value):return value),"Both front knees and hind hocks flex through the travelled stride")
    verify_gait_entry(actor)
+  else:verify_infantry_entry(actor)
   await actor.pose("windup",.001).finished
   var rotation=actor.bones.LeftLeg.rotation;actor.position.x+=.2;actor._process(.02)
   assert(actor.bones.LeftLeg.rotation.is_equal_approx(rotation),"Combat poses reclaim locomotion joints")
@@ -109,8 +110,25 @@ func run():
  assert(stopped!=null and stopped.pose_name=="advance" and stopped.position.distance_to(interrupted_position)<.1,"Tab kills the actual travel tween before preparation begins")
  assert(not app.stage.visible and app.camera.transform.is_equal_approx(camera) and app.game.save_data("battle")==saved,"Interrupted approach restores the tactical view without changing campaign state")
  await Shutdown.dispose(app);await process_frame
- print("PASS: ",samples," roster travel samples, planted actual boot geometry through 2,184 infantry transition samples, articulated mounted knees with smooth entry/settling and living/defeated saddle/hoof/stirrup contact, stationary/pose isolation, reversed travel, frame-independent stride/contacts, silent stationary/hidden poses and real Tab interruption")
+ print("PASS: ",samples," roster travel samples, planted actual boot geometry through 2,184 infantry transition samples, smooth infantry entry from an active pose, articulated mounted knees with smooth entry/settling and living/defeated saddle/hoof/stirrup contact, stationary/pose isolation, reversed travel, frame-independent stride/contacts, silent stationary/hidden poses and real Tab interruption")
  quit()
+
+func verify_infantry_entry(actor):
+ actor.pose("critical_windup",1).custom_step(1);actor.gait_phase=.8
+ var prior={}
+ for key in ["LeftLeg","RightLeg","LeftKnee","RightKnee"]:prior[key]=actor.bones[key].rotation
+ var motion=actor.pose("advance",.2);actor._process(0)
+ for key in prior:assert(actor.bones[key].rotation.is_equal_approx(prior[key]),"Beginning infantry travel preserves the previous hip/knee stance without a first-frame snap")
+ motion.custom_step(.05);actor._process(0)
+ for key in prior:assert(actor.bones[key].rotation.distance_to(prior[key])<.14,"The first quarter of the approach eases into the returning stride")
+ assert(lowest_boot(actor)>=-.001 and lowest_boot(actor)<.025,"Blend into travel keeps the actual supporting boot on the arena floor")
+ motion.custom_step(.15);actor._process(0)
+ assert(actor.infantry_gait_weight==1 and actor.bones.LeftLeg.rotation.distance_to(prior.LeftLeg)>.6,"The complete distance-driven stride takes ownership after preparation")
+ var stopping=actor.pose("windup",.2)
+ for step in range(4):
+  stopping.custom_step(.05);actor.apply_constraints()
+  assert(lowest_boot(actor)>=-.001 and lowest_boot(actor)<.025,"Stopping from the blended stride retains ground contact throughout the attack preparation")
+ assert(actor.infantry_gait_weight==0,"Weapon preparation releases locomotion blending")
 
 func verify_gait_entry(actor):
  actor.pose("idle",1).custom_step(1);actor.gait_phase=.8
