@@ -396,3 +396,7 @@ A separate registered Horse root preserves the body, head, tail and leg hierarch
 Tests exercise all thirteen equipped melee items in both directions, match the sampled tip to actual source vertices, preserve world positions under transformed parents, verify geometry limits and cleanup, and observe the real cinematic beginning the ribbon during its strike. Normal/accelerated exchanges retain their outcomes. Authored rigs can provide optional `trail_inner`/`trail_tip` sockets; missing or coincident endpoints retain the earlier painted contact-accent fallback. Rendered effect review remains pending.
 
 Forecast damage keeps its large numeral and adds a separate small green ×2 badge when the rules grant a follow-up. The badge is absent for an unavailable counter; both elements are centered together inside their damage column.
+
+## Grounded approach dust
+
+Combat foot/hoof contacts create a bounded pair or trio of soft, non-additive billboards. Their origin comes from the animated sole ellipsoid instead of the actor center and survives joint mesh batching. Signed travel determines drift even during retreat. Soft ground uses muted tan, hard ground a fainter gray, and wooden decks no dust. The puffs remain below the knees, retain depth testing, fade over 300 ms and release when the arena hides; no gameplay random stream is used. Effects muting changes audio only. Geometry and a real muted cinematic are tested; rendered appearance remains pending.

@@ -14,6 +14,7 @@ var pose_name = "idle"
 var elapsed = 0.0
 var gait_phase=0.0
 var travel_previous=Vector3.ZERO
+var travel_direction=Vector3.ZERO
 var pose_tween: Tween
 var facing = 1.0
 var weapon_aim=0.0
@@ -61,7 +62,10 @@ func face_opponent(other: Node3D):
 
 ## Signed ground travel drives forward and backward steps at any frame rate.
 func update_locomotion():
- var travelled=(global_position-travel_previous).dot(-global_basis.z.normalized())
+ var displacement=global_position-travel_previous
+ displacement.y=0
+ if displacement.length_squared()>.00000001:travel_direction=displacement.normalized()
+ var travelled=displacement.dot(-global_basis.z.normalized())
  travel_previous=global_position
  var next_phase=gait_phase+travelled*TAU/(2.8 if mounted else 1.6)
  # Alternate contacts at each stride extremum, including reversed travel.
@@ -85,6 +89,21 @@ func update_locomotion():
 
  for contact in range(crossings):
   travel_contact.emit(contact_index);contact_index+=1
+
+## Analytic lowest point of the animated sole, independent of mesh batching.
+func ground_contact_position() -> Vector3:
+ var lowest=Vector3(0,INF,0)
+ var joints=[bones.LeftKnee,bones.RightKnee]
+ var center=Vector3(0,-.38,-.07);var radii=Vector3(.09,.075,.145)
+ if mounted:
+  joints=[bones.HorseLeg0,bones.HorseLeg1,bones.HorseLeg2,bones.HorseLeg3]
+  center=Mount.HOOF_CENTER;radii=Mount.HOOF_RADII
+ for joint in joints:
+  var axes=joint.global_basis.scaled_local(radii)
+  var extent=Vector3(axes.x.y,axes.y.y,axes.z.y).length()
+  var point=joint.to_global(center)-(axes.x*axes.x.y+axes.y*axes.y.y+axes.z*axes.z.y)/maxf(extent,.00001)
+  if point.y<lowest.y:lowest=point
+ return lowest
 
 func ground_mount():
  support_height=mount_stance_height()

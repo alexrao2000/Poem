@@ -851,7 +851,10 @@ func cinematic(a,b,events,initial_hp={}):
 		var combatant=pair[0];var job=pair[1].job
 		if combatant.has_signal("travel_contact"):
 			combatant.travel_contact.connect(func(index):
-				if stage.visible and not skip_combat:travel_audio.step(contact_terrain,job,index,arena_context.environment))
+				if not stage.visible or skip_combat:return
+				travel_audio.step(contact_terrain,job,index,arena_context.environment)
+				if combatant.has_method("ground_contact_position"):
+					preload("res://scripts/combat_dust.gd").spawn(stage,combatant.ground_contact_position(),combatant.travel_direction,job=="Rider",travel_audio.surface_for(contact_terrain,arena_context.environment),index))
 	if actor.has_method("face_opponent"):actor.face_opponent(defender)
 	if defender.has_method("face_opponent"):defender.face_opponent(actor)
 	var director=CombatCamera.new();stage.add_child(director);director.configure(camera)

@@ -43,6 +43,14 @@ func run():
      else:
       verify_mounted_geometry(actor)
       assert(is_equal_approx(actor.bones.LeftLeg.rotation.x,.85) and is_equal_approx(actor.bones.RightKnee.rotation.x,-1.25),"Distance-driven horse gait leaves the rider seated")
+     var contact=actor.ground_contact_position()
+     assert(absf(contact.y-actor.global_position.y)<.0001,"Analytic contact lies on the arena floor for every animated boot/hoof sample")
+     var pieces=actor.find_children("Hoof" if actor.mounted else "Boot","MeshInstance3D",true,false)
+     var nearest=INF
+     for piece in pieces:
+      for vertex in piece.mesh.surface_get_arrays(0)[Mesh.ARRAY_VERTEX]:nearest=minf(nearest,contact.distance_to(piece.to_global(vertex)))
+     assert(nearest<.035,"Ground contact remains on the actual sole geometry in either facing and travel direction")
+     assert(actor.travel_direction.dot(-actor.global_basis.z*direction)>.999,"Dust direction follows real forward or backward movement")
      samples+=1
     var phase=actor.gait_phase;var key="HorseLeg0" if actor.mounted else "LeftLeg"
     var settled=actor.bones[key].rotation
