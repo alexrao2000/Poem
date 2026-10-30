@@ -134,7 +134,8 @@ func build(parent,u,p) -> Node3D:
    shield.rotation.x=PI/2;shield.scale=Vector3(.8,1,1.3)
    geo.block(elbow,Vector3(-.04,-.16,-.22),Vector3(.055,.45,.025),gold)
  geo.cylinder(body,Vector3(0,.53,0),.15,.075,skin)
- var head=joint(body,"Head",Vector3(0,.69,0));head.scale=Vector3(.86,.83,.86);actor.register_bone("Head",head)
+ var gaze=joint(body,"Gaze",Vector3(0,.69,0));actor.register_bone("Gaze",gaze)
+ var head=joint(gaze,"Head",Vector3.ZERO);head.scale=Vector3(.86,.83,.86);actor.register_bone("Head",head);actor.gaze_motion.bind(actor)
  var head_skin=geo.mesh(head,Head.mesh(),Vector3.ZERO,Vector3.ONE,geo.material(skin));head_skin.name="SculptedHead"
  for x in [-.14,.14]:ellipsoid(head,Vector3(x,-.015,0),Vector3(.025,.05,.025),skin)
  if heavy and u.team!="player":

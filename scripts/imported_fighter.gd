@@ -59,4 +59,5 @@ func pose(key: String,duration=.18) -> Tween:
 
 func socket_position(key: String) -> Vector3:
  if sockets.has(key):return sockets[key].global_position
+ if key=="gaze":return socket_position("impact")+Vector3.UP*.55
  return global_position+Vector3(0,1.2 if key=="projectile" else 1.1,0)

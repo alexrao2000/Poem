@@ -39,6 +39,7 @@ func run():
  var actor=models.build(world,unit,Vector3(3,0,0));assert(actor!=null and actor.kind=="sword")
  assert(actor.model.scale==Vector3.ONE*2 and is_equal_approx(actor.model.rotation.y,PI/2))
  assert(actor.socket_position("impact").is_equal_approx(Vector3(3,2.1,0)),"Model transform applies to effect sockets")
+ assert(actor.socket_position("gaze").is_equal_approx(actor.socket_position("impact")+Vector3.UP*.55),"Authored models without an eye socket retain a sensible gaze fallback")
  await actor.pose("windup",.05).finished
  assert(actor.model.get_node("Hand").position.is_equal_approx(Vector3(0,.8,0)),"Windup ends at the authored attack split")
  assert(not actor.player.is_playing(),"Non-looping poses hold instead of resetting")

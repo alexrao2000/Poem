@@ -825,6 +825,8 @@ func cinematic(a,b,events,initial_hp={}):
 	var spacing=2.0 if ranged else 1.6
 	var actor=make_fighter(a,Vector3(35-spacing,0,0));var defender=make_fighter(b,Vector3(35+spacing,0,0))
 	actor.rotation.y=-PI/2;defender.rotation.y=PI/2
+	if actor.has_method("face_opponent"):actor.face_opponent(defender)
+	if defender.has_method("face_opponent"):defender.face_opponent(actor)
 	var director=CombatCamera.new();stage.add_child(director);director.configure(camera)
 	var mounted=a.job=="Rider" or b.job=="Rider"
 	director.establish(actor.position,defender.position,ranged,mounted)

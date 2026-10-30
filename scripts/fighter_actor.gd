@@ -24,6 +24,7 @@ var bow_hand_weight=0.0
 var cape_motion=preload("res://scripts/cape_motion.gd").new()
 var face_blink=preload("res://scripts/face_blink.gd").new()
 var hair_motion=preload("res://scripts/hair_motion.gd").new()
+var gaze_motion=preload("res://scripts/gaze_motion.gd").new()
 
 func register_bone(key: String,node: Node3D):
  bones[key]=node
@@ -55,6 +56,10 @@ func _process(dt):
    bones.LeftLeg.rotation.x=gait;bones.RightLeg.rotation.x=-gait
    bones.LeftKnee.rotation.x=-maxf(0,-gait)*.75;bones.RightKnee.rotation.x=-maxf(0,gait)*.75
  apply_constraints()
+ gaze_motion.update(pose_name,dt)
+
+func face_opponent(other: Node3D):
+ gaze_motion.face_opponent(other)
 
 func apply_constraints():
  if kind=="magic" and pose_name!="down" and bones.has("Weapon"):
@@ -270,6 +275,7 @@ func pose(key: String,duration=.18) -> Tween:
  return pose_tween
 
 func socket_position(key: String) -> Vector3:
+ if key=="gaze" and bones.has("Head"):return bones.Head.global_position
  if key=="projectile" and kind=="magic" and bones.has("RightHand"):return bones.RightHand.to_global(Vector3(0,0,-.10))
  if key=="projectile" and kind=="staff" and bones.has("Weapon"):return bones.Weapon.to_global(Vector3(0,.78,0))
  if key=="projectile" and kind=="bow" and bones.has("NockedArrow"):return bones.NockedArrow.global_position
