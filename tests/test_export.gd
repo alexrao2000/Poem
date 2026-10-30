@@ -17,6 +17,12 @@ func run():
   assert(app.unit_nodes.size()==app.game.units.size(),"Packaged maps instantiate every living actor")
   for actor in app.unit_nodes.values():assert(actor.sprite.texture!=null and actor.player.asset.clips.has("move"),"Packaged actors have atlas frames and animations")
  app.show_credits();await process_frame;assert(app.screen=="credits")
+ for path in app.game.promotions:
+  var unit=app.game.roster.filter(func(value):return value.job==path.base)[0].duplicate(true)
+  unit.team="player";unit.promotion=path.id
+  var actor=app.make_fighter(unit,Vector3(35,0,0))
+  assert(actor.get_meta("promotion_look","")==path.id,"Release includes every promotion costume profile and constructor")
+  actor.queue_free();await process_frame
  app.queue_free();await process_frame
- print("PASS: exported catalog, all three act score pairs and chapter scenes, orchestral metadata, licenses and credits screen")
+ print("PASS: exported catalog, all three act scores, chapter scenes, sixteen promotion costumes, licenses and credits")
  quit()

@@ -42,8 +42,10 @@ func verify_themes(app):
  app.music.play();var stable=app.score
  app.game.chapter=5;app.select_score_theme()
  assert(app.score==stable and app.music.stream==stable and director.outgoing==null,"Moving within the same act cannot replace/restart its active pair")
+ var old_player=app.music;var old_playback=old_player.get_stream_playback()
  app.game.chapter=8;app.select_score_theme()
- assert(app.score!=stable and app.music.stream==app.score and director.outgoing.stream==stable,"Changing act retains one fading copy of the old pair")
+ assert(app.score!=stable and app.music.stream==app.score and director.outgoing.stream==stable,"Changing act retains the fading old pair")
+ assert(director.outgoing==old_player and director.outgoing.get_stream_playback()==old_playback,"Act changes keep the actual outgoing decoder/playhead instead of restarting a duplicate")
  app.music_mix(true);await create_timer(.5).timeout;await process_frame
  assert(director.outgoing==null and is_equal_approx(app.music.volume_db,app.preferences.volume_db("music")),"Act crossfade cleans up and restores the configured volume")
  assert(absf(app.score.get_sync_stream_volume(1))<.01 and app.score.get_sync_stream_volume(0)<-50,"A combat transition during an act fade still reaches the new Ablaze arrangement")

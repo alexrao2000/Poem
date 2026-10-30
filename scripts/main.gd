@@ -88,6 +88,7 @@ var skip_combat = false
 var show_danger = false
 var preview_actor: Node3D
 var preview_unit: Dictionary
+var preview_return=Callable()
 var reward_panel: PanelContainer
 var reward_skip=false
 var transfer_text: TextEdit
@@ -154,7 +155,7 @@ func play_sfx(effect: String):
 func select_score_theme():
 	if score_director.current_id==score_director.profile_for(game.chapter).id:return
 	if music_transition and music_transition.is_valid():music_transition.kill()
-	score_director.select_chapter(game.chapter);score=score_director.score
+	score_director.select_chapter(game.chapter);score=score_director.score;music=score_director.player
 
 func music_mix(battle: bool):
 	if music_transition and music_transition.is_valid():music_transition.kill()
@@ -1046,8 +1047,8 @@ func show_equipment(unit):
 	button_in(panel,"Return to company record",func():show_dossier(unit))
 	button_in(panel,"Return to war council",show_camp)
 
-func show_model_view(unit):
-	screen="model";preview_unit=unit;reset_ui()
+func show_model_view(unit,on_close=Callable()):
+	screen="model";preview_unit=unit;preview_return=on_close;reset_ui()
 	for child in stage.get_children():stage.remove_child(child);child.queue_free()
 	world.hide();pieces.hide();markers.hide();stage.show()
 	scenery.battle_landscape(stage,Vector3(35,0,0),{"environment":game.info().get("environment","village")})
@@ -1056,7 +1057,7 @@ func show_model_view(unit):
 	camera.projection=Camera3D.PROJECTION_PERSPECTIVE;camera.h_offset=-.25;camera.fov=35
 	camera.position=Vector3(35,1.4,4.7 if unit.job!="Rider" else 6.5);camera.look_at(Vector3(35,1.05,0))
 	var panel=menu_panel(310,true)
-	label_in(panel,"COMPANY / COMBAT MODEL",15,GOLD);label_in(panel,unit.name,38)
+	label_in(panel,"TRAINING / OUTFIT PREVIEW" if preview_return.is_valid() else "COMPANY / COMBAT MODEL",15,GOLD);label_in(panel,unit.name,38)
 	var portrait=TextureRect.new();portrait.texture=portraits.get_portrait(unit.id)
 	var size_portrait=func():portrait.custom_minimum_size=Vector2(220,150 if ui.size.y<760 else 220)
 	ui.resized.connect(size_portrait);size_portrait.call()
@@ -1068,10 +1069,13 @@ func show_model_view(unit):
 	button_in(panel,"Ready",func():preview_actor.pose("idle"))
 	button_in(panel,"Windup",func():preview_actor.pose("windup"))
 	button_in(panel,"Strike",func():preview_actor.pose("strike"))
-	button_in(panel,"Return to record [Esc]",close_model_view)
+	button_in(panel,"Return to training [Esc]" if preview_return.is_valid() else "Return to record [Esc]",close_model_view)
 
 func close_model_view():
-	make_map();show_dossier(preview_unit)
+	var return_action=preview_return;preview_return=Callable()
+	make_map()
+	if return_action.is_valid():return_action.call()
+	else:show_dossier(preview_unit)
 
 func show_progress(before: Dictionary):
 	for change in game.progress_since(before):
@@ -1165,6 +1169,9 @@ func confirm_promotion(unit,path):
 			show_notice("Training complete. Campaign saved." if persist_campaign("camp",false) else "Training complete. Save failed; keep the game open and try saving again.")
 		else:show_promotions(unit))
 	button_in(frame,"Keep considering",func():show_promotions(unit))
+	button_in(frame,"Preview outfit",func():
+		var preview=unit.duplicate(true);preview.promotion=path.id
+		show_model_view(preview,func():confirm_promotion(unit,path)))
 
 func show_supports(unit):
 	screen="supports";reset_ui()

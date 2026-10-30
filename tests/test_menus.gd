@@ -63,6 +63,12 @@ func run():
 				app.confirm_promotion(unit,path);await inspect(app,dimensions)
 		app.show_model_view(app.game.roster[0]);await inspect(app,dimensions)
 		app.close_model_view()
+		for job in ["Vanguard","Ranger","Rider"]:
+			var unit=app.game.roster.filter(func(value):return value.job==job)[0]
+			for path in app.game.promotion_options(unit):
+				var preview=unit.duplicate(true);preview.promotion=path.id
+				app.show_model_view(preview,func():app.confirm_promotion(unit,path));await inspect(app,dimensions)
+				app.close_model_view();await inspect(app,dimensions)
 		app.game.chapter=0;app.game.start_battle()
 		for unit in app.game.living("enemy"):unit.hp=0
 		assert(await app.check_result());await inspect(app,dimensions)

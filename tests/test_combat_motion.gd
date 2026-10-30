@@ -35,15 +35,18 @@ func run():
  var other=make_actor();other.process_mode=Node.PROCESS_MODE_ALWAYS
  var free_motion=Node3D.new();root.add_child(free_motion)
  var drift=free_motion.create_tween();drift.tween_property(free_motion,"position:x",1.0,.3)
- held.pose("hit",.3);await create_timer(.04).timeout
+ held.pose("hit",.3).custom_step(.04);drift.custom_step(.04)
  var hold=HitStop.new();root.add_child(hold);hold.play([held,other,held],.15)
+ # Inspect frozen actors across real frames without racing a short expiry.
+ # Automatic restoration is exercised separately below with an active timer.
+ hold.motion.pause()
  var frozen=held.bone("Body").rotation;var clock=held.elapsed;var outside=free_motion.position.x
- await create_timer(.06).timeout
+ for frame in range(3):await process_frame
  assert(held.bone("Body").rotation==frozen and held.elapsed==clock,"Hit stop freezes pose tweens and procedural breathing")
  assert(free_motion.position.x>outside and Engine.time_scale==1.0,"Camera/effects and the shared clock continue during local hit stop")
  hold.queue_free();await process_frame
  assert(held.process_mode==Node.PROCESS_MODE_INHERIT and other.process_mode==Node.PROCESS_MODE_ALWAYS,"Early cleanup restores each actor's original processing mode")
- await create_timer(.04).timeout
+ for frame in range(3):await process_frame
  assert(held.elapsed>clock and held.bone("Body").rotation!=frozen,"Pose motion resumes after cancellation")
  hold=HitStop.new();root.add_child(hold)
  await hold.play([held,other],.02).finished

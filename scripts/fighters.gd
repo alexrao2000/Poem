@@ -9,6 +9,7 @@ const EnemyHeadgear=preload("res://scripts/enemy_headgear.gd")
 const WeaponBlades=preload("res://scripts/weapon_blades.gd")
 const Projectile=preload("res://scripts/combat_projectile.gd")
 const Outline=preload("res://scripts/character_outline.gd")
+const PromotionCostume=preload("res://scripts/promotion_costume.gd")
 var profiles=JSON.parse_string(FileAccess.get_file_as_string("res://data/characters.json"))
 var surface_atlas=load("res://assets/art/character-materials.png")
 var surface_shader=preload("res://assets/shaders/character.gdshader")
@@ -144,6 +145,7 @@ func build(parent,u,p) -> Node3D:
    actor.bones[name_value].position.y+=.75
    actor.rest[name_value].position=actor.bones[name_value].position
   Mount.build(self,actor,u.id,blue,gold,leather)
+ PromotionCostume.build(self,actor,u,torso,blue,cape_color,steel,gold,leather)
  apply_surfaces(actor,blue,tint,skin,steel,gold,leather,cape_color)
  if batching_enabled:batch_rig(actor)
  else:Outline.apply(actor)

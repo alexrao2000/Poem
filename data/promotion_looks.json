@@ -1,0 +1,18 @@
+{
+  "standard_bearer": {"base":"Vanguard", "mantle":0.33, "tabard":0.62, "plates":1, "plate_radius":0.145, "emblem":"diamond"},
+  "dawnblade": {"base":"Vanguard", "sash":0.61, "mantle":0.25, "emblem":"sun"},
+  "bastion": {"base":"Knight", "plates":3, "plate_radius":0.20, "shield_rim":true, "tabard":0.48, "emblem":"diamond"},
+  "sentinel": {"base":"Knight", "plates":1, "plate_radius":0.18, "sash":0.38, "emblem":"sun"},
+  "sharpshooter": {"base":"Ranger", "mantle":0.29, "bracers":true, "emblem":"diamond"},
+  "pathfinder": {"base":"Ranger", "mantle":0.35, "sash":0.44, "satchel":true},
+  "star_sage": {"base":"Arcanist", "mantle":0.32, "stole":0.70, "emblem":"star"},
+  "spellwarden": {"base":"Arcanist", "plates":2, "plate_radius":0.145, "stole":0.49, "bracers":true},
+  "luminary": {"base":"Warden", "mantle":0.34, "stole":0.75, "emblem":"sun"},
+  "wayfarer": {"base":"Warden", "mantle":0.28, "sash":0.42, "satchel":true},
+  "outrider": {"base":"Rider", "plates":1, "plate_radius":0.14, "one_shoulder":true, "sash":0.48},
+  "iron_lancer": {"base":"Rider", "plates":3, "plate_radius":0.175, "tabard":0.44, "bracers":true, "emblem":"diamond"},
+  "stormbreaker": {"base":"Corsair", "plates":3, "plate_radius":0.19, "one_shoulder":true, "crossbelt":true},
+  "trailguard": {"base":"Corsair", "plates":2, "plate_radius":0.14, "bracers":true, "tabard":0.39},
+  "sword_dancer": {"base":"Duelist", "mantle":0.24, "sash":0.68, "emblem":"sun"},
+  "oathkeeper": {"base":"Duelist", "plates":2, "plate_radius":0.15, "tabard":0.57, "emblem":"diamond"}
+}

@@ -38,11 +38,14 @@ func cancel_fade():
 func select_chapter(chapter: int) -> bool:
  var profile=profile_for(chapter)
  if current_id==profile.id:return false
- var playing=player.playing;var previous=player.stream;var offset=player.get_playback_position();var previous_volume=player.volume_db
+ var playing=player.playing;var previous_volume=player.volume_db
  cancel_fade()
- if playing and previous!=null:
-  outgoing=AudioStreamPlayer.new();outgoing.name="OutgoingScore";outgoing.playback_type=AudioServer.PLAYBACK_TYPE_STREAM
-  outgoing.stream=previous;outgoing.volume_db=previous_volume;add_child(outgoing);outgoing.play(offset)
+ if playing:
+  # Keep the actual old playhead running; recreating it would seek/restart the
+  # decoder and briefly overlap a duplicate while the next score loads.
+  outgoing=player;outgoing.name="OutgoingScore"
+  player=AudioStreamPlayer.new();player.name="CampaignScore"
+  player.playback_type=AudioServer.PLAYBACK_TYPE_STREAM;add_child(player)
  score=make_pair(profile);current_id=profile.id;player.stream=score;player.volume_db=volume_db
  if playing:
   player.volume_db=-80;player.play()
@@ -52,7 +55,7 @@ func select_chapter(chapter: int) -> bool:
   if is_instance_valid(old):
    fade.tween_method(func(value):old.volume_db=linear_to_db(maxf(value,.0001)),db_to_linear(previous_volume),.0001,.45)
   fade.chain().tween_callback(func():
-   if is_instance_valid(old):old.stop();old.queue_free()
+   if is_instance_valid(old):old.stop();remove_child(old);old.queue_free()
    if outgoing==old:outgoing=null)
  return true
 
