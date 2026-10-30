@@ -619,3 +619,10 @@ Checks cover eight HP totals from 1 to the 999 save cap at four meter widths, fu
 ## Estoc point trail
 
 The estoc's short thrust now leaves a narrow 3.2 cm ribbon centered on its actual tip, perpendicular to the blade. This matches its new point-first motion instead of carrying a broad sword's lengthwise sweep; spears retain their 5 cm tip ribbon. All 26 equipped/facing trail cases check transformed endpoints, exact tip/width alignment, nondegenerate bounded geometry and cleanup. Real cut and thrust exchanges preserve resolved state and own one trail each. Rendered effect review remains pending.
+
+
+## Tapered infantry boots
+
+Infantry now wear an original closed leather boot with a tapered toe, defined flat sole and narrower ankle collar, replacing the oval foot primitive. The shared 80-triangle mesh retains the same overall footwear bounds and existing material/joint attachment. Riders retain their established stirrup-fitted footwear.
+
+Infantry ground support and dust origins now use the actual cached boot vertices under the current leg transforms. This keeps the flat soles on the arena floor through movement and combat instead of treating them as the former ellipsoid. Checks cover closed oriented topology, outward lighting normals, exact support points across pose angles, actual visible-geometry binding, all roster movement/pose samples and preserved rider contacts. The infantry camera aim rises by 5 cm to retain head/caption clearance with the flat sole support; the closer foreground framing stays in place. An isolated front/side mesh study was inspected. Rendered character review remains pending.

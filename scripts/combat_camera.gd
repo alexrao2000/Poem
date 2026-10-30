@@ -15,7 +15,7 @@ func configure(value: Camera3D):
 
 static func frame_pair(attacker: Vector3,defender: Vector3,phase: String,_ranged: bool,mounted=false,weapon="") -> Dictionary:
  var midpoint=(attacker+defender)*.5
- var height=2.75 if mounted else 1.9
+ var height=2.75 if mounted else 2.0
  var separation=attacker.distance_to(defender)
  var distance=maxf(7.35 if mounted else 5.4,separation*1.25)
  var aim=midpoint+Vector3(0,height,0)

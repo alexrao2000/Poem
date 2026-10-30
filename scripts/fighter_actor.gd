@@ -3,6 +3,7 @@ extends Node3D
 # arms lift forward with positive X, knees bend back, and mounted sockets rise.
 # Infantry hips and legs lower together to the lowest ellipsoidal boot sole.
 
+const Boot=preload("res://scripts/infantry_boot.gd")
 const Mount=preload("res://scripts/mount_visuals.gd")
 const PELVIS_CENTER=Vector3(0,-.16,0)
 const PELVIS_RADII=Vector3(.19,.19,.14)
@@ -14,6 +15,7 @@ var kind = "sword"
 var attack_style="slash"
 var trail_edge=PackedVector3Array()
 var mounted = false
+var shaped_boots=false
 var reins: MeshInstance3D
 var pose_name = "idle"
 var elapsed = 0.0
@@ -104,6 +106,11 @@ func ground_contact_position() -> Vector3:
  var lowest=Vector3(0,INF,0)
  var joints=[bones.LeftKnee,bones.RightKnee]
  var center=Vector3(0,-.38,-.07);var radii=Vector3(.09,.075,.145)
+ if shaped_boots:
+  for joint in joints:
+   var point=joint.to_global(center)+Boot.support(joint.global_basis)
+   if point.y<lowest.y:lowest=point
+  return lowest
  if mounted:
   joints=[bones.HorseLeg0,bones.HorseLeg1,bones.HorseLeg2,bones.HorseLeg3]
   center=Mount.HOOF_CENTER;radii=Mount.HOOF_RADII
@@ -220,8 +227,10 @@ func stance_height(target: Dictionary) -> float:
  for side in ["Left","Right"]:
   var leg=Basis.from_euler(target[side+"Leg"]);var knee=leg*Basis.from_euler(target[side+"Knee"])
   var center=rest[side+"Leg"].position+leg*Vector3(0,-.36,0)+knee*Vector3(0,-.38,-.07)
-  var radius=sqrt(pow(knee.x.y*.09,2)+pow(knee.y.y*.075,2)+pow(knee.z.y*.145,2))
-  lowest=minf(lowest,center.y-radius)
+  if shaped_boots:lowest=minf(lowest,center.y+Boot.support(knee).y)
+  else:
+   var radius=sqrt(pow(knee.x.y*.09,2)+pow(knee.y.y*.075,2)+pow(knee.z.y*.145,2))
+   lowest=minf(lowest,center.y-radius)
  return -lowest
 
 func finish_flourish(duration=.22) -> Tween:

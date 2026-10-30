@@ -47,7 +47,7 @@ func build(parent,u,p) -> Node3D:
  var imported=models.build(parent,u,p)
  if imported!=null:return imported
  shading_cache.clear();strand_materials.clear()
- var actor=Actor.new();parent.add_child(actor);actor.position=p;actor.kind=u.weapon
+ var actor=Actor.new();parent.add_child(actor);actor.position=p;actor.kind=u.weapon;actor.shaped_boots=u.job!="Rider"
  actor.attack_style=EquipmentVisuals.profiles[EquipmentVisuals.resolve(u.weapon,str(u.get("item","")))].get("motion","slash")
  actor.trail_edge=EquipmentVisuals.trail_edge(u.weapon,str(u.get("item","")))
  var body=joint(actor,"Body",Vector3(0,1.1,0));actor.register_bone("Body",body)
@@ -111,7 +111,8 @@ func build(parent,u,p) -> Node3D:
   geo.cylinder(knee,Vector3(0,-.04,0),.06,.091,gold if heavy else leather.lightened(.13))
   if not heavy:
    for j in range(3):geo.block(knee,Vector3(0,-.11-j*.065,-.077),Vector3(.10,.012,.014),Color("8e7a61"))
-  var boot=ellipsoid(knee,Vector3(0,-.38,-.07),Vector3(.09,.075,.145),leather);boot.name="Boot"
+  var boot=geo.mesh(knee,Actor.Boot.mesh(),Vector3(0,-.38,-.07),Vector3.ONE,geo.material(leather)) if actor.shaped_boots else ellipsoid(knee,Vector3(0,-.38,-.07),Vector3(.09,.075,.145),leather)
+  boot.name="Boot"
   var arm_name="Arm" if sign_value>0 else "LeftArm"
   var arm=joint(body,arm_name,Vector3(sign_value*(.225 if slender else .27),.4,0));actor.register_bone(arm_name,arm)
   var shoulder_color=steel if armored else blue

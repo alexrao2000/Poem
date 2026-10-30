@@ -26,12 +26,17 @@ func lowest_boot(actor) -> float:
  return lowest
 
 func run():
+ verify_boot_mesh()
  var fighters=Fighters.new();fighters.batching_enabled=false;var game=Rules.new();var state=game.rng.state;var samples=0
  var stage=Node3D.new();root.add_child(stage)
  for entry in game.roster:
   var unit=entry.duplicate(true);unit.team="player"
   var actor=fighters.build(stage,unit,Vector3.ZERO);actor.set_process(false)
   var bent=[false,false]
+  assert(actor.shaped_boots==(not actor.mounted),"Infantry use shaped boots while riders retain their fitted stirrup footwear")
+  if not actor.mounted:
+   for boot in actor.find_children("Boot","MeshInstance3D",true,false):
+    assert(boot.mesh.surface_get_arrays(0)[Mesh.ARRAY_VERTEX]==Fighters.Actor.Boot.mesh().surface_get_arrays(0)[Mesh.ARRAY_VERTEX],"Visible infantry soles use the same source geometry as their ground support")
   for facing in [-PI/2,PI/2]:
    actor.rotation.y=facing
    for direction in [-1,1]:
@@ -110,7 +115,7 @@ func run():
  assert(stopped!=null and stopped.pose_name=="advance" and stopped.position.distance_to(interrupted_position)<.1,"Tab kills the actual travel tween before preparation begins")
  assert(not app.stage.visible and app.camera.transform.is_equal_approx(camera) and app.game.save_data("battle")==saved,"Interrupted approach restores the tactical view without changing campaign state")
  await Shutdown.dispose(app);await process_frame
- print("PASS: ",samples," roster travel samples, planted actual boot geometry through 2,184 infantry transition samples, smooth infantry entry from an active pose, articulated mounted knees with smooth entry/settling and living/defeated saddle/hoof/stirrup contact, stationary/pose isolation, reversed travel, frame-independent stride/contacts, silent stationary/hidden poses and real Tab interruption")
+ print("PASS: ",samples," roster travel samples, closed tapered boot geometry and exact mesh support, planted actual boot geometry through 2,184 infantry transition samples, smooth infantry entry from an active pose, articulated mounted knees with smooth entry/settling and living/defeated saddle/hoof/stirrup contact, stationary/pose isolation, reversed travel, frame-independent stride/contacts, silent stationary/hidden poses and real Tab interruption")
  quit()
 
 func verify_infantry_entry(actor):
@@ -196,3 +201,23 @@ func verify_mounted_geometry(actor):
   var stirrup=actor.bones.Horse.get_node(side+"Stirrup")
   var local=stirrup.to_local(bottom);var box=stirrup.get_aabb()
   assert(absf(local.y-box.end.y)<.003 and local.x>box.position.x and local.x<box.end.x and local.z>box.position.z and local.z<box.end.z,"Actual lowest boot point rests on its stirrup through every mounted pose")
+
+func verify_boot_mesh():
+ var Boot=preload("res://scripts/infantry_boot.gd");var mesh=Boot.mesh()
+ assert(mesh==Boot.mesh(),"Infantry share one cached boot shape")
+ var arrays=mesh.surface_get_arrays(0);var vertices=arrays[Mesh.ARRAY_VERTEX];var indices=arrays[Mesh.ARRAY_INDEX];var normals=arrays[Mesh.ARRAY_NORMAL];var edges={};var orientations={}
+ assert(indices.size()==240 and mesh.get_aabb().size.is_equal_approx(Vector3(.18,.15,.29)),"Tapered boot uses 80 triangles within the previous footwear bounds")
+ for i in range(0,indices.size(),3):
+  var normal=(vertices[indices[i+2]]-vertices[indices[i]]).cross(vertices[indices[i+1]]-vertices[indices[i]])
+  assert(normal.length()>.000001,"Boot has no collapsed sole or ankle faces")
+  for j in range(3):
+   assert(normal.normalized().dot(normals[indices[i+j]])>0,"Boot lighting normals face outward, including the sole crease")
+   var a=str(vertices[indices[i+j]].snapped(Vector3.ONE*.000001));var b=str(vertices[indices[i+(j+1)%3]].snapped(Vector3.ONE*.000001));var key=a+":"+b if a<b else b+":"+a
+   edges[key]=edges.get(key,0)+1;orientations[key]=orientations.get(key,0)+(1 if a<b else -1)
+ for key in edges:assert(edges[key]==2 and orientations[key]==0,"Boot upper, ankle and sole form a closed consistently oriented surface")
+ for pitch in [-1.45,-.7,-.3,0,.3,.7,1.45]:
+  for roll in [-.1,0,.1]:
+   var basis=Basis.from_euler(Vector3(pitch,.4,roll));var contact=Boot.support(basis);var minimum=INF;var distance=INF
+   for vertex in vertices:
+    var point=basis*vertex;minimum=minf(minimum,point.y);distance=minf(distance,point.distance_to(contact))
+   assert(absf(contact.y-minimum)<.000001 and distance<.000001,"Ground support follows an actual lowest shoe vertex at every pose angle")
