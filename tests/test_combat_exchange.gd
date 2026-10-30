@@ -198,7 +198,7 @@ func run():
   a.item=folio
   var saved=app.game.save_data("battle").duplicate(true);var rng=app.game.rng.state
   await app.cinematic(a,b,[{"actor":a.id,"target":b.id,"damage":1,"remaining":19,"hit":true,"crit":false}],{a.id:20,b.id:20})
-  assert(sound_cues==["release_"+folio,"hit"],"Each equipped spell has its distinct launch sound followed by contact")
+  assert(sound_cues==["release_"+folio,"impact_"+folio],"Each equipped spell has its distinct launch sound followed by contact")
   assert(not app.stage.has_node("CombatCharge"),"Completed spell removes the anticipation effect")
   assert(app.game.save_data("battle")==saved and app.game.rng.state==rng,"Folio presentation never changes spell results")
  assert(spells==["ember","gale","thunder"],"Real cinematic carries equipment identity through flight")
@@ -206,6 +206,17 @@ func run():
  assert(gathered==spells,"All three folios gather their own element before release")
  assert(contact_colors.size()==3 and contact_colors[0]!=contact_colors[1] and contact_colors[1]!=contact_colors[2] and contact_colors[0]!=contact_colors[2],"Each element retains a distinct contact color")
  app.stage.child_entered_tree.disconnect(watch_spell)
+ sound_cues.clear();a.item="thunder"
+ var critical_saved=app.game.save_data("battle").duplicate(true);var critical_rng=app.game.rng.state
+ await app.cinematic(a,b,[{"actor":a.id,"target":b.id,"damage":3,"remaining":17,"hit":true,"crit":true}],{a.id:20,b.id:20})
+ assert(sound_cues==["cutin","release_thunder","impact_thunder","critical"],"Actual critical spell keeps its element at contact and adds the existing critical accent")
+ assert(app.game.save_data("battle")==critical_saved and app.game.rng.state==critical_rng)
+ for contact in [{"hit":true,"damage":1,"crit":false},{"hit":true,"damage":3,"crit":true},{"hit":true,"damage":0,"crit":false},{"hit":false,"damage":0,"crit":false}]:
+  sound_cues.clear();contact.merge({"actor":a.id,"target":b.id,"remaining":17})
+  await app.map_combat_feedback([contact])
+  var expected=["swing"] if not contact.hit else ["guard"] if contact.damage<=0 else ["impact_thunder","critical"] if contact.crit else ["impact_thunder"]
+  assert(sound_cues==expected,"Map combat shares elemental damage sounds while preserving guard and miss cues")
+ assert(app.game.save_data("battle")==critical_saved and app.game.rng.state==critical_rng,"Compact elemental feedback never changes the already-resolved result")
  sound_cues.clear();skip_on_charge=true
  var before_skip=app.game.save_data("battle").duplicate(true);var before_rng=app.game.rng.state
  await app.cinematic(a,b,[{"actor":a.id,"target":b.id,"damage":3,"remaining":17,"hit":true,"crit":true}],{a.id:20,b.id:20})

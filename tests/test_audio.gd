@@ -23,6 +23,7 @@ func run():
   assert(stream.get_length()>=.13 and stream.get_length()<=.35)
   assert(not stream.data in release_data,"Each weapon/element owns different audio")
   release_data.append(stream.data)
+ await verify_elemental_contacts(app)
  assert(app.sfx_streams.guard.get_length()>.2 and app.sfx_streams.guard.get_length()<.23,"Guard is a short distinct steel accent")
  assert(app.sfx_streams.cutin.get_length()>.31 and app.sfx_streams.cutin.get_length()<.33,"Portrait cue ends before the strike resumes")
  assert(app.sfx_streams.levelup.get_length()>.71 and app.sfx_streams.levelup.get_length()<.73,"Level-up bell ends within the stat reveal")
@@ -90,3 +91,26 @@ func verify_decoded_loop(stream: AudioStreamWAV):
   assert(difference<.015,"Decoded playhead follows the full composition and wraps only at its end")
  assert(playback.get_playback_position()>.48 and playback.get_playback_position()<.52,"Every arrangement reaches the beginning again after its complete musical loop")
  playback.stop()
+
+func verify_elemental_contacts(app):
+ var caster=app.game.roster.filter(func(unit):return unit.weapon=="magic")[0].duplicate(true)
+ var data=[]
+ for element in ["ember","gale","thunder"]:
+  caster.item=element;var stream=app.sfx_streams["impact_"+element]
+  assert(stream is AudioStreamWAV and stream.mix_rate==22050 and not stream.stereo and stream.loop_mode==AudioStreamWAV.LOOP_DISABLED)
+  assert(stream.get_length()>=.37 and stream.get_length()<=.49 and stream.data!=app.sfx_streams["release_"+element].data and not stream.data in data,"Each contact has a distinct short original nonlooping sample")
+  data.append(stream.data)
+  var playback=stream.instantiate_playback();playback.start()
+  var mixed=playback.mix_audio(1,ceili(stream.get_length()*AudioServer.get_mix_rate())+128)
+  var peak=0.0;var energy=0.0;var dc=0.0
+  for sample in mixed:
+   peak=maxf(peak,absf(sample.x));energy+=sample.x*sample.x;dc+=sample.x
+  assert(peak>.25 and peak<.62 and sqrt(energy/mixed.size())>.025 and sqrt(energy/mixed.size())<.09,"Decoded cues retain transient headroom and a quieter sustained body")
+  assert(absf(dc/mixed.size())<.002 and mixed[-1].length()<.001,"Decoded contact has bounded DC and returns to silence")
+  playback.stop()
+  for hit in [false,true]:
+   for damage in [0,3]:
+    for critical in [false,true]:
+     var expected=[] if not hit else ["guard"] if damage<=0 else ["impact_"+element,"critical"] if critical else ["impact_"+element]
+     assert(app.combat_contact_sounds(caster,{"hit":hit,"damage":damage,"crit":critical})==expected,"Resolved hit/damage/critical state chooses elemental contact without false impacts")
+ assert(app.combat_contact_sounds({}, {"hit":true,"damage":3,"crit":false})==["hit"],"Missing actor data retains a safe generic contact")

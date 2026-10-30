@@ -640,3 +640,10 @@ The face shader selects only the lower mouth region for active combat poses or a
 Confirmed spell damage adds one original spatial mesh at the recipient's floor: seven tapering tongues for Ember (189 triangles), three rising helical ribbons for Gale (186), or a crossed, branched vertical Thunder discharge (38). Their palettes match the existing gathering and flight. Shapes are cached, additive, depth-tested and unshadowed, with no additional lights. Infantry and mounted contact height controls their vertical extent; a 0.46-second growth/fade ends independently of the readable damage number. Misses, guards and unknown spell IDs omit the burst.
 
 The isolated mesh silhouettes were inspected as a static vector study. Checks cover 306 normal/critical animation samples, finite nondegenerate geometry, floor clearance under transformed parents, bounded opacity without repeated flashes, event gating, actual three-folio exchanges and skip cleanup. Combat numbers retain their layout checks and simulation/RNG ownership is unchanged. Rendered in-game effect tuning remains pending.
+
+
+## Elemental contact audio
+
+`scripts/impact_accents.py` synthesizes three original 22,050 Hz mono contact cues: Ember's short low-pressure onset and crackle (0.42 s), Gale's filtered gust and falling resonant edge (0.38 s), and Thunder's single electrical crack with a short inharmonic body (0.48 s). Source peaks are 0.426, 0.388 and 0.539; RMS levels are 0.057, 0.046 and 0.037. Each waveform removes DC and fades to zero without normalizing away their different levels. No samples or motifs from the reference games are used.
+
+Actual equipped folios select these cues at confirmed damaging contact in both arena and compact map feedback. Critical spells layer the existing critical accent; zero damage uses Guard and misses do not play a damage impact. Decoder tests measure headroom, duration and silence, while actual normal/critical/guard/miss exchanges preserve results, saves and RNG. The existing three paired calm/Ablaze themes retain their sample-aligned clocks and effect volume settings. These are synthesis/runtime checks; listening review remains pending.

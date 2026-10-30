@@ -154,6 +154,8 @@ func setup_audio():
 		sfx_streams[effect]=load("res://assets/audio/"+effect+".wav")
 	for family in ["sword","axe","lance","bow","ember","gale","thunder"]:
 		sfx_streams["release_"+family]=load("res://assets/audio/release_"+family+".wav")
+	for element in ["ember","gale","thunder"]:
+		sfx_streams["impact_"+element]=load("res://assets/audio/impact_"+element+".wav")
 	for i in range(6):
 		var player=AudioStreamPlayer.new();player.volume_db=-12;sfx_players.append(player);add_child(player)
 
@@ -166,6 +168,17 @@ func combat_release_sound(unit: Dictionary) -> String:
 	var family=game.item_for(unit).id if unit.weapon=="magic" else unit.weapon
 	var effect="release_"+family
 	return effect if sfx_streams.has(effect) else "magic" if unit.weapon=="magic" else "swing"
+
+func combat_contact_sounds(unit: Dictionary,event: Dictionary) -> Array:
+	if not event.hit:return []
+	if event.damage<=0:return ["guard"]
+	var family=game.item_for(unit).id if unit.get("weapon","")=="magic" else ""
+	var effect="impact_"+family
+	if sfx_streams.has(effect):return [effect,"critical"] if event.crit else [effect]
+	return ["critical" if event.crit else "hit"]
+
+func play_combat_contact(unit: Dictionary,event: Dictionary):
+	for effect in combat_contact_sounds(unit,event):play_sfx(effect)
 
 func select_score_theme():
 	if score_director.current_id==score_director.profile_for(game.chapter).id:return
@@ -973,7 +986,7 @@ func cinematic(a,b,events,initial_hp={}):
 			if not await projectile(release,contact_point,unit.weapon,spell,fighters.equipment_profile(unit),not event.hit):break
 		director.shot(who.position,whom.position,"impact",is_ranged,mounted,.16)
 		if event.hit:
-			play_sfx("guard" if event.damage<=0 else "critical" if event.crit else "hit")
+			play_combat_contact(unit,event)
 			if not blocked:whom.pose("critical_hit" if event.crit else "hit",.12)
 		displayed_hp[event.target]=maxi(0,displayed_hp[event.target]-event.damage)
 		banner.set_health(event.target,int(displayed_hp[event.target]))
@@ -1513,7 +1526,8 @@ func map_combat_feedback(events: Array):
 		text_label.text=cue_text
 		text_label.add_theme_font_size_override("font_size",28);text_label.add_theme_color_override("font_color",Color("ffe5a1"));text_label.add_theme_color_override("font_outline_color",Color("30353a"));text_label.add_theme_constant_override("outline_size",5)
 		text_label.position=camera.unproject_position(map_position(game.pos(unit))+Vector3.UP*1.1)-Vector2(text_label.get_minimum_size().x*.5,20);text_label.mouse_filter=Control.MOUSE_FILTER_IGNORE
-		play_sfx("swing" if not event.hit else "guard" if event.damage<=0 else "critical" if event.crit else "hit")
+		if not event.hit:play_sfx("swing")
+		else:play_combat_contact(attackers[0] if not attackers.is_empty() else {},event)
 		var fade=create_tween().set_parallel(true);fade.tween_property(text_label,"position:y",text_label.position.y-24,.24);fade.tween_property(text_label,"modulate:a",0.0,.24)
 		await fade.finished
 		if reaction and reaction.is_valid() and reaction.is_running():await reaction.finished

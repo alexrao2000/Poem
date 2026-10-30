@@ -23,6 +23,7 @@ func run():
  assert(app.fighters.EquipmentVisuals.profiles.size()==22 and app.fighters.EquipmentVisuals.profiles.war_hammer.shape=="hammer","Release includes every equipped item appearance")
  assert(app.interface_audio.streams.size()==3 and app.interface_audio.streams.confirm.get_length()>.14,"Release includes the original interface cues")
  assert(app.travel_audio.streams.size()==6 and app.travel_audio.streams.hoof_wood.get_length()>.14,"Release includes all original terrain foot/hoof contacts")
+ for element in ["ember","gale","thunder"]:assert(app.sfx_streams["impact_"+element].get_length()>.37,"Packaged spells include their elemental contact sound")
  for family in ["sword","axe","lance","bow","ember","gale","thunder"]:assert(app.sfx_streams["release_"+family].get_length()>.13,"Packaged combat includes every original weapon/element release cue")
  for job in app.CLASSES:assert(app.map_catalog.assets.has("enemy."+job.to_lower()),"Release includes every dedicated enemy class atlas")
  for chapter in [0,4,8,11]:
