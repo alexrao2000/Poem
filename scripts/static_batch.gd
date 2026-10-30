@@ -20,7 +20,8 @@ func combine(root: Node3D,spatial=true) -> Dictionary:
   var key="%d:%d:%d:%d:%d:%d"%[material.get_instance_id(),format,chunk.x,chunk.y,node.cast_shadow,node.layers]
   if not groups.has(key):
    var surface=SurfaceTool.new();surface.begin(Mesh.PRIMITIVE_TRIANGLES);surface.set_material(material)
-   groups[key]={"surface":surface,"material":material,"shadow":node.cast_shadow,"layers":node.layers}
+   groups[key]={"surface":surface,"material":material,"shadow":node.cast_shadow,"layers":node.layers,"cull_margin":0.0}
+  groups[key].cull_margin=maxf(groups[key].cull_margin,node.extra_cull_margin)
   var points=arrays[Mesh.ARRAY_VERTEX]
   for i in range(points.size()):points[i]=transform*points[i]
   arrays[Mesh.ARRAY_VERTEX]=points;vertices+=points.size()
@@ -42,6 +43,7 @@ func combine(root: Node3D,spatial=true) -> Dictionary:
  for group in groups.values():
   var node=MeshInstance3D.new();node.name="StaticScenery";node.mesh=group.surface.commit();node.material_override=group.material
   node.cast_shadow=group.shadow;node.layers=group.layers;node.set_meta("static_batch",true);root.add_child(node)
+  node.extra_cull_margin=group.cull_margin
  var result={"sources":merged_sources,"batches":groups.size(),"vertices":vertices}
  root.set_meta("batch_stats",result)
  return result

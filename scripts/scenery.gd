@@ -5,11 +5,13 @@ const MapGround=preload("res://scripts/map_ground.gd")
 const WindCloth=preload("res://scripts/wind_cloth.gd")
 const Architecture=preload("res://scripts/architecture.gd")
 const AmbientDrift=preload("res://scripts/ambient_drift.gd")
+const GroundCover=preload("res://scripts/ground_cover.gd")
 # Shared landscape construction for the tactical board and battle stage.
 # Masonry spans use closed wedge stones with small joints and an open underside.
 var materials: Dictionary = {}
 var batching_enabled=true
 var batcher=preload("res://scripts/static_batch.gd").new()
+var ground_cover=GroundCover.new()
 var atlas: Texture2D
 var environment_atlas: Texture2D
 var foliage_atlas: Texture2D
@@ -215,6 +217,7 @@ func landscape(parent,game):
   var sea=PlaneMesh.new();sea.size=Vector2(55,35)
   mesh(parent,sea,Vector3(7,-.12,26),Vector3.ONE,water_material())
 
+ ground_cover.add_map(parent,game,building_cells)
  if batching_enabled:batcher.combine(parent)
  var atmosphere=AmbientDrift.new();parent.add_child(atmosphere)
  atmosphere.position=Vector3((game.board_size().x-1)*.5,0,(game.board_size().y-1)*.5)
@@ -353,6 +356,7 @@ func battle_landscape(parent,center,context={}):
    var shape=SphereMesh.new();shape.radius=1.2;shape.height=2.4
    var glow=material(Color("ffe3a0")).duplicate();glow.shading_mode=BaseMaterial3D.SHADING_MODE_UNSHADED
    mesh(parent,shape,center+Vector3(0,4,-12),Vector3.ONE,glow)
+ ground_cover.add_arena(parent,center,context)
  if batching_enabled:batcher.combine(parent)
  var atmosphere=AmbientDrift.new();parent.add_child(atmosphere);atmosphere.position=center+Vector3(0,0,-3)
  atmosphere.configure(theme,Vector3(28,4,14),true)
