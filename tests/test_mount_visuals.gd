@@ -2,6 +2,7 @@ extends SceneTree
 # Inspect the original skull/muzzle topology and actual bridle clearance, then
 # keep mounted head posture and attachment positions through live rig updates.
 
+const Body=preload("res://scripts/mount_body.gd")
 const Head=preload("res://scripts/mount_head.gd")
 const Mount=preload("res://scripts/mount_visuals.gd")
 const Fighters=preload("res://scripts/fighters.gd")
@@ -30,6 +31,10 @@ func intersect(origin: Vector3,direction: Vector3):
  return closest
 
 func run():
+ for neck in [false,true]:
+  var mesh=Body.mesh(neck);verify_closed(mesh)
+  assert(mesh==Body.mesh(neck),"All mounted identities share immutable shaped torso/neck resources")
+  assert(mesh.get_aabb().position.x>=-.341 and mesh.get_aabb().end.x<=.341,"Body retains saddle and stirrup width")
  for muzzle in [false,true]:
   var mesh=Head.mesh(muzzle);verify_closed(mesh)
   var arrays=mesh.surface_get_arrays(0);var points=arrays[Mesh.ARRAY_VERTEX];var indices=arrays[Mesh.ARRAY_INDEX]
@@ -56,6 +61,9 @@ func run():
  for unit in units:
   if not unit.has("team"):unit.team="player"
   var actor=painter.build(stage,unit,Vector3(35,0,0));actor.set_process(false)
+  var torso=actor.bones.Horse.get_node("HorseBody");var neck=actor.bones.Horse.get_node("HorseNeck")
+  assert(torso.scale==Vector3.ONE and neck.scale==Vector3.ONE,"Profile meshes use their authored full dimensions instead of the old ellipsoid scaling")
+  assert(torso.mesh.get_aabb().size.z>1.35 and neck.mesh.get_aabb().size.y>.70,"Chest, haunches and sloped neck retain their complete silhouette")
   var head=actor.bones.HorseHead
   assert(head.has_node("HorseSkull") and head.has_node("HorseMuzzle") and head.has_node("FittedBridle"),"All rider identities use the fitted head assembly")
   for key in ["idle","advance","windup","strike","critical_hit","down","victory"]:
@@ -69,5 +77,5 @@ func run():
     poses+=1
   actor.queue_free();await process_frame
  stage.queue_free();await process_frame
- print("PASS: closed tapered skull/muzzle and fitted bridle, %d actual strap clearance rays, retained eyes and %d mounted posture samples across four identities"%[samples,poses])
+ print("PASS: closed shaped torso/neck, tapered skull/muzzle and fitted bridle, %d actual strap clearance rays, retained eyes and %d mounted posture samples across four identities"%[samples,poses])
  quit()

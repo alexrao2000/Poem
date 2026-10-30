@@ -755,3 +755,9 @@ The new `mount_stride` suite checks 8,936 consecutive transformed/reversed suppo
 The arena camera now continues a restrained inward/downward move through the existing 220 ms reveal, then settles into the exact wide combat composition. Previously it held still as the veil opened. Focus, lens, framing axis, reveal duration and the phase-aligned music handoff are retained. This extends the continuous zoom direction described in the [Awakening reference](https://www.nintendolife.com/news/2012/10/first_impressions_fire_emblem_awakening), using original camera choreography rather than a claim to duplicate its animation.
 
 An additional 2,880 head/sole projection samples cover the full entrance for all recruits, both sides, mixed mounts and three sizes. Five real defeat/counter/survival/heal/skip exchanges confirm camera movement during reveal and exact tactical restoration. Existing acceleration, cancellation and healing checks pass. Rendered timing review remains pending.
+
+### Shaped cavalry body and neck
+
+Two original closed profile meshes replace the mount's oval torso and upright oval neck. The 256-triangle torso defines the chest, withers, raised belly and haunches; the 160-triangle neck slopes toward the existing head. Mane roots now follow its actual back edge. Saddle, stirrup, leg, head and rein attachment positions are retained, as are the four coat palettes.
+
+An isolated standing/travel study was inspected from front, oblique, side and rear. Topology/winding, complete outfits, world-planted hooves, saddle contact and 1,024 rein-pose checks pass; rein clearance now measures the actual faceted neck instead of the old ellipsoid. All 72 outfit previews, sixteen promotion profiles and defeat-material ownership still pass. Source/batch totals remain 1,774 / 1,057 plus three dynamic reins. Assembled rendering remains unreviewed.

@@ -1,6 +1,8 @@
 extends SceneTree
 const Fighters=preload("res://scripts/fighters.gd")
 const Rules=preload("res://scripts/rules.gd")
+const Body=preload("res://scripts/mount_body.gd")
+var neck_triangles=[]
 const Reins=preload("res://scripts/mounted_reins.gd")
 const HitStop=preload("res://scripts/combat_hit_stop.gd")
 func _initialize():call_deferred("run")
@@ -14,8 +16,11 @@ func inspect(actor):
   assert(reins.to_global(path[-1]).distance_to(hand)<.013,"Both reins terminate inside the moving free-hand grip")
   for point in path:
    var local=actor.bones.Horse.to_local(reins.to_global(point))
-   var neck=(local-Vector3(0,.34,-.52))/Vector3(.19,.47,.2)
-   assert(neck.length_squared()>1.04,"Straps route around the solid neck with clearance for their thickness")
+   var surface_x=-INF
+   for triangle in neck_triangles:
+    var hit=Geometry3D.ray_intersects_triangle(Vector3(2,local.y,local.z),Vector3.LEFT,triangle[0],triangle[1],triangle[2])
+    if hit!=null:surface_x=maxf(surface_x,hit.x)
+   assert(surface_x==-INF or absf(local.x)>surface_x+Reins.RADIUS,"Straps route outside the actual shaped neck with clearance for their thickness")
    assert(reins.to_global(point).y>actor.global_position.y+1.3,"Reins never sag through the horse's body or arena floor")
  var arrays=reins.mesh.surface_get_arrays(0);var points=arrays[Mesh.ARRAY_VERTEX];var normals=arrays[Mesh.ARRAY_NORMAL];var indices=arrays[Mesh.ARRAY_INDEX];var edges={}
  assert(indices.size()==408,"Two closed eight-segment straps stay within 136 triangles")
@@ -32,6 +37,8 @@ func inspect(actor):
  assert(reins.revisions==revision,"Repeated unchanged constraints do not rebuild the mesh")
 
 func run():
+ var neck=Body.mesh(true).surface_get_arrays(0);var vertices=neck[Mesh.ARRAY_VERTEX];var indices=neck[Mesh.ARRAY_INDEX]
+ for index in range(0,indices.size(),3):neck_triangles.append([vertices[indices[index]],vertices[indices[index+1]],vertices[indices[index+2]]])
  var stage=Node3D.new();stage.position=Vector3(35,0,0);stage.rotation.y=.4;root.add_child(stage)
  var painter=Fighters.new();var rules=Rules.new();var samples=0
  var units=rules.roster.filter(func(unit):return unit.job=="Rider").duplicate(true)

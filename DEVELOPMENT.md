@@ -6,6 +6,10 @@ User direction: keep developing continuously in this chat until the user returns
 
 ## Current checkpoint
 
+Latest delivered presentation work includes world-planted infantry/cavalry steps, level soles/hooves, shaped cavalry skull/body/neck, fitted animated reins, coordinated arena/map defeat exits and a descending push through the arena reveal. The default runner contains 70 suites. Current measured totals are 1,774 rigid character sources / 1,057 joint batches plus three dynamic reins, and 13,554 static map sources / 616 batches plus cloth and atmosphere. Local browser/macOS packages and the private GitHub repository are kept in sync after focused verification. Assembled visual/audio review and browser FPS measurements remain outstanding.
+
+## Earlier checkpoints
+
 Spell flight now has a continuous soft-edged wake and luminous elemental cores/halos, replacing the six opaque trailing beads. It uses four fewer mesh instances per spell while keeping the existing path/timing. Focused geometry, transformed physical/elemental flights, actual exchanges and skip cleanup pass; the isolated additive study was corrected for a measured headless gradient readback artifact rather than treating that artifact as a game defect.
 
 The latest presentation pass gives enemy knights shaped hollow helmets with recessed eye slits, and armored outfits closed mirrored shoulder plates with fitted rims. Both retain the roster's 1,780 / 1,021 rigid-source/batch totals and pass actual geometry, commander, promotion and camera/viewer checks. The combat return now pulls back from the engaged map units instead of first jumping to the prior map center; incoming/outgoing nameplates use the existing pauses. Camera round trips, offsets, navigation cancellation, HUD resize/HP independence, real combat/healing and skip playback pass focused checks.
@@ -354,3 +358,5 @@ A renderer-source review caught that built-in alpha hash is not implemented in G
 Mounted travel now plants diagonal hoof pairs in world space and lifts the returning pair, with level articulated hooves. The body and seated rider follow the actual support height. The new mount_stride suite covers scaled/reversed travel, ten complete cavalry outfits and actual approach frame order; existing locomotion, rein, motion, framing, finishing, playback and audio checks pass. The default count is 70; roster batching remains 1,774 sources / 1,057 batches plus three dynamic reins. An isolated horse motion study was inspected; assembled rendering remains unverified.
 
 The arena reveal now carries the map zoom's motion forward with a short descending push, settling into the existing wide shot during the same 220 ms veil interval. All 2,880 additional entrance projections and five actual reveal/return cases pass, along with normal/accelerated/skip playback and staff healing. No extra pause, score timing change or gameplay mutation is introduced.
+
+The cavalry torso and neck now use closed shaped profiles with a defined chest, rising belly and sloping crest, retaining every rig attachment. Mane roots follow the new neck. Isolated four-angle standing/travel geometry was inspected. Actual neck/rein clearance, topology, planted motion, full outfits, promotion/viewer bounds and defeat ownership pass; source and joint-batch totals are unchanged.

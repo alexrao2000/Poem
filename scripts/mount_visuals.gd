@@ -2,6 +2,7 @@ extends RefCounted
 # Original mounted silhouettes share the actor's existing joint batching. Coat
 # palettes follow each rider's map artwork; head and tail remain articulated.
 
+const Body=preload("res://scripts/mount_body.gd")
 const Head=preload("res://scripts/mount_head.gd")
 const HEAD_PITCH=-.4
 const BODY_HEIGHT=1.035
@@ -27,8 +28,8 @@ static func build(painter,actor,id,cloth_color,gold,leather):
  var coat=Color(colors.coat);var mane=Color(colors.mane);var muzzle=Color(colors.muzzle)
  var geo=painter.geo
  var horse=painter.joint(actor,"Horse",Vector3(0,BODY_HEIGHT,0));actor.register_bone("Horse",horse)
- var body=painter.ellipsoid(horse,Vector3.ZERO,Vector3(.34,.4,.68),coat);body.name="HorseBody"
- painter.ellipsoid(horse,Vector3(0,.34,-.52),Vector3(.19,.47,.2),coat)
+ var body=geo.mesh(horse,Body.mesh(),Vector3.ZERO,Vector3.ONE,geo.material(coat));body.name="HorseBody"
+ var neck=geo.mesh(horse,Body.mesh(true),Vector3.ZERO,Vector3.ONE,geo.material(coat));neck.name="HorseNeck"
  var head=painter.joint(horse,"HorseHead",Vector3(0,.63,-.66));head.rotation.x=HEAD_PITCH;actor.register_bone("HorseHead",head)
  var skull=painter.geo.mesh(head,Head.mesh(),Vector3.ZERO,Vector3.ONE,geo.material(coat));skull.name="HorseSkull"
  var nose=painter.geo.mesh(head,Head.mesh(true),Vector3.ZERO,Vector3.ONE,geo.material(muzzle));nose.name="HorseMuzzle"
@@ -41,7 +42,7 @@ static func build(painter,actor,id,cloth_color,gold,leather):
   painter.ellipsoid(head,Vector3(side*.15,-.025,-.22),Vector3(.022,.03,.028),gold)
  var bridle=geo.mesh(head,Head.bridle(),Vector3.ZERO,Vector3.ONE,geo.material(leather));bridle.name="FittedBridle"
  for i in range(7):
-  var z=-.55+i*.075;var y=.70-i*.075
+  var y=.70-i*.075;var z=Body.neck_back(y)
   painter.hair_lock(horse,[Vector3(0,y,z),Vector3(.055,y-.06,z+.06),Vector3(.09,y-.20,z+.09)],.055,mane)
  painter.hair_lock(head,[Vector3(0,.20,.03),Vector3(.02,.15,-.15),Vector3(.035,.07,-.23)],.06,mane)
  for side in [-1,1]:
