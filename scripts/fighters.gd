@@ -12,6 +12,7 @@ const Projectile=preload("res://scripts/combat_projectile.gd")
 const Outline=preload("res://scripts/character_outline.gd")
 const PromotionCostume=preload("res://scripts/promotion_costume.gd")
 const Garments=preload("res://scripts/garments.gd")
+const Cuirass=preload("res://scripts/cuirass.gd")
 const Head=preload("res://scripts/character_head.gd")
 const Commanders=preload("res://scripts/commanders.gd")
 var profiles=JSON.parse_string(FileAccess.get_file_as_string("res://data/characters.json"))
@@ -64,7 +65,8 @@ func build(parent,u,p) -> Node3D:
  var torso=joint(body,"Torso",Vector3(0,.1,0))
  var pelvis=ellipsoid(body,Actor.PELVIS_CENTER,Actor.PELVIS_RADII,Color("3c3f48"));pelvis.name="Pelvis"
  shell(torso,Vector3.ZERO,[[-.1,.18,.12],[.15,.21,.14],[.35,.245,.12],[.41,.15,.1]],blue)
- if armored:shell(torso,Vector3(0,0,-.065),[[.02,.17,.10],[.22,.23,.11],[.37,.20,.08]],steel)
+ if armored:
+  var plate=geo.mesh(torso,Cuirass.mesh(),Vector3.ZERO,Vector3.ONE,geo.material(steel));plate.name="Cuirass"
  elif not robe and not (company and u.id=="lyra"):shell(torso,Vector3(0,0,-.04),[[.02,.17,.105],[.22,.21,.12],[.34,.18,.08]],leather)
  geo.cylinder(torso,Vector3(0,-.09,0),.08,.205,leather)
  geo.block(torso,Vector3(0,-.09,-.21),Vector3(.08,.07,.025),gold)
@@ -73,8 +75,7 @@ func build(parent,u,p) -> Node3D:
  for side_value in [-1,1]:
   var piping=geo.block(torso,Vector3(side_value*.08,.39,-.095),Vector3(.018,.14,.015),gold);piping.rotation.z=side_value*.18
  if armored:
-  for side_value in [-1,1]:
-   var ridge=geo.block(torso,Vector3(side_value*.09,.20,-.173),Vector3(.018,.24,.013),gold);ridge.rotation.z=-side_value*.20
+  var edging=geo.mesh(torso,Cuirass.trim_mesh(),Vector3.ZERO,Vector3.ONE,geo.material(gold));edging.name="CuirassTrim"
   ellipsoid(torso,Vector3(0,.31,-.17),Vector3(.045,.05,.014),gold)
  else:
   var strap=geo.block(torso,Vector3(0,.16,-.165),Vector3(.052,.48,.025),leather);strap.rotation.z=-.48

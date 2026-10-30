@@ -36,6 +36,7 @@ func visual_signature(hand: Node3D) -> String:
 func run():
  var rules=Rules.new();var painter=Fighters.new();painter.batching_enabled=false
  var stage=Node3D.new();root.add_child(stage);var signatures={};var samples=0
+ await verify_cuirasses(painter,rules,stage)
  await verify_shields(painter,rules,stage)
  await verify_quivers(painter,rules,stage)
  assert(Looks.profiles.size()==rules.equipment.size())
@@ -93,7 +94,7 @@ func run():
  assert(flights.size()==1 and is_equal_approx(flights[0],Looks.blade("javelin").get_aabb().size.x),"Actual thrown attack uses its equipped javelin head")
  assert(app.game.save_data("battle")==saved and app.game.rng.state==rng,"Item art never changes combat outcome or random state")
  await Shutdown.dispose(app);await process_frame
- print("PASS: 22 distinct actual weapon appearances, closed cached blade/head geometry, retained reach, %d grounded pose samples, bowed shields, open quivers/feather clearance, bowstring endpoints, enemy equipment and thrown spear continuity"%samples)
+ print("PASS: 22 distinct actual weapon appearances, closed cached blade/head geometry, retained reach, %d grounded pose samples, closed ridged breastplates/fitted trim, bowed shields, open quivers/feather clearance, bowstring endpoints, enemy equipment and thrown spear continuity"%samples)
  quit()
 
 func shield_intersection(mesh: Mesh,xy: Vector2) -> Variant:
@@ -172,3 +173,41 @@ func verify_quivers(painter,rules,stage):
    for part in quiver.get_children():
     for vertex in part.mesh.surface_get_arrays(0)[Mesh.ARRAY_VERTEX]:assert(part.to_global(vertex).y>0,"Attached quiver clears the ground through bow animation")
   actor.queue_free();await process_frame
+
+func verify_cuirasses(painter,rules,stage):
+ var shape=preload("res://scripts/cuirass.gd");var plate=shape.mesh();var arrays=plate.surface_get_arrays(0)
+ var points=arrays[Mesh.ARRAY_VERTEX];var normals=arrays[Mesh.ARRAY_NORMAL]
+ assert(plate==shape.mesh() and points.size()==192,"Shared closed cuirass uses 64 triangles")
+ closed_mesh(plate)
+ for i in range(0,points.size(),3):
+  var normal=(points[i+1]-points[i]).cross(points[i+2]-points[i])
+  assert(normal.length()>.000001 and normal.normalized().dot(normals[i])<-.999,"Plate faces have nondegenerate clockwise winding and outward normals")
+  var center=(points[i]+points[i+1]+points[i+2])/3.0
+  if absf(normals[i].y)<.8:assert(Vector3(center.x,0,center.z+.015).dot(normals[i])>0,"Chest facets light outward")
+ for uv in arrays[Mesh.ARRAY_TEX_UV]:assert(uv.x>=0 and uv.x<=1 and uv.y>=0 and uv.y<=1,"Painted steel coordinates remain inside the material patch")
+ var chest=shield_intersection(plate,Vector2(0,.23));var waist=shield_intersection(plate,Vector2(0,.025));var side=shield_intersection(plate,Vector2(.15,.23))
+ assert(chest!=null and waist!=null and side!=null and chest.z<waist.z-.04 and chest.z<side.z-.02,"Actual plate surface has a proud central ridge and narrows toward the waist")
+ var ornament=shape.trim_mesh();var gold=ornament.surface_get_arrays(0)
+ assert(ornament==shape.trim_mesh() and gold[Mesh.ARRAY_VERTEX].size()==60,"Fitted chest bands share one 20-triangle ornament")
+ for vertex in gold[Mesh.ARRAY_VERTEX]:
+  var panel=shield_intersection(plate,Vector2(vertex.x,vertex.y))
+  assert(panel!=null and absf(panel.z-vertex.z-.0015)<.00001,"Every gold-band vertex follows the actual breastplate surface at 1.5 mm clearance")
+ for i in range(0,gold[Mesh.ARRAY_VERTEX].size(),3):
+  var a=gold[Mesh.ARRAY_VERTEX][i];var b=gold[Mesh.ARRAY_VERTEX][i+1];var c=gold[Mesh.ARRAY_VERTEX][i+2]
+  var normal=(b-a).cross(c-a)
+  assert(normal.length()>.000001 and normal.normalized().dot(gold[Mesh.ARRAY_NORMAL][i])<-.999 and gold[Mesh.ARRAY_NORMAL][i].z<-.8,"Chest ornament faces outward without degenerate folds")
+ var seen=0
+ for source in rules.roster:
+  var unit=source.duplicate(true);unit.team="player"
+  var actor=painter.build(stage,unit,Vector3.ZERO);actor.set_process(false);actor.pose_tween.kill()
+  var armor=actor.bones.Body.get_node_or_null("Torso/Cuirass")
+  var expected=unit.job in ["Knight","Vanguard","Rider"] and unit.id!="lyra"
+  assert((armor!=null)==expected,"Only existing armored outfits receive plate geometry")
+  if expected:
+   seen+=1
+   assert(armor.mesh.surface_get_arrays(0)[Mesh.ARRAY_VERTEX]==points,"Outline preparation preserves the authored plate silhouette")
+   for pose in ["idle","windup","strike","guard","critical_hit","down","victory_flourish","victory"]:
+    actor.pose(pose,1).custom_step(1);actor.apply_constraints()
+    for vertex in points:assert(armor.to_global(vertex).y>0,"Breastplate remains above the floor throughout combat and finishing")
+  actor.queue_free();await process_frame
+ assert(seen>0)
