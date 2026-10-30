@@ -32,6 +32,8 @@ func run():
   var commander=app.game.units.filter(func(unit):return unit.get("boss",false))[0]
   assert(app.unit_nodes[commander.id].has_node("CommanderInsignia") and app.portraits.get_unit_portrait(commander).atlas.get_width()==1254,"Release includes commander crowns and their separate portrait atlas")
   for actor in app.unit_nodes.values():assert(actor.sprite.texture!=null and actor.player.asset.clips.has("move"),"Packaged actors have atlas frames and animations")
+ app.game.story_seen.append("opening_"+str(app.game.chapter));app.show_camp();await process_frame
+ assert(app.ui.find_child("CompanyCards",true,false).get_child_count()==24 and app.ui.has_node("CouncilBackdrop"),"Release includes the complete portrait preparation roster and covered-scene suspension")
  app.show_credits();await process_frame;assert(app.screen=="credits")
  app.show_campaign_route();await process_frame
  var route=app.ui.find_child("CampaignRoute",true,false)

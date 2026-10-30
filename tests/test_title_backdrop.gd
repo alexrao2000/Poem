@@ -45,7 +45,8 @@ func run():
  press(app,"Begin the chronicle");assert(app.screen=="dialogue" and not app.ui.has_node("TitleBackdrop"))
  assert(app.ui.get_node("DialogueBackdrop").covered.all(func(entry):return entry.visible and entry.process_mode==Node.PROCESS_MODE_INHERIT),"Title releases its scene before the conversation acquires it")
  app.finish_dialogue();assert(app.screen=="camp")
- assert(app.world.visible and app.pieces.visible and app.pieces.process_mode==Node.PROCESS_MODE_INHERIT,"Finishing the opening restores its underlying scene")
+ assert(app.ui.has_node("CouncilBackdrop") and not app.world.visible and not app.pieces.visible,"Finishing the opening hands scene suspension to the opaque council")
+ assert(app.ui.get_node("CouncilBackdrop").covered.slice(0,3).all(func(entry):return entry.visible and entry.process_mode==Node.PROCESS_MODE_INHERIT),"Dialogue restores the underlying scene before council takes ownership")
  app.show_options("camp");assert(not app.ui.has_node("TitleBackdrop"),"Camp options retain their campaign context")
  await Shutdown.dispose(app);await process_frame
  print("PASS: %d title crop samples, banner visibility, nonblocking input, hidden-scene suspension/restoration and real title-menu navigation"%frames)

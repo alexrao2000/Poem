@@ -387,7 +387,11 @@ func show_camp():
 		show_dialogue(story.chapters[game.chapter].opening,show_camp)
 		return
 	reset_ui()
-	var bg=ColorRect.new();bg.color=INK;bg.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT);ui.add_child(bg);ui.move_child(bg,0)
+	# Runtime lookup avoids 4.5.1 shutdown retention observed with this direct preload.
+	var backdrop=load("res://scripts/painted_backdrop.gd").new();backdrop.name="CouncilBackdrop"
+	backdrop.configure(ui,[world,markers,pieces,stage])
+	var bg=ColorRect.new();bg.color=INK;bg.mouse_filter=Control.MOUSE_FILTER_IGNORE
+	backdrop.add_child(bg);bg.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	var shell=MarginContainer.new();shell.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	for k in ["margin_left","margin_right","margin_top","margin_bottom"]:shell.add_theme_constant_override(k,28)
 	ui.add_child(shell)
@@ -409,27 +413,35 @@ func show_camp():
 	button_in(tools_row,"Route",show_campaign_route).size_flags_horizontal=Control.SIZE_EXPAND_FILL
 	button_in(left,"Transfer a local save",func():show_save_transfer("camp"))
 	button_in(left,"Return to title",show_title)
-	var scroll=ScrollContainer.new();scroll.custom_minimum_size.x=420;scroll.horizontal_scroll_mode=ScrollContainer.SCROLL_MODE_DISABLED
-	scroll.size_flags_horizontal=Control.SIZE_EXPAND_FILL;scroll.size_flags_stretch_ratio=1.15;row.add_child(scroll)
-	var cards=VBoxContainer.new();cards.size_flags_horizontal=Control.SIZE_EXPAND_FILL;scroll.add_child(cards)
+	var roster_column=VBoxContainer.new();roster_column.size_flags_horizontal=Control.SIZE_EXPAND_FILL;roster_column.size_flags_stretch_ratio=1.35;row.add_child(roster_column)
+	label_in(roster_column,"YOUR COMPANY",20,GOLD)
+	var scroll=ScrollContainer.new();scroll.name="CompanyScroll";scroll.custom_minimum_size.x=460;scroll.horizontal_scroll_mode=ScrollContainer.SCROLL_MODE_DISABLED
+	scroll.size_flags_vertical=Control.SIZE_EXPAND_FILL;roster_column.add_child(scroll)
+	var cards=GridContainer.new();cards.name="CompanyCards";cards.columns=2
+	cards.add_theme_constant_override("h_separation",10);cards.add_theme_constant_override("v_separation",10)
+	cards.size_flags_horizontal=Control.SIZE_EXPAND_FILL;scroll.add_child(cards)
 	for u in game.roster:
 		var unlocked=int(u.join)<=game.chapter
-		var panel=PanelContainer.new();cards.add_child(panel)
-		var content=HBoxContainer.new();panel.add_child(content)
-		var pic=TextureButton.new();pic.texture_normal=portraits.get_portrait(u.id) if unlocked else unit_portrait(u)
-		pic.custom_minimum_size=Vector2(90,90);pic.ignore_texture_size=true;pic.stretch_mode=TextureButton.STRETCH_KEEP_ASPECT_CENTERED
-		pic.disabled=not unlocked;pic.tooltip_text="View "+u.name+"'s dossier" if unlocked else "Not yet recruited"
-		interface_audio.watch(pic)
-		pic.pressed.connect(func():show_dossier(u));content.add_child(pic)
-		var texts=VBoxContainer.new();texts.size_flags_horizontal=Control.SIZE_EXPAND_FILL;content.add_child(texts)
-		label_in(texts,u.name+"  /  "+game.class_name_for(u)+"  ·  Lv "+str(int(u.level)),19,GOLD if unlocked else Color("9a9588"))
-		if unlocked and supports_ready(u):label_in(texts,"Support conversation ready · open portrait",14,GOLD)
-		label_in(texts,u.bio if unlocked else "Joins in chapter "+str(int(u.join)+1),14)
-		label_in(texts,"HP %d   ATK %d   DEF %d   SPD %d   MOV %d"%[u.max_hp,game.attack_power(u),u.defense,game.attack_speed(u),u.move],13,Color("81775f"))
-		button_in(content,"Deployed" if u.id in game.deployed else "Deploy",func():
+		var card=preload("res://scripts/company_card.gd").new();cards.add_child(card)
+		card.configure(u,game.class_name_for(u),portraits.get_portrait(u.id) if unlocked else unit_portrait(u),game.item_for(u),u.id in game.deployed,unlocked,unlocked and supports_ready(u),game.deployed.size()>=6)
+		interface_audio.watch(card.portrait_button);interface_audio.watch(card.deploy_button)
+		card.inspect_requested.connect(func():show_dossier(u))
+		card.deployment_requested.connect(func():
 			if u.id in game.deployed:game.deployed.erase(u.id)
-			elif game.deployed.size()<6:game.deployed.append(u.id)
-			show_camp(),not unlocked or (game.deployed.size()>=6 and u.id not in game.deployed))
+			elif unlocked and game.deployed.size()<6:game.deployed.append(u.id)
+			var previous_scroll=scroll.scroll_vertical
+			show_camp()
+			# The new grid must finish layout before restoring its reading position.
+			var host=weakref(ui)
+			(func():
+				await get_tree().process_frame
+				await get_tree().process_frame
+				var current=host.get_ref()
+				if current==null or current.is_queued_for_deletion():return
+				var replacement=current.find_child("CompanyScroll",true,false)
+				if replacement!=null:replacement.scroll_vertical=previous_scroll
+				var next_card=current.find_child("Company_"+u.id,true,false)
+				if next_card!=null:next_card.deploy_button.grab_focus()).call_deferred())
 	MenuLayout.configure(ui)
 
 func show_campaign_route():
