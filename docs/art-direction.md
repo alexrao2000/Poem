@@ -468,3 +468,7 @@ The paired combat nameplates reuse the forecast's green upward and red downward 
 ## Floating tactical result text
 
 The tactical camera reserves horizontal space for the actual 28 px label and vertical space for its complete rising/fading path. This corrects clipping and terrain-card overlap when an action pans back from the opposite board edge. Healing labels use their measured center, including wider amounts. The 4,200 layout cases cover all 140 cells, three window sizes, opposite pan origins and five text forms; real damage, miss, guarded-hit and recovery sequences also verify their full visible lifetime. Movement tracking keeps its existing margins and speed.
+
+## Quick-map evasion
+
+Defenders face incoming attacks, then move 0.14 m sideways on a resolved miss. The short outward movement holds through contact and returns before field control resumes. The presentation offset leaves tile coordinates and terrain height unchanged; final facing persists after sprite refresh. Actual playback and movement checks pass. Rendered motion remains unreviewed.

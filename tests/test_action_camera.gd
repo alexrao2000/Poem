@@ -5,6 +5,7 @@ var movement_done=false
 var saw_cue=false
 var cue_types={}
 var cue_layouts=0
+var miss_recipient: Dictionary={}
 
 func _initialize():call_deferred("run")
 
@@ -77,13 +78,15 @@ func run():
  saved=app.game.save_data("battle").duplicate(true)
  await app.map_combat_feedback([{"actor":unit.id,"target":recipient.id,"damage":3,"hit":true,"crit":false,"remaining":recipient.hp}])
  assert(saw_cue and app.game.save_data("battle")==saved and app.game.rng.state==rng,"Off-screen map-only result is framed without reapplying damage")
- unit.x=1;unit.y=0;recipient.x=0;recipient.y=0;app.refresh_pieces()
+ unit.x=1;unit.y=0;recipient.x=0;recipient.y=0;app.refresh_pieces();miss_recipient=recipient
  saved=app.game.save_data("battle").duplicate(true)
  for content in ["NO DAMAGE","MISS","CRIT 999"]:
   app.camera.position=app.map_navigation.eye_offset+Vector3(14,0,10)
   app.terrain_card.inspect(app.game,app.game.pos(recipient));app.terrain_card.show()
   await app.map_combat_feedback([{"actor":unit.id,"target":recipient.id,"damage":999 if content=="CRIT 999" else 0,"hit":content!="MISS","crit":content=="CRIT 999","remaining":recipient.hp}])
   assert(cue_types.has(content),"Actual map result text was observed: "+content)
+  assert(app.unit_nodes[recipient.id].position==app.map_position(app.game.pos(recipient)),"Evasion returns the sprite to its canonical tile before field control resumes")
+  assert(app.map_facings[recipient.id]=="east" and app.unit_nodes[recipient.id].player.facing=="east","Defenders face the incoming attacker and keep that facing after refresh")
  app.camera.position=app.map_navigation.eye_offset+Vector3(14,0,10)
  await app.map_heal_feedback(recipient,recipient,999)
  assert(cue_types.has("+999") and app.game.save_data("battle")==saved and app.game.rng.state==rng,"Recovery centering and text framing change no resolved game state")
@@ -100,6 +103,10 @@ func watch_cue(node,app):
  await process_frame
  if node.text not in ["3","NO DAMAGE","MISS","CRIT 999","+999"]:return
  saw_cue=true;cue_types[node.text]=true
+ if node.text=="MISS":
+  var victim=app.unit_nodes[miss_recipient.id];var base=app.map_position(app.game.pos(miss_recipient))
+  assert(victim.position.distance_to(base)>.12 and is_equal_approx(victim.position.x,base.x) and is_equal_approx(victim.position.y,base.y),"Actual missed attack shows a perpendicular sidestep with unchanged tile height")
+  assert(victim.player.facing=="east","Miss reaction keeps the defender looking toward the incoming attack")
  while is_instance_valid(node) and not node.is_queued_for_deletion():
   var bounds=node.get_global_rect().grow(5)
   assert(app.map_navigation.safe_rect().encloses(bounds),"Full floating result remains in the action area throughout its rise and fade")

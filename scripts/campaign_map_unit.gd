@@ -1,12 +1,16 @@
 extends "res://visuals/unit_3d.gd"
 # Campaign adapter keeps the portable sprite renderer free of campaign rules.
-# Facing and animation are presentation state; action resolution stays in Rules.
+# Facing, animation and brief evasion offsets are presentation state; action
+# resolution stays in Rules. Owned evasion always returns to the original tile.
+
 const TACTICAL_PIXEL_SIZE=1.0/48.0
 static var contact_material: StandardMaterial3D
 static var selected_mesh: ArrayMesh
 static var selected_material: StandardMaterial3D
 var unit_id=""
 var commander_insignia: Sprite3D
+var evade_motion: Tween
+var evade_origin=Vector3.ZERO
 
 func configure(source: RefCounted,unit: Dictionary,facing="south"):
  unit_id=unit.id;team=unit.team;spent=unit.acted
@@ -90,7 +94,25 @@ func update_frame():
 func face_step(step: Vector2i):
  player.play("move",Player.facing_for_step(step));update_frame()
 
+func face_toward(point: Vector2i,origin: Vector2i):
+ player.play("idle",Player.facing_for_step(point-origin));update_frame()
+
+func settle_evade():
+ if evade_motion and evade_motion.is_valid():
+  evade_motion.kill();position=evade_origin
+
+func evade_from(point: Vector2i,origin: Vector2i) -> Tween:
+ settle_evade();evade_origin=position
+ var side=Vector2(origin-point).orthogonal().normalized()
+ if side.is_zero_approx():side=Vector2.RIGHT
+ evade_motion=create_tween()
+ evade_motion.tween_property(self,"position",evade_origin+Vector3(side.x,0,side.y)*.14,.08).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_OUT)
+ evade_motion.tween_interval(.16)
+ evade_motion.tween_property(self,"position",evade_origin,.12).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN_OUT)
+ return evade_motion
+
 func finish_move():
+ settle_evade()
  player.play("idle");update_frame()
 
 func act_toward(point: Vector2i,origin: Vector2i):
