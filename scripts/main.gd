@@ -977,7 +977,7 @@ func cinematic(a,b,events,initial_hp={}):
 			if not blocked:whom.pose("critical_hit" if event.crit else "hit",.12)
 		displayed_hp[event.target]=maxi(0,displayed_hp[event.target]-event.damage)
 		banner.set_health(event.target,int(displayed_hp[event.target]))
-		show_impact(whom.socket_position(contact_socket),event,spell)
+		show_impact(whom.socket_position(contact_socket),event,spell,whom.global_position)
 		if event.hit and event.damage>0:director.impact(event.crit,whom.position.x-who.position.x)
 		var hold=CombatHitStop.duration_for(event)
 		if hold>0:
@@ -1072,8 +1072,8 @@ func projectile(from: Vector3,to: Vector3,kind: String,spell="",appearance={},mi
 	if is_instance_valid(visual):visual.queue_free()
 	return completed
 
-func show_impact(point,event,spell=""):
-	var impact=CombatImpact.new();stage.add_child(impact);impact.configure(point,event,camera,spell)
+func show_impact(point,event,spell="",ground=null):
+	var impact=CombatImpact.new();stage.add_child(impact);impact.configure(point,event,camera,spell,ground)
 
 func check_result() -> bool:
 	var outcome=game.result()

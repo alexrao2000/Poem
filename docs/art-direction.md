@@ -633,3 +633,10 @@ Infantry ground support and dust origins now use the actual cached boot vertices
 `assets/art/face-features-serious-v1.png` is an original edit of the existing eight-face atlas made with the built-in image-generation tool. The exact input, output and prompt are recorded in `docs/face-mouth-prompt.json`. Generated pixels and alpha are stored unchanged in the versioned output; the 1774 × 887 canvas retains all eight mouth centers within three pixels of the original fit. The output was inspected separately from the game.
 
 The face shader selects only the lower mouth region for active combat poses or an idle fighter watching a live opponent. Focused critical eyes and hit-flinch eyelids remain independent, and the nose stays on the original texture. Victory/flourish restore the relaxed mouth; casual previews return to it when a weak opponent reference expires. Authored model materials retain their own expression ownership. Pixel registration, alpha isolation, all visible recruit/enemy faces, lifecycle and real critical-contact checks cover the change. Assembled expression review remains pending.
+
+
+## Elemental contact silhouettes
+
+Confirmed spell damage adds one original spatial mesh at the recipient's floor: seven tapering tongues for Ember (189 triangles), three rising helical ribbons for Gale (186), or a crossed, branched vertical Thunder discharge (38). Their palettes match the existing gathering and flight. Shapes are cached, additive, depth-tested and unshadowed, with no additional lights. Infantry and mounted contact height controls their vertical extent; a 0.46-second growth/fade ends independently of the readable damage number. Misses, guards and unknown spell IDs omit the burst.
+
+The isolated mesh silhouettes were inspected as a static vector study. Checks cover 306 normal/critical animation samples, finite nondegenerate geometry, floor clearance under transformed parents, bounded opacity without repeated flashes, event gating, actual three-folio exchanges and skip cleanup. Combat numbers retain their layout checks and simulation/RNG ownership is unchanged. Rendered in-game effect tuning remains pending.

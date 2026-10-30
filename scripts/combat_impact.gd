@@ -2,16 +2,18 @@ extends Node3D
 # Original local impact accents: additive glow, tapered sparks and angular
 # critical forks. Fixed geometry keeps presentation independent of game RNG.
 const Spell=preload("res://scripts/combat_spell.gd")
+const SpellBurst=preload("res://scripts/combat_spell_burst.gd")
 const FloatingText=preload("res://scripts/combat_text.gd")
 var camera: Camera3D
 var plane: Node3D
 var burst: MeshInstance3D
 var glow: MeshInstance3D
+var elemental: Node3D
 var amount: FloatingText
 var motion: Tween
 static var glow_texture: GradientTexture2D
 
-func configure(point: Vector3,event: Dictionary,view: Camera3D,spell=""):
+func configure(point: Vector3,event: Dictionary,view: Camera3D,spell="",ground=null):
  name="CombatImpact";position=point;camera=view
  var blocked=event.hit and event.damage<=0
  amount=FloatingText.new();amount.name="Damage";amount.text=("NO DAMAGE" if blocked else str(int(event.damage))) if event.hit else "MISS"
@@ -35,6 +37,10 @@ func configure(point: Vector3,event: Dictionary,view: Camera3D,spell=""):
    burst.mesh=burst_mesh(event.crit,spell);burst.material_override=accent_material();burst.position.z=.01
    motion.tween_property(burst,"scale",Vector3.ONE*1.18,.23).from(Vector3.ONE*.45).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
    motion.tween_property(burst.material_override,"albedo_color:a",0.0,.2).set_delay(.08)
+  if not blocked and spell in ["ember","gale","thunder"]:
+   var floor_point=point-Vector3.UP*1.1 if ground==null else ground
+   elemental=SpellBurst.new();add_child(elemental)
+   elemental.begin(spell,floor_point,point.y-floor_point.y,event.crit,accent_material())
   motion.tween_property(glow,"scale",Vector3.ONE*1.3,.2).from(Vector3.ONE*.4)
   motion.tween_property(glow.material_override,"albedo_color:a",0.0,.18).set_delay(.035)
  _process(0)

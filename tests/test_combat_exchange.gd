@@ -10,6 +10,7 @@ const Charge=preload("res://scripts/combat_charge.gd")
 var observing=false
 var spells=[]
 var contact_colors=[]
+var contact_shapes=[]
 var misses=[]
 var holds=0
 var skip_on_hold=false
@@ -103,6 +104,10 @@ func watch_spell(node):
  elif node is Impact:
   await process_frame
   contact_colors.append(node.glow.material_override.albedo_color)
+  assert(node.elemental!=null,"Confirmed folio damage creates a distinct spatial impact")
+  contact_shapes.append(node.elemental.spell)
+  var actors=node.get_parent().get_children().filter(func(child):return child is Actor and child.pose_name in ["hit","critical_hit"])
+  assert(actors.size()==1 and node.elemental.global_position.distance_to(actors[0].global_position)<.001,"Elemental impact rises from the actual recipient floor")
 
 func _initialize():call_deferred("run")
 
@@ -197,6 +202,7 @@ func run():
   assert(not app.stage.has_node("CombatCharge"),"Completed spell removes the anticipation effect")
   assert(app.game.save_data("battle")==saved and app.game.rng.state==rng,"Folio presentation never changes spell results")
  assert(spells==["ember","gale","thunder"],"Real cinematic carries equipment identity through flight")
+ assert(contact_shapes==spells,"All three elements carry through gathering, flight and contact")
  assert(gathered==spells,"All three folios gather their own element before release")
  assert(contact_colors.size()==3 and contact_colors[0]!=contact_colors[1] and contact_colors[1]!=contact_colors[2] and contact_colors[0]!=contact_colors[2],"Each element retains a distinct contact color")
  app.stage.child_entered_tree.disconnect(watch_spell)

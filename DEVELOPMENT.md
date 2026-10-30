@@ -6,6 +6,10 @@ User direction: keep developing continuously in this chat until the user returns
 
 ## Current checkpoint
 
+As of 2026-10-30, the roster uses 1,780 rigid source meshes / 1,021 joint batches plus three moving rein meshes. Recent delivered work adds five portrait-matched hair fronts, four fitted face profiles, mouth-framing beard shells, flat tapered infantry boots with actual vertex ground support, restrained combat mouths, individual HP pips, a deterministic cloud panorama, smoother stride entry and a point-first estoc attack/trail. Exact image-generation prompts remain versioned. The boot checkpoint passed all 64 suites and browser/macOS exports; the subsequent mouth update passed its four focused suites and exports.
+
+Spell contact now adds distinct floor-anchored flame, wind and lightning silhouettes with one cached additive mesh each. Five focused suites cover their geometry/lifecycle and actual combat, text layout and playback. This adds the 65th default suite. Isolated artwork/geometry studies have been inspected; the latest assembled gameplay appearance and audio still need review when access is available.
+
 Capes now carry original embroidered edging and faction marks derived from the existing diamond-standard motif. Company and imperial SVG masks use mipmaps, remain sparse, and blend into the painted fabric on its outer face. Thread darkens for ivory capes and lightens for dark ones. All 24 base, 48 promoted and eight enemy bindings pass; no geometry or draw pass is added. Standalone artwork was inspected, while assembled rendering remains unverified.
 
 The outfit viewer supports dragging to rotate, scrolling for bounded zoom, and double-clicking to restore full-outfit framing. Close inspection shifts the view toward the face, including mounted and promoted recruits. Controls keep their own pointer area; release outside the viewer and focus loss clear dragging. All 33,696 default layouts, 432 zoom/face checks, real input sequences, 564 menus and promotion-return flows pass.
