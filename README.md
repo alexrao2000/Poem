@@ -9,7 +9,7 @@ An original, playable tactical RPG prototype in Godot 4.5.1 / GDScript.
 - Twelve named enemy commanders with original portraits, individual model palettes, critical calls and clickable map crown markers.
 - All 22 weapons and staves have distinct combat appearances, including the war hammer, single-bladed hatchet, three bows and elemental folios. Authored enemy equipment across all 12 chapters appears in models, inspection and forecasts.
 - Weighted terrain movement, occupancy, weapon triangle, two-roll hit checks, critical hits, counters, speed follow-ups, healing, enemy turns and casual recovery.
-- All 24 recruits have individual animated map sprites on textured 3D terrain, with four facings, directional walking, attack/recoil poses, selection rings and spent-action markers. Eight dedicated enemy sheets match their class portraits; shared class sheets provide fallback art. Individual portraits identify the same roster. Combat uses articulated 3D figures, weapon strokes, opposing portrait nameplates and animated health meters. Low three-quarter shots follow preparation and impact; a radial zoom transition joins map and arena.
+- All 24 recruits have individual animated map sprites on textured 3D terrain, with four facings, directional walking, attack/recoil poses, blue selection corners and grayscale spent units. Eight dedicated enemy sheets match their class portraits; shared class sheets provide fallback art. Individual portraits identify the same roster. Combat uses articulated 3D figures, weapon strokes, opposing portrait nameplates and animated health meters. Low three-quarter shots follow preparation and impact; a radial zoom transition joins map and arena.
 - Continuous counters/follow-ups, distinct Ember/Gale/Thunder spells, weapon-specific projectiles and critical contact bursts. Terrain-matched arenas use chapter lighting and distance haze. Decisive blows end with weapon-specific resting poses and a brief camera hold on the surviving fighter.
 - Flat tactical range outlines, directional route arrows, live terrain inspection, pointer-centered zoom and bounded map panning.
 - Three original 32-bar stereo themes with calm/Ablaze arrangements on the same sample timeline, rendered with CC0 orchestral recordings and synthetic percussion. Separate combat, healing and phase effects.
@@ -31,6 +31,8 @@ Use **Transfer a local save** on the title screen or war council, or **Transfer 
 
 Scroll the wheel or press **+ / −** to zoom the tactical map. Drag with the middle mouse button to pan; **Home** resets the view. Keyboard cursor movement keeps distant tiles in view. Zoom and pan survive the return from 3D combat. The terrain card follows the pointer or keyboard cursor and displays the same costs and bonuses used by the simulation.
 
+Open **View character** from a recruit’s dossier to rotate the 3D preview and choose attack, reaction, defeat or finishing poses. Staff users can preview healing. **Play again** repeats the selected pose; Escape returns to the record or training choice.
+
 **Options** is available from the title, war council and battle sidebar. It controls full 3D/player-only/quick-map battles, music and effects volume, dialogue speed, and automatic phase ending. Preferences stay on the device separately from campaign saves.
 
 Save files are local to the device/browser origin. Browser storage can be cleared by the browser. Returning to the war council restarts the current map from its pre-battle roster.
@@ -39,7 +41,7 @@ Save files are local to the device/browser origin. Browser storage can be cleare
 
 Open `project.godot` in Godot 4.5.1 (standard edition). Use the Compatibility renderer for web parity. No third-party packages are needed.
 
-Open **Visual workshop · 2D / 3D maps** from the title screen to play the same skirmish with animated pixel sprites over either map renderer. The [reusable sprite package](visuals/README.md) includes eight class sheets, terrain art, shared playback, effects, and a standalone preview. [Visual requirements](docs/visuals-2d/README.md) describe the production targets. Run `python3 scripts/package_visuals.py` to create a clean starter project and `build/Reusable2DVisuals.zip` for another game.
+Open **Character & map workshop** from the title screen to play the same skirmish with animated pixel sprites over either map renderer. The [reusable sprite package](visuals/README.md) includes eight class sheets, terrain art, shared playback, effects, and a standalone preview. [Visual requirements](docs/visuals-2d/README.md) describe the production targets. Run `python3 scripts/package_visuals.py` to create a clean starter project and `build/Reusable2DVisuals.zip` for another game.
 
 - `scripts/rules.gd`: scene-independent simulation, validated actions, campaign state and backup persistence.
 - `scripts/tactics.gd`: weighted pathfinding, guard/sentry/pursuit behavior, combat evaluation and automated playtest planning.
@@ -49,7 +51,7 @@ Open **Visual workshop · 2D / 3D maps** from the title screen to play the same 
 - `scripts/tactical_camera.gd`, `map_overlay.gd` and `terrain_card.gd`: map navigation, batched range/path geometry and shared-rule terrain inspection.
 - `scripts/combat_projectile.gd`, `combat_impact.gd` and `combat_spell.gd`: self-cleaning flight/contact effects and equipped spell identities.
 - `scripts/scenery.gd`: textured terrain, environment construction and material caching.
-- `scripts/static_batch.gd`: spatial/material batching for static scenery, with correct normals under nonuniform scaling. The current 12 maps combine 13,618 mesh objects into 626 batches; browser FPS has not yet been measured.
+- `scripts/static_batch.gd`: spatial/material batching for static scenery, with correct normals under nonuniform scaling. The current 12 maps combine 13,554 mesh objects into 616 batches; browser FPS has not yet been measured.
 - `scripts/fighters.gd` and `fighter_actor.gd`: articulated class actors, joint poses, weapons and class-specific attack animations.
 - `scripts/combat_models.gd`, `imported_fighter.gd` and `data/combat_models.json`: optional authored glTF/scene replacement with animation segments and effect sockets. The catalog is initially empty; see `docs/combat-models.md` for asset integration.
 - `assets/art/`: original generated terrain atlas and class sprite atlas. Prompts and provenance are recorded in `docs/art-direction.md`.

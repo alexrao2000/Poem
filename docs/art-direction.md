@@ -464,3 +464,7 @@ Confirmed critical damage uses a stronger torso/head recoil and deeper knee bend
 ## Combat weapon-matchup markers
 
 The paired combat nameplates reuse the forecast's green upward and red downward weapon-advantage arrows. Each marker sits between the weapon icon and name; neutral pairings and staff healing hide it. The cinematic supplies the existing rules' triangle value for both participants, so counters and follow-ups retain the same relationship without recalculating any outcome. Layout checks cover all recruits at three desktop sizes, with separate space for icon, marker, weapon name and health. Forecast behavior and all 36 weapon pairings remain unchanged.
+
+## Floating tactical result text
+
+The tactical camera reserves horizontal space for the actual 28 px label and vertical space for its complete rising/fading path. This corrects clipping and terrain-card overlap when an action pans back from the opposite board edge. Healing labels use their measured center, including wider amounts. The 4,200 layout cases cover all 140 cells, three window sizes, opposite pan origins and five text forms; real damage, miss, guarded-hit and recovery sequences also verify their full visible lifetime. Movement tracking keeps its existing margins and speed.

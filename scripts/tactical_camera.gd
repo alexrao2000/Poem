@@ -75,7 +75,7 @@ func safe_rect() -> Rect2:
 
 # Project the whole action, including sprite height, before choosing the smallest
 # camera correction. The same calculation drives the initial pan and tracking.
-func action_destination(points: Array,occlusion=Rect2()) -> Vector3:
+func action_destination(points: Array,occlusion=Rect2(),padding=Vector2(18,18)) -> Vector3:
  if points.is_empty():return camera.position
  var destination=camera.position;var safe=safe_rect()
  # Clamping one world axis can shift both screen axes in the angled map view.
@@ -84,7 +84,7 @@ func action_destination(points: Array,occlusion=Rect2()) -> Vector3:
   var offset=destination-camera.position
   var bounds=Rect2(camera.unproject_position(points[0]-offset),Vector2.ZERO)
   for point in points:bounds=bounds.expand(camera.unproject_position(point-offset))
-  bounds=bounds.grow(18)
+  bounds=Rect2(bounds.position-padding,bounds.size+padding*2)
   var shift=Vector2.ZERO
   for axis in range(2):
    shift[axis]=clampf(0,safe.position[axis]-bounds.position[axis],safe.end[axis]-bounds.end[axis]) if bounds.size[axis]<=safe.size[axis] else safe.get_center()[axis]-bounds.get_center()[axis]
@@ -103,8 +103,8 @@ func action_destination(points: Array,occlusion=Rect2()) -> Vector3:
   if previous.distance_to(destination)<.0001:break
  return destination
 
-func frame_action(points: Array,occlusion=Rect2(),duration=.22) -> Tween:
- stop();var destination=action_destination(points,occlusion)
+func frame_action(points: Array,occlusion=Rect2(),duration=.22,padding=Vector2(18,18)) -> Tween:
+ stop();var destination=action_destination(points,occlusion,padding)
  if camera.position.distance_to(destination)<.0001:return null
  motion=camera.create_tween().set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN_OUT)
  motion.tween_property(camera,"position",destination,duration)

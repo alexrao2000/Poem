@@ -1388,11 +1388,15 @@ func map_position(point: Vector2i) -> Vector3:
 func action_occlusion() -> Rect2:
 	return terrain_card.get_global_rect() if is_instance_valid(terrain_card) and terrain_card.visible else Rect2()
 
-func frame_map_action(units: Array):
+func map_cue_padding(text: String) -> Vector2:
+	var width=ui.get_theme_font("font","Label").get_string_size(text,HORIZONTAL_ALIGNMENT_LEFT,-1,28).x
+	return Vector2(maxf(18,width*.5+8),50)
+
+func frame_map_action(units: Array,padding=Vector2(18,18)):
 	var points=[]
 	for unit in units:
 		var point=map_position(game.pos(unit));points.append(point);points.append(point+Vector3.UP*1.1)
-	var pan=map_navigation.frame_action(points,action_occlusion())
+	var pan=map_navigation.frame_action(points,action_occlusion(),.22,padding)
 	if pan!=null:await pan.finished
 
 func track_map_actor(actor: Node3D):
@@ -1485,14 +1489,15 @@ func map_combat_feedback(events: Array):
 		var unit=targets[0]
 		var attackers=game.units.filter(func(other):return other.id==event.actor)
 		var actor=unit_nodes.get(event.actor);var victim=unit_nodes.get(event.target)
-		await frame_map_action([unit]+attackers)
+		var cue_text="MISS" if not event.hit else "NO DAMAGE" if event.damage<=0 else ("CRIT " if event.crit else "")+str(int(event.damage))
+		await frame_map_action([unit]+attackers,map_cue_padding(cue_text))
 		if actor!=null and not attackers.is_empty():
 			actor.act_toward(game.pos(unit),game.pos(attackers[0]));map_facings[event.actor]=actor.player.facing
 		await get_tree().create_timer(.12).timeout
 		if victim!=null:
 			victim.react(event.hit and event.damage>0,int(event.remaining));victim.hp_ratio=clampf(float(event.remaining)/maxf(1,unit.max_hp),0,1);victim.refresh_health()
 		var text_label=Label.new();ui.add_child(text_label)
-		text_label.text="MISS" if not event.hit else "NO DAMAGE" if event.damage<=0 else ("CRIT " if event.crit else "")+str(int(event.damage))
+		text_label.text=cue_text
 		text_label.add_theme_font_size_override("font_size",28);text_label.add_theme_color_override("font_color",Color("ffe5a1"));text_label.add_theme_color_override("font_outline_color",Color("30353a"));text_label.add_theme_constant_override("outline_size",5)
 		text_label.position=camera.unproject_position(map_position(game.pos(unit))+Vector3.UP*1.1)-Vector2(text_label.get_minimum_size().x*.5,20);text_label.mouse_filter=Control.MOUSE_FILTER_IGNORE
 		play_sfx("swing" if not event.hit else "guard" if event.damage<=0 else "critical" if event.crit else "hit")
@@ -1504,7 +1509,8 @@ func map_combat_feedback(events: Array):
 	refresh_pieces()
 
 func map_heal_feedback(healer,recipient,amount: int):
-	await frame_map_action([healer,recipient])
+	var cue_text="+"+str(amount)
+	await frame_map_action([healer,recipient],map_cue_padding(cue_text))
 	var actor=unit_nodes.get(healer.id);var patient=unit_nodes.get(recipient.id)
 	if actor!=null:
 		if healer.id!=recipient.id:actor.act_toward(game.pos(recipient),game.pos(healer))
@@ -1514,9 +1520,9 @@ func map_heal_feedback(healer,recipient,amount: int):
 	var glow=Node3D.new();pieces.add_child(glow);glow.position=map_position(game.pos(recipient))+Vector3.UP*.08
 	var ring=MeshInstance3D.new();var shape=TorusMesh.new();shape.inner_radius=.28;shape.outer_radius=.32;ring.mesh=shape;glow.add_child(ring)
 	var material=mat(Color(.55,.95,.76,.8));material.shading_mode=BaseMaterial3D.SHADING_MODE_UNSHADED;ring.material_override=material
-	var text_label=Label.new();ui.add_child(text_label);text_label.text="+"+str(amount)
-	text_label.position=camera.unproject_position(map_position(game.pos(recipient))+Vector3.UP*1.1)-Vector2(20,20)
+	var text_label=Label.new();ui.add_child(text_label);text_label.text=cue_text
 	text_label.add_theme_font_size_override("font_size",28);text_label.add_theme_color_override("font_color",Color("b4efd1"));text_label.add_theme_color_override("font_outline_color",Color("263e36"));text_label.add_theme_constant_override("outline_size",5);text_label.mouse_filter=Control.MOUSE_FILTER_IGNORE
+	text_label.position=camera.unproject_position(map_position(game.pos(recipient))+Vector3.UP*1.1)-Vector2(text_label.get_minimum_size().x*.5,20)
 	if patient!=null:patient.hp_ratio=float(recipient.hp)/maxf(1,recipient.max_hp);patient.refresh_health()
 	var bloom=create_tween().set_parallel(true)
 	bloom.tween_property(glow,"scale",Vector3.ONE*1.7,.35);bloom.tween_property(material,"albedo_color:a",0.0,.35)

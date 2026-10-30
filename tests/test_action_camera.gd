@@ -3,6 +3,8 @@ const Shutdown=preload("helpers/game_shutdown.gd")
 const Navigation=preload("res://scripts/tactical_camera.gd")
 var movement_done=false
 var saw_cue=false
+var cue_types={}
+var cue_layouts=0
 
 func _initialize():call_deferred("run")
 
@@ -40,6 +42,19 @@ func run():
    var point=Vector3(13*i/120.0,.1 if i>55 else 0,9*i/120.0)
    var points=action_points([point]);nav.follow_action(points,occlusion);check_visible(nav,points,occlusion)
    assert(camera.position.y==22 and camera.size==8)
+  var label=Label.new();label.add_theme_font_size_override("font_size",28);viewport.add_child(label)
+  for origin in [Vector3(-1,0,-1),Vector3(14,0,10)]:
+   for cell in range(140):
+    var point=Vector3(cell%14,.1 if cell%3==0 else 0.0,cell/14)
+    for text in ["3","MISS","NO DAMAGE","CRIT 999","+999"]:
+     label.text=text;var extent=label.get_minimum_size()
+     camera.position=nav.eye_offset+origin
+     camera.position=nav.action_destination(action_points([point]),occlusion,Vector2(maxf(18,extent.x*.5+8),50))
+     var top=camera.unproject_position(point+Vector3.UP*1.1)-Vector2(extent.x*.5,44)
+     var travel_bounds=Rect2(top,extent+Vector2(0,24)).grow(5)
+     assert(Rect2(Vector2.ZERO,Vector2(dimensions)).encloses(travel_bounds),"Full text, outline and rising animation stay on screen at every tile and opposite pan origin")
+     assert(not travel_bounds.intersects(occlusion),"Rising damage, miss, guard and recovery text cannot pass behind the terrain card")
+     cue_layouts+=1
   viewport.queue_free();await process_frame
  var app=load("res://main.tscn").instantiate();app.settings_path="";app.save_path="/private/tmp/poem-action-camera.json";root.add_child(app);await process_frame
  app.game.start_battle();app.make_map();app.show_battle();app.preferences.values.combat="map"
@@ -62,9 +77,19 @@ func run():
  saved=app.game.save_data("battle").duplicate(true)
  await app.map_combat_feedback([{"actor":unit.id,"target":recipient.id,"damage":3,"hit":true,"crit":false,"remaining":recipient.hp}])
  assert(saw_cue and app.game.save_data("battle")==saved and app.game.rng.state==rng,"Off-screen map-only result is framed without reapplying damage")
+ unit.x=1;unit.y=0;recipient.x=0;recipient.y=0;app.refresh_pieces()
+ saved=app.game.save_data("battle").duplicate(true)
+ for content in ["NO DAMAGE","MISS","CRIT 999"]:
+  app.camera.position=app.map_navigation.eye_offset+Vector3(14,0,10)
+  app.terrain_card.inspect(app.game,app.game.pos(recipient));app.terrain_card.show()
+  await app.map_combat_feedback([{"actor":unit.id,"target":recipient.id,"damage":999 if content=="CRIT 999" else 0,"hit":content!="MISS","crit":content=="CRIT 999","remaining":recipient.hp}])
+  assert(cue_types.has(content),"Actual map result text was observed: "+content)
+ app.camera.position=app.map_navigation.eye_offset+Vector3(14,0,10)
+ await app.map_heal_feedback(recipient,recipient,999)
+ assert(cue_types.has("+999") and app.game.save_data("battle")==saved and app.game.rng.state==rng,"Recovery centering and text framing change no resolved game state")
  for player in app.sfx_players:player.stop()
  app.music.stop();await create_timer(.15).timeout;await Shutdown.dispose(app);await process_frame
- print("PASS: %d action frames across three viewports, bounded continuous tracking, real enemy movement and visible map-only results without simulation changes"%measurements)
+ print("PASS: %d action frames and %d full floating-text layouts, opposite pan origins, bounded tracking, real movement/damage/miss/guard/recovery cues and unchanged simulation"%[measurements,cue_layouts])
  quit()
 
 func run_movement(app,unit,path):
@@ -73,6 +98,10 @@ func run_movement(app,unit,path):
 func watch_cue(node,app):
  if not node is Label:return
  await process_frame
- if node.text!="3":return
- saw_cue=true
- assert(app.map_navigation.safe_rect().encloses(node.get_global_rect()),"Damage number is visible when it appears, not after it fades")
+ if node.text not in ["3","NO DAMAGE","MISS","CRIT 999","+999"]:return
+ saw_cue=true;cue_types[node.text]=true
+ while is_instance_valid(node) and not node.is_queued_for_deletion():
+  var bounds=node.get_global_rect().grow(5)
+  assert(app.map_navigation.safe_rect().encloses(bounds),"Full floating result remains in the action area throughout its rise and fade")
+  assert(not bounds.intersects(app.action_occlusion()),"Actual floating result never passes behind the terrain readout")
+  await process_frame
