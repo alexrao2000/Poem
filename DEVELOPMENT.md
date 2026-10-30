@@ -42,6 +42,8 @@ Critical preparation now has distinct melee, bow, magic and thrown-spear poses b
 
 The combat entry zoom now follows a continuous descending orbit from the tactical angle to 38 degrees, with a small yaw turn and a level horizon. It still centers the engaged pair and restores the exact prior tactical transform, zoom and offsets after combat or skip. Camera, presentation and staff checks pass.
 
+Progression now uses a compact XP panel for ordinary gains and a centered portrait/stat panel for level-ups. The XP rollover plays an original four-note chime, then reveals each resolved stat with a gain or dash. All 144 roster/mode layouts at three sizes, numeric reveals, zero growth, multiple levels, level cap, mouse/keyboard dismissal and unchanged rules/RNG are checked.
+
 The last delivered local browser/macOS checkpoint passed all 35 automated suites, five complete campaign simulations (60 chapter victories), model-catalog validation and an exported-resource-pack smoke check. These are runtime, geometry and layout checks, not a rendered review of the latest game. Full human balance and listening reviews remain outstanding. Routine non-destructive commits and private pushes are authorized.
 
 The user explicitly allowed local browser testing, but the subsequent tool retry still returned a saved/managed permission denial. Localhost, the Quaternius asset site and native Codex access were blocked. Do not circumvent these denials with another browser surface, native game capture, raw browser/CDP access or alternate asset hosts. No Quaternius models have been acquired. Earlier screenshots and another chat's native workshop captures do not verify the current campaign visuals.

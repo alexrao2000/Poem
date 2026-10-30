@@ -1,4 +1,5 @@
 extends SceneTree
+const Reward=preload("res://scripts/progress_reward.gd")
 const Rules=preload("res://scripts/rules.gd")
 func _initialize():call_deferred("run")
 func run():
@@ -22,6 +23,7 @@ func run():
  var malformed=g.save_data("battle").duplicate(true);malformed.roster[0].level=2.5
  assert(not g.valid_save(malformed),"Fractional progression fields are invalid")
  var app=load("res://main.tscn").instantiate();app.settings_path="";app.save_path="/private/tmp/poem-test_progress-ui-save.json";root.add_child(app);await process_frame
+ await verify_rewards(app)
  app.game.start_battle();app.make_map();app.show_battle();app.busy=true
  app.game.units[0].xp=90;before=app.game.progress_snapshot();app.game.award_xp(app.game.units[0],45)
  app.show_progress(before);await process_frame
@@ -35,5 +37,49 @@ func run():
  assert(app.screen=="result")
  var loaded=Rules.new();assert(loaded.load_game(app.save_path)=="battle" and loaded.result()=="victory","Victory is resumable before chapter continuation")
  app.queue_free();await process_frame
- print("PASS: XP rollover, stat gains, growth overlay, dismissal and resumable chapter results")
+ print("PASS: XP rollover/caps, 144 roster reward layouts, sequential actual stat gains, cue timing, dismissal and resumable results")
  quit()
+
+func change_for(source,leveled):
+ var unit=source.duplicate(true);unit.level=2 if leveled else 1;unit.xp=35
+ var previous={"level":1,"xp":90 if leveled else 5};var gains={}
+ for stat in Reward.STATS:
+  var key=stat[0];gains[key]=1 if leveled and key in ["max_hp","pow","speed"] else 0
+  previous[key]=int(unit[key])-gains[key]
+ return {"unit":unit,"before":previous,"gains":gains,"xp_gain":45 if leveled else 30}
+
+func verify_rewards(app):
+ var host=Control.new();root.add_child(host);host.theme=app.ui.theme
+ var original=app.game.roster.duplicate(true);var rng=app.game.rng.state;var layouts=0
+ for dimensions in [Vector2(1024,640),Vector2(1280,720),Vector2(1440,900)]:
+  host.size=dimensions
+  for unit in app.game.roster:
+   for leveled in [false,true]:
+    var reward=Reward.new();reward.configure(host,change_for(unit,leveled),app.portraits.get_dialogue_portrait(unit.id),app.game.class_name_for(unit))
+    await process_frame;await process_frame
+    assert(Rect2(Vector2.ZERO,host.size).encloses(reward.get_rect()),"Reward stays within every tested viewport")
+    for child in reward.content.get_children():
+     assert(Rect2(Vector2.ZERO,reward.content.size).encloses(child.get_rect()),"Portrait, values and controls fit the reward panel")
+     if child is Label:assert(child.get_visible_line_count()==child.get_line_count() and child.size.x>=child.get_minimum_size().x,"Names, classes and numeric stats remain readable")
+    assert(reward.rows.size()==(5 if leveled else 0),"Ordinary experience uses a compact panel without stat rows")
+    reward.queue_free();await process_frame;layouts+=1
+ for case in ["normal","level","limit","multiple"]:
+  var change=change_for(app.game.roster[0],case!="normal")
+  if case=="limit":change.unit.level=99;change.unit.xp=0;change.before.level=98;change.xp_gain=10
+  elif case=="multiple":change.unit.level=4;change.xp_gain=245
+  var reward=Reward.new();reward.configure(host,change,app.portraits.get_dialogue_portrait(change.unit.id),"Vanguard")
+  var cues=[0];reward.begin(func():cues[0]+=1)
+  if reward.leveled:
+   for row in reward.rows.values():assert(row.gain.modulate.a==0,"Stat gains wait for the experience rollover")
+  await reward.motion.finished;await create_timer(.2).timeout
+  assert(cues[0]==(1 if reward.leveled else 0),"Only a level rollover plays the growth cue")
+  assert(reward.meter.value==(100 if case=="limit" else change.unit.xp),"Meter settles on resolved XP, including the level limit")
+  if case=="limit":assert(reward.experience.text=="LEVEL LIMIT REACHED")
+  for key in reward.rows:
+   var row=reward.rows[key]
+   assert(row.value.text==str(int(change.unit[key])) and is_equal_approx(row.gain.modulate.a,1),"Each revealed row shows the resolved stat")
+   assert(row.gain.text==("+%d"%change.gains[key] if change.gains[key]>0 else "—"),"Zero growth never displays a misleading plus")
+  reward.close_button.pressed.emit();assert(reward.requested_close,"Mouse dismissal is available alongside keyboard skip")
+  reward.queue_free();await process_frame
+ assert(layouts==144 and app.game.roster==original and app.game.rng.state==rng,"Reward presentation preserves roster and RNG")
+ host.queue_free();await process_frame

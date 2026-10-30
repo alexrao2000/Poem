@@ -12,11 +12,12 @@ func run():
   var track=app.score.get_sync_stream(i)
   assert(track.loop_end==expected,"Stereo loop endpoint is in frames, not samples")
   assert(track.loop_mode==AudioStreamWAV.LOOP_FORWARD)
- for name_value in ["swing","hit","critical","heal","magic","phase","select","guard","cutin"]:
+ for name_value in ["swing","hit","critical","heal","magic","phase","select","guard","cutin","levelup"]:
   assert(app.sfx_streams[name_value]!=null,"Effect resource available")
  assert(app.sfx_players.size()>=2 and app.sfx_players[0]!=app.sfx_players[1],"Independent effect channels")
  assert(app.sfx_streams.guard.get_length()>.2 and app.sfx_streams.guard.get_length()<.23,"Guard is a short distinct steel accent")
  assert(app.sfx_streams.cutin.get_length()>.31 and app.sfx_streams.cutin.get_length()<.33,"Portrait cue ends before the strike resumes")
+ assert(app.sfx_streams.levelup.get_length()>.71 and app.sfx_streams.levelup.get_length()<.73,"Level-up bell ends within the stat reveal")
  app.queue_free();await process_frame
  print("PASS: matched stereo score timelines, loop frame counts and independent combat effects")
  quit()

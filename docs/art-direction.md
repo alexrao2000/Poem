@@ -138,3 +138,9 @@ Optional authored `critical_windup` and `critical_throw_windup` clips take prece
 ## Descending map-to-combat zoom
 
 The 420 ms map approach now moves its look point toward the engaged pair while lowering the camera from the tactical angle to 38 degrees and adding a small yaw turn. Orthographic size still closes to five units; the existing radial veil conceals the arena swap. Pitch/yaw interpolate separately so the horizon stays level throughout. The return restores the exact captured tactical transform and lens values. Checks measure continuous zoom/descent, initial transform continuity, final pair centering, interrupted navigation ownership and complete return through combat/healing.
+
+## Progression feedback
+
+Ordinary XP uses a compact bottom panel. A level-up uses the recruit's transparent dialogue portrait alongside a five-row stat display, old/new level numbers and a segmented sequence: fill the XP meter, play the original 720 ms four-note bell figure, settle at the actual retained XP, then reveal actual HP/Power/Defense/Resistance/Speed values and their gains. Zero gains use a muted dash. The level limit uses a full meter and explicit label; multi-level gains retain their aggregate resolved values. Continue is available by mouse as well as the existing keyboard dismissal and automatic timeout.
+
+The view does not award XP, roll growth or modify the roster. Checks cover all 24 recruits in both display modes at three desktop sizes (144 layouts), sequential reveals, actual numbers, caps, multi-level rewards, cue timing and early dismissal. `scripts/combat_accents.py --effect levelup` regenerates the original sound independently; the full score generator also includes it. Existing paired music files are unchanged. Rendered and listening review remain outstanding.

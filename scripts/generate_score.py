@@ -9,7 +9,7 @@ import wave
 import sys
 import numpy as np
 from orchestra_samples import OrchestraSamples
-from combat_accents import guard, cutin
+from combat_accents import guard, cutin, levelup
 ROOT=Path(__file__).resolve().parent.parent
 OUT=ROOT/'assets/audio';OUT.mkdir(parents=True,exist_ok=True)
 SR=22050;BPM=108;BEAT=60/BPM;BARS=32;FRAMES=round(BARS*4*BEAT*SR)
@@ -136,6 +136,7 @@ for mode in ['calm','ablaze']:
 effects={}
 effects['guard']=guard(SR)
 effects['cutin']=cutin(SR)
+effects['levelup']=levelup(SR)
 t=np.arange(round(.16*SR))/SR
 effects['swing']=rng.uniform(-1,1,len(t))*np.sin(np.pi*t/.16)**2*np.exp(-t*14)*.25
 t=np.arange(round(.25*SR))/SR

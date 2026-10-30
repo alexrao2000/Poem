@@ -31,6 +31,7 @@ const CombatProjectile=preload("res://scripts/combat_projectile.gd")
 const CombatCamera=preload("res://scripts/combat_camera.gd")
 const CombatHUD=preload("res://scripts/combat_hud.gd")
 const CombatTransition=preload("res://scripts/combat_transition.gd")
+const ProgressReward=preload("res://scripts/progress_reward.gd")
 const PhaseBanner=preload("res://scripts/phase_banner.gd")
 var phase_skip=false
 var phase_banner_active=false
@@ -149,7 +150,7 @@ func setup_audio():
 	score.set_sync_stream_volume(1,-60)
 	music.stream=score
 	add_child(music)
-	for effect in ["select","swing","hit","critical","heal","magic","phase","guard","cutin"]:
+	for effect in ["select","swing","hit","critical","heal","magic","phase","guard","cutin","levelup"]:
 		sfx_streams[effect]=load("res://assets/audio/"+effect+".wav")
 	for i in range(6):
 		var player=AudioStreamPlayer.new();player.volume_db=-12;sfx_players.append(player);add_child(player)
@@ -1068,27 +1069,12 @@ func close_model_view():
 
 func show_progress(before: Dictionary):
 	for change in game.progress_since(before):
-		var unit=change.unit;var leveled=int(unit.level)>change.before.level
 		reward_skip=false
-		reward_panel=PanelContainer.new();reward_panel.name="ProgressReward";ui.add_child(reward_panel)
-		reward_panel.anchor_left=.5;reward_panel.anchor_right=.5;reward_panel.offset_left=-330;reward_panel.offset_right=330;reward_panel.offset_top=115
-		var row=HBoxContainer.new();row.add_theme_constant_override("separation",18);reward_panel.add_child(row)
-		var portrait=TextureRect.new();portrait.texture=portraits.get_portrait(unit.id);portrait.custom_minimum_size=Vector2(110,130);portrait.expand_mode=TextureRect.EXPAND_IGNORE_SIZE;portrait.stretch_mode=TextureRect.STRETCH_KEEP_ASPECT_CENTERED;row.add_child(portrait)
-		var details=VBoxContainer.new();details.size_flags_horizontal=Control.SIZE_EXPAND_FILL;row.add_child(details)
-		label_in(details,("LEVEL UP  /  " if leveled else "EXPERIENCE  /  ")+unit.name,28,GOLD)
-		label_in(details,"Level %d  ·  +%d XP"%[unit.level,change.xp_gain],20)
-		var progress=ProgressBar.new();progress.max_value=100;progress.value=change.before.xp;progress.show_percentage=false;progress.custom_minimum_size.y=16;details.add_child(progress)
-		var fill=StyleBoxFlat.new();fill.bg_color=Color("889d65");progress.add_theme_stylebox_override("fill",fill)
-		var tween=reward_panel.create_tween()
-		if leveled:
-			tween.tween_property(progress,"value",100.0,.25);tween.tween_callback(func():progress.value=0)
-		tween.tween_property(progress,"value",100.0 if unit.level>=game.MAX_LEVEL else float(unit.xp),.35)
-		label_in(details,"Level limit reached" if unit.level>=game.MAX_LEVEL else "%d / 100 XP"%unit.xp,16)
-		if leveled:
-			label_in(details,"HP +%d   Power +%d   Defense +%d   Resistance +%d   Speed +%d"%[change.gains.max_hp,change.gains.pow,change.gains.defense,change.gains.resistance,change.gains.speed],17)
-		label_in(details,"Space / Enter to continue",14)
+		reward_panel=ProgressReward.new()
+		reward_panel.configure(ui,change,portraits.get_dialogue_portrait(change.unit.id),game.class_name_for(change.unit),game.MAX_LEVEL)
+		reward_panel.begin(func():play_sfx("levelup"))
 		var elapsed=0.0
-		while elapsed<(2.0 if leveled else .8) and not reward_skip:
+		while elapsed<(2.0 if reward_panel.leveled else .8) and not reward_skip and not reward_panel.requested_close:
 			await get_tree().process_frame;elapsed+=get_process_delta_time()
 		reward_panel.queue_free();reward_panel=null
 

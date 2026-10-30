@@ -1,4 +1,4 @@
-"""Original guard/cut-in accents; regenerate without touching the paired score."""
+"""Original combat and progression accents; regenerate without touching the paired score."""
 import argparse
 from pathlib import Path
 import wave
@@ -26,11 +26,22 @@ def cutin(sample_rate=22050):
     return (air + chime) * np.clip((.32-t)/.035, 0, 1)
 
 
+def levelup(sample_rate=22050):
+    t = np.arange(round(.72 * sample_rate)) / sample_rate
+    sound = np.zeros_like(t)
+    # An original four-note ascending bell figure, with short soft attacks.
+    for offset, hz in [(0, 659.255), (.095, 783.991), (.19, 987.767), (.285, 1318.51)]:
+        dt = np.maximum(t-offset, 0)
+        envelope = (1-np.exp(-dt*500))*np.exp(-dt*10)*(t>=offset)
+        sound += (.15*np.sin(2*np.pi*hz*dt)+.035*np.sin(2*np.pi*hz*2.71*dt))*envelope
+    return sound*np.clip((.72-t)/.06, 0, 1)
+
+
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--effect", choices=["guard", "cutin", "all"], default="all")
+    parser.add_argument("--effect", choices=["guard", "cutin", "levelup", "all"], default="all")
     args = parser.parse_args()
-    for name, generate in {"guard": guard, "cutin": cutin}.items():
+    for name, generate in {"guard": guard, "cutin": cutin, "levelup": levelup}.items():
         if args.effect not in [name, "all"]:
             continue
         output = Path(__file__).resolve().parent.parent / f"assets/audio/{name}.wav"
