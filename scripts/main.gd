@@ -37,6 +37,8 @@ const ScoreDirector=preload("res://scripts/score_director.gd")
 const PhaseBanner=preload("res://scripts/phase_banner.gd")
 var phase_skip=false
 var phase_banner_active=false
+var chapter_card_active=false
+var chapter_card_skip=false
 const CriticalCutin=preload("res://scripts/critical_cutin.gd")
 const Fighters = preload("res://scripts/fighters.gd")
 var fighters: RefCounted
@@ -463,8 +465,15 @@ func objective_text() -> String:
 
 func deploy_company():
 	game.start_battle();make_map();show_battle();busy=true;update_side();persist_campaign("battle")
+	await announce_chapter()
 	await announce_phase("player")
 	busy=false;update_side()
+
+func announce_chapter():
+	chapter_card_skip=false;chapter_card_active=true
+	var card=preload("res://scripts/chapter_card.gd").new();card.configure(ui,game.chapter,game.info().title,game.info().place)
+	await card.play(func():return chapter_card_skip)
+	ui.remove_child(card);card.queue_free();chapter_card_active=false
 
 func announce_phase(side: String):
 	phase_skip=false;phase_banner_active=true;play_sfx("phase")
@@ -631,7 +640,8 @@ func _input(event):
 	if is_instance_valid(reward_panel) and event is InputEventKey and event.pressed and event.keycode in [KEY_SPACE,KEY_ENTER,KEY_TAB]:
 		reward_skip=true;get_viewport().set_input_as_handled();return
 	if screen=="battle" and busy and event is InputEventKey and event.pressed and event.keycode==KEY_TAB:
-		if phase_banner_active:phase_skip=true
+		if chapter_card_active:chapter_card_skip=true
+		elif phase_banner_active:phase_skip=true
 		else:skip_combat=true
 		get_viewport().set_input_as_handled()
 

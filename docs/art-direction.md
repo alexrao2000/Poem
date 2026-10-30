@@ -290,3 +290,9 @@ The abbey sheet was corrected through the image tool to remove the bell that the
 Opening, closing and support conversations select their current location beneath the existing transparent speaker portraits. A lighter 20% shade keeps the scene readable while separating it from the portraits. Aspect-fill preserves proportions. Title and dialogue now share the same visibility/process-state lifecycle, so covered maps pause and restore exactly when each painted screen exits. Backdrops ignore input and never advance gameplay RNG.
 
 Checks cover all twelve locations, 108 background fits, the two closing variants, actual victory-to-closing-to-next-chapter navigation, finale completion, support progression and all 885 dialogue layouts. Export checks require every location and closing asset. Source illustrations were inspected; the assembled running dialogue remains unverified visually.
+
+## Chapter deployment card
+
+Each deployment now opens with an original blue/ivory/gold chapter card over the live battlefield. Chapter number, title and location sit between thin rules and small geometric ornaments in the existing Cormorant typeface. A 200 ms fade in, 800 ms hold and 200 ms fade out lead into the normal player-phase ribbon. The camera and synchronized score continue unchanged.
+
+A full-screen input surface prevents a skip click from becoming a tactical order. Click or Tab dismisses the card, with its own skip state so it cannot skip the following phase ribbon or combat. Deployment keeps commands locked until both announcements finish. Checks cover all twelve chapter names at three desktop sizes, text bounds, automatic completion, pointer/keyboard skip and real deployment/turn ordering without changing campaign state. Assembled appearance remains unverified.

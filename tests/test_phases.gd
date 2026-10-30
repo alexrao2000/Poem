@@ -26,9 +26,12 @@ func run():
  host.queue_free()
  app=load("res://main.tscn").instantiate();app.settings_path="";app.save_path="/private/tmp/poem-phases.json";root.add_child(app);await process_frame
  app.deploy_company();await process_frame
- assert(app.busy and app.phase_banner_active and app.game.turn==1,"Deployment starts with a locked player phase ribbon")
+ assert(app.busy and app.chapter_card_active and not app.phase_banner_active and app.game.turn==1,"Deployment starts with its locked chapter card")
  var before=app.cursor_tile;app.move_map_cursor(Vector2i.RIGHT);assert(app.cursor_tile==before,"Ribbon prevents tactical input")
  var key=InputEventKey.new();key.pressed=true;key.keycode=KEY_TAB;app.skip_combat=false;app._input(key)
+ while app.chapter_card_active:await process_frame
+ assert(app.phase_banner_active and not app.phase_skip and not app.skip_combat,"Chapter skip does not carry into the player phase or combat")
+ app._input(key)
  while app.busy:await process_frame
  assert(not app.phase_banner_active and not app.skip_combat,"Skipping the ribbon does not skip the next combat")
  var ally=app.game.living("player")[0];var enemy=app.game.living("enemy")[0]
