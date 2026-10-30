@@ -32,6 +32,9 @@ func run():
   actor.pose_name="idle";actor._process(.8)
   assert(actor.cape_motion.drive<moving and actor.cape_motion.drive>.12,"Ready stance settles gradually")
   assert(cloth.get_shader_parameter("cloth_drive")==ink.get_shader_parameter("cloth_drive"))
+  actor.pose_name="hit";actor._process(1.0);var recoil=actor.cape_motion.drive
+  actor.pose_name="critical_hit";actor._process(.3)
+  assert(actor.cape_motion.drive>recoil and actor.cape_motion.drive<=.9,"Critical recoil drives a stronger bounded cloth response")
   actors.append(actor)
  for material in painter.surface_cache.values():assert(material.get_shader_parameter("cloth_amount")!=1.0,"Shared body fabrics never opt into cloth deformation")
  assert(painter.Outline.material().get_shader_parameter("cloth_amount")!=1.0,"Shared armor/weapon outline never opts into cloth deformation")

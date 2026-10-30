@@ -2,7 +2,7 @@ extends RefCounted
 ## Bind only cape materials after batching/outline creation. Every actor owns
 ## its two passes, while body materials remain shared and undeformed.
 const MARGIN=.10
-const DRIVE={"advance":.9,"strike":.75,"recover":.55,"windup":.35,"critical_windup":.45,"throw":.7,"evade":.8,"hit":.65}
+const DRIVE={"advance":.9,"strike":.75,"recover":.55,"windup":.35,"critical_windup":.45,"throw":.7,"evade":.8,"hit":.65,"critical_hit":.9}
 var surfaces: Array[ShaderMaterial]=[]
 var drive=0.0
 

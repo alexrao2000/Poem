@@ -61,13 +61,13 @@ func verify_roster_framing():
    for separation in [1.3,4.0]:
     actor.position=Vector3(side*separation*.5,0,0)
     var other=Vector3(-side*separation*.5,0,0)
-    for phase in ["wide","windup","critical_windup","impact"]:
-     actor.pose({"wide":"idle","windup":"windup","critical_windup":"critical_windup","impact":"strike"}[phase],1).custom_step(1);actor.apply_constraints()
+    for phase in ["wide","windup","critical_windup","impact","critical_hit"]:
+     actor.pose({"wide":"idle","windup":"windup","critical_windup":"critical_windup","impact":"strike","critical_hit":"critical_hit"}[phase],1).custom_step(1);actor.apply_constraints()
      var points=[]
      for mesh in actor.bones.Head.find_children("*","MeshInstance3D",true,false):points.append_array(bounds_points(mesh))
      for mesh in actor.find_children("Hoof" if actor.mounted else "Boot","MeshInstance3D",true,false):points.append_array(bounds_points(mesh))
      for partner_mounted in [false,true]:
-      var frame=Director.frame_pair(actor.position,other,"windup" if phase=="critical_windup" else phase,separation==4,actor.mounted or partner_mounted)
+      var frame=Director.frame_pair(actor.position,other,"windup" if phase=="critical_windup" else "impact" if phase=="critical_hit" else phase,separation==4,actor.mounted or partner_mounted)
       view.position=frame.anchor;view.look_at(frame.focus);view.fov=frame.lens
       for size_value in [Vector2i(1024,640),Vector2i(1280,720),Vector2i(1440,900)]:
        viewport.size=size_value

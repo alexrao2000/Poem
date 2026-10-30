@@ -73,6 +73,10 @@ func run():
   var normal_body=walker.bone("Body").rotation;var normal_head=walker.bone("Head").rotation
   await walker.pose("critical_windup",.01).finished
   assert(walker.bone("Body").rotation!=normal_body or walker.bone("Head").rotation!=normal_head,"Critical preparation has distinct body language for every weapon")
+ await walker.pose("hit",.01).finished
+ var normal_recoil=walker.bone("Body").rotation.length()
+ await walker.pose("critical_hit",.01).finished
+ assert(walker.bone("Body").rotation.length()>normal_recoil*1.5,"A critical contact has a stronger body reaction than an ordinary hit")
  var rider=make_actor(true)
  await rider.pose("advance",.01).finished;rider.position.z-=.3;rider._process(.09)
  assert(absf(rider.bone("HorseLeg0").rotation.x)>.2,"Horse advances with a gait")
@@ -174,7 +178,7 @@ func run():
  for job in ["Vanguard","Knight","Ranger","Arcanist","Warden","Corsair","Duelist"]:
   var unit=rules.roster.filter(func(u):return u.job==job)[0].duplicate(true);unit.team="player"
   var actor=fighters.build(stage,unit,Vector3.ZERO);actor.set_process(false)
-  for pose in ["idle","windup","critical_windup","critical_throw_windup","strike","recover","guard","hit","evade","down"]:
+  for pose in ["idle","windup","critical_windup","critical_throw_windup","strike","recover","guard","hit","critical_hit","evade","down"]:
    await actor.pose(pose,.001).finished
    var lowest=INF
    for side in ["LeftKnee","RightKnee"]:

@@ -32,7 +32,7 @@ func run():
      assert(head.rotation==head_pose and actor.transform==root_transform,"Gaze cannot overwrite local head animation or actor movement")
      assert(actor.socket_position("gaze")==head.global_position)
      samples+=1
-  for reaction in ["hit","evade","down","victory"]:
+  for reaction in ["hit","critical_hit","evade","down","victory"]:
    actor.pose(reaction,1).custom_step(1);var head_pose=head.rotation
    actor.gaze_motion.update(reaction,1.0)
    assert(actor.gaze_motion.rotation.length()<.0001 and head.rotation==head_pose,"Recoil, defeat and finishing poses relax tracking without losing their authored head pose")

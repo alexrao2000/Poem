@@ -8,6 +8,8 @@ User direction: keep developing continuously in this chat until the user returns
 
 Current measured geometry: 13,554 static map sources / 616 batches across twelve chapters, plus separate cloth and atmosphere; 1,794 character sources / 1,066 joint batches across the roster. The default runner has 60 suites. Earlier paragraphs below record prior checkpoints. Rendered game review and browser FPS measurements remain outstanding.
 
+Critical damage now uses a stronger backward recoil and knee bend, with a larger bounded response in cape and loose hair. Guarded hits retain their separate response. All 24 fighters remain grounded/seated; 2,880 head/sole camera layouts and 2,184 infantry transition samples pass. Imported models can supply a critical-hit clip or fall back to their normal authored hit. Rendered animation review remains pending.
+
 Missed arrows and thrown spears now continue beyond their original aim point along the arrival tangent, for at most 0.9 m and 81 ms of extra flight. The defender still dodges the original aim; hit trajectories, damage and RNG remain unchanged. Tip geometry, path continuity, real missed exchanges and prompt cancellation pass.
 
 Tab now interrupts active combat poses, projectile flight, contact holds and healing immediately, while retaining the short return transition. Nine phase-specific checks require that transition to begin within two frames and verify transient cleanup, unfrozen actors, unchanged resolved outcomes and restored map/audio ownership. A headless measurement dropped the prior 277–511 ms mid-combat wait to 6–8 ms; this is input-loop timing, not a browser FPS measurement.

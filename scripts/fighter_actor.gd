@@ -298,10 +298,14 @@ func pose(key: String,duration=.18) -> Tween:
  elif key=="guard":
   target.Body=Vector3(-.07,0,0)
   target.LeftArm=Vector3(-1.0,-.1,.1);target.LeftElbow=Vector3(-1.3,0,0)
- elif key=="hit":
+ elif key in ["hit","critical_hit"]:
   target.Body=Vector3(-.25,0,0);target.Head=Vector3(-.15,0,.08)
   target.Arm=Vector3(.1,0,-.4);target.LeftArm=Vector3(.2,0,.4)
   target.LeftKnee.x=.38;target.RightKnee.x=.42
+  if key=="critical_hit":
+   target.Body=Vector3(-.40,-.06,.08);target.Head=Vector3(-.24,0,.14)
+   target.Arm=Vector3(.18,0,-.52);target.LeftArm=Vector3(.35,0,.58)
+   target.LeftKnee.x=.54;target.RightKnee.x=.62
  elif key=="evade":
   target.Body=Vector3(-.36,0,.10);target.LeftKnee.x=.45;target.RightKnee.x=.55
  elif key=="down":

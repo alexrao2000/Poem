@@ -46,6 +46,11 @@ func run():
  await actor.pose("strike",.05).finished
  assert(actor.model.get_node("Hand").position.is_equal_approx(Vector3(0,2,0)),"Strike reaches authored impact")
  assert(actor.model.get_node("Skeleton3D").get_bone_pose_rotation(0).is_equal_approx(Quaternion(Vector3.RIGHT,1)),"Skeleton animation tracks remain attached")
+ await actor.pose("critical_hit",.01).finished
+ assert(actor.model.get_node("Hand").position.is_equal_approx(Vector3(0,.6,0)),"Optional critical recoil uses the authored hit interval instead of idle")
+ actor.poses.critical_hit={"clip":"swing","from":.3,"to":.5}
+ await actor.pose("critical_hit",.01).finished
+ assert(actor.model.get_node("Hand").position.is_equal_approx(Vector3(0,1,0)),"A dedicated authored critical reaction takes precedence")
  await actor.pose("throw_windup",.01).finished;assert(actor.pose_name=="throw_windup")
  await actor.pose("throw",.01).finished;assert(actor.model.get_node("Hand").position.y==2)
  for preparation in ["critical_windup","critical_throw_windup"]:

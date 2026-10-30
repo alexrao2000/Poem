@@ -456,3 +456,7 @@ Tab cancels active pose tweens, pauses, projectile flight and healing travel/blo
 ## Missed physical projectiles
 
 Arrows and thrown spears retain the original target and flight arc, then carry along their arrival tangent on a resolved miss. Follow-through is capped at 0.9 m and 35% of the original 230 ms flight time, keeping the projectile clear of the dodging figure with a bounded extension to the exchange. The actual leading tip stays on the continued path; both directions and mounted/infantry height differences are checked. Hits and magical projectiles retain their existing trajectories. Skip releases the flight immediately. These geometry and integration checks do not replace rendered review.
+
+## Critical recoil
+
+Confirmed critical damage uses a stronger torso/head recoil and deeper knee bend, while maintaining the live ground or saddle constraint. Cape and loose hair have a stronger bounded response, and the gaze relaxes with the reaction. Guarded hits keep their existing pose and do not acquire a damage hold. The actual cut-in sequence is checked for critical recoil during hit-stop; 2,880 roster head/sole layouts, 2,184 infantry transition samples, mounted seating and authored-model fallback pass. An optional `critical_hit` clip overrides the normal `hit` fallback for imported models. Rendered motion tuning remains pending.

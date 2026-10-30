@@ -1,8 +1,10 @@
 extends SceneTree
 const Shutdown=preload("helpers/game_shutdown.gd")
+const HitStop=preload("res://scripts/combat_hit_stop.gd")
 const Actor=preload("res://scripts/fighter_actor.gd")
 const Cutin=preload("res://scripts/critical_cutin.gd")
 var observed=0
+var critical_recoils=0
 var watched_app
 func _initialize():call_deferred("run")
 func watch(node):
@@ -12,6 +14,12 @@ func watch(node):
   if app.stage.visible:
    var prepared=app.stage.get_children().filter(func(actor):return actor is Actor and actor.pose_name in ["critical_windup","critical_throw_windup"])
    assert(prepared.size()==1,"Portrait appears after the active fighter adopts critical preparation")
+func watch_contact(node):
+ if not node is HitStop:return
+ await process_frame
+ var actors=watched_app.stage.get_children().filter(func(actor):return actor is Actor and actor.pose_name=="critical_hit")
+ if not actors.is_empty():critical_recoils+=1
+
 func check_layout(cutin,host):
  assert(cutin.get_global_rect().position.x>=0 and cutin.get_global_rect().end.x<=host.size.x and cutin.get_global_rect().end.y<host.size.y-140,"Cutin stays clear of combat HP")
  for child in cutin.get_children():
@@ -56,12 +64,12 @@ func run():
   assert(saw_hold and not cutin.visible,"Moving streaks continue while the readable portrait holds, then the strip exits")
   cutin.queue_free();await process_frame
  watched_app=app
- app.game.start_battle();app.make_map();app.show_battle();app.ui.child_entered_tree.connect(watch)
+ app.game.start_battle();app.make_map();app.show_battle();app.ui.child_entered_tree.connect(watch);app.stage.child_entered_tree.connect(watch_contact)
  var a=app.game.units[0];var b=app.game.living("enemy")[0];a.x=8;a.y=4;b.x=9;b.y=4
- var events=app.game.combat(a,b);events[0].crit=true
+ var events=app.game.combat(a,b);events[0].crit=true;events[0].hit=true;events[0].damage=maxi(1,events[0].damage)
  var rng=app.game.rng.state;var hp=b.hp
  await app.cinematic(a,b,events);await process_frame
- assert(observed>=1 and app.ui.get_node_or_null("CriticalCutin")==null,"Critical animation inserts and removes portrait accent")
+ assert(observed>=1 and critical_recoils>=1 and app.ui.get_node_or_null("CriticalCutin")==null,"Critical animation inserts and removes portrait accent")
  assert(app.game.rng.state==rng and b.hp==hp,"Cutin never changes resolved combat")
  assert(app.world.visible and not app.stage.visible,"Cutin preserves return to map")
  app.skip_combat=false;app.critical_cutin(a);await process_frame

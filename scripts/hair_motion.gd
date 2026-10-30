@@ -15,7 +15,7 @@ func bind(actor: Node3D,identity: String):
 
 func update(clock: float,pose: String,delta: float):
  if root==null or not is_instance_valid(root):return
- var drive=.85 if pose=="advance" else -.45 if pose in ["windup","critical_windup","throw_windup","critical_throw_windup"] else .65 if pose in ["strike","throw","hit","evade"] else 0.0
+ var drive=.95 if pose=="critical_hit" else .85 if pose=="advance" else -.45 if pose in ["windup","critical_windup","throw_windup","critical_throw_windup"] else .65 if pose in ["strike","throw","hit","evade"] else 0.0
  var t=clock+phase
  var goal=Vector2(sin(t*1.8)*.18+drive,sin(t*2.3)*.30)*strength
  if pose=="down":goal=Vector2.ZERO

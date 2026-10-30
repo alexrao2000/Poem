@@ -966,7 +966,7 @@ func cinematic(a,b,events,initial_hp={}):
 		director.shot(who.position,whom.position,"impact",is_ranged,mounted,.16)
 		if event.hit:
 			play_sfx("guard" if event.damage<=0 else "critical" if event.crit else "hit")
-			whom.pose("guard" if event.damage<=0 else "hit",.12)
+			whom.pose("guard" if event.damage<=0 else "critical_hit" if event.crit else "hit",.12)
 		displayed_hp[event.target]=maxi(0,displayed_hp[event.target]-event.damage)
 		banner.set_health(event.target,int(displayed_hp[event.target]))
 		show_impact(whom.socket_position("impact"),event,spell)

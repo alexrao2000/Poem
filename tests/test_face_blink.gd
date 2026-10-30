@@ -45,7 +45,7 @@ func run():
   assert(blink.closed and blink.surface.get_shader_parameter("eyes_closed"),"An idle actor reaches its closed-eye interval")
   actor._process(Blink.DURATION)
   assert(not blink.closed,"A blink releases after about a tenth of a second")
-  for pose in ["advance","windup","critical_windup","strike","recover","hit","evade","guard","down","cast_windup","cast","throw_windup","critical_throw_windup","throw"]:
+  for pose in ["advance","windup","critical_windup","strike","recover","hit","critical_hit","evade","guard","down","cast_windup","cast","throw_windup","critical_throw_windup","throw"]:
    blink.clock=0;blink.update(0,"idle");assert(blink.closed)
    actor.pose(pose,.01);actor.pose_tween.kill()
    assert(blink.closed==(pose=="down"),"Defeat closes the eyes; living action and reaction poses reopen them immediately")

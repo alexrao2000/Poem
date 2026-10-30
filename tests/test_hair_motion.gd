@@ -28,7 +28,7 @@ func run():
   var static_nodes=actor.bones.Head.get_children().filter(func(child):return child!=fall)
   var static_transforms=static_nodes.map(func(child):return child.transform)
   var clock=0.0;var maximum_movement=0.0
-  for pose in ["idle","advance","critical_windup","strike","hit","victory","idle","down"]:
+  for pose in ["idle","advance","critical_windup","strike","hit","critical_hit","victory","idle","down"]:
    for dt in [.016,.033,.1,.2,.5]:
     clock+=dt;actor.hair_motion.update(clock,pose,dt)
     assert(fall.position==anchor,"Length motion cannot detach the root from the scalp")

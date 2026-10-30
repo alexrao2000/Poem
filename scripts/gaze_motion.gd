@@ -15,7 +15,7 @@ func update(pose: String,delta: float):
  if neck==null or not is_instance_valid(neck):return
  var goal=Vector2.ZERO
  var other=target.get_ref() if target!=null else null
- if is_instance_valid(other) and other.is_inside_tree() and pose not in ["hit","evade","down","victory"]:
+ if is_instance_valid(other) and other.is_inside_tree() and pose not in ["hit","critical_hit","evade","down","victory"]:
   var point=other.socket_position("gaze")
   var direction=neck.get_parent().to_local(point)-neck.position
   if direction.length_squared()>.0001:
