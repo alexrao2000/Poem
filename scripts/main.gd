@@ -3,6 +3,7 @@ const Rules = preload("res://scripts/rules.gd")
 const Portraits = preload("res://scripts/portraits.gd")
 const WeaponIcons=preload("res://scripts/weapon_icons.gd")
 const MapUnit=preload("res://scripts/campaign_map_unit.gd")
+const ActionRange=preload("res://scripts/action_range.gd")
 const MapOverlay=preload("res://scripts/map_overlay.gd")
 const MapSurface=preload("res://scripts/map_surface.gd")
 const TerrainCard=preload("res://scripts/terrain_card.gd")
@@ -496,9 +497,9 @@ func update_side():
 	if is_instance_valid(battle_hint):
 		battle_hint.text="Arrows: cursor · Enter: select · Q/E: allies · M: menu"
 		if selected!=null:
-			battle_hint.text="Enter: confirm · W: wait · Esc: undo · M: menu"
+			battle_hint.text="Blue: move · Orange: reach · Enter: act · Esc: undo"
 			if selected.team=="enemy":battle_hint.text="Red tiles: enemy reach · R: all ranges · Esc: close"
-			elif selected.weapon=="staff":battle_hint.text="Select an injured ally to heal · Esc: cancel · M: menu"
+			elif selected.weapon=="staff":battle_hint.text="Blue: move · Green: heal · Enter: act · Esc: undo"
 	arrange_battle_side()
 
 func arrange_battle_side():
@@ -546,7 +547,8 @@ func close_battle_menu():
 func highlight():
 	for id in unit_nodes:unit_nodes[id].selected=selected!=null and selected.id==id
 	route_preview=null;last_hover=Vector2i(-1,-1)
-	for n in markers.get_children():n.queue_free()
+	for n in markers.get_children():
+		markers.remove_child(n);n.queue_free()
 	var danger={}
 	if show_danger:
 		for enemy in game.living("enemy"):danger.merge(tactics.threatened_tiles(game,enemy))
@@ -556,10 +558,14 @@ func highlight():
 	if selected==null or selected.team!="player" or selected.acted:return
 	var range_map=game.reachable(selected) if origin==null else {game.pos(selected):0}
 	MapOverlay.tiles(markers,range_map.keys(),Color(.18,.49,.85,.30),.032,"MovementRange",map_height)
-	var attackable=[]
-	for e in game.living("enemy"):
-		if game.can_attack(selected,e):attackable.append(game.pos(e))
-	MapOverlay.tiles(markers,attackable,Color(.87,.29,.16,.38),.039,"AttackRange",map_height)
+	var healing=selected.weapon=="staff"
+	var reach=ActionRange.tiles(game,selected,range_map)
+	for point in range_map:reach.erase(point)
+	MapOverlay.tiles(markers,reach.keys(),Color(.22,.68,.45,.23) if healing else Color(.88,.40,.14,.23),.035,"HealingReach" if healing else "ActionReach",map_height)
+	var targets=[]
+	for unit in game.living(selected.team if healing else "enemy"):
+		if game.can_heal(selected,unit) if healing else game.can_attack(selected,unit):targets.append(game.pos(unit))
+	MapOverlay.tiles(markers,targets,Color(.25,.78,.49,.40) if healing else Color(.87,.29,.16,.38),.039,"HealingTargets" if healing else "AttackRange",map_height)
 
 func toggle_danger():
 	if busy or screen!="battle":return
