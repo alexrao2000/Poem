@@ -46,10 +46,10 @@ func establish(attacker: Vector3,defender: Vector3,ranged: bool,mounted=false):
  var frame=frame_pair(attacker,defender,"wide",ranged,mounted)
  anchor=frame.anchor;focus=frame.focus;lens=frame.lens;apply_frame()
 
-func impact(critical=false):
+func impact(critical=false,direction=1.0):
  if impact_motion and impact_motion.is_valid():impact_motion.kill()
  shake_offset=Vector2.ZERO
- var strength=.075 if critical else .032
+ var strength=(.075 if critical else .032)*(-1.0 if direction<0 else 1.0)
  impact_motion=create_tween()
  impact_motion.tween_property(self,"shake_offset",Vector2(strength,.018),.035)
  impact_motion.tween_property(self,"shake_offset",Vector2(-strength*.45,-.008),.045)

@@ -357,6 +357,8 @@ func pose(key: String,duration=.18) -> Tween:
  if aiming:target.erase("Weapon")
  elif key!="strike":weapon_aim=0.0
  pose_tween=create_tween().set_parallel(true).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN_OUT)
+ if key in ["strike","throw"]:pose_tween.set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_IN)
+ elif key in ["hit","critical_hit"]:pose_tween.set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_OUT)
  if bones.has("Shield"):pose_tween.tween_property(self,"guard_weight",1.0 if key=="guard" else 0.0,duration)
  if kind=="bow":pose_tween.tween_property(self,"bow_draw",1.0 if key in ["windup","critical_windup"] else 0.0,duration)
  if kind=="bow":pose_tween.tween_property(self,"bow_hand_weight",1.0 if key in ["idle","advance","windup","critical_windup"] else 0.0,duration)

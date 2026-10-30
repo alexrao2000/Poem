@@ -6,6 +6,8 @@ User direction: keep developing continuously in this chat until the user returns
 
 ## Current checkpoint
 
+Attack releases now accelerate through their existing duration, while normal/critical reactions register quickly and settle. At the unchanged 35 ms pre-hit-stop delay, torso recoil reaches 64.5% of its target rather than 19.6%, so the freeze captures the impact pose. Endpoints, contact time, recovery and gameplay outcomes remain unchanged; focused timing and actual exchange/skip checks cover the change.
+
 Sword and axe contact now adapts the existing arm pose to the actual infantry, mounted or shield target. The old mounted axe endpoint missed by up to 0.987 m. A bounded two-segment solve preserves bone lengths and grip, blends in during the strike and out during recovery, and retains the original miss aim. All 288 equipment/side/height/preparation cases and four real mounted/shield exchanges pass; close guards are checked against the solid blade, not only its tip.
 
 The outfit viewer now fits the whole character, equipment and selectable actions beside the actual controls. A sampled orbit envelope keeps the camera stable while rotating and replaying; window changes reframe it. All 72 base/promoted outfits pass 33,696 geometry layouts across three sizes, with actual preview selection and return lifecycle checks. Rendered review remains pending.

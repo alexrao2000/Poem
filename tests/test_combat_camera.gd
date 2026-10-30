@@ -19,6 +19,13 @@ func run():
  director.apply_frame();assert(camera.position.is_equal_approx(director.anchor))
  director.impact(true);await create_timer(.2).timeout
  assert(director.shake_offset.is_zero_approx(),"Impact settles without permanent camera drift")
+ for direction in [-1,1]:
+  director.impact(false,direction);director.impact_motion.custom_step(.035)
+  assert(signf(director.shake_offset.x)==direction and is_equal_approx(absf(director.shake_offset.x),.032),"Contact kick follows either attack direction, including counters")
+  director.impact_motion.custom_step(.045)
+  assert(signf(director.shake_offset.x)==-direction,"The smaller rebound opposes the initial kick")
+  director.impact_motion.custom_step(.08)
+  assert(director.shake_offset.is_zero_approx(),"Both directions settle exactly without drift")
  director.shot(b,a,"impact",false,false,.1);director.stop()
  var stopped=camera.transform;await create_timer(.12).timeout
  assert(camera.transform==stopped,"Stopped director cannot overwrite tactical camera restoration")

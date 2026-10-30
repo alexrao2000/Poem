@@ -29,8 +29,27 @@ func verify_blades():
     edges[edge]=edges.get(edge,0)+1
   for count in edges.values():assert(count==2,"Every blade edge is shared by two faces, with no open seams")
 
+func verify_pose_timing():
+ var actor=make_actor()
+ for weapon in ["sword","axe","lance","bow","magic","staff"]:
+  actor.kind=weapon
+  for preparation in ["windup","critical_windup"]:
+   actor.pose(preparation,1).custom_step(1);var start=actor.bones.Body.rotation
+   var motion=actor.pose("strike",1);motion.custom_step(.25);var quarter=actor.bones.Body.rotation
+   motion.custom_step(.25);var half=actor.bones.Body.rotation;motion.custom_step(.5);var end=actor.bones.Body.rotation
+   var distance=start.distance_to(end)
+   assert(quarter.distance_to(start)/distance<.10 and half.distance_to(start)/distance>.20 and half.distance_to(start)/distance<.30,"Strike accelerates from preparation instead of slowing into its contact pose")
+ for reaction in ["hit","critical_hit"]:
+  actor.pose("idle",1).custom_step(1);var start=actor.bones.Body.rotation
+  var motion=actor.pose(reaction,.12);motion.custom_step(.035);var early=actor.bones.Body.rotation
+  motion.custom_step(.085);var end=actor.bones.Body.rotation
+  var share=early.distance_to(start)/end.distance_to(start)
+  assert(share>.60 and share<.70,"The actual pre-hit-stop delay captures a readable majority of the recoil")
+ actor.queue_free()
+
 func run():
  verify_blades()
+ verify_pose_timing()
  var held=make_actor();held.set_process(true)
  var other=make_actor();other.process_mode=Node.PROCESS_MODE_ALWAYS
  var free_motion=Node3D.new();root.add_child(free_motion)

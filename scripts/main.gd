@@ -976,7 +976,7 @@ func cinematic(a,b,events,initial_hp={}):
 		displayed_hp[event.target]=maxi(0,displayed_hp[event.target]-event.damage)
 		banner.set_health(event.target,int(displayed_hp[event.target]))
 		show_impact(whom.socket_position(contact_socket),event,spell)
-		if event.hit and event.damage>0:director.impact(event.crit)
+		if event.hit and event.damage>0:director.impact(event.crit,whom.position.x-who.position.x)
 		var hold=CombatHitStop.duration_for(event)
 		if hold>0:
 			# Let the recoil register before holding the contact silhouette.
