@@ -48,6 +48,27 @@ func run():
  var hero=game.roster[0].duplicate(true);hero.team="player"
  var reversed=HUD.new();reversed.configure(host,[{"unit":foe,"hp":999,"portrait":portraits.get_unit_portrait(foe),"class_name":"Knight","weapon":"Steel spear"},{"unit":hero,"hp":hero.hp,"portrait":portraits.get_portrait(hero.id),"class_name":"Vanguard","weapon":"Iron sword"}])
  assert(not reversed.records.foe.portrait.flip_h and reversed.records[hero.id].portrait.flip_h,"Enemy-initiated combat still turns both portraits inward")
+ var original=[reversed.records.foe.plate.position,reversed.records[hero.id].plate.position]
+ var entrance=reversed.reveal();entrance.pause()
+ assert(reversed.records.foe.plate.position==original[0]-Vector2(36,0) and reversed.records[hero.id].plate.position==original[1]+Vector2(36,0),"Opposing plates enter from their own outer edges")
+ assert(reversed.records.foe.plate.modulate.a==0 and reversed.records[hero.id].plate.modulate.a==0,"Entrance begins transparent")
+ entrance.custom_step(.06)
+ var partial=reversed.entrance
+ assert(partial>0 and partial<1 and reversed.records.foe.plate.position.x>original[0].x-36,"Entrance moves continuously into its settled layout")
+ reversed.set_health(hero.id,hero.hp-3,true);host.size=Vector2(1024,640);await process_frame;reversed.arrange()
+ assert(reversed.entrance==partial and reversed.records[hero.id].meter.value==hero.hp-3,"Resize and health updates do not restart or overwrite presentation state")
+ for id in reversed.records:assert(is_equal_approx(reversed.records[id].plate.modulate.a,partial))
+ entrance.custom_step(.2)
+ assert(reversed.entrance==1 and reversed.records.foe.plate.modulate.a==1,"Entrance completes before the existing pre-combat pause ends")
+ for id in reversed.records:
+  var plate=reversed.records[id].plate
+  assert(plate.position.x>=0 and plate.get_rect().end.x<=host.size.x,"Settled plates fit after an in-flight resize")
+ entrance=reversed.reveal();entrance.custom_step(.04)
+ var exit_motion=reversed.dismiss(.02);await exit_motion.finished
+ assert(reversed.entrance==0 and not entrance.is_valid(),"Dismissal cancels an interrupted entrance")
+ await create_timer(.2).timeout
+ assert(reversed.entrance==0,"A cancelled entrance cannot bring departing nameplates back")
+
  reversed.queue_free();await process_frame
  var hud=HUD.new();hud.configure(host,[{"unit":foe,"hp":999,"portrait":null,"class_name":"Knight","weapon":"Steel spear"}])
  var meter=hud.records.foe.meter
@@ -59,7 +80,7 @@ func run():
  hud.set_health("foe",0,true);assert(meter.value==0 and meter.trailing==0,"Instant skip state stays consistent")
  hud.set_health("foe",2000,true);assert(meter.value==999,"Presentation caps HP to maximum")
  hud.queue_free();host.queue_free();await process_frame
- print("PASS: 24 combat portraits at three desktop sizes, text bounds, per-point/grouped pip geometry, exact partial fill, active side, damage trails and interrupted HP animation")
+ print("PASS: 24 combat portraits at three desktop sizes, text bounds, per-point/grouped pip geometry, exact partial fill, active side, mirrored entrance/dismissal, in-flight resize, damage trails and interrupted HP animation")
  quit()
 
 func verify_segments():

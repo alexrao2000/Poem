@@ -6,6 +6,9 @@ const MatchupMarker=preload("res://scripts/weapon_matchup.gd")
 const Icons=preload("res://scripts/weapon_icons.gd")
 var records: Dictionary={}
 var order: Array=[]
+var entrance=1.0:
+ set(value):entrance=clampf(value,0,1);arrange()
+var entrance_motion: Tween
 
 class HealthMeter extends Control:
  signal value_changed(value: float)
@@ -112,6 +115,7 @@ func arrange():
  for i in range(order.size()):
   var r=records[order[i]];var plate=r.plate
   plate.size=Vector2(width,126);plate.position=Vector2(margin if i==0 else size.x-margin-width,size.y-150)
+  plate.position.x+=(1-entrance)*36*(-1 if i==0 else 1);plate.modulate.a=entrance
   var face_x=16.0 if i==0 else width-108
   r.portrait.position=Vector2(face_x,8);r.portrait.size=Vector2(92,110)
   var text_x=120.0 if i==0 else 28.0;var text_width=width-148
@@ -126,6 +130,19 @@ func arrange():
   r.hp.position=Vector2(text_x+text_width-104,66);r.hp.size=Vector2(104,30)
   r.meter.position=Vector2(text_x,101);r.meter.size=Vector2(text_width,12)
   plate.queue_redraw();r.meter.queue_redraw()
+
+func reveal(duration=.18) -> Tween:
+ if entrance_motion and entrance_motion.is_valid():entrance_motion.kill()
+ entrance=0
+ entrance_motion=create_tween().set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_OUT)
+ entrance_motion.tween_property(self,"entrance",1.0,duration)
+ return entrance_motion
+
+func dismiss(duration=.12) -> Tween:
+ if entrance_motion and entrance_motion.is_valid():entrance_motion.kill()
+ entrance_motion=create_tween().set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_IN)
+ entrance_motion.tween_property(self,"entrance",0.0,duration)
+ return entrance_motion
 
 func mark_actor(id: String):
  for key in records:

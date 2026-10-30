@@ -661,3 +661,10 @@ An isolated depth-tested software mesh study was inspected from three angles. Ch
 Existing armored Vanguard, Knight and Rider outfits now use capped shoulder plates rather than open sleeves. Four cached variants cover mirrored light/heavy forms: a raised crown and an outer edge dropping 6.5 cm below the inner edge, with a fitted narrow gold rim. Each plate has 96 triangles and its rim 24; the two pieces replace the prior shoulder shell and cylindrical band one-for-one. Cloth sleeves and promotion layers retain their own silhouettes.
 
 An isolated three-angle mesh study was inspected. Checks verify closed outward topology, exact left/right mirroring, actual rim-to-plate clearance, player/enemy bindings, the existing shoulder attachments and posed ground clearance. All 48 promotion looks, 33,696 outfit-viewer layouts, 2,880 combat camera layouts and full rigid batching pass. The roster remains 1,780 rigid source meshes / 1,021 batches plus three moving reins. Rendered in-game armor review remains pending.
+
+
+## Continuous combat exit and nameplate handoff
+
+The map return now begins from the actual close tactical view captured over the engaged units before entering the arena. A 0.25-second eased pullback restores the player's exact transform, orthographic size, horizontal/vertical offsets and lens, along with the navigation zoom target. Previously only size animated after position/rotation had already jumped back to the old map center, so the tight return could show a different tile. Navigation owns and can cancel the complete return tween.
+
+Opposing nameplates now enter inward by 36 pixels with a 0.18-second fade and dismiss outward during the existing 0.12-second concealment. No extra wait is added. Layout recomputes around the current animation progress when resized; HP, portrait state and simulation remain separate. Checks cover the actual pair-centered handoff, panned/offset view round trips, cancellation, incoming/dismissing HUD interruption, in-flight resize, healing, real attacks and all existing fast-forward/skip cleanup. Rendered motion tuning remains pending.

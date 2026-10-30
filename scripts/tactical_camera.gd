@@ -39,6 +39,24 @@ func approach_combat(focus: Vector3,duration=.42) -> Tween:
  ,0.0,1.0,duration)
  return motion
 
+func capture_view() -> Dictionary:
+ return {"transform":camera.transform,"size":camera.size,"h_offset":camera.h_offset,"v_offset":camera.v_offset,"fov":camera.fov,"projection":camera.projection}
+
+func return_from_combat(close_view: Dictionary,tactical_view: Dictionary,duration=.25) -> Tween:
+ stop();zoom_goal=tactical_view.size
+ camera.projection=tactical_view.projection;camera.fov=tactical_view.fov
+ apply_return(0,close_view,tactical_view)
+ motion=camera.create_tween().set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_OUT)
+ motion.tween_method(apply_return.bind(close_view,tactical_view),0.0,1.0,duration)
+ return motion
+
+func apply_return(weight: float,close_view: Dictionary,tactical_view: Dictionary):
+ camera.transform=close_view.transform.interpolate_with(tactical_view.transform,weight)
+ camera.size=lerpf(close_view.size,tactical_view.size,weight)
+ camera.h_offset=lerpf(close_view.h_offset,tactical_view.h_offset,weight)
+ camera.v_offset=lerpf(close_view.v_offset,tactical_view.v_offset,weight)
+ if weight>=1:camera.transform=tactical_view.transform
+
 func ground_at(screen_point: Vector2):
  return Plane(Vector3.UP,0).intersects_ray(camera.project_ray_origin(screen_point),camera.project_ray_normal(screen_point))
 

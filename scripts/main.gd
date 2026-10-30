@@ -840,7 +840,7 @@ func cinematic(a,b,events,initial_hp={}):
 		await map_combat_feedback(events)
 		return
 	skip_combat=false;music_mix(true)
-	var old_pos=camera.position;var old_rot=camera.rotation;var old_size=camera.size;var old_offset=camera.h_offset;var old_vertical_offset=camera.v_offset;var old_fov=camera.fov
+	var tactical_view=map_navigation.capture_view()
 	var focus=Vector3((a.x+b.x)*.5,0,(a.y+b.y)*.5)
 	markers.hide()
 	var tactical_controls={}
@@ -851,6 +851,7 @@ func cinematic(a,b,events,initial_hp={}):
 	var push=map_navigation.approach_combat(focus)
 	await push.finished
 	if veil.motion.is_running():await veil.motion.finished
+	var close_map_view=map_navigation.capture_view()
 	for n in stage.get_children():n.queue_free()
 	stage.visible=true
 	var old_lighting=battle_lighting(game.info().get("environment","village"))
@@ -887,7 +888,7 @@ func cinematic(a,b,events,initial_hp={}):
 		var opponent=b if unit.id==a.id else a
 		var triangle=0 if events[0].has("healing") else game.forecast(unit,opponent).triangle
 		entries.append({"unit":unit,"hp":displayed_hp[unit.id],"portrait":portraits.get_unit_portrait(unit),"class_name":game.class_name_for(unit),"weapon":game.item_for(unit).name,"triangle":triangle})
-	var banner=CombatHUD.new();banner.configure(ui,entries)
+	var banner=CombatHUD.new();banner.configure(ui,entries);banner.reveal()
 	var caption=Label.new();caption.name="CombatCaption";caption.set_anchors_and_offsets_preset(Control.PRESET_TOP_WIDE);caption.offset_top=36;caption.horizontal_alignment=HORIZONTAL_ALIGNMENT_CENTER
 	caption.add_theme_font_size_override("font_size",30);caption.add_theme_color_override("font_color",Color("f7edce"));caption.add_theme_color_override("font_outline_color",Color("373d42"));caption.add_theme_constant_override("outline_size",7)
 	caption.hide();ui.add_child(caption)
@@ -1022,15 +1023,16 @@ func cinematic(a,b,events,initial_hp={}):
 		if not skip_combat:await combat_pause(.18)
 
 	if dodge and dodge.is_valid():dodge.kill()
-	banner.queue_free();caption.queue_free()
+	banner.dismiss(.12);caption.hide()
 	veil.show();await veil.conceal(.12,false).finished
+	banner.queue_free();caption.queue_free()
 	director.stop();director.queue_free()
 	stage.visible=false
 	restore_lighting(old_lighting)
 	world.show();pieces.show();markers.show()
-	camera.projection=Camera3D.PROJECTION_ORTHOGONAL;camera.position=old_pos;camera.rotation=old_rot;camera.h_offset=old_offset;camera.v_offset=old_vertical_offset;camera.fov=old_fov
+	var pull=map_navigation.return_from_combat(close_map_view,tactical_view,.25)
 	veil.reveal(.25)
-	var pull=create_tween();pull.tween_property(camera,"size",old_size,.25);await pull.finished
+	await pull.finished
 	if veil.motion.is_running():await veil.motion.finished
 	veil.queue_free();playback.stop();playback.queue_free()
 	for control in tactical_controls:

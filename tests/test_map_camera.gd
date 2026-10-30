@@ -39,7 +39,7 @@ func run():
  nav.zoom(-100,anchor);await nav.motion.finished;assert(camera.size==24,"Zoom-out is bounded")
  app.map_camera()
  camera.position+=Vector3(3,0,-2)
- var start_angle=camera.rotation.x;var initial_transform=camera.transform
+ var start_angle=camera.rotation.x;var initial_transform=camera.transform;var tactical=nav.capture_view()
  var approach=nav.approach_combat(Vector3(8.5,0,4),.18)
  assert(camera.transform==initial_transform,"Combat approach starts without a position or angle jump")
  var previous_size=camera.size;var previous_pitch=camera.rotation.x
@@ -51,19 +51,48 @@ func run():
   previous_size=camera.size;previous_pitch=camera.rotation.x
  assert(camera.rotation.x>start_angle+.2 and is_equal_approx(camera.rotation.x,deg_to_rad(-38)),"Combat handoff lowers the overhead view to 38 degrees")
  assert(camera.unproject_position(Vector3(8.5,0,4)).distance_to(camera.get_viewport().get_visible_rect().size*.5)<.01,"Completed combat zoom centers the engaged pair after tactical panning")
+ var close_view=nav.capture_view();camera.projection=Camera3D.PROJECTION_PERSPECTIVE;camera.position=Vector3(35,2,8);camera.look_at(Vector3(35,1,0))
+ var returning=nav.return_from_combat(close_view,tactical,.2);returning.pause()
+ assert(camera.transform.is_equal_approx(close_view.transform) and camera.size==close_view.size,"Map return begins at the actual close map view instead of jumping to a different map center")
+ assert(camera.unproject_position(Vector3(8.5,0,4)).distance_to(camera.get_viewport().get_visible_rect().size*.5)<.01,"Engaged units remain centered at the reveal handoff")
+ var last_size=camera.size;var distance=camera.position.distance_to(tactical.transform.origin)
+ for frame in range(8):
+  returning.custom_step(.025)
+  assert(camera.size>=last_size-.001 and camera.position.distance_to(tactical.transform.origin)<=distance+.001,"Return widens and moves back continuously to the player's panned view")
+  last_size=camera.size;distance=camera.position.distance_to(tactical.transform.origin)
+ returning.custom_step(.01)
+ assert(nav.capture_view()==tactical and nav.zoom_goal==tactical.size,"Return restores exact transform, lens, offsets, projection and subsequent wheel target")
+ for offsets in [Vector2(-.6,.4),Vector2(.7,-.3)]:
+  camera.h_offset=offsets.x;camera.v_offset=offsets.y;camera.size=11;camera.fov=57;var offset_view=nav.capture_view()
+  nav.approach_combat(Vector3(12,0,8),.1).custom_step(.11);close_view=nav.capture_view()
+  returning=nav.return_from_combat(close_view,offset_view,.2);returning.custom_step(.21)
+  assert(nav.capture_view()==offset_view,"Nondefault view offsets and lens survive a full round trip")
+ returning=nav.return_from_combat(close_view,tactical,.2);returning.custom_step(.03);nav.stop()
+ var cancelled=nav.capture_view();await create_timer(.22).timeout
+ assert(nav.capture_view()==cancelled,"Navigation stop cancels a return before another camera owner takes over")
+
  app.map_camera()
  var wheel=InputEventMouseButton.new();wheel.pressed=true;wheel.button_index=MOUSE_BUTTON_WHEEL_UP;wheel.position=anchor
  app.busy=true;app._unhandled_input(wheel);assert(camera.size==16 and nav.zoom_goal==16,"Busy actions ignore map gestures")
  app.busy=false;app._unhandled_input(wheel);await create_timer(.035).timeout
  camera.position+=Vector3(3,0,-2)
  var prior=camera.transform;var size=camera.size;var rng=app.game.rng.state
+ var handoff=[false];var restored=[false]
+ var observe_return=func():
+  if app.stage.visible:handoff[0]=true
+  elif handoff[0] and not restored[0]:
+   restored[0]=true
+   var pair=Vector3(8.5,0,4);var screen=camera.unproject_position(pair);var middle=camera.get_viewport().get_visible_rect().size*.5
+   assert(screen.distance_to(middle)<120 and camera.size<size,"Real arena return reveals a close view around the battle before reaching the saved map framing")
+ process_frame.connect(observe_return)
  var a=app.game.units[0];var b=app.game.living("enemy")[0];a.x=8;a.y=4;b.x=9;b.y=4
  await app.cinematic(a,b,[{"actor":a.id,"target":b.id,"damage":1,"remaining":19,"hit":true,"crit":false}],{a.id:20,b.id:20})
+ process_frame.disconnect(observe_return);assert(restored[0],"Real cinematic exercised the close map handoff")
  await create_timer(.2).timeout
  assert(camera.transform.is_equal_approx(prior) and is_equal_approx(camera.size,size),"Interrupted map zoom cannot overwrite arena or restored view")
  assert(app.game.rng.state==rng,"Camera gestures never consume gameplay randomness")
  for player in app.sfx_players:player.stop()
  app.music.stop();await create_timer(.15).timeout
  await Shutdown.dispose(app);await process_frame
- print("PASS: pointer-anchored zoom, bounded drag, reset, cursor tracking, busy-input lock and cinematic ownership")
+ print("PASS: pointer-anchored zoom, bounded drag, reset, cursor tracking, continuous pair-centered return, exact view/zoom restoration, cancellation, busy-input lock and cinematic ownership")
  quit()

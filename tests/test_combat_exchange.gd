@@ -123,6 +123,7 @@ func observe(app,shots,skip_at):
   if current!=0 and current!=previous:
    assert(not app.ui.get_node("CombatCaption").visible,"Routine attacks leave the action area clear of duplicate headlines")
    var hud=app.ui.get_node("CombatHUD")
+   assert(hud.entrance==1 and hud.records.values().all(func(record):return record.plate.modulate.a==1),"Actual nameplates settle within the existing pause before any attack begins")
    shots.append({"a":actors[0].position,"b":actors[1].position,"kind":active[0].kind,"matchups":hud.order.map(func(id):return hud.records[id].matchup.advantage)})
    if shots.size()==skip_at:app.skip_combat=true
   previous=current
