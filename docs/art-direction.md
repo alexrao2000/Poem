@@ -565,3 +565,10 @@ The default 33,696 outfit layouts still fit. Another 432 projection cases keep t
 The existing cloth material blends the alpha mask into its painted linen on the cape's outer face. Thread color derives from the recruit's metal palette, darkening on ivory fabric and lightening on dark fabric. The lining retains its base fabric. The artwork moves with the existing cape UVs and deformation, adds no geometry or rendering pass, and uses mipmaps for perspective views. Shared body materials remain unmarked.
 
 Checks cover 24 base recruits, all 48 promoted outfits, eight enemy classes, contrasting thread, sparse transparent source masks, mipmaps, per-actor cloth/outline ownership and preserved rigid geometry. Counts remain 1,780 rigid sources / 1,063 batches plus three dynamic rein meshes. Current assembled character rendering remains unverified.
+
+
+## Estoc thrust preparation
+
+The equipped estoc uses a low, point-first preparation and a short release into the existing height-aware contact solve. Its critical preparation draws the blade farther back and turns the torso before release. Broad swords retain their overhead cuts; weapon identity selects the motion from the appearance catalog without changing combat rules. The wrist points the actual blade at its target during preparation and recovery. Authored model animations retain ownership.
+
+Checks cover every sword recruit on both sides against infantry and rider heights, normal/critical preparations, forward blade alignment through the release, bounded travel, grounded geometry and unstretched joints. Six actual sword/estoc/axe exchanges cover riders and prepared shields with unchanged saves/RNG. Rendered motion review remains pending.

@@ -48,6 +48,7 @@ func build(parent,u,p) -> Node3D:
  if imported!=null:return imported
  shading_cache.clear();strand_materials.clear()
  var actor=Actor.new();parent.add_child(actor);actor.position=p;actor.kind=u.weapon
+ actor.attack_style=EquipmentVisuals.profiles[EquipmentVisuals.resolve(u.weapon,str(u.get("item","")))].get("motion","slash")
  actor.trail_edge=EquipmentVisuals.trail_edge(u.weapon,str(u.get("item","")))
  var body=joint(actor,"Body",Vector3(0,1.1,0));actor.register_bone("Body",body)
  var tint=Color(u.color)

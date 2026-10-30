@@ -47,16 +47,25 @@ func run():
      var target=actor.position+Vector3(direction*Fighters.Actor.melee_spacing(unit.weapon),height,0);actor.aim_at(target)
      for preparation in ["windup","critical_windup"]:
       actor.pose(preparation,1).custom_step(1)
-      assert(actor.slash_weight==0,"Preparation retains the authored swing")
+      assert(actor.slash_weight==0,"Preparation retains its equipment-specific pose")
+      var thrust=item.id=="estoc"
+      assert((actor.attack_style=="thrust")==thrust,"Only the estoc selects point-first preparation")
+      var prior_tip=actor.bones.Weapon.to_global(actor.trail_edge[1]);var initial_distance=prior_tip.distance_to(target);var path_length=0.0
+      if thrust:
+       assert((-actor.bones.Weapon.global_basis.z).dot(actor.bones.Weapon.global_position.direction_to(target))>.999,"Estoc preparation points its actual blade toward the target")
+       assert(initial_distance>.1 and prior_tip.y<target.y+.1,"Preparation leaves room for a thrust without an overhead windup")
       var strike=actor.pose("strike",1)
       for step in range(8):
        strike.custom_step(.125);actor.apply_constraints()
+       var current_tip=actor.bones.Weapon.to_global(actor.trail_edge[1]);path_length+=current_tip.distance_to(prior_tip);prior_tip=current_tip
+       if thrust:assert((-actor.bones.Weapon.global_basis.z).dot(actor.bones.Weapon.global_position.direction_to(target))>.97,"Estoc keeps its point forward through release")
        assert(actor.bones.Arm.position==arm_position and actor.bones.Elbow.position==elbow_position and actor.bones.Weapon.position==grip_position,"Aiming never stretches bones or slides the weapon through its hand")
        var before=actor.bones.Weapon.global_transform;actor.apply_constraints()
        assert(actor.bones.Weapon.global_transform.is_equal_approx(before),"Repeated constraints do not accumulate rotation drift")
        for mesh in actor.bones.Weapon.find_children("*","MeshInstance3D",true,false):
         for vertex in mesh.mesh.surface_get_arrays(0)[Mesh.ARRAY_VERTEX]:assert(mesh.to_global(vertex).y>-.01,"Aimed stroke cannot drag the weapon through the arena floor")
       var tip=actor.bones.Weapon.to_global(actor.trail_edge[1])
+      if thrust:assert(path_length<initial_distance*1.8+.1,"Estoc takes a direct thrust path rather than looping through a slash")
       assert(tip.distance_to(target)<.003,"Actual equipped cutting edge meets infantry and riders from either side: "+unit.id+" "+item.id)
       actor.pose("recover",1).custom_step(1);actor.apply_constraints()
       assert(actor.slash_weight==0 and actor.bones.Weapon.to_global(actor.trail_edge[1]).distance_to(tip)>.04,"Recovery blends out of target tracking into its existing follow-through")
@@ -69,14 +78,14 @@ func run():
  app.game.start_battle();app.make_map();app.show_battle();app.busy=true
  app.stage.child_entered_tree.connect(watch_contact)
  var a=app.game.units[0];var b=app.game.living("enemy")[0];a.x=8;a.y=4;b.x=9;b.y=4
- for kind in ["sword","axe"]:
-  a.weapon=kind;a.item="iron_sword" if kind=="sword" else "iron_axe"
+ for item in ["iron_sword","estoc","iron_axe"]:
+  a.weapon="axe" if item=="iron_axe" else "sword";a.item=item
   for blocked in [false,true]:
    b.job="Knight" if blocked else "Rider";b.weapon="lance"
    var saved=app.game.save_data("battle").duplicate(true);var rng=app.game.rng.state
    await app.cinematic(a,b,[{"actor":a.id,"target":b.id,"damage":0 if blocked else 1,"remaining":20 if blocked else 19,"hit":true,"crit":false}],{a.id:20,b.id:20})
    assert(app.game.save_data("battle")==saved and app.game.rng.state==rng,"Presentation preserves resolved HP, saves and RNG")
- assert(contacts==4,"Real sword and axe contacts cover mounted bodies and prepared shields")
+ assert(contacts==6,"Real sword, estoc and axe contacts cover mounted bodies and prepared shields")
  await Shutdown.dispose(app);await process_frame
- print("PASS: ",samples," equipped slash contacts against infantry/riders, both sides and preparations; non-stretched rig, stable constraints, grounded blades, recovery and four real shield/mounted exchanges")
+ print("PASS: ",samples," equipped slash contacts against infantry/riders, both sides and preparations; non-stretched rig, stable constraints, grounded blades, recovery equipment-specific estoc thrusts and six real shield/mounted exchanges")
  quit()

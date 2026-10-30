@@ -29,7 +29,8 @@
     "guard": "ring",
     "steel": "d6d9df",
     "grip": "443a52",
-    "accent": "b8a58a"
+    "accent": "b8a58a",
+    "motion": "thrust"
   },
   "iron_lance": {
     "kind": "lance",

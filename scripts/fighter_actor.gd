@@ -11,6 +11,7 @@ var contact_index=0
 var bones: Dictionary = {}
 var rest: Dictionary = {}
 var kind = "sword"
+var attack_style="slash"
 var trail_edge=PackedVector3Array()
 var mounted = false
 var reins: MeshInstance3D
@@ -165,7 +166,9 @@ func apply_constraints():
  if kind=="staff" and pose_name in ["cast_windup","cast"] and bones.has("Weapon"):
   var grip=bones.Weapon
   grip.quaternion=(grip.get_parent().global_basis.inverse()*global_basis).get_rotation_quaternion()
- if kind in ["lance","bow"] and pose_name in ["windup","critical_windup","strike","recover"] and bones.has("Weapon"):
+ var aimed_pose=pose_name in ["windup","critical_windup","strike","recover"]
+ var aimed_weapon=kind in ["lance","bow"] or (kind=="sword" and attack_style=="thrust" and pose_name!="strike")
+ if aimed_weapon and aimed_pose and bones.has("Weapon"):
   var grip=bones.Weapon
   var direction=aim_target-grip.global_position if has_aim_target else -global_transform.basis.z
   if direction.length_squared()>.001:
@@ -271,6 +274,11 @@ func pose(key: String,duration=.18) -> Tween:
     elif kind=="lance":target.Elbow.x-=.18;target.LeftArm=Vector3(-.8,0,.5)
     elif kind in ["magic","staff"]:
      target.Arm=Vector3(-2.15,0,-.55);target.LeftArm=Vector3(-1.5,0,.65)
+  if kind=="sword" and attack_style=="thrust":
+   target.Body=Vector3(.02,-.42 if key=="critical_windup" else -.22,0)
+   target.Arm=Vector3(.38 if key=="critical_windup" else .25,0,-.1)
+   target.Elbow=Vector3(-1.05 if key=="critical_windup" else -1.0,0,0)
+   target.LeftArm=Vector3(.05,0,.35)
  elif key=="strike":
   target.Body=Vector3(.17,.3,0)
   target.Arm=Vector3(-.45,-.25,.23);target.Elbow=Vector3(-.1,0,0)
@@ -367,7 +375,7 @@ func pose(key: String,duration=.18) -> Tween:
     if bones.has("HorseKnee"+str(i)):target["HorseKnee"+str(i)]=Vector3.ZERO
  if key=="advance" and not mounted:
   for leg in ["LeftLeg","RightLeg","LeftKnee","RightKnee"]:target.erase(leg)
- var aiming=kind in ["lance","bow"] and key in ["windup","critical_windup","strike","recover"] and bones.has("Weapon")
+ var aiming=(kind in ["lance","bow"] or (kind=="sword" and attack_style=="thrust" and key!="strike")) and key in ["windup","critical_windup","strike","recover"] and bones.has("Weapon")
  if aiming:target.erase("Weapon")
  elif key!="strike":weapon_aim=0.0
  pose_tween=create_tween().set_parallel(true).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN_OUT)
