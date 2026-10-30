@@ -1,4 +1,5 @@
 shader_type spatial;
+// Compatibility already orients cull_disabled back-face normals before fragment().
 render_mode cull_disabled, specular_disabled;
 uniform sampler2D foliage_atlas : source_color, filter_linear_mipmap;
 uniform vec2 quadrant;
@@ -12,5 +13,4 @@ void fragment() {
  ALPHA = leaf.a;
  ALPHA_SCISSOR_THRESHOLD = 0.45;
  ROUGHNESS = 1.0;
- if (!FRONT_FACING) { NORMAL = -NORMAL; }
 }

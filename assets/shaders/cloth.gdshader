@@ -1,4 +1,5 @@
 shader_type spatial;
+// Compatibility already orients cull_disabled back-face normals before fragment().
 render_mode cull_disabled, diffuse_toon, specular_disabled;
 uniform sampler2D linen_atlas : source_color, filter_linear_mipmap;
 uniform vec2 dimensions = vec2(0.45, 0.32);
@@ -39,5 +40,4 @@ void fragment() {
  }
  ALBEDO = linen * color;
  ROUGHNESS = 1.0;
- if (!FRONT_FACING) { NORMAL = -NORMAL; }
 }

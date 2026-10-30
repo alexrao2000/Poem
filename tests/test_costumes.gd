@@ -2,6 +2,7 @@ extends SceneTree
 const Fighters=preload("res://scripts/fighters.gd")
 const Costumes=preload("res://scripts/promotion_costume.gd")
 const Rules=preload("res://scripts/rules.gd")
+const Garments=preload("res://scripts/garments.gd")
 func _initialize():call_deferred("run")
 
 func signature(actor):
@@ -17,7 +18,35 @@ func signature(actor):
     if uv!=null:u+=uv[index].x;v+=uv[index].y
  return {"count":count,"sum":Vector3(x,y,z),"uv":Vector2(u,v)}
 
+func verify_shell_orientation(actor):
+ var count=0
+ for node in actor.find_children("*","MeshInstance3D",true,false):
+  if not node.get_meta("costume_shell",false):continue
+  count+=1
+  var arrays=node.mesh.surface_get_arrays(0);var points=arrays[Mesh.ARRAY_VERTEX]
+  for i in range(points.size()):
+   var radial=Vector3(points[i].x,0,points[i].z).normalized()
+   assert(radial.dot(arrays[Mesh.ARRAY_NORMAL][i])>.01,"Torso, armor and trim shells light outward instead of toward their interiors")
+   var color=arrays[Mesh.ARRAY_COLOR][i];var outline=Vector3(color.r,color.g,color.b)*2-Vector3.ONE
+   assert(radial.dot(outline)>.01,"Shell outlines expand away from the body rather than shrinking inward")
+  for i in range(0,points.size(),3):
+   var face=(points[i+2]-points[i]).cross(points[i+1]-points[i]).normalized()
+   var center=(points[i]+points[i+1]+points[i+2])/3
+   assert(face.dot(Vector3(center.x,0,center.z).normalized())>.01,"Clockwise front faces point out of each clothing shell")
+ assert(count>0,"Every procedural recruit has inspected clothing shells")
+
 func run():
+ assert(Garments.robe()==Garments.robe() and Garments.hem()==Garments.hem(),"Casters share cached garment meshes")
+ for garment in [Garments.robe(),Garments.hem()]:
+  var arrays=garment.surface_get_arrays(0);var points=arrays[Mesh.ARRAY_VERTEX]
+  assert(points.size()<=576,"Folded garments keep a bounded low-poly budget")
+  for i in range(points.size()):
+   var point=points[i];var radial=Vector3(point.x,0,point.z).normalized()
+   assert(point.y>=-.966 and point.y<=-.124,"Robe stays within its original waist-to-ankle envelope")
+   assert(radial.dot(arrays[Mesh.ARRAY_NORMAL][i])>.01,"Pleat lighting normals face outward")
+   assert(not (point.y<-.8 and point.z<-.15 and absf(point.x)<.12),"A real split opens the front hem around the leading feet")
+  for i in range(0,points.size(),3):
+   assert((points[i+2]-points[i]).cross(points[i+1]-points[i]).length()>.000001,"Fold and hem triangles remain non-degenerate")
  var rules=Rules.new();var fighters=Fighters.new();fighters.batching_enabled=false
  var stage=Node3D.new();root.add_child(stage);var seen={};var variants={};var checked=0
  var original=rules.roster.duplicate(true);var rng=rules.rng.state
@@ -25,12 +54,14 @@ func run():
  for unit_entry in rules.roster:
   var unit=unit_entry.duplicate(true);unit.team="player"
   var base=fighters.build(stage,unit,Vector3.ZERO);base.set_process(false);base.pose_tween.kill()
+  verify_shell_orientation(base)
   var base_shape=signature(base)
   assert(not base.has_meta("promotion_look"),"Unpromoted recruits retain their original costumes")
   for path in rules.promotion_options(unit):
    assert(Costumes.looks[path.id].base==unit.job,"Visual profiles agree with actual training eligibility")
    var promoted=unit.duplicate(true);promoted.promotion=path.id
    var actor=fighters.build(stage,promoted,Vector3.ZERO);actor.set_process(false);actor.pose_tween.kill()
+   verify_shell_orientation(actor)
    assert(actor.get_meta("promotion_look")==path.id,"Every recruit receives its selected branch silhouette")
    assert(actor.rest==base.rest and actor.kind==base.kind and actor.mounted==base.mounted,"Clothing leaves rig proportions, weapon ownership and mounts intact")
    assert(actor.bone("Head").get_meta("hair_style")==base.bone("Head").get_meta("hair_style") and actor.get_meta("costume_colors")==base.get_meta("costume_colors"),"Individual hair and clothing palette survive training")
@@ -47,6 +78,9 @@ func run():
     base.elapsed=.2;actor.elapsed=.2;base._process(0);actor._process(0)
     for key in base.bones:assert(base.bone(key).global_transform.is_equal_approx(actor.bone(key).global_transform),"Added clothing cannot alter animation, planted feet or weapon sockets")
     assert(base.socket_position("projectile").distance_to(actor.socket_position("projectile"))<.0001,"Both costume branches use the original launch point")
+    if unit.weapon in ["magic","staff"]:
+     var robe=base.bone("Body").get_node("TailoredRobe")
+     for vertex in robe.mesh.surface_get_arrays(0)[Mesh.ARRAY_VERTEX]:assert((robe.global_transform*vertex).y>=-.01,"Folded caster hem stays above the ground during ready, windup, contact and recovery")
    checked+=1;actor.queue_free();await process_frame
   base.queue_free();await process_frame
  assert(seen.size()==16 and checked==48,"Both branches cover all twenty-four recruits")

@@ -10,6 +10,7 @@ const WeaponBlades=preload("res://scripts/weapon_blades.gd")
 const Projectile=preload("res://scripts/combat_projectile.gd")
 const Outline=preload("res://scripts/character_outline.gd")
 const PromotionCostume=preload("res://scripts/promotion_costume.gd")
+const Garments=preload("res://scripts/garments.gd")
 var profiles=JSON.parse_string(FileAccess.get_file_as_string("res://data/characters.json"))
 var surface_atlas=load("res://assets/art/character-materials.png")
 var surface_shader=preload("res://assets/shaders/character.gdshader")
@@ -77,8 +78,7 @@ func build(parent,u,p) -> Node3D:
   var flap=cloth(torso,[Vector3(side_value*.02,-.13,-.14),Vector3(side_value*.20,-.13,-.12),Vector3(side_value*.25,-.46,-.20),Vector3(side_value*.035,-.43,-.23)],steel if heavy else blue)
   cloth(torso,[Vector3(side_value*.035,-.405,-.23),Vector3(side_value*.25,-.435,-.20),Vector3(side_value*.25,-.46,-.20),Vector3(side_value*.035,-.43,-.23)],gold)
  if robe:
-  geo.cylinder(body,Vector3(0,-.55,0),.85,.29,blue,.18)
-  geo.cylinder(body,Vector3(0,-.97,0),.035,.295,gold,.29)
+  Garments.build(self,body,blue,gold)
  if u.weapon=="bow":
   var quiver=geo.cylinder(torso,Vector3(.16,.14,.19),.48,.075,leather);quiver.rotation.z=-.22
   for i in range(4):geo.cylinder(torso,Vector3(.12+i*.025,.43,.19),.4,.009,Color("9c8769"))
@@ -187,9 +187,10 @@ func shell(parent,p,sections,color):
     var section=sections[corner[0]];var angle=corner[1]*TAU/8
     points.append(Vector3(cos(angle)*section[1],section[0],sin(angle)*section[2]))
     uvs.append(Vector2(corner[1]/8.0,corner[0]/float(sections.size()-1)))
-   for index in [0,2,1,0,3,2]:st.set_uv(uvs[index]);st.add_vertex(points[index])
+   for index in [0,1,2,0,2,3]:st.set_uv(uvs[index]);st.add_vertex(points[index])
  st.generate_normals()
- return geo.mesh(parent,st.commit(),p,Vector3.ONE,geo.material(color))
+ var result=geo.mesh(parent,st.commit(),p,Vector3.ONE,geo.material(color));result.set_meta("costume_shell",true)
+ return result
 
 func painted(color: Color,tile: int,metal=false) -> ShaderMaterial:
  var key=color.to_html()+str(tile)+str(metal)
