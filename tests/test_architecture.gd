@@ -5,6 +5,7 @@ const Scenery=preload("res://scripts/scenery.gd")
 const Rules=preload("res://scripts/rules.gd")
 func _initialize():call_deferred("run")
 func run():
+ await verify_towers()
  var colors=[]
  for variant in range(3):
   var roof=Roof.roof(variant);assert(roof==Roof.roof(variant),"Repeated houses share their immutable roof mesh")
@@ -47,7 +48,7 @@ func run():
    world.queue_free();arena.queue_free();await process_frame;cases+=1
  assert(cases>0 and game.rng.state==state,"Architecture never consumes gameplay RNG")
  await verify_cloth()
- print("PASS: three cached roofs, 204 gable intersections, ",cases," house identities, 14 pinned cloth resources, bounded motion parameters and cleanup")
+ print("PASS: six shared fortified towers, battlement/deck rays, three cached roofs, 204 gable intersections, ",cases," house identities, 14 pinned cloth resources, bounded motion parameters and cleanup")
  quit()
 
 func verify_cloth():
@@ -103,3 +104,35 @@ func verify_cloth():
   var references=pieces.map(func(piece):return weakref(piece));world.queue_free();await process_frame
   for reference in references:assert(reference.get_ref()==null,"Cloth resources release with their map")
  assert(flags==12 and sails==2 and game.rng.state==state,"All campaign cloth is bounded and independent of gameplay RNG")
+
+func verify_towers():
+ var masonry=preload("res://scripts/fortification.gd")
+ var shape=masonry.tower();assert(shape==masonry.tower(),"Repeated towers share the same stone mesh")
+ var data=shape.surface_get_arrays(0);var points=data[Mesh.ARRAY_VERTEX];var normals=data[Mesh.ARRAY_NORMAL]
+ assert(points.size()/3<=2200 and shape.get_aabb().size.x<=1.401 and shape.get_aabb().end.y<=2.541,"Tower detail keeps the blocked footprint and a bounded triangle budget")
+ assert(masonry.material().vertex_color_use_as_albedo and masonry.material().vertex_color_is_srgb)
+ for index in range(0,points.size(),3):
+  var cross=(points[index+1]-points[index]).cross(points[index+2]-points[index])
+  assert(cross.length_squared()>1e-12 and cross.normalized().dot(normals[index])<-.999,"Every masonry face has nondegenerate clockwise winding and correct outward lighting")
+ for sample in [[Vector2(.58,0),2.54],[Vector2(cos(PI/8+.04),sin(PI/8+.04))*.58,2.20],[Vector2(.2,.1),2.12]]:
+  var highest=-INF
+  for index in range(0,points.size(),3):
+   var hit=Geometry3D.ray_intersects_triangle(Vector3(sample[0].x,4,sample[0].y),Vector3.DOWN,points[index],points[index+1],points[index+2])
+   if hit!=null:highest=maxf(highest,hit.y)
+  assert(absf(highest-sample[1])<.001,"Actual tower rays distinguish raised battlements, open gaps and the inset roof deck")
+ var game=Rules.new();var scenery=Scenery.new();scenery.batching_enabled=false;var count=0
+ for chapter in range(12):
+  game.chapter=chapter
+  for item in game.info().landmarks:
+   if item.kind!="tower":continue
+   var world=Node3D.new();root.add_child(world)
+   var point=Vector3(item.position[0],0,item.position[1]);scenery.landmark(world,point,item.kind)
+   var tower=world.get_node("FortifiedTower")
+   assert(tower.mesh==shape and tower.position==point and tower.material_override==masonry.material(),"Authored towers use the shared detailed mesh at their existing positions")
+   var context=scenery.combat_context(game,{"x":int(point.x)-1,"y":int(point.z)},{"x":int(point.x),"y":int(point.z)})
+   var arena=Node3D.new();root.add_child(arena);scenery.battle_landscape(arena,Vector3(35,0,0),context)
+   var visible=arena.find_children("FortifiedTower","MeshInstance3D",true,false)
+   assert(visible.size()==context.landmarks.filter(func(value):return value.kind=="tower").size(),"Nearby combat scenery keeps the same fortified identity")
+   for node in visible:assert(node.mesh==shape)
+   world.queue_free();arena.queue_free();await process_frame;count+=1
+ assert(count==6,"Every authored castle tower is covered")

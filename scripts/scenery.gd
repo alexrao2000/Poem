@@ -4,6 +4,7 @@ const RiverBank=preload("res://scripts/river_bank.gd")
 const MapGround=preload("res://scripts/map_ground.gd")
 const WindCloth=preload("res://scripts/wind_cloth.gd")
 const Architecture=preload("res://scripts/architecture.gd")
+const Fortification=preload("res://scripts/fortification.gd")
 const AmbientDrift=preload("res://scripts/ambient_drift.gd")
 const GroundCover=preload("res://scripts/ground_cover.gd")
 # Shared landscape construction for the tactical board and battle stage.
@@ -232,13 +233,13 @@ func landmark(parent,p,kind,roof_variant=-1):
   cylinder(parent,p+Vector3(0,.18,0),.12,.40,Color("5d8d9b"))
   cylinder(parent,p+Vector3(0,.42,0),.65,.09,stone)
   cylinder(parent,p+Vector3(0,.7,0),.08,.24,stone)
- elif kind in ["tower","spire"]:
+ elif kind=="tower":
+  var tower=mesh(parent,Fortification.tower(),p,Vector3.ONE,Fortification.material());tower.name="FortifiedTower"
+ elif kind=="spire":
   cylinder(parent,p+Vector3(0,1,0),2,.55,stone)
   cylinder(parent,p+Vector3(0,.15,0),.3,.7,stone.darkened(.15))
   cylinder(parent,p+Vector3(0,2,0),.25,.65,stone.lightened(.08))
-  if kind=="spire":cylinder(parent,p+Vector3(0,2.8,0),1.5,.65,Color("586b75"),0)
-  else:
-   for i in range(8):block(parent,p+Vector3(cos(i*PI/4)*.55,2.3,sin(i*PI/4)*.55),Vector3(.22,.4,.22),stone)
+  cylinder(parent,p+Vector3(0,2.8,0),1.5,.65,Color("586b75"),0)
  elif kind=="arch":
   for x in [-.7,.7]:
    var pillar=block(parent,p+Vector3(x,.55,0),Vector3(.4,1.1,.6),stone);pillar.material_override=detail_material(3)
