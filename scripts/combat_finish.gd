@@ -1,6 +1,8 @@
 extends Node
-## Presentation-only punctuation after a resolved defeat. Poll skip while the
-## actor settles and holds; the caller retains map, camera and result ownership.
+# Presentation-only punctuation after a resolved defeat. A short weapon-specific
+# flourish settles into a quiet held pose. Skip cancels either phase; the caller
+# retains map, camera and result ownership. Authored models may omit the flourish.
+
 var motion: Tween
 var stance: Tween
 
@@ -10,11 +12,17 @@ static func quote_for(unit: Dictionary,profiles: Dictionary) -> String:
 
 func play(actor: Node3D,cancelled: Callable,hold=.60):
  name="CombatFinish"
+ stance=actor.finish_flourish(.22)
+ if stance!=null:
+  if not await wait_motion(stance,cancelled):return
  stance=actor.pose("victory",.28)
  motion=create_tween();motion.tween_interval(hold)
- while motion.is_running():
+ if not await wait_motion(motion,cancelled):
+  if stance.is_valid():stance.kill()
+
+func wait_motion(active: Tween,cancelled: Callable) -> bool:
+ while active.is_running():
   if cancelled.call():
-   motion.kill()
-   if stance.is_valid():stance.kill()
-   break
+   active.kill();return false
   await get_tree().process_frame
+ return true

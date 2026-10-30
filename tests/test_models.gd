@@ -73,6 +73,10 @@ func run():
  assert(actor.model.get_node("Hand").position.is_equal_approx(Vector3(0,1.8,0)),"Dedicated authored recovery clip takes precedence")
  await actor.pose("victory",.01).finished
  assert(actor.model.get_node("Hand").position.is_equal_approx(Vector3(0,2,0)),"Optional finishing stance falls back to the authored idle section")
+ assert(actor.finish_flourish(.01)==null,"Models without a flourish do not replay a placeholder idle or finishing clip")
+ actor.poses.victory_flourish={"clip":"swing","from":.1,"to":.4}
+ await actor.finish_flourish(.01).finished
+ assert(actor.model.get_node("Hand").position.is_equal_approx(Vector3(0,.8,0)),"Optional authored flourish plays its own section")
  actor.poses.victory={"clip":"swing","from":.2,"to":.6}
  await actor.pose("victory",.01).finished
  assert(actor.model.get_node("Hand").position.is_equal_approx(Vector3(0,1.2,0)),"An authored finishing section takes precedence when supplied")

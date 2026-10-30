@@ -40,6 +40,9 @@ func configure(scene: Node3D,spec: Dictionary) -> String:
 func number(value) -> bool:
  return (value is float or value is int) and is_finite(float(value))
 
+func finish_flourish(duration=.22) -> Tween:
+ return pose("victory_flourish",duration) if poses.has("victory_flourish") else null
+
 func pose(key: String,duration=.18) -> Tween:
  if pose_tween and pose_tween.is_valid():pose_tween.kill()
  pose_name=key

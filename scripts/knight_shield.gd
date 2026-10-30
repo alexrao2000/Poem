@@ -4,6 +4,7 @@ extends RefCounted
 const OUTLINE=[Vector2(-.19,.36),Vector2(.19,.36),Vector2(.232,.30),Vector2(.228,.03),Vector2(.18,-.19),Vector2(0,-.377),Vector2(-.18,-.19),Vector2(-.228,.03),Vector2(-.232,.30)]
 static var cached_body: ArrayMesh
 static var cached_trim: ArrayMesh
+static var cached_promotion_trim: ArrayMesh
 
 static func triangle(surface: SurfaceTool,a: Vector3,b: Vector3,c: Vector3):
  var normal=(b-a).cross(c-a).normalized()
@@ -25,17 +26,24 @@ static func body_mesh() -> ArrayMesh:
  cached_body=surface.commit();return cached_body
 
 static func trim_mesh() -> ArrayMesh:
- if cached_trim!=null:return cached_trim
+ if cached_trim==null:cached_trim=ornament_mesh(.87,.985,.0015)
+ return cached_trim
+
+static func promotion_trim_mesh() -> ArrayMesh:
+ if cached_promotion_trim==null:cached_promotion_trim=ornament_mesh(.76,.99,.002)
+ return cached_promotion_trim
+
+static func ornament_mesh(inner: float,outer: float,offset: float) -> ArrayMesh:
  var surface=SurfaceTool.new();surface.begin(Mesh.PRIMITIVE_TRIANGLES)
  for i in range(OUTLINE.size()):
   var a=OUTLINE[i];var b=OUTLINE[(i+1)%OUTLINE.size()]
-  var outer_a=front(a,.985,.0015);var outer_b=front(b,.985,.0015)
-  var inner_a=front(a,.87,.0015);var inner_b=front(b,.87,.0015)
+  var outer_a=front(a,outer,offset);var outer_b=front(b,outer,offset)
+  var inner_a=front(a,inner,offset);var inner_b=front(b,inner,offset)
   triangle(surface,outer_a,outer_b,inner_b);triangle(surface,outer_a,inner_b,inner_a)
  polygon(surface,[Vector2(0,.20),Vector2(.045,.145),Vector2(0,.09),Vector2(-.045,.145)])
  for y in [.02,-.085]:
   polygon(surface,[Vector2(-.12,y+.045),Vector2(0,y-.015),Vector2(.12,y+.045),Vector2(.10,y-.005),Vector2(0,y-.055),Vector2(-.10,y-.005)])
- cached_trim=surface.commit();return cached_trim
+ return surface.commit()
 
 static func polygon(surface: SurfaceTool,points: PackedVector2Array):
  var indices=Geometry2D.triangulate_polygon(points)

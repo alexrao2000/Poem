@@ -472,3 +472,13 @@ The tactical camera reserves horizontal space for the actual 28 px label and ver
 ## Quick-map evasion
 
 Defenders face incoming attacks, then move 0.14 m sideways on a resolved miss. The short outward movement holds through contact and returns before field control resumes. The presentation offset leaves tile coordinates and terrain height unchanged; final facing persists after sprite refresh. Actual playback and movement checks pass. Rendered motion remains unreviewed.
+
+## Two-stage finishing gestures
+
+Surviving fighters briefly lift or draw back their weapon, then settle into the existing relaxed hold. Sword, axe, lance, bow, book and staff use separate arm silhouettes while the feet or saddle remain supported. The extra movement lasts 220 ms and remains immediately skippable. Imported models play this phase only when an authored `victory_flourish` section exists.
+
+The finishing camera aims 0.5 m higher for lance wielders to keep their raised tips below the caption; other weapons retain the lower composition so staff ends stay above the health panels. Tests now use explicit viewport dimensions and inspect actual weapon vertices in both phases across 288 roster layouts, alongside planted-foot and real cinematic checks. These checks establish geometry and lifecycle behavior; rendered animation review remains pending.
+
+## Fitted Bastion shield ornament
+
+The Bastion promotion widens the existing gold border along the pointed heater-shield outline and keeps its river crest. It replaces the standard trim rather than overlaying a round torus or duplicating gold surfaces. All ornament vertices are supported by the bowed panel; the previous circular trim left 103 of 153 vertices outside it. The replacement retains the base ornament’s 28 triangles, follows the off-hand joint, and passes costume/batching checks for all promoted recruits.

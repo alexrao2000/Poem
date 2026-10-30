@@ -198,6 +198,9 @@ func stance_height(target: Dictionary) -> float:
   lowest=minf(lowest,center.y-radius)
  return -lowest
 
+func finish_flourish(duration=.22) -> Tween:
+ return pose("victory_flourish",duration)
+
 func pose(key: String,duration=.18) -> Tween:
  if pose_tween and pose_tween.is_valid():pose_tween.kill()
  if bones.has("Weapon") and key not in ["throw","throw_windup","critical_throw_windup","recover"]:bones.Weapon.visible=true
@@ -285,6 +288,21 @@ func pose(key: String,duration=.18) -> Tween:
    target.LeftLeg.x=-.38;target.RightLeg.x=.4;target.RightKnee.x=.58
  elif key=="throw":
   target.Body=Vector3(.15,.35,0);target.Arm=Vector3(-1.3,0,.05);target.Elbow=Vector3(0,0,0)
+ elif key=="victory_flourish":
+  target.Body=Vector3(-.035,-.18,0);target.Head=Vector3(-.045,.12,-.02)
+  target.LeftArm=Vector3(-.15,0,.23);target.LeftElbow=Vector3(-.4,0,0)
+  target.Arm=Vector3(-.65,-.1,-.28);target.Elbow=Vector3(-.72,0,0)
+  if kind=="axe":
+   target.Body.y=-.24;target.Arm=Vector3(-.45,-.12,-.34);target.Elbow=Vector3(-1.65,0,0)
+  elif kind=="lance":
+   target.Arm=Vector3(-.48,0,-.24);target.Elbow=Vector3(-1.32,0,0)
+  elif kind=="bow":
+   target.Arm=Vector3(-.68,.12,-.28);target.Elbow=Vector3(-.5,0,0)
+   target.LeftArm=Vector3(-.35,.15,.3);target.LeftElbow=Vector3(-.5,0,0)
+  elif kind=="magic":
+   target.Arm=Vector3(-.7,-.2,-.38);target.Elbow=Vector3(-.85,0,0)
+  elif kind=="staff":
+   target.Arm=Vector3(-.28,0,-.24);target.Elbow=Vector3(-.4,0,0)
  elif key=="victory":
   # A restrained finishing silhouette, with each held weapon brought to rest.
   target.Body=Vector3(0,-.10,0);target.Head=Vector3(.04,.08,-.025)

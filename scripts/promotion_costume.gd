@@ -43,8 +43,8 @@ static func build(painter,actor,unit,torso,cloth_color,cape_color,steel,gold,lea
    painter.shell(bracer,Vector3.ZERO,[[-.245,.072,.073],[-.08,.078,.075],[-.035,.084,.08]],steel)
    painter.geo.cylinder(bracer,Vector3(0,-.245,0),.025,.076,gold)
  if look.get("shield_rim",false):
-  var ring=TorusMesh.new();ring.inner_radius=.278;ring.outer_radius=.312;ring.rings=16;ring.ring_segments=8
-  var rim=painter.geo.mesh(actor.bone("LeftElbow"),ring,Vector3(-.04,-.16,-.215),Vector3(.8,1,1.3),painter.geo.material(gold));rim.name="PromotionShieldRim";rim.rotation.x=PI/2
+  var rim=actor.bone("LeftElbow").get_node("ShieldTrim")
+  rim.mesh=preload("res://scripts/knight_shield.gd").promotion_trim_mesh();rim.name="PromotionShieldRim"
  if look.get("satchel",false):
   painter.ellipsoid(group,Vector3(-.255,-.17,.025),Vector3(.10,.135,.085),leather)
   painter.geo.block(group,Vector3(-.26,-.12,-.06),Vector3(.16,.06,.02),cloth_color)

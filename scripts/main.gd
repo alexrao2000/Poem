@@ -990,7 +990,7 @@ func cinematic(a,b,events,initial_hp={}):
 			var finish=preload("res://scripts/combat_finish.gd").new();stage.add_child(finish)
 			var line=finish.quote_for(unit,fighters.profiles)
 			caption.text=unit.name+(" — "+line if not line.is_empty() else "");caption.show()
-			director.shot(who.position,whom.position,"finish",is_ranged,unit.job=="Rider",.28)
+			director.shot(who.position,whom.position,"finish",is_ranged,unit.job=="Rider",.28,unit.weapon)
 			await finish.play(who,func():return skip_combat,.95 if not line.is_empty() else .60)
 			finish.queue_free()
 			break
@@ -1225,7 +1225,7 @@ func show_model_view(unit,on_close=Callable()):
 	label_in(panel,"Preview action",15,GOLD)
 	var actions=[["Ready","idle"],["Attack preparation","windup"],["Critical preparation","critical_windup"],["Attack","strike"],["Recovery","recover"]]
 	if unit.weapon=="staff":actions=[["Ready","idle"],["Healing preparation","cast_windup"],["Heal","cast"]]
-	actions.append_array([["Guard","guard"],["Hit reaction","hit"],["Critical reaction","critical_hit"],["Defeated","down"],["Finish","victory"]])
+	actions.append_array([["Guard","guard"],["Hit reaction","hit"],["Critical reaction","critical_hit"],["Defeated","down"],["Finishing flourish","victory_flourish"],["Finish","victory"]])
 	var choice=OptionButton.new();choice.name="PreviewAction";choice.custom_minimum_size.y=42
 	for entry in actions:
 		choice.add_item(entry[0]);choice.set_item_metadata(choice.item_count-1,entry[1])

@@ -36,6 +36,25 @@ func verify_shell_orientation(actor):
    assert(face.dot(Vector3(center.x,0,center.z).normalized())>.01,"Clockwise front faces point out of each clothing shell")
  assert(count>0,"Every procedural recruit has inspected clothing shells")
 
+func verify_promoted_shield(actor):
+ var elbow=actor.bone("LeftElbow");var body=elbow.get_node("ShieldBody");var rim=elbow.get_node("PromotionShieldRim")
+ var points=body.mesh.surface_get_arrays(0)[Mesh.ARRAY_VERTEX]
+ var trim=rim.mesh.surface_get_arrays(0);var checked=0
+ assert(not elbow.has_node("ShieldTrim"),"Promotion replaces the normal rim instead of stacking coincident gold surfaces")
+ assert(rim.mesh.surface_get_arrays(0)[Mesh.ARRAY_VERTEX]==preload("res://scripts/knight_shield.gd").promotion_trim_mesh().surface_get_arrays(0)[Mesh.ARRAY_VERTEX],"Promotion retains the fitted ornament geometry through outline preparation")
+ for vertex in trim[Mesh.ARRAY_VERTEX]:
+  var local=body.to_local(rim.to_global(vertex));var behind=null
+  for i in range(0,points.size(),3):
+   var hit=Geometry3D.ray_intersects_triangle(Vector3(local.x,local.y,-1),Vector3.BACK,points[i],points[i+1],points[i+2])
+   if hit!=null and (behind==null or hit.z<behind.z):behind=hit
+  assert(behind!=null,"Every promoted rim/crest vertex has the actual shield panel behind it")
+  assert(behind.z-local.z>.0009 and behind.z-local.z<.04,"Promoted ornament sits just in front of the bowed shield, including its pointed foot")
+  checked+=1
+ assert(checked==84,"Wider promoted trim and retained crest use the same 28-triangle ornament budget")
+ for i in range(0,checked,3):
+  var vertices=trim[Mesh.ARRAY_VERTEX];var normal=(vertices[i+1]-vertices[i]).cross(vertices[i+2]-vertices[i])
+  assert(normal.length()>.000001 and normal.normalized().dot(trim[Mesh.ARRAY_NORMAL][i])<-.999,"Promoted rim has nondegenerate outward-facing triangles")
+
 func run():
  assert(Garments.robe()==Garments.robe() and Garments.hem()==Garments.hem(),"Casters share cached garment meshes")
  for garment in [Garments.robe(),Garments.hem()]:
@@ -63,6 +82,7 @@ func run():
    var promoted=unit.duplicate(true);promoted.promotion=path.id
    var actor=fighters.build(stage,promoted,Vector3.ZERO);actor.set_process(false);actor.pose_tween.kill()
    verify_shell_orientation(actor)
+   if Costumes.looks[path.id].get("shield_rim",false):verify_promoted_shield(actor)
    assert(actor.get_meta("promotion_look")==path.id,"Every recruit receives its selected branch silhouette")
    assert(actor.rest==base.rest and actor.kind==base.kind and actor.mounted==base.mounted,"Clothing leaves rig proportions, weapon ownership and mounts intact")
    assert(actor.bone("Head").get_meta("hair_style")==base.bone("Head").get_meta("hair_style") and actor.get_meta("costume_colors")==base.get_meta("costume_colors"),"Individual hair and clothing palette survive training")

@@ -13,7 +13,7 @@ func configure(value: Camera3D):
  camera=value;anchor=camera.position;focus=camera.position-camera.basis.z;lens=camera.fov
  camera.projection=Camera3D.PROJECTION_PERSPECTIVE;camera.h_offset=0;camera.v_offset=0
 
-static func frame_pair(attacker: Vector3,defender: Vector3,phase: String,_ranged: bool,mounted=false) -> Dictionary:
+static func frame_pair(attacker: Vector3,defender: Vector3,phase: String,_ranged: bool,mounted=false,weapon="") -> Dictionary:
  var midpoint=(attacker+defender)*.5
  var height=2.75 if mounted else 1.9
  var separation=attacker.distance_to(defender)
@@ -22,7 +22,7 @@ static func frame_pair(attacker: Vector3,defender: Vector3,phase: String,_ranged
  var fov=48.0
  if phase=="finish":
   var direction=signf(defender.x-attacker.x)
-  aim=attacker+Vector3(0,1.45 if mounted else 1.05,0)
+  aim=attacker+Vector3(0,(1.45 if mounted else 1.05)+(.5 if weapon=="lance" else 0.0),0)
   return {"anchor":aim+Vector3(direction*1.8,.65,5.8 if mounted else 4.8),"focus":aim,"lens":46.0}
  if phase=="windup":
   aim=aim.lerp(attacker+Vector3(0,height,0),.10)
@@ -33,9 +33,9 @@ static func frame_pair(attacker: Vector3,defender: Vector3,phase: String,_ranged
  aim.y=midpoint.y+height*.5-distance*tan(deg_to_rad(fov*.5))*.18
  return {"anchor":aim+Vector3(sin(.57)*distance,.85,cos(.57)*distance),"focus":aim,"lens":fov}
 
-func shot(attacker: Vector3,defender: Vector3,phase: String,ranged: bool,mounted=false,duration=.24) -> Tween:
+func shot(attacker: Vector3,defender: Vector3,phase: String,ranged: bool,mounted=false,duration=.24,weapon="") -> Tween:
  if movement and movement.is_valid():movement.kill()
- var frame=frame_pair(attacker,defender,phase,ranged,mounted)
+ var frame=frame_pair(attacker,defender,phase,ranged,mounted,weapon)
  movement=create_tween().set_parallel(true).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN_OUT)
  movement.tween_property(self,"anchor",frame.anchor,duration)
  movement.tween_property(self,"focus",frame.focus,duration)
