@@ -33,6 +33,7 @@ func run():
   var effect=Heal.new();world.add_child(effect);var motion=effect.play(from,to,Vector3(9,0,4),12)
   var reference=weakref(effect)
   assert(not effect.amount.visible,"Healing number waits for light to arrive")
+  assert(effect.glow.material_override.billboard_keep_scale and effect.glow.material_override.disable_fog,"Recovery bloom retains animated scale without fog revealing its transparent rectangle")
   for strand in range(3):
    assert(effect.flight_point(0,strand)==from and effect.flight_point(1,strand).distance_to(to)<.0001,"All three strands connect actual world-space sockets")
   await effect.arrived

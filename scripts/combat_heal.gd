@@ -15,7 +15,7 @@ var motion: Tween
 func light(size_value: float,color: Color) -> MeshInstance3D:
  var mesh=MeshInstance3D.new();var quad=QuadMesh.new();quad.size=Vector2.ONE*size_value;mesh.mesh=quad
  var material=Impact.accent_material();material.albedo_texture=Impact.radial_texture()
- material.albedo_color=color;material.billboard_mode=BaseMaterial3D.BILLBOARD_ENABLED
+ material.albedo_color=color;material.billboard_mode=BaseMaterial3D.BILLBOARD_ENABLED;material.billboard_keep_scale=true
  mesh.material_override=material;add_child(mesh);return mesh
 
 func flight_point(progress: float,strand=0) -> Vector3:

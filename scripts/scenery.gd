@@ -2,6 +2,7 @@ extends RefCounted
 const MapSurface=preload("res://scripts/map_surface.gd")
 const RiverBank=preload("res://scripts/river_bank.gd")
 const MapGround=preload("res://scripts/map_ground.gd")
+const AmbientDrift=preload("res://scripts/ambient_drift.gd")
 # Shared landscape construction for the tactical board and battle stage.
 # Masonry spans use closed wedge stones with small joints and an open underside.
 var materials: Dictionary = {}
@@ -215,6 +216,9 @@ func landscape(parent,game):
   mesh(parent,sea,Vector3(7,-.12,26),Vector3.ONE,water_material())
 
  if batching_enabled:batcher.combine(parent)
+ var atmosphere=AmbientDrift.new();parent.add_child(atmosphere)
+ atmosphere.position=Vector3((game.board_size().x-1)*.5,0,(game.board_size().y-1)*.5)
+ atmosphere.configure(theme,Vector3(game.board_size().x+6,3,game.board_size().y+6),false,game.chapter)
 
 func landmark(parent,p,kind):
  var stone=Color("969b91");var gold=Color("bba16b")
@@ -351,6 +355,8 @@ func battle_landscape(parent,center,context={}):
    var glow=material(Color("ffe3a0")).duplicate();glow.shading_mode=BaseMaterial3D.SHADING_MODE_UNSHADED
    mesh(parent,shape,center+Vector3(0,4,-12),Vector3.ONE,glow)
  if batching_enabled:batcher.combine(parent)
+ var atmosphere=AmbientDrift.new();parent.add_child(atmosphere);atmosphere.position=center+Vector3(0,0,-3)
+ atmosphere.configure(theme,Vector3(28,4,14),true)
  return theme
 
 func barrel(parent,p,scale_value=1.0):
