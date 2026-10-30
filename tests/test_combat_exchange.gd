@@ -101,6 +101,7 @@ func watch_spell(node):
   spells.append(node.spell)
   var expected={"ember":"EmberCore","gale":"WindCrescent0","thunder":"ThunderBolt0"}[node.spell]
   assert(node.body.has_node(expected),"Equipped folio selects its own airborne shape")
+  assert(node.wake!=null and node.wake.material_override.blend_mode==BaseMaterial3D.BLEND_MODE_ADD,"Real spell flight owns a continuous additive wake")
  elif node is Impact:
   await process_frame
   contact_colors.append(node.glow.material_override.albedo_color)

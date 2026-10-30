@@ -141,7 +141,7 @@ func run():
  camera.queue_free()
  var fighters=load("res://scripts/fighters.gd").new();var rules=load("res://scripts/rules.gd").new()
  var stage=Node3D.new();root.add_child(stage)
- stage.position=Vector3(35,0,0)
+ stage.position=Vector3(35,0,0);stage.rotation=Vector3(.1,.42,.07);stage.scale=Vector3.ONE*1.3
  for weapon in ["bow","lance","magic"]:
   for direction in [-1,1]:
    var from=Vector3(35,1.2 if direction>0 else 1.95,0);var to=Vector3(35+direction*4,1.85 if direction>0 else 1.1,0)
@@ -158,7 +158,7 @@ func run():
      assert(lead.distance_to(shot.point_at(t))<.0001,"Actual leading vertex stays on the flight path, without overshooting contact")
      if t==0:assert(shot.body.get_child(0).global_position.distance_to(from)<.1,"Physical shaft launches near the animated grip")
    assert(shot.global_position.distance_to(to)<.0001,"Projectile reaches mounted or infantry impact socket")
-   if weapon=="magic":assert(shot.trail.size()==6 and shot.trail[0].visible,"Magic leaves a bounded trailing wake")
+   if weapon=="magic":assert(shot.wake!=null and shot.wake.visible and shot.wake.mesh.get_surface_count()==1,"Magic leaves one continuous bounded trailing wake")
    shot.queue_free()
  for weapon in ["bow","lance"]:
   for direction in [-1,1]:
@@ -181,7 +181,7 @@ func run():
  var final_shot=Projectile.new();stage.add_child(final_shot);var reference=weakref(final_shot)
  await final_shot.launch(Vector3.ZERO,Vector3.RIGHT*4,"bow",.02).finished
  await process_frame;assert(reference.get_ref()==null,"Completed flight releases its meshes")
- stage.position=Vector3.ZERO
+ stage.transform=Transform3D.IDENTITY
  var coats=[];fighters.batching_enabled=false
  for id in ["bram","una","elian"]:
   var unit=rules.roster.filter(func(u):return u.id==id)[0].duplicate(true);unit.team="player"

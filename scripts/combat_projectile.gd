@@ -15,11 +15,13 @@ var travel_end=1.0
 var kind="bow"
 var spell=""
 var body: Node3D
-var trail: Array=[]
+var wake: MeshInstance3D
+var wake_color=Color.WHITE
 var motion: Tween
 
 func launch(from: Vector3,to: Vector3,weapon: String,duration=.23,spell_id="",appearance={},miss=false) -> Tween:
  name="CombatProjectile";origin=from;destination=to;kind=weapon;spell=spell_id
+ global_basis=Basis.IDENTITY
  arc=.14 if kind=="bow" else .08 if kind=="lance" else .04
  body=Node3D.new();body.name="FlightBody";add_child(body)
  if kind in ["bow","lance"]:
@@ -39,8 +41,15 @@ func launch(from: Vector3,to: Vector3,weapon: String,duration=.23,spell_id="",ap
   else:
    var core=piece(body,orb,colors.core,true);core.name="EmberCore" if spell=="ember" else "SpellCore"
    core.scale=Vector3(.85,.85,1.45) if spell=="ember" else Vector3.ONE
-  for i in range(6):
-   var mote=piece(self,orb,colors.wake,true);mote.name="Wake"+str(i);trail.append(mote)
+  var halo_shape=QuadMesh.new();halo_shape.size=Vector2.ONE*.6
+  var halo=piece(body,halo_shape,colors.accent,true);halo.name="SpellGlow"
+  halo.material_override.albedo_texture=preload("res://scripts/combat_impact.gd").radial_texture()
+  halo.material_override.albedo_color.a=.35;halo.material_override.billboard_mode=BaseMaterial3D.BILLBOARD_ENABLED;halo.material_override.billboard_keep_scale=true
+  wake=MeshInstance3D.new();wake.name="SpellWake";wake_color=colors.wake
+  var surface=StandardMaterial3D.new();surface.shading_mode=BaseMaterial3D.SHADING_MODE_UNSHADED
+  surface.transparency=BaseMaterial3D.TRANSPARENCY_ALPHA;surface.blend_mode=BaseMaterial3D.BLEND_MODE_ADD
+  surface.cull_mode=BaseMaterial3D.CULL_DISABLED;surface.vertex_color_use_as_albedo=true;surface.vertex_color_is_srgb=true;surface.disable_fog=true
+  wake.material_override=surface;wake.cast_shadow=GeometryInstance3D.SHADOW_CASTING_SETTING_OFF;add_child(wake)
  var tangent=destination-origin-Vector3.UP*PI*arc
  travel_end=1.0+minf(.35,.9/maxf(tangent.length(),.001)) if miss and kind in ["bow","lance"] else 1.0
  _process(0)
@@ -77,15 +86,39 @@ func _process(_dt):
  if direction.length_squared()>.0001:
   body.look_at(global_position+direction,Vector3.FORWARD if direction.normalized().cross(Vector3.UP).length_squared()<.001 else Vector3.UP)
  if kind=="magic" and spell=="gale":body.rotate_object_local(Vector3.FORWARD,progress*TAU*2)
- for i in range(trail.size()):
-  var t=progress-(i+1)*.045
-  trail[i].visible=t>=0
-  trail[i].global_position=point_at(t)
-  trail[i].scale=Vector3.ONE*(.65-i*.085)
+ if wake!=null:update_wake(direction.normalized())
+
+func update_wake(direction: Vector3):
+ var span=minf(progress,.28)
+ if span<.0001:wake.hide();return
+ var up=Vector3.UP-direction*direction.dot(Vector3.UP)
+ if up.length_squared()<.001:up=Vector3.RIGHT-direction*direction.dot(Vector3.RIGHT)
+ up=up.normalized();var axes=[up,direction.cross(up).normalized()]
+ var surface=SurfaceTool.new();surface.begin(Mesh.PRIMITIVE_TRIANGLES);var count=0
+ for step in range(8):
+  var t0=step/8.0;var t1=(step+1)/8.0
+  var a=point_at(progress-span*t0);var b=point_at(progress-span*t1)
+  var width0=.11*(1-t0);var width1=.11*(1-t1)
+  for axis in axes:
+   for side in [-1,1]:
+    var points=[to_local(a),to_local(a+axis*width0*side),to_local(b+axis*width1*side),to_local(b)]
+    var alpha=[.45*pow(1-t0,1.3),0.0,0.0,.45*pow(1-t1,1.3)]
+    for triangle in [[0,1,2],[0,2,3]]:
+     if (points[triangle[1]]-points[triangle[0]]).cross(points[triangle[2]]-points[triangle[0]]).length_squared()<1e-15:continue
+     for index in triangle:
+      var color=wake_color;color.a=alpha[index];surface.set_color(color);surface.add_vertex(points[index])
+     count+=1
+ if count>0:wake.mesh=surface.commit();wake.show()
+ else:wake.hide()
 
 static func piece(parent: Node3D,mesh: Mesh,color: Color,unlit=false) -> MeshInstance3D:
  var node=MeshInstance3D.new();node.mesh=mesh
  var material=StandardMaterial3D.new();material.albedo_color=color;material.roughness=.65
  material.cull_mode=BaseMaterial3D.CULL_DISABLED
- if unlit:material.shading_mode=BaseMaterial3D.SHADING_MODE_UNSHADED
+ if unlit:
+  material.shading_mode=BaseMaterial3D.SHADING_MODE_UNSHADED
+  material.transparency=BaseMaterial3D.TRANSPARENCY_ALPHA;material.blend_mode=BaseMaterial3D.BLEND_MODE_ADD
+  material.albedo_color.a=.75;material.disable_fog=true
+  if mesh is SphereMesh:material.cull_mode=BaseMaterial3D.CULL_BACK
+  node.cast_shadow=GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
  node.material_override=material;parent.add_child(node);return node
