@@ -35,7 +35,7 @@ func run():
     assert(actor.sprite.modulate==Color.WHITE,"Enemy skin, horses and steel keep authored colors")
     assert(actor.sprite.scale==Vector3(entry.source_pixel_scale,entry.source_pixel_scale,1),"Animation frames retain consistent source density")
     actor.spent=true;actor._process(0)
-    assert(actor.sprite.modulate==Color(.70,.72,.73),"Spent enemy remains legible without an additional red tint")
+    assert(actor.sprite.modulate==Color(.78,.78,.78) and actor.sprite.texture==catalog.spent_frame_texture(id,actor.player.frame_index()),"Spent enemy uses the same grayscale treatment without an additional red tint")
     actor.spent=false
   actor.player.play("act","west",true);actor.player.advance(.13);actor.update_frame()
   assert(actor.sprite.flip_h,"West attack mirrors its directional strike")
@@ -45,6 +45,8 @@ func run():
   catalog.assets.erase(id)
   actor=Unit.new();stage.add_child(actor);actor.configure(catalog,unit);actor._process(0)
   assert(actor.visual_id=="unit."+unit.job.to_lower() and actor.sprite.modulate==Color(1,.72,.68),"Missing enemy art retains the compatible tinted class fallback")
+  actor.spent=true;actor._process(0)
+  assert(actor.sprite.modulate==Color(.78,.78,.78),"Missing enemy artwork also uses neutral grayscale after acting")
   actor.queue_free();catalog.assets[id]=entry
   # Reusing a recruit-like ID cannot leak goggles, hair, signature armor or a
   # pale named horse into an anonymous enemy class.

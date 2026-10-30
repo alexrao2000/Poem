@@ -4,9 +4,10 @@ extends "res://visuals/catalog.gd"
 const Catalog=preload("res://visuals/catalog.gd")
 var recruit_errors: Array[String]=[]
 var enemy_errors: Array[String]=[]
+var spent_textures: Dictionary={}
 
 func open(path: String) -> bool:
- recruit_errors.clear();enemy_errors.clear()
+ recruit_errors.clear();enemy_errors.clear();spent_textures.clear()
  if not super.open(path):return false
  var recruit_path="res://campaign_visuals.json"
  if FileAccess.file_exists(recruit_path) and not add_recruits(recruit_path):
@@ -42,3 +43,15 @@ func add_supplement(path: String,prefix: String,issues: Array[String]) -> bool:
     issues.append(id+": invalid right-facing frame");return false
  assets.merge(extra.assets);textures.merge(extra.textures)
  return true
+
+## On-demand presentation variants leave original atlases and frame pivots intact.
+func spent_frame_texture(id: String,index: int) -> Texture2D:
+ var original=frame_texture(id,index)
+ if original==null:return null
+ var key=id+":"+str(index)
+ if spent_textures.has(key):return spent_textures[key]
+ var gray=original.get_image().duplicate()
+ if gray.is_compressed():gray.decompress()
+ gray.adjust_bcs(1.0,1.0,0.0)
+ spent_textures[key]=ImageTexture.create_from_image(gray)
+ return spent_textures[key]

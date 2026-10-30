@@ -3,6 +3,8 @@ extends "res://visuals/unit_3d.gd"
 # Facing and animation are presentation state; action resolution stays in Rules.
 const TACTICAL_PIXEL_SIZE=1.0/48.0
 static var contact_material: StandardMaterial3D
+static var selected_mesh: ArrayMesh
+static var selected_material: StandardMaterial3D
 var unit_id=""
 var commander_insignia: Sprite3D
 
@@ -17,6 +19,8 @@ func configure(source: RefCounted,unit: Dictionary,facing="south"):
  setup(source,chosen)
  sprite.pixel_size=TACTICAL_PIXEL_SIZE;sprite.no_depth_test=true;sprite.render_priority=2
  var shadow=PlaneMesh.new();shadow.size=Vector2(.58,.40);marker.mesh=shadow;marker.material_override=shadow_material()
+ ring.mesh=selection_mesh();ring.material_override=selection_material();ring.position.y=.072
+ ring.cast_shadow=GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
  marker.cast_shadow=GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
  player.play("idle",facing);update_frame()
  if unit.get("boss",false) and team=="enemy":
@@ -25,6 +29,24 @@ func configure(source: RefCounted,unit: Dictionary,facing="south"):
   insignia.pixel_size=1.0/100;insignia.position=Vector3(.30,.93,0);insignia.no_depth_test=true;insignia.render_priority=3
   insignia.cast_shadow=GeometryInstance3D.SHADOW_CASTING_SETTING_OFF;add_child(insignia)
   commander_insignia=insignia
+
+static func selection_mesh() -> ArrayMesh:
+ if selected_mesh!=null:return selected_mesh
+ var surface=SurfaceTool.new();surface.begin(Mesh.PRIMITIVE_TRIANGLES)
+ var overlay=preload("res://scripts/map_overlay.gd")
+ for x in [-1,1]:
+  for z in [-1,1]:
+   for stroke in [[Vector2(x*.23,z*.33),Vector2(.11,.035)],[Vector2(x*.33,z*.23),Vector2(.035,.11)]]:
+    overlay.rectangle(surface,stroke[0],stroke[1],0,Color("254365"))
+    overlay.rectangle(surface,stroke[0],stroke[1]-Vector2.ONE*.012,.001,Color("75c4e9"))
+ selected_mesh=surface.commit();return selected_mesh
+
+static func selection_material() -> StandardMaterial3D:
+ if selected_material!=null:return selected_material
+ selected_material=StandardMaterial3D.new();selected_material.shading_mode=BaseMaterial3D.SHADING_MODE_UNSHADED
+ selected_material.vertex_color_use_as_albedo=true;selected_material.vertex_color_is_srgb=true
+ selected_material.cull_mode=BaseMaterial3D.CULL_DISABLED
+ return selected_material
 
 static func shadow_material() -> StandardMaterial3D:
  if contact_material==null:
@@ -48,12 +70,17 @@ func refresh_health():
 func _process(dt):
  if not is_visible_in_tree():return
  super._process(dt)
+ spent_tick.hide()
+ if spent:sprite.modulate=Color(.78,.78,.78,sprite.modulate.a)
  var breath=1.0+sin(clock*4)*.045
- ring.scale=Vector3(breath,.45,breath)
- if team=="enemy" and not visual_id.begins_with("enemy."):sprite.modulate*=Color(1,.72,.68)
+ ring.scale=Vector3(breath,1,breath)
+ if team=="enemy" and not spent and not visual_id.begins_with("enemy."):sprite.modulate*=Color(1,.72,.68)
 
 func update_frame():
  super.update_frame()
+ if spent and catalog.has_method("spent_frame_texture"):
+  sprite.texture=catalog.spent_frame_texture(visual_id,player.frame_index())
+ else:sprite.texture=catalog.frame_texture(visual_id,player.frame_index())
  var density=player.asset.get("source_pixel_scale",0)
  if density>0:sprite.scale=Vector3(density,density,1)
  var frame=player.asset.frames[player.frame_index()]

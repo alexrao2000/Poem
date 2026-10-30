@@ -42,6 +42,20 @@ func run():
    assert(actor.sprite.flip_h and actor.sprite.offset.x==contact.pivot_px[0]-contact.rect[2],"West attack mirrors the right-facing pose around its foot pivot")
    actor.player.play("act","east",true);actor.player.advance(.13);actor.update_frame()
    assert(not actor.sprite.flip_h and actor.sprite.offset.x==-contact.pivot_px[0],"Changing facing on the same frame restores the original pivot")
+  var original=catalog.frame_texture(actor.visual_id,actor.player.frame_index())
+  var original_pixels=original.get_image().get_data();var offset=actor.sprite.offset;var scale_value=actor.sprite.scale
+  actor.spent=true;actor._process(0)
+  var gray=actor.sprite.texture;var image=gray.get_image();var source_image=original.get_image()
+  assert(gray==catalog.spent_frame_texture(actor.visual_id,actor.player.frame_index()),"Spent frames reuse their cached grayscale texture")
+  assert(not actor.spent_tick.visible and actor.sprite.modulate.r==actor.sprite.modulate.g and actor.sprite.modulate.g==actor.sprite.modulate.b,"Campaign spent state uses an evenly dimmed sprite without a ground check mark")
+  assert(actor.sprite.offset==offset and actor.sprite.scale==scale_value and image.get_size()==source_image.get_size(),"Spent state preserves the exact frame size, pivot and facing")
+  for y in range(image.get_height()):
+   for x in range(image.get_width()):
+    var pixel=image.get_pixel(x,y)
+    assert(pixel.r==pixel.g and pixel.g==pixel.b and pixel.a==source_image.get_pixel(x,y).a,"Spent pixels are actually grayscale and preserve source transparency")
+  assert(original.get_image().get_data()==original_pixels,"Runtime variant cannot alter the source artwork")
+  actor.spent=false;actor._process(0)
+  assert(actor.sprite.texture==original and actor.sprite.modulate==Color.WHITE,"A fresh turn restores full-color artwork on the same animation frame")
   actor.queue_free()
   var visual_id="recruit."+unit.id;var saved=catalog.assets[visual_id];catalog.assets.erase(visual_id)
   actor=Unit.new();stage.add_child(actor);actor.configure(catalog,unit)
@@ -62,7 +76,7 @@ func run():
  assert(not catalog.add_recruits("res://visuals/units.json"),"Supplemental catalog cannot overwrite base classes")
  assert(catalog.assets.keys()==keys and catalog.textures.keys()==textures,"Rejected supplement leaves the active catalog intact")
  assert(not catalog.add_recruits("res://data/campaign.json") and catalog.assets.keys()==keys,"Malformed supplement preserves class fallback")
- assert(catalog.open("res://visuals/units.json") and catalog.recruit_errors.is_empty(),"Reopening resets supplemental errors")
+ assert(catalog.open("res://visuals/units.json") and catalog.recruit_errors.is_empty() and catalog.spent_textures.is_empty(),"Reopening resets supplemental errors and presentation cache")
  stage.queue_free();await process_frame
- print("PASS: 24 original recruit identities, 288 isolated poses, stable density/pivots, directional attacks, class/enemy fallbacks and supplemental validation")
+ print("PASS: 24 original recruit identities, 288 isolated poses, stable density/pivots, directional attacks, cached grayscale spent states, class/enemy fallbacks and supplemental validation")
  quit()
