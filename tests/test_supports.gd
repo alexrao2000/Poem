@@ -1,4 +1,5 @@
 extends SceneTree
+const Shutdown=preload("helpers/game_shutdown.gd")
 const Rules=preload("res://scripts/rules.gd")
 func _initialize():call_deferred("run")
 func run():
@@ -67,6 +68,6 @@ func run():
  var saved=Rules.new();assert(saved.load_game(app.save_path)=="camp" and saved.supports.progress(entry.id).rank==1,"Read status persists")
  app.show_dossier(unit);await process_frame;await process_frame
  for control in app.ui.find_children("*","Button",true,false):assert(control.get_global_rect().end.y<=app.ui.size.y,"Dossier buttons stay within viewport")
- app.queue_free();await process_frame
+ await Shutdown.dispose(app);await process_frame
  print("PASS: 36 support scenes / ",lines," lines, all 24 recruits, bounded progression, combat bonuses, save migration and dialogue/replay UI")
  quit()

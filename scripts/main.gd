@@ -75,6 +75,7 @@ var score: AudioStreamSynchronized
 var score_director: ScoreDirector
 var sfx_streams: Dictionary={}
 var sfx_players: Array=[]
+var interface_audio=preload("res://scripts/ui_audio.gd").new()
 var music_transition: Tween
 var sprites: Array = []
 var unit_nodes: Dictionary={}
@@ -140,6 +141,7 @@ func _ready():
 	show_title()
 
 func setup_audio():
+	add_child(interface_audio);interface_audio.configure(preferences.volume_db("effects"))
 	score_director=ScoreDirector.new();add_child(score_director);score_director.configure(preferences.volume_db("music"))
 	music=score_director.player;score=score_director.score
 	for effect in ["select","swing","hit","critical","heal","magic","phase","guard","cutin","levelup"]:
@@ -215,6 +217,7 @@ func label_in(parent,text_value,size=18,color=Color("443e36")) -> Label:
 
 func button_in(parent,text_value,action,disabled=false) -> Button:
 	var b=Button.new();b.text=text_value;b.custom_minimum_size.y=42;b.disabled=disabled
+	interface_audio.watch(b,interface_audio.button_tone(text_value))
 	b.pressed.connect(action);parent.add_child(b);return b
 
 func weapon_label(parent,kind: String,text_value: String,font_size=18) -> Label:
@@ -399,6 +402,7 @@ func show_camp():
 		var pic=TextureButton.new();pic.texture_normal=portraits.get_portrait(u.id) if unlocked else unit_portrait(u)
 		pic.custom_minimum_size=Vector2(90,90);pic.ignore_texture_size=true;pic.stretch_mode=TextureButton.STRETCH_KEEP_ASPECT_CENTERED
 		pic.disabled=not unlocked;pic.tooltip_text="View "+u.name+"'s dossier" if unlocked else "Not yet recruited"
+		interface_audio.watch(pic)
 		pic.pressed.connect(func():show_dossier(u));content.add_child(pic)
 		var texts=VBoxContainer.new();texts.size_flags_horizontal=Control.SIZE_EXPAND_FILL;content.add_child(texts)
 		label_in(texts,u.name+"  /  "+game.class_name_for(u)+"  ·  Lv "+str(int(u.level)),19,GOLD if unlocked else Color("9a9588"))
@@ -419,6 +423,7 @@ func show_campaign_route():
 	var row=HBoxContainer.new();row.add_theme_constant_override("separation",20);row.size_flags_vertical=Control.SIZE_EXPAND_FILL;frame.add_child(row)
 	var route=preload("res://scripts/campaign_route.gd").new();route.name="CampaignRoute";row.add_child(route)
 	route.configure(game.content.chapters,game.chapter,game.completed)
+	for marker in route.markers:interface_audio.watch(marker)
 	var details=VBoxContainer.new();details.custom_minimum_size.x=260;row.add_child(details)
 	var progress=label_in(details,"",16,GOLD)
 	var title=label_in(details,"",28)
@@ -542,7 +547,7 @@ func arrange_battle_side():
 
 func show_battle_menu():
 	if screen!="battle" or busy or game.phase!="player":return
-	map_navigation.stop();play_sfx("select");screen="battle_menu"
+	map_navigation.stop();interface_audio.cue("confirm");screen="battle_menu"
 	battle_menu=Control.new();battle_menu.name="BattleMenu";ui.add_child(battle_menu)
 	battle_menu.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT);battle_menu.mouse_filter=Control.MOUSE_FILTER_STOP;battle_menu.z_index=20
 	var shade=ColorRect.new();shade.color=Color(0.04,.06,.08,.55);battle_menu.add_child(shade);shade.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
@@ -598,7 +603,7 @@ func toggle_danger():
 func _input(event):
 	if event is InputEventMouseButton and event.button_index==MOUSE_BUTTON_MIDDLE and not event.pressed:map_navigation.dragging=false
 	if screen=="battle_menu" and event is InputEventKey and event.pressed and not event.echo and event.keycode in [KEY_ESCAPE,KEY_M]:
-		close_battle_menu();get_viewport().set_input_as_handled();return
+		interface_audio.cue("back");close_battle_menu();get_viewport().set_input_as_handled();return
 	if screen=="battle" and not busy and game.phase=="player" and event is InputEventKey and event.pressed:
 		if event.keycode==KEY_M and not event.echo:show_battle_menu();get_viewport().set_input_as_handled();return
 		if event.keycode==KEY_HOME:map_camera();get_viewport().set_input_as_handled();return
@@ -619,11 +624,11 @@ func _input(event):
 
 func _unhandled_input(event):
 	if screen=="credits" and event is InputEventKey and event.pressed and event.keycode==KEY_ESCAPE:
-		show_title();get_viewport().set_input_as_handled();return
+		interface_audio.cue("back");show_title();get_viewport().set_input_as_handled();return
 	if screen=="model" and event is InputEventKey and event.pressed and event.keycode==KEY_ESCAPE:
-		close_model_view();get_viewport().set_input_as_handled();return
+		interface_audio.cue("back");close_model_view();get_viewport().set_input_as_handled();return
 	if screen in ["dossier","campaign_route"] and event is InputEventKey and event.pressed and event.keycode==KEY_ESCAPE:
-		show_camp();get_viewport().set_input_as_handled();return
+		interface_audio.cue("back");show_camp();get_viewport().set_input_as_handled();return
 	if screen=="dialogue" and event is InputEventKey and event.pressed:
 		if event.keycode in [KEY_SPACE,KEY_ENTER]:advance_dialogue();get_viewport().set_input_as_handled()
 		elif event.keycode==KEY_ESCAPE:finish_dialogue();get_viewport().set_input_as_handled()
@@ -631,7 +636,9 @@ func _unhandled_input(event):
 	if event is InputEventKey and event.pressed:
 		if event.keycode==KEY_TAB:skip_combat=true
 		if screen=="battle" and not busy:
-			if event.keycode==KEY_ESCAPE:cancel_selection()
+			if event.keycode==KEY_ESCAPE:
+				if selected!=null:interface_audio.cue("back")
+				cancel_selection()
 			if event.keycode==KEY_SPACE:end_turn()
 			if event.keycode==KEY_R:toggle_danger()
 			if event.keycode==KEY_W and not event.echo:wait_action()
@@ -1293,6 +1300,7 @@ func preview_route(destination: Vector2i):
 	MapOverlay.route(route_preview,path,map_height)
 
 func apply_audio_preferences():
+	interface_audio.player.volume_db=preferences.volume_db("effects")
 	if is_instance_valid(score_director):score_director.set_volume(preferences.volume_db("music"))
 	for player in sfx_players:player.volume_db=preferences.volume_db("effects")
 
@@ -1393,7 +1401,9 @@ func move_map_cursor(direction: Vector2i):
 	var focus=get_viewport().gui_get_focus_owner()
 	if focus!=null:focus.release_focus()
 	var size=game.board_size();cursor_tile+=direction
+	var previous=cursor_tile-direction
 	cursor_tile=Vector2i(clampi(cursor_tile.x,0,size.x-1),clampi(cursor_tile.y,0,size.y-1))
+	if cursor_tile!=previous:interface_audio.cue("move")
 	map_navigation.keep_visible(map_position(cursor_tile),terrain_card.get_global_rect() if is_instance_valid(terrain_card) else Rect2())
 	highlight();preview_route(cursor_tile)
 

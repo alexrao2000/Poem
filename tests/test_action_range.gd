@@ -1,4 +1,5 @@
 extends SceneTree
+const Shutdown=preload("helpers/game_shutdown.gd")
 const Reach=preload("res://scripts/action_range.gd")
 const Rules=preload("res://scripts/rules.gd")
 func _initialize():call_deferred("run")
@@ -69,6 +70,6 @@ func run():
  app.origin=null;unit.acted=true;app.highlight();await process_frame
  assert(app.markers.get_node_or_null("ActionReach")==null and app.markers.get_node_or_null("HealingReach")==null,"Spent units show no actionable preview")
  for player in app.sfx_players:player.stop()
- app.music.stop();await create_timer(.15).timeout;app.queue_free();await process_frame
+ app.music.stop();await create_timer(.15).timeout;await Shutdown.dispose(app);await process_frame
  print("PASS: ",cases," weapon/chapter/movement previews agree with action rules, exact overlay coverage, raised terrain, move/undo, bow blind spot and staff styling")
  quit()

@@ -1,4 +1,5 @@
 extends SceneTree
+const Shutdown=preload("helpers/game_shutdown.gd")
 const Preferences=preload("res://scripts/preferences.gd")
 func _initialize():call_deferred("run")
 func run():
@@ -47,6 +48,6 @@ func run():
   app.game.chapter=chapter;app.game.story_seen.append("opening_"+str(chapter));app.show_camp();await process_frame;await process_frame
   for control in app.ui.find_children("*","Button",true,false):
    if control.text in ["Options","Save campaign","Transfer a local save","Return to title","Deploy company  >"]:assert(control.get_global_rect().end.y<=app.ui.size.y,"Camp controls fit all twelve chapters")
- app.queue_free();await process_frame
+ await Shutdown.dispose(app);await process_frame
  print("PASS: local preferences, volume, cinematic modes, instant dialogue, persistence and unchanged combat simulation")
  quit()

@@ -1,4 +1,5 @@
 extends SceneTree
+const Shutdown=preload("helpers/game_shutdown.gd")
 # The readout shares profiles with simulation. Exercise actual cover, healing,
 # hover/keyboard inspection, off-board hiding and cinematic visibility restore.
 const Rules=preload("res://scripts/rules.gd")
@@ -142,6 +143,6 @@ func run():
    assert(label.get_global_rect().end.x<=app.terrain_card.get_global_rect().end.x and label.get_global_rect().end.y<=app.terrain_card.get_global_rect().end.y,"Terrain labels fit their frame")
  for player in app.sfx_players:player.stop()
  app.music.stop();await create_timer(.15).timeout
- app.queue_free();await process_frame
+ await Shutdown.dispose(app);await process_frame
  print("PASS: nine terrain profiles across twelve maps, real movement/cover/healing values, cursor readout and visibility restoration")
  quit()

@@ -1,4 +1,5 @@
 extends SceneTree
+const Shutdown=preload("helpers/game_shutdown.gd")
 ## Measure every roster menu, fixed action area and scrollable reading region.
 var layouts=0
 var scrolled={}
@@ -81,6 +82,6 @@ func run():
 	var back=app.ui.find_children("*","Button",true,false).filter(func(button):return button.text=="Return to war council")[0]
 	back.pressed.emit();assert(app.screen=="camp","Pinned dossier back action uses the existing route")
 	for player in app.sfx_players:player.stop()
-	app.music.stop();await create_timer(.15).timeout;app.queue_free();await process_frame
+	app.music.stop();await create_timer(.15).timeout;await Shutdown.dispose(app);await process_frame
 	print("PASS: ",layouts," campaign menu layouts, all 24 dossiers/equipment/supports/training choices, scrolling, fixed actions and roster isolation")
 	quit()

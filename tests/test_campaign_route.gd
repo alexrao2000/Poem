@@ -1,4 +1,5 @@
 extends SceneTree
+const Shutdown=preload("helpers/game_shutdown.gd")
 ## Read-only route navigation preserves the campaign, prevents locked briefing
 ## access, and keeps fitted markers/standard inside the display at every size.
 func _initialize():call_deferred("run")
@@ -36,6 +37,6 @@ func run():
  app.game.completed=true;app.show_campaign_route();await process_frame
  var route=app.ui.find_child("CampaignRoute",true,false)
  assert(route.markers.all(func(marker):return not marker.disabled),"Completed campaign can review every briefing")
- app.queue_free();await process_frame
+ await Shutdown.dispose(app);await process_frame
  print("PASS: ",count," campaign route layouts, all twelve chapter markers, locked briefing protection, real button selection, read-only campaign state and Escape return")
  quit()

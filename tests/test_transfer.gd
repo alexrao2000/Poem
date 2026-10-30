@@ -1,4 +1,5 @@
 extends SceneTree
+const Shutdown=preload("helpers/game_shutdown.gd")
 const Rules=preload("res://scripts/rules.gd")
 func _initialize():call_deferred("run")
 func run():
@@ -49,7 +50,7 @@ func run():
  for unit in app.game.living("player"):unit.hp=0
  assert(await app.check_result());await process_frame
  assert(app.screen=="result" and app.ui.find_child("Notice",true,false)!=null,"Result screen reset does not hide failed autosave")
- app.music.stop();await create_timer(.15).timeout
- app.queue_free();await process_frame
+ app.score_director.stop();await create_timer(.2).timeout
+ await Shutdown.dispose(app);await process_frame
  print("PASS: local transfer, equipment/RNG continuity, bounded validation, legacy migration, failed autosave recovery and live battle export")
  quit()

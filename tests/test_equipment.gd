@@ -1,4 +1,5 @@
 extends SceneTree
+const Shutdown=preload("helpers/game_shutdown.gd")
 const Rules=preload("res://scripts/rules.gd")
 const Tactics=preload("res://scripts/tactics.gd")
 func _initialize():call_deferred("run")
@@ -31,6 +32,6 @@ func run():
  app.show_equipment(app.game.roster[0]);await process_frame
  assert(app.screen=="equipment","Equipment page opens")
  app.show_dossier(app.game.roster[0]);assert(app.screen=="dossier","Return to record")
- app.queue_free();await process_frame
+ await Shutdown.dispose(app);await process_frame
  print("PASS: loadout compatibility, chapter unlocks, weight, range, healing and save persistence")
  quit()

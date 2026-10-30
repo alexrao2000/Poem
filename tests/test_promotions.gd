@@ -1,4 +1,5 @@
 extends SceneTree
+const Shutdown=preload("helpers/game_shutdown.gd")
 const Rules=preload("res://scripts/rules.gd")
 func _initialize():call_deferred("run")
 func run():
@@ -63,6 +64,6 @@ func run():
  var saved=Rules.new();assert(saved.load_game(app.save_path)=="camp" and saved.roster[0].promotion==unit.promotion,"UI commits and saves the selected path")
  app.show_dossier(unit);await process_frame;await process_frame
  for control in app.ui.find_children("*","Button",true,false):assert(control.get_global_rect().end.y<=app.ui.size.y,"Dossier controls fit after adding training")
- app.queue_free();await process_frame
+ await Shutdown.dispose(app);await process_frame
  print("PASS: 16 promotion paths, eligibility, stat and combat bonuses, persistence and confirmation flow")
  quit()

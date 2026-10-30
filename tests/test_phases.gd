@@ -1,4 +1,5 @@
 extends SceneTree
+const Shutdown=preload("helpers/game_shutdown.gd")
 const Banner=preload("res://scripts/phase_banner.gd")
 var observed: Array=[]
 var app
@@ -41,6 +42,6 @@ func run():
  assert(observed==["enemy","player"],"Both phase ribbons follow the actual turn state")
  assert(app.ui.get_node_or_null("PhaseBanner")==null,"Phase overlays release their nodes")
  for player in app.sfx_players:player.stop()
- app.music.stop();await create_timer(.15).timeout;app.queue_free();await process_frame
+ app.music.stop();await create_timer(.15).timeout;await Shutdown.dispose(app);await process_frame
  print("PASS: phase ribbon layouts, deployment/turn ordering, input locks, skip isolation and cleanup")
  quit()

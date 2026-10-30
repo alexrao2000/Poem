@@ -1,4 +1,5 @@
 extends SceneTree
+const Shutdown=preload("helpers/game_shutdown.gd")
 const Catalog=preload("res://visuals/catalog.gd")
 const Player=preload("res://visuals/sprite_player.gd")
 var captures=false
@@ -95,6 +96,6 @@ func run():
 	var workshop=app.canvas.get_child(app.canvas.get_child_count()-1);workshop.closed.emit();await process_frame
 	assert(app.screen=="title" and app.ui.visible and app.camera.current)
 	assert(app.game.save_data("battle")==campaign,"Opening and closing the workshop leaves campaign state intact")
-	app.queue_free();await process_frame
+	await Shutdown.dispose(app);await process_frame
 	print("PASS: visual catalog, 160 state/facing combinations, timing/cues/skip, two renderers, picking, movement locks/undo, deterministic combat, healing, enemy turns and game entry/return")
 	quit()

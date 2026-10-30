@@ -1,4 +1,5 @@
 extends SceneTree
+const Shutdown=preload("helpers/game_shutdown.gd")
 const Rules=preload("res://scripts/rules.gd")
 func _initialize():call_deferred("run")
 
@@ -78,6 +79,6 @@ func run():
   var expected="recruit."+data.id if app.map_catalog.assets.has("recruit."+data.id) else "unit."+data.job.to_lower()
   assert(visual.visual_id==expected,"Every recruit uses individual animation when available, otherwise its class sheet")
   visual.queue_free()
- app.queue_free();await process_frame
+ await Shutdown.dispose(app);await process_frame
  print("PASS: ",paths," legal weighted routes across 12 maps, movement animation, action lock and undo restoration")
  quit()

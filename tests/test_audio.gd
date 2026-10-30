@@ -1,4 +1,5 @@
 extends SceneTree
+const Shutdown=preload("helpers/game_shutdown.gd")
 func _initialize():call_deferred("run")
 func run():
  var calm=load("res://assets/calm.wav") as AudioStreamWAV
@@ -19,7 +20,7 @@ func run():
  assert(app.sfx_streams.cutin.get_length()>.31 and app.sfx_streams.cutin.get_length()<.33,"Portrait cue ends before the strike resumes")
  assert(app.sfx_streams.levelup.get_length()>.71 and app.sfx_streams.levelup.get_length()<.73,"Level-up bell ends within the stat reveal")
  await verify_themes(app)
- app.queue_free();await process_frame
+ await Shutdown.dispose(app);await process_frame
  print("PASS: three exact calm/Ablaze pairs, 12 chapter mappings, continuous combat mixing, bounded act crossfades, mute/interruption and independent effects")
  quit()
 

@@ -1,4 +1,5 @@
 extends SceneTree
+const Shutdown=preload("helpers/game_shutdown.gd")
 # Measure projected ground anchors rather than relying on screenshots. Exercise
 # bounded drag, interrupted zoom, cursor tracking and the real cinematic handoff.
 func _initialize():call_deferred("run")
@@ -63,6 +64,6 @@ func run():
  assert(app.game.rng.state==rng,"Camera gestures never consume gameplay randomness")
  for player in app.sfx_players:player.stop()
  app.music.stop();await create_timer(.15).timeout
- app.queue_free();await process_frame
+ await Shutdown.dispose(app);await process_frame
  print("PASS: pointer-anchored zoom, bounded drag, reset, cursor tracking, busy-input lock and cinematic ownership")
  quit()

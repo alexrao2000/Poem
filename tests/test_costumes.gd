@@ -1,4 +1,5 @@
 extends SceneTree
+const Shutdown=preload("helpers/game_shutdown.gd")
 const Fighters=preload("res://scripts/fighters.gd")
 const Costumes=preload("res://scripts/promotion_costume.gd")
 const Rules=preload("res://scripts/rules.gd")
@@ -108,6 +109,6 @@ func run():
   assert(app.screen=="promotion_confirm" and not app.preview_return.is_valid(),"Escape restores the same training decision and clears its callback")
  assert(app.game.rng.state==state and app.game.roster==roster,"Inspecting outfits never changes progression or combat randomness")
  app.show_model_view(app.game.roster[0]);app.close_model_view();assert(app.screen=="dossier","Ordinary model viewing still returns to the record")
- app.queue_free();await process_frame
+ await Shutdown.dispose(app);await process_frame
  print("PASS: 48 promoted recruit looks, 16 branch profiles, personal identity, animated joint/socket equivalence, costume batching and read-only training previews")
  quit()

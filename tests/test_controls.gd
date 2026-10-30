@@ -1,4 +1,5 @@
 extends SceneTree
+const Shutdown=preload("helpers/game_shutdown.gd")
 func _initialize():call_deferred("run")
 func run():
  var app=load("res://main.tscn").instantiate();app.settings_path="";app.save_path="/private/tmp/poem-controls.json";root.add_child(app);await process_frame
@@ -84,6 +85,6 @@ func run():
    assert(app.screen=="camp","Menu council returns to preparation after any unseen chapter briefing")
  for player in app.sfx_players:player.stop()
  app.music.stop();await create_timer(.15).timeout
- app.queue_free();await process_frame
+ await Shutdown.dispose(app);await process_frame
  print("PASS: keyboard cursor bounds, ready-unit cycling, movement undo, wait, forecast confirmation and key routing")
  quit()

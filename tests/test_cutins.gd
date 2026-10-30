@@ -1,4 +1,5 @@
 extends SceneTree
+const Shutdown=preload("helpers/game_shutdown.gd")
 const Actor=preload("res://scripts/fighter_actor.gd")
 const Cutin=preload("res://scripts/critical_cutin.gd")
 var observed=0
@@ -81,7 +82,7 @@ func run():
  host.queue_free()
  for player in app.sfx_players:player.stop()
  app.music.stop();await create_timer(.15).timeout
- app.queue_free();await process_frame
+ await Shutdown.dispose(app);await process_frame
  print("PASS: 32 focused critical portraits at three sizes, directional entrance/exit, moving streaks, sound cue, skip cleanup and unchanged outcomes")
  quit()
 

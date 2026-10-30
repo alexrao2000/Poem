@@ -1,4 +1,5 @@
 extends SceneTree
+const Shutdown=preload("helpers/game_shutdown.gd")
 const Rules=preload("res://scripts/rules.gd")
 const Portraits=preload("res://scripts/portraits.gd")
 func _initialize():call_deferred("run")
@@ -79,6 +80,6 @@ func run():
  assert(app.screen=="camp","Skipping during an entrance cleans up the stage")
  for player in app.sfx_players:player.stop()
  app.music.stop();await create_timer(.15).timeout
- app.queue_free();await process_frame
+ await Shutdown.dispose(app);await process_frame
  print("PASS: ",lines," story lines, 24 transparent dialogue portraits, ",checked," story/support layouts, speaker continuity, scene controls and persistence")
  quit()

@@ -1,4 +1,5 @@
 extends SceneTree
+const Shutdown=preload("helpers/game_shutdown.gd")
 # Run this external script against an exported PCK from a different working
 # directory, so resource and text checks cannot silently use the source tree.
 func _initialize():call_deferred("run")
@@ -13,6 +14,7 @@ func run():
  assert(app.map_catalog.recruit_errors.is_empty(),"Packaged recruit artwork validates")
  assert(app.map_catalog.enemy_errors.is_empty(),"Packaged enemy artwork validates")
  assert(app.fighters.enemy_looks.size()==8 and app.fighters.face_atlas.resource_path.ends_with("face-features-v2.png"),"Release includes the matching enemy profiles and current painted facial features")
+ assert(app.interface_audio.streams.size()==3 and app.interface_audio.streams.confirm.get_length()>.14,"Release includes the original interface cues")
  for job in app.CLASSES:assert(app.map_catalog.assets.has("enemy."+job.to_lower()),"Release includes every dedicated enemy class atlas")
  for chapter in [0,4,8,11]:
   app.game.chapter=chapter;app.game.start_battle();app.make_map();app.show_battle();await process_frame
@@ -30,6 +32,6 @@ func run():
   assert(actor.get_meta("promotion_look","")==path.id,"Release includes every promotion costume profile and constructor")
   assert(actor.cape_motion.surfaces.size()==2,"Release binds cape fabric and outline motion")
   actor.queue_free();await process_frame
- app.queue_free();await process_frame
+ await Shutdown.dispose(app);await process_frame
  print("PASS: exported catalog, all three act scores, chapter scenes, sixteen promotion costumes, licenses and credits")
  quit()

@@ -1,4 +1,5 @@
 extends SceneTree
+const Shutdown=preload("helpers/game_shutdown.gd")
 const Heal=preload("res://scripts/combat_heal.gd")
 const Actor=preload("res://scripts/fighter_actor.gd")
 const Fighters=preload("res://scripts/fighters.gd")
@@ -85,6 +86,6 @@ func run():
   assert(app.score==score and absf(app.score.get_sync_stream_volume(0))<.01 and app.score.get_sync_stream_volume(1)<-59,"Staff presentation returns the existing synchronized score to calm")
  assert(harmful_count==0,"Healing never emits damaging impact or hit-stop effects")
  for player in app.sfx_players:player.stop()
- app.music.stop();await create_timer(.15).timeout;app.queue_free();await process_frame
+ app.music.stop();await create_timer(.15).timeout;await Shutdown.dispose(app);await process_frame
  print("PASS: three staff rigs, world-space recovery, mounted recipients, real field healing, rising HP, preferences, skip cleanup and unchanged resolved progression")
  quit()

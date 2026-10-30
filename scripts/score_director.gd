@@ -61,3 +61,12 @@ func select_chapter(chapter: int) -> bool:
 
 func set_volume(value: float):
  volume_db=value;cancel_fade();player.volume_db=value
+
+func stop():
+ cancel_fade()
+ if is_instance_valid(player):player.stop()
+
+func _exit_tree():
+ if fade and fade.is_valid():fade.kill()
+ for voice in [outgoing,player]:
+  if is_instance_valid(voice):voice.stop()

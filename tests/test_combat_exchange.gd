@@ -1,4 +1,5 @@
 extends SceneTree
+const Shutdown=preload("helpers/game_shutdown.gd")
 # Observe actual cinematic poses through counters and follow-ups, including
 # mixed weapon reach and skipping mid-exchange. No combat results are rerolled.
 const Actor=preload("res://scripts/fighter_actor.gd")
@@ -139,6 +140,6 @@ func run():
  assert(map_cues==["NO DAMAGE"],"Map-only combat shares the blocked-hit label")
  for player in app.sfx_players:player.stop()
  app.music.stop();await create_timer(.15).timeout
- app.queue_free();await process_frame
+ await Shutdown.dispose(app);await process_frame
  print("PASS: continuous exchanges, mixed reach, early dodges, local hit stops, skip cleanup, guarded hits, three spell presentations and unchanged simulation")
  quit()

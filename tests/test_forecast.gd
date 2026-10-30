@@ -1,4 +1,5 @@
 extends SceneTree
+const Shutdown=preload("helpers/game_shutdown.gd")
 # Check real forecast values, paired card bounds, and lifecycle through keyboard
 # retargeting, cinematic concealment and screen replacement.
 const Forecast=preload("res://scripts/battle_forecast.gd")
@@ -55,6 +56,6 @@ func run():
  app.game.start_battle();app.make_map();app.show_battle();await process_frame
  for player in app.sfx_players:player.stop()
  app.music.stop();await create_timer(.15).timeout
- app.queue_free();await process_frame
+ await Shutdown.dispose(app);await process_frame
  print("PASS: 24 paired forecasts at three viewport sizes, real damage/hit/counter values, health bounds, retargeting and screen cleanup")
  quit()

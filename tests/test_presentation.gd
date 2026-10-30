@@ -1,4 +1,5 @@
 extends SceneTree
+const Shutdown=preload("helpers/game_shutdown.gd")
 var inspected_hud=false
 
 func inspect_combat_hud(app):
@@ -107,7 +108,7 @@ func run():
 	assert(app.screen=="dossier" and app.camera.projection==Camera3D.PROJECTION_ORTHOGONAL,"Gallery restores map camera")
 	app.show_ending()
 	await process_frame
-	app.queue_free()
+	await Shutdown.dispose(app)
 	await process_frame
 	print("PASS: 12 camp/map scenes, combat camera transition, control restoration and ending")
 	quit()

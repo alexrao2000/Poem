@@ -1,4 +1,5 @@
 extends SceneTree
+const Shutdown=preload("helpers/game_shutdown.gd")
 const Models=preload("res://scripts/combat_models.gd")
 const Fighters=preload("res://scripts/fighters.gd")
 const Rules=preload("res://scripts/rules.gd")
@@ -111,7 +112,7 @@ func run():
  assert(not app.stage.visible and app.world.visible,"Authored combat returns to tactical map")
  for effect_player in app.sfx_players:effect_player.stop()
  app.music.stop();await create_timer(.15).timeout
- app.queue_free();world.queue_free();await process_frame
+ await Shutdown.dispose(app);world.queue_free();await process_frame
  packed=null
  print("PASS: authored model selection, animation sections, skeletal tracks, sockets, instance isolation and procedural fallback")
  quit()

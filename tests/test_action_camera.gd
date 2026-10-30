@@ -1,4 +1,5 @@
 extends SceneTree
+const Shutdown=preload("helpers/game_shutdown.gd")
 const Navigation=preload("res://scripts/tactical_camera.gd")
 var movement_done=false
 var saw_cue=false
@@ -62,7 +63,7 @@ func run():
  await app.map_combat_feedback([{"actor":unit.id,"target":recipient.id,"damage":3,"hit":true,"crit":false,"remaining":recipient.hp}])
  assert(saw_cue and app.game.save_data("battle")==saved and app.game.rng.state==rng,"Off-screen map-only result is framed without reapplying damage")
  for player in app.sfx_players:player.stop()
- app.music.stop();await create_timer(.15).timeout;app.queue_free();await process_frame
+ app.music.stop();await create_timer(.15).timeout;await Shutdown.dispose(app);await process_frame
  print("PASS: %d action frames across three viewports, bounded continuous tracking, real enemy movement and visible map-only results without simulation changes"%measurements)
  quit()
 
