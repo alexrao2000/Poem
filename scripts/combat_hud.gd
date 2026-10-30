@@ -54,6 +54,30 @@ class HealthMeter extends Control:
   motion.tween_property(self,"value",amount,.23).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
   motion.tween_property(self,"trailing",amount,.34).set_delay(.14)
 
+class StatStrip extends Control:
+ var data={}
+ var columns=[]
+ func configure(source: Dictionary):
+  data=source.duplicate(true);mouse_filter=Control.MOUSE_FILTER_IGNORE
+  var available=data.get("available",true)
+  var values=[str(data.get("damage",0))+("×2" if data.get("double",false) else ""),str(data.get("hit",0))+"%",str(data.get("crit",0))+"%"] if available else ["—","—","—"]
+  for index in range(3):
+   var title=Label.new();title.text=["DMG","HIT","CRIT"][index];title.add_theme_font_size_override("font_size",12);title.add_theme_color_override("font_color",Color("685b43"));title.mouse_filter=Control.MOUSE_FILTER_IGNORE;add_child(title)
+   var value=Label.new();value.text=values[index];value.add_theme_font_size_override("font_size",14);value.add_theme_color_override("font_color",Color("8d4942") if index==0 and available and data.get("effective",false) else Color("303c48") if available else Color("68604e"));value.mouse_filter=Control.MOUSE_FILTER_IGNORE;add_child(value)
+   columns.append({"title":title,"value":value})
+  resized.connect(arrange);arrange()
+ func arrange():
+  for index in range(columns.size()):
+   var column=columns[index];var width=size.x/3
+   var title_width=column.title.get_theme_font("font").get_string_size(column.title.text,HORIZONTAL_ALIGNMENT_LEFT,-1,12).x
+   column.title.position=Vector2(index*width+4,2);column.title.size=Vector2(title_width,18)
+   column.value.position=Vector2(index*width+title_width+8,0);column.value.size=Vector2(maxf(1,width-title_width-12),21)
+
+ func _draw():
+  draw_rect(Rect2(Vector2.ZERO,size),Color("eee1c7"))
+  draw_line(Vector2.ZERO,Vector2(size.x,0),Color("bca36a"),1)
+  for index in [1,2]:draw_line(Vector2(size.x*index/3,4),Vector2(size.x*index/3,size.y-4),Color("c9b994"),1)
+
 class Nameplate extends Control:
  const ORNAMENT=preload("res://assets/ui/river-scroll.svg")
  var enemy=false
@@ -87,6 +111,9 @@ func configure(parent: Control,entries: Array):
   face.clip_contents=true;face.mouse_filter=Control.MOUSE_FILTER_IGNORE;plate.add_child(face)
   var heading=make_label(plate,unit.name,27,Color("fff1d5"));heading.add_theme_font_override("font",DISPLAY_FONT)
   var job=make_label(plate,entry.class_name,14,Color("c1c2bb"))
+  var stats=StatStrip.new();stats.name="ExchangeStats";plate.add_child(stats)
+  var forecast=entry.get("forecast",{});stats.visible=not forecast.is_empty();job.visible=forecast.is_empty()
+  if stats.visible:stats.configure(forecast)
   var weapon=make_label(plate,entry.weapon,17,Color("e6d7b5"))
   weapon.tooltip_text=entry.weapon
   var icon=TextureRect.new();icon.name="WeaponIcon";icon.texture=Icons.get_icon(unit.get("weapon",""))
@@ -94,12 +121,12 @@ func configure(parent: Control,entries: Array):
   var matchup=MatchupMarker.new();matchup.name="WeaponMatchup";matchup.advantage=int(entry.get("triangle",0));matchup.visible=matchup.advantage!=0
   matchup.tooltip_text="Weapon advantage" if matchup.advantage>0 else "Weapon disadvantage";plate.add_child(matchup)
   var hp=make_label(plate,"",24,Color("fff8e7"));hp.horizontal_alignment=HORIZONTAL_ALIGNMENT_RIGHT
-  var meter=HealthMeter.new();meter.name="Health";meter.maximum=maxf(1,unit.max_hp)
+  var meter=HealthMeter.new();meter.name="Health";meter.maximum=maxf(1,forecast.get("max_hp",unit.max_hp))
   meter.accent=Color("d98684") if plate.enemy else Color("8fc8b8")
   meter.mouse_filter=Control.MOUSE_FILTER_IGNORE;plate.add_child(meter)
   meter.value_changed.connect(func(amount):hp.text="%d / %d"%[ceili(amount),int(meter.maximum)])
   meter.change_to(float(entry.hp),true)
-  records[unit.id]={"plate":plate,"portrait":face,"name":heading,"job":job,"weapon":weapon,"icon":icon,"matchup":matchup,"hp":hp,"meter":meter}
+  records[unit.id]={"plate":plate,"portrait":face,"name":heading,"job":job,"stats":stats,"weapon":weapon,"icon":icon,"matchup":matchup,"hp":hp,"meter":meter}
   order.append(unit.id)
  resized.connect(arrange);arrange()
 
@@ -123,6 +150,7 @@ func arrange():
    text_x=28.0;text_width=width-56
   r.name.position=Vector2(text_x,10);r.name.size=Vector2(text_width,34)
   r.job.position=Vector2(text_x,44);r.job.size=Vector2(text_width,21)
+  r.stats.position=r.job.position;r.stats.size=r.job.size;r.stats.arrange()
   r.icon.position=Vector2(text_x-2,69);r.icon.size=Vector2(24,24)
   r.matchup.position=Vector2(text_x+26,73);r.matchup.size=Vector2(16,18);r.matchup.queue_redraw()
   var matchup_space=20.0 if r.matchup.visible else 0.0

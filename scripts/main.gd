@@ -890,8 +890,9 @@ func cinematic(a,b,events,initial_hp={}):
 				if strike_event.target==unit.id:hp+=strike_event.get("damage",0)-strike_event.get("healing",0)
 		displayed_hp[unit.id]=mini(hp,unit.max_hp)
 		var opponent=b if unit.id==a.id else a
-		var triangle=0 if events[0].has("healing") else game.forecast(unit,opponent).triangle
-		entries.append({"unit":unit,"hp":displayed_hp[unit.id],"portrait":portraits.get_unit_portrait(unit),"class_name":game.class_name_for(unit),"weapon":game.item_for(unit).name,"triangle":triangle})
+		var snapshot=events[0].get("exchange_forecast",{}).get(unit.id,{})
+		var triangle=0 if events[0].has("healing") else snapshot.triangle if not snapshot.is_empty() else game.forecast(unit,opponent).triangle
+		entries.append({"unit":unit,"hp":displayed_hp[unit.id],"portrait":portraits.get_unit_portrait(unit),"class_name":game.class_name_for(unit),"weapon":game.item_for(unit).name,"triangle":triangle,"forecast":snapshot})
 	var banner=CombatHUD.new();banner.configure(ui,entries);banner.reveal()
 	var caption=Label.new();caption.name="CombatCaption";caption.set_anchors_and_offsets_preset(Control.PRESET_TOP_WIDE);caption.offset_top=36;caption.horizontal_alignment=HORIZONTAL_ALIGNMENT_CENTER
 	caption.add_theme_font_size_override("font_size",30);caption.add_theme_color_override("font_color",Color("f7edce"));caption.add_theme_color_override("font_outline_color",Color("373d42"));caption.add_theme_constant_override("outline_size",7)

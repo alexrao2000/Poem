@@ -24,14 +24,24 @@ func run():
    var unit=recruit.duplicate(true);unit.team="player"
    var advantage=1 if unit.weapon=="axe" else -1 if unit.weapon=="sword" else 0
    var hud=HUD.new();hud.configure(host,[
-    {"unit":unit,"hp":unit.hp,"portrait":portraits.get_portrait(unit.id),"class_name":game.class_name_for(unit),"weapon":game.item_for(unit).name,"triangle":advantage},
-    {"unit":foe,"hp":999,"portrait":portraits.get_unit_portrait(foe),"class_name":"Armored commander","weapon":"Rider-stop pike","triangle":-advantage}])
+    {"unit":unit,"hp":unit.hp,"portrait":portraits.get_portrait(unit.id),"class_name":game.class_name_for(unit),"weapon":game.item_for(unit).name,"triangle":advantage,"forecast":{"damage":999,"hit":100,"crit":50,"double":true,"available":true,"effective":unit.weapon=="lance"}},
+    {"unit":foe,"hp":999,"portrait":portraits.get_unit_portrait(foe),"class_name":"Armored commander","weapon":"Rider-stop pike","triangle":-advantage,"forecast":{"available":false}}])
    await process_frame;await process_frame
    var left=hud.records[unit.id].plate;var right=hud.records.foe.plate
    assert(hud.records.foe.portrait.flip_h and not hud.records[unit.id].portrait.flip_h,"Enemy portrait faces inward toward its opponent")
    assert(left.get_rect().end.x<right.position.x,"Nameplates leave the arena center clear")
    for id in hud.records:
     var r=hud.records[id];var bounds=r.plate.get_rect()
+    assert(r.stats.visible and not r.job.visible,"Exchange statistics occupy the existing class row without enlarging the plates")
+    for column in r.stats.columns:
+     assert(column.title.get_rect().end.x<column.value.position.x and column.value.get_rect().end.x<=r.stats.size.x,"Stat names and values have separate bounded columns")
+     for text in [column.title,column.value]:
+      assert(Rect2(Vector2.ZERO,r.stats.size).encloses(text.get_rect()),"The pale stat strip contains every complete label")
+      var foreground=text.get_theme_color("font_color").srgb_to_linear().get_luminance();var background=Color("eee1c7").srgb_to_linear().get_luminance()
+      assert((background+.05)/(foreground+.05)>=4.5,"Every stat label maintains readable contrast on parchment")
+     var stat_font=column.value.get_theme_font("font");var stat_size=column.value.get_theme_font_size("font_size")
+     assert(stat_font.get_string_size(column.value.text,HORIZONTAL_ALIGNMENT_LEFT,-1,stat_size).x<=column.value.size.x,"Full three-digit doubled damage and percentages remain readable at every supported width")
+    assert(r.stats.columns[0].value.text==("999×2" if id==unit.id else "—"),"Doubled damage and unavailable counters have explicit values")
     assert(r.icon.texture!=null,"Every weapon family has a readable icon")
     assert(bounds.position.x>=0 and bounds.end.x<=host.size.x and bounds.end.y<=host.size.y,"Nameplates fit desktop viewport")
     for child in r.plate.get_children():
@@ -71,6 +81,7 @@ func run():
 
  reversed.queue_free();await process_frame
  var hud=HUD.new();hud.configure(host,[{"unit":foe,"hp":999,"portrait":null,"class_name":"Knight","weapon":"Steel spear"}])
+ assert(not hud.records.foe.stats.visible and hud.records.foe.job.visible,"Healing and legacy presentations retain their class row when no attack snapshot is supplied")
  var meter=hud.records.foe.meter
  hud.set_health("foe",800);await create_timer(.07).timeout
  assert(meter.value<999 and meter.value>800 and meter.trailing>meter.value,"Damage drains HP before delayed loss trail")
@@ -80,7 +91,7 @@ func run():
  hud.set_health("foe",0,true);assert(meter.value==0 and meter.trailing==0,"Instant skip state stays consistent")
  hud.set_health("foe",2000,true);assert(meter.value==999,"Presentation caps HP to maximum")
  hud.queue_free();host.queue_free();await process_frame
- print("PASS: 24 combat portraits at three desktop sizes, text bounds, per-point/grouped pip geometry, exact partial fill, active side, mirrored entrance/dismissal, in-flight resize, damage trails and interrupted HP animation")
+ print("PASS: 24 combat portraits at three desktop sizes, text bounds, damage/hit/crit snapshot rows, per-point/grouped pip geometry, exact partial fill, active side, mirrored entrance/dismissal, in-flight resize, damage trails and interrupted HP animation")
  quit()
 
 func verify_segments():

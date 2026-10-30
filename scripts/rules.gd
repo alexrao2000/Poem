@@ -251,6 +251,9 @@ func strike(a: Dictionary,b: Dictionary) -> Dictionary:
 func combat(a: Dictionary,b: Dictionary) -> Array:
 	if a.team!=phase or a.acted or not can_attack(a,b): return []
 	var f = forecast(a,b)
+	var exchange_forecast={a.id:f.duplicate(true),b.id:forecast(b,a)}
+	exchange_forecast[a.id].available=true;exchange_forecast[b.id].available=f.counter
+	exchange_forecast[a.id].max_hp=a.max_hp;exchange_forecast[b.id].max_hp=b.max_hp
 	var result = [strike(a,b)]
 	if b.hp>0 and can_attack(b,a): result.append(strike(b,a))
 	if a.hp>0 and b.hp>0:
@@ -261,6 +264,7 @@ func combat(a: Dictionary,b: Dictionary) -> Array:
 		if u.team=="player" and u.hp>0:
 			award_xp(u,45 if (b.hp<=0 if u==a else a.hp<=0) else 25)
 	for unit in [a,b]:supports.earn(self,unit)
+	result[0].exchange_forecast=exchange_forecast
 	return result
 
 func award_xp(u: Dictionary, amount: int):
