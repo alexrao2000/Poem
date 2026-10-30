@@ -1157,7 +1157,7 @@ func show_dossier(unit):
 	button_in(records,"Equipment · "+game.item_for(unit).name,func():show_equipment(unit)).size_flags_horizontal=Control.SIZE_EXPAND_FILL
 	button_in(records,"Support conversations"+(" · Ready" if supports_ready(unit) else ""),func():show_supports(unit)).size_flags_horizontal=Control.SIZE_EXPAND_FILL
 	var actions=HBoxContainer.new();actions.add_theme_constant_override("separation",12);panel.add_child(actions)
-	button_in(actions,"View combat model",func():show_model_view(unit)).size_flags_horizontal=Control.SIZE_EXPAND_FILL
+	button_in(actions,"View character",func():show_model_view(unit)).size_flags_horizontal=Control.SIZE_EXPAND_FILL
 	button_in(actions,"Advanced training",func():show_promotions(unit)).size_flags_horizontal=Control.SIZE_EXPAND_FILL
 	button_in(panel,"Return to war council",show_camp)
 
@@ -1210,7 +1210,7 @@ func show_model_view(unit,on_close=Callable()):
 	camera.projection=Camera3D.PROJECTION_PERSPECTIVE;camera.h_offset=-.25;camera.fov=35
 	camera.position=Vector3(35,1.4,4.7 if unit.job!="Rider" else 6.5);camera.look_at(Vector3(35,1.05,0))
 	var panel=menu_panel(310,true)
-	label_in(panel,"TRAINING / OUTFIT PREVIEW" if preview_return.is_valid() else "COMPANY / COMBAT MODEL",15,GOLD);label_in(panel,unit.name,38)
+	label_in(panel,"TRAINING / OUTFIT PREVIEW" if preview_return.is_valid() else "COMPANY / PREVIEW",15,GOLD);label_in(panel,unit.name,38)
 	var portrait=TextureRect.new();portrait.texture=portraits.get_portrait(unit.id)
 	var size_portrait=func():portrait.custom_minimum_size=Vector2(220,150 if ui.size.y<760 else 220)
 	ui.resized.connect(size_portrait);size_portrait.call()
@@ -1219,9 +1219,16 @@ func show_model_view(unit,on_close=Callable()):
 	var spacer=Control.new();spacer.size_flags_vertical=Control.SIZE_EXPAND_FILL;panel.add_child(spacer)
 	button_in(panel,"Turn left",func():preview_actor.rotation.y-=PI/6)
 	button_in(panel,"Turn right",func():preview_actor.rotation.y+=PI/6)
-	button_in(panel,"Ready",func():preview_actor.pose("idle"))
-	button_in(panel,"Windup",func():preview_actor.pose("windup"))
-	button_in(panel,"Strike",func():preview_actor.pose("strike"))
+	label_in(panel,"Preview action",15,GOLD)
+	var actions=[["Ready","idle"],["Attack preparation","windup"],["Critical preparation","critical_windup"],["Attack","strike"],["Recovery","recover"]]
+	if unit.weapon=="staff":actions=[["Ready","idle"],["Healing preparation","cast_windup"],["Heal","cast"]]
+	actions.append_array([["Guard","guard"],["Hit reaction","hit"],["Critical reaction","critical_hit"],["Defeated","down"],["Finish","victory"]])
+	var choice=OptionButton.new();choice.name="PreviewAction";choice.custom_minimum_size.y=42
+	for entry in actions:
+		choice.add_item(entry[0]);choice.set_item_metadata(choice.item_count-1,entry[1])
+	panel.add_child(choice)
+	choice.item_selected.connect(func(index):preview_actor.pose(str(choice.get_item_metadata(index))))
+	button_in(panel,"Play again",func():preview_actor.pose(str(choice.get_item_metadata(choice.selected))))
 	button_in(panel,"Return to training [Esc]" if preview_return.is_valid() else "Return to record [Esc]",close_model_view)
 
 func close_model_view():

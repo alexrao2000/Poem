@@ -8,6 +8,8 @@ User direction: keep developing continuously in this chat until the user returns
 
 Current measured geometry: 13,554 static map sources / 616 batches across twelve chapters, plus separate cloth and atmosphere; 1,794 character sources / 1,066 joint batches across the roster. The default runner has 60 suites. Earlier paragraphs below record prior checkpoints. Rendered game review and browser FPS measurements remain outstanding.
 
+The character preview now offers selectable attack, reaction, defeat and finishing poses with a replay button. Staff users get healing preparation/cast choices. Existing window layouts and promotion-preview return routes pass; previewing remains separate from progression.
+
 Critical damage now uses a stronger backward recoil and knee bend, with a larger bounded response in cape and loose hair. Guarded hits retain their separate response. All 24 fighters remain grounded/seated; 2,880 head/sole camera layouts and 2,184 infantry transition samples pass. Imported models can supply a critical-hit clip or fall back to their normal authored hit. Rendered animation review remains pending.
 
 Missed arrows and thrown spears now continue beyond their original aim point along the arrival tangent, for at most 0.9 m and 81 ms of extra flight. The defender still dodges the original aim; hit trajectories, damage and RNG remain unchanged. Tip geometry, path continuity, real missed exchanges and prompt cancellation pass.
