@@ -153,7 +153,7 @@ func run():
  for job in ["Vanguard","Knight","Ranger","Arcanist","Warden","Corsair","Duelist"]:
   var unit=rules.roster.filter(func(u):return u.job==job)[0].duplicate(true);unit.team="player"
   var actor=fighters.build(stage,unit,Vector3.ZERO);actor.set_process(false)
-  for pose in ["idle","windup","critical_windup","critical_throw_windup","strike","guard","hit","evade","down"]:
+  for pose in ["idle","windup","critical_windup","critical_throw_windup","strike","recover","guard","hit","evade","down"]:
    await actor.pose(pose,.001).finished
    var lowest=INF
    for side in ["LeftKnee","RightKnee"]:
@@ -213,6 +213,9 @@ func run():
   actor.release_projectile()
   assert(actor.bone("Weapon").visible==(unit.weapon!="lance"),"Thrown spear leaves the hand; bows and books stay held")
   if unit.weapon=="bow":assert(not actor.bone("NockedArrow").visible,"Arrow leaves the bow at projectile release")
+  await actor.pose("recover",.01).finished
+  assert(actor.bone("Weapon").visible==(unit.weapon!="lance"),"Thrown spear stays absent throughout recovery")
+  if unit.weapon=="bow":assert(not actor.bone("NockedArrow").visible and actor.bow_hand_weight==0,"Archer finishes releasing before reloading")
   await actor.pose("idle",.01).finished
   assert(actor.bone("Weapon").visible,"Ready stance restores a reusable thrown weapon")
   if unit.weapon=="bow":assert(actor.bone("NockedArrow").visible,"Archer reloads before a counter or follow-up")
@@ -228,6 +231,11 @@ func run():
   if unit.weapon=="lance":
    actor.aim_at(Vector3(target.x,1.85,0));actor._process(0)
    assert(actor.bone("Weapon").to_global(tip).distance_to(Vector3(target.x,1.85,0))<.25,"Spear grip tracks mounted as well as infantry targets")
+  var grip=actor.bone("Weapon").global_position;var contact_tip=actor.bone("Weapon").to_global(tip)
+  await actor.pose("recover",.01).finished;actor._process(0)
+  var recovered_tip=actor.bone("Weapon").to_global(tip)
+  assert(recovered_tip.distance_to(contact_tip)>.04 and recovered_tip.y>.15,"Follow-through actually changes the weapon silhouette without burying its tip")
+  if unit.weapon=="lance":assert(actor.bone("Weapon").global_position.x<grip.x,"Spear recovery retracts the hand from contact")
   actor.queue_free()
  stage.queue_free()
  walker.queue_free();rider.queue_free();await process_frame

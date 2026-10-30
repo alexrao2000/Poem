@@ -34,7 +34,7 @@ func _process(dt):
  if bones.has("HorseTail"):bones.HorseTail.rotation.z=sin(elapsed*2.3)*(.10 if pose_name=="advance" else .045)
  if bones.has("HorseHead"):bones.HorseHead.rotation.x=sin(elapsed*(8.0 if pose_name=="advance" else 1.6))*(.04 if pose_name=="advance" else .015)
  if bones.has("Cape"):
-  bones.Cape.rotation.x=sin(elapsed*2.7)*.07+(.18 if pose_name in ["advance","strike"] else .04)
+  bones.Cape.rotation.x=sin(elapsed*2.7)*.07+(.18 if pose_name in ["advance","strike","recover"] else .04)
  if pose_name=="idle":
   if bones.has("Body"):bones.Body.position.y=rest.Body.position.y+support_height+sin(elapsed*2.4)*.006
   if bones.has("Head"):bones.Head.rotation.z=sin(elapsed*1.3)*.012
@@ -53,7 +53,7 @@ func apply_constraints():
  if kind=="staff" and pose_name in ["cast_windup","cast"] and bones.has("Weapon"):
   var grip=bones.Weapon
   grip.quaternion=(grip.get_parent().global_basis.inverse()*global_basis).get_rotation_quaternion()
- if kind in ["lance","bow"] and pose_name in ["windup","critical_windup","strike"] and bones.has("Weapon"):
+ if kind in ["lance","bow"] and pose_name in ["windup","critical_windup","strike","recover"] and bones.has("Weapon"):
   var grip=bones.Weapon
   var direction=aim_target-grip.global_position if has_aim_target else -global_transform.basis.z
   if direction.length_squared()>.001:
@@ -107,7 +107,7 @@ func stance_height(target: Dictionary) -> float:
 
 func pose(key: String,duration=.18) -> Tween:
  if pose_tween and pose_tween.is_valid():pose_tween.kill()
- if bones.has("Weapon") and key not in ["throw","throw_windup","critical_throw_windup"]:bones.Weapon.visible=true
+ if bones.has("Weapon") and key not in ["throw","throw_windup","critical_throw_windup","recover"]:bones.Weapon.visible=true
  if bones.has("NockedArrow") and key in ["idle","advance","windup","critical_windup"]:bones.NockedArrow.visible=true
  pose_name=key
  var target={
@@ -164,6 +164,18 @@ func pose(key: String,duration=.18) -> Tween:
    target.LeftArm=Vector3(-.8,.9,.7);target.LeftElbow=Vector3(-1.6,0,0)
   elif kind in ["magic","staff"]:
    target.Arm=Vector3(-1.1,0,-.35);target.LeftArm=Vector3(-1.3,0,.3)
+ elif key=="recover":
+  target.Body=Vector3(.12,.46,-.04);target.Arm=Vector3(.10,-.32,.36);target.Elbow=Vector3(-.22,0,0)
+  target.LeftArm=Vector3(.15,0,.28);target.LeftLeg.x=-.30;target.RightLeg.x=.34;target.RightKnee.x=.45
+  if kind=="axe":
+   target.Body=Vector3(.21,.53,.05);target.Arm=Vector3(.16,-.18,.25)
+  elif kind=="lance":
+   target.Body=Vector3(.06,.08,0);target.Arm=Vector3(-.65,.1,-.08);target.Elbow=Vector3(-.85,0,0)
+  elif kind=="bow":
+   target.Body=Vector3(.06,.1,0);target.Arm=Vector3(-1.35,.15,-.18);target.Elbow=Vector3(-.15,0,0)
+   target.LeftArm=Vector3(-.7,.3,.4);target.LeftElbow=Vector3(-.7,0,0)
+  elif kind in ["magic","staff"]:
+   target.Body=Vector3(.04,.06,0);target.Arm=Vector3(-.65,0,-.25);target.LeftArm=Vector3(-.7,0,.3)
  elif key in ["cast_windup","cast"]:
   target.Body=Vector3(0,-.08,0)
   target.Arm=Vector3(-1.1 if key=="cast_windup" else -.9,0,-.18);target.Elbow=Vector3(-.55,0,0)
@@ -197,7 +209,7 @@ func pose(key: String,duration=.18) -> Tween:
    for i in range(4):target["HorseLeg"+str(i)]=Vector3.ZERO
  if key=="advance" and not mounted:
   for leg in ["LeftLeg","RightLeg","LeftKnee","RightKnee"]:target.erase(leg)
- var aiming=kind in ["lance","bow"] and key in ["windup","critical_windup","strike"] and bones.has("Weapon")
+ var aiming=kind in ["lance","bow"] and key in ["windup","critical_windup","strike","recover"] and bones.has("Weapon")
  if aiming:target.erase("Weapon")
  elif key!="strike":weapon_aim=0.0
  pose_tween=create_tween().set_parallel(true).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN_OUT)

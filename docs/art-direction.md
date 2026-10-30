@@ -91,7 +91,7 @@ A small per-chapter RGBA control texture preserves the four original ground pain
 
 ## Bow draw and map framing
 
-The wooden bow grip now sits at the holding hand. Two string segments stay fixed at the bow tips and meet the arrow nock while it draws back 0.30 world units. The drawing arm uses a bounded two-segment constraint, with a small inward bow-arm angle so every archer can reach the string. The drawing hand releases during the shot; the nocked arrow hands off continuously to the flying tip. Tests sample the whole windup at infantry/mounted target heights in both directions, and compare geometry in all eight batched poses.
+The wooden bow grip now sits at the holding hand. Two string segments stay fixed at the bow tips and meet the arrow nock while it draws back 0.30 world units. The drawing arm uses a bounded two-segment constraint, with a small inward bow-arm angle so every archer can reach the string. The drawing hand releases during the shot; the nocked arrow hands off continuously to the flying tip. Tests sample the whole windup at infantry/mounted target heights in both directions, and compare geometry in all tested batched poses.
 
 The map action card fits its contents, freeing its previously empty lower area. A smaller terrain readout and one-line contextual hints leave more of the landscape visible; the complete control guide remains in the M-key menu. Layout and focus checks cover all tactical states at 1024×640, 1280×720 and 1440×900.
 
@@ -164,3 +164,9 @@ The twelve objective markers replace solid flag boxes with pole-pinned cloth gri
 Per-instance phase pauses with a hidden map/arena and wraps at the waves' shared period. The cloth node stays out of static batching, preserving local dimensions and explicit deformation bounds. The implementation follows Godot's [spatial shader coordinate conventions](https://docs.godotengine.org/en/4.5/tutorials/shaders/shader_reference/spatial_shader.html) and [custom geometry bounds](https://docs.godotengine.org/en/4.5/classes/class_geometryinstance3d.html#class-geometryinstance3d-property-custom-aabb).
 
 Checks cover attachment geometry under transformed parents, grid winding, forked/rectangular silhouettes, conservative wind/sag envelopes, material parameters, phase wrap/pause, static-batch exclusion, all map instances, actual boat backdrops and cleanup. Headless checks do not execute a rendered review of the wind shader. Current static map counts are 13,487 source meshes / 611 batches, plus fourteen separate cloth meshes across all twelve maps; this is not a frame-rate measurement.
+
+## Weapon follow-through
+
+Attack contact now flows into a 160 ms weapon-specific recovery before a 120 ms return to ready. Swords and axes carry the arm/body turn past contact; spears retract the grip while remaining aimed; bows lower the released hand; spell users lower their casting arms. The defender settles or falls alongside that recovery. Released arrows and javelins remain hidden until the ready stance reloads them. The contact endpoint, hit stop and resolved result remain unchanged.
+
+An optional authored `recover` mapping takes precedence; unmapped authored actors use their existing idle section. Checks cover planted feet, actual weapon-tip displacement/ground clearance, spear grip retraction, delayed reload, all 24 rigs before/after batching, complete counter/follow-up order and skipping during recovery. The added presentation does not move either combatant's engagement position or consume gameplay RNG.

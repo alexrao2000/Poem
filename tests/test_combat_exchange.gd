@@ -13,6 +13,8 @@ var holds=0
 var skip_on_hold=false
 var blocked_poses=[]
 var map_cues=[]
+var recoveries=[]
+var skip_on_recovery=false
 
 func watch_map_cue(node):
  if not node is Label:return
@@ -56,7 +58,7 @@ func watch_spell(node):
 func _initialize():call_deferred("run")
 
 func observe(app,shots,skip_at):
- var previous=0
+ var previous=0;var previous_recovery=0
  while observing:
   await process_frame
   if not app.stage.visible:continue
@@ -68,6 +70,12 @@ func observe(app,shots,skip_at):
    shots.append({"a":actors[0].position,"b":actors[1].position,"kind":active[0].kind})
    if shots.size()==skip_at:app.skip_combat=true
   previous=current
+  var recovering=actors.filter(func(node):return node.pose_name=="recover")
+  var recovery_id=recovering[0].get_instance_id() if recovering.size()==1 else 0
+  if recovery_id!=0 and recovery_id!=previous_recovery:
+   recoveries.append(recovering[0].kind)
+   if skip_on_recovery:app.skip_combat=true
+  previous_recovery=recovery_id
 
 func run():
  var app=load("res://main.tscn").instantiate();app.settings_path="";app.save_path="/private/tmp/poem-exchange-test.json"
@@ -76,15 +84,16 @@ func run():
  app.stage.child_entered_tree.connect(watch_hold)
  var a=app.game.units[0];var b=app.game.living("enemy")[0]
  a.x=8;a.y=4;b.x=9;b.y=4;b.weapon="sword"
- for case in ["swords","mixed","skip","skip_hold"]:
-  skip_on_hold=case=="skip_hold"
+ for case in ["swords","mixed","skip","skip_hold","skip_recovery"]:
+  skip_on_hold=case=="skip_hold";skip_on_recovery=case=="skip_recovery";recoveries.clear()
   a.weapon="lance" if case=="mixed" else "sword"
   var events=[{"actor":a.id,"target":b.id,"damage":1,"remaining":19,"hit":true,"crit":false},{"actor":b.id,"target":a.id,"damage":1,"remaining":19,"hit":true,"crit":false},{"actor":a.id,"target":b.id,"damage":1,"remaining":18,"hit":true,"crit":false}]
   var saved=app.game.save_data("battle").duplicate(true);var rng=app.game.rng.state
   var shots=[];observing=true;observe(app,shots,2 if case=="skip" else -1)
   await app.cinematic(a,b,events,{a.id:20,b.id:20})
   observing=false;await process_frame
-  assert(shots.size()==(1 if case=="skip_hold" else 2 if case=="skip" else 3),"Counter/follow-up order and mid-exchange skip retained: %s had %d windups"%[case,shots.size()])
+  assert(shots.size()==(1 if case in ["skip_hold","skip_recovery"] else 2 if case=="skip" else 3),"Counter/follow-up order and mid-exchange skip retained: %s had %d windups"%[case,shots.size()])
+  assert(recoveries.size()==(0 if case=="skip_hold" else 1 if case in ["skip","skip_recovery"] else 3),"Every completed strike recovers once; skip interrupts the sequence")
   for shot in shots:
    assert(is_equal_approx(absf(shot.a.x-shot.b.x),Actor.melee_spacing(shot.kind)),"Each attack starts at its weapon's contact distance")
    assert(shot.a.x<shot.b.x,"Neither fighter crosses the combat axis")
@@ -96,7 +105,7 @@ func run():
   assert(app.world.visible and not app.stage.visible and app.camera.projection==Camera3D.PROJECTION_ORTHOGONAL,"Every exchange returns to the map")
   for live in app.stage.get_children().filter(func(node):return node is Actor):assert(live.can_process(),"Skipping during contact never leaves a frozen actor")
   assert(not app.stage.has_node("CombatHitStop"),"Contact hold cleans up before the map returns")
- skip_on_hold=false
+ skip_on_hold=false;skip_on_recovery=false
  var confirmed_holds=holds
  app.stage.child_entered_tree.connect(watch_miss)
  for weapon in ["sword","bow"]:

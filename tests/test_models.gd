@@ -59,6 +59,11 @@ func run():
  assert(actor.model.get_node("Hand").position.is_equal_approx(Vector3(0,.8,0)),"Optional staff preparation falls back to authored windup")
  await actor.pose("cast",.01).finished
  assert(actor.model.get_node("Hand").position.y==2,"Optional staff release falls back to authored strike")
+ await actor.pose("recover",.01).finished
+ assert(actor.model.get_node("Hand").position.is_equal_approx(Vector3(0,2,0)) and not actor.player.is_playing(),"Optional recovery falls back to the authored idle section without requiring a new asset clip")
+ actor.poses.recover={"clip":"swing","from":.7,"to":.9}
+ await actor.pose("recover",.01).finished
+ assert(actor.model.get_node("Hand").position.is_equal_approx(Vector3(0,1.8,0)),"Dedicated authored recovery clip takes precedence")
  actor.pose("advance",.01);await process_frame;assert(actor.player.is_playing() and actor.player.current_animation=="walk","Approach plays locomotion")
  var other=models.build(world,unit,Vector3.ZERO)
  var hold=preload("res://scripts/combat_hit_stop.gd").new();root.add_child(hold)

@@ -855,11 +855,14 @@ func cinematic(a,b,events,initial_hp={}):
 			var hit_stop=CombatHitStop.new();stage.add_child(hit_stop)
 			await hit_stop.play([who,whom],hold).finished
 		await get_tree().create_timer((.22 if not event.crit else .34)-(.035 if hold>0 else 0.0)).timeout
-		who.pose("idle",.16)
+		if skip_combat:break
+		who.pose("recover",.16)
 		if event.remaining<=0:
 			await whom.pose("down",.3).finished
 		else:
 			await whom.pose("idle",.16).finished
+		if skip_combat:break
+		await who.pose("idle",.12).finished
 	director.shot(actor.position,defender.position,"wide",ranged,mounted,.2)
 	await get_tree().create_timer(.18).timeout
 
