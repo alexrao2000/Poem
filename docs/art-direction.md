@@ -94,3 +94,7 @@ A small per-chapter RGBA control texture preserves the four original ground pain
 The wooden bow grip now sits at the holding hand. Two string segments stay fixed at the bow tips and meet the arrow nock while it draws back 0.30 world units. The drawing arm uses a bounded two-segment constraint, with a small inward bow-arm angle so every archer can reach the string. The drawing hand releases during the shot; the nocked arrow hands off continuously to the flying tip. Tests sample the whole windup at infantry/mounted target heights in both directions, and compare geometry in all eight batched poses.
 
 The map action card fits its contents, freeing its previously empty lower area. A smaller terrain readout and one-line contextual hints leave more of the landscape visible; the complete control guide remains in the M-key menu. Layout and focus checks cover all tactical states at 1024×640, 1280×720 and 1440×900.
+
+## Campaign menu layouts
+
+The war council, dossiers, equipment, title, options, credits, training confirmations, results and model viewer now fit 1024×640 through 1440×900. Primary actions remain visible outside scrolling narrative/reading areas. The council preserves its roster and briefing in two responsive columns. All menu scroll areas follow keyboard focus; save transfer keeps at least 160 px of editable code area. The `menus` suite checks 492 layouts across the full roster, every chapter and both training choices, including last-entry reachability and unchanged progression. This verifies bounds and interaction state, not rendered styling.

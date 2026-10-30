@@ -6,6 +6,7 @@ const MapUnit=preload("res://scripts/campaign_map_unit.gd")
 const MapOverlay=preload("res://scripts/map_overlay.gd")
 const MapSurface=preload("res://scripts/map_surface.gd")
 const TerrainCard=preload("res://scripts/terrain_card.gd")
+const MenuLayout=preload("res://scripts/menu_layout.gd")
 const BattleForecast=preload("res://scripts/battle_forecast.gd")
 const FOG_FIELDS=["fog_enabled","fog_mode","fog_density","fog_depth_begin","fog_depth_end","fog_depth_curve","fog_light_color","fog_light_energy","fog_sky_affect"]
 var map_catalog=preload("res://scripts/campaign_catalog.gd").new()
@@ -241,6 +242,27 @@ func panel_at(parent,left,top,right,bottom) -> VBoxContainer:
 	panel.offset_left=left;panel.offset_top=top;panel.offset_right=right;panel.offset_bottom=bottom
 	var v=VBoxContainer.new();v.add_theme_constant_override("separation",10);panel.add_child(v);return v
 
+func menu_panel(max_width=1200.0,left_aligned=false) -> VBoxContainer:
+	var frame=PanelContainer.new();ui.add_child(frame)
+	var column=VBoxContainer.new();column.add_theme_constant_override("separation",10);frame.add_child(column)
+	var host=ui
+	var arrange=func():
+		if not is_instance_valid(frame) or frame.is_queued_for_deletion():return
+		var width=minf(max_width,host.size.x-56)
+		frame.position=Vector2(28 if left_aligned else (host.size.x-width)*.5,28)
+		frame.size=Vector2(width,host.size.y-56)
+	host.resized.connect(arrange);frame.minimum_size_changed.connect(arrange)
+	arrange.call();MenuLayout.configure(host)
+	return column
+
+func scrolling_column(parent,min_width=0.0) -> VBoxContainer:
+	var scroll=ScrollContainer.new();scroll.horizontal_scroll_mode=ScrollContainer.SCROLL_MODE_DISABLED
+	scroll.size_flags_horizontal=Control.SIZE_EXPAND_FILL;scroll.size_flags_vertical=Control.SIZE_EXPAND_FILL
+	scroll.custom_minimum_size.x=min_width;parent.add_child(scroll)
+	var column=VBoxContainer.new();column.size_flags_horizontal=Control.SIZE_EXPAND_FILL
+	column.add_theme_constant_override("separation",10);scroll.add_child(column)
+	return column
+
 func clear_world():
 	for n in [world,markers,pieces,stage]:
 		if is_instance_valid(n):remove_child(n);n.queue_free()
@@ -298,11 +320,11 @@ func unit_portrait(u) -> Texture2D:
 
 func show_title():
 	screen="title";game.start_battle();make_map();reset_ui()
-	var v=panel_at(ui,65,100,-760,-100)
+	var v=menu_panel(560,true)
 	label_in(v,"A TACTICAL CHRONICLE",16,GOLD)
 	label_in(v,"POEM",64)
 	label_in(v,"A broken banner. A borrowed sun.\nTwenty-four lives caught between them.",22)
-	label_in(v,"12 chapters · 24 recruits · 8 classes\nSprite battlefields / cinematic 3D combat",17,Color("766e5e"))
+	label_in(v,"Twelve chapters. Twenty-four paths to dawn.",17,Color("766e5e"))
 	var spacer=Control.new();spacer.size_flags_vertical=Control.SIZE_EXPAND_FILL;v.add_child(spacer)
 	button_in(v,"Begin the chronicle",func():game.new_campaign();music.play();show_camp())
 	button_in(v,"Continue saved campaign",load_campaign,not FileAccess.file_exists(save_path) and not FileAccess.file_exists(save_path+".bak"))
@@ -310,12 +332,13 @@ func show_title():
 	var extras=HBoxContainer.new();extras.add_theme_constant_override("separation",8);v.add_child(extras)
 	button_in(extras,"Options",func():show_options("title")).size_flags_horizontal=Control.SIZE_EXPAND_FILL
 	button_in(extras,"Credits",show_credits).size_flags_horizontal=Control.SIZE_EXPAND_FILL
-	button_in(v,"Visual workshop · 2D / 3D maps",show_visual_workshop)
-	label_in(v,"Original playable prototype • Casual recovery\nFallen allies return next chapter. Losing everyone means retry.",14,Color("827b6c"))
+	button_in(v,"Character & map workshop",show_visual_workshop)
+	label_in(v,"Fallen allies return next chapter.\nIf the company falls, regroup and try again.",14,Color("827b6c"))
 
 func show_credits():
 	screen="credits";reset_ui()
-	var panel=panel_at(ui,220,100,-220,-100)
+	var frame=menu_panel(900)
+	var panel=scrolling_column(frame)
 	label_in(panel,"POEM",42,GOLD)
 	label_in(panel,"An original tactical chronicle",22)
 	label_in(panel,"A STANDARD AT DAWN",20,GOLD)
@@ -324,8 +347,7 @@ func show_credits():
 	label_in(panel,"ART & TYPE",20,GOLD)
 	label_in(panel,"Original generated illustrations and sprite artwork.\nOriginal 3D environments and character figures.\nCormorant Garamond · Cormorant Project Authors\nSIL Open Font License.",19)
 	label_in(panel,"Created with Godot Engine.",19)
-	var spacer=Control.new();spacer.size_flags_vertical=Control.SIZE_EXPAND_FILL;panel.add_child(spacer)
-	button_in(panel,"Return to title",show_title)
+	button_in(frame,"Return to title",show_title)
 
 func show_visual_workshop():
 	screen="visual_workshop"
@@ -349,24 +371,24 @@ func show_camp():
 	for k in ["margin_left","margin_right","margin_top","margin_bottom"]:shell.add_theme_constant_override(k,28)
 	ui.add_child(shell)
 	var row=HBoxContainer.new();row.add_theme_constant_override("separation",24);shell.add_child(row)
-	var left=VBoxContainer.new();left.custom_minimum_size.x=350;left.size_flags_horizontal=Control.SIZE_EXPAND_FILL;row.add_child(left)
+	var left=VBoxContainer.new();left.custom_minimum_size.x=320;left.size_flags_horizontal=Control.SIZE_EXPAND_FILL;left.size_flags_stretch_ratio=.85;row.add_child(left)
 	label_in(left,"POEM / WAR COUNCIL",16,GOLD)
 	label_in(left,"%02d  %s"%[game.chapter+1,game.info().title],34)
 	label_in(left,game.info().place.to_upper(),17,Color("79755f"))
-	label_in(left,game.info().intro,21)
-	label_in(left,game.info().get("tactical_brief",""),18,Color("6f6c5e"))
+	var briefing=scrolling_column(left)
+	label_in(briefing,game.info().intro,21)
+	label_in(briefing,game.info().get("tactical_brief",""),18,Color("6f6c5e"))
+	label_in(briefing,"Select up to six allies. Open a portrait to inspect equipment and support conversations. Wardens heal within staff range; everyone carries two field tonics.",16,Color("766e5e"))
 	label_in(left,"OBJECTIVE  /  "+objective_text(),18,GOLD)
 	label_in(left,"Recruited %d / 24  ·  Deployed %d / 6"%[game.available().size(),game.deployed.size()],18)
-	label_in(left,"Select up to six allies. Healing tiles restore 6 HP each turn. Open a portrait to inspect equipment. Wardens heal within staff range; everyone carries two field tonics.",16,Color("766e5e"))
-	var sp=Control.new();sp.size_flags_vertical=Control.SIZE_EXPAND_FILL;left.add_child(sp)
 	button_in(left,"Deploy company  >",deploy_company,game.deployed.is_empty())
 	var tools_row=HBoxContainer.new();tools_row.add_theme_constant_override("separation",8);left.add_child(tools_row)
 	button_in(tools_row,"Save campaign",func():save_with_feedback("camp")).size_flags_horizontal=Control.SIZE_EXPAND_FILL
 	button_in(tools_row,"Options",func():show_options("camp")).size_flags_horizontal=Control.SIZE_EXPAND_FILL
 	button_in(left,"Transfer a local save",func():show_save_transfer("camp"))
 	button_in(left,"Return to title",show_title)
-	label_in(left,"Music: A Standard at Dawn · paired arrangements\nVisuals: original painted art and 3D models",13,Color("827b6c"))
-	var scroll=ScrollContainer.new();scroll.custom_minimum_size.x=650;scroll.size_flags_horizontal=Control.SIZE_EXPAND_FILL;row.add_child(scroll)
+	var scroll=ScrollContainer.new();scroll.custom_minimum_size.x=420;scroll.horizontal_scroll_mode=ScrollContainer.SCROLL_MODE_DISABLED
+	scroll.size_flags_horizontal=Control.SIZE_EXPAND_FILL;scroll.size_flags_stretch_ratio=1.15;row.add_child(scroll)
 	var cards=VBoxContainer.new();cards.size_flags_horizontal=Control.SIZE_EXPAND_FILL;scroll.add_child(cards)
 	for u in game.roster:
 		var unlocked=int(u.join)<=game.chapter
@@ -385,6 +407,7 @@ func show_camp():
 			if u.id in game.deployed:game.deployed.erase(u.id)
 			elif game.deployed.size()<6:game.deployed.append(u.id)
 			show_camp(),not unlocked or (game.deployed.size()>=6 and u.id not in game.deployed))
+	MenuLayout.configure(ui)
 
 func objective_text() -> String:
 	match game.info().objective:
@@ -864,7 +887,8 @@ func check_result() -> bool:
 	if outcome=="":return false
 	persist_campaign("battle")
 	screen="result";reset_ui()
-	var v=panel_at(ui,210,170,-210,-170)
+	var frame=menu_panel(1000)
+	var v=scrolling_column(frame)
 	if outcome=="victory":
 		label_in(v,"CHAPTER COMPLETE",18,GOLD);label_in(v,game.info().title,38)
 		label_in(v,game.info().outro,24)
@@ -875,7 +899,7 @@ func check_result() -> bool:
 			var row=HBoxContainer.new();row.size_flags_horizontal=Control.SIZE_EXPAND_FILL;summary.add_child(row)
 			var portrait=TextureRect.new();portrait.texture=portraits.get_portrait(unit.id);portrait.custom_minimum_size=Vector2(55,55);portrait.expand_mode=TextureRect.EXPAND_IGNORE_SIZE;portrait.stretch_mode=TextureRect.STRETCH_KEEP_ASPECT_CENTERED;row.add_child(portrait)
 			label_in(row,"%s · Lv %d\n%s"%[unit.name,unit.level,"Ready for the next march" if unit.hp>0 else "Recovering at camp"],16)
-		button_in(v,"Continue the chronicle",func():
+		button_in(frame,"Continue the chronicle",func():
 			show_dialogue(story.chapters[game.chapter].closing,func():
 				game.finish_chapter()
 				persist_campaign("ending" if game.completed else "camp")
@@ -884,12 +908,12 @@ func check_result() -> bool:
 	else:
 		label_in(v,"THE STANDARD FALLS",38,GOLD)
 		label_in(v,"Your company is scattered. Regroup at the war council and choose a new approach.",24)
-		button_in(v,"Regroup and retry",show_camp)
+		button_in(frame,"Regroup and retry",show_camp)
 	return true
 
 func show_ending():
 	screen="ending";reset_ui()
-	var v=panel_at(ui,120,60,-120,-60)
+	var v=menu_panel()
 	label_in(v,"DAWN WITHOUT KINGS",40,GOLD)
 	label_in(v,game.content.chapters[-1].outro,22)
 	var scroll=ScrollContainer.new();scroll.size_flags_vertical=Control.SIZE_EXPAND_FILL;v.add_child(scroll)
@@ -927,12 +951,14 @@ func finish_dialogue():
 
 func show_dossier(unit):
 	screen="dossier";reset_ui()
-	var panel=panel_at(ui,70,60,-70,-60)
+	var panel=menu_panel()
 	label_in(panel,"COMPANY RECORD",17,GOLD)
 	var row=HBoxContainer.new();row.add_theme_constant_override("separation",36);row.size_flags_vertical=Control.SIZE_EXPAND_FILL;panel.add_child(row)
-	var portrait=TextureRect.new();portrait.texture=portraits.get_portrait(unit.id);portrait.custom_minimum_size=Vector2(400,400)
+	var portrait=TextureRect.new();portrait.texture=portraits.get_portrait(unit.id)
+	var size_portrait=func():portrait.custom_minimum_size=Vector2(minf(380,ui.size.x*.28),0)
+	ui.resized.connect(size_portrait);size_portrait.call()
 	portrait.expand_mode=TextureRect.EXPAND_IGNORE_SIZE;portrait.stretch_mode=TextureRect.STRETCH_KEEP_ASPECT_CENTERED;row.add_child(portrait)
-	var info=VBoxContainer.new();info.add_theme_constant_override("separation",16);info.size_flags_horizontal=Control.SIZE_EXPAND_FILL;row.add_child(info)
+	var info=scrolling_column(row)
 	var profile=profiles.get(unit.id,{})
 	label_in(info,unit.name,46,GOLD);label_in(info,profile.get("title",unit.job),26)
 	label_in(info,"%s  /  Level %d  /  %s"%[game.class_name_for(unit),unit.level,"MAX" if unit.level>=game.MAX_LEVEL else "%d XP"%unit.xp],20)
@@ -957,13 +983,13 @@ func load_campaign():
 
 func show_equipment(unit):
 	screen="equipment";reset_ui()
-	var panel=panel_at(ui,70,45,-70,-45)
+	var panel=menu_panel()
 	label_in(panel,"COMPANY ARSENAL",17,GOLD)
 	label_in(panel,unit.name+"  /  "+game.class_name_for(unit),40,GOLD)
 	label_in(panel,"Equipment is shared freely. New supplies become available as the campaign advances.",19)
 	var row=HBoxContainer.new();row.add_theme_constant_override("separation",28);row.size_flags_vertical=Control.SIZE_EXPAND_FILL;panel.add_child(row)
-	var summary=VBoxContainer.new();summary.custom_minimum_size.x=280;row.add_child(summary)
-	var portrait=TextureRect.new();portrait.texture=portraits.get_portrait(unit.id);portrait.custom_minimum_size=Vector2(280,310)
+	var summary=scrolling_column(row,250);summary.get_parent().size_flags_horizontal=Control.SIZE_FILL
+	var portrait=TextureRect.new();portrait.texture=portraits.get_portrait(unit.id);portrait.custom_minimum_size=Vector2(230,200)
 	portrait.expand_mode=TextureRect.EXPAND_IGNORE_SIZE;portrait.stretch_mode=TextureRect.STRETCH_KEEP_ASPECT_CENTERED;summary.add_child(portrait)
 	label_in(summary,"EQUIPPED",16,GOLD);weapon_label(summary,unit.weapon,game.item_for(unit).name,25)
 	label_in(summary,"Attack %d   Speed %d\nRange %s"%[game.attack_power(unit),game.attack_speed(unit),game.range_text(unit)],21)
@@ -995,9 +1021,11 @@ func show_model_view(unit):
 	preview_actor=make_fighter(actor_data,Vector3(35,0,0));preview_actor.rotation.y=PI-.35
 	camera.projection=Camera3D.PROJECTION_PERSPECTIVE;camera.h_offset=-.25;camera.fov=35
 	camera.position=Vector3(35,1.4,4.7 if unit.job!="Rider" else 6.5);camera.look_at(Vector3(35,1.05,0))
-	var panel=panel_at(ui,28,30,-1060,-30)
+	var panel=menu_panel(310,true)
 	label_in(panel,"COMPANY / COMBAT MODEL",15,GOLD);label_in(panel,unit.name,38)
-	var portrait=TextureRect.new();portrait.texture=portraits.get_portrait(unit.id);portrait.custom_minimum_size=Vector2(220,240)
+	var portrait=TextureRect.new();portrait.texture=portraits.get_portrait(unit.id)
+	var size_portrait=func():portrait.custom_minimum_size=Vector2(220,150 if ui.size.y<760 else 220)
+	ui.resized.connect(size_portrait);size_portrait.call()
 	portrait.expand_mode=TextureRect.EXPAND_IGNORE_SIZE;portrait.stretch_mode=TextureRect.STRETCH_KEEP_ASPECT_CENTERED;panel.add_child(portrait)
 	label_in(panel,game.class_name_for(unit)+" · "+game.item_for(unit).name,21)
 	var spacer=Control.new();spacer.size_flags_vertical=Control.SIZE_EXPAND_FILL;panel.add_child(spacer)
@@ -1042,19 +1070,22 @@ func show_save_transfer(return_screen: String):
 		if busy or game.phase!="player":return
 		cancel_selection()
 	screen="save_transfer";transfer_return=return_screen;reset_ui()
-	var panel=panel_at(ui,100,60,-100,-60)
+	var panel=menu_panel()
 	label_in(panel,"LOCAL SAVE TRANSFER",36,GOLD)
 	label_in(panel,"Move your campaign between browsers or the desktop app. Copy the code below, then paste it into this screen on the other build.",21)
 	label_in(panel,"Import replaces this device’s current campaign and keeps its previous save as a backup. No code is sent to a server.",17)
 	transfer_text=TextEdit.new();transfer_text.name="SaveCode";transfer_text.size_flags_vertical=Control.SIZE_EXPAND_FILL
+	transfer_text.custom_minimum_size.y=160
 	transfer_text.wrap_mode=TextEdit.LINE_WRAPPING_BOUNDARY;transfer_text.add_theme_font_size_override("font_size",14);panel.add_child(transfer_text)
 	transfer_text.text=game.export_code(return_screen) if return_screen in ["camp","battle"] else game.export_saved_code(save_path)
 	transfer_text.placeholder_text="Paste a POEM1: save code here."
-	button_in(panel,"Copy code",func():DisplayServer.clipboard_set(transfer_text.text);show_notice("Save code copied. Keep it in a local text file or paste it into another build."))
-	if OS.has_feature("web"):button_in(panel,"Open browser copy / paste",open_browser_transfer)
-	else:button_in(panel,"Select all text",func():transfer_text.grab_focus();transfer_text.select_all())
-	button_in(panel,"Import pasted code",import_pasted_save)
-	button_in(panel,"Return",close_save_transfer)
+	var code_actions=HBoxContainer.new();code_actions.add_theme_constant_override("separation",10);panel.add_child(code_actions)
+	button_in(code_actions,"Copy code",func():DisplayServer.clipboard_set(transfer_text.text);show_notice("Save code copied. Keep it in a local text file or paste it into another build.")).size_flags_horizontal=Control.SIZE_EXPAND_FILL
+	if OS.has_feature("web"):button_in(code_actions,"Open browser copy / paste",open_browser_transfer).size_flags_horizontal=Control.SIZE_EXPAND_FILL
+	else:button_in(code_actions,"Select all text",func():transfer_text.grab_focus();transfer_text.select_all()).size_flags_horizontal=Control.SIZE_EXPAND_FILL
+	var actions=HBoxContainer.new();actions.add_theme_constant_override("separation",10);panel.add_child(actions)
+	button_in(actions,"Import pasted code",import_pasted_save).size_flags_horizontal=Control.SIZE_EXPAND_FILL
+	button_in(actions,"Return",close_save_transfer).size_flags_horizontal=Control.SIZE_EXPAND_FILL
 
 func import_pasted_save():
 	var saved=game.import_code(transfer_text.text)
@@ -1078,12 +1109,14 @@ func open_browser_transfer():
 
 func show_promotions(unit):
 	screen="promotions";reset_ui()
-	var panel=panel_at(ui,70,45,-70,-45)
+	var panel=menu_panel()
 	label_in(panel,"ADVANCED TRAINING",17,GOLD)
 	label_in(panel,unit.name+"  /  "+game.class_name_for(unit),40,GOLD)
 	label_in(panel,"Choose one path at level 10. The choice is permanent; level, experience and equipment are retained.",19)
 	var row=HBoxContainer.new();row.add_theme_constant_override("separation",28);row.size_flags_vertical=Control.SIZE_EXPAND_FILL;panel.add_child(row)
-	var portrait=TextureRect.new();portrait.texture=portraits.get_portrait(unit.id);portrait.custom_minimum_size=Vector2(300,340)
+	var portrait=TextureRect.new();portrait.texture=portraits.get_portrait(unit.id)
+	var size_portrait=func():portrait.custom_minimum_size=Vector2(minf(300,ui.size.x*.25),0)
+	ui.resized.connect(size_portrait);size_portrait.call()
 	portrait.expand_mode=TextureRect.EXPAND_IGNORE_SIZE;portrait.stretch_mode=TextureRect.STRETCH_KEEP_ASPECT_CENTERED;row.add_child(portrait)
 	var scroll=ScrollContainer.new();scroll.size_flags_horizontal=Control.SIZE_EXPAND_FILL;scroll.size_flags_vertical=Control.SIZE_EXPAND_FILL;row.add_child(scroll)
 	var list=VBoxContainer.new();list.size_flags_horizontal=Control.SIZE_EXPAND_FILL;list.add_theme_constant_override("separation",20);scroll.add_child(list)
@@ -1102,20 +1135,21 @@ func show_promotions(unit):
 
 func confirm_promotion(unit,path):
 	screen="promotion_confirm";reset_ui()
-	var panel=panel_at(ui,280,180,-280,-180)
+	var frame=menu_panel(800)
+	var panel=scrolling_column(frame)
 	label_in(panel,unit.name+" · "+path.name,42,GOLD)
 	label_in(panel,path.description,24)
 	label_in(panel,"This training choice cannot be changed. Your level, experience and equipped weapon remain the same.",21)
-	button_in(panel,"Confirm training",func():
+	button_in(frame,"Confirm training",func():
 		if game.promote(unit,path.id):
 			show_promotions(unit)
 			show_notice("Training complete. Campaign saved." if persist_campaign("camp",false) else "Training complete. Save failed; keep the game open and try saving again.")
 		else:show_promotions(unit))
-	button_in(panel,"Keep considering",func():show_promotions(unit))
+	button_in(frame,"Keep considering",func():show_promotions(unit))
 
 func show_supports(unit):
 	screen="supports";reset_ui()
-	var panel=panel_at(ui,70,45,-70,-45)
+	var panel=menu_panel()
 	label_in(panel,"COMPANY BONDS",17,GOLD)
 	label_in(panel,unit.name+"  /  Support conversations",40,GOLD)
 	label_in(panel,"Fight or heal within 2 tiles of your partner: 1 point per pair each turn, up to 3 per chapter. Read conversations to gain ranks.",19)
@@ -1196,7 +1230,8 @@ func apply_audio_preferences():
 func show_options(return_to: String):
 	if return_to=="battle":cancel_selection()
 	options_return=return_to;screen="options";reset_ui()
-	var panel=panel_at(ui,240,65,-240,-65)
+	var frame=menu_panel(800)
+	var panel=scrolling_column(frame)
 	label_in(panel,"PLAYBACK & CONTROLS",17,GOLD)
 	label_in(panel,"Options",44,GOLD)
 	label_in(panel,"These settings stay on this device and do not change combat results.",19)
@@ -1219,9 +1254,8 @@ func show_options(return_to: String):
 	speed.item_selected.connect(func(index):preferences.values.text_speed=[55,90,0][index])
 	var automatic=CheckButton.new();automatic.name="AutoEnd";automatic.text="End the phase when every ally has acted";automatic.button_pressed=preferences.values.auto_end;panel.add_child(automatic)
 	automatic.toggled.connect(func(value):preferences.values.auto_end=value)
-	var spacer=Control.new();spacer.size_flags_vertical=Control.SIZE_EXPAND_FILL;panel.add_child(spacer)
-	button_in(panel,"Restore defaults",func():preferences.reset();apply_audio_preferences();show_options(options_return))
-	button_in(panel,"Apply and return",close_options)
+	button_in(frame,"Restore defaults",func():preferences.reset();apply_audio_preferences();show_options(options_return))
+	button_in(frame,"Apply and return",close_options)
 
 func close_options():
 	var saved=preferences.save_file(settings_path)
