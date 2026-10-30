@@ -23,6 +23,16 @@ static func blade(item: String) -> Mesh:
  else:shape=Blades.axe()
  shapes[item]=shape;return shape
 
+static func trail_edge(kind: String,item: String) -> PackedVector3Array:
+ if kind not in ["sword","axe","lance"]:return PackedVector3Array()
+ item=resolve(kind,item)
+ var points=blade(item).surface_get_arrays(0)[Mesh.ARRAY_VERTEX]
+ var tip=points[0]
+ for point in points:
+  if point.z<tip.z or (is_equal_approx(point.z,tip.z) and point.x<tip.x):tip=point
+ if kind=="axe":tip.x*=float(profiles[item].width)
+ return PackedVector3Array([tip*.72,tip])
+
 static func build(painter,arm: Node3D,kind: String,item: String) -> Node3D:
  item=resolve(kind,item)
  var look=profiles[item];var gold=Color(look.accent);var steel=Color(look.steel);var wood=Color(look.grip)

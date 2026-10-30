@@ -45,6 +45,7 @@ func build(parent,u,p) -> Node3D:
  if imported!=null:return imported
  shading_cache.clear();strand_materials.clear()
  var actor=Actor.new();parent.add_child(actor);actor.position=p;actor.kind=u.weapon
+ actor.trail_edge=EquipmentVisuals.trail_edge(u.weapon,str(u.get("item","")))
  var body=joint(actor,"Body",Vector3(0,1.1,0));actor.register_bone("Body",body)
  var tint=Color(u.color)
  var palette={"Vanguard":"354c77","Knight":"394651","Ranger":"405c49","Arcanist":"434369","Warden":"c8c2ae","Rider":"3d566d","Corsair":"62463f","Duelist":"3b4355"}

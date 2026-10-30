@@ -938,10 +938,16 @@ func cinematic(a,b,events,initial_hp={}):
 			dodge.tween_property(whom,"position:z",-.32,.12)
 			dodge.tween_interval(.35 if is_ranged else .12)
 			dodge.tween_property(whom,"position:z",0.0,.16)
+		var blade_trail: Node3D
+		if not is_ranged:
+			blade_trail=CombatTrail.new();stage.add_child(blade_trail)
+			if not blade_trail.follow(who,unit.weapon,event.crit):blade_trail.queue_free();blade_trail=null
 		await who.pose("throw" if is_ranged and unit.weapon=="lance" else "strike",.12).finished
 		if not is_ranged:
-			var trail=CombatTrail.new();stage.add_child(trail)
-			trail.start(contact_point+Vector3(-direction*.28,0,.18),unit.weapon,direction,event.crit)
+			if is_instance_valid(blade_trail):blade_trail.sample();blade_trail.finish()
+			else:
+				var trail=CombatTrail.new();stage.add_child(trail)
+				trail.start(contact_point+Vector3(-direction*.28,0,.18),unit.weapon,direction,event.crit)
 		if is_ranged:
 			var release=who.socket_position("projectile")
 			if who.has_method("release_projectile"):who.release_projectile()

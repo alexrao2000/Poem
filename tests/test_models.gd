@@ -85,6 +85,13 @@ func run():
  other.poses.idle={"clip":"swing","from":0.0,"to":1.0};other.pose("idle")
  actor.pose("strike",.01)
  assert(other.player.get_animation("swing").loop_mode==Animation.LOOP_LINEAR and actor.player.get_animation("swing").loop_mode==Animation.LOOP_NONE,"Each actor owns animation loop settings")
+ assert(actor.weapon_trail_points().is_empty(),"An authored rig without trail sockets requests the existing accent fallback")
+ var edge_spec=spec.duplicate(true);edge_spec.sockets.trail_inner="Hand";edge_spec.sockets.trail_tip="Impact"
+ models.catalog.characters.lyra=edge_spec
+ var edged=models.build(world,unit,Vector3(2,0,3));await edged.pose("windup",.01).finished
+ var edge=edged.weapon_trail_points()
+ assert(edge.size()==2 and edge[0].is_equal_approx(edged.model.get_node("Hand").global_position) and edge[1].is_equal_approx(edged.model.get_node("Impact").global_position),"Optional authored edge sockets retain animation, scale, yaw and actor placement")
+ models.catalog.characters.lyra=spec
  assert(models.issues.is_empty())
  assert(g.rng.state==rng and g.save_data("battle")==saved,"Assets never mutate simulation or saves")
  var bad=spec.duplicate(true);bad.poses.strike.to=9

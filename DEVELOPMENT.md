@@ -112,7 +112,7 @@ The opening-town fountain now has two shaped stone basins, inset animated water 
 
 Dialogue now uses a compact blue/ivory speaker nameplate and a small pulsing ready diamond. The action says “Reveal text” while typing and changes to “Continue” as soon as the line is complete; instant text still advances in one press. Prompt motion suspends when hidden, and all 885 story/support layouts retain their readable text and controls.
 
-The last delivered local browser/macOS checkpoint passed all 59 automated suites, five complete campaign simulations (60 chapter victories), model-catalog validation and an exported-resource-pack smoke check. These are runtime, geometry and layout checks, not a rendered review of the latest game. Full human balance and listening reviews remain outstanding. Routine non-destructive commits and private pushes are authorized.
+The last delivered local browser/macOS checkpoint passed all 60 automated suites, five complete campaign simulations (60 chapter victories), model-catalog validation and an exported-resource-pack smoke check. These are runtime, geometry and layout checks, not a rendered review of the latest game. Full human balance and listening reviews remain outstanding. Routine non-destructive commits and private pushes are authorized.
 
 The user explicitly allowed local browser testing, but the subsequent tool retry still returned a saved/managed permission denial. Localhost, the Quaternius asset site and native Codex access were blocked. Do not circumvent these denials with another browser surface, native game capture, raw browser/CDP access or alternate asset hosts. No Quaternius models have been acquired. Earlier screenshots and another chat's native workshop captures do not verify the current campaign visuals.
 
@@ -129,6 +129,8 @@ Combat nameplates and forecast headers now share an original low-contrast river-
 Combat has an optional hold-Shift fast-forward control with a small persistent hint. It doubles the presentation clock while keeping audio at normal speed, restores the exact prior clock after release/skip/cleanup, and resets on focus loss. Map-only combat never acquires it. Input, full accelerated/normal exchanges, cleanup, caption bounds and unchanged save/RNG/camera/audio ownership pass focused checks.
 
 Mounted geometry now joins the rider to the saddle and puts the standing hooves on the floor; prior measured gaps were +18.5 cm at the seat and −4.5 cm at the hooves. Adjusted horse/leg proportions retain rider socket height and weapon reach. A shared mount/root height correction follows actual hoof extents through stride and pose transitions, while a wider seated leg stance places the boots on repositioned stirrups. Actual saddle/hoof/boot vertices, combat/finish poses and all rigid batches pass focused checks; the roster remains 1,797 sources / 1,060 batches.
+
+Procedural melee trails now sweep from the actual equipped blade/head during the strike instead of appearing as a fixed arc after contact. Sword/axe ribbons taper toward the inner edge; lances leave a narrow thrust stroke. History is capped at twelve samples, degenerate faces are excluded, and the effect fades after the final contact pose. All thirteen melee items in both facings, transformed parents, actual furthest weapon vertices, imported-model fallbacks and real normal/accelerated exchanges pass focused checks.
 
 ## Earlier checkpoint notes
 

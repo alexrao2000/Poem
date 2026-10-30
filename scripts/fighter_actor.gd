@@ -8,6 +8,7 @@ var contact_index=0
 var bones: Dictionary = {}
 var rest: Dictionary = {}
 var kind = "sword"
+var trail_edge=PackedVector3Array()
 var mounted = false
 var pose_name = "idle"
 var elapsed = 0.0
@@ -328,6 +329,17 @@ func socket_position(key: String) -> Vector3:
   var offset=Vector3(0,0,-.22) if kind=="bow" else Vector3.ZERO
   return bones.Weapon.to_global(offset)
  return global_position+Vector3(0,(1.2 if key=="projectile" else 1.1)+(.75 if mounted else 0.0),0)
+
+func weapon_trail_points() -> PackedVector3Array:
+ if trail_edge.size()!=2 or not bones.has("Weapon"):return PackedVector3Array()
+ var grip=bones.Weapon;var tip=grip.to_global(trail_edge[1])
+ if kind=="lance":
+  var forward=(tip-grip.global_position).normalized()
+  var side=Vector3.UP-forward*Vector3.UP.dot(forward)
+  if side.length_squared()<.001:side=global_basis.x
+  side=side.normalized()*.025
+  return PackedVector3Array([tip-side,tip+side])
+ return PackedVector3Array([grip.to_global(trail_edge[0]),tip])
 
 func release_projectile():
  if kind=="lance" and bones.has("Weapon"):bones.Weapon.visible=false

@@ -61,3 +61,7 @@ func socket_position(key: String) -> Vector3:
  if sockets.has(key):return sockets[key].global_position
  if key=="gaze":return socket_position("impact")+Vector3.UP*.55
  return global_position+Vector3(0,1.2 if key=="projectile" else 1.1,0)
+
+func weapon_trail_points() -> PackedVector3Array:
+ if not sockets.has("trail_inner") or not sockets.has("trail_tip"):return PackedVector3Array()
+ return PackedVector3Array([sockets.trail_inner.global_position,sockets.trail_tip.global_position])
