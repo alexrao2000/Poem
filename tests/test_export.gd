@@ -11,6 +11,8 @@ func run():
  var app=load("res://main.tscn").instantiate();app.settings_path="";app.save_path="/private/tmp/poem-export-test.json";root.add_child(app);await process_frame
  for job in app.CLASSES:assert(app.map_catalog.assets.has("unit."+job.to_lower()),"Release initializes every fallback class without relying on assertions")
  assert(app.map_catalog.recruit_errors.is_empty(),"Packaged recruit artwork validates")
+ assert(app.map_catalog.enemy_errors.is_empty(),"Packaged enemy artwork validates")
+ for job in app.CLASSES:assert(app.map_catalog.assets.has("enemy."+job.to_lower()),"Release includes every dedicated enemy class atlas")
  for chapter in [0,4,8,11]:
   app.game.chapter=chapter;app.game.start_battle();app.make_map();app.show_battle();await process_frame
   assert(app.score_director.current_id==["standard","road","dawnless"][chapter/4],"Export includes every act-specific score pair")

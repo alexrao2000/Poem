@@ -7,7 +7,7 @@ const Rules=preload("res://scripts/rules.gd")
 func _initialize():call_deferred("run")
 func run():
  var catalog=Catalog.new();assert(catalog.open("res://visuals/units.json") and catalog.recruit_errors.is_empty())
- assert(catalog.assets.size()==32,"Full roster extends eight base classes")
+ assert(catalog.assets.size()==40,"Full roster and enemy army extend eight base classes")
  var game=Rules.new();var stage=Node3D.new();root.add_child(stage)
  for source in game.roster:
   var unit=source.duplicate(true);unit.team="player";unit.acted=false
@@ -48,7 +48,7 @@ func run():
   assert(actor.visual_id=="unit."+unit.job.to_lower(),"Missing recruit artwork falls back to the correct class")
   actor.queue_free();catalog.assets[visual_id]=saved
   unit.team="enemy";actor=Unit.new();stage.add_child(actor);actor.configure(catalog,unit)
-  assert(actor.visual_id=="unit."+unit.job.to_lower(),"Enemy figures retain class silhouettes even if an ID matches a recruit")
+  assert(actor.visual_id=="enemy."+unit.job.to_lower(),"Enemy figures use army class silhouettes even if an ID matches a recruit")
   for ratio in [1.0,.5,.25,0.0]:
    actor.hp_ratio=ratio;actor.refresh_health()
    var bar=actor.health.texture.get_image()

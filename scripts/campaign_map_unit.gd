@@ -9,7 +9,11 @@ func configure(source: RefCounted,unit: Dictionary,facing="south"):
  unit_id=unit.id;team=unit.team;spent=unit.acted
  hp_ratio=clampf(float(unit.hp)/maxf(1,unit.max_hp),0,1)
  var individual="recruit."+unit.id
- setup(source,individual if team=="player" and source.assets.has(individual) else "unit."+unit.job.to_lower())
+ var enemy="enemy."+unit.job.to_lower()
+ var chosen="unit."+unit.job.to_lower()
+ if team=="player" and source.assets.has(individual):chosen=individual
+ elif team=="enemy" and source.assets.has(enemy):chosen=enemy
+ setup(source,chosen)
  sprite.pixel_size=TACTICAL_PIXEL_SIZE;sprite.no_depth_test=true;sprite.render_priority=2
  var shadow=PlaneMesh.new();shadow.size=Vector2(.58,.40);marker.mesh=shadow;marker.material_override=shadow_material()
  marker.cast_shadow=GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
@@ -36,7 +40,7 @@ func refresh_health():
 
 func _process(dt):
  super._process(dt)
- if team=="enemy":sprite.modulate*=Color(1,.72,.68)
+ if team=="enemy" and not visual_id.begins_with("enemy."):sprite.modulate*=Color(1,.72,.68)
 
 func update_frame():
  super.update_frame()
