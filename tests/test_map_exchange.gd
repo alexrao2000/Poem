@@ -4,6 +4,7 @@ extends SceneTree
 
 const Shutdown=preload("helpers/game_shutdown.gd")
 const MapUnit=preload("res://scripts/campaign_map_unit.gd")
+const Director=preload("res://scripts/combat_camera.gd")
 const Actor=preload("res://scripts/fighter_actor.gd")
 const Reward=preload("res://scripts/progress_reward.gd")
 var app
@@ -16,6 +17,7 @@ var saw_reward=false
 var skip_arena=false
 var expected_facings={}
 var saw_facing=false
+var saw_entry_motion=false
 
 func _initialize():call_deferred("run")
 
@@ -28,7 +30,7 @@ func setup():
  app.pieces.visibility_changed.connect(watch_return)
  app.ui.child_entered_tree.connect(watch_ui)
  app.stage.child_entered_tree.connect(watch_arena)
- saw_contact=false;saw_return=false;saw_reward=false;saw_facing=false
+ saw_contact=false;saw_return=false;saw_reward=false;saw_facing=false;saw_entry_motion=false
  return [a,b,spare]
 
 func run():
@@ -50,7 +52,7 @@ func run():
   expected_facings={a.id:directions[case][1],b.id:directions[case][2]}
   var saved=app.game.save_data("battle").duplicate(true);var rng=app.game.rng.state
   await app.cinematic(a,b,events,initial)
-  assert(saw_return and saw_facing,"Field departure and return were observed for "+case)
+  assert(saw_return and saw_facing and saw_entry_motion,"Field departure, moving arena reveal and return were observed for "+case)
   assert(app.game.save_data("battle")==saved and app.game.rng.state==rng,"Field synchronization only presents resolved outcomes")
   app.busy=false
  for case in ["enemy_kill","enemy_counter"]:
@@ -66,7 +68,7 @@ func run():
   assert(not app.unit_nodes.has(lost_id),"Defeated map figure disappears after feedback")
   if case=="enemy_counter":assert(saw_reward,"Counterattack XP begins after field synchronization")
  mode="";await Shutdown.dispose(app);await process_frame
- print("PASS: five arena returns (defeat/counter/survival/heal/skip), actual enemy kill/counter map reactions, 25 coordinated sprite exits and teardown, updated health before XP, and unchanged resolved state")
+ print("PASS: five moving arena reveals/returns (defeat/counter/survival/heal/skip), actual enemy kill/counter map reactions, 25 coordinated sprite exits and teardown, updated health before XP, and unchanged resolved state")
  quit()
 
 func watch_return():
@@ -88,6 +90,16 @@ func verify_field():
    assert(visual.spent==unit.acted,"Returning action tint agrees with the resolved turn state")
 
 func watch_arena(node):
+ if mode=="arena" and node is Director:
+  await process_frame
+  var veil=app.ui.get_node("CombatTransition");var previous=node.camera.position
+  var advances=0
+  while veil.visible and veil.progress>0:
+   if node.camera.position.distance_to(previous)>.00001:advances+=1
+   assert(node.camera.position.is_equal_approx(node.anchor),"Entrance applies camera motion during the current reveal frame")
+   previous=node.camera.position;await process_frame
+  saw_entry_motion=advances>=2
+  return
  if mode!="arena" or not skip_arena or not node is Actor:return
  await process_frame;app.skip_combat=true
 

@@ -42,9 +42,25 @@ func shot(attacker: Vector3,defender: Vector3,phase: String,ranged: bool,mounted
  movement.tween_property(self,"lens",frame.lens,duration)
  return movement
 
+static func entrance_frame(frame: Dictionary,weight: float) -> Dictionary:
+ var start=frame.focus+(frame.anchor-frame.focus)*1.08+Vector3.UP*.30
+ return {"anchor":start.lerp(frame.anchor,weight),"focus":frame.focus,"lens":frame.lens}
+
 func establish(attacker: Vector3,defender: Vector3,ranged: bool,mounted=false):
+ if movement and movement.is_valid():movement.kill()
  var frame=frame_pair(attacker,defender,"wide",ranged,mounted)
  anchor=frame.anchor;focus=frame.focus;lens=frame.lens;apply_frame()
+
+func enter(attacker: Vector3,defender: Vector3,ranged: bool,mounted=false,duration=.22) -> Tween:
+ establish(attacker,defender,ranged,mounted)
+ var frame=frame_pair(attacker,defender,"wide",ranged,mounted)
+ var opening=entrance_frame(frame,0)
+ anchor=opening.anchor;apply_frame()
+ movement=create_tween().set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_OUT)
+ movement.tween_method(func(weight):
+  anchor=entrance_frame(frame,weight).anchor;apply_frame()
+ ,0.0,1.0,duration)
+ return movement
 
 func impact(critical=false,direction=1.0):
  if impact_motion and impact_motion.is_valid():impact_motion.kill()

@@ -879,7 +879,7 @@ func cinematic(a,b,events,initial_hp={}):
 	if defender.has_method("face_opponent"):defender.face_opponent(actor)
 	var director=CombatCamera.new();stage.add_child(director);director.configure(camera)
 	var mounted=a.job=="Rider" or b.job=="Rider"
-	director.establish(actor.position,defender.position,ranged,mounted)
+	director.enter(actor.position,defender.position,ranged,mounted)
 	await veil.reveal().finished
 	veil.hide()
 	var displayed_hp={};var entries=[]
