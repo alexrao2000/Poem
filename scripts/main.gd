@@ -839,6 +839,10 @@ func cinematic(a,b,events,initial_hp={}):
 	if not preferences.show_cinematic(a.team):
 		await map_combat_feedback(events)
 		return
+	for pair in [[a,b],[b,a]]:
+		var visual=unit_nodes.get(pair[0].id)
+		if visual!=null:
+			visual.face_toward(game.pos(pair[1]),game.pos(pair[0]));map_facings[pair[0].id]=visual.player.facing
 	skip_combat=false;music_mix(true)
 	var tactical_view=map_navigation.capture_view()
 	var focus=Vector3((a.x+b.x)*.5,0,(a.y+b.y)*.5)

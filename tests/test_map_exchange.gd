@@ -13,6 +13,8 @@ var saw_contact=false
 var saw_return=false
 var saw_reward=false
 var skip_arena=false
+var expected_facings={}
+var saw_facing=false
 
 func _initialize():call_deferred("run")
 
@@ -25,13 +27,15 @@ func setup():
  app.pieces.visibility_changed.connect(watch_return)
  app.ui.child_entered_tree.connect(watch_ui)
  app.stage.child_entered_tree.connect(watch_arena)
- saw_contact=false;saw_return=false;saw_reward=false
+ saw_contact=false;saw_return=false;saw_reward=false;saw_facing=false
  return [a,b,spare]
 
 func run():
  app=load("res://main.tscn").instantiate();app.settings_path="";app.save_path="/private/tmp/poem-map-exchange.json";root.add_child(app);await process_frame
+ var directions={"defeat":[Vector2i.RIGHT,"east","west"],"counter":[Vector2i.UP,"north","south"],"survive":[Vector2i.LEFT,"west","east"],"heal":[Vector2i.DOWN,"south","north"],"skip":[Vector2i.RIGHT,"east","west"]}
  for case in ["defeat","counter","survive","heal","skip"]:
   var pair=setup();var a=pair[0];var b=pair[1];mode="arena";app.busy=true;app.preferences.values.combat="all"
+  b.x=a.x+directions[case][0].x;b.y=a.y+directions[case][0].y;app.refresh_pieces()
   lost_id="";skip_arena=case=="skip";var initial={a.id:a.hp,b.id:b.hp};var events=[]
   if case=="heal":
    b.team="player";b.hp-=6;app.refresh_pieces();initial[b.id]=b.hp;b.hp+=4
@@ -41,9 +45,10 @@ func run():
    var damage=3 if case=="survive" else target.hp;target.hp-=damage
    lost_id=target.id if target.hp==0 else ""
    events=[{"actor":attacker.id,"target":target.id,"damage":damage,"remaining":target.hp,"hit":true,"crit":false}]
+  expected_facings={a.id:directions[case][1],b.id:directions[case][2]}
   var saved=app.game.save_data("battle").duplicate(true);var rng=app.game.rng.state
   await app.cinematic(a,b,events,initial)
-  assert(saw_return,"Field return was observed for "+case)
+  assert(saw_return and saw_facing,"Field departure and return were observed for "+case)
   assert(app.game.save_data("battle")==saved and app.game.rng.state==rng,"Field synchronization only presents resolved outcomes")
   app.busy=false
  for case in ["enemy_kill","enemy_counter"]:
@@ -63,8 +68,14 @@ func run():
  quit()
 
 func watch_return():
- if mode!="arena" or not app.pieces.visible:return
+ if mode!="arena":return
+ if not app.pieces.visible:
+  for id in expected_facings:
+   assert(app.unit_nodes[id].player.facing==expected_facings[id] and app.map_facings[id]==expected_facings[id],"Both map figures face the exchange before the arena handoff")
+  saw_facing=true;return
  saw_return=true;verify_field()
+ for id in expected_facings:
+  if app.unit_nodes.has(id):assert(app.unit_nodes[id].player.facing==expected_facings[id],"Surviving map figures retain their facing through the combat return")
 
 func verify_field():
  for unit in app.game.units:

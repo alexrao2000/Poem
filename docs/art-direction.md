@@ -733,3 +733,7 @@ The lowered muzzle and compact head silhouette in this [Awakening cavalry refere
 A closed 184-triangle bridle follows the actual faceted head surface, with a complete noseband and two cheek straps. It replaces three floating rectangular strips while retaining the bit and animated rein attachments. The original three recruit coat palettes and enemy coat are unchanged. The isolated head geometry was inspected from front, oblique and side views; assembled-game rendering remains pending.
 
 The new `mount_visuals` suite checks topology/outward volume, 166 actual strap-clearance rays, retained eye placement and 224 live head-posture samples. Existing rein, locomotion and batching checks pass. The default suite count is 69; roster geometry now uses 1,774 rigid source meshes / 1,057 joint batches plus three dynamic reins.
+
+### Facing the map-to-arena exchange
+
+Both tactical sprites now turn toward the exchange before the map-to-arena zoom. Survivors keep that direction when the field returns, including healing and skipped combat. The four cardinal facings are checked at the actual hide/reveal boundary, including the raised bridge approach, without changing coordinates or simulation state.
