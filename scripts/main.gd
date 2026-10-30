@@ -905,7 +905,7 @@ func cinematic(a,b,events,initial_hp={}):
 			if who.has_method("release_projectile"):who.release_projectile()
 			if is_instance_valid(gathering):gathering.release()
 			play_sfx(combat_release_sound(unit))
-			await projectile(release,contact_point,unit.weapon,spell)
+			await projectile(release,contact_point,unit.weapon,spell,fighters.equipment_profile(unit))
 		director.shot(who.position,whom.position,"impact",is_ranged,mounted,.16)
 		if event.hit:
 			play_sfx("guard" if event.damage<=0 else "critical" if event.crit else "hit")
@@ -987,9 +987,9 @@ func restore_lighting(old: Dictionary):
 	sky.sky_top_color=old.top;sky.sky_horizon_color=old.horizon;sky.ground_horizon_color=old.ground
 	for field in FOG_FIELDS:environment.set(field,old.fog[field])
 
-func projectile(from: Vector3,to: Vector3,kind: String,spell=""):
+func projectile(from: Vector3,to: Vector3,kind: String,spell="",appearance={}):
 	var visual=CombatProjectile.new();stage.add_child(visual)
-	await visual.launch(from,to,kind,.23,spell).finished
+	await visual.launch(from,to,kind,.23,spell,appearance).finished
 
 func show_impact(point,event,spell=""):
 	var impact=CombatImpact.new();stage.add_child(impact);impact.configure(point,event,camera,spell)

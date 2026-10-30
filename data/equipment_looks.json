@@ -1,0 +1,177 @@
+{
+  "iron_sword": {
+    "kind": "sword",
+    "width": 1,
+    "guard": "straight",
+    "steel": "cbd2d6",
+    "grip": "554337",
+    "accent": "bca26b"
+  },
+  "dueling_sword": {
+    "kind": "sword",
+    "width": 0.65,
+    "guard": "swept",
+    "steel": "d7dce1",
+    "grip": "354355",
+    "accent": "c5ad7f"
+  },
+  "tempered_sword": {
+    "kind": "sword",
+    "width": 1.3,
+    "guard": "straight",
+    "steel": "93a5b7",
+    "grip": "523943",
+    "accent": "8797a2"
+  },
+  "estoc": {
+    "kind": "sword",
+    "width": 0.42,
+    "guard": "ring",
+    "steel": "d6d9df",
+    "grip": "443a52",
+    "accent": "b8a58a"
+  },
+  "iron_lance": {
+    "kind": "lance",
+    "width": 0.075,
+    "steel": "cbd2d6",
+    "grip": "554337",
+    "accent": "bca26b"
+  },
+  "light_lance": {
+    "kind": "lance",
+    "width": 0.051,
+    "steel": "d8dedb",
+    "grip": "9b8663",
+    "accent": "b6af92"
+  },
+  "pike": {
+    "kind": "lance",
+    "width": 0.101,
+    "steel": "a2acb9",
+    "grip": "433f39",
+    "accent": "9b8b72"
+  },
+  "javelin": {
+    "kind": "lance",
+    "width": 0.045,
+    "steel": "c2c9ce",
+    "grip": "8b7155",
+    "accent": "a68f6a"
+  },
+  "riders_bane": {
+    "kind": "lance",
+    "width": 0.083,
+    "lugs": true,
+    "steel": "c6cbd1",
+    "grip": "3c4a48",
+    "accent": "baa16a"
+  },
+  "iron_axe": {
+    "kind": "axe",
+    "shape": "axe",
+    "width": 1,
+    "steel": "cbd2d6",
+    "grip": "554337",
+    "accent": "bca26b"
+  },
+  "hatchet": {
+    "kind": "axe",
+    "shape": "hatchet",
+    "width": 0.82,
+    "steel": "b2bbb7",
+    "grip": "7e5e42",
+    "accent": "a28e69"
+  },
+  "great_axe": {
+    "kind": "axe",
+    "shape": "axe",
+    "width": 1.2,
+    "steel": "9ba6b8",
+    "grip": "4c3b37",
+    "accent": "b19868"
+  },
+  "war_hammer": {
+    "kind": "axe",
+    "shape": "hammer",
+    "width": 1,
+    "steel": "a9b3be",
+    "grip": "413b37",
+    "accent": "bda477"
+  },
+  "scout_bow": {
+    "kind": "bow",
+    "height": 0.45,
+    "curve": 0,
+    "thickness": 0.018,
+    "steel": "cbd2d6",
+    "grip": "73533b",
+    "accent": "bca26b"
+  },
+  "recurve": {
+    "kind": "bow",
+    "height": 0.44,
+    "curve": 0.04,
+    "thickness": 0.02,
+    "steel": "cbd2d6",
+    "grip": "9c8060",
+    "accent": "d0b681"
+  },
+  "longbow": {
+    "kind": "bow",
+    "height": 0.58,
+    "curve": 0.012,
+    "thickness": 0.023,
+    "steel": "cbd2d6",
+    "grip": "493d35",
+    "accent": "ad9872"
+  },
+  "ember": {
+    "kind": "magic",
+    "cover": "793d39",
+    "ribbon": "d49c57",
+    "steel": "cbd2d6",
+    "grip": "554337",
+    "accent": "c7a469"
+  },
+  "gale": {
+    "kind": "magic",
+    "cover": "345f57",
+    "ribbon": "b7d7b0",
+    "steel": "cbd2d6",
+    "grip": "554337",
+    "accent": "b4b5a0"
+  },
+  "thunder": {
+    "kind": "magic",
+    "cover": "48436b",
+    "ribbon": "d6c57e",
+    "steel": "cbd2d6",
+    "grip": "554337",
+    "accent": "c5b48c"
+  },
+  "field_staff": {
+    "kind": "staff",
+    "core": "79cbdb",
+    "rings": 1,
+    "steel": "cbd2d6",
+    "grip": "665543",
+    "accent": "bca26b"
+  },
+  "mend_staff": {
+    "kind": "staff",
+    "core": "a4dfb4",
+    "rings": 2,
+    "steel": "d1d9d4",
+    "grip": "526050",
+    "accent": "c9bf97"
+  },
+  "beacon_staff": {
+    "kind": "staff",
+    "core": "efcc83",
+    "rings": 3,
+    "steel": "d5dce1",
+    "grip": "45475e",
+    "accent": "d0b879"
+  }
+}

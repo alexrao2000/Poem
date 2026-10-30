@@ -15,12 +15,12 @@ var body: Node3D
 var trail: Array=[]
 var motion: Tween
 
-func launch(from: Vector3,to: Vector3,weapon: String,duration=.23,spell_id="") -> Tween:
+func launch(from: Vector3,to: Vector3,weapon: String,duration=.23,spell_id="",appearance={}) -> Tween:
  name="CombatProjectile";origin=from;destination=to;kind=weapon;spell=spell_id
  arc=.14 if kind=="bow" else .08 if kind=="lance" else .04
  body=Node3D.new();body.name="FlightBody";add_child(body)
  if kind in ["bow","lance"]:
-  var reach=physical_geometry(body,kind)
+  var reach=physical_geometry(body,kind,appearance)
   for part in body.get_children():part.position.z+=reach
   origin=from+from.direction_to(to)*minf(reach,from.distance_to(to)*.5)
  else:
@@ -43,11 +43,12 @@ func launch(from: Vector3,to: Vector3,weapon: String,duration=.23,spell_id="") -
  motion.tween_callback(func():_process(0);queue_free())
  return motion
 
-static func physical_geometry(parent: Node3D,weapon: String) -> float:
+static func physical_geometry(parent: Node3D,weapon: String,appearance={}) -> float:
  var length=ARROW_LENGTH if weapon=="bow" else 1.3
  var shaft=CylinderMesh.new();shaft.height=length;shaft.top_radius=.012 if weapon=="bow" else .021;shaft.bottom_radius=shaft.top_radius;shaft.radial_segments=8
- var pole=piece(parent,shaft,Color("78604a"));pole.name="Shaft";pole.rotation.x=PI/2
- var tip=piece(parent,WeaponBlades.spear(-length*.5+.10,-length*.5,-length*.5-(.075 if weapon=="bow" else .12),.04 if weapon=="bow" else .065),Color("d5dce1"));tip.name="Tip"
+ var pole=piece(parent,shaft,Color(appearance.get("grip","78604a")) if weapon=="lance" else Color("78604a"));pole.name="Shaft";pole.rotation.x=PI/2
+ var width=.04 if weapon=="bow" else float(appearance.get("width",.065))
+ var tip=piece(parent,WeaponBlades.spear(-length*.5+.10,-length*.5,-length*.5-(.075 if weapon=="bow" else .12),width),Color(appearance.get("steel","d5dce1")) if weapon=="lance" else Color("d5dce1"));tip.name="Tip"
  if weapon=="bow":
   var feather_material: Material
   for angle in [0,TAU/3,TAU*2/3]:

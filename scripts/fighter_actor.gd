@@ -101,7 +101,8 @@ func update_bow():
  bones.NockedArrow.position=nock-Vector3(0,0,preload("res://scripts/combat_projectile.gd").ARROW_LENGTH*.5)
  for i in range(2):
   var segment=bones["BowStringTop" if i==0 else "BowStringBottom"]
-  var tip=Vector3(0,.45 if i==0 else -.45,.22)
+  var height=bones.Weapon.get_meta("bow_height",.45)
+  var tip=Vector3(0,height if i==0 else -height,.22)
   segment.position=(nock+tip)*.5
   segment.quaternion=Quaternion(Vector3.UP,(tip-nock).normalized())
   segment.scale=Vector3(1,tip.distance_to(nock),1)

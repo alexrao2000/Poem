@@ -28,15 +28,15 @@ static func page_material() -> StandardMaterial3D:
  paper.set_meta("no_character_outline",true)
  return paper
 
-static func build(fighters,hand: Node3D,gold: Color):
+static func build(fighters,hand: Node3D,gold: Color,cover=Color("344d65"),ribbon=Color("8b4b4d")):
  var book=fighters.joint(hand,"Spellbook",Vector3(0,0,-.03))
  fighters.geo.block(book,Vector3(0,0,.015),Vector3(.035,.30,.045),gold)
  for side in [-1,1]:
   var leaf=fighters.joint(book,"LeftLeaf" if side<0 else "RightLeaf",Vector3(side*.012,0,0));leaf.rotation.y=side*.25
-  fighters.geo.block(leaf,Vector3(side*.11,0,0),Vector3(.215,.30,.025),Color("344d65"))
+  fighters.geo.block(leaf,Vector3(side*.11,0,0),Vector3(.215,.30,.025),cover)
   fighters.geo.block(leaf,Vector3(side*.108,0,-.025),Vector3(.195,.275,.024),Color("e8dfbf"))
   var page=MeshInstance3D.new();page.name="PrintedPage";var quad=QuadMesh.new();quad.size=Vector2(.19,.267);page.mesh=quad
   page.position=Vector3(side*.108,0,-.038);page.rotation.y=PI;page.material_override=page_material();leaf.add_child(page)
   for end in [-1,1]:fighters.geo.block(leaf,Vector3(side*.20,end*.13,-.016),Vector3(.035,.038,.008),gold)
  # A narrow ribbon projects below the binding, away from the open page plane.
- fighters.geo.block(book,Vector3(.018,-.19,.015),Vector3(.018,.10,.006),Color("8b4b4d"))
+ fighters.geo.block(book,Vector3(.018,-.19,.015),Vector3(.018,.10,.006),ribbon)

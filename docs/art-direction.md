@@ -312,3 +312,7 @@ Existing long back lengths, ponytails, braids and the side braid now retain a de
 ### Tactical travel audio
 
 `scripts/travel_accents.py` renders six original deterministic mono 22.05 kHz PCM clips, each 100 ms (foot) or 150 ms (paired hoof), using filtered noise and short inharmonic resonances. No external samples are used. Peak amplitudes are 0.103–0.161, with zero endpoints and negligible DC. `travel_audio.gd` selects soft/hard/wood contacts through the map surface mapping and keeps two voices separate from UI, combat and paired music. Effects volume/mute applies, with travel seven dB quieter; alternating contacts vary pitch by three percent. Cues occur at tile arrival every other movement step and at the final planted stop. Listening review remains pending.
+
+### Equipped item silhouettes
+
+`data/equipment_looks.json` defines all 22 weapon appearances separately from combat statistics. `equipment_visuals.gd` builds cached closed blade/head meshes and keeps each class’s prior contact reach. The war hammer is blunt and beveled; the hatchet has one blade; narrow swords, broad tempered steel, braced pike lugs, three bow limb profiles, elemental folio covers/ribbons and different staff crowns distinguish the arsenal. Bowstrings use the actual limb height. Thrown spears inherit equipped head width and colors. Source geometry/material fingerprints distinguish all items; 880 pose samples and real javelin playback pass. Default roster: 1,797 sources / 1,034 joint batches. Final rendered inspection remains outstanding.

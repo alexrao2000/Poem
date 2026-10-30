@@ -6,6 +6,7 @@ const Actor=preload("res://scripts/fighter_actor.gd")
 const Mount=preload("res://scripts/mount_visuals.gd")
 const Hair=preload("res://scripts/character_hair.gd")
 const EnemyHeadgear=preload("res://scripts/enemy_headgear.gd")
+const EquipmentVisuals=preload("res://scripts/equipment_visuals.gd")
 const WeaponBlades=preload("res://scripts/weapon_blades.gd")
 const Projectile=preload("res://scripts/combat_projectile.gd")
 const Outline=preload("res://scripts/character_outline.gd")
@@ -119,7 +120,7 @@ func build(parent,u,p) -> Node3D:
    geo.mesh(palm,preload("res://scripts/casting_hand.gd").mesh(sign_value),Vector3.ZERO,Vector3.ONE,hand_material)
   else:ellipsoid(elbow,Vector3(0,-.29,0),Vector3(.075,.085,.065),leather)
   if sign_value==(-1 if u.weapon=="magic" else 1):
-   var hand=weapon(elbow,u.weapon,gold,steel,leather);actor.register_bone("Weapon",hand)
+   var hand=EquipmentVisuals.build(self,elbow,u.weapon,str(u.get("item","")));actor.register_bone("Weapon",hand)
    if hand.has_node("NockedArrow"):actor.register_bone("NockedArrow",hand.get_node("NockedArrow"))
    if u.weapon=="bow":
     for key in ["BowStringTop","BowStringBottom"]:actor.register_bone(key,hand.get_node(key))
@@ -239,38 +240,8 @@ func apply_surfaces(root,blue,tint,skin,steel,gold,leather,cape_color):
    mesh.material_override=mesh.material_override.duplicate()
    mesh.material_override.set_shader_parameter("cloth_amount",1.0)
 
-func weapon(arm,kind,gold,steel,leather) -> Node3D:
- var hand=joint(arm,"Weapon",Vector3(0,-.29,-.04))
- if kind=="magic":
-  preload("res://scripts/spellbook.gd").build(self,hand,gold)
- elif kind=="staff":
-  geo.cylinder(hand,Vector3(0,.05,0),1.35,.022,leather)
-  var orb=ellipsoid(hand,Vector3(0,.78,0),Vector3(.11,.11,.11),Color("79cbdb"))
-  var glow=orb.material_override.duplicate();glow.emission_enabled=true;glow.emission=Color("6ebfce");glow.emission_energy_multiplier=1.4;orb.material_override=glow
- elif kind=="bow":
-  hand.rotation.x=-1.5
-  for i in range(12):
-   var t=float(i)/12*PI;var next_t=float(i+1)/12*PI
-   var start=Vector3(0,cos(t)*.45,.22-sin(t)*.22)
-   var end=Vector3(0,cos(next_t)*.45,.22-sin(next_t)*.22)
-   var segment=geo.cylinder(hand,(start+end)*.5,start.distance_to(end)+.008,.018,leather)
-   segment.quaternion=Quaternion(Vector3.UP,(end-start).normalized())
-  for key in ["BowStringTop","BowStringBottom"]:
-   var segment=joint(hand,key,Vector3.ZERO)
-   geo.block(segment,Vector3.ZERO,Vector3(.007,1,.007),Color("d6c9a4"))
-  var arrow=joint(hand,"NockedArrow",Vector3(0,0,-.14));Projectile.physical_geometry(arrow,"bow")
- else:
-  var grip=geo.cylinder(hand,Vector3(0,0,-.08),.23,.027,leather);grip.rotation.x=PI/2
-  if kind=="lance":
-   var shaft=geo.cylinder(hand,Vector3(0,0,-.5),1.8,.024,leather);shaft.rotation.x=PI/2
-   var tip=geo.mesh(hand,WeaponBlades.spear(),Vector3.ZERO,Vector3.ONE,geo.material(steel));tip.name="SpearBlade"
-  elif kind=="axe":
-   var shaft=geo.cylinder(hand,Vector3(0,0,-.35),.9,.029,leather);shaft.rotation.x=PI/2
-   var blade=geo.mesh(hand,WeaponBlades.axe(),Vector3.ZERO,Vector3.ONE,geo.material(steel));blade.name="AxeBlade"
-  else:
-   geo.block(hand,Vector3(0,0,-.21),Vector3(.24,.04,.055),gold)
-   var blade=geo.mesh(hand,WeaponBlades.sword(),Vector3.ZERO,Vector3.ONE,geo.material(steel));blade.name="SwordBlade"
- return hand
+func equipment_profile(unit: Dictionary) -> Dictionary:
+ return EquipmentVisuals.profiles[EquipmentVisuals.resolve(unit.weapon,str(unit.get("item","")))]
 
 func face_surface(parent,index):
  parent.set_meta("face_variant",index)
