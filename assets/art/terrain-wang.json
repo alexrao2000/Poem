@@ -1,0 +1,20 @@
+{
+  "source": "assets/art/terrain-atlas.png",
+  "source_sha256": "d99a93551e39d72a929e6cd49b6e988c578b7599b006ae0e3df67944a2890264",
+  "tile_size": 128,
+  "gutter": 8,
+  "stride": 144,
+  "seed": 472019,
+  "materials": [
+    "grass",
+    "earth"
+  ],
+  "tiles_per_material": 16,
+  "world_tile_size": 0.4082934609250399,
+  "edge_bits": [
+    "top",
+    "right",
+    "bottom",
+    "left"
+  ]
+}

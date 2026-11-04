@@ -1,5 +1,5 @@
 extends RefCounted
-## One small control map blends neighboring ground paintings in world space.
+## One control map blends edge-matched ground paintings in world space.
 ## Water in masonry channels has zero weight, so it cannot stain the land edge.
 const PADDING=2
 const NATURAL=["river","forest","mountain","road"]
@@ -27,6 +27,9 @@ static func material(game,atlas: Texture2D) -> ShaderMaterial:
 	var result=ShaderMaterial.new();result.shader=preload("res://assets/shaders/ground.gdshader")
 	result.set_shader_parameter("atlas_texture",atlas)
 	result.set_shader_parameter("blend_edges",true)
+	result.set_shader_parameter("wang_enabled",true)
+	result.set_shader_parameter("wang_scale",float(atlas.get_width())/512.0)
+	result.set_shader_parameter("wang_texture",load("res://assets/art/terrain-wang.png"))
 	result.set_shader_parameter("surface_weights",ImageTexture.create_from_image(control))
 	result.set_shader_parameter("control_size",Vector2(control.get_size()))
 	result.set_shader_parameter("control_padding",float(PADDING))

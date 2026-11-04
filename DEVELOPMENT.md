@@ -6,6 +6,8 @@ User direction: keep developing continuously in this chat until the user returns
 
 ## Current checkpoint
 
+2026-11-04 user-requested trial: Wang variation now supplies grass and earth on campaign ground and natural banks. Existing stone sampling and terrain control weights remain. See [art notes and texture comparison](docs/art-direction.md#wang-variation-for-natural-ground). This is a bounded requested change; the broader development pause below still applies.
+
 **Paused by user request on 2026-10-30. Resume only when asked. See [RESUME.md](RESUME.md) for the complete handoff.**
 
 Latest delivered presentation work includes world-planted infantry/cavalry steps, level soles/hooves, shaped cavalry skull/body/neck, fitted animated reins, coordinated arena/map defeat exits and a descending push through the arena reveal. The default runner contains 70 suites. Current measured totals are 1,774 rigid character sources / 1,073 joint batches plus three dynamic reins, and 13,554 static map sources / 616 batches plus cloth and atmosphere. Local browser/macOS packages and the private GitHub repository are kept in sync after focused verification. Assembled visual/audio review and browser FPS measurements remain outstanding.

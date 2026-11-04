@@ -45,6 +45,10 @@ func run():
   assert(paint!=previous_paint,"Each chapter owns its terrain control texture")
   previous_paint=paint
   assert(paint.get_shader_parameter("blend_edges")==true,"Tactical ground uses the blending shader")
+  assert(paint.get_shader_parameter("wang_enabled")==true,"All chapter floors enable edge-matched texture variation")
+  var wang=paint.get_shader_parameter("wang_texture")
+  assert(wang is Texture2D and wang.get_size()==Vector2(576,1152),"Each chapter binds the padded natural-ground Wang atlas")
+  assert(wang.get_image().has_mipmaps(),"Natural ground retains mipmaps for distant map views")
   var control=paint.get_shader_parameter("surface_weights").get_image()
   assert(control.get_size()==board+Vector2i.ONE*4,"Control map includes grass padding around the board")
   assert(control.get_pixel(0,0)==Color(1,0,0,0) and control.get_pixel(control.get_width()-1,control.get_height()-1)==Color(1,0,0,0),"Landscape beyond the board resolves to grass")

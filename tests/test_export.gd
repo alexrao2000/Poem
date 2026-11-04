@@ -7,6 +7,8 @@ func _initialize():call_deferred("run")
 func run():
  for path in ["res://assets/fonts/OFL.txt","res://assets/audio/VSCO-LICENSE.txt","res://assets/audio/VSCO-CREDITS.txt"]:
   assert(FileAccess.file_exists(path) and FileAccess.get_file_as_string(path).length()>100,"Export includes font and instrument credits/licenses")
+ var wang=load("res://assets/art/terrain-wang.png")
+ assert(wang is Texture2D and wang.get_size()==Vector2(576,1152) and wang.get_image().has_mipmaps(),"Release includes the padded natural-ground Wang atlas and mipmaps")
  var metadata=JSON.parse_string(FileAccess.get_file_as_string("res://assets/audio/score.json"))
  assert("CC0" in metadata.samples and metadata.frames==1568000,"Export uses the current orchestral arrangement")
  var app=load("res://main.tscn").instantiate();app.settings_path="";app.save_path="/private/tmp/poem-export-test.json";root.add_child(app);await process_frame
