@@ -11,7 +11,7 @@ func label_in(parent: Node,text_value: String,font_size: int,color: Color) -> La
  label.add_theme_font_size_override("font_size",font_size);label.add_theme_color_override("font_color",color)
  parent.add_child(label);return label
 
-func configure(unit: Dictionary,class_title: String,portrait: Texture2D,weapon: Dictionary,deployed: bool,available: bool,support_ready: bool,full: bool):
+func configure(unit: Dictionary,class_title: String,portrait: Texture2D,weapon: Dictionary,deployed: bool,available: bool,support_ready: bool,full: bool,condition: Dictionary={}):
  name="Company_"+unit.id;set_meta("unit_id",unit.id);size_flags_horizontal=Control.SIZE_EXPAND_FILL
  var fallen=unit.get("fallen",false)
  var ink=Color("34566d") if available else Color("827c70")
@@ -21,6 +21,9 @@ func configure(unit: Dictionary,class_title: String,portrait: Texture2D,weapon: 
  style.content_margin_top=8;style.content_margin_bottom=8;add_theme_stylebox_override("panel",style)
  var column=VBoxContainer.new();column.add_theme_constant_override("separation",6);add_child(column)
  state_label=label_in(column,"FALLEN · CHAPTER %02d"%[int(unit.fallen_chapter)+1] if fallen else "IN COMPANY" if deployed else "RESERVE" if available else "JOINS IN CHAPTER %02d"%[int(unit.join)+1],12,ink)
+ if condition.get("recovering",false) and available:
+  state_label.text+=" · RECOVERING";state_label.mouse_filter=Control.MOUSE_FILTER_PASS
+  state_label.tooltip_text="Next deployment: %d/%d HP and %d tonic. Healing can restore full health."%[condition.hp,unit.max_hp,condition.tonics]
  var row=HBoxContainer.new();row.add_theme_constant_override("separation",8);column.add_child(row)
  portrait_button=Button.new();portrait_button.icon=portrait;portrait_button.expand_icon=true
  portrait_button.custom_minimum_size=Vector2(82,94);portrait_button.disabled=not available and not fallen
@@ -31,7 +34,9 @@ func configure(unit: Dictionary,class_title: String,portrait: Texture2D,weapon: 
  portrait_button.pressed.connect(func():inspect_requested.emit());row.add_child(portrait_button)
  var info=VBoxContainer.new();info.size_flags_horizontal=Control.SIZE_EXPAND_FILL;info.add_theme_constant_override("separation",3);row.add_child(info)
  var heading=label_in(info,unit.name,26,ink);heading.add_theme_font_override("font",preload("res://assets/fonts/CormorantGaramond.ttf"))
- label_in(info,class_title,14,Color("645e51"));label_in(info,"Lv %d   ·   HP %d"%[unit.level,unit.max_hp],13,Color("645e51"))
+ label_in(info,class_title,14,Color("645e51"))
+ var health="%d/%d"%[condition.hp,unit.max_hp] if condition.get("recovering",false) and available else str(int(unit.max_hp))
+ label_in(info,"Lv %d   ·   HP %s"%[unit.level,health],13,Color("645e51")).name="DeploymentHealth"
  var gear=HBoxContainer.new();gear.add_theme_constant_override("separation",5);info.add_child(gear)
  var icon=TextureRect.new();icon.texture=preload("res://scripts/weapon_icons.gd").get_icon(weapon.kind)
  icon.expand_mode=TextureRect.EXPAND_IGNORE_SIZE;icon.stretch_mode=TextureRect.STRETCH_KEEP_ASPECT_CENTERED

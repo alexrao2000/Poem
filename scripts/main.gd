@@ -457,7 +457,7 @@ func show_camp():
 	for u in game.roster:
 		var unlocked=game.trials.joined(game,u) and not u.get("fallen",false)
 		var card=preload("res://scripts/company_card.gd").new();cards.add_child(card)
-		card.configure(u,game.class_name_for(u),portraits.get_portrait(u.id) if unlocked or u.get("fallen",false) else unit_portrait(u),game.item_for(u),u.id in game.deployed,unlocked,unlocked and supports_ready(u),game.deployed.size()>=6)
+		card.configure(u,game.class_name_for(u),portraits.get_portrait(u.id) if unlocked or u.get("fallen",false) else unit_portrait(u),game.item_for(u),u.id in game.deployed,unlocked,unlocked and supports_ready(u),game.deployed.size()>=6,game.trials.deployment_condition(game,u))
 		if u.id=="lyra" and (game.trials.flags.reset_pressure or (game.trials.flags.section_restarts and game.permadeath)):
 			card.deploy_button.disabled=true;card.deploy_button.tooltip_text="The lord leads the company in this experiment."
 		interface_audio.watch(card.portrait_button);interface_audio.watch(card.deploy_button)
@@ -1291,6 +1291,8 @@ func show_dossier(unit):
 	label_in(info,unit.name,46,GOLD);label_in(info,profile.get("title",unit.job),26)
 	label_in(info,"%s  /  Level %d  /  %s"%[game.class_name_for(unit),unit.level,"MAX" if unit.level>=game.MAX_LEVEL else "%d XP"%unit.xp],20)
 	label_in(info,"HP %d    ATK %d    DEF %d    RES %d    SPD %d    MOV %d"%[unit.max_hp,game.attack_power(unit),unit.defense,game.resistance_for(unit),game.attack_speed(unit),unit.move],21)
+	var condition=game.trials.deployment_condition(game,unit)
+	if condition.recovering:label_in(info,"RECOVERY · Next deployment starts at %d/%d HP with %d tonic. Healing can restore full health."%[condition.hp,unit.max_hp,condition.tonics],19,GOLD)
 	label_in(info,profile.get("biography",unit.bio),22)
 	label_in(info,"PERSONAL NOTE",16,GOLD);label_in(info,profile.get("note",""),20)
 	if unit.get("fallen",false):label_in(info,"IN MEMORIAM · Fell in chapter %02d — %s"%[int(unit.fallen_chapter)+1,game.content.chapters[int(unit.fallen_chapter)].title],22,GOLD)
@@ -1612,7 +1614,7 @@ func show_options(return_to: String):
 		var toggle=CheckButton.new();toggle.name=setting.key;toggle.text=setting.name;toggle.button_pressed=game.get(setting.key);panel.add_child(toggle)
 		toggle.toggled.connect(func(value):game.set(setting.key,value))
 		label_in(panel,setting.text,16)
-	for setting in [{"key":"section_restarts","name":"Restart the current section","text":"With permadeath: retries return to the start of the four-chapter section. Deaths and legacy supplies remain. Relief recruits arrive at section breaks."},{"key":"reset_pressure","name":"Enemies prepare after resets","text":"Retries and lord defeat increase enemy stats, spend held tonics and advance raiders. Applies with permadeath on or off."},{"key":"hard_campaign","name":"Harder enemy forces","text":"On the next deployment: enemies gain health, attack, speed and later defense. Bonuses grow each section."},{"key":"death_legacies","name":"Death events & legacy supplies","text":"With permadeath: each death commits a loss, grants one supply credit and may bring a volunteer ahead of schedule."},{"key":"sacrifice_cost","name":"Sacrifice costs & openings","text":"A fallen ally starts the next chapter with 4 HP missing and one tonic. Their fall gives survivors +2 attack through the next player turn."}]:
+	for setting in [{"key":"section_restarts","name":"Restart the current section","text":"With permadeath: retries return to the start of the four-chapter section. Deaths and legacy supplies remain. Relief recruits arrive at section breaks."},{"key":"reset_pressure","name":"Enemies prepare after resets","text":"Retries and lord defeat increase enemy stats, spend held tonics and advance raiders. Applies with permadeath on or off."},{"key":"hard_campaign","name":"Harder enemy forces","text":"On the next deployment: enemies gain health, attack, speed and later defense. Bonuses grow each section."},{"key":"death_legacies","name":"Death events & legacy supplies","text":"With permadeath: each death commits a loss, grants one supply credit and may bring a volunteer ahead of schedule."},{"key":"sacrifice_cost","name":"Sacrifice costs & openings","text":"Returning allies start attempts through the next chapter 4 HP down, with one tonic. The first fall per recruit in a chapter gives survivors +2 attack through the next player turn."}]:
 		var toggle=CheckButton.new();toggle.name=setting.key;toggle.text=setting.name;toggle.button_pressed=game.trials.flags[setting.key];panel.add_child(toggle)
 		toggle.toggled.connect(func(value):game.trials.flags[setting.key]=value)
 		label_in(panel,setting.text,16)

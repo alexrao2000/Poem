@@ -25,6 +25,21 @@ func run():
    elif available:assert(entry.state_label.text=="RESERVE")
  app.game.chapter=11;app.game.deployed=[]
  for index in range(18,24):app.game.deployed.append(app.game.roster[index].id)
+ var patient=app.game.roster[-1];app.game.trials.flags.sacrifice_cost=true;app.game.trials.injuries[patient.id]=11
+ app.game.start_battle()
+ var returning=app.game.units.filter(func(unit):return unit.id==patient.id)[0]
+ for dimensions in [Vector2(1024,640),Vector2(1280,720),Vector2(1440,900)]:
+  app.show_camp();app.ui.set_anchors_and_offsets_preset(Control.PRESET_TOP_LEFT);app.ui.size=dimensions;await settle()
+  var preview=card(app,patient.id)
+  assert("RECOVERING" in preview.state_label.text and "%d/%d"%[returning.hp,returning.max_hp] in preview.find_child("DeploymentHealth",true,false).text,"Preparation previews actual reduced starting HP")
+  assert("%d tonic"%returning.potions in preview.state_label.tooltip_text and preview.state_label.mouse_filter!=Control.MOUSE_FILTER_IGNORE)
+  for label in preview.find_children("*","Label",true,false):assert(preview.get_global_rect().grow(1).encloses(label.get_global_rect()),"Recovery information fits the company card at every supported size")
+ app.show_dossier(patient);await settle()
+ assert(app.ui.find_children("*","Label",true,false).any(func(label):return label.text.begins_with("RECOVERY · Next deployment")),"Dossiers explain the same deployment penalty")
+ app.game.trials.injuries[patient.id]=10;app.show_camp();await settle()
+ assert(not "RECOVERING" in card(app,patient.id).state_label.text,"Expired recovery disappears before deployment")
+ app.game.trials.injuries[patient.id]=11;app.game.trials.flags.sacrifice_cost=false;app.show_camp();await settle()
+ assert(not "RECOVERING" in card(app,patient.id).state_label.text,"Disabling sacrifice costs removes the next-deployment penalty preview")
  app.show_camp();await settle()
  var scroll=app.ui.find_child("CompanyScroll",true,false);scroll.scroll_vertical=100000;await settle()
  var before=scroll.scroll_vertical;assert(before>300)

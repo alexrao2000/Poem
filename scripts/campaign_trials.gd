@@ -73,6 +73,10 @@ func enemy_modifiers(chapter: int) -> Dictionary:
  var extra=pressure if flags.reset_pressure else 0
  return {"max_hp":extra*2+(6+chapter if flags.hard_campaign else 0),"pow":extra+(2+int(chapter/2) if flags.hard_campaign else 0),"speed":1+int(chapter/4) if flags.hard_campaign else 0,"defense":int(chapter/3) if flags.hard_campaign else 0,"held_tonics":maxi(0,2-extra) if flags.reset_pressure else 0,"raiders_advance":extra>0}
 
+func deployment_condition(game,unit: Dictionary) -> Dictionary:
+ var recovering=flags.sacrifice_cost and not unit.get("fallen",false) and int(injuries.get(unit.id,-1))>=game.chapter
+ return {"recovering":recovering,"hp":maxi(1,int(unit.max_hp)-4) if recovering else int(unit.max_hp),"tonics":1 if recovering else 2}
+
 func prepare_battle(game):
  if not flags.reset_pressure and not flags.hard_campaign and not flags.sacrifice_cost:return
  var extra=pressure if flags.reset_pressure else 0
@@ -85,8 +89,9 @@ func prepare_battle(game):
     unit.held_tonics=modifiers.held_tonics
     if extra>0:unit.reset_supplies_spent=mini(2,extra)
     if not unit.boss and unit.job in ["Corsair","Ranger"]:unit.raider=true
-  elif flags.sacrifice_cost and int(injuries.get(unit.id,-1))>=game.chapter:
-   unit.hp=maxi(1,unit.max_hp-4);unit.potions=1;unit.recovering=true
+  else:
+   var condition=deployment_condition(game,unit)
+   if condition.recovering:unit.hp=condition.hp;unit.potions=condition.tonics;unit.recovering=true
  if extra>0:
   var planner=preload("res://scripts/tactics.gd").new()
   var previous=game.phase;game.phase="enemy"

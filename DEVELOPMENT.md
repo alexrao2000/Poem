@@ -30,6 +30,8 @@ Staff target highlights now include downed allies while excluding hidden carried
 
 Debug training can raise available recruits to a chosen level and rebuild the battle with the selected seed. It uses ordinary growth, preserves higher levels/promotions and permanent losses, and leaves the section checkpoint unchanged. The control reflects the prepared company’s minimum level. Debug isolation, normal growth equivalence, progression and promotion suites pass.
 
+Company cards now mark recovering recruits and show their actual next-deployment HP. Dossiers explain the reduced tonic supply. Both previews share the deployment calculation, disappear when recovery expires or the switch is disabled, and leave roster progression unchanged. Company, trial and 567 menu-layout checks pass. Sacrifice descriptions now state the existing once-per-recruit-per-chapter opening limit.
+
 ## Earlier checkpoints
 
 Spell flight now has a continuous soft-edged wake and luminous elemental cores/halos, replacing the six opaque trailing beads. It uses four fewer mesh instances per spell while keeping the existing path/timing. Focused geometry, transformed physical/elemental flights, actual exchanges and skip cleanup pass; the isolated additive study was corrected for a measured headless gradient readback artifact rather than treating that artifact as a game defect.
