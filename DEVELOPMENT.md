@@ -6,6 +6,8 @@ User direction: keep developing continuously in this chat until the user returns
 
 ## Current checkpoint
 
+Styled casters now wear the original open-front robe fitted to the source skeleton. A rear vent separates the leg panels, and the hem follows the lower legs. Immutable geometry is cached per body; fabric, floor contact and defeat fading remain actor-owned. This is a skinned garment, not cloth simulation.
+
 Casting studies offer Tarin and Vela's original identities and all three folios on the supplied male/female rigs. Their free left hand casts while a bounded two-bone solve supports the open tome in front of his torso. The source library now retains eleven clips. Tests cover 918 poses per body, supported-book floor clearance, viewer controls, hit-stop and three actual elemental exchanges; eight shared regression suites pass. An independent **Revised casting models** debug toggle selects Tarin and Vela in real battles and outfit previews, before promotion and only with the three supported folios. It resets when Debug mode ends; normal campaign models remain unchanged. Their isolated asset studies were inspected; assembled rendering remains unreviewed. Loose original hair now follows bounded motion on the imported head, with fixed scalp roots and actor-owned hit-stop/visibility.
 
 Imported sword users now keep a fitted grip through running, recoil and falls. Private clip copies retain fifteen right-finger rotations around slimmer handles; the free hand, wrist, body and original source animations are preserved. A closeup asset study corrected the initial fist/handle intersection. Tests cover 1,836 poses, all non-finger bones, source independence and actual hilt proximity.

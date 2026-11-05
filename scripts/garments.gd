@@ -6,8 +6,8 @@ const ROWS=[0.0,.30,.65,1.0]
 static var fabric: ArrayMesh
 static var border: ArrayMesh
 
-static func point(t: float,u: float) -> Vector3:
- var gap=.58*smoothstep(.25,1.0,t)
+static func point(t: float,u: float,opening=.58,split_start=.25) -> Vector3:
+ var gap=opening*smoothstep(split_start,1.0,t)
  var angle=-PI*.5+gap+u*(TAU-gap*2)
  var fold=sin(u*TAU*8+PI*.25)*.014*t
  return Vector3(cos(angle)*(.18+.11*t+fold),-.125-.84*t+pow(t,6)*(.016+.016*cos(angle*4)),sin(angle)*(.145+.10*t+fold*.7))

@@ -4,6 +4,8 @@ extends Node3D
 const DYED=preload("res://assets/shaders/authored-cloth.gdshader")
 const FaceBlink=preload("res://scripts/face_blink.gd")
 @export var cloak_cut="forked"
+@export var robe_enabled=false
+var robe: Node
 var identity=""
 var blink=FaceBlink.new()
 var current_pose="idle"
@@ -72,6 +74,8 @@ func configure_identity(id: String) -> String:
  neck_material.set_shader_parameter("reference_luma",reference_luma(neck_mesh,0,source_skin.albedo_texture,3))
  neck_material.set_meta("identity",id);neck_material.set_meta("dye_mode",3);neck.material_override=neck_material;painted_materials.append(neck_material)
  cloak=preload("res://scripts/authored_cloak.gd").new();cloak.name="CloakDriver";add_child(cloak);cloak.configure(model,rig,painter,appearance,cloak_cut)
+ if robe_enabled:
+  robe=preload("res://scripts/authored_robe.gd").new();robe.name="RobeDriver";add_child(robe);robe.configure(model,rig,painter,appearance)
  gaze=preload("res://scripts/authored_gaze.gd").new();gaze.name="GazeDriver";add_child(gaze);gaze.configure(model,rig)
  return ""
 

@@ -116,6 +116,8 @@ func run():
   var caster=app.preview_actor;assert(caster is Imported and caster.model.get_meta("character_identity")==pair[1],"Packaged casting study retains the original identity")
   await caster.pose("windup",.02).finished;await caster.pose("strike",.02).finished
   if pair[1]=="vela":assert(caster.model.get_node("Identity").hair_motion.root!=null,"Packaged female caster retains her dynamic braid")
+  var robe=caster.model.get_node("Identity").robe
+  assert(robe!=null and robe.pieces.size()==2 and robe.pieces[0].skin.get_bind_count()==5,"Packaged caster retains the fitted original robe and its skin")
   var caster_rig=caster.model.get_node("Rig/Armature/Skeleton3D");var support=caster_rig.get_node("FolioSupport")
   assert(caster_rig.get_node("BookHand").position.distance_to((caster_rig.get_bone_global_pose(support.chest)*support.target).origin)<.0001,"Packaged folio retains its actual skeletal support")
   assert(caster.to_local(caster.socket_position("projectile")).z<-.5 and caster_rig.get_node("BookHand/Folio").equipped=="thunder","Packaged casting hand and selected folio use separate attachments")

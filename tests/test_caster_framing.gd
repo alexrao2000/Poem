@@ -37,6 +37,10 @@ func run():
         for surface in range(mesh.mesh.get_surface_count()):
          for vertex in mesh.mesh.surface_get_arrays(surface)[Mesh.ARRAY_VERTEX]:
           var point=camera.unproject_position(mesh.to_global(vertex));low=low.min(point);high=high.max(point)
+       if sample[1] in ["wide","finish"]:
+        for mesh in actor.model.get_node("Identity").robe.pieces:
+         for vertex in garment_points(mesh):
+          var point=camera.unproject_position(vertex);low=low.min(point);high=high.max(point)
        if low.x<24 or high.x>size_value.x-24 or low.y<88 or high.y>size_value.y-160:
         failures.append([id,side,sample[0],mounted,step,str(size_value),str(low),str(high)])
        count+=1
@@ -48,3 +52,13 @@ func run():
  assert(framing.frame_for(Vector3.ZERO,Vector3(1.4,0,0),"windup",false)==ordinary,"Ordinary fighters retain their existing shot")
  print("PASS: ",count," authored camera layouts across both directions, foot/mounted opponents, cast/recover/dodge/finish poses and three viewport sizes, actual shot tweens and unchanged baseline")
  world.queue_free();viewport.queue_free();await process_frame;quit()
+
+func garment_points(mesh: MeshInstance3D) -> PackedVector3Array:
+ var rig=mesh.get_node(mesh.skeleton);var arrays=mesh.mesh.surface_get_arrays(0);var vertices=arrays[Mesh.ARRAY_VERTEX];var transforms=[];var result=PackedVector3Array()
+ for index in range(mesh.skin.get_bind_count()):transforms.append(rig.get_bone_global_pose(rig.find_bone(mesh.skin.get_bind_name(index)))*mesh.skin.get_bind_pose(index))
+ for index in range(vertices.size()):
+  var point=Vector3.ZERO
+  for influence in range(4):
+   var at=index*4+influence;point+=(transforms[arrays[Mesh.ARRAY_BONES][at]]*vertices[index])*arrays[Mesh.ARRAY_WEIGHTS][at]
+  point=rig.to_global(point);point.y=maxf(point.y,mesh.material_override.get_shader_parameter("cloth_floor_y"));result.append(point)
+ return result

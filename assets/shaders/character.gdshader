@@ -15,7 +15,8 @@ void vertex() {
  if (cloth_amount > 0.0) {
   NORMAL = cape_normal(VERTEX, NORMAL);
   VERTEX = cape_position(VERTEX);
-  if (cloth_floor_enabled) {
+ }
+ if (cloth_floor_enabled) {
    vec4 world = MODEL_MATRIX * vec4(VERTEX, 1.0);
    if (world.y < cloth_floor_y) {
     world.y = cloth_floor_y;
@@ -23,7 +24,6 @@ void vertex() {
     VERTEX = (inverse_model * world).xyz;
     NORMAL = normalize(transpose(mat3(MODEL_MATRIX)) * vec3(0.0, 1.0, 0.0));
    }
-  }
  }
 }
 void fragment() {

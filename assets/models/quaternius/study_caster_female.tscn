@@ -9,6 +9,7 @@
 [node name="Identity" type="Node3D" parent="."]
 script = ExtResource("3_identity")
 cloak_cut = "standard"
+robe_enabled = true
 
 [node name="Rig" parent="." instance=ExtResource("1_rig")]
 

@@ -11,6 +11,7 @@ var skeletons=[]
 var attachments=[]
 var contact: SkeletonModifier3D
 var pose_listeners=[]
+var material_listeners=[]
 var pose_constraints=[]
 signal travel_contact(index: int)
 var stride_length=0.0
@@ -27,6 +28,7 @@ func configure(scene: Node3D,spec: Dictionary) -> String:
  model=scene;add_child(model)
  skeletons=model.find_children("*","Skeleton3D",true,false)
  attachments=model.find_children("*","BoneAttachment3D",true,false)
+ material_listeners=model.find_children("*","",true,false).filter(func(node):return node.has_method("materials_remapped"))
  pose_listeners=model.find_children("*","",true,false).filter(func(node):return node.has_method("combat_pose"))
  pose_constraints=model.find_children("*","SkeletonModifier3D",true,false).filter(func(node):return node.has_method("sample_attachments"))
  model.scale=Vector3.ONE*float(spec.get("scale",1.0))
@@ -144,8 +146,7 @@ func face_opponent(other: Node3D):
   if listener.has_method("face_opponent"):listener.face_opponent(other)
 
 func remap_materials(copies: Dictionary):
- for listener in pose_listeners:
-  if listener.has_method("materials_remapped"):listener.materials_remapped(copies)
+ for listener in material_listeners:listener.materials_remapped(copies)
 
 func number(value) -> bool:
  return (value is float or value is int) and is_finite(float(value))
