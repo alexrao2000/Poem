@@ -47,6 +47,8 @@ The extra record uses the public [Web Storage API](https://developer.mozilla.org
 
 This is a local experimentation harness, not tamper-resistant ironman enforcement. Players can deliberately change toggles, use debug tools, or import an older exported save. An external process killing the game before a resolved action can finish writing is outside the guarantee. No server-side authority is involved.
 
+With section restarts and permadeath enabled, the route map marks reached section starts with diamonds and identifies the current retreat point. Selecting a historical chapter shows its own four-chapter section without moving the current rally point or exposing future briefings. The section aids disappear when either switch is off.
+
 Before retreating, the battle menu and defeat screen show the destination chapter, next pressure level, enemy bonuses, held tonics and raider preparation. The preview includes section rewinds and caps pressure at 10. Viewing it does not advance pressure, consume RNG or change the save.
 
 ## Initial balance measurements

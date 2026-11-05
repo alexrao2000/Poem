@@ -491,12 +491,14 @@ func show_campaign_route():
 	label_in(frame,"A chronicle of the valley · Select a reached destination to review its briefing.",16)
 	var row=HBoxContainer.new();row.add_theme_constant_override("separation",20);row.size_flags_vertical=Control.SIZE_EXPAND_FILL;frame.add_child(row)
 	var route=preload("res://scripts/campaign_route.gd").new();route.name="CampaignRoute";row.add_child(route)
-	route.configure(game.content.chapters,game.chapter,game.completed)
+	var sectioned=game.permadeath and game.trials.flags.section_restarts
+	route.configure(game.content.chapters,game.chapter,game.completed,sectioned)
 	for marker in route.markers:interface_audio.watch(marker)
 	var details=VBoxContainer.new();details.custom_minimum_size.x=260;row.add_child(details)
 	var progress=label_in(details,"",16,GOLD)
 	var title=label_in(details,"",28)
 	var place=label_in(details,"",17,GOLD)
+	var section_label=label_in(details,"",15,GOLD);section_label.name="RouteSection";section_label.visible=sectioned
 	var reading=scrolling_column(details)
 	var briefing=label_in(reading,"",20)
 	var tactics_text=label_in(reading,"",17,Color("766e5e"))
@@ -504,10 +506,14 @@ func show_campaign_route():
 		var chapter=game.content.chapters[index]
 		progress.text="CHAPTER %02d / %02d · %s"%[index+1,game.content.chapters.size(),"COMPLETED" if index<game.chapter or game.completed else "CURRENT"]
 		title.text=chapter.title;place.text=chapter.place.to_upper()
+		var start=game.trials.section_start(index)
+		section_label.text="SECTION %d · CHAPTERS %02d–%02d"%[int(index/4)+1,start+1,mini(start+4,game.content.chapters.size())]
 		briefing.text=chapter.intro;tactics_text.text=chapter.get("tactical_brief","")
 		reading.get_parent().scroll_vertical=0
 	route.chapter_selected.connect(refresh);refresh.call(game.chapter)
-	label_in(frame,"Numbered seals mark the road traveled. The standard marks your company’s current chapter.",15,Color("766e5e"))
+	var route_hint="Numbered seals mark the road traveled. The standard marks your company’s current chapter."
+	if sectioned:route_hint="Diamonds mark section starts."+(" The chronicle is complete." if game.completed else " Your current retreat point is Chapter %02d."%(game.trials.section_start(game.chapter)+1))
+	var legend=label_in(frame,route_hint,15,Color("766e5e"));legend.name="RouteLegend"
 	button_in(frame,"Return to war council",show_camp)
 
 func objective_text() -> String:

@@ -8,17 +8,19 @@ var markers: Array[Button]=[]
 var current=0
 var selected=0
 var complete=false
+var section_starts=false
 var clock=0.0
 var map_rect=Rect2()
 
-func configure(chapters: Array,index: int,finished=false):
- current=clampi(index,0,POINTS.size()-1);selected=current;complete=finished
+func configure(chapters: Array,index: int,finished=false,show_sections=false):
+ current=clampi(index,0,POINTS.size()-1);selected=current;complete=finished;section_starts=show_sections
  mouse_filter=Control.MOUSE_FILTER_IGNORE
  size_flags_horizontal=Control.SIZE_EXPAND_FILL;size_flags_vertical=Control.SIZE_EXPAND_FILL
  custom_minimum_size=Vector2(350,240)
  for i in range(POINTS.size()):
   var marker=Button.new();marker.name="Chapter"+str(i+1);marker.text=str(i+1)
   marker.tooltip_text=chapters[i].place+" · "+chapters[i].title if i<=current or complete else "Unreached destination"
+  if section_starts and i%4==0 and (i<=current or complete):marker.tooltip_text+="\nSection %d start%s"%[int(i/4)+1," · Current retreat point" if i==int(current/4)*4 and not complete else ""]
   marker.disabled=i>current and not complete;marker.mouse_default_cursor_shape=Control.CURSOR_POINTING_HAND
   for state in ["normal","hover","pressed","disabled"]:marker.add_theme_stylebox_override(state,StyleBoxEmpty.new())
   var focus=StyleBoxFlat.new();focus.bg_color=Color(0,0,0,0);focus.set_border_width_all(2);focus.border_color=Color("fff0b0");focus.set_corner_radius_all(18)
@@ -34,7 +36,7 @@ func select_chapter(index: int):
  selected=index;queue_redraw();chapter_selected.emit(index)
 
 func arrange():
- var available=(size-Vector2(48,80)).max(Vector2.ONE)
+ var available=(size-Vector2(48,64)).max(Vector2.ONE)
  var scale_value=minf(available.x/MAP.get_width(),available.y/MAP.get_height())
  var extent=MAP.get_size()*scale_value;map_rect=Rect2((size-extent)*.5,extent)
  for i in range(markers.size()):
@@ -63,6 +65,9 @@ func _draw():
    draw_circle(pos,2.0 if reached else 1.1,color)
  for i in range(markers.size()):
   var center=point(i);var reached=i<=current or complete
+  if section_starts and i%4==0 and reached:
+   var corners=PackedVector2Array([center+Vector2(0,-20),center+Vector2(20,0),center+Vector2(0,20),center+Vector2(-20,0),center+Vector2(0,-20)])
+   draw_polyline(corners,Color("f5dc94") if i==int(current/4)*4 and not complete else Color("a88b55"),2,true)
   draw_circle(center+Vector2(0,2),15,Color(0.18,.13,.08,.35))
   draw_circle(center,14,Color("a8864b") if reached else Color("99927e"))
   draw_circle(center,11.5,Color("354e60") if i==current else Color("66523b") if reached else Color("746e60"))
