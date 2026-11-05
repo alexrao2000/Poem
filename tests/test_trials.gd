@@ -81,6 +81,8 @@ func run():
  assert(purchase.size()==1 and not purchase[0].disabled);purchase[0].pressed.emit()
  var loaded=Rules.new();assert(loaded.load_game(app.save_path)=="camp" and loaded.trials.credits==0 and "tempered_sword" in loaded.trials.purchases,"Actual legacy shop purchase saves the campaign ledger")
  app.make_map();app.show_battle();app.restart_campaign_attempt()
+ assert(app.screen=="dialogue","A retreat enters its earned company scenes")
+ while app.screen=="dialogue":app.finish_dialogue()
  assert(app.screen=="camp" and app.game.trials.pressure==1 and app.game.units.is_empty(),"Player-requested restart uses the same penalty and section path as defeat")
  app.game.new_campaign();app.game.trials.flags.reset_pressure=true;app.game.start_battle()
  app.preferences.values.combat="map"

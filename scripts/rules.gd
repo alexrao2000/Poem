@@ -18,7 +18,6 @@ const TERRAIN_PROFILES={
  "#":{"name":"Blocked","move":0,"cover":0,"avoid":0,"heal":0},
  "~":{"name":"Water","move":0,"cover":0,"avoid":0,"heal":0}
 }
-var save_sequence=0
 var chapter: int = 0
 var turn: int = 1
 var phase: String = "player"
@@ -46,7 +45,6 @@ func new_campaign(permadeath_enabled=false):
 	permadeath=permadeath_enabled
 	death_door=false;action_saves=false;trials.reset()
 	chapter = 0
-	save_sequence=0
 	turn = 1
 	phase = "player"
 	units.clear()
@@ -386,12 +384,12 @@ func layout_signature() -> String:
 	return JSON.stringify([info().map,info().deployment_positions,placement,info().objective_position]).sha256_text()
 
 func save_data(stage: String) -> Dictionary:
-	return {"version":SAVE_VERSION,"save_sequence":save_sequence,"trials":trials.to_data(),"death_door":death_door,"action_saves":action_saves,"permadeath":permadeath,"battle_supports":battle_supports,"layout_signature":layout_signature(),"story_seen":story_seen,"supports":supports.state,"chapter":chapter,"turn":turn,"phase":phase,"roster":roster,"units":units,"deployed":deployed,"completed":completed,"rng":str(rng.state),"stage":stage}
+	return {"version":SAVE_VERSION,"trials":trials.to_data(),"death_door":death_door,"action_saves":action_saves,"permadeath":permadeath,"battle_supports":battle_supports,"layout_signature":layout_signature(),"story_seen":story_seen,"supports":supports.state,"chapter":chapter,"turn":turn,"phase":phase,"roster":roster,"units":units,"deployed":deployed,"completed":completed,"rng":str(rng.state),"stage":stage}
 
 func save_game(path: String,stage: String) -> bool:
 	var previous=read_saved_data(path)
-	save_sequence=maxi(save_sequence,int(previous.get("save_sequence",0)))+1
 	var data=save_data(stage)
+	data.save_sequence=int(previous.get("save_sequence",0))+1
 	var file=FileAccess.open(path+".tmp",FileAccess.WRITE)
 	if file==null:return false
 	file.store_string(JSON.stringify(data));file.flush();file.close()
@@ -514,7 +512,6 @@ func load_game(path: String) -> String:
 func restore_save(data) -> String:
 	if not valid_save(data):return ""
 	data=data.duplicate(true)
-	save_sequence=int(data.get("save_sequence",0))
 	permadeath=data.get("permadeath",false)
 	death_door=data.get("death_door",false);action_saves=data.get("action_saves",false)
 	trials.from_data(data.get("trials",{}))

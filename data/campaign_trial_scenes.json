@@ -1,0 +1,38 @@
+{
+  "relief_4": [
+    {"speaker":"lyra","text":"The abbey will keep our wounded and our records. From here, the causeway is one march. If we lose the road, we come back here and take it again."},
+    {"speaker":"faye","text":"I sent word along the hunting paths. People heard what happened at the river. They are coming because someone stayed to help."},
+    {"speaker":"vela","text":"The lighthouse can manage without me. Give me a place in the column."},
+    {"speaker":"dax","text":"And me. We learned to hold a line on the docks. We can learn the rest together."},
+    {"speaker":"lyra","text":"You are welcome here. You are not replacements for names on a list. Tell us what you can do, and we will make room."}
+  ],
+  "relief_8": [
+    {"speaker":"lyra","text":"The monastery is our last rally point. Leave copies of the charts here. If the engine's guards drive us back, the next attempt starts with what we can still carry."},
+    {"speaker":"galen","text":"There are beds in the old seed house. Nobody has to earn one by being useful."},
+    {"speaker":"yuna","text":"I can get close to the palace patrols. I know when they turn, and which doors they leave unguarded."},
+    {"speaker":"hale","text":"I helped dig the engine's foundations. Let me help bring it down."},
+    {"speaker":"lyra","text":"Then we plan with the people standing here. We remember everyone who brought us this far."}
+  ],
+  "retreat_0": [
+    {"speaker":"lyra","text":"They carried me back to Cinderford. The patrols have closed the crossing again. We will have to open it from this side."},
+    {"speaker":"lyra","text":"The lost do not return because I survived. Keep their names in the book. Count the people and supplies we still have, then we decide how to move."}
+  ],
+  "retreat_4": [
+    {"speaker":"lyra","text":"We are back at the abbey. While we withdrew, the regent's troops retook the causeway. The eastern road is closed again."},
+    {"speaker":"lyra","text":"I will not call this a fresh beginning. We carry every loss into the next march. But the granary is still ours, and there are people here willing to walk with us."}
+  ],
+  "retreat_8": [
+    {"speaker":"lyra","text":"The monastery bell brought the scattered companies home. The guards have sealed the engine approaches. We start again from Starfall."},
+    {"speaker":"lyra","text":"Keep the charts. Keep the promises we made for the fallen. I am alive because someone brought me out, and I mean to make that matter."}
+  ],
+  "volunteer_faye": [
+    {"speaker":"faye","text":"I heard a name on the road. Someone who stood with your company, and will not be going home."},
+    {"speaker":"lyra","text":"I wish the news had been better."},
+    {"speaker":"faye","text":"So do I. I was going to meet you on the Kingsroad. I can walk beside you before then."}
+  ],
+  "volunteer_noor": [
+    {"speaker":"noor","text":"The reports reached the observatory. I kept calculating how long we had. All the while, people were paying for that time."},
+    {"speaker":"lyra","text":"Your work may still be what saves the valley."},
+    {"speaker":"noor","text":"Then I will bring it with me. I am done asking other people to hold the road alone."}
+  ]
+}

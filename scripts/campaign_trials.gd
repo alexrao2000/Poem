@@ -5,6 +5,9 @@ extends RefCounted
 
 const FLAGS={"section_restarts":false,"reset_pressure":false,"hard_campaign":false,"death_legacies":false,"sacrifice_cost":false}
 const LEGACY_STOCK=[{"id":"tempered_sword","cost":1,"losses":1},{"id":"war_hammer","cost":2,"losses":2},{"id":"longbow","cost":3,"losses":3}]
+var scenes: Dictionary=JSON.parse_string(FileAccess.get_file_as_string("res://data/campaign_trial_scenes.json"))
+var earned_scenes: Array=[]
+var read_scenes: Array=[]
 var flags=FLAGS.duplicate()
 var pressure=0
 var losses: Dictionary={}
@@ -16,7 +19,18 @@ var events: Array=[]
 var checkpoint: Dictionary={}
 
 func reset():
- flags=FLAGS.duplicate();pressure=0;losses.clear();injuries.clear();volunteers.clear();purchases.clear();credits=0;events.clear();checkpoint.clear()
+ flags=FLAGS.duplicate();pressure=0;losses.clear();injuries.clear();volunteers.clear();purchases.clear();credits=0;events.clear();checkpoint.clear();earned_scenes.clear();read_scenes.clear()
+
+func queue_scene(id: String):
+ if scenes.has(id) and id not in earned_scenes:earned_scenes.append(id)
+
+func next_scene(game) -> Array:
+ for id in earned_scenes:
+  if id in read_scenes:continue
+  read_scenes.append(id)
+  if id.begins_with("volunteer_") and id.trim_prefix("volunteer_") in game.lost_ids():continue
+  return scenes[id].duplicate(true)
+ return []
 
 func section_start(chapter: int) -> int:
  return int(chapter/4)*4
@@ -52,7 +66,7 @@ func record_losses(game):
   if not volunteer.is_empty() and volunteer not in volunteers:
    var recruits=game.roster.filter(func(recruit):return recruit.id==volunteer)
    if not recruits.is_empty() and not recruits[0].get("fallen",false) and recruits[0].join>game.chapter:
-    volunteers.append(volunteer)
+    volunteers.append(volunteer);queue_scene("volunteer_"+volunteer)
     log_event(recruits[0].name+" answers the company's loss and arrives ahead of the planned rendezvous.")
 
 func prepare_battle(game):
@@ -96,6 +110,7 @@ func restart(game) -> bool:
    for recruit in game.roster:
     if recruit.id==casualty.id:recruit.fallen=true;recruit.fallen_chapter=casualty.fallen_chapter;recruit.hp=0
   game.deployed=game.available().slice(0,6).map(func(unit):return unit.id)
+  queue_scene("retreat_"+str(game.chapter))
   log_event("The company withdraws to the start of section %d. The fallen remain lost; enemy preparations and legacy supplies remain."%(int(game.chapter/4)+1))
  else:
   if game.permadeath:game.supports.state=game.battle_supports.duplicate(true)
@@ -103,7 +118,8 @@ func restart(game) -> bool:
  return true
 
 func arrive(game):
- if not flags.section_restarts or game.chapter%4!=0 or game.completed:return
+ if not flags.section_restarts or not game.permadeath or game.chapter%4!=0 or game.completed:return
+ queue_scene("relief_"+str(game.chapter))
  var names=[]
  for unit in game.roster:
   if unit.join>=game.chapter and unit.join<game.chapter+2 and not unit.get("fallen",false):
@@ -119,11 +135,12 @@ func buy(game,id: String) -> bool:
  return false
 
 func to_data() -> Dictionary:
- return {"flags":flags.duplicate(),"pressure":pressure,"losses":losses.duplicate(),"injuries":injuries.duplicate(),"volunteers":volunteers.duplicate(),"purchases":purchases.duplicate(),"credits":credits,"events":events.duplicate(),"checkpoint":checkpoint.duplicate(true)}
+ return {"earned_scenes":earned_scenes.duplicate(),"read_scenes":read_scenes.duplicate(),"flags":flags.duplicate(),"pressure":pressure,"losses":losses.duplicate(),"injuries":injuries.duplicate(),"volunteers":volunteers.duplicate(),"purchases":purchases.duplicate(),"credits":credits,"events":events.duplicate(),"checkpoint":checkpoint.duplicate(true)}
 
 func from_data(data: Dictionary):
  reset()
  if data.is_empty():return
+ earned_scenes=data.get("earned_scenes",[]).duplicate();read_scenes=data.get("read_scenes",[]).duplicate()
  flags=data.flags.duplicate();pressure=int(data.pressure);losses=data.losses.duplicate();injuries=data.injuries.duplicate();volunteers=data.volunteers.duplicate();purchases=data.purchases.duplicate();credits=int(data.credits);events=data.events.duplicate();checkpoint=data.checkpoint.duplicate(true)
 
 func valid(game,data) -> bool:
@@ -158,6 +175,14 @@ func valid(game,data) -> bool:
  if not data.events is Array or data.events.size()>64:return false
  for event in data.events:
   if not event is String or event.length()>500:return false
+ for key in ["earned_scenes","read_scenes"]:
+  var entries=data.get(key,[])
+  if not entries is Array or entries.size()>scenes.size():return false
+  var seen=[]
+  for id in entries:
+   if not id is String or not scenes.has(id) or id in seen:return false
+   if key=="read_scenes" and id not in data.get("earned_scenes",[]):return false
+   seen.append(id)
  if not data.checkpoint is Dictionary:return false
  if not data.checkpoint.is_empty():
   if data.checkpoint.has("trials") or not game.valid_save(data.checkpoint):return false

@@ -414,6 +414,9 @@ func show_camp():
 		game.story_seen.append(story_key)
 		show_dialogue(story.chapters[game.chapter].opening,show_camp)
 		return
+	var trial_scene=game.trials.next_scene(game)
+	if not trial_scene.is_empty():
+		persist_campaign("camp");show_dialogue(trial_scene,show_camp);return
 	reset_ui()
 	# Runtime lookup avoids 4.5.1 shutdown retention observed with this direct preload.
 	var backdrop=load("res://scripts/painted_backdrop.gd").new();backdrop.name="CouncilBackdrop"
@@ -1654,6 +1657,9 @@ func show_campaign_trials():
 	label_in(panel,"Company dispatches",24,GOLD)
 	if game.trials.events.is_empty():label_in(panel,"No experiment events yet. Change the rules in Options, or test them in Debug mode.",19)
 	for event in game.trials.events:label_in(panel,event,19)
+	if not game.trials.read_scenes.is_empty():label_in(panel,"Company memories",24,GOLD)
+	for id in game.trials.read_scenes:
+		button_in(panel,"Replay · "+id.replace("_"," ").capitalize(),func():show_dialogue(game.trials.scenes[id],show_campaign_trials,"support"))
 	button_in(frame,"Return to war council",show_camp)
 
 func show_triage():

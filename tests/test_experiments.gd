@@ -39,10 +39,10 @@ func verify_rules():
  assert(FileAccess.get_file_as_string(path)==FileAccess.get_file_as_string(path+".bak"),"Recovery copy contains the same irreversible checkpoint")
  var bad=FileAccess.open(path,FileAccess.WRITE);bad.store_string("broken");bad.close()
  assert(copy.load_game(path)=="battle" and copy.turn==8,"Recovery cannot rewind a completed action")
- var stale=copy.save_data("battle").duplicate(true);stale.turn=7;stale.save_sequence-=1
+ var stale=copy.read_saved_data(path).duplicate(true);stale.turn=7;stale.save_sequence-=1
  var stale_file=FileAccess.open(path,FileAccess.WRITE);stale_file.store_string(JSON.stringify(stale));stale_file.close()
  assert(copy.load_game(path)=="battle" and copy.turn==8,"A newer recovery checkpoint wins if interrupted before replacing the primary")
- var pending=copy.save_data("battle").duplicate(true);pending.turn=9;pending.save_sequence+=1
+ var pending=copy.read_saved_data(path).duplicate(true);pending.turn=9;pending.save_sequence+=1
  var pending_file=FileAccess.open(path+".tmp",FileAccess.WRITE);pending_file.store_string(JSON.stringify(pending));pending_file.close()
  assert(copy.load_game(path)=="battle" and copy.turn==9,"A fully written pending checkpoint survives interruption before rotation")
  DirAccess.remove_absolute(path+".tmp")
