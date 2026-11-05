@@ -170,3 +170,8 @@ Caster validation passes: `/private/tmp/poem-authored-caster-tests.log` covers t
 
 
 Caster study release passes: standalone exported PCK, browser/macOS exports and both ZIP integrity checks in `/private/tmp/poem-authored-caster-export.log`. The packaged study retains the supported folio, Tarin identity and left-palm cast socket. Next: independent debug battle toggle and actual camera/skip/finish coverage.
+
+
+Current casting battle checkpoint: independent `revised_caster` debug state/toggle/report selects only Tarin before promotion with the three folios. Shared `debug_source_models.gd` derives expected class/weapon from canonical roster; existing duelist wrapper retains its API. Normal catalog remains empty. `debug_caster` passes six full elemental/mounted/critical/dodge/finish/defeat exchanges, four phase-specific skips and exact campaign/disk/RNG/camera/clock restoration. `caster_framing` passes 648 clear-frame head/folio/palm layouts with wide/finish cape bounds; logs `/private/tmp/poem-debug-caster-tests.log` and `/private/tmp/poem-caster-framing-tests.log`. Export verification follows.
+
+Casting comparison release passes: both new suites, shared debug/duelist/framing regressions, exported PCK toggle smoke and browser/macOS packages; both ZIP integrity checks pass. Export log `/private/tmp/poem-caster-toggle-export.log`. Default runner now has 91 suites. Next candidate: female casting source with original Vela identity and bounded braid motion, inspected as an isolated study before adding battle selection.

@@ -124,6 +124,12 @@ func run():
  assert(revised is Imported and revised.model.get_meta("character_identity")=="nell","Packaged debug toggle selects the styled recruit through the normal combat builder")
  revised.queue_free();await process_frame
  app.ui.find_child("DebugDuelistModels",true,false).button_pressed=false
+ app.ui.find_child("DebugCasterModel",true,false).button_pressed=true
+ var mage=app.game.roster.filter(func(unit):return unit.id=="tarin")[0].duplicate(true);mage.team="player";mage.item="gale"
+ var revised_mage=app.make_fighter(mage,Vector3.ZERO)
+ assert(revised_mage is Imported and revised_mage.model.get_meta("character_identity")=="tarin" and revised_mage.model.get_node("Rig/Armature/Skeleton3D/BookHand/Folio").equipped=="gale","Packaged casting toggle selects the styled mage independently")
+ revised_mage.queue_free();await process_frame
+ app.ui.find_child("DebugCasterModel",true,false).button_pressed=false
  app.show_debug_report();assert(JSON.parse_string(app.ui.find_child("DebugReport",true,false).text).debug,"Packaged debug reports contain the current experiment record")
  assert(app.game.trials.scenes.size()==10,"Release includes relief, retreat, volunteer and memorial story scenes")
  assert(app.persist_campaign("battle") and FileAccess.file_exists(app.save_path+".debug"),"Packaged debug actions save separately")

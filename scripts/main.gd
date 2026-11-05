@@ -106,6 +106,7 @@ const SAVE = "user://campaign.json"
 var save_path=SAVE
 var debug_session=preload("res://scripts/debug_session.gd").new()
 var debug_duelists=preload("res://scripts/debug_duelist_models.gd").new()
+var debug_caster=preload("res://scripts/debug_source_models.gd").new(["caster"])
 var save_failed=false
 var save_warning_queued=false
 
@@ -950,6 +951,9 @@ func make_fighter(u,position) -> Node3D:
 	if debug_session.active and debug_session.revised_duelists:
 		var study=debug_duelists.build(stage,u,position)
 		if study!=null:return study
+	if debug_session.active and debug_session.revised_caster:
+		var study=debug_caster.build(stage,u,position)
+		if study!=null:return study
 	return fighters.build(stage,u,position)
 
 func staff_healing(healer,recipient,amount: int,before: Dictionary={}):
@@ -1780,6 +1784,9 @@ func show_debug_tools(return_to: String):
 	var revised=CheckButton.new();revised.name="DebugDuelistModels";revised.text="Revised duelist models";revised.button_pressed=debug_session.revised_duelists;panel.add_child(revised)
 	revised.toggled.connect(func(value):debug_session.set_revised_duelists(value))
 	label_in(panel,"Try Nell and Silas’s revised models in battles and outfit previews. Applies before promotion with iron, dueling or tempered swords. Other outfits keep their current models. Resets when Debug mode ends.",16)
+	var caster=CheckButton.new();caster.name="DebugCasterModel";caster.text="Revised casting model";caster.button_pressed=debug_session.revised_caster;panel.add_child(caster)
+	caster.toggled.connect(func(value):debug_session.set_revised_caster(value))
+	label_in(panel,"Try Tarin’s revised model in battles and outfit previews with Ember, Gale or Thunder before promotion. Resets when Debug mode ends.",16)
 	var studies=JSON.parse_string(FileAccess.get_file_as_string("res://data/model_studies.json"))
 	for gender in studies:
 		var study=button_in(panel,"View "+studies[gender].study_label+" rig",func():show_source_model_view(gender));study.name="ModelStudy_"+gender
@@ -1839,7 +1846,7 @@ func show_debug_report():
 	var report=TextEdit.new();report.name="DebugReport";report.editable=false;report.wrap_mode=TextEdit.LINE_WRAPPING_BOUNDARY
 	report.custom_minimum_size.y=160;report.size_flags_vertical=Control.SIZE_EXPAND_FILL;report.add_theme_font_size_override("font_size",14)
 	var record=debug_session.report(game,"battle" if options_return=="battle" else "camp")
-	record.presentation={"revised_duelists":debug_session.revised_duelists}
+	record.presentation={"revised_duelists":debug_session.revised_duelists,"revised_caster":debug_session.revised_caster}
 	report.text=JSON.stringify(record,"\t",false);panel.add_child(report)
 	var actions=HBoxContainer.new();actions.add_theme_constant_override("separation",12);panel.add_child(actions)
 	button_in(actions,"Copy report",func():DisplayServer.clipboard_set(report.text);show_notice("Experiment report copied."))
