@@ -20,6 +20,7 @@ var stride_phase=0.0
 var contact_index=0
 var travel_previous=Vector3.ZERO
 var travel_direction=Vector3.ZERO
+var camera_padding={}
 
 func configure(scene: Node3D,spec: Dictionary) -> String:
  model=scene;add_child(model)
@@ -51,7 +52,14 @@ func configure(scene: Node3D,spec: Dictionary) -> String:
   var socket=model.get_node_or_null(NodePath(spec.sockets[key])) as Node3D
   if socket==null:return "Missing socket: "+str(key)
   sockets[key]=socket
+ var framing=spec.get("framing",{})
+ if not framing is Dictionary:return "Model framing must be an object"
+ for phase in framing:
+  if phase not in ["wide","windup","impact","finish"] or not number(framing[phase]) or framing[phase]<1 or framing[phase]>2:return "Invalid model framing margin"
+ camera_padding=framing.duplicate()
  return configure_stride(spec)
+
+func camera_padding_for(phase: String) -> float:return float(camera_padding.get(phase,1.0))
 
 func configure_stride(spec: Dictionary) -> String:
  if not spec.has("stride"):return ""

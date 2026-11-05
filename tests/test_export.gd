@@ -95,6 +95,12 @@ func run():
   var edge=app.preview_actor.weapon_trail_points();var point=app.preview_actor.get_node("StudyContactTarget").global_position
   assert(Geometry3D.get_closest_point_to_segment(point,edge[0],edge[1]).distance_to(point)<.006,"Packaged skeletal strike reaches the mounted study target")
   app.close_model_view();await process_frame
+ app.show_debug_tools("battle");app.ui.find_child("DebugDuelistModels",true,false).button_pressed=true
+ var recruit=app.game.roster.filter(func(unit):return unit.id=="nell")[0].duplicate(true);recruit.team="player"
+ var revised=app.make_fighter(recruit,Vector3.ZERO)
+ assert(revised is Imported and revised.model.get_meta("character_identity")=="nell","Packaged debug toggle selects the styled recruit through the normal combat builder")
+ revised.queue_free();await process_frame
+ app.ui.find_child("DebugDuelistModels",true,false).button_pressed=false
  app.show_debug_report();assert(JSON.parse_string(app.ui.find_child("DebugReport",true,false).text).debug,"Packaged debug reports contain the current experiment record")
  assert(app.game.trials.scenes.size()==10,"Release includes relief, retreat, volunteer and memorial story scenes")
  assert(app.persist_campaign("battle") and FileAccess.file_exists(app.save_path+".debug"),"Packaged debug actions save separately")

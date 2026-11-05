@@ -105,6 +105,7 @@ const INK = Color("e8e0cb")
 const SAVE = "user://campaign.json"
 var save_path=SAVE
 var debug_session=preload("res://scripts/debug_session.gd").new()
+var debug_duelists=preload("res://scripts/debug_duelist_models.gd").new()
 var save_failed=false
 var save_warning_queued=false
 
@@ -938,6 +939,9 @@ func end_turn(resuming=false):
 	persist_campaign("battle")
 
 func make_fighter(u,position) -> Node3D:
+	if debug_session.active and debug_session.revised_duelists:
+		var study=debug_duelists.build(stage,u,position)
+		if study!=null:return study
 	return fighters.build(stage,u,position)
 
 func staff_healing(healer,recipient,amount: int,before: Dictionary={}):
@@ -994,7 +998,7 @@ func cinematic(a,b,events,initial_hp={}):
 					preload("res://scripts/combat_dust.gd").spawn(stage,combatant.ground_contact_position(),combatant.travel_direction,job=="Rider",travel_audio.surface_for(contact_terrain,arena_context.environment),index))
 	if actor.has_method("face_opponent"):actor.face_opponent(defender)
 	if defender.has_method("face_opponent"):defender.face_opponent(actor)
-	var director=CombatCamera.new();stage.add_child(director);director.configure(camera)
+	var director=CombatCamera.new();stage.add_child(director);director.configure(camera,[actor,defender])
 	var mounted=a.job=="Rider" or b.job=="Rider"
 	director.enter(actor.position,defender.position,ranged,mounted)
 	await veil.reveal().finished
@@ -1690,7 +1694,7 @@ func apply_audio_preferences():
 	for player in sfx_players:player.volume_db=preferences.volume_db("effects")
 
 func show_options(return_to: String):
-	if return_to=="battle":cancel_selection()
+	if return_to=="battle" and screen=="battle":cancel_selection()
 	options_return=return_to;screen="options";reset_ui()
 	if return_to=="title":title_backdrop()
 	var frame=menu_panel(800)
@@ -1762,6 +1766,9 @@ func show_debug_tools(return_to: String):
 	label_in(panel,"The same seed, rules and actions reproduce the same rolls. Clean resets reuse this seed; penalty retreats follow the campaign’s restart rules.",16)
 	button_in(panel,"View experiment report",show_debug_report)
 	label_in(panel,"CHARACTER MODEL STUDIES",17,GOLD)
+	var revised=CheckButton.new();revised.name="DebugDuelistModels";revised.text="Revised duelist models";revised.button_pressed=debug_session.revised_duelists;panel.add_child(revised)
+	revised.toggled.connect(func(value):debug_session.set_revised_duelists(value))
+	label_in(panel,"Try Nell and Silas’s revised models in battles and outfit previews. Applies before promotion with iron, dueling or tempered swords. Other outfits keep their current models. Resets when Debug mode ends.",16)
 	for gender in ["female","male"]:
 		var study=button_in(panel,"View "+gender+" duelist rig",func():show_source_model_view(gender));study.name="ModelStudy_"+gender
 	var chapters=OptionButton.new();chapters.name="DebugChapter";chapters.custom_minimum_size.y=42
@@ -1820,6 +1827,7 @@ func show_debug_report():
 	var report=TextEdit.new();report.name="DebugReport";report.editable=false;report.wrap_mode=TextEdit.LINE_WRAPPING_BOUNDARY
 	report.custom_minimum_size.y=160;report.size_flags_vertical=Control.SIZE_EXPAND_FILL;report.add_theme_font_size_override("font_size",14)
 	var record=debug_session.report(game,"battle" if options_return=="battle" else "camp")
+	record.presentation={"revised_duelists":debug_session.revised_duelists}
 	report.text=JSON.stringify(record,"\t",false);panel.add_child(report)
 	var actions=HBoxContainer.new();actions.add_theme_constant_override("separation",12);panel.add_child(actions)
 	button_in(actions,"Copy report",func():DisplayServer.clipboard_set(report.text);show_notice("Experiment report copied."))

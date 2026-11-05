@@ -8,8 +8,10 @@ var lens=48.0
 var shake_offset=Vector2.ZERO
 var movement: Tween
 var impact_motion: Tween
+var subjects=[]
 
-func configure(value: Camera3D):
+func configure(value: Camera3D,actors: Array=[]):
+ subjects=actors.duplicate()
  camera=value;anchor=camera.position;focus=camera.position-camera.basis.z;lens=camera.fov
  camera.projection=Camera3D.PROJECTION_PERSPECTIVE;camera.h_offset=0;camera.v_offset=0
 
@@ -33,9 +35,16 @@ static func frame_pair(attacker: Vector3,defender: Vector3,phase: String,_ranged
  aim.y=midpoint.y+height*.5-distance*tan(deg_to_rad(fov*.5))*.18
  return {"anchor":aim+Vector3(sin(.57)*distance,.85,cos(.57)*distance),"focus":aim,"lens":fov}
 
+func frame_for(attacker: Vector3,defender: Vector3,phase: String,ranged: bool,mounted=false,weapon="") -> Dictionary:
+ var frame=frame_pair(attacker,defender,phase,ranged,mounted,weapon);var padding=1.0
+ for subject in subjects:
+  if is_instance_valid(subject) and subject.has_method("camera_padding_for"):padding=maxf(padding,subject.camera_padding_for(phase))
+ frame.anchor=frame.focus+(frame.anchor-frame.focus)*padding
+ return frame
+
 func shot(attacker: Vector3,defender: Vector3,phase: String,ranged: bool,mounted=false,duration=.24,weapon="") -> Tween:
  if movement and movement.is_valid():movement.kill()
- var frame=frame_pair(attacker,defender,phase,ranged,mounted,weapon)
+ var frame=frame_for(attacker,defender,phase,ranged,mounted,weapon)
  movement=create_tween().set_parallel(true).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN_OUT)
  movement.tween_property(self,"anchor",frame.anchor,duration)
  movement.tween_property(self,"focus",frame.focus,duration)
@@ -48,12 +57,12 @@ static func entrance_frame(frame: Dictionary,weight: float) -> Dictionary:
 
 func establish(attacker: Vector3,defender: Vector3,ranged: bool,mounted=false):
  if movement and movement.is_valid():movement.kill()
- var frame=frame_pair(attacker,defender,"wide",ranged,mounted)
+ var frame=frame_for(attacker,defender,"wide",ranged,mounted)
  anchor=frame.anchor;focus=frame.focus;lens=frame.lens;apply_frame()
 
 func enter(attacker: Vector3,defender: Vector3,ranged: bool,mounted=false,duration=.22) -> Tween:
  establish(attacker,defender,ranged,mounted)
- var frame=frame_pair(attacker,defender,"wide",ranged,mounted)
+ var frame=frame_for(attacker,defender,"wide",ranged,mounted)
  var opening=entrance_frame(frame,0)
  anchor=opening.anchor;apply_frame()
  movement=create_tween().set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_OUT)
