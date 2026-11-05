@@ -41,5 +41,37 @@ func _initialize():
  ally.hp-=10;assert(g.use_tonic(ally) and ally.potions==1,"Tonic consumes one use and one action")
  enemy.ai="guard";enemy.x=12;enemy.y=4;g.begin_enemy_phase()
  assert(ai.plan(g,enemy).position==g.pos(enemy),"Guard holds objective")
+ verify_rescue_planning(ai)
  print("PASS: obstacle detours, archer spacing, pure planning, phase/action legality and healing")
  quit()
+
+func verify_rescue_planning(ai):
+ var g=Rules.new();g.death_door=true;g.start_battle()
+ var medic=g.units.filter(func(unit):return unit.weapon=="staff")[0]
+ var patient=g.units[1];var second=g.units[0];var enemy=g.living("enemy")[0]
+ g.units=[medic,patient,second,enemy];g.content.chapters[0].map=[]
+ for y in range(10):g.content.chapters[0].map.append("..............")
+ medic.x=2;medic.y=3;patient.x=4;patient.y=3;second.x=4;second.y=4;enemy.x=12;enemy.y=8
+ patient.hp=0;g.DeathDoor.fall(g,patient);second.hp=1
+ var snapshot=g.save_data("battle").duplicate(true);var choice=ai.plan(g,medic)
+ assert(choice.action=="heal" and choice.target==patient.id,"Healers prioritize downed allies over ordinary injuries")
+ assert(g.save_data("battle")==snapshot,"Rescue planning is pure, including RNG and patient state")
+ ai.apply_plan(g,medic,choice)
+ assert(patient.hp>0 and not g.DeathDoor.downed(patient) and medic.acted and patient.acted,"The planned treatment is legal and revives the patient spent")
+ medic.acted=false;medic.moved=false;patient.hp=0;g.DeathDoor.fall(g,patient)
+ second.hp=0;g.DeathDoor.fall(g,second);second.bleed_turns=1
+ choice=ai.plan(g,medic)
+ assert(choice.target==second.id,"The last rescue opportunity takes priority among comparable patients")
+ second.hp=second.max_hp;second.erase("downed");second.erase("bleed_turns")
+ medic.x=2;medic.y=3;patient.x=3;patient.y=3
+ assert(g.DeathDoor.rescue(g,medic,patient));medic.acted=false
+ choice=ai.plan(g,medic)
+ assert(choice.action=="heal" and choice.target==patient.id,"A medic recognizes their own carried patient at effective staff range")
+ ai.apply_plan(g,medic,choice);assert(patient.hp>0 and not g.DeathDoor.downed(patient))
+ medic.acted=false;medic.moved=false;medic.x=1;medic.y=3;patient.x=12;patient.y=3
+ patient.hp=0;g.DeathDoor.fall(g,patient);second.x=1;second.y=4
+ choice=ai.plan(g,medic)
+ assert(choice.action=="wait" and choice.position.x>medic.x,"Out-of-range medics advance toward the downed patient instead of staying with healthy allies")
+ patient.erase("downed");patient.erase("bleed_turns")
+ choice=ai.plan(g,medic)
+ assert(choice.action!="heal","Terminal casualties are not treatment candidates")

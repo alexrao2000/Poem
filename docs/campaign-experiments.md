@@ -60,3 +60,22 @@ Run the probe with the project’s Godot binary:
 ```sh
 godot --headless --path . --script scripts/benchmark_trials.gd
 ```
+
+### Death’s-door probe
+
+On November 5, 2026, the same six hard-campaign runs were repeated with death’s door enabled. The planner now recognizes downed and carried patients, prioritizes imminent bleed-outs, and approaches patients outside staff range. Planning does not mutate the battle or consume random rolls. All six runs cleared twelve chapters:
+
+| Seed | Permadeath | Total turns | Staff revivals | Terminal losses |
+| --- | --- | ---: | ---: | ---: |
+| 472019 | Off | 71 | 6 | 0 |
+| 472019 | On | 71 | 6 | 0 |
+| 17 | Off | 74 | 17 | 1 |
+| 17 | On | 76 | 22 | 2 |
+| 309 | Off | 78 | 28 | 4 |
+| 309 | On | 86 | 4 | 22 |
+
+A revival is a successful staff action that returns a downed unit to positive HP; repeated revivals count separately. Terminal losses count defeat episodes across chapters, so returning units can be counted again with permadeath off. Victory evacuation is not counted as a staff revival. The large difference between the two seed-309 runs is evidence that attrition remains sensitive to campaign state. The planner still does not choose carrying/dropping actions, so these runs measure staff recovery rather than the full rescue strategy. They do not establish human fairness or visual quality.
+
+```sh
+godot --headless --log-file /tmp/poem-rescue-probe.log --path . --script scripts/benchmark_trials.gd -- --death-door
+```

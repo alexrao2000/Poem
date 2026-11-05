@@ -6,6 +6,8 @@ User direction: keep developing continuously in this chat until the user returns
 
 ## Current checkpoint
 
+Automated healers now recognize downed/carried patients, prioritize imminent bleed-outs, and approach patients outside staff range without mutating state during planning. The ordinary 72-chapter regression passes. An optional `--death-door` hard-campaign probe clears all six seeded runs, with 4–28 staff revivals and 0–22 terminal losses per campaign; detailed results and planner limitations are recorded in the experiment guide.
+
 Adjacent downed allies now open a focused rescue choice when clicked with a ready non-staff rescuer. The choice shows the patient’s remaining phase endings and preserves selection, uncommitted movement and simulation state until confirmed. Staff clicks retain direct healing.
 
 2026-11-04 user-requested trial: Wang variation now supplies grass and earth on campaign ground and natural banks. Existing stone sampling and terrain control weights remain. See [art notes and texture comparison](docs/art-direction.md#wang-variation-for-natural-ground). This change is integrated into the resumed development branch.

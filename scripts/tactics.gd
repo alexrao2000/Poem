@@ -108,19 +108,34 @@ func plan(game,unit: Dictionary) -> Dictionary:
 func plan_healer(game,unit: Dictionary,free: Array,foes: Array) -> Dictionary:
  var best={"position":game.pos(unit),"action":"wait","target":"","alert":true}
  var best_score=-INF
- var injured=game.living(unit.team).filter(func(ally):return ally.id!=unit.id and ally.hp<ally.max_hp)
+ var injured=game.units.filter(func(ally):return ally.team==unit.team and ally.id!=unit.id and (ally.hp>0 or game.DeathDoor.downed(ally)) and ally.hp<ally.max_hp)
+ var probe=unit.duplicate(true)
  for ally in injured:
   for p in free:
-   if not game.in_weapon_range(unit,absi(p.x-int(ally.x))+absi(p.y-int(ally.y))):continue
+   probe.x=p.x;probe.y=p.y
+   if not game.can_heal(probe,ally):continue
    var threat=0
    for foe in foes:
     if absi(p.x-int(foe.x))+absi(p.y-int(foe.y))<=foe.reach:threat+=10
    var value=mini(game.healing_power(unit),ally.max_hp-ally.hp)*4-threat
+   if game.DeathDoor.downed(ally):
+    value+=100
+    if ally.get("carried_by","").is_empty():value+=(3-int(ally.bleed_turns))*30
    if value>best_score:
     best_score=value;best={"position":p,"action":"heal","target":ally.id,"alert":true}
  if best.action=="heal":return best
  if unit.hp<unit.max_hp*.6 and unit.get("potions",0)>0:
   best.action="tonic";return best
+ # Reach a downed patient even if the standing company has moved away.
+ var nearest=INF
+ for ally in injured:
+  if not game.DeathDoor.downed(ally):continue
+  var field=distance_field(game,unit,attack_positions(game,unit,ally))
+  for p in free:
+   var remaining=field.get(p,INF)
+   var value=remaining+game.pos(unit).distance_to(p)*.03
+   if value<nearest:nearest=value;best.position=p
+ if nearest<INF:return best
  # Follow the company while keeping distance from enemy weapons.
  for p in free:
   var nearest_ally=999;var nearest_foe=999
