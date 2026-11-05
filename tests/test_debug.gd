@@ -24,7 +24,27 @@ func inspect(app):
     parent=parent.get_parent()
    if not clipped:assert(Rect2(Vector2.ZERO,dimensions).grow(1).encloses(node.get_global_rect()),"Debug fixed controls remain visible: "+app.screen)
 
+func verify_debug_casualties():
+ var g=Rules.new();g.new_campaign(true);g.action_saves=true;g.start_battle();var session=Session.new()
+ var before=g.save_data("battle").duplicate(true)
+ assert(not session.fall_unit(g,"oren") and not session.set_bleed_turns(g,"oren",1) and g.save_data("battle")==before)
+ session.begin(g,"battle");assert(session.fall_unit(g,"oren") and g.roster[1].fallen)
+ g.death_door=true;before=g.save_data("battle").duplicate(true)
+ assert(not session.fall_unit(g,"oren") and g.save_data("battle")==before,"A repeated debug fall cannot revive a permanent casualty as a downed unit")
+ assert(g.valid_save(before))
+ session.load_chapter(g,0);assert(session.fall_unit(g,"oren"));var patient=g.units[1]
+ assert(g.DeathDoor.downed(patient) and patient.bleed_turns==2)
+ before=g.save_data("battle").duplicate(true)
+ for value in [0,3,1.5,"bad"]:assert(not session.set_bleed_turns(g,"oren",value))
+ assert(not session.fall_unit(g,"oren") and not session.fall_unit(g,g.living("enemy")[0].id) and not session.fall_unit(g,"missing"))
+ assert(g.save_data("battle")==before,"Invalid debug casualties and countdown values leave the battle untouched")
+ assert(session.set_bleed_turns(g,"oren",1) and patient.bleed_turns==1 and g.rng.state==int(before.rng) and g.turn==before.turn)
+ var carrier=g.units[0];assert(g.DeathDoor.rescue(g,carrier,patient));before=g.save_data("battle").duplicate(true)
+ assert(not session.set_bleed_turns(g,"oren",2) and not session.fall_unit(g,"oren") and g.save_data("battle")==before,"Paused carried patients cannot be forced into an invalid debug state")
+ assert(g.valid_save(g.save_data("battle")))
+
 func run():
+ verify_debug_casualties()
  var rules=Rules.new();rules.new_campaign(true);rules.start_battle()
  var session=Session.new();var original=rules.save_data("battle").duplicate(true)
  session.load_chapter(rules,11);session.heal(rules);session.revive(rules);session.reset_battle(rules)
@@ -108,6 +128,20 @@ func run():
  app.game.units[0].hp=1;app.game.turn=9
  app.show_debug_tools("battle");press(app,"Reset current battle")
  assert(app.game.turn==1 and app.game.units[0].hp==app.game.units[0].max_hp,"Reset starts the current chapter from preparation")
+ app.game.death_door=true;app.game.action_saves=true;app.show_debug_tools("battle")
+ var casualty_choice=app.ui.find_child("DebugCasualty",true,false)
+ for index in range(casualty_choice.item_count):
+  if casualty_choice.get_item_metadata(index)=="oren":casualty_choice.select(index)
+ press(app,"Test selected ally falling")
+ var patient=app.game.units.filter(func(unit):return unit.id=="oren")[0]
+ assert(app.screen=="battle" and app.game.DeathDoor.downed(patient) and patient.bleed_turns==2)
+ app.show_debug_tools("battle");await inspect(app)
+ casualty_choice=app.ui.find_child("DebugCasualty",true,false)
+ for index in range(casualty_choice.item_count):assert(casualty_choice.get_item_metadata(index)!="oren","Downed allies are excluded from the lethal-hit selector")
+ app.ui.find_child("DebugBleedTurns",true,false).value=1;press(app,"Set rescue countdown")
+ assert(app.screen=="battle" and patient.bleed_turns==1 and app.unit_nodes[patient.id].rescue_marker.get_meta("turns")==1)
+ assert(app.side.get_node("EndPlayerPhase").text=="End phase · 1 will fall","Countdown experiments update the live tactical warning")
+ assert(loaded.load_game(app.save_path+".debug")=="battle" and loaded.units.filter(func(unit):return unit.id=="oren")[0].bleed_turns==1 and FileAccess.get_file_as_string(app.save_path)==disk,"The exact countdown persists only in the debug slot")
  app.show_debug_tools("battle");press(app,"Return to preparation");assert(app.screen=="camp" and app.game.units.is_empty())
  app.show_options("camp");app.ui.find_child("DebugMode",true,false).button_pressed=false
  assert(not app.debug_session.active and app.game.save_data("camp")==live,"Disabling debug restores the exact unsaved campaign, original rule and RNG")

@@ -61,6 +61,20 @@ func train_company(game,value) -> bool:
  reset_battle(game)
  return true
 
+func fall_unit(game,id: String) -> bool:
+ if not active:return false
+ var candidates=game.living("player").filter(func(unit):return unit.id==id)
+ if candidates.is_empty():return false
+ var unit=candidates[0];unit.hp=0;game.DeathDoor.fall(game,unit);game.commit_casualties()
+ return true
+
+func set_bleed_turns(game,id: String,value) -> bool:
+ if not active or not game.trials.integer(value,1,2):return false
+ var candidates=game.units.filter(func(unit):return unit.id==id and game.DeathDoor.downed(unit) and unit.get("carried_by","").is_empty())
+ if candidates.is_empty():return false
+ candidates[0].bleed_turns=int(value)
+ return true
+
 func report(game,stage="battle") -> Dictionary:
  if not active:return {}
  var settings=game.trials.flags.duplicate()

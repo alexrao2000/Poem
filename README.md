@@ -48,7 +48,7 @@ These controls apply to campaign battles; menus and the visual workshop have the
 | Cycle ready allies | Q / E |
 | Wait with the selected ally | W |
 | Cancel a drop choice, selection, or uncommitted move | Right-click / Escape |
-| Rescue a downed ally | Select an adjacent ready ally, then click the patient or choose Rescue & triage |
+| Rescue a downed ally | Select an adjacent ready ally, then click the gold patient tile or choose Rescue & triage |
 | Place a carried ally | Rescue & triage → Choose drop tile, then click a gold tile or press Enter |
 | End the player phase | Space |
 | Toggle enemy threat ranges | R |

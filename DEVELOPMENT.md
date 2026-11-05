@@ -6,6 +6,8 @@ User direction: keep developing continuously in this chat until the user returns
 
 ## Current checkpoint
 
+Gold rescue targets and a compact end-phase bleed-out warning now identify immediate rescue choices and the last opportunity to act. Warnings list names on hover and clear for carried/healed patients. Debug lethal-hit tests accept only standing allies, preventing repeated falls from resurrecting a permanent casualty into an invalid state. A separate one/two-phase countdown control supports reproducible rescue experiments without advancing turns/RNG. Actual controls, isolated persistence, invalid input, exact target coverage and three-size layouts pass.
+
 Retreat consequences are now visible in the battle menu and defeat screen: destination chapter, capped next pressure, enemy stat bonuses, held tonics and raider advance. A pure preview shares the deployment calculation and uses the destination section’s chapter. Eighteen restart cases and three UI sizes pass. Seize objectives now require a living occupant; all four seize maps reject downed drops before/after reload, while staff revival can secure the tile.
 
 Rescue and drop now animate the patient between adjacent tiles with coordinated figure/health/countdown/shadow opacity and a short gold cue. Tab skips feedback after the irreversible checkpoint. Carriers retain a clickable badge until their passenger leaves. Narrow/wide runtime layout, save ordering, state independence and existing quick-map defeat checks pass; assembled appearance remains unreviewed.

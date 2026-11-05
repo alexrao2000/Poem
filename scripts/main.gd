@@ -635,7 +635,11 @@ func update_side():
 		label_in(side,"Choose an ally to move or inspect a foe.",17,Color("6f6c5e"))
 		button_in(side,"Enemy ranges [R]: "+("on" if show_danger else "off"),toggle_danger,busy)
 	if save_failed and game.action_saves:button_in(side,"Retry autosave",retry_action_save,busy)
-	button_in(side,"End player phase",end_turn,busy or game.phase!="player")
+	var expiring=game.units.filter(func(unit):return game.DeathDoor.downed(unit) and unit.bleed_turns==1 and unit.get("carried_by","").is_empty()) if game.phase=="player" else []
+	var phase_button=button_in(side,"End player phase" if expiring.is_empty() else "End phase · %d will fall"%expiring.size(),end_turn,busy or game.phase!="player");phase_button.name="EndPlayerPhase"
+	if not expiring.is_empty():
+		phase_button.add_theme_color_override("font_color",Color("923e33"))
+		phase_button.tooltip_text=", ".join(expiring.map(func(unit):return unit.name))+" will bleed out when this player phase ends. Rescue or heal them first."
 	button_in(side,"Menu [M]",show_battle_menu,busy)
 	if is_instance_valid(battle_hint):
 		battle_hint.text="Arrows: cursor · Enter: select · Q/E: allies · M: menu"
@@ -643,6 +647,7 @@ func update_side():
 			battle_hint.text="Blue: move · Orange: reach · Enter: act · Esc: undo"
 			if selected.team=="enemy":battle_hint.text="Red tiles: enemy reach · R: all ranges · Esc: close"
 			elif selected.weapon=="staff":battle_hint.text="Blue: move · Green: heal · Enter: act · Esc: undo"
+			elif game.units.any(func(unit):return game.DeathDoor.can_rescue(game,selected,unit)):battle_hint.text="Blue: move · Gold: rescue · Enter: act · Esc: undo"
 			if game.DeathDoor.downed(selected):battle_hint.text="Needs help: select a nearby ally for Rescue & triage, or heal with a staff."
 			if game.action_saves:battle_hint.text=battle_hint.text.replace("Esc: undo","Esc: deselect")
 		if drop_mode:battle_hint.text="Gold: drop ally · Arrows / Enter: choose · Esc / right-click: cancel drop"
@@ -717,6 +722,9 @@ func highlight():
 	for unit in candidates:
 		if game.can_heal(selected,unit) if healing else game.can_attack(selected,unit):targets.append(game.pos(unit))
 	MapOverlay.tiles(markers,targets,Color(.25,.78,.49,.40) if healing else Color(.87,.29,.16,.38),.039,"HealingTargets" if healing else "AttackRange",map_height)
+	if not healing:
+		var patients=game.units.filter(func(unit):return game.DeathDoor.can_rescue(game,selected,unit))
+		MapOverlay.tiles(markers,patients.map(func(unit):return game.pos(unit)),Color(.86,.66,.23,.42),.039,"RescueTargets",map_height)
 
 func toggle_danger():
 	if busy or screen!="battle":return
@@ -1709,16 +1717,25 @@ func show_debug_tools(return_to: String):
 		debug_session.revive(game);make_map();show_battle();persist_campaign("battle"))
 	button_in(panel,"Test reset / section retreat",func():restart_campaign_attempt())
 	var allies=OptionButton.new();allies.name="DebugCasualty";allies.custom_minimum_size.y=42
-	for unit in game.units:
-		if unit.team=="player":allies.add_item(unit.name);allies.set_item_metadata(allies.item_count-1,unit.id)
+	for unit in game.living("player"):
+		allies.add_item(unit.name);allies.set_item_metadata(allies.item_count-1,unit.id)
 	panel.add_child(allies)
+	label_in(panel,"Test a lethal hit on a standing ally. Downed, carried and already-fallen allies are excluded.",16)
 	button_in(panel,"Test selected ally falling",func():
-		if allies.selected<0:return
-		var casualties=game.units.filter(func(unit):return unit.id==allies.get_item_metadata(allies.selected))
-		if casualties.is_empty():return
-		var unit=casualties[0];unit.hp=0;game.DeathDoor.fall(game,unit);game.commit_casualties()
+		if allies.selected<0 or not debug_session.fall_unit(game,allies.get_item_metadata(allies.selected)):return
 		make_map();show_battle();persist_campaign("battle");check_result()
 	,allies.item_count==0)
+	var patients=OptionButton.new();patients.name="DebugPatient";patients.custom_minimum_size.y=42
+	for unit in game.units:
+		if game.DeathDoor.downed(unit) and unit.get("carried_by","").is_empty():
+			patients.add_item("%s · %d phases left"%[unit.name,unit.bleed_turns]);patients.set_item_metadata(patients.item_count-1,unit.id)
+	panel.add_child(patients)
+	var countdown=SpinBox.new();countdown.name="DebugBleedTurns";countdown.min_value=1;countdown.max_value=2;countdown.step=1;countdown.value=1;countdown.custom_minimum_size.y=42;panel.add_child(countdown)
+	label_in(panel,"Set a downed ally’s remaining player-phase endings. One tests the last rescue opportunity without advancing the turn. Carried allies are paused and excluded.",16)
+	button_in(panel,"Set rescue countdown",func():
+		if patients.selected<0 or not debug_session.set_bleed_turns(game,patients.get_item_metadata(patients.selected),countdown.value):return
+		make_map();show_battle();persist_campaign("battle")
+	,patients.item_count==0)
 	button_in(panel,"Return to preparation",func():game.units.clear();game.phase="player";show_camp();persist_campaign("camp"))
 	button_in(frame,"Return to Options",func():show_options(options_return))
 

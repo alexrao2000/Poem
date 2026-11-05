@@ -86,6 +86,27 @@ func verify_downed_objectives():
    g.begin_enemy_phase();g.next_player_turn();assert(g.heal(medic,patient))
    assert(g.result()=="victory" and patient.acted,"A living recovered ally can secure the objective even with their action spent")
 
+func verify_bleed_warning(app):
+ app.game.new_campaign(true);app.game.death_door=true;app.game.start_battle()
+ var carrier=app.game.units[0];var first=app.game.units[1];var second=app.game.units[2];var medic=app.game.units.filter(func(unit):return unit.weapon=="staff")[0]
+ carrier.x=2;carrier.y=3;first.x=3;first.y=3;second.x=3;second.y=4;medic.x=2;medic.y=4
+ casualty(app.game,first);casualty(app.game,second);first.bleed_turns=1
+ app.make_map();app.show_battle();app.selected=medic;app.update_side()
+ var warning=app.side.get_node("EndPlayerPhase")
+ assert(warning.text=="End phase · 1 will fall" and first.name in warning.tooltip_text and not second.name in warning.tooltip_text,"Only patients at their last phase ending appear in the warning")
+ second.bleed_turns=1;app.update_side();warning=app.side.get_node("EndPlayerPhase")
+ assert(warning.text=="End phase · 2 will fall" and first.name in warning.tooltip_text and second.name in warning.tooltip_text)
+ var before=app.game.save_data("battle").duplicate(true)
+ for dimensions in [Vector2(1024,640),Vector2(1280,720),Vector2(1440,900)]:
+  app.ui.set_anchors_and_offsets_preset(Control.PRESET_TOP_LEFT);app.ui.size=dimensions;app.arrange_battle_side()
+  await process_frame;await process_frame
+  for control in app.side.get_children():assert(Rect2(Vector2.ZERO,dimensions).grow(1).encloses(control.get_global_rect()),"Urgent phase controls fit the tactical panel")
+ assert(app.game.save_data("battle")==before,"Warning display never advances the countdown")
+ assert(Door.rescue(app.game,carrier,first));app.refresh_pieces();app.update_side();warning=app.side.get_node("EndPlayerPhase")
+ assert(warning.text=="End phase · 1 will fall" and second.name in warning.tooltip_text and not first.name in warning.tooltip_text,"Carried patients no longer face bleed-out")
+ assert(app.game.heal(medic,second));app.refresh_pieces();app.update_side()
+ assert(app.side.get_node("EndPlayerPhase").text=="End player phase","Healing the last urgent patient clears the warning")
+
 func observe_rescue_feedback(app,patient,skip=false):
  assert(app.busy and app.screen=="battle","Rescue feedback locks commands on the tactical field")
  var checkpoint=app.game.save_data("battle").duplicate(true);var visual=app.unit_nodes[patient.id]
@@ -117,6 +138,9 @@ func verify_rescue_selection(app):
  rescuer.x=2;rescuer.y=3;patient.x=4;patient.y=3;casualty(app.game,patient)
  app.make_map();app.show_battle();app.selected=rescuer;app.click_tile(Vector2i(3,3))
  while app.busy:await process_frame
+ var rescue_targets=app.markers.get_node("RescueTargets");var covered={}
+ for vertex in rescue_targets.mesh.surface_get_arrays(0)[Mesh.ARRAY_VERTEX]:covered[Vector2i(roundi(vertex.x),roundi(vertex.z))]=true
+ assert(covered.size()==1 and covered.has(app.game.pos(patient)) and "Gold: rescue" in app.battle_hint.text,"Gold rescue coverage and the hint identify the actual adjacent patient")
  var snapshot=app.game.save_data("battle").duplicate(true)
  app.click_tile(app.game.pos(patient));await process_frame
  assert(app.screen=="triage" and app.selected==rescuer and app.origin==Vector2i(2,3),"Clicking an adjacent patient keeps the rescuer and uncommitted move")
@@ -133,6 +157,7 @@ func verify_rescue_selection(app):
  assert(badge!=null and badge.get_meta("passenger")==patient.name and badge.texture.get_size()==Vector2(64,36),"A carrier has a persistent passenger badge after the rescue transition")
  var point=app.camera.unproject_position(badge.global_position)
  assert(app.pick_map_unit(point)==rescuer and app.unit_nodes[rescuer.id].screen_bounds(app.camera).has_point(point),"The carrier badge is part of the unit’s clickable bounds")
+ assert(app.markers.get_node_or_null("RescueTargets")==null,"Rescue targets clear once the action is spent")
  assert(patient.carried_by==rescuer.id and rescuer.acted and app.game.pos(rescuer)==Vector2i(3,3),"Confirming rescue uses the moved position and spends the action")
 
 func verify_drop_controls(app):
@@ -254,6 +279,7 @@ func run():
  await verify_rescue_selection(app)
  root.size=Vector2i(1440,900);await process_frame
  await verify_drop_controls(app)
+ await verify_bleed_warning(app)
  app.game.new_campaign(true);app.game.death_door=true;app.game.action_saves=true;app.game.start_battle()
  var leader=app.game.units[0];casualty(app.game,leader);leader.bleed_turns=1
  app.make_map();app.show_battle();var state=app.game.rng.state

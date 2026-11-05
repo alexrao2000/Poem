@@ -8,6 +8,8 @@ The debug seed control accepts whole numbers from 0 through 2147483647. **Apply 
 
 **Raise company and reset battle** raises currently available recruits to a chosen level, using ordinary growth and the selected combat seed. It never lowers a level, revives permanent losses, unlocks future recruits or removes a promotion. The section checkpoint remains unchanged, so a penalty retreat can still rewind this training. To start lower, load a chapter with a fresh roster; return to preparation to choose promotions once recruits reach level 10.
 
+**Test selected ally falling** accepts only standing allies, so repeated testing cannot turn a permanent casualty back into a downed recruit. **Set rescue countdown** sets an uncarried downed ally to one or two remaining player-phase endings without advancing the turn or consuming RNG. Carried patients are paused and excluded. These actions use only the debug save slot.
+
 **View experiment report** opens a read-only JSON record of the rules, seed, current random state, casualties, pressure and combatants. It includes a transfer code to restore the exact position in another debug session; **Copy restore code** copies that code by itself. Viewing or copying the report does not change the simulation. Reports stay local unless you choose to share them.
 
 ## Current rules
@@ -24,6 +26,8 @@ The debug seed control accepts whole numbers from 0 through 2147483647. **Apply 
 | Sacrifice costs & openings | The first terminal fall per recruit in a chapter grants surviving allies +2 attack through the next player turn. If they return, they start attempts through the following chapter with 4 HP missing and one tonic instead of two. Base maximum HP and permanent growth are unchanged. Healing can restore the missing health. This works with either permadeath setting. |
 
 The war council marks recovering recruits and previews their actual starting HP; their dossier explains the reduced tonic supply. These previews use the same rules as deployment and disappear when the cost expires or its switch is disabled.
+
+Gold target tiles identify adjacent allies a selected non-staff unit can rescue; staff targets remain green. The end-phase button warns how many uncarried allies will bleed out, with their names on hover. Carrying or healing them clears the warning. No extra confirmation is added.
 
 Selected units show carrying, recovery and active sacrifice openings in one compact status line. Hover it for the effective carrying movement, bonus duration and recovery explanation.
 
