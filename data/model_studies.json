@@ -1444,6 +1444,10 @@
       "impact": 1.28,
       "finish": 1.65
     },
-    "mount": "Mount"
+    "mount": "Mount",
+    "campaign_characters": [
+      "bram",
+      "elian"
+    ]
   }
 }

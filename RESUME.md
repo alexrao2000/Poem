@@ -342,3 +342,12 @@ Rider source final checks pass: `/private/tmp/poem-rider-final-regressions.log` 
 
 
 Rider source release passes: `/private/tmp/poem-rider-study-export.log` verifies external-PCK mounted clips/seat/hoof/rein/defeat, both-body fitted flights and existing21ordinary revised identities, then browser/macOS packaging. Both ZIPs pass integrity. Default148suites. Ready to commit/sync this source-study checkpoint before applying Rider campaign integration. No GPU game/audio approval is claimed.
+
+
+Delivered Rider source checkpoint `a027a2e` to both branches and the primary checkout, with local packages refreshed. Rider campaign integration is now applied: Bram/Una/Elian bring the revised appearance option to all24recruits across8baseclasses. Added independent `revised_rider` inheritance/reset/report and updated debug hint to describe all classes. Default150suites adds Riderdebug and Elianrangedframing. Focused tests/export/delivery pending.
+
+
+Rider campaign checks pass in `/private/tmp/poem-rider-campaign-final.log`: fifteenequipment/identity bindings, all24ordinary preference/previews/exchanges, inherited independent debug comparisons, exact save/RNG restoration and648Elianrangedcamera layouts. The first integration run had a test-only class assertion expecting the independently enabled caster to be an ImportedRider; corrected to ImportedFighter excluding Rider. Runtime was unchanged. Campaign export `/private/tmp/poem-rider-campaign-export.log` is running.
+
+
+Rider campaign release passes: `/private/tmp/poem-rider-campaign-export.log` verifies all24ordinary revised recruits plus packaged mounted rigs/flight/stride/defeat and browser/macOS packaging. Both ZIP integrity checks pass. Next visual target is source-body enemy infantry, initially a Duelist study retaining the original anonymous face, dark outfit, imperial cloak crest and class headgear; no enemy integration has been applied.
