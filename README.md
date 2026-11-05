@@ -100,7 +100,7 @@ Read support ranks grant +5 Hit/Avoid per rank while the partner is nearby. Rank
 
 Open **View character** from a dossier to rotate a recruit's 3D preview and choose attack, reaction, defeat, or finishing poses. Staff users can preview healing. **Run / trot** loops the combat gait in place while you rotate or zoom the outfit. **Play again** restarts the selected action; **Escape** returns to the record or training choice.
 
-In **Options → Character models**, choose **Revised models · preview** to use the fitted skeletal models for all 24 unpromoted recruits. This is a local appearance preference; it does not change campaign records. Debug tools also offer independent class switches and source studies for all eight anonymous enemy classes, with equipment and original faction styling. Campaign enemies and promoted outfits currently retain the original models.
+In **Options → Character models**, choose **Revised models · preview** to use the fitted skeletal models for all 24 unpromoted recruits and ordinary enemies. This is a local appearance preference; it does not change campaign records. Debug tools also offer independent class switches and source studies for all eight anonymous enemy classes, with equipment and original faction styling. Named commanders, promoted outfits and unsupported equipment retain the original models.
 
 The title screen's **Character & map workshop** runs a separate skirmish with the same animated sprite foundation over either 2D tiles or 3D terrain. It does not write campaign saves. See the [reusable sprite package](visuals/README.md) for its preview scene, controls, and integration contract.
 

@@ -252,6 +252,11 @@ func run():
   assert(revised_mage is Imported and revised_mage.model.get_meta("character_identity")==id and revised_mage.model.get_node("Rig/Armature/Skeleton3D/BookHand/Folio").equipped=="gale","Packaged casting toggle selects the styled mage independently")
   revised_mage.queue_free();await process_frame
  app.ui.find_child("DebugCasterModel",true,false).button_pressed=false
+ app.ui.find_child("DebugEnemyModels",true,false).button_pressed=true
+ var packaged_enemy=app.game.roster[0].duplicate(true);packaged_enemy.id="packaged_enemy";packaged_enemy.team="enemy"
+ var enemy_model=app.make_fighter(packaged_enemy,Vector3.ZERO);assert(enemy_model is Imported and enemy_model.model.get_meta("enemy_appearance")=="Vanguard")
+ enemy_model.queue_free();await process_frame
+ app.ui.find_child("DebugEnemyModels",true,false).button_pressed=false
  app.show_debug_report();assert(JSON.parse_string(app.ui.find_child("DebugReport",true,false).text).debug,"Packaged debug reports contain the current experiment record")
  assert(app.game.trials.scenes.size()==10,"Release includes relief, retreat, volunteer and memorial story scenes")
  assert(app.persist_campaign("battle") and FileAccess.file_exists(app.save_path+".debug"),"Packaged debug actions save separately")
@@ -261,6 +266,14 @@ func run():
   var campaign_model=app.make_fighter(campaign_recruit,Vector3.ZERO)
   assert(not app.debug_session.active and campaign_model is Imported and campaign_model.model.get_meta("character_identity")==id,"Packaged appearance preference works for every revised recruit in the ordinary campaign")
   campaign_model.queue_free();await process_frame
+ for key in enemy_metadata:
+  var spec=enemy_metadata[key]
+  if not spec.has("study_enemy_class"):continue
+  var enemy=app.game.roster.filter(func(unit):return unit.id==spec.study_character)[0].duplicate(true);enemy.id="packaged_enemy";enemy.team="enemy";enemy.job=spec.study_enemy_class;enemy.item=spec.supported_items[0]
+  var actor=app.make_fighter(enemy,Vector3.ZERO);assert(actor is Imported and actor.model.get_meta("enemy_appearance")==enemy.job,"Packaged ordinary campaign preference selects all eight enemy families")
+  actor.queue_free();await process_frame
+  enemy.boss=true;actor=app.make_fighter(enemy,Vector3.ZERO);assert(not actor is Imported,"Packaged preference preserves boss appearances")
+  actor.queue_free();await process_frame
  await Shutdown.dispose(app);await process_frame
  print("PASS: exported catalog, all three act scores, chapter scenes, sixteen promotion costumes, licenses and credits")
  quit()

@@ -12,12 +12,13 @@ var revised_corsair=false
 var revised_ranger=false
 var revised_knight=false
 var revised_rider=false
+var revised_enemies=false
 var checkpoint: Dictionary={}
 var return_screen="title"
 
 func begin(game,screen: String,revised_models=false):
  if active:return
- return_screen=screen;combat_seed=472019;revised_duelists=revised_models;revised_caster=revised_models;revised_vanguard=revised_models;revised_warden=revised_models;revised_corsair=revised_models;revised_ranger=revised_models;revised_knight=revised_models;revised_rider=revised_models
+ return_screen=screen;combat_seed=472019;revised_duelists=revised_models;revised_caster=revised_models;revised_vanguard=revised_models;revised_warden=revised_models;revised_corsair=revised_models;revised_ranger=revised_models;revised_knight=revised_models;revised_rider=revised_models;revised_enemies=revised_models
  checkpoint=game.save_data("battle" if screen=="battle" else "camp").duplicate(true)
  active=true
 
@@ -25,7 +26,7 @@ func end(game) -> String:
  if not active:return return_screen
  if game.restore_save(checkpoint).is_empty():return return_screen
  game.roster=checkpoint.roster.duplicate(true);game.units=checkpoint.units.duplicate(true)
- active=false;revised_duelists=false;revised_caster=false;revised_vanguard=false;revised_warden=false;revised_corsair=false;revised_ranger=false;revised_knight=false;revised_rider=false;checkpoint.clear()
+ active=false;revised_duelists=false;revised_caster=false;revised_vanguard=false;revised_warden=false;revised_corsair=false;revised_ranger=false;revised_knight=false;revised_rider=false;revised_enemies=false;checkpoint.clear()
  return return_screen
 
 func set_revised_duelists(enabled: bool) -> bool:
@@ -55,6 +56,10 @@ func set_revised_ranger(enabled: bool) -> bool:
 func set_revised_knight(enabled: bool) -> bool:
  if not active:return false
  revised_knight=enabled;return true
+
+func set_revised_enemies(enabled: bool) -> bool:
+ if not active:return false
+ revised_enemies=enabled;return true
 
 func set_revised_rider(enabled: bool) -> bool:
  if not active:return false

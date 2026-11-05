@@ -4,6 +4,7 @@ const Imported=preload("res://scripts/imported_fighter.gd")
 const Actor=preload("res://scripts/fighter_actor.gd")
 const Shutdown=preload("helpers/game_shutdown.gd")
 var seen=[]
+var enemy_seen=[]
 func _initialize():call_deferred("run")
 func run():
  var prefs=Preferences.new();assert(prefs.values.character_models=="current")
@@ -40,8 +41,10 @@ func run():
  assert(app.game.save_data("camp")==original and app.fighters.models.catalog==catalog)
  app.game.start_battle();app.make_map();app.show_battle();app.busy=true
  app.stage.child_entered_tree.connect(func(node):
-  if node is Imported:seen.append(node.model.get_meta("character_identity")))
- var enemy=app.game.living("enemy")[0];enemy.x=9;enemy.y=4
+  if node is Imported:
+   if node.model.has_meta("enemy_appearance"):enemy_seen.append(node.model.get_meta("enemy_appearance"))
+   else:seen.append(node.model.get_meta("character_identity")))
+ var enemy=app.game.living("enemy").filter(func(unit):return not unit.get("boss",false))[0];enemy.x=9;enemy.y=4
  var battle=app.game.save_data("battle").duplicate(true);var rng=app.game.rng.state
  for unit in units:
   unit.x=8 if unit.weapon in ["sword","axe"] else 7;unit.y=4
@@ -49,9 +52,9 @@ func run():
    var patient=enemy.duplicate(true);patient.team="player"
    await app.cinematic(unit,patient,[{"actor":unit.id,"target":patient.id,"healing":3}],{unit.id:unit.hp,patient.id:patient.hp-3})
   else:await app.cinematic(unit,enemy,[{"actor":unit.id,"target":enemy.id,"damage":3,"remaining":17,"hit":true,"crit":false}],{unit.id:unit.hp,enemy.id:20})
- assert(seen==["lyra","nell","silas","tarin","vela","yuna","noor","cassian","rhea","ivo","esme","galen","mara","dax","hale","sera","ari","faye","oren","petra","rook","bram","una","elian"] and app.game.save_data("battle")==battle and app.game.rng.state==rng,"The ordinary campaign builder uses revised actors without rerolling or mutating battle state")
+ assert(seen==["lyra","nell","silas","tarin","vela","yuna","noor","cassian","rhea","ivo","esme","galen","mara","dax","hale","sera","ari","faye","oren","petra","rook","bram","una","elian"] and enemy_seen.size()==21 and app.game.save_data("battle")==battle and app.game.rng.state==rng,"The ordinary campaign builder uses revised actors without rerolling or mutating battle state")
  app.busy=false;app.show_options("battle");app.ui.find_child("DebugMode",true,false).button_pressed=true
- assert(app.debug_session.active and app.debug_session.revised_duelists and app.debug_session.revised_caster and app.debug_session.revised_vanguard and app.debug_session.revised_warden and app.debug_session.revised_corsair and app.debug_session.revised_ranger and app.debug_session.revised_knight and app.debug_session.revised_rider,"New debug comparisons inherit the campaign's selected appearance")
+ assert(app.debug_session.active and app.debug_session.revised_duelists and app.debug_session.revised_caster and app.debug_session.revised_vanguard and app.debug_session.revised_warden and app.debug_session.revised_corsair and app.debug_session.revised_ranger and app.debug_session.revised_knight and app.debug_session.revised_rider and app.debug_session.revised_enemies,"New debug comparisons inherit the campaign's selected appearance")
  assert(app.ui.find_child("CharacterModels",true,false).disabled)
  app.debug_session.set_revised_duelists(false)
  var plain=app.make_fighter(units[1],Vector3.ZERO);assert(plain is Actor);plain.queue_free();await process_frame
@@ -60,7 +63,7 @@ func run():
  var report=JSON.parse_string(app.ui.find_child("DebugReport",true,false).text).presentation
  assert(report.campaign_models=="revised" and not report.revised_duelists and report.revised_caster)
  app.show_options("battle");app.ui.find_child("DebugMode",true,false).button_pressed=false
- assert(not app.debug_session.active and not app.debug_session.revised_ranger and not app.debug_session.revised_knight and not app.debug_session.revised_rider and app.game.save_data("battle")==battle and app.preferences.values.character_models=="revised")
+ assert(not app.debug_session.active and not app.debug_session.revised_ranger and not app.debug_session.revised_knight and not app.debug_session.revised_rider and not app.debug_session.revised_enemies and app.game.save_data("battle")==battle and app.preferences.values.character_models=="revised")
  styled=app.make_fighter(units[0],Vector3.ZERO);assert(styled is Imported);styled.queue_free();await process_frame
  app.show_options("battle");app.ui.find_children("*","Button",true,false).filter(func(button):return button.text=="Restore defaults")[0].pressed.emit();await process_frame
  assert(app.preferences.values.character_models=="current" and app.ui.find_child("CharacterModels",true,false).selected==0)
