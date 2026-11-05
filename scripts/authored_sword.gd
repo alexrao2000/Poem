@@ -4,10 +4,11 @@ extends Node3D
 @export var handle_radius=.014
 var equipped=""
 var grip_rotations={}
-func _init():configure_equipment("sword","iron_sword")
+func equipment_kind() -> String:return "sword"
+func _init():configure_equipment(equipment_kind(),"")
 
 func configure_equipment(kind: String,item: String) -> String:
- if kind!="sword":return "The duelist rig requires a sword"
+ if kind!=equipment_kind():return "The rig requires a "+equipment_kind()
  var painter=preload("res://scripts/fighters.gd").new()
  item=painter.EquipmentVisuals.resolve(kind,item)
  if equipped==item:fit_handle();return ""

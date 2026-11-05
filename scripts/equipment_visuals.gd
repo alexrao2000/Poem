@@ -68,7 +68,7 @@ static func build(painter,arm: Node3D,kind: String,item: String) -> Node3D:
    if look.get("lugs",false):
     painter.geo.block(hand,Vector3(0,0,-1.38),Vector3(.30,.045,.045),gold)
   elif kind=="axe":
-   var shaft=painter.geo.cylinder(hand,Vector3(0,0,-.35),.9,.029,wood);shaft.rotation.x=PI/2
+   var shaft=painter.geo.cylinder(hand,Vector3(0,0,-.35),.9,.029,wood);shaft.name="AxeShaft";shaft.rotation.x=PI/2
    var head=painter.geo.mesh(hand,blade(item),Vector3.ZERO,Vector3(float(look.width),1,1),metal)
    head.name="HammerHead" if look.shape=="hammer" else "AxeBlade"
   else:

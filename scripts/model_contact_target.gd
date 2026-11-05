@@ -17,7 +17,7 @@ func configure(subject: Node3D):actor=subject
 
 func choose(index: int):
  selected=clampi(index,0,2)
- position=Vector3(0,1.1 if selected==1 else 1.85,-1.4)
+ position=Vector3(0,1.1 if selected==1 else 1.85,-preload("res://scripts/fighter_actor.gd").melee_spacing(actor.kind))
  for part in parts:part.visible=selected>0
  if selected>0:actor.aim_at(global_position)
  else:

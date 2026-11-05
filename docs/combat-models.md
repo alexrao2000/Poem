@@ -204,3 +204,12 @@ The Vanguard group now includes Lyra/Rhea on the female wrapper and Cassian on `
 
 
 Revised trouser materials (dye mode 2) now set `dye_detail=0.35`, interpolating normalized texture shading toward the base dye. This softens the supplied high-contrast folds without modifying the source texture. Skin, tunic/leather and normal-map strength retain their previous treatment; the shader defaults to full detail. Isolated ivory/blue/purple comparisons at strengths 1/.35/.55/.75 informed the choice, with actual GPU appearance still unreviewed.
+
+
+## Corsair models
+
+The revised campaign option and independent **Revised Corsair models** debug switch cover Mara, Dax and Hale before promotion, using both source bodies, original faces/hair/colors and short company cloaks. Iron axes, hatchets, great axes and war hammers retain their original heads and trail sockets. The source study offers Mara and Dax as body representatives. Its target distance now comes from the same melee-spacing function as actual combat.
+
+`authored_axe.gd` shares the fitted palm/finger setup with swords and narrows the existing grip/shaft to the source hands. `weapon_floor.gd` uses the original animated wrist while clear, then adjusts the arm to keep broad heads above the floor during falls. It shares conservative prop bounds and bounded orientation fitting with `staff_hold.gd` through `prop_floor.gd`. Consistent blade-face alignment avoids the abrupt half-turn found when a prototype chose whichever face was closest. Standing source swings, mesh/animation resources and bone lengths are unchanged.
+
+Dense checks cover 4,240 equipped poses across both bodies and all four items, both sides and elevated floors, native/direct partial influence, fading and less than 1 cm fitted blade contact error against foot/mounted heights. Camera projection covers 6,480 layouts at three sizes. Actual attack/counter/block/critical/dodge/defeat playback and ordinary campaign appearance preserve resolved simulation and saves. The isolated software character study has been inspected; assembled GPU appearance/performance remains unverified.

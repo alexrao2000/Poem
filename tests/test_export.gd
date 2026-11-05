@@ -137,6 +137,19 @@ func run():
    for surface in range(mesh.mesh.get_surface_count()):
     for vertex in mesh.mesh.surface_get_arrays(surface)[Mesh.ARRAY_VERTEX]:assert(mesh.to_global(vertex).y>warden.global_position.y+.01,"Packaged falling staff clears the floor")
   app.close_model_view();await process_frame
+ for pair in [["corsair_female","mara"],["corsair_male","dax"]]:
+  app.show_source_model_view(pair[0],"war_hammer",true);await process_frame
+  var corsair=app.preview_actor;assert(corsair is Imported and corsair.model.get_meta("character_identity")==pair[1])
+  var grip=corsair.model.get_node("Rig/Armature/Skeleton3D/WeaponHand/Grip")
+  assert(grip.equipped=="war_hammer" and grip.floor_fit.model==corsair.model and grip.floor_fit.corners.size()==8,"Packaged axe retains its fitted shaft and floor constraint")
+  var target=app.ui.find_child("StudyTarget",true,false);target.select(2);target.item_selected.emit(2);await app.stage.get_node("PreviewActionPlayer").finished
+  var edge=corsair.weapon_trail_points();var point=corsair.get_node("StudyContactTarget").global_position
+  assert(Geometry3D.get_closest_point_to_segment(point,edge[0],edge[1]).distance_to(point)<.01)
+  await corsair.pose("down",.02).finished
+  for mesh in grip.get_node("Weapon").find_children("*","MeshInstance3D",true,false):
+   for surface in range(mesh.mesh.get_surface_count()):
+    for vertex in mesh.mesh.surface_get_arrays(surface)[Mesh.ARRAY_VERTEX]:assert(mesh.to_global(vertex).y>corsair.global_position.y+.01,"Packaged falling hammer clears the floor")
+  app.close_model_view();await process_frame
  app.show_source_model_view("vanguard","iron_sword",true);await process_frame
  var vanguard=app.preview_actor;assert(vanguard is Imported and vanguard.model.get_meta("character_identity")=="lyra" and vanguard.model.get_node("Identity").mantle!=null,"Packaged Vanguard study retains Lyra’s ivory mantle")
  await vanguard.pose("strike",.02).finished
@@ -159,8 +172,8 @@ func run():
  assert(app.game.trials.scenes.size()==10,"Release includes relief, retreat, volunteer and memorial story scenes")
  assert(app.persist_campaign("battle") and FileAccess.file_exists(app.save_path+".debug"),"Packaged debug actions save separately")
  app.debug_session.end(app.game);app.preferences.values.character_models="revised"
- for id in ["lyra","nell","silas","yuna","tarin","vela","noor","cassian","rhea","ivo","esme","galen"]:
-  var campaign_recruit=app.game.roster.filter(func(value):return value.id==id)[0].duplicate(true);campaign_recruit.team="player";campaign_recruit.item="iron_sword" if campaign_recruit.weapon=="sword" else "field_staff" if campaign_recruit.weapon=="staff" else "ember"
+ for id in ["lyra","nell","silas","yuna","tarin","vela","noor","cassian","rhea","ivo","esme","galen","mara","dax","hale"]:
+  var campaign_recruit=app.game.roster.filter(func(value):return value.id==id)[0].duplicate(true);campaign_recruit.team="player";campaign_recruit.item="iron_sword" if campaign_recruit.weapon=="sword" else "iron_axe" if campaign_recruit.weapon=="axe" else "field_staff" if campaign_recruit.weapon=="staff" else "ember"
   var campaign_model=app.make_fighter(campaign_recruit,Vector3.ZERO)
   assert(not app.debug_session.active and campaign_model is Imported and campaign_model.model.get_meta("character_identity")==id,"Packaged appearance preference works for every revised recruit in the ordinary campaign")
   campaign_model.queue_free();await process_frame
