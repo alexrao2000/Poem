@@ -69,17 +69,20 @@ func record_losses(game):
     volunteers.append(volunteer);queue_scene("volunteer_"+volunteer)
     log_event(recruits[0].name+" answers the company's loss and arrives ahead of the planned rendezvous.")
 
+func enemy_modifiers(chapter: int) -> Dictionary:
+ var extra=pressure if flags.reset_pressure else 0
+ return {"max_hp":extra*2+(6+chapter if flags.hard_campaign else 0),"pow":extra+(2+int(chapter/2) if flags.hard_campaign else 0),"speed":1+int(chapter/4) if flags.hard_campaign else 0,"defense":int(chapter/3) if flags.hard_campaign else 0,"held_tonics":maxi(0,2-extra) if flags.reset_pressure else 0,"raiders_advance":extra>0}
+
 func prepare_battle(game):
  if not flags.reset_pressure and not flags.hard_campaign and not flags.sacrifice_cost:return
  var extra=pressure if flags.reset_pressure else 0
+ var modifiers=enemy_modifiers(game.chapter)
  for unit in game.units:
   if unit.team=="enemy":
-   game.raise_stat(unit,"max_hp",extra*2+(6+game.chapter if flags.hard_campaign else 0));unit.hp=unit.max_hp
-   game.raise_stat(unit,"pow",extra+(2+int(game.chapter/2) if flags.hard_campaign else 0))
-   game.raise_stat(unit,"speed",1+int(game.chapter/4) if flags.hard_campaign else 0)
-   game.raise_stat(unit,"defense",int(game.chapter/3) if flags.hard_campaign else 0)
+   for key in ["max_hp","pow","speed","defense"]:game.raise_stat(unit,key,modifiers[key])
+   unit.hp=unit.max_hp
    if flags.reset_pressure:
-    unit.held_tonics=maxi(0,2-extra)
+    unit.held_tonics=modifiers.held_tonics
     if extra>0:unit.reset_supplies_spent=mini(2,extra)
     if not unit.boss and unit.job in ["Corsair","Ranger"]:unit.raider=true
   elif flags.sacrifice_cost and int(injuries.get(unit.id,-1))>=game.chapter:

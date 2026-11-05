@@ -18,6 +18,8 @@ Healing cutaways now preserve pre-growth HP until the reward panel. Downed allie
 
 Browser saving now keeps a checked localStorage recovery record per normal/debug slot, alongside the atomic filesystem saves. Load selects the newest validated record; Continue also finds a journal-only campaign. Storage rejection reports failure and blocks action-saving battles until retry succeeds. JavaScript storage-double tests plus headless save/transfer/UI/experiment/debug/menu checks pass. Actual browser reload verification remains unavailable.
 
+Debug can now rebuild the current chapter at pressure 0–10 using its selected seed. The experiment panel and report share the actual enemy-preparation calculation, including held tonics and raider movement. Carrying, recovery and sacrifice openings appear in a compact tactical status line with detailed hover text. Twelve-chapter preparation matrices, debug isolation and three-size rescue/status layout checks pass.
+
 ## Earlier checkpoints
 
 Spell flight now has a continuous soft-edged wake and luminous elemental cores/halos, replacing the six opaque trailing beads. It uses four fewer mesh instances per spell while keeping the existing path/timing. Focused geometry, transformed physical/elemental flights, actual exchanges and skip cleanup pass; the isolated additive study was corrected for a measured headless gradient readback artifact rather than treating that artifact as a game defect.

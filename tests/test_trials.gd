@@ -12,6 +12,24 @@ func victory(game):
  if game.info().objective=="seize":game.units[0].x=game.objective_position().x;game.units[0].y=game.objective_position().y
  assert(game.result()=="victory");game.finish_chapter()
 func rules():
+ for chapter in range(12):
+  var unmodified=Rules.new();unmodified.chapter=chapter;unmodified.start_battle()
+  for pressure in [0,1,2,10]:
+   var prepared=Rules.new();prepared.chapter=chapter;prepared.trials.pressure=pressure
+   prepared.trials.flags.hard_campaign=true;prepared.trials.flags.reset_pressure=true;prepared.start_battle()
+   var modifiers=prepared.trials.enemy_modifiers(chapter)
+   assert(modifiers.max_hp==6+chapter+pressure*2 and modifiers.pow==2+int(chapter/2)+pressure)
+   assert(modifiers.speed==1+int(chapter/4) and modifiers.defense==int(chapter/3))
+   assert(modifiers.held_tonics==maxi(0,2-pressure) and modifiers.raiders_advance==(pressure>0))
+   var occupied=[]
+   for unit in prepared.units:
+    assert(prepared.pos(unit) not in occupied,"Reset advances cannot overlap deployed units")
+    occupied.append(prepared.pos(unit))
+    if unit.team!="enemy":continue
+    var original_unit=unmodified.units.filter(func(other):return other.id==unit.id)[0]
+    for key in ["max_hp","pow","speed","defense"]:assert(unit[key]==mini(prepared.STAT_CAPS[key],original_unit[key]+modifiers[key]),"Preparation preview matches actual enemy stats")
+    assert(unit.held_tonics==modifiers.held_tonics)
+   assert(prepared.valid_save(prepared.save_data("battle")),"Every pressure/chapter preparation remains loadable")
  var g=Rules.new();g.new_campaign(true);g.action_saves=true
  for key in g.trials.flags:g.trials.flags[key]=true
  g.start_battle();var base=Rules.new();base.start_battle()

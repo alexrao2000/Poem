@@ -90,6 +90,8 @@ func run():
  assert(badge.get_meta("turns")==2 and badge.texture.get_size()==Vector2(64,36),"The tactical rescue badge shows the actual remaining phase endings")
  var point=app.camera.unproject_position(badge.global_position)
  assert(downed_actor.screen_bounds(app.camera).has_point(point) and app.pick_map_unit(point)==patient,"Clicking the rescue badge inspects its downed ally")
+ app.selected=patient;app.update_side()
+ assert("2 phases left" in app.side.find_child("UnitConditions",true,false).text,"Inspection describes the same phase-ending deadline as the badge")
  for foe in app.game.living("enemy"):foe.ai="guard"
  app.end_turn()
  assert(app.unit_nodes[patient.id].rescue_marker.get_meta("turns")==1,"The rescue badge updates before the enemy-phase announcement")
@@ -109,7 +111,17 @@ func run():
  app.game.new_campaign(true);app.game.death_door=true;app.game.action_saves=true;app.game.start_battle()
  var medic=app.game.units.filter(func(unit):return unit.weapon=="staff")[0];patient=app.game.units[1]
  medic.x=2;medic.y=3;patient.x=3;patient.y=3;casualty(app.game,patient);assert(Door.rescue(app.game,medic,patient))
- app.game.begin_enemy_phase();app.game.next_player_turn();app.make_map();app.show_battle();app.selected=medic;app.show_triage()
+ app.game.begin_enemy_phase();app.game.next_player_turn();app.make_map();app.show_battle();app.selected=medic
+ medic.resolve_until=app.game.turn+1;medic.recovering=true;app.update_side()
+ var conditions=app.side.find_child("UnitConditions",true,false)
+ assert("Carrying "+patient.name in conditions.text and "ATK +2" in conditions.text and "Recovering" in conditions.text)
+ assert("movement %d"%app.game.movement_allowance(medic) in conditions.tooltip_text)
+ for dimensions in [Vector2(1024,640),Vector2(1280,720),Vector2(1440,900)]:
+  app.ui.set_anchors_and_offsets_preset(Control.PRESET_TOP_LEFT);app.ui.size=dimensions;app.arrange_battle_side()
+  await process_frame;await process_frame
+  assert(conditions.get_line_count()==1,"Combined conditions remain one compact status line")
+  for control in app.side.get_children():assert(Rect2(Vector2.ZERO,dimensions).grow(1).encloses(control.get_global_rect()),"Rescue and condition controls fit the tactical panel")
+ app.show_triage()
  var healing_button=app.ui.find_children("*","Button",true,false).filter(func(button):return button.text=="Heal carried "+patient.name)
  assert(healing_button.size()==1);healing_button[0].pressed.emit()
  assert(app.busy and app.screen=="battle" and patient.hp>0,"Carried-ally treatment routes into real healing feedback after resolving health")

@@ -604,7 +604,21 @@ func update_side():
 			button_in(side,"Wait / secure position",wait_action,busy)
 			button_in(side,"Field tonic (+12 HP)  ·  "+str(int(selected.potions)),tonic,busy or selected.potions<=0 or selected.hp>=selected.max_hp)
 			if selected.weapon=="staff":label_in(side,"Heal %d HP · range %s. Click an injured ally."%[game.healing_power(selected),game.range_text(selected)],16,GOLD)
-		if game.DeathDoor.downed(selected):label_in(side,"Death’s door · %d turns to help"%selected.bleed_turns,17,GOLD)
+		var conditions=[];var condition_help=[]
+		if game.DeathDoor.downed(selected):
+			conditions.append("Downed · %d %s left"%[selected.bleed_turns,"phase" if selected.bleed_turns==1 else "phases"])
+			condition_help.append("Rescue or heal this ally. Bleeding continues at the end of each player phase; %d remain. Carrying pauses the countdown."%selected.bleed_turns)
+		var passenger=game.DeathDoor.passenger(game,selected)
+		if passenger!=null:
+			conditions.append("Carrying "+passenger.name)
+			condition_help.append("Carrying %s: movement %d. Rescue & triage offers healing or a drop position."%[passenger.name,game.movement_allowance(selected)])
+		if selected.get("resolve_until",0)>=game.turn:
+			conditions.append("ATK +2");condition_help.append("Sacrifice opening: +2 attack through player turn %d."%selected.resolve_until)
+		if selected.get("recovering",false):
+			conditions.append("Recovering");condition_help.append("Started this attempt with 4 HP missing and one tonic. Healing can restore normal maximum health.")
+		if not conditions.is_empty():
+			var condition_label=label_in(side," · ".join(conditions),16,GOLD);condition_label.name="UnitConditions"
+			condition_label.autowrap_mode=TextServer.AUTOWRAP_OFF;condition_label.text_overrun_behavior=TextServer.OVERRUN_TRIM_ELLIPSIS;condition_label.tooltip_text="\n".join(condition_help)
 		if game.can_act(selected) and (game.DeathDoor.passenger(game,selected)!=null or game.units.any(func(patient):return game.DeathDoor.can_rescue(game,selected,patient) or (game.can_heal(selected,patient) and not patient.get("carried_by","").is_empty()))):
 			button_in(side,"Rescue & triage",show_triage,busy)
 	else:
@@ -1615,6 +1629,11 @@ func show_debug_tools(return_to: String):
 	button_in(panel,"Load chapter with fresh roster",func():
 		debug_session.load_chapter(game,chapters.selected);make_map();show_battle();persist_campaign("battle"))
 	button_in(panel,"Reset current battle",func():debug_session.reset_battle(game);make_map();show_battle();persist_campaign("battle"))
+	label_in(panel,"Enemy reset preparation",23,GOLD)
+	var pressure_input=SpinBox.new();pressure_input.name="DebugPressure";pressure_input.min_value=0;pressure_input.max_value=10;pressure_input.step=1;pressure_input.value=game.trials.pressure;pressure_input.custom_minimum_size.y=42;panel.add_child(pressure_input)
+	label_in(panel,"Enable enemy preparation at the chosen pressure and rebuild this battle with the current seed. Other trial switches and recorded losses remain.",16)
+	button_in(panel,"Test pressure and reset battle",func():
+		if debug_session.test_pressure(game,pressure_input.value):make_map();show_battle();persist_campaign("battle"))
 	button_in(panel,"Heal deployed allies",func():
 		debug_session.heal(game);persist_campaign("battle" if options_return=="battle" else "camp");show_notice("Living allies restored to full health."))
 	button_in(panel,"Revive company and reset battle",func():
@@ -1676,6 +1695,8 @@ func show_campaign_trials():
 	label_in(panel,"CAMPAIGN EXPERIMENTS",18,GOLD)
 	label_in(panel,"Section %d · Pressure %d / 10"%[int(game.chapter/4)+1,game.trials.pressure],34,GOLD)
 	label_in(panel,"Legacy supply credits: %d"%game.trials.credits,22)
+	var preparation=game.trials.enemy_modifiers(game.chapter)
+	label_in(panel,"Next deployment · enemies gain %d HP, %d attack, %d speed and %d defense. Held tonics: %d. Raiders %s."%[preparation.max_hp,preparation.pow,preparation.speed,preparation.defense,preparation.held_tonics,"advance before the battle" if preparation.raiders_advance else "start at their usual positions"],19)
 	if game.trials.flags.death_legacies and game.permadeath:
 		for stock in game.trials.LEGACY_STOCK:
 			var item=game.equipment.filter(func(entry):return entry.id==stock.id)[0]

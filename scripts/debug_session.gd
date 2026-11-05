@@ -48,6 +48,12 @@ func reset_battle(game):
  if not active:return
  game.rng.seed=combat_seed;game.start_battle()
 
+func test_pressure(game,value) -> bool:
+ if not active or not game.trials.integer(value,0,10):return false
+ game.trials.flags.reset_pressure=true;game.trials.pressure=int(value)
+ reset_battle(game)
+ return true
+
 func report(game,stage="battle") -> Dictionary:
  if not active:return {}
  var settings=game.trials.flags.duplicate()
@@ -55,4 +61,4 @@ func report(game,stage="battle") -> Dictionary:
  var combatants=[]
  for unit in game.units:
   combatants.append({"id":unit.id,"name":unit.name,"team":unit.team,"class":game.class_name_for(unit),"position":[unit.x,unit.y],"hp":unit.hp,"max_hp":unit.max_hp,"attack":game.attack_power(unit),"defense":unit.defense,"resistance":game.resistance_for(unit),"speed":game.attack_speed(unit),"equipment":unit.item,"level":unit.level,"xp":unit.xp,"acted":unit.acted,"downed":unit.get("downed",false),"bleed_turns":unit.get("bleed_turns",0),"carried_by":unit.get("carried_by",""),"tonics":unit.get("potions",unit.get("held_tonics",0))})
- return {"report_version":1,"debug":true,"chapter":game.chapter+1,"title":game.info().title,"section":int(game.chapter/4)+1,"turn":game.turn,"phase":game.phase,"outcome":game.result() if stage=="battle" and not game.units.is_empty() else "preparation","settings":settings,"seed_for_new_attempts":combat_seed,"rng_state":str(game.rng.state),"pressure":game.trials.pressure,"casualties":game.lost_ids(true),"legacy_credits":game.trials.credits,"dispatches":game.trials.events.duplicate(),"combatants":combatants,"save_code":game.export_code(stage)}
+ return {"report_version":1,"debug":true,"chapter":game.chapter+1,"title":game.info().title,"section":int(game.chapter/4)+1,"turn":game.turn,"phase":game.phase,"outcome":game.result() if stage=="battle" and not game.units.is_empty() else "preparation","settings":settings,"seed_for_new_attempts":combat_seed,"rng_state":str(game.rng.state),"pressure":game.trials.pressure,"next_deployment_enemy_bonuses":game.trials.enemy_modifiers(game.chapter),"casualties":game.lost_ids(true),"legacy_credits":game.trials.credits,"dispatches":game.trials.events.duplicate(),"combatants":combatants,"save_code":game.export_code(stage)}
