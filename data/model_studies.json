@@ -631,7 +631,11 @@
     },
     "study_character": "ivo",
     "study_label": "male Warden",
-    "study_title": "Warden \u00b7 Ivo"
+    "study_title": "Warden \u00b7 Ivo",
+    "campaign_characters": [
+      "ivo",
+      "galen"
+    ]
   },
   "warden_female": {
     "scene": "res://assets/models/quaternius/study_warden_female.tscn",

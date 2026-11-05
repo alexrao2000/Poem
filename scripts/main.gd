@@ -108,6 +108,7 @@ var debug_session=preload("res://scripts/debug_session.gd").new()
 var debug_duelists=preload("res://scripts/debug_duelist_models.gd").new()
 var debug_vanguard=preload("res://scripts/debug_source_models.gd").new(["vanguard","vanguard_male"])
 var debug_caster=preload("res://scripts/debug_source_models.gd").new(["caster","caster_female"])
+var debug_warden=preload("res://scripts/debug_source_models.gd").new(["warden","warden_female"])
 var save_failed=false
 var save_warning_queued=false
 
@@ -959,6 +960,9 @@ func make_fighter(u,position) -> Node3D:
 	if (debug_session.revised_caster if debug_session.active else revised):
 		var study=debug_caster.build(stage,u,position)
 		if study!=null:return study
+	if (debug_session.revised_warden if debug_session.active else revised):
+		var study=debug_warden.build(stage,u,position)
+		if study!=null:return study
 	return fighters.build(stage,u,position)
 
 func staff_healing(healer,recipient,amount: int,before: Dictionary={}):
@@ -1752,7 +1756,7 @@ func show_options(return_to: String):
 	for title in ["Current roster","Revised models · preview"]:model_mode.add_item(title)
 	model_mode.selected=["current","revised"].find(preferences.values.character_models);model_mode.disabled=debug_session.active;panel.add_child(model_mode)
 	model_mode.item_selected.connect(func(index):preferences.values.character_models=["current","revised"][index])
-	label_in(panel,"Try revised models for every Vanguard, Duelist and Arcanist in battles and outfit previews before promotion. Other characters and unsupported equipment keep their current models. You can switch back at any time.",16)
+	label_in(panel,"Try revised models for every Vanguard, Duelist, Arcanist and Warden in battles and outfit previews before promotion. Other characters and unsupported equipment keep their current models. You can switch back at any time.",16)
 	if debug_session.active:label_in(panel,"Debug tools has separate model switches for this sandbox. Leave Debug mode to change campaign presentation.",16)
 	for key in ["music","effects"]:
 		var row=HBoxContainer.new();row.add_theme_constant_override("separation",20);panel.add_child(row)
@@ -1802,6 +1806,9 @@ func show_debug_tools(return_to: String):
 	var caster=CheckButton.new();caster.name="DebugCasterModel";caster.text="Revised casting models";caster.button_pressed=debug_session.revised_caster;panel.add_child(caster)
 	caster.toggled.connect(func(value):debug_session.set_revised_caster(value))
 	label_in(panel,"Try Tarin, Vela and Noor’s revised models in battles and outfit previews with Ember, Gale or Thunder before promotion. Resets when Debug mode ends.",16)
+	var warden=CheckButton.new();warden.name="DebugWardenModel";warden.text="Revised Warden models";warden.button_pressed=debug_session.revised_warden;panel.add_child(warden)
+	warden.toggled.connect(func(value):debug_session.set_revised_warden(value))
+	label_in(panel,"Try Ivo, Esme and Galen’s revised models before promotion with Field, Mend or Beacon staves. Resets when Debug mode ends.",16)
 	var studies=JSON.parse_string(FileAccess.get_file_as_string("res://data/model_studies.json"))
 	for gender in studies:
 		var study=button_in(panel,"View "+studies[gender].study_label+" rig",func():show_source_model_view(gender));study.name="ModelStudy_"+gender
@@ -1861,7 +1868,7 @@ func show_debug_report():
 	var report=TextEdit.new();report.name="DebugReport";report.editable=false;report.wrap_mode=TextEdit.LINE_WRAPPING_BOUNDARY
 	report.custom_minimum_size.y=160;report.size_flags_vertical=Control.SIZE_EXPAND_FILL;report.add_theme_font_size_override("font_size",14)
 	var record=debug_session.report(game,"battle" if options_return=="battle" else "camp")
-	record.presentation={"campaign_models":preferences.values.character_models,"revised_vanguard":debug_session.revised_vanguard,"revised_duelists":debug_session.revised_duelists,"revised_caster":debug_session.revised_caster}
+	record.presentation={"campaign_models":preferences.values.character_models,"revised_vanguard":debug_session.revised_vanguard,"revised_duelists":debug_session.revised_duelists,"revised_caster":debug_session.revised_caster,"revised_warden":debug_session.revised_warden}
 	report.text=JSON.stringify(record,"\t",false);panel.add_child(report)
 	var actions=HBoxContainer.new();actions.add_theme_constant_override("separation",12);panel.add_child(actions)
 	button_in(actions,"Copy report",func():DisplayServer.clipboard_set(report.text);show_notice("Experiment report copied."))

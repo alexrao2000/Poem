@@ -6,6 +6,8 @@ const Fighters=preload("res://scripts/fighters.gd")
 const Rules=preload("res://scripts/rules.gd")
 const Impact=preload("res://scripts/combat_impact.gd")
 const HitStop=preload("res://scripts/combat_hit_stop.gd")
+const Imported=preload("res://scripts/imported_fighter.gd")
+var revised_models=false
 var light_count=0
 var harmful_count=0
 
@@ -45,7 +47,7 @@ func run():
   assert(reference.get_ref()==null,"Completed recovery releases all temporary geometry")
  world.queue_free();await process_frame
  var app=load("res://main.tscn").instantiate();app.settings_path="";app.save_path="/private/tmp/poem-healing-test.json";root.add_child(app);await process_frame
- app.preferences.values.auto_end=false
+ app.preferences.values.auto_end=false;app.preferences.values.character_models="revised" if revised_models else "current"
  var score=app.score
  for mode in ["all","player","map","skip_windup","skip_light","growth"]:
   app.game.start_battle();app.make_map();app.show_battle();app.preferences.values.combat=mode if mode in ["all","player","map"] else "all"
@@ -71,8 +73,9 @@ func run():
     assert(hud.records[healer.id].meter.maximum==caster_max and hud.records[healer.id].meter.value==caster_hp,"Staff cutaway retains pre-growth caster HP and maximum")
     assert(not hud.records[healer.id].stats.visible,"Healing health limits do not reveal attack statistics")
     assert(hud.records.values().all(func(record):return not record.plate.enemy and not record.matchup.visible),"Healing shows two allied nameplates")
-   var actors=app.stage.get_children().filter(func(node):return node is Actor and not node.is_queued_for_deletion())
+   var actors=app.stage.get_children().filter(func(node):return (node is Actor or node is Imported) and not node.is_queued_for_deletion())
    if app.stage.visible and actors.size()==2:
+    if revised_models:assert(actors[0] is Imported and actors[0].model.get_meta("character_identity")=="ivo","Real field healing honors the campaign appearance preference")
     assert(actors[1].pose_name=="idle","Ally never recoils, dodges or falls during recovery")
     if mode=="skip_windup" and actors[0].pose_name=="cast_windup":app.skip_combat=true;did_skip=true
     if mode=="skip_light" and light_count>effect_count:app.skip_combat=true;did_skip=true

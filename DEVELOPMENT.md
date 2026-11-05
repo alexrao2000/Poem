@@ -6,7 +6,9 @@ User direction: keep developing continuously in this chat until the user returns
 
 ## Current checkpoint
 
-Debug source studies now include male/female Wardens with original Ivo/Esme identities, fitted robes and all three staves. The right hand carries the staff while the left gestures; healing light leaves the crown. A floor-aware wrist target turns the rigid staff during falls while preserving its grip. This class is still a study and is not selected by the campaign appearance preference.
+The revised-model option now covers all twelve base-class Vanguards, Duelists, Arcanists and Wardens. Ivo, Esme and Galen retain their own identities, staves, robe palettes and hair/beard. An independent Warden debug switch inherits the campaign preference and restores on exit. Actual field healing, skip, growth, normal map return and save/RNG isolation are covered.
+
+Debug source studies now include male/female Wardens with original Ivo/Esme identities, fitted robes and all three staves. The right hand carries the staff while the left gestures; healing light leaves the crown. A floor-aware wrist target turns the rigid staff during falls while preserving its grip. Ivo, Esme and Galen are also available through the revised campaign appearance option and an independent Warden debug switch.
 
 Cassian and Rhea join the revised Vanguard group. Cassian uses the male rig with a 20% deeper mantle fit, measured against the animated torso; Rhea shares the female fit. The original class silhouettes, personal faces/hair, source grip and supported equipment remain intact. The revised-model option now covers all nine base-class Vanguards, Duelists and Arcanists; promoted outfits retain their current models.
 
@@ -18,7 +20,7 @@ The revised character models now have thin, private silhouette outlines followin
 
 Lyra now has a revised Vanguard study and optional campaign model from chapter one, with her original long hair, ivory mantle, gold fastening and full company cloak. The mantle was fitted against actual skinned torso samples after a close-up exposed bodice intersections. It has its own debug comparison switch and retains sword grip/contact, gaze, hair motion, framing and promotion fallback.
 
-**Options → Character models → Revised models · preview** makes all nine Vanguards, Duelists and Arcanists available in normal campaign battles and outfit previews without enabling Debug mode. The device-local setting defaults to the current models. Promotions, other recruits and unsupported equipment retain their existing presentation. Debug starts from the selected appearance, then its independent class switches override it until the sandbox ends.
+**Options → Character models → Revised models · preview** makes all twelve Vanguards, Duelists, Arcanists and Wardens available in normal campaign battles and outfit previews without enabling Debug mode. The device-local setting defaults to the current models. Promotions, other recruits and unsupported equipment retain their existing presentation. Debug starts from the selected appearance, then its independent class switches override it until the sandbox ends.
 
 Styled casters now wear the original open-front robe fitted to the source skeleton. A rear vent separates the leg panels, and the hem follows the lower legs. Immutable geometry is cached per body; fabric, floor contact and defeat fading remain actor-owned. This is a skinned garment, not cloth simulation.
 

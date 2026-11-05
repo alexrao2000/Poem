@@ -5,7 +5,7 @@ const HitStop=preload("res://scripts/combat_hit_stop.gd")
 func _initialize():call_deferred("run")
 func run():
  var studies=JSON.parse_string(FileAccess.get_file_as_string("res://data/model_studies.json"));var rules=Rules.new();var stage=Node3D.new();root.add_child(stage);var samples=0
- for entry in [["caster_female","vela"],["caster_female","noor"],["female","yuna"]]:
+ for entry in [["caster_female","vela"],["caster_female","noor"],["female","yuna"],["warden_female","esme"]]:
   var id=entry[1];var spec=studies[entry[0]].duplicate(true);spec.appearance="Identity"
   var models=Models.new("");models.catalog={"characters":{id:spec}}
   var unit=rules.roster.filter(func(value):return value.id==id)[0].duplicate(true);unit.team="player"

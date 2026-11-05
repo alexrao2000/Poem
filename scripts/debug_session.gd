@@ -7,12 +7,13 @@ var active=false
 var revised_duelists=false
 var revised_caster=false
 var revised_vanguard=false
+var revised_warden=false
 var checkpoint: Dictionary={}
 var return_screen="title"
 
 func begin(game,screen: String,revised_models=false):
  if active:return
- return_screen=screen;combat_seed=472019;revised_duelists=revised_models;revised_caster=revised_models;revised_vanguard=revised_models
+ return_screen=screen;combat_seed=472019;revised_duelists=revised_models;revised_caster=revised_models;revised_vanguard=revised_models;revised_warden=revised_models
  checkpoint=game.save_data("battle" if screen=="battle" else "camp").duplicate(true)
  active=true
 
@@ -20,7 +21,7 @@ func end(game) -> String:
  if not active:return return_screen
  if game.restore_save(checkpoint).is_empty():return return_screen
  game.roster=checkpoint.roster.duplicate(true);game.units=checkpoint.units.duplicate(true)
- active=false;revised_duelists=false;revised_caster=false;revised_vanguard=false;checkpoint.clear()
+ active=false;revised_duelists=false;revised_caster=false;revised_vanguard=false;revised_warden=false;checkpoint.clear()
  return return_screen
 
 func set_revised_duelists(enabled: bool) -> bool:
@@ -34,6 +35,10 @@ func set_revised_caster(enabled: bool) -> bool:
 func set_revised_vanguard(enabled: bool) -> bool:
  if not active:return false
  revised_vanguard=enabled;return true
+
+func set_revised_warden(enabled: bool) -> bool:
+ if not active:return false
+ revised_warden=enabled;return true
 
 func load_chapter(game,index: int):
  if not active or index<0 or index>=game.content.chapters.size():return
