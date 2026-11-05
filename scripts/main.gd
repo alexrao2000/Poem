@@ -618,6 +618,7 @@ func update_side():
 			conditions.append("Recovering");condition_help.append("Started this attempt with 4 HP missing and one tonic. Healing can restore normal maximum health.")
 		if not conditions.is_empty():
 			var condition_label=label_in(side," · ".join(conditions),16,GOLD);condition_label.name="UnitConditions"
+			condition_label.mouse_filter=Control.MOUSE_FILTER_PASS
 			condition_label.autowrap_mode=TextServer.AUTOWRAP_OFF;condition_label.text_overrun_behavior=TextServer.OVERRUN_TRIM_ELLIPSIS;condition_label.tooltip_text="\n".join(condition_help)
 		if game.can_act(selected) and (game.DeathDoor.passenger(game,selected)!=null or game.units.any(func(patient):return game.DeathDoor.can_rescue(game,selected,patient) or (game.can_heal(selected,patient) and not patient.get("carried_by","").is_empty()))):
 			button_in(side,"Rescue & triage",show_triage,busy)
@@ -853,10 +854,15 @@ func end_turn(resuming=false):
 	if busy or screen!="battle" or (game.phase!="player" and not resuming) or not action_save_ready():return
 	cancel_selection();busy=true
 	if not resuming:
+		var bleeding=game.units.filter(func(unit):return game.DeathDoor.downed(unit)).map(func(unit):return unit.id)
 		var had_downed=game.units.any(func(unit):return game.DeathDoor.downed(unit))
 		game.begin_enemy_phase()
 		if had_downed:refresh_pieces();highlight()
 		if not checkpoint_action():return
+		var losses=[]
+		for unit in game.units:
+			if unit.id in bleeding and not game.DeathDoor.downed(unit):losses.append({"target":unit.id,"remaining":0,"hit":true})
+		skip_combat=false;await present_casualties(losses)
 		if await check_result():busy=false;return
 		update_side();await announce_phase("enemy")
 	for e in game.living("enemy"):
@@ -902,9 +908,11 @@ func staff_healing(healer,recipient,amount: int,before: Dictionary={}):
 
 func cinematic(a,b,events,initial_hp={}):
 	if events.is_empty():return
+	skip_combat=false
 	map_navigation.stop()
 	if not preferences.show_cinematic(a.team):
 		await map_combat_feedback(events)
+		await present_casualties(events)
 		return
 	for pair in [[a,b],[b,a]]:
 		var visual=unit_nodes.get(pair[0].id)
@@ -1116,6 +1124,23 @@ func cinematic(a,b,events,initial_hp={}):
 	for control in tactical_controls:
 		if is_instance_valid(control):control.visible=tactical_controls[control]
 	music_mix(false)
+	await present_casualties(events)
+
+func present_casualties(events: Array):
+	if skip_combat:return
+	var Card=preload("res://scripts/casualty_card.gd")
+	var shown=[]
+	for event in events:
+		if not event.get("hit",false) or event.get("remaining",1)>0 or event.target in shown:continue
+		var casualties=game.units.filter(func(unit):return unit.id==event.target and unit.team=="player" and unit.hp<=0)
+		if casualties.is_empty():continue
+		var unit=casualties[0];var quote=Card.quote_for(game,unit)
+		if quote.is_empty():continue
+		shown.append(unit.id)
+		var card=Card.new();card.configure(ui,unit,portraits.get_portrait(unit.id),Card.mode_for(game,unit),quote)
+		await card.play(func():return skip_combat)
+		card.queue_free()
+		if skip_combat:return
 
 func lighting_state() -> Dictionary:
 	var sky=environment.sky.sky_material

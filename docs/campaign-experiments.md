@@ -23,6 +23,8 @@ The debug seed control accepts whole numbers from 0 through 2147483647. **Apply 
 
 Selected units show carrying, recovery and active sacrifice openings in one compact status line. Hover it for the effective carrying movement, bonus duration and recovery explanation.
 
+Casualty portrait cards distinguish needing rescue, withdrawing and permanent loss. All 24 recruits have original lines; Lyra withdraws rather than receiving a permanent-death line. Cards follow both full and quick battles, including bleed-outs, and can be skipped with a click or Tab. They do not change the resolved action or its checkpoint.
+
 At section breaks, the relief-column event brings recruits scheduled for that chapter and the following chapter to the rally point. Twenty-two original lines cover relief arrivals, early volunteers and retreats. These scenes play once at camp, persist across section restarts and can be replayed as company memories. Retreats describe the regent retaking the road while survivors withdraw to a rally point. The original chapter dialogue remains; a fuller branching story and bespoke death-triggered recruits are still future content work.
 
 A toggle change applies immediately where possible. Enemy difficulty and returning-unit supplies apply when deploying the next attempt. Disabling a switch does not erase already committed deaths, purchases or pressure. Debug tools can intentionally bypass consequences for inspection: **Reset current battle** is a clean rebuild; **Test reset / section retreat** exercises the actual penalty path.

@@ -799,3 +799,10 @@ Following the user-linked [Wang tile explanation](https://www.spritecook.ai/blog
 Position-hashed shared edges select stable variants without consuming campaign randomness. Natural ground and banks retain the chapter control weights; cobble and slate retain their original sampling because quilting cut through their large stones in the first study. Four existing surface samples become two Wang samples and two original samples. Explicit gradients and eight-pixel reflected gutters bound mip footprints; no geometry is added.
 
 The [texture comparison](previews/wang-ground-comparison.png) samples the old mirror rule and new tiles over the same area. It is a texture study, not a rendered-game capture. Seam, gutter, reproducibility, chapter bindings and existing terrain/batching checks cover the change; assembled shader appearance and browser performance remain unverified. Run `python3 -m unittest discover -s tests -p test_wang.py -v` for the atlas checks.
+
+
+### Casualty portrait cards
+
+All 24 recruits now have original lines for being downed, withdrawing and permanent loss. A quiet parchment card uses the existing portrait, a restrained outcome heading and a short line after map return. It occupies the space left of the tactical sidebar and above the command strip at 1024×640, 1280×720 and 1440×900. Click or Tab dismisses it; it also clears automatically. Lyra retains the retreat outcome used by the campaign reset rule.
+
+The initial wrapped label inherited an oversized minimum height before it had a width. Setting the wrapping width before adding text resolved that layout fault. All 216 roster/outcome/size layouts and actual quick/3D casualty exchanges pass, along with unchanged HP, actions and RNG. Cards also follow bleed-out after its checkpoint. These are behavior/layout checks, not a rendered review of the new presentation.
