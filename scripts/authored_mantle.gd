@@ -21,6 +21,7 @@ func configure(body: Node3D,rig: Skeleton3D,painter,appearance: Dictionary):
   var chain=painter.geo.block(garment,Vector3(side*.13,.31,-.27),Vector3(.23,.016,.018),gold);chain.rotation.z=side*.42
  painter.ellipsoid(garment,Vector3(0,.34,-.275),Vector3(.04,.045,.018),gold)
  var cloth=painter.painted(ivory,0).duplicate();var metal=painter.painted(gold,1,true).duplicate();surfaces=[cloth,metal]
+ cloth.set_shader_parameter("fabric_detail",.25)
  for material in surfaces:
   material.set_shader_parameter("cloth_amount",0.0);material.set_shader_parameter("cloth_floor_enabled",true);material.set_shader_parameter("cloth_floor_y",.018)
  for mesh in garment.find_children("*","MeshInstance3D",true,false):

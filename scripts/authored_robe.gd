@@ -16,6 +16,7 @@ func configure(body: Node3D,rig: Skeleton3D,painter,appearance: Dictionary):
   var mesh=MeshInstance3D.new();mesh.name="TailoredRobe" if index==0 else "RobeHem"
   mesh.mesh=fit.meshes[index];mesh.skin=fit.skin;mesh.skeleton=NodePath("..");rig.add_child(mesh)
   var material=painter.painted(Color(appearance.cloth) if index==0 else Color("bca26b"),0,index==1).duplicate()
+  material.set_shader_parameter("fabric_detail",.25)
   material.set_shader_parameter("cloth_amount",0.0);material.set_shader_parameter("cloth_floor_enabled",true);material.set_shader_parameter("cloth_floor_y",.018)
   mesh.material_override=material;surfaces.append(material);pieces.append(mesh)
 

@@ -22,6 +22,7 @@ func configure(body: Node3D,rig: Skeleton3D,painter,appearance: Dictionary,cut="
  painter.cape_surface(cape,color,true,Color("bca26b"),cut)
  cloth=cape.get_child(0);cloth.name="CompanyFabric"
  var material=painter.painted(color,0).duplicate()
+ material.set_shader_parameter("fabric_detail",.25)
  material.set_shader_parameter("cloth_amount",1.0)
  material.set_shader_parameter("cloth_floor_enabled",true)
  material.set_shader_parameter("cloth_floor_y",.018)

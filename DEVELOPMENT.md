@@ -6,6 +6,8 @@ User direction: keep developing continuously in this chat until the user returns
 
 ## Current checkpoint
 
+Revised cloaks, caster robes and Lyra’s mantle now use one-quarter of the atlas weave contrast around its measured average color. This retains palette brightness and embroidery while making the fabric less coarse beside the supplied tunics. The shared shader defaults to full detail for existing outfits and other materials.
+
 The five revised character models now have thin, private silhouette outlines following their actual skinned normals. Original cloak/robe/mantle floor contact and cloth motion share the same frame with the outline; defeat fades clone both passes. Painted faces and printed pages remain excluded. Isolated before/after asset studies are reviewed; assembled GPU appearance and browser performance remain unmeasured.
 
 Lyra now has a revised Vanguard study and optional campaign model from chapter one, with her original long hair, ivory mantle, gold fastening and full company cloak. The mantle was fitted against actual skinned torso samples after a close-up exposed bodice intersections. It has its own debug comparison switch and retains sword grip/contact, gaze, hair motion, framing and promotion fallback.

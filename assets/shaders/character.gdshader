@@ -4,6 +4,9 @@ uniform sampler2D materials_atlas : source_color, filter_linear_mipmap;
 uniform vec4 tint : source_color = vec4(1.0);
 uniform vec2 quadrant;
 uniform float texture_repeat = 1.0;
+// Optional contrast reduction around this atlas's linear-space linen average.
+// Keep the palette/brightness while allowing finer-looking authored fabric.
+uniform float fabric_detail : hint_range(0.0, 1.0) = 1.0;
 uniform float metal = 0.0;
 // Optional world-floor contact for cloth attached to an authored falling rig.
 uniform bool cloth_floor_enabled = false;
@@ -29,6 +32,7 @@ void vertex() {
 void fragment() {
  vec2 detail_uv = fract(UV * texture_repeat) * 0.496 + 0.002 + quadrant;
  vec3 paint = texture(materials_atlas, detail_uv).rgb;
+ paint = mix(vec3(0.661445, 0.568573, 0.449824), paint, fabric_detail);
  vec3 dye = tint.rgb;
  if (cloth_amount > 0.0 && FRONT_FACING) {
   float thread = texture(cape_mark, UV).a;
