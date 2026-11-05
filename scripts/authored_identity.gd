@@ -53,6 +53,7 @@ func configure_identity(id: String) -> String:
    if material.normal_texture!=null:dyed.set_shader_parameter("normal_map",material.normal_texture)
    dyed.set_shader_parameter("tint",skin if mode==3 else cloth)
    dyed.set_shader_parameter("dye_mode",mode)
+   if mode==2:dyed.set_shader_parameter("dye_detail",.35)
    dyed.set_shader_parameter("reference_luma",reference_luma(mesh.mesh,surface,material.albedo_texture,mode))
    dyed.set_meta("identity",id);dyed.set_meta("dye_mode",mode)
    mesh.set_surface_override_material(surface,dyed);painted_materials.append(dyed)

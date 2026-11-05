@@ -6,6 +6,8 @@ User direction: keep developing continuously in this chat until the user returns
 
 ## Current checkpoint
 
+Revised trousers now retain 35% of the supplied texture’s normalized shading contrast. This reduces the crumpled, bright appearance on pale cloth and gives the blue/purple outfits quieter folds. Source textures, skin, tunic, leather and normal maps remain intact.
+
 The revised-model option now covers all twelve base-class Vanguards, Duelists, Arcanists and Wardens. Ivo, Esme and Galen retain their own identities, staves, robe palettes and hair/beard. An independent Warden debug switch inherits the campaign preference and restores on exit. Actual field healing, skip, growth, normal map return and save/RNG isolation are covered.
 
 Debug source studies now include male/female Wardens with original Ivo/Esme identities, fitted robes and all three staves. The right hand carries the staff while the left gestures; healing light leaves the crown. A floor-aware wrist target turns the rigid staff during falls while preserving its grip. Ivo, Esme and Galen are also available through the revised campaign appearance option and an independent Warden debug switch.
