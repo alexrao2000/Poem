@@ -6,7 +6,9 @@ Resumed at the user's request on 2026-11-04. Continue development in this chat u
 
 Read this file, the current `DEVELOPMENT.md` checkpoint, and the latest sections of `docs/art-direction.md`. Run the user's Marble sync and read its three indexes as instructed in AGENTS.md. Check Git status before editing; preserve unrelated changes. Resume improving resemblance to Awakening/Fates, with particular attention to complete scenes and animation rather than accumulating isolated geometry details.
 
-The final completed change replaces spherical metal elbows on armored outfits with closed, faceted elbow guards and continues cloth across unarmored elbows. It preserves joints and animation sockets. `scripts/elbow_guard.gd` owns the shared 120-triangle mesh; `scripts/fighters.gd` chooses the covering; `tests/test_equipment_visuals.gd` verifies topology, normals, UVs, armor classification and cloth tint. Explicit face normals fixed the initial smoothed-normal test failure. A standalone eight-panel original geometry study was inspected. This is not a rendered-game review.
+Current work adds an experimental Permadeath toggle, permanent casualty records, memorials and save version 4. Existing saves start with permadeath off. Losses carry forward on victory when enabled; leader/company defeat permits a chapter retry. Debug mode provides a temporary sandbox with a separate save slot, chapter loading, battle reset, healing and revival. Disabling debug restores the original live campaign.
+
+The earlier elbow change replaces spherical metal elbows on armored outfits with closed, faceted elbow guards and continues cloth across unarmored elbows. It preserves joints and animation sockets. `scripts/elbow_guard.gd` owns the shared 120-triangle mesh; `scripts/fighters.gd` chooses the covering; `tests/test_equipment_visuals.gd` verifies topology, normals, UVs, armor classification and cloth tint. Explicit face normals fixed the initial smoothed-normal test failure. A standalone eight-panel original geometry study was inspected. This is not a rendered-game review.
 
 Prior completed work includes five class cloak cuts and exposed ranger quivers, enemy/commander camera headroom, repeatable outfit-viewer actions, pale damage/hit/critical rows with immutable pre-exchange forecasts, shaped horse head/body/neck, world-planted infantry/cavalry movement, and a descending arena entrance.
 
@@ -15,13 +17,13 @@ Prior completed work includes five class cloak cuts and exposed ranger quivers, 
 - Working title: **Poem**. Godot 4.5.1 / GDScript, local browser and macOS builds.
 - Active worktree: `/Users/alexr/.codex/worktrees/combat-presentation/fe-clone`, branch `codex/combat-presentation`.
 - Primary checkout: `/Users/alexr/Poem`, branch `main`.
-- Private remote: https://github.com/alexrao2000/Poem . Nondestructive commits/pushes already authorized.
+- Public remote: https://github.com/alexrao2000/Poem . The user explicitly authorized keeping it public and pushing on 2026-11-04. Nondestructive commits/pushes are authorized.
 - Keep game local. No Sites/Vercel/public hosting, purchases or schedules.
 - Preserve primary stash `Preserve shared workshop edits before combined presentation integration`.
 - No subagents unless subsequently authorized by applicable instructions.
 - Use `open -g` for launching applications; preserve focus.
 
-The campaign has 24 recruits, eight classes, twelve chapters, sixteen promotions and 36 supports. The default test runner has 70 suites. Current rigid roster count is 1,774 source meshes / 1,057 joint batches plus three dynamic reins (the elbow guards now share the existing armor vertex format). Map totals last measured 13,554 sources / 616 batches plus cloth/atmosphere. Do not confuse historical counts in the development log with these current totals.
+The campaign has 24 recruits, eight classes, twelve chapters, sixteen promotions and 36 supports. The default test runner has 72 suites. Current rigid roster count is 1,774 source meshes / 1,057 joint batches plus three dynamic reins (the elbow guards now share the existing armor vertex format). Map totals last measured 13,554 sources / 616 batches plus cloth/atmosphere. Do not confuse historical counts in the development log with these current totals.
 
 ## Verification and packages
 

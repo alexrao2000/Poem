@@ -103,6 +103,7 @@ const GOLD = Color("8d6a32")
 const INK = Color("e8e0cb")
 const SAVE = "user://campaign.json"
 var save_path=SAVE
+var debug_session=preload("res://scripts/debug_session.gd").new()
 var save_failed=false
 var save_warning_queued=false
 
@@ -351,19 +352,30 @@ func show_title():
 	screen="title";game.start_battle();make_map();reset_ui()
 	title_backdrop()
 	var v=menu_panel(500,true)
-	label_in(v,"A TACTICAL CHRONICLE",16,GOLD)
+	label_in(v,"A TACTICAL CHRONICLE"+(" / DEBUG" if debug_session.active else ""),16,GOLD)
 	label_in(v,"POEM",64)
 	label_in(v,"A broken banner. A borrowed sun.\nTwenty-four lives caught between them.",22)
 	label_in(v,"Twelve chapters. Twenty-four paths to dawn.",17,Color("766e5e"))
 	var spacer=Control.new();spacer.size_flags_vertical=Control.SIZE_EXPAND_FILL;v.add_child(spacer)
-	button_in(v,"Begin the chronicle",func():game.new_campaign();music.play();show_camp())
-	button_in(v,"Continue saved campaign",load_campaign,not FileAccess.file_exists(save_path) and not FileAccess.file_exists(save_path+".bak"))
+	button_in(v,"Begin the chronicle",show_campaign_rules)
+	button_in(v,"Continue saved campaign",load_campaign,not FileAccess.file_exists(campaign_save_path()) and not FileAccess.file_exists(campaign_save_path()+".bak"))
 	button_in(v,"Transfer a local save",func():show_save_transfer("title"))
 	var extras=HBoxContainer.new();extras.add_theme_constant_override("separation",8);v.add_child(extras)
 	button_in(extras,"Options",func():show_options("title")).size_flags_horizontal=Control.SIZE_EXPAND_FILL
 	button_in(extras,"Credits",show_credits).size_flags_horizontal=Control.SIZE_EXPAND_FILL
 	button_in(v,"Character & map workshop",show_visual_workshop)
-	label_in(v,"Fallen allies return next chapter.\nIf the company falls, regroup and try again.",14,Color("827b6c"))
+	label_in(v,"Toggle permadeath when you begin.\nYour chronicle, your company.",14,Color("827b6c"))
+
+func show_campaign_rules():
+	screen="campaign_rules";reset_ui();title_backdrop()
+	var frame=menu_panel(720);var panel=scrolling_column(frame)
+	label_in(panel,"A NEW CHRONICLE",17,GOLD)
+	label_in(panel,"Campaign options",38)
+	var permanent=CheckButton.new();permanent.name="Permadeath";permanent.text="Permadeath";permanent.button_pressed=game.permadeath;panel.add_child(permanent)
+	label_in(panel,"On: fallen allies stay lost after a chapter victory. If Lyra or the whole company falls, retry from preparation. Off: fallen allies recover for the next chapter.",20)
+	label_in(panel,"You can change this toggle in Options while experimenting. Turning it off does not revive earlier losses; Debug mode has a revival control.",18)
+	button_in(frame,"Begin the chronicle",func():game.new_campaign(permanent.button_pressed);music.play();show_camp())
+	button_in(frame,"Return to title",show_title)
 
 func show_credits():
 	screen="credits";reset_ui()
@@ -412,7 +424,7 @@ func show_camp():
 	ui.add_child(shell)
 	var row=HBoxContainer.new();row.add_theme_constant_override("separation",24);shell.add_child(row)
 	var left=VBoxContainer.new();left.custom_minimum_size.x=320;left.size_flags_horizontal=Control.SIZE_EXPAND_FILL;left.size_flags_stretch_ratio=.85;row.add_child(left)
-	label_in(left,"POEM / WAR COUNCIL",16,GOLD)
+	label_in(left,"POEM / WAR COUNCIL"+(" / DEBUG" if debug_session.active else ""),16,GOLD)
 	label_in(left,"%02d  %s"%[game.chapter+1,game.info().title],34)
 	label_in(left,game.info().place.to_upper(),17,Color("79755f"))
 	var briefing=scrolling_column(left)
@@ -420,7 +432,7 @@ func show_camp():
 	label_in(briefing,game.info().get("tactical_brief",""),18,Color("6f6c5e"))
 	label_in(briefing,"Select up to six allies. Open a portrait to inspect equipment and support conversations. Wardens heal within staff range; everyone carries two field tonics.",16,Color("766e5e"))
 	label_in(left,"OBJECTIVE  /  "+objective_text(),18,GOLD)
-	label_in(left,"Recruited %d / 24  ·  Deployed %d / 6"%[game.available().size(),game.deployed.size()],18)
+	label_in(left,"%s  ·  Available %d  ·  Deployed %d / 6"%["Permadeath ON" if game.permadeath else "Permadeath OFF",game.available().size(),game.deployed.size()],18)
 	button_in(left,"Deploy company  >",deploy_company,game.deployed.is_empty())
 	var tools_row=HBoxContainer.new();tools_row.add_theme_constant_override("separation",8);left.add_child(tools_row)
 	button_in(tools_row,"Save campaign",func():save_with_feedback("camp")).size_flags_horizontal=Control.SIZE_EXPAND_FILL
@@ -436,9 +448,9 @@ func show_camp():
 	cards.add_theme_constant_override("h_separation",10);cards.add_theme_constant_override("v_separation",10)
 	cards.size_flags_horizontal=Control.SIZE_EXPAND_FILL;scroll.add_child(cards)
 	for u in game.roster:
-		var unlocked=int(u.join)<=game.chapter
+		var unlocked=int(u.join)<=game.chapter and not u.get("fallen",false)
 		var card=preload("res://scripts/company_card.gd").new();cards.add_child(card)
-		card.configure(u,game.class_name_for(u),portraits.get_portrait(u.id) if unlocked else unit_portrait(u),game.item_for(u),u.id in game.deployed,unlocked,unlocked and supports_ready(u),game.deployed.size()>=6)
+		card.configure(u,game.class_name_for(u),portraits.get_portrait(u.id) if unlocked or u.get("fallen",false) else unit_portrait(u),game.item_for(u),u.id in game.deployed,unlocked,unlocked and supports_ready(u),game.deployed.size()>=6)
 		interface_audio.watch(card.portrait_button);interface_audio.watch(card.deploy_button)
 		card.inspect_requested.connect(func():show_dossier(u))
 		card.deployment_requested.connect(func():
@@ -534,7 +546,7 @@ func update_side():
 	if is_instance_valid(forecast_panel):ui.remove_child(forecast_panel);forecast_panel.queue_free()
 	forecast_panel=null
 	for n in side.get_children():side.remove_child(n);n.queue_free()
-	status.text="TURN %d  /  %s"%[game.turn,game.phase.to_upper()]+("\nSAVE FAILED" if save_failed else "")
+	status.text="TURN %d  /  %s"%[game.turn,game.phase.to_upper()]+(" · DEBUG" if debug_session.active else "")+("\nSAVE FAILED" if save_failed else "")
 	if selected!=null:
 		var identity=HBoxContainer.new();identity.add_theme_constant_override("separation",8);side.add_child(identity)
 		var portrait=TextureRect.new();portrait.name="UnitPortrait";portrait.texture=portraits.get_unit_portrait(selected);portrait.expand_mode=TextureRect.EXPAND_IGNORE_SIZE;portrait.flip_h=selected.team=="enemy"
@@ -620,7 +632,7 @@ func show_battle_menu():
 	var frame=PanelContainer.new();frame.name="MenuFrame";battle_menu.add_child(frame)
 	frame.set_anchors_and_offsets_preset(Control.PRESET_CENTER);frame.offset_left=-280;frame.offset_right=280;frame.offset_top=-250;frame.offset_bottom=250
 	var commands=VBoxContainer.new();commands.add_theme_constant_override("separation",8);frame.add_child(commands)
-	label_in(commands,"Battle menu",40,GOLD)
+	label_in(commands,"Battle menu"+(" / DEBUG" if debug_session.active else ""),40,GOLD)
 	label_in(commands,"Turn %d · %s"%[game.turn,game.info().title],17)
 	button_in(commands,"Return to battle",close_battle_menu).grab_focus()
 	button_in(commands,"Save",func():close_battle_menu();save_with_feedback("battle"))
@@ -690,7 +702,9 @@ func _input(event):
 		get_viewport().set_input_as_handled()
 
 func _unhandled_input(event):
-	if screen=="credits" and event is InputEventKey and event.pressed and event.keycode==KEY_ESCAPE:
+	if screen=="debug_tools" and event is InputEventKey and event.pressed and event.keycode==KEY_ESCAPE:
+		show_options(options_return);get_viewport().set_input_as_handled();return
+	if screen in ["credits","campaign_rules"] and event is InputEventKey and event.pressed and event.keycode==KEY_ESCAPE:
 		interface_audio.cue("back");show_title();get_viewport().set_input_as_handled();return
 	if screen=="model" and event is InputEventKey and event.pressed and event.keycode==KEY_ESCAPE:
 		interface_audio.cue("back");close_model_view();get_viewport().set_input_as_handled();return
@@ -1117,7 +1131,7 @@ func check_result() -> bool:
 			if unit.team!="player":continue
 			var row=HBoxContainer.new();row.size_flags_horizontal=Control.SIZE_EXPAND_FILL;summary.add_child(row)
 			var portrait=TextureRect.new();portrait.texture=portraits.get_portrait(unit.id);portrait.custom_minimum_size=Vector2(55,55);portrait.expand_mode=TextureRect.EXPAND_IGNORE_SIZE;portrait.stretch_mode=TextureRect.STRETCH_KEEP_ASPECT_CENTERED;row.add_child(portrait)
-			label_in(row,"%s · Lv %d\n%s"%[unit.name,unit.level,"Ready for the next march" if unit.hp>0 else "Recovering at camp"],16)
+			label_in(row,"%s · Lv %d\n%s"%[unit.name,unit.level,"Ready for the next march" if unit.hp>0 else "Fallen — permanently lost" if game.permadeath else "Recovering at camp"],16)
 		button_in(frame,"Continue the chronicle",func():
 			var onward=func():
 				game.finish_chapter()
@@ -1127,8 +1141,10 @@ func check_result() -> bool:
 			show_dialogue(story.chapters[game.chapter].closing,onward,"closing"))
 	else:
 		label_in(v,"THE STANDARD FALLS",38,GOLD)
-		label_in(v,"Your company is scattered. Regroup at the war council and choose a new approach.",24)
-		button_in(frame,"Regroup and retry",show_camp)
+		label_in(v,"Lyra has fallen. This chapter is lost." if game.permadeath and game.units.any(func(u):return u.id=="lyra" and u.hp<=0) else "Your company is scattered.",24)
+		label_in(v,"Retry from chapter preparation. Losses and gains from this failed attempt are discarded; earlier permanent losses remain." if game.permadeath else "Regroup at the war council and choose a new approach.",20)
+		button_in(frame,"Regroup and retry",func():
+			if game.retry_battle():persist_campaign("camp");show_camp())
 	return true
 
 func show_ending():
@@ -1140,14 +1156,16 @@ func show_ending():
 	var list=VBoxContainer.new();list.size_flags_horizontal=Control.SIZE_EXPAND_FILL;scroll.add_child(list)
 	for u in game.roster:
 		label_in(list,u.name+" · "+game.class_name_for(u)+" · Level "+str(int(u.level)),19,Color(u.color))
-		label_in(list,profiles.get(u.id,{}).get("ending",u.bio),17)
+		label_in(list,"Fell in chapter %02d — %s. The company carries their memory."%[int(u.fallen_chapter)+1,game.content.chapters[int(u.fallen_chapter)].title] if u.get("fallen",false) else profiles.get(u.id,{}).get("ending",u.bio),17)
 	button_in(v,"Return to title",show_title)
 
 func show_dialogue(lines: Array,on_complete: Callable,kind="opening"):
 	screen="dialogue";reset_ui()
 	var backdrop=preload("res://scripts/dialogue_backdrop.gd").new()
 	backdrop.begin(ui,[world,pieces,markers],game.chapter,kind)
-	dialogue_lines=lines;dialogue_index=0;dialogue_callback=on_complete
+	var losses=game.lost_ids(kind=="closing")
+	dialogue_lines=lines if kind=="support" else lines.filter(func(line):return line.speaker not in losses)
+	dialogue_index=0;dialogue_callback=on_complete
 	dialogue_stage=preload("res://scripts/dialogue_stage.gd").new();ui.add_child(dialogue_stage)
 	dialogue_stage.configure(advance_dialogue,finish_dialogue)
 	dialogue_name=dialogue_stage.heading;dialogue_label=dialogue_stage.speech
@@ -1188,16 +1206,17 @@ func show_dossier(unit):
 	label_in(info,"HP %d    ATK %d    DEF %d    RES %d    SPD %d    MOV %d"%[unit.max_hp,game.attack_power(unit),unit.defense,game.resistance_for(unit),game.attack_speed(unit),unit.move],21)
 	label_in(info,profile.get("biography",unit.bio),22)
 	label_in(info,"PERSONAL NOTE",16,GOLD);label_in(info,profile.get("note",""),20)
+	if unit.get("fallen",false):label_in(info,"IN MEMORIAM · Fell in chapter %02d — %s"%[int(unit.fallen_chapter)+1,game.content.chapters[int(unit.fallen_chapter)].title],22,GOLD)
 	var records=HBoxContainer.new();records.add_theme_constant_override("separation",12);panel.add_child(records)
-	button_in(records,"Equipment · "+game.item_for(unit).name,func():show_equipment(unit)).size_flags_horizontal=Control.SIZE_EXPAND_FILL
+	button_in(records,"Equipment · "+game.item_for(unit).name,func():show_equipment(unit),unit.get("fallen",false)).size_flags_horizontal=Control.SIZE_EXPAND_FILL
 	button_in(records,"Support conversations"+(" · Ready" if supports_ready(unit) else ""),func():show_supports(unit)).size_flags_horizontal=Control.SIZE_EXPAND_FILL
 	var actions=HBoxContainer.new();actions.add_theme_constant_override("separation",12);panel.add_child(actions)
 	button_in(actions,"View character",func():show_model_view(unit)).size_flags_horizontal=Control.SIZE_EXPAND_FILL
-	button_in(actions,"Advanced training",func():show_promotions(unit)).size_flags_horizontal=Control.SIZE_EXPAND_FILL
+	button_in(actions,"Advanced training",func():show_promotions(unit),unit.get("fallen",false)).size_flags_horizontal=Control.SIZE_EXPAND_FILL
 	button_in(panel,"Return to war council",show_camp)
 
 func load_campaign():
-	var saved=game.load_game(save_path)
+	var saved=game.load_game(campaign_save_path())
 	if saved=="":show_notice("No readable campaign save was found on this device.");return
 	if not music.playing:music.play()
 	if saved=="ending":show_ending()
@@ -1300,7 +1319,7 @@ func show_save_transfer(return_screen: String):
 	transfer_text=TextEdit.new();transfer_text.name="SaveCode";transfer_text.size_flags_vertical=Control.SIZE_EXPAND_FILL
 	transfer_text.custom_minimum_size.y=160
 	transfer_text.wrap_mode=TextEdit.LINE_WRAPPING_BOUNDARY;transfer_text.add_theme_font_size_override("font_size",14);panel.add_child(transfer_text)
-	transfer_text.text=game.export_code(return_screen) if return_screen in ["camp","battle"] else game.export_saved_code(save_path)
+	transfer_text.text=game.export_code(return_screen) if return_screen in ["camp","battle"] else game.export_saved_code(campaign_save_path())
 	transfer_text.placeholder_text="Paste a POEM1: save code here."
 	var code_actions=HBoxContainer.new();code_actions.add_theme_constant_override("separation",10);panel.add_child(code_actions)
 	button_in(code_actions,"Copy code",func():DisplayServer.clipboard_set(transfer_text.text);show_notice("Save code copied. Keep it in a local text file or paste it into another build.")).size_flags_horizontal=Control.SIZE_EXPAND_FILL
@@ -1384,13 +1403,13 @@ func show_supports(unit):
 	var list=VBoxContainer.new();list.size_flags_horizontal=Control.SIZE_EXPAND_FILL;list.add_theme_constant_override("separation",16);scroll.add_child(list)
 	for entry in game.supports.for_unit(unit.id):
 		var partner=game.roster.filter(func(other):return other.id!=unit.id and other.id in entry.members)[0]
-		var record=game.supports.progress(entry.id);var available=partner.join<=game.chapter and unit.join<=game.chapter
+		var record=game.supports.progress(entry.id);var available=game.bond_available(entry)
 		var row=HBoxContainer.new();row.add_theme_constant_override("separation",24);list.add_child(row)
 		var portrait=TextureRect.new();portrait.texture=portraits.get_portrait(partner.id);portrait.custom_minimum_size=Vector2(250,300)
 		portrait.expand_mode=TextureRect.EXPAND_IGNORE_SIZE;portrait.stretch_mode=TextureRect.STRETCH_KEEP_ASPECT_CENTERED;row.add_child(portrait)
 		var details=VBoxContainer.new();details.size_flags_horizontal=Control.SIZE_EXPAND_FILL;details.add_theme_constant_override("separation",10);row.add_child(details)
 		label_in(details,partner.name+" · Rank "+game.supports.RANKS[int(record.rank)],32,GOLD)
-		label_in(details,"%d bond points"%record.points if available else "Partner joins in chapter %d"%(int(partner.join)+1),20)
+		label_in(details,"%d bond points"%record.points if available else "A fallen bond. Read conversations remain as memories." if unit.get("fallen",false) or partner.get("fallen",false) else "Partner joins in chapter %d"%(int(partner.join)+1),20)
 		for index in range(3):
 			var scene=entry.scenes[index];var read=index<int(record.rank)
 			var ready=index==int(record.rank) and available and game.supports.can_read(entry.id,game.chapter)
@@ -1402,7 +1421,7 @@ func show_supports(unit):
 
 func read_support(unit,entry,index: int):
 	var rank=int(game.supports.progress(entry.id).rank)
-	if index>rank or (index==rank and not game.supports.can_read(entry.id,game.chapter)):return
+	if index>rank or (index==rank and (not game.bond_available(entry) or not game.supports.can_read(entry.id,game.chapter))):return
 	var completed=func():
 		if index==int(game.supports.progress(entry.id).rank):
 			game.supports.complete_scene(entry.id,game.chapter)
@@ -1413,7 +1432,7 @@ func read_support(unit,entry,index: int):
 	show_dialogue(entry.scenes[index].lines,completed,"support")
 
 func supports_ready(unit) -> bool:
-	return unit.join<=game.chapter and game.supports.for_unit(unit.id).any(func(entry):return game.supports.can_read(entry.id,game.chapter))
+	return unit.join<=game.chapter and not unit.get("fallen",false) and game.supports.for_unit(unit.id).any(func(entry):return game.bond_available(entry) and game.supports.can_read(entry.id,game.chapter))
 
 func map_height(point: Vector2i) -> float:
 	return MapSurface.height_for(game.terrain(point))
@@ -1488,7 +1507,17 @@ func show_options(return_to: String):
 	var panel=scrolling_column(frame)
 	label_in(panel,"PLAYBACK & CONTROLS",17,GOLD)
 	label_in(panel,"Options",44,GOLD)
-	label_in(panel,"These settings stay on this device and do not change combat results.",19)
+	label_in(panel,"Playback settings stay on this device. Permadeath is saved with the campaign.",19)
+	var permanent=CheckButton.new();permanent.name="Permadeath";permanent.text="Permadeath";permanent.button_pressed=game.permadeath;panel.add_child(permanent)
+	permanent.toggled.connect(func(value):game.permadeath=value)
+	label_in(panel,"Turning this off keeps earlier losses. Use Debug tools to experiment with revival.",16)
+	var debugging=CheckButton.new();debugging.name="DebugMode";debugging.text="Debug mode · temporary sandbox";debugging.button_pressed=debug_session.active;panel.add_child(debugging)
+	debugging.toggled.connect(func(value):
+		if value:debug_session.begin(game,options_return)
+		else:options_return=debug_session.end(game)
+		show_options(options_return))
+	label_in(panel,"Debug mode keeps a separate save. Turning it off restores your campaign to where you enabled it.",16)
+	if debug_session.active:button_in(panel,"Open debug tools",func():show_debug_tools(options_return))
 	label_in(panel,"Battle presentation",21,GOLD)
 	var mode=OptionButton.new();mode.name="CombatMode";mode.custom_minimum_size.y=42
 	for title in ["All 3D battles","3D for player attacks","Quick map battles"]:mode.add_item(title)
@@ -1513,10 +1542,34 @@ func show_options(return_to: String):
 
 func close_options():
 	var saved=preferences.save_file(settings_path)
-	if options_return=="battle":show_battle()
+	if options_return=="battle":make_map();show_battle()
 	elif options_return=="camp":show_camp()
 	else:show_title()
+	if options_return in ["camp","battle"]:persist_campaign(options_return)
 	if not saved:show_notice("Settings are active, but could not be saved on this device.")
+
+func show_debug_tools(return_to: String):
+	if not debug_session.active:return
+	options_return=return_to;screen="debug_tools";reset_ui()
+	var frame=menu_panel(840);var panel=scrolling_column(frame)
+	label_in(panel,"DEBUG / TEMPORARY SANDBOX",17,GOLD)
+	label_in(panel,"Experiment with the company",36,GOLD)
+	label_in(panel,"Changes save only to the debug slot. Turn Debug mode off in Options to restore the original campaign.",19)
+	var chapters=OptionButton.new();chapters.name="DebugChapter";chapters.custom_minimum_size.y=42
+	for index in range(game.content.chapters.size()):chapters.add_item("%02d · %s"%[index+1,game.content.chapters[index].title])
+	chapters.selected=game.chapter;panel.add_child(chapters)
+	button_in(panel,"Load chapter with fresh roster",func():
+		debug_session.load_chapter(game,chapters.selected);make_map();show_battle();persist_campaign("battle"))
+	button_in(panel,"Reset current battle",func():game.start_battle();make_map();show_battle();persist_campaign("battle"))
+	button_in(panel,"Heal deployed allies",func():
+		debug_session.heal(game);persist_campaign("battle" if options_return=="battle" else "camp");show_notice("Living allies restored to full health."))
+	button_in(panel,"Revive company and reset battle",func():
+		debug_session.revive(game);make_map();show_battle();persist_campaign("battle"))
+	button_in(panel,"Return to preparation",func():game.units.clear();game.phase="player";show_camp();persist_campaign("camp"))
+	button_in(frame,"Return to Options",func():show_options(options_return))
+
+func campaign_save_path() -> String:
+	return save_path+".debug" if debug_session.active else save_path
 
 func map_combat_feedback(events: Array):
 	for event in events:
@@ -1629,10 +1682,10 @@ func critical_cutin(unit: Dictionary):
 	cutin.queue_free()
 
 func persist_campaign(stage_name: String,notify_failure=true) -> bool:
-	var saved=game.save_game(save_path,stage_name)
+	var saved=game.save_game(campaign_save_path(),stage_name)
 	save_failed=not saved
 	if screen=="battle" and is_instance_valid(status):
-		status.text="TURN %d  /  %s"%[game.turn,game.phase.to_upper()]+("\nSAVE FAILED" if save_failed else "")
+		status.text="TURN %d  /  %s"%[game.turn,game.phase.to_upper()]+(" · DEBUG" if debug_session.active else "")+("\nSAVE FAILED" if save_failed else "")
 	if not saved and notify_failure and not save_warning_queued:
 		save_warning_queued=true;call_deferred("show_save_warning")
 	return saved

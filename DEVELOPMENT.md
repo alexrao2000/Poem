@@ -2,7 +2,7 @@
 
 Working title: **Poem** (user direction, 2026-10-29). The repository, local project folder, application identifier, save folder and new transfer codes all use Poem. Earlier transfer codes remain importable. Local checkout: `/Users/alexr/Poem`.
 
-User direction: keep developing continuously in this chat until the user returns/stops work or available usage is exhausted. **Do not schedule anything.** The user clarified that the earlier heartbeat was unwanted; it has been deleted. They authorize model switching if one model is exhausted and another is available, but the current tool surface has no direct self-model switch and usage currently reports a shared Codex pool. The previous geometric prototype was rejected visually; resemblance to Awakening/Fates presentation is the priority, alongside the existing full roster and campaign. Keep local builds; the only authorized remote destination is the private GitHub repository https://github.com/alexrao2000/Poem. Never publish to Sites. No purchases.
+User direction: keep developing continuously in this chat until the user returns/stops work or available usage is exhausted. **Do not schedule anything.** The user clarified that the earlier heartbeat was unwanted; it has been deleted. They authorize model switching if one model is exhausted and another is available, but the current tool surface has no direct self-model switch and usage currently reports a shared Codex pool. The previous geometric prototype was rejected visually; resemblance to Awakening/Fates presentation is the priority, alongside the existing full roster and campaign. Keep local builds; the authorized remote destination is the public GitHub repository https://github.com/alexrao2000/Poem. Never publish to Sites. No purchases.
 
 ## Current checkpoint
 
@@ -10,7 +10,7 @@ User direction: keep developing continuously in this chat until the user returns
 
 **Resumed by user request on 2026-11-04. See [RESUME.md](RESUME.md) for the development handoff.**
 
-Latest delivered presentation work includes world-planted infantry/cavalry steps, level soles/hooves, shaped cavalry skull/body/neck, fitted animated reins, coordinated arena/map defeat exits and a descending push through the arena reveal. The default runner contains 70 suites. Current measured totals are 1,774 rigid character sources / 1,057 joint batches plus three dynamic reins, and 13,554 static map sources / 616 batches plus cloth and atmosphere. Local browser/macOS packages and the private GitHub repository are kept in sync after focused verification. Assembled visual/audio review and browser FPS measurements remain outstanding.
+Latest delivered presentation work includes world-planted infantry/cavalry steps, level soles/hooves, shaped cavalry skull/body/neck, fitted animated reins, coordinated arena/map defeat exits and a descending push through the arena reveal. The default runner contains 72 suites. Current measured totals are 1,774 rigid character sources / 1,057 joint batches plus three dynamic reins, and 13,554 static map sources / 616 batches plus cloth and atmosphere. Local browser/macOS packages and the GitHub repository are kept in sync after focused verification. Assembled visual/audio review and browser FPS measurements remain outstanding.
 
 ## Earlier checkpoints
 
@@ -378,3 +378,7 @@ Armored elbows now use closed faceted guards with rear points and side wings; un
 The elbow guards now share the existing armor vertex format, removing sixteen extra joint batches while retaining their flat normals, closed shape, UVs and outlines. Equipment and full animated-rig equivalence pass; current roster totals return to 1,774 sources / 1,057 batches plus three dynamic reins. Development resumed with the newer natural-ground Wang tiles integrated from main.
 
 The outfit viewer now loops the real infantry/cavalry travel gait in place, including robed strides, while preserving stage position and campaign data. All 72 outfit envelopes sample a complete stride before framing. Real viewer selection/cancellation, authored looping clips, 36,288 regular pose layouts plus 3,456 travel views, planted movement and 564 menu layouts pass six focused suites.
+
+Permadeath is an experimental toggle at campaign creation and in Options; existing saves start with it off. Victories retain permanent casualties and memorial records; leader/company defeats permit a chapter retry. Disabling the rule keeps earlier losses. Story scenes omit fallen speakers, and previously read support scenes remain memories. Save version 4 preserves the toggle, casualties and retry support state.
+
+Debug mode is an opt-in temporary sandbox with twelve-chapter selection, battle reset, healing and company revival. It captures the live campaign, routes all saves/imports to a separate debug slot, and restores the original state when disabled. The user explicitly authorized keeping the repository public and pushing updates on 2026-11-04.

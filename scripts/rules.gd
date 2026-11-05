@@ -26,6 +26,8 @@ var units: Array = []
 var deployed: Array = []
 var rng := RandomNumberGenerator.new()
 var completed: bool = false
+var permadeath=false
+var battle_supports: Dictionary={}
 var story_seen: Array = []
 
 func _init():
@@ -35,17 +37,19 @@ func _init():
 	rng.seed = 472019
 	new_campaign()
 
-func new_campaign():
+func new_campaign(permadeath_enabled=false):
+	permadeath=permadeath_enabled
 	chapter = 0
 	turn = 1
 	phase = "player"
 	units.clear()
 	completed = false
 	story_seen.clear()
-	supports.state.clear()
+	supports.state.clear();battle_supports.clear()
 	rng.seed = 472019
 	roster = content.roster.duplicate(true)
 	for u in roster:
+		u.fallen=false;u.fallen_chapter=-1
 		u.level = 1+int(u.join)
 		u.xp = 0
 		u.hp += int(u.join)*2
@@ -57,7 +61,18 @@ func new_campaign():
 	deployed = ["lyra", "oren", "sera", "ivo"]
 
 func available() -> Array:
-	return roster.filter(func(u): return int(u.join) <= chapter)
+	return roster.filter(func(u): return int(u.join) <= chapter and not u.get("fallen",false))
+
+func lost_ids(include_current=false) -> Array:
+	var ids=roster.filter(func(u):return u.get("fallen",false)).map(func(u):return u.id)
+	if include_current and permadeath:
+		for u in units:
+			if u.team=="player" and u.hp<=0 and u.id not in ids:ids.append(u.id)
+	return ids
+
+func bond_available(entry: Dictionary) -> bool:
+	var recruits=available().map(func(u):return u.id)
+	return entry.members.all(func(id):return id in recruits)
 
 func info() -> Dictionary:
 	return content.chapters[chapter]
@@ -70,6 +85,7 @@ func objective_position() -> Vector2i:
 	return Vector2i(point[0],point[1])
 
 func start_battle():
+	battle_supports=supports.state.duplicate(true)
 	units.clear()
 	turn = 1
 	phase = "player"
@@ -187,7 +203,7 @@ func normalize_equipment(u: Dictionary):
 	var item=item_for(u);u.item=item.id;u.reach=int(item.max_range)
 
 func equip(u: Dictionary,id: String) -> bool:
-	if not roster.has(u) or int(u.join)>chapter:return false
+	if not roster.has(u) or int(u.join)>chapter or u.get("fallen",false):return false
 	for item in equipment:
 		if item.id==id and item.kind==u.weapon and int(item.unlock)<=chapter:
 			u.item=id;u.reach=int(item.max_range);return true
@@ -285,6 +301,7 @@ func raise_stat(unit: Dictionary,key: String,amount: int) -> int:
 	return int(unit[key])-before
 
 func result() -> String:
+	if permadeath and units.any(func(u):return u.id=="lyra" and u.team=="player" and u.hp<=0):return "defeat"
 	if living("player").is_empty(): return "defeat"
 	var boss_alive = units.any(func(u): return u.get("boss",false) and u.hp>0)
 	match info().objective:
@@ -300,17 +317,26 @@ func result() -> String:
 	return ""
 
 func finish_chapter():
+	if permadeath and result()!="victory":return
 	for u in units:
 		if u.team!="player": continue
 		for r in roster:
 			if r.id==u.id:
 				for key in ["level","xp","max_hp","pow","defense","resistance","speed","item","reach"]:r[key]=u[key]
+				if permadeath and u.hp<=0:
+					r.fallen=true;r.fallen_chapter=chapter;r.hp=0;deployed.erase(r.id)
 	chapter+=1
 	if chapter>=content.chapters.size():
 		completed=true
 		chapter=content.chapters.size()-1
 	for u in available():
 		if deployed.size()<6 and u.id not in deployed:deployed.append(u.id)
+
+func retry_battle() -> bool:
+	if result()!="defeat":return false
+	if permadeath:supports.state=battle_supports.duplicate(true)
+	units.clear();turn=1;phase="player"
+	return true
 
 func next_player_turn():
 	turn+=1
@@ -320,7 +346,7 @@ func next_player_turn():
 		var recovery=terrain_profile(pos(u)).heal
 		if u.hp>0 and recovery>0:u.hp=mini(u.max_hp,u.hp+recovery)
 
-const SAVE_VERSION=3
+const SAVE_VERSION=4
 
 func layout_signature() -> String:
 	# Equipment changes are safe for an existing battle: each unit saves its item.
@@ -329,7 +355,7 @@ func layout_signature() -> String:
 	return JSON.stringify([info().map,info().deployment_positions,placement,info().objective_position]).sha256_text()
 
 func save_data(stage: String) -> Dictionary:
-	return {"version":SAVE_VERSION,"layout_signature":layout_signature(),"story_seen":story_seen,"supports":supports.state,"chapter":chapter,"turn":turn,"phase":phase,"roster":roster,"units":units,"deployed":deployed,"completed":completed,"rng":str(rng.state),"stage":stage}
+	return {"version":SAVE_VERSION,"permadeath":permadeath,"battle_supports":battle_supports,"layout_signature":layout_signature(),"story_seen":story_seen,"supports":supports.state,"chapter":chapter,"turn":turn,"phase":phase,"roster":roster,"units":units,"deployed":deployed,"completed":completed,"rng":str(rng.state),"stage":stage}
 
 func save_game(path: String,stage: String) -> bool:
 	var data=save_data(stage)
@@ -345,11 +371,13 @@ func valid_save(data) -> bool:
 		if not data.has(key):return false
 	for key in ["version","chapter","turn"]:
 		if not (data[key] is float or data[key] is int) or not is_finite(float(data[key])) or data[key]!=int(data[key]):return false
-	if int(data.version) not in [1,2,SAVE_VERSION]:return false
+	if int(data.version) not in [1,2,3,SAVE_VERSION]:return false
+	if not data.get("permadeath",false) is bool:return false
+	if int(data.version)>=4 and not data.has("permadeath"):return false
 	if int(data.chapter)<0 or int(data.chapter)>=content.chapters.size() or int(data.turn)<1:return false
 	if data.phase not in ["player","enemy"] or data.stage not in ["camp","battle","ending"]:return false
 	if not data.completed is bool or not data.rng is String or not data.rng.is_valid_int():return false
-	if not supports.valid_state(data.get("supports",{})):return false
+	if not supports.valid_state(data.get("supports",{})) or not supports.valid_state(data.get("battle_supports",{})):return false
 	if not data.roster is Array or data.roster.size()!=content.roster.size():return false
 	if not data.units is Array or not data.deployed is Array or not data.get("story_seen",[]) is Array:return false
 	if data.units.size()>64 or data.get("story_seen",[]).size()>128:return false
@@ -362,17 +390,22 @@ func valid_save(data) -> bool:
 		if originals.is_empty():return false
 		if not unit.get("bio") is String or unit.bio.length()>2000:return false
 		if not (unit.get("join") is int or unit.get("join") is float) or unit.join!=originals[0].join:return false
-		ids[unit.id]=true
+		if unit.get("fallen",false):
+			if unit.hp!=0 or unit.fallen_chapter<unit.join or unit.fallen_chapter>data.chapter or unit.id=="lyra":return false
+		ids[unit.id]=unit
 	var deployment_ids={}
 	for id in data.deployed:
 		if not id is String or not ids.has(id) or deployment_ids.has(id):return false
+		if ids[id].get("fallen",false):return false
 		deployment_ids[id]=true
 	if data.deployed.size()>int(content.chapters[int(data.chapter)].deployment):return false
 	var combat_ids={}
 	for unit in data.units:
 		if not valid_unit(unit,true) or combat_ids.has(unit.id):return false
 		combat_ids[unit.id]=true
-		if unit.team=="player" and not ids.has(unit.id):return false
+		if unit.team=="player":
+			if not ids.has(unit.id):return false
+			if ids[unit.id].get("fallen",false) and unit.hp>0:return false
 		var grid=content.chapters[int(data.chapter)].map
 		if unit.x<0 or unit.y<0 or unit.x>=grid[0].length() or unit.y>=grid.size():return false
 	return true
@@ -394,6 +427,10 @@ func valid_unit(unit,in_battle: bool) -> bool:
 	if unit.max_hp<=0 or unit.max_hp>STAT_CAPS.max_hp or unit.hp>unit.max_hp or unit.move<1 or unit.move>STAT_CAPS.move or unit.reach<1 or unit.reach>10:return false
 	if unit.level<1 or unit.level>MAX_LEVEL or unit.xp>=100 or unit.pow>STAT_CAPS.pow or unit.defense>STAT_CAPS.defense or unit.speed>STAT_CAPS.speed:return false
 	if unit.has("resistance") and (not (unit.resistance is int or unit.resistance is float) or not is_finite(float(unit.resistance)) or unit.resistance<0 or unit.resistance>STAT_CAPS.resistance or unit.resistance!=int(unit.resistance)):return false
+	if unit.has("fallen") and not unit.fallen is bool:return false
+	var loss_chapter=unit.get("fallen_chapter",-1)
+	if not (loss_chapter is int or loss_chapter is float) or not is_finite(float(loss_chapter)) or loss_chapter!=int(loss_chapter) or loss_chapter< -1 or loss_chapter>=content.chapters.size():return false
+	if unit.get("fallen",false)!=(loss_chapter>=0):return false
 	if in_battle:
 		if unit.get("team") not in ["player","enemy"] or not unit.get("acted") is bool:return false
 		for key in ["x","y"]:
@@ -421,10 +458,14 @@ func load_game(path: String) -> String:
 func restore_save(data) -> String:
 	if not valid_save(data):return ""
 	data=data.duplicate(true)
+	permadeath=data.get("permadeath",false)
 	story_seen=data.get("story_seen",[])
 	supports.state=data.get("supports",{})
+	battle_supports=data.get("battle_supports",{}).duplicate(true)
 	chapter=int(data.chapter);turn=int(data.turn);phase=data.phase;roster=data.roster;units=data.units;deployed=data.deployed;completed=data.completed;rng.state=int(data.rng)
-	for unit in roster:normalize_equipment(unit);unit.resistance=resistance_for(unit)
+	for unit in roster:
+		normalize_equipment(unit);unit.resistance=resistance_for(unit)
+		unit.fallen=unit.get("fallen",false);unit.fallen_chapter=int(unit.get("fallen_chapter",-1))
 	for unit in units:
 		normalize_equipment(unit);unit.resistance=resistance_for(unit)
 		unit.moved=unit.get("moved",false)
@@ -498,7 +539,7 @@ func promotion_options(unit: Dictionary) -> Array:
 	return promotions.filter(func(path):return path.base==unit.job)
 
 func can_promote(unit: Dictionary,id: String) -> bool:
-	if not roster.has(unit) or unit.join>chapter or completed or not unit.get("promotion","").is_empty():return false
+	if not roster.has(unit) or unit.join>chapter or completed or unit.get("fallen",false) or not unit.get("promotion","").is_empty():return false
 	return promotion_options(unit).any(func(path):return path.id==id and unit.level>=path.min_level)
 
 func promote(unit: Dictionary,id: String) -> bool:

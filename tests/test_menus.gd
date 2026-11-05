@@ -47,9 +47,10 @@ func run():
 	for chapter in range(12):app.game.story_seen.append("opening_"+str(chapter))
 	var roster=app.game.roster.duplicate(true)
 	for dimensions in [Vector2(1024,640),Vector2(1280,720),Vector2(1440,900)]:
-		for screen in ["title","credits","options","save_transfer","ending"]:
+		for screen in ["title","campaign_rules","credits","options","save_transfer","ending"]:
 			match screen:
 				"title":app.show_title()
+				"campaign_rules":app.show_campaign_rules()
 				"credits":app.show_credits()
 				"options":app.show_options("camp")
 				"save_transfer":app.show_save_transfer("camp")

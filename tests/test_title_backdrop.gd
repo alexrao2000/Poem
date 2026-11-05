@@ -42,6 +42,7 @@ func run():
  press(app,"Options");inspect(app);press(app,"Apply and return");inspect(app)
  press(app,"Transfer a local save");inspect(app);press(app,"Return");inspect(app)
  assert(app.game.roster==roster,"Title browsing preserves character progression")
+ press(app,"Begin the chronicle");assert(app.screen=="campaign_rules")
  press(app,"Begin the chronicle");assert(app.screen=="dialogue" and not app.ui.has_node("TitleBackdrop"))
  assert(app.ui.get_node("DialogueBackdrop").covered.all(func(entry):return entry.visible and entry.process_mode==Node.PROCESS_MODE_INHERIT),"Title releases its scene before the conversation acquires it")
  app.finish_dialogue();assert(app.screen=="camp")

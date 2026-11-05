@@ -68,11 +68,15 @@ Click an enemy to inspect its stats and reach. The terrain card follows the poin
 - **24 named recruits across 8 classes**, each with a portrait, dossier, battle call, and epilogue. Recruitment happens automatically at the relevant chapter's war council.
 - **12 authored battlefields** with rout, seize, boss, and six-turn defense objectives, opening and closing dialogue, and a campaign ending.
 - **12 named enemy commanders** with individual portraits, model palettes, critical calls, and clickable crown markers on the map.
-- Persistent levels and experience, deployment selection, and casual recovery: fallen units return when the map restarts or the chapter ends.
+- Persistent levels and experience, deployment selection, and an experimental permadeath toggle.
 
 ### Equipment and combat
 
 Open a recruit's portrait at the war council, then **Equipment**, to choose from 22 weapons and staves. Supplies unlock by chapter, and equipment is freely shared. Enemy equipment appears in models, inspection panels, and forecasts.
+
+**Permadeath** is a toggle on the new-campaign screen and in **Options**. When on, allies lost during a victorious chapter remain permanently fallen. Their memorial records and previously read support scenes remain available, but they cannot deploy, train, equip gear, unlock new bonds, or speak in later story scenes. If Lyra or the whole deployed company falls, retry from chapter preparation; earlier permanent losses remain. When off, new casualties recover next chapter. Turning the toggle off keeps earlier memorials; existing saves start with it off.
+
+For experiments, enable **Debug mode · temporary sandbox** in Options, then open **Debug tools**. You can load any chapter with a fresh roster, reset the current battle, heal living deployed allies, or revive the company and restart the battle. Debug saves use a separate slot. Turning Debug mode off restores the exact campaign state from when you enabled it, including unsaved progress. The normal campaign save remains untouched during experiments.
 
 Combat includes weighted terrain movement, occupancy, the weapon triangle, two-roll hit checks, critical hits, counters, and speed follow-ups. Equipment weight reduces combat speed; a four-point speed advantage grants a follow-up. Physical attacks check Defense, while magic checks Resistance.
 
@@ -168,7 +172,7 @@ Run selected suites by passing their names:
 GODOT_BIN=/path/to/godot python3 scripts/test_local.py rules saves controls
 ```
 
-The [runner](scripts/test_local.py) writes logs to `build/logs/`, detects script errors, and gives each suite a 90-second deadline. Default suites cover rules, movement, persistence, campaign progression, controls, menus, audio, and presentation. The [campaign suite](tests/test_campaign.gd) checks 60 chapter victories across three seeds and both promotion branches.
+The [runner](scripts/test_local.py) writes logs to `build/logs/`, detects script errors, and gives each suite a 90-second deadline. Default suites cover rules, movement, persistence, campaign progression, controls, menus, audio, and presentation. The [campaign suite](tests/test_campaign.gd) checks 72 chapter victories across three seeds, both promotion branches, and a complete permadeath campaign with saved casualties.
 
 The Python score-render check is separate from the default runner. It requires NumPy and the cached instrument bank:
 
