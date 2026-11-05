@@ -58,7 +58,7 @@ func run():
   assert(local_tip.z< -1.5 and absf(local_tip.x)<.05 and local_tip.y>1.2 and local_tip.y<1.5,"Source strike crosses directly in front at chest height")
   target_choice.select(2);target_choice.item_selected.emit(2);await actions.finished
   actions.play("advance");await create_timer(.1).timeout
-  assert(actions.playing and actor.player.is_playing())
+  assert(actions.playing and actor.stride_phase>0 and not actor.player.is_playing(),"In-place preview advances the distance-driven jog explicitly")
   app.close_model_view();await process_frame
   assert(app.screen=="debug_tools" and not is_instance_valid(actions),"Closing source study cancels playback and returns to debug")
   assert(app.game.save_data("camp")==saved and app.game.rng.state==rng,"Model inspection never mutates the experiment")

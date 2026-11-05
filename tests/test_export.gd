@@ -88,6 +88,8 @@ func run():
   var identity=app.preview_actor.model.get_node("Identity")
   assert(identity.identity in ["nell","silas"] and identity.painted_materials.size()>=3,"Packaged study retains original identity and private dyed materials")
   app.preview_actor.pose("hit",.01);assert(identity.blink.closed,"Packaged styled head retains facial reactions")
+  var actions=app.stage.get_node("PreviewActionPlayer");actions.play("advance");await create_timer(.08).timeout
+  assert(app.preview_actor.stride_phase>0 and not app.preview_actor.player.is_playing(),"Packaged study drives the imported jog explicitly by distance")
   var target_choice=app.ui.find_child("StudyTarget",true,false);target_choice.select(2);target_choice.item_selected.emit(2)
   await app.stage.get_node("PreviewActionPlayer").finished
   var edge=app.preview_actor.weapon_trail_points();var point=app.preview_actor.get_node("StudyContactTarget").global_position

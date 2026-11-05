@@ -72,7 +72,19 @@
       "iron_sword",
       "dueling_sword",
       "tempered_sword"
-    ]
+    ],
+    "stride": {
+      "length": 5.4124,
+      "skeleton": "Rig/Armature/Skeleton3D",
+      "feet": [
+        "ball_l",
+        "ball_r"
+      ],
+      "contacts": [
+        0.05,
+        0.55
+      ]
+    }
   },
   "male": {
     "scene": "res://assets/models/quaternius/study_male.tscn",
@@ -147,6 +159,18 @@
       "iron_sword",
       "dueling_sword",
       "tempered_sword"
-    ]
+    ],
+    "stride": {
+      "length": 5.6643,
+      "skeleton": "Rig/Armature/Skeleton3D",
+      "feet": [
+        "ball_l",
+        "ball_r"
+      ],
+      "contacts": [
+        0.05,
+        0.55
+      ]
+    }
   }
 }

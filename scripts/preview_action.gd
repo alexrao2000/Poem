@@ -38,6 +38,8 @@ func _process(dt):
   if actor is Actor and actor.is_visible_in_tree():
    var speed=2.7 if actor.mounted else 1.8 if actor.kind in ["magic","staff"] else 2.4
    actor.advance_stride(speed*dt*actor.global_basis.z.length())
+  elif actor.has_method("nominal_stride_speed") and actor.is_visible_in_tree():
+   actor.advance_stride(actor.nominal_stride_speed()*dt*actor.global_basis.z.length())
   return
  if current and current.is_valid() and current.is_running():return
  next_pose()

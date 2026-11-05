@@ -11,6 +11,15 @@ var skeletons=[]
 var attachments=[]
 var contact: SkeletonModifier3D
 var pose_listeners=[]
+signal travel_contact(index: int)
+var stride_length=0.0
+var stride_contacts=[]
+var stride_feet=[]
+var stride_skeleton: Skeleton3D
+var stride_phase=0.0
+var contact_index=0
+var travel_previous=Vector3.ZERO
+var travel_direction=Vector3.ZERO
 
 func configure(scene: Node3D,spec: Dictionary) -> String:
  model=scene;add_child(model)
@@ -42,7 +51,64 @@ func configure(scene: Node3D,spec: Dictionary) -> String:
   var socket=model.get_node_or_null(NodePath(spec.sockets[key])) as Node3D
   if socket==null:return "Missing socket: "+str(key)
   sockets[key]=socket
+ return configure_stride(spec)
+
+func configure_stride(spec: Dictionary) -> String:
+ if not spec.has("stride"):return ""
+ var setup=spec.stride
+ if not setup is Dictionary or not number(setup.get("length")) or setup.length<=0:return "Stride needs a positive distance per cycle"
+ if not setup.get("skeleton") is String or not setup.get("feet") is Array or setup.feet.size()!=2:return "Stride needs a skeleton and two feet"
+ if not setup.get("contacts") is Array or setup.contacts.size()!=2:return "Stride needs two contact phases"
+ for phase in setup.contacts:
+  if not number(phase) or phase<0 or phase>=1:return "Stride contact phases must be in [0, 1)"
+ if setup.contacts[0]>=setup.contacts[1]:return "Stride contacts must be ordered and distinct"
+ stride_skeleton=model.get_node_or_null(NodePath(setup.skeleton)) as Skeleton3D
+ if stride_skeleton==null:return "Stride skeleton is missing"
+ for foot in setup.feet:
+  if not foot is String:return "Stride foot names must be strings"
+  var index=stride_skeleton.find_bone(foot)
+  if index<0 or index in stride_feet:return "Stride foot is missing or duplicated"
+  stride_feet.append(index)
+ stride_length=float(setup.length);stride_contacts=setup.contacts.duplicate()
  return ""
+
+func _process(_delta):
+ if pose_name=="advance" and stride_length>0 and is_visible_in_tree():update_locomotion()
+
+func update_locomotion():
+ if pose_name!="advance" or stride_length<=0:return
+ var displacement=global_position-travel_previous;displacement.y=0
+ travel_previous=global_position
+ if displacement.length_squared()>.00000001:travel_direction=displacement.normalized()
+ advance_stride(displacement.dot(-global_basis.z.normalized()))
+
+func nominal_stride_speed() -> float:
+ return stride_length*model.scale.z/(poses.advance.to-poses.advance.from) if stride_length>0 else 0.0
+
+func advance_stride(travelled: float):
+ if pose_name!="advance" or stride_length<=0 or not is_finite(travelled):return
+ var world_length=stride_length*model.global_basis.z.length()
+ # A discontinuous relocation is not a string of footfalls.
+ if absf(travelled)>world_length*2:return
+ var next_phase=stride_phase+travelled/world_length
+ var crossings=0
+ for phase in stride_contacts:crossings+=absi(floori(next_phase-phase)-floori(stride_phase-phase))
+ stride_phase=fposmod(next_phase,1.0)
+ var mapping=poses.advance
+ # Manual seeks alone leave a paused crossfade pinned to its outgoing pose.
+ # Advance its blend clock by the clip-time equivalent of actual ground travel.
+ player.advance(absf(travelled/world_length)*(mapping.to-mapping.from))
+ player.seek(lerpf(mapping.from,mapping.to,stride_phase),true,true);player.pause();refresh_skeleton()
+ for step in range(crossings):travel_contact.emit(contact_index);contact_index+=1
+
+func ground_contact_position() -> Vector3:
+ if stride_skeleton==null:return global_position
+ var point=Vector3(0,INF,0)
+ for index in stride_feet:
+  var foot=stride_skeleton.to_global(stride_skeleton.get_bone_global_pose(index).origin)
+  if foot.y<point.y:point=foot
+ point.y=global_position.y
+ return point
 
 func prepare_contact(spec: Dictionary) -> String:
  if not spec.has("contact"):return ""
@@ -71,6 +137,7 @@ func finish_flourish(duration=.22) -> Tween:
 func pose(key: String,duration=.18) -> Tween:
  if pose_tween and pose_tween.is_valid():pose_tween.kill()
  pose_name=key
+ if key=="advance":travel_previous=global_position;stride_phase=0.0
  for listener in pose_listeners:listener.combat_pose(key)
  if contact!=null and key!="recover":contact.influence=0.0
  var fallback="windup" if key in ["throw_windup","cast_windup","critical_windup","critical_throw_windup"] else "strike" if key in ["throw","cast"] else "idle"
@@ -84,6 +151,7 @@ func pose(key: String,duration=.18) -> Tween:
  var speed=1.0 if looping else (mapping.to-mapping.from)/seconds
  player.play_section(mapping.clip,mapping.from,mapping.to,minf(.06,seconds*.25),speed)
  player.seek(mapping.from,true,true)
+ if key=="advance" and stride_length>0:player.pause()
  refresh_skeleton()
  pose_tween=create_tween()
  if contact!=null:
