@@ -1389,20 +1389,30 @@ func show_equipment(unit):
 	button_in(panel,"Return to company record",func():show_dossier(unit))
 	button_in(panel,"Return to war council",show_camp)
 
-func show_model_view(unit,on_close=Callable()):
+func show_model_view(unit,on_close=Callable(),model_spec: Dictionary={}):
 	screen="model";preview_unit=unit;preview_return=on_close;reset_ui()
 	for child in stage.get_children():stage.remove_child(child);child.queue_free()
 	world.hide();pieces.hide();markers.hide();stage.show()
 	var theme=game.info().get("environment","village");battle_lighting(theme)
 	scenery.battle_landscape(stage,Vector3(35,0,0),{"environment":theme})
 	var actor_data=unit.duplicate(true);actor_data.team="player"
-	preview_actor=make_fighter(actor_data,Vector3(35,0,0));preview_actor.rotation.y=PI-.35
+	if model_spec.is_empty():preview_actor=make_fighter(actor_data,Vector3(35,0,0))
+	else:
+		var library=preload("res://scripts/combat_models.gd").new("")
+		library.catalog={"characters":{unit.id:model_spec}}
+		preview_actor=library.build(stage,actor_data,Vector3(35,0,0))
+		if preview_actor==null:
+			close_model_view();show_notice("The model study could not load.");return
+	preview_actor.rotation.y=PI-.35
 	var panel=menu_panel(310,true)
-	label_in(panel,"TRAINING / OUTFIT PREVIEW" if preview_return.is_valid() else "COMPANY / PREVIEW",15,GOLD);label_in(panel,unit.name,38)
+	label_in(panel,"DEBUG / MODEL STUDY" if not model_spec.is_empty() else "TRAINING / OUTFIT PREVIEW" if preview_return.is_valid() else "COMPANY / PREVIEW",15,GOLD);label_in(panel,unit.name,38)
 	var portrait=TextureRect.new();portrait.texture=portraits.get_portrait(unit.id)
 	var size_portrait=func():portrait.custom_minimum_size=Vector2(220,150 if ui.size.y<760 else 220)
 	ui.resized.connect(size_portrait);size_portrait.call()
 	portrait.expand_mode=TextureRect.EXPAND_IGNORE_SIZE;portrait.stretch_mode=TextureRect.STRETCH_KEEP_ASPECT_CENTERED;panel.add_child(portrait)
+	if not model_spec.is_empty():
+		portrait.hide()
+		label_in(panel,"Quaternius source rig with Poem sword. Pose and grip study; campaign characters are unchanged.",17)
 	label_in(panel,game.class_name_for(unit)+" · "+game.item_for(unit).name,21)
 	var spacer=Control.new();spacer.size_flags_vertical=Control.SIZE_EXPAND_FILL;panel.add_child(spacer)
 	button_in(panel,"Turn left",func():preview_actor.rotation.y-=PI/6)
@@ -1412,6 +1422,9 @@ func show_model_view(unit,on_close=Callable()):
 	if unit.weapon=="staff":actions=[["Ready","idle"],["Healing preparation","cast_windup"],["Heal","cast"]]
 	actions.insert(1,["Run / trot","advance"])
 	actions.append_array([["Guard","guard"],["Hit reaction","hit"],["Critical reaction","critical_hit"],["Defeated","down"],["Finishing flourish","victory_flourish"],["Finish","victory"]])
+	if not model_spec.is_empty():
+		actions=actions.filter(func(entry):return model_spec.poses.has(entry[1]))
+		actions.append(["Evasion","evade"])
 	var choice=OptionButton.new();choice.name="PreviewAction";choice.custom_minimum_size.y=42
 	for entry in actions:
 		choice.add_item(entry[0]);choice.set_item_metadata(choice.item_count-1,entry[1])
@@ -1419,10 +1432,18 @@ func show_model_view(unit,on_close=Callable()):
 	var action_player=preload("res://scripts/preview_action.gd").new();action_player.name="PreviewActionPlayer";stage.add_child(action_player);action_player.configure(preview_actor)
 	choice.item_selected.connect(func(index):action_player.play(str(choice.get_item_metadata(index))))
 	button_in(panel,"Play again",func():action_player.play(str(choice.get_item_metadata(choice.selected))))
-	button_in(panel,"Return to training [Esc]" if preview_return.is_valid() else "Return to record [Esc]",close_model_view)
+	button_in(panel,"Return to debug tools [Esc]" if not model_spec.is_empty() else "Return to training [Esc]" if preview_return.is_valid() else "Return to record [Esc]",close_model_view)
 	var framing=preload("res://scripts/preview_camera.gd").new();framing.name="PreviewCamera";stage.add_child(framing)
 	framing.configure(preview_actor,camera,panel.get_parent(),actions.map(func(entry):return entry[1]))
 	framing.add_hint(ui)
+
+func show_source_model_view(gender: String):
+	if not debug_session.active or gender not in ["female","male"]:return
+	var studies=JSON.parse_string(FileAccess.get_file_as_string("res://data/model_studies.json"))
+	var unit=game.roster.filter(func(value):return value.id==("nell" if gender=="female" else "silas"))[0].duplicate(true)
+	unit.name="Duelist · "+gender.capitalize();unit.item="iron_sword";unit.promotion=""
+	var return_to=options_return
+	show_model_view(unit,func():show_debug_tools(return_to),studies[gender])
 
 func close_model_view():
 	var return_action=preview_return;preview_return=Callable()
@@ -1707,6 +1728,9 @@ func show_debug_tools(return_to: String):
 		if debug_session.set_combat_seed(game,seed_input.value):persist_campaign("battle" if options_return=="battle" else "camp");show_notice("Combat seed applied. Chapter loads and clean resets reuse it."))
 	label_in(panel,"The same seed, rules and actions reproduce the same rolls. Clean resets reuse this seed; penalty retreats follow the campaign’s restart rules.",16)
 	button_in(panel,"View experiment report",show_debug_report)
+	label_in(panel,"CHARACTER MODEL STUDIES",17,GOLD)
+	for gender in ["female","male"]:
+		var study=button_in(panel,"View "+gender+" duelist rig",func():show_source_model_view(gender));study.name="ModelStudy_"+gender
 	var chapters=OptionButton.new();chapters.name="DebugChapter";chapters.custom_minimum_size.y=42
 	for index in range(game.content.chapters.size()):chapters.add_item("%02d · %s"%[index+1,game.content.chapters[index].title])
 	chapters.selected=game.chapter;panel.add_child(chapters)

@@ -34,7 +34,9 @@ func run():
   var meshes=scene.find_children("*","MeshInstance3D",true,false)
   assert(meshes.size()==8,"One outfit, trimmed head, eyes, brows and hair")
   assert(scene.find_children("*","Skeleton3D",true,false).size()==1)
+  var bounds_by_mesh={}
   for mesh in meshes:
+   var bound=preload("res://scripts/skinned_bounds.gd").new();assert(bound.configure(mesh));bounds_by_mesh[mesh]=bound
    assert(mesh.get_node(mesh.skeleton)==skeleton)
    for surface in range(mesh.mesh.get_surface_count()):
     var material=mesh.mesh.surface_get_material(surface) as StandardMaterial3D
@@ -51,8 +53,13 @@ func run():
     var bounds=AABB();var first=true
     var head=skeleton.get_bone_global_pose(skeleton.find_bone("Head")).origin
     for mesh in meshes:
+     var enclosure=AABB();var first_bound=true
+     for corner in bounds_by_mesh[mesh].points(scene):
+      if first_bound:enclosure=AABB(corner,Vector3.ZERO);first_bound=false
+      else:enclosure=enclosure.expand(corner)
      var points=skin_vertices(mesh,skeleton);total_vertices+=points.size()
      for point in points:
+      assert(enclosure.grow(.001).has_point(point),"Bone-space bounds enclose actual skinned vertices")
       if first:bounds=AABB(point,Vector3.ZERO);first=false
       else:bounds=bounds.expand(point)
       if mesh.name=="Head_Eyes":assert(point.distance_to(head)<.35,"Eyes follow the head, not a detached rest-pose mesh")

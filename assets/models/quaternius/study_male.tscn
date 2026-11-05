@@ -1,0 +1,29 @@
+[gd_scene load_steps=3 format=3]
+
+[ext_resource type="PackedScene" path="res://assets/models/quaternius/duelist_male.gltf" id="1_rig"]
+[ext_resource type="Script" path="res://scripts/authored_sword.gd" id="2_weapon"]
+
+[node name="DuelistStudy" type="Node3D"]
+
+[node name="Rig" parent="." instance=ExtResource("1_rig")]
+
+[node name="WeaponHand" type="BoneAttachment3D" parent="Rig/Armature/Skeleton3D"]
+bone_name = "hand_r"
+
+[node name="Grip" type="Node3D" parent="Rig/Armature/Skeleton3D/WeaponHand"]
+position = Vector3(-0.032, 0.1, -0.004)
+script = ExtResource("2_weapon")
+
+[node name="Chest" type="BoneAttachment3D" parent="Rig/Armature/Skeleton3D"]
+bone_name = "spine_03"
+
+[node name="Impact" type="Marker3D" parent="Rig/Armature/Skeleton3D/Chest"]
+position = Vector3(0, 0.05, 0.11)
+
+[node name="Face" type="BoneAttachment3D" parent="Rig/Armature/Skeleton3D"]
+bone_name = "Head"
+
+[node name="Gaze" type="Marker3D" parent="Rig/Armature/Skeleton3D/Face"]
+position = Vector3(0, 0.12, 0.08)
+
+[editable path="Rig"]

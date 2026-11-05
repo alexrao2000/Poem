@@ -1,4 +1,5 @@
 extends SceneTree
+const Imported=preload("res://scripts/imported_fighter.gd")
 const Shutdown=preload("helpers/game_shutdown.gd")
 # Run this external script against an exported PCK from a different working
 # directory, so resource and text checks cannot silently use the source tree.
@@ -79,6 +80,11 @@ func run():
  var carrier=app.game.units[0];assert(app.game.DeathDoor.rescue(app.game,carrier,patient));app.refresh_pieces()
  assert(app.unit_nodes[carrier.id].carry_marker.texture.get_width()==64 and not app.unit_nodes.has(patient.id),"The exported package includes the carrier badge and hides its passenger")
  app.show_debug_tools("battle");assert(app.ui.find_child("DebugCasualty",true,false)!=null and app.ui.find_child("DebugSeed",true,false)!=null,"Release contains the debug experiment harness and reproducible seed controls")
+ for gender in ["female","male"]:
+  app.show_source_model_view(gender);await process_frame
+  assert(app.preview_actor is Imported,"Packaged debug model study uses its authored source wrapper")
+  assert(app.preview_actor.weapon_trail_points().size()==2,"Packaged original sword keeps its animated trail sockets")
+  app.close_model_view();await process_frame
  app.show_debug_report();assert(JSON.parse_string(app.ui.find_child("DebugReport",true,false).text).debug,"Packaged debug reports contain the current experiment record")
  assert(app.game.trials.scenes.size()==10,"Release includes relief, retreat, volunteer and memorial story scenes")
  assert(app.persist_campaign("battle") and FileAccess.file_exists(app.save_path+".debug"),"Packaged debug actions save separately")

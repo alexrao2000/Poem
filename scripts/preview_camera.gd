@@ -4,10 +4,12 @@ extends Node
 # live expansion for cloth, interrupted transitions and optional imported rigs.
 
 const Actor=preload("res://scripts/fighter_actor.gd")
+const Imported=preload("res://scripts/imported_fighter.gd")
 var actor: Node3D
 var camera: Camera3D
 var controls: Control
 var geometry=[]
+var skinned_geometry=[]
 var radius=0.0
 var low=INF
 var high=-INF
@@ -22,6 +24,9 @@ func configure(subject: Node3D,view: Camera3D,panel: Control,poses: Array):
  actor=subject;camera=view;controls=panel
  for mesh in actor.find_children("*","MeshInstance3D",true,false):
   if mesh.mesh==null:continue
+  var skin_bounds=preload("res://scripts/skinned_bounds.gd").new()
+  if skin_bounds.configure(mesh):
+   skinned_geometry.append([mesh,skin_bounds]);continue
   var corners=[];var box=mesh.mesh.get_aabb()
   for index in range(8):corners.append(box.get_endpoint(index))
   geometry.append([mesh,corners,mesh.mesh])
@@ -38,6 +43,19 @@ func configure(subject: Node3D,view: Camera3D,panel: Control,poses: Array):
    for step in range(16):actor.advance_stride(stride*actor.global_basis.z.length()/16.0);actor.apply_constraints();measure()
    actor.gait_phase=saved_phase
   actor.pose("idle",1).custom_step(1);actor.apply_constraints()
+ elif actor is Imported:
+  # Imported mesh AABBs describe the rest pose, not the animated silhouette.
+  var sampled={}
+  for mapping in actor.poses.values():
+   var key=str(mapping)
+   if sampled.has(key):continue
+   sampled[key]=true
+   actor.player.play(mapping.clip)
+   for step in range(9):
+    actor.player.seek(lerpf(mapping.from,mapping.to,float(step)/8),true,true)
+    actor.refresh_skeleton()
+    measure()
+  actor.pose("idle",.01)
  measure()
  radius+=.08;low-=.08;high+=.08
  face_height=actor.socket_position("gaze").y-actor.global_position.y if actor.has_method("socket_position") else high-.2
@@ -55,6 +73,11 @@ func measure() -> bool:
   var local=inverse*mesh.global_transform
   for point in entry[1]:
    var vertex=local*point
+   radius=maxf(radius,Vector2(vertex.x,vertex.z).length())
+   low=minf(low,vertex.y);high=maxf(high,vertex.y)
+ for entry in skinned_geometry:
+  if not is_instance_valid(entry[0]) or not entry[0].visible:continue
+  for vertex in entry[1].points(actor):
    radius=maxf(radius,Vector2(vertex.x,vertex.z).length())
    low=minf(low,vertex.y);high=maxf(high,vertex.y)
  return before!=Vector3(radius,low,high)

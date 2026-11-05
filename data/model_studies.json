@@ -1,0 +1,122 @@
+{
+  "female": {
+    "scene": "res://assets/models/quaternius/study_female.tscn",
+    "player": "Rig/AnimationPlayer",
+    "yaw": 180,
+    "scale": 1,
+    "offset": [
+      0,
+      0.01,
+      0
+    ],
+    "poses": {
+      "idle": {
+        "clip": "Sword_Idle"
+      },
+      "advance": {
+        "clip": "Jog_Fwd"
+      },
+      "windup": {
+        "clip": "Sword_Attack",
+        "from": 0,
+        "to": 0.36
+      },
+      "strike": {
+        "clip": "Sword_Attack",
+        "from": 0.36,
+        "to": 0.433
+      },
+      "recover": {
+        "clip": "Sword_Attack",
+        "from": 0.433,
+        "to": 1.5333333
+      },
+      "hit": {
+        "clip": "Hit_Chest"
+      },
+      "evade": {
+        "clip": "Roll"
+      },
+      "down": {
+        "clip": "Death01"
+      },
+      "guard": {
+        "clip": "Sword_Idle",
+        "from": 0,
+        "to": 0.1
+      },
+      "victory": {
+        "clip": "Idle",
+        "from": 0,
+        "to": 0.2
+      }
+    },
+    "sockets": {
+      "impact": "Rig/Armature/Skeleton3D/Chest/Impact",
+      "gaze": "Rig/Armature/Skeleton3D/Face/Gaze",
+      "projectile": "Rig/Armature/Skeleton3D/WeaponHand/Grip",
+      "trail_inner": "Rig/Armature/Skeleton3D/WeaponHand/Grip/Weapon/TrailInner",
+      "trail_tip": "Rig/Armature/Skeleton3D/WeaponHand/Grip/Weapon/TrailTip"
+    }
+  },
+  "male": {
+    "scene": "res://assets/models/quaternius/study_male.tscn",
+    "player": "Rig/AnimationPlayer",
+    "yaw": 180,
+    "scale": 1,
+    "offset": [
+      0,
+      0.01,
+      0
+    ],
+    "poses": {
+      "idle": {
+        "clip": "Sword_Idle"
+      },
+      "advance": {
+        "clip": "Jog_Fwd"
+      },
+      "windup": {
+        "clip": "Sword_Attack",
+        "from": 0,
+        "to": 0.36
+      },
+      "strike": {
+        "clip": "Sword_Attack",
+        "from": 0.36,
+        "to": 0.433
+      },
+      "recover": {
+        "clip": "Sword_Attack",
+        "from": 0.433,
+        "to": 1.5333333
+      },
+      "hit": {
+        "clip": "Hit_Chest"
+      },
+      "evade": {
+        "clip": "Roll"
+      },
+      "down": {
+        "clip": "Death01"
+      },
+      "guard": {
+        "clip": "Sword_Idle",
+        "from": 0,
+        "to": 0.1
+      },
+      "victory": {
+        "clip": "Idle",
+        "from": 0,
+        "to": 0.2
+      }
+    },
+    "sockets": {
+      "impact": "Rig/Armature/Skeleton3D/Chest/Impact",
+      "gaze": "Rig/Armature/Skeleton3D/Face/Gaze",
+      "projectile": "Rig/Armature/Skeleton3D/WeaponHand/Grip",
+      "trail_inner": "Rig/Armature/Skeleton3D/WeaponHand/Grip/Weapon/TrailInner",
+      "trail_tip": "Rig/Armature/Skeleton3D/WeaponHand/Grip/Weapon/TrailTip"
+    }
+  }
+}

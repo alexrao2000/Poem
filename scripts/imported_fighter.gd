@@ -7,9 +7,13 @@ var model: Node3D
 var poses: Dictionary={}
 var sockets: Dictionary={}
 var pose_tween: Tween
+var skeletons=[]
+var attachments=[]
 
 func configure(scene: Node3D,spec: Dictionary) -> String:
  model=scene;add_child(model)
+ skeletons=model.find_children("*","Skeleton3D",true,false)
+ attachments=model.find_children("*","BoneAttachment3D",true,false)
  model.scale=Vector3.ONE*float(spec.get("scale",1.0))
  model.rotation.y=deg_to_rad(float(spec.get("yaw",0.0)))
  var offset=spec.get("offset",[0,0,0]);model.position=Vector3(offset[0],offset[1],offset[2])
@@ -57,9 +61,16 @@ func pose(key: String,duration=.18) -> Tween:
  var speed=1.0 if looping else (mapping.to-mapping.from)/seconds
  player.play_section(mapping.clip,mapping.from,mapping.to,minf(.06,seconds*.25),speed)
  player.seek(mapping.from,true,true)
+ refresh_skeleton()
  pose_tween=create_tween();pose_tween.tween_interval(seconds)
- if not looping:pose_tween.tween_callback(func():player.seek(mapping.to,true,true);player.pause())
+ if not looping:pose_tween.tween_callback(func():player.seek(mapping.to,true,true);player.pause();refresh_skeleton())
  return pose_tween
+
+func refresh_skeleton():
+ # A direct clip seek updates bones before the normal skeleton notification.
+ # Synchronize effect/weapon sockets before sampling a held contact or preview.
+ for skeleton in skeletons:skeleton.force_update_all_bone_transforms()
+ for attachment in attachments:attachment.on_skeleton_update()
 
 func socket_position(key: String) -> Vector3:
  if sockets.has(key):return sockets[key].global_position
