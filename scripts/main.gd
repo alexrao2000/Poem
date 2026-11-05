@@ -667,7 +667,7 @@ func show_battle_menu():
 	button_in(commands,"Save",func():close_battle_menu();save_with_feedback("battle"))
 	button_in(commands,"Transfer code",func():close_battle_menu();show_save_transfer("battle"))
 	button_in(commands,"Options / audio",func():close_battle_menu();show_options("battle"))
-	button_in(commands,"War council (restart map)",func():close_battle_menu();restart_campaign_attempt())
+	button_in(commands,("War council (restart section)" if game.trials.flags.section_restarts and game.permadeath else "War council (restart map)"),func():close_battle_menu();restart_campaign_attempt())
 	label_in(commands,"Arrows / Enter: select · Q/E: allies · W: wait\nR: danger · Space: end phase · Esc: undo\nWheel / + −: zoom · Middle drag: pan · Home: reset\nTab: skip animation · M / Esc: close menu",14,Color("777163"))
 	var buttons=commands.find_children("*","Button",true,false)
 	for i in range(buttons.size()):
@@ -880,6 +880,7 @@ func end_turn(resuming=false):
 			await show_progress(before)
 		refresh_pieces()
 		if game.result()!="":break
+	if await check_result():busy=false;return
 	game.next_player_turn();update_side();refresh_pieces();highlight()
 	if not checkpoint_action():return
 	if await check_result():busy=false;return
@@ -1185,6 +1186,7 @@ func check_result() -> bool:
 			var portrait=TextureRect.new();portrait.texture=portraits.get_portrait(unit.id);portrait.custom_minimum_size=Vector2(55,55);portrait.expand_mode=TextureRect.EXPAND_IGNORE_SIZE;portrait.stretch_mode=TextureRect.STRETCH_KEEP_ASPECT_CENTERED;row.add_child(portrait)
 			label_in(row,"%s · Lv %d\n%s"%[unit.name,unit.level,"Rescued after battle" if game.DeathDoor.downed(unit) else "Ready for the next march" if unit.hp>0 else "Fallen — permanently lost" if game.permadeath else "Recovering at camp"],16)
 		button_in(frame,"Continue the chronicle",func():
+			if not action_save_ready():return
 			var onward=func():
 				game.finish_chapter()
 				persist_campaign("ending" if game.completed else "camp")
@@ -1193,10 +1195,16 @@ func check_result() -> bool:
 			show_dialogue(story.chapters[game.chapter].closing,onward,"closing"))
 	else:
 		label_in(v,"THE STANDARD FALLS",38,GOLD)
-		label_in(v,"Lyra has fallen. This chapter is lost." if game.permadeath and game.units.any(func(u):return u.id=="lyra" and u.hp<=0) else "Your company is scattered.",24)
-		label_in(v,"Retry from the beginning of this section. Deaths, legacy supplies and reset pressure remain." if game.trials.flags.section_restarts and game.permadeath else "Retry from preparation. Committed deaths remain lost." if game.action_saves and game.permadeath else "Retry from chapter preparation. Losses and gains from this failed attempt are discarded; earlier permanent losses remain." if game.permadeath else "Regroup at the war council and choose a new approach.",20)
+		label_in(v,"Lyra has fallen. This chapter is lost." if (game.permadeath or game.trials.flags.reset_pressure) and game.units.any(func(u):return u.id=="lyra" and u.hp<=0) else "Your company is scattered.",24)
+		label_in(v,"Retry from the beginning of this section. Deaths, legacy supplies and reset pressure remain." if game.trials.flags.section_restarts and game.permadeath else "Retry from preparation. Committed deaths remain lost." if (game.action_saves or game.trials.flags.death_legacies) and game.permadeath else "Retry from chapter preparation. Losses and gains from this failed attempt are discarded; earlier permanent losses remain." if game.permadeath else "Regroup at the war council and choose a new approach.",20)
 		button_in(frame,"Regroup and retry",func():
+			if not action_save_ready():return
 			if game.retry_battle():persist_campaign("camp");show_camp())
+	if save_failed:
+		label_in(v,"Autosave failed. Retry saving, or copy a transfer code to keep this position.",18,GOLD)
+		button_in(frame,"Retry autosave",func():
+			if persist_campaign("battle"):check_result())
+	button_in(frame,"Transfer code",func():show_save_transfer("result"))
 	return true
 
 func show_ending():
@@ -1359,6 +1367,7 @@ func show_progress(before: Dictionary):
 		reward_panel.queue_free();reward_panel=null
 
 func show_save_transfer(return_screen: String):
+	if return_screen=="result" and (busy or screen!="result"):return
 	if return_screen=="battle":
 		if busy or game.phase!="player":return
 		cancel_selection()
@@ -1371,7 +1380,7 @@ func show_save_transfer(return_screen: String):
 	transfer_text=TextEdit.new();transfer_text.name="SaveCode";transfer_text.size_flags_vertical=Control.SIZE_EXPAND_FILL
 	transfer_text.custom_minimum_size.y=160
 	transfer_text.wrap_mode=TextEdit.LINE_WRAPPING_BOUNDARY;transfer_text.add_theme_font_size_override("font_size",14);panel.add_child(transfer_text)
-	transfer_text.text=game.export_code(return_screen) if return_screen in ["camp","battle"] else game.export_saved_code(campaign_save_path())
+	transfer_text.text=game.export_code("battle" if return_screen=="result" else return_screen) if return_screen in ["camp","battle","result"] else game.export_saved_code(campaign_save_path())
 	transfer_text.placeholder_text="Paste a POEM1: save code here."
 	var code_actions=HBoxContainer.new();code_actions.add_theme_constant_override("separation",10);panel.add_child(code_actions)
 	button_in(code_actions,"Copy code",func():DisplayServer.clipboard_set(transfer_text.text);show_notice("Save code copied. Keep it in a local text file or paste it into another build.")).size_flags_horizontal=Control.SIZE_EXPAND_FILL
@@ -1686,6 +1695,7 @@ func resume_saved_battle():
 	if game.phase=="enemy":await end_turn(true)
 
 func restart_campaign_attempt():
+	if not action_save_ready():return
 	if game.trials.restart(game):persist_campaign("camp")
 	show_camp()
 
@@ -1871,5 +1881,6 @@ func show_save_warning():
 
 func close_save_transfer():
 	if transfer_return=="battle":show_battle()
+	elif transfer_return=="result":check_result()
 	elif transfer_return=="camp":show_camp()
 	else:show_title()

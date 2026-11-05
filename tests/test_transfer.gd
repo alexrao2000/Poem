@@ -55,8 +55,27 @@ func run():
  assert(restored.load_game(working_path)=="battle" and restored.turn==7)
  app.save_path=working_path+"/unwritable.json"
  for unit in app.game.living("player"):unit.hp=0
+ app.game.action_saves=true;app.game.phase="enemy"
  assert(await app.check_result());await process_frame
  assert(app.screen=="result" and app.ui.find_child("Notice",true,false)!=null,"Result screen reset does not hide failed autosave")
+ var terminal=JSON.stringify(app.game.save_data("battle"))
+ var regroup=app.ui.find_children("*","Button",true,false).filter(func(button):return button.text=="Regroup and retry")[0]
+ regroup.pressed.emit();await process_frame
+ assert(app.screen=="result" and JSON.stringify(app.game.save_data("battle"))==terminal,"An unsaved terminal checkpoint cannot be discarded by retry")
+ app.restart_campaign_attempt()
+ assert(app.screen=="result" and JSON.stringify(app.game.save_data("battle"))==terminal,"A failed checkpoint also blocks manual retreat")
+ var transfer=app.ui.find_children("*","Button",true,false).filter(func(button):return button.text=="Transfer code")[0]
+ transfer.pressed.emit();await process_frame
+ assert(app.screen=="save_transfer" and live_copy.import_code(app.transfer_text.text)=="battle" and live_copy.result()=="defeat" and live_copy.phase=="enemy","Result transfer exports the live terminal state even during enemy phase")
+ app.close_save_transfer();await process_frame
+ assert(app.screen=="result" and JSON.stringify(app.game.save_data("battle"))==terminal)
+ for dimensions in [Vector2(1024,640),Vector2(1280,720),Vector2(1440,900)]:
+  app.ui.set_anchors_and_offsets_preset(Control.PRESET_TOP_LEFT);app.ui.size=dimensions
+  await process_frame;await process_frame
+  for button in app.ui.find_children("*","Button",true,false):assert(Rect2(Vector2.ZERO,dimensions).grow(1).encloses(button.get_global_rect()),"Result recovery actions fit on screen")
+ app.save_path=working_path
+ app.ui.find_children("*","Button",true,false).filter(func(button):return button.text=="Retry autosave")[0].pressed.emit()
+ assert(not app.save_failed and restored.load_game(working_path)=="battle" and restored.result()=="defeat","Result save retry preserves the terminal checkpoint")
  # A browser can retain only the journal if it reloads before its first FS sync.
  app.save_path="/private/tmp/poem-journal-only-ui.json"
  for suffix in ["",".bak",".tmp"]:

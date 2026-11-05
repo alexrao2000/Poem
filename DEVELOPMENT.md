@@ -20,6 +20,8 @@ Browser saving now keeps a checked localStorage recovery record per normal/debug
 
 Debug can now rebuild the current chapter at pressure 0–10 using its selected seed. The experiment panel and report share the actual enemy-preparation calculation, including held tonics and raider movement. Carrying, recovery and sacrifice openings appear in a compact tactical status line with detailed hover text. Twelve-chapter preparation matrices, debug isolation and three-size rescue/status layout checks pass.
 
+Decisive enemy exchanges now end at their terminal checkpoint, without starting an extra player phase or applying terrain healing. Result screens offer transfer codes even for enemy-phase outcomes, plus retry controls on save failure. Action-save failures prevent retry/retreat from discarding the result. Defeat copy now reflects committed legacy deaths, and the battle-menu label identifies section restarts. Six phase/save/rescue/trial/control/presentation suites pass, including exact terminal reloads and three-size recovery controls.
+
 ## Earlier checkpoints
 
 Spell flight now has a continuous soft-edged wake and luminous elemental cores/halos, replacing the six opaque trailing beads. It uses four fewer mesh instances per spell while keeping the existing path/timing. Focused geometry, transformed physical/elemental flights, actual exchanges and skip cleanup pass; the isolated additive study was corrected for a measured headless gradient readback artifact rather than treating that artifact as a game defect.
