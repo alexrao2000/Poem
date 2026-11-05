@@ -21,8 +21,8 @@ func end(game) -> String:
 
 func load_chapter(game,index: int):
  if not active or index<0 or index>=game.content.chapters.size():return
- var door=game.death_door;var actions=game.action_saves
- game.new_campaign(game.permadeath);game.death_door=door;game.action_saves=actions;game.chapter=index
+ var door=game.death_door;var actions=game.action_saves;var flags=game.trials.flags.duplicate()
+ game.new_campaign(game.permadeath);game.death_door=door;game.action_saves=actions;game.trials.flags=flags;game.chapter=index
  game.story_seen=["opening_"+str(index)]
  game.deployed=game.available().slice(0,6).map(func(unit):return unit.id)
  game.start_battle()

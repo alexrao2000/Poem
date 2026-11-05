@@ -71,6 +71,8 @@ func plan(game,unit: Dictionary) -> Dictionary:
   if unit.weapon=="staff":return plan_healer(game,unit,free,foes)
   if unit.hp<unit.max_hp*.40 and unit.get("potions",0)>0:
    return {"position":here,"action":"tonic","target":"","alert":true}
+ if unit.team=="enemy" and unit.hp<unit.max_hp*.4 and unit.get("held_tonics",0)>0:
+  return {"position":here,"action":"tonic","target":"","alert":true}
  if foes.is_empty():return idle
  var best=idle;var best_score=-INF
  var probe=unit.duplicate(true)

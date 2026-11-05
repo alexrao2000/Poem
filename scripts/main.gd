@@ -358,7 +358,7 @@ func show_title():
 	label_in(v,"Twelve chapters. Twenty-four paths to dawn.",17,Color("766e5e"))
 	var spacer=Control.new();spacer.size_flags_vertical=Control.SIZE_EXPAND_FILL;v.add_child(spacer)
 	button_in(v,"Begin the chronicle",show_campaign_rules)
-	button_in(v,"Continue saved campaign",load_campaign,not FileAccess.file_exists(campaign_save_path()) and not FileAccess.file_exists(campaign_save_path()+".bak"))
+	button_in(v,"Continue saved campaign",load_campaign,not FileAccess.file_exists(campaign_save_path()) and not FileAccess.file_exists(campaign_save_path()+".bak") and not FileAccess.file_exists(campaign_save_path()+".tmp"))
 	button_in(v,"Transfer a local save",func():show_save_transfer("title"))
 	var extras=HBoxContainer.new();extras.add_theme_constant_override("separation",8);v.add_child(extras)
 	button_in(extras,"Options",func():show_options("title")).size_flags_horizontal=Control.SIZE_EXPAND_FILL
@@ -405,6 +405,7 @@ func show_visual_workshop():
 		canvas.remove_child(workshop);workshop.queue_free();camera.current=true;show_title())
 
 func show_camp():
+	game.ensure_leader()
 	select_score_theme()
 	screen="camp";busy=false;selected=null;target=null;origin=null
 	game.phase="player"
@@ -429,6 +430,9 @@ func show_camp():
 	label_in(left,game.info().place.to_upper(),17,Color("79755f"))
 	var briefing=scrolling_column(left)
 	label_in(briefing,game.info().intro,21)
+	if game.trials.flags.values().has(true):
+		label_in(briefing,"Section %d / 3 · Reset pressure %d / 10"%[int(game.chapter/4)+1,game.trials.pressure],18,GOLD)
+		button_in(briefing,"Campaign experiments & legacy supplies",show_campaign_trials)
 	label_in(briefing,game.info().get("tactical_brief",""),18,Color("6f6c5e"))
 	label_in(briefing,"Select up to six allies. Open a portrait to inspect equipment and support conversations. Wardens heal within staff range; everyone carries two field tonics.",16,Color("766e5e"))
 	label_in(left,"OBJECTIVE  /  "+objective_text(),18,GOLD)
@@ -448,9 +452,11 @@ func show_camp():
 	cards.add_theme_constant_override("h_separation",10);cards.add_theme_constant_override("v_separation",10)
 	cards.size_flags_horizontal=Control.SIZE_EXPAND_FILL;scroll.add_child(cards)
 	for u in game.roster:
-		var unlocked=int(u.join)<=game.chapter and not u.get("fallen",false)
+		var unlocked=game.trials.joined(game,u) and not u.get("fallen",false)
 		var card=preload("res://scripts/company_card.gd").new();cards.add_child(card)
 		card.configure(u,game.class_name_for(u),portraits.get_portrait(u.id) if unlocked or u.get("fallen",false) else unit_portrait(u),game.item_for(u),u.id in game.deployed,unlocked,unlocked and supports_ready(u),game.deployed.size()>=6)
+		if u.id=="lyra" and (game.trials.flags.reset_pressure or (game.trials.flags.section_restarts and game.permadeath)):
+			card.deploy_button.disabled=true;card.deploy_button.tooltip_text="The lord leads the company in this experiment."
 		interface_audio.watch(card.portrait_button);interface_audio.watch(card.deploy_button)
 		card.inspect_requested.connect(func():show_dossier(u))
 		card.deployment_requested.connect(func():
@@ -643,7 +649,7 @@ func show_battle_menu():
 	button_in(commands,"Save",func():close_battle_menu();save_with_feedback("battle"))
 	button_in(commands,"Transfer code",func():close_battle_menu();show_save_transfer("battle"))
 	button_in(commands,"Options / audio",func():close_battle_menu();show_options("battle"))
-	button_in(commands,"War council (restart map)",func():close_battle_menu();show_camp())
+	button_in(commands,"War council (restart map)",func():close_battle_menu();restart_campaign_attempt())
 	label_in(commands,"Arrows / Enter: select · Q/E: allies · W: wait\nR: danger · Space: end phase · Esc: undo\nWheel / + −: zoom · Middle drag: pan · Home: reset\nTab: skip animation · M / Esc: close menu",14,Color("777163"))
 	var buttons=commands.find_children("*","Button",true,false)
 	for i in range(buttons.size()):
@@ -715,7 +721,7 @@ func _unhandled_input(event):
 		interface_audio.cue("back");show_title();get_viewport().set_input_as_handled();return
 	if screen=="model" and event is InputEventKey and event.pressed and event.keycode==KEY_ESCAPE:
 		interface_audio.cue("back");close_model_view();get_viewport().set_input_as_handled();return
-	if screen in ["dossier","campaign_route"] and event is InputEventKey and event.pressed and event.keycode==KEY_ESCAPE:
+	if screen in ["dossier","campaign_route","campaign_trials"] and event is InputEventKey and event.pressed and event.keycode==KEY_ESCAPE:
 		interface_audio.cue("back");show_camp();get_viewport().set_input_as_handled();return
 	if screen=="dialogue" and event is InputEventKey and event.pressed:
 		if event.keycode in [KEY_SPACE,KEY_ENTER]:advance_dialogue();get_viewport().set_input_as_handled()
@@ -824,7 +830,7 @@ func finish_action():
 	if preferences.values.auto_end and game.living("player").all(func(u):return u.acted):end_turn()
 
 func end_turn(resuming=false):
-	if busy or screen!="battle" or not action_save_ready():return
+	if busy or screen!="battle" or (game.phase!="player" and not resuming) or not action_save_ready():return
 	cancel_selection();busy=true
 	if not resuming:
 		game.begin_enemy_phase()
@@ -1160,7 +1166,7 @@ func check_result() -> bool:
 	else:
 		label_in(v,"THE STANDARD FALLS",38,GOLD)
 		label_in(v,"Lyra has fallen. This chapter is lost." if game.permadeath and game.units.any(func(u):return u.id=="lyra" and u.hp<=0) else "Your company is scattered.",24)
-		label_in(v,"Retry from preparation. Committed deaths remain lost." if game.action_saves and game.permadeath else "Retry from chapter preparation. Losses and gains from this failed attempt are discarded; earlier permanent losses remain." if game.permadeath else "Regroup at the war council and choose a new approach.",20)
+		label_in(v,"Retry from the beginning of this section. Deaths, legacy supplies and reset pressure remain." if game.trials.flags.section_restarts and game.permadeath else "Retry from preparation. Committed deaths remain lost." if game.action_saves and game.permadeath else "Retry from chapter preparation. Losses and gains from this failed attempt are discarded; earlier permanent losses remain." if game.permadeath else "Regroup at the war council and choose a new approach.",20)
 		button_in(frame,"Regroup and retry",func():
 			if game.retry_battle():persist_campaign("camp");show_camp())
 	return true
@@ -1265,7 +1271,7 @@ func show_equipment(unit):
 		var reach=str(int(item.min_range)) if item.min_range==item.max_range else "%d–%d"%[item.min_range,item.max_range]
 		if item.kind=="staff":label_in(details,"Heal %d   Weight %d   Range %s"%[int(item.heal)+game.promotion_bonus(unit,"heal"),item.weight,reach],18)
 		else:label_in(details,"Might %d   Hit %+d   Crit +%d   Weight %d   Range %s"%[item.might,item.hit,item.crit,item.weight,reach],18)
-		var locked=int(item.unlock)>game.chapter;var equipped=unit.item==item.id
+		var locked=int(item.unlock)>game.chapter and item.id not in game.trials.purchases;var equipped=unit.item==item.id
 		button_in(details,"Available in chapter %d"%(int(item.unlock)+1) if locked else ("Equipped" if equipped else "Equip"),func():
 			if game.equip(unit,item.id):show_equipment(unit);persist_campaign("camp")
 		,locked or equipped)
@@ -1542,6 +1548,10 @@ func show_options(return_to: String):
 		var toggle=CheckButton.new();toggle.name=setting.key;toggle.text=setting.name;toggle.button_pressed=game.get(setting.key);panel.add_child(toggle)
 		toggle.toggled.connect(func(value):game.set(setting.key,value))
 		label_in(panel,setting.text,16)
+	for setting in [{"key":"section_restarts","name":"Restart the current section","text":"With permadeath: retries return to the start of the four-chapter section. Deaths and legacy supplies remain. Relief recruits arrive at section breaks."},{"key":"reset_pressure","name":"Enemies prepare after resets","text":"Retries and lord defeat increase enemy stats, spend held tonics and advance raiders. Applies with permadeath on or off."},{"key":"hard_campaign","name":"Harder enemy forces","text":"On the next deployment: enemies gain health, attack, speed and later defense. Bonuses grow each section."},{"key":"death_legacies","name":"Death events & legacy supplies","text":"With permadeath: each death commits a loss, grants one supply credit and may bring a volunteer ahead of schedule."},{"key":"sacrifice_cost","name":"Sacrifice costs & openings","text":"A fallen ally starts the next chapter with 4 HP missing and one tonic. Their fall gives survivors +2 attack through the next player turn."}]:
+		var toggle=CheckButton.new();toggle.name=setting.key;toggle.text=setting.name;toggle.button_pressed=game.trials.flags[setting.key];panel.add_child(toggle)
+		toggle.toggled.connect(func(value):game.trials.flags[setting.key]=value)
+		label_in(panel,setting.text,16)
 	label_in(panel,"Battle presentation",21,GOLD)
 	var mode=OptionButton.new();mode.name="CombatMode";mode.custom_minimum_size.y=42
 	for title in ["All 3D battles","3D for player attacks","Quick map battles"]:mode.add_item(title)
@@ -1589,6 +1599,18 @@ func show_debug_tools(return_to: String):
 		debug_session.heal(game);persist_campaign("battle" if options_return=="battle" else "camp");show_notice("Living allies restored to full health."))
 	button_in(panel,"Revive company and reset battle",func():
 		debug_session.revive(game);make_map();show_battle();persist_campaign("battle"))
+	button_in(panel,"Test reset / section retreat",func():restart_campaign_attempt())
+	var allies=OptionButton.new();allies.name="DebugCasualty";allies.custom_minimum_size.y=42
+	for unit in game.units:
+		if unit.team=="player":allies.add_item(unit.name);allies.set_item_metadata(allies.item_count-1,unit.id)
+	panel.add_child(allies)
+	button_in(panel,"Test selected ally falling",func():
+		if allies.selected<0:return
+		var casualties=game.units.filter(func(unit):return unit.id==allies.get_item_metadata(allies.selected))
+		if casualties.is_empty():return
+		var unit=casualties[0];unit.hp=0;game.DeathDoor.fall(game,unit);game.commit_casualties()
+		make_map();show_battle();persist_campaign("battle");check_result()
+	,allies.item_count==0)
 	button_in(panel,"Return to preparation",func():game.units.clear();game.phase="player";show_camp();persist_campaign("camp"))
 	button_in(frame,"Return to Options",func():show_options(options_return))
 
@@ -1607,6 +1629,28 @@ func resume_saved_battle():
 	make_map();show_battle()
 	if await check_result():return
 	if game.phase=="enemy":await end_turn(true)
+
+func restart_campaign_attempt():
+	if game.trials.restart(game):persist_campaign("camp")
+	show_camp()
+
+func show_campaign_trials():
+	screen="campaign_trials";reset_ui()
+	var frame=menu_panel(880);var panel=scrolling_column(frame)
+	label_in(panel,"CAMPAIGN EXPERIMENTS",18,GOLD)
+	label_in(panel,"Section %d · Pressure %d / 10"%[int(game.chapter/4)+1,game.trials.pressure],34,GOLD)
+	label_in(panel,"Legacy supply credits: %d"%game.trials.credits,22)
+	if game.trials.flags.death_legacies and game.permadeath:
+		for stock in game.trials.LEGACY_STOCK:
+			var item=game.equipment.filter(func(entry):return entry.id==stock.id)[0]
+			var bought=stock.id in game.trials.purchases
+			button_in(panel,("Secured · " if bought else "Secure · ")+item.name+" · %d credit(s), %d loss(es)"%[stock.cost,stock.losses],func():
+				if game.trials.buy(game,stock.id):persist_campaign("camp");show_campaign_trials()
+			,bought or game.trials.credits<stock.cost or game.trials.losses.size()<stock.losses)
+	label_in(panel,"Company dispatches",24,GOLD)
+	if game.trials.events.is_empty():label_in(panel,"No experiment events yet. Change the rules in Options, or test them in Debug mode.",19)
+	for event in game.trials.events:label_in(panel,event,19)
+	button_in(frame,"Return to war council",show_camp)
 
 func show_triage():
 	if selected==null or not game.can_act(selected):return

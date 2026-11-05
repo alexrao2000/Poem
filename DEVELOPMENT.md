@@ -6,11 +6,13 @@ User direction: keep developing continuously in this chat until the user returns
 
 ## Current checkpoint
 
-2026-11-04 user-requested trial: Wang variation now supplies grass and earth on campaign ground and natural banks. Existing stone sampling and terrain control weights remain. See [art notes and texture comparison](docs/art-direction.md#wang-variation-for-natural-ground). This is a bounded requested change; the broader development pause below still applies.
+2026-11-04 user-requested trial: Wang variation now supplies grass and earth on campaign ground and natural banks. Existing stone sampling and terrain control weights remain. See [art notes and texture comparison](docs/art-direction.md#wang-variation-for-natural-ground). This change is integrated into the resumed development branch.
 
 **Resumed by user request on 2026-11-04. See [RESUME.md](RESUME.md) for the development handoff.**
 
-Latest delivered presentation work includes world-planted infantry/cavalry steps, level soles/hooves, shaped cavalry skull/body/neck, fitted animated reins, coordinated arena/map defeat exits and a descending push through the arena reveal. The default runner contains 72 suites. Current measured totals are 1,774 rigid character sources / 1,057 joint batches plus three dynamic reins, and 13,554 static map sources / 616 batches plus cloth and atmosphere. Local browser/macOS packages and the GitHub repository are kept in sync after focused verification. Assembled visual/audio review and browser FPS measurements remain outstanding.
+Latest delivered presentation work includes world-planted infantry/cavalry steps, level soles/hooves, shaped cavalry skull/body/neck, fitted animated reins, coordinated arena/map defeat exits and a descending push through the arena reveal. The default runner contains 74 suites. Current measured totals are 1,774 rigid character sources / 1,057 joint batches plus three dynamic reins, and 13,554 static map sources / 616 batches plus cloth and atmosphere. Local browser/macOS packages and the GitHub repository are kept in sync after focused verification. Assembled visual/audio review and browser FPS measurements remain outstanding.
+
+Campaign experiments now have separate toggles and an isolated debug harness. Save version 6 adds section checkpoints, a persistent consequence ledger and monotonic save revisions. Irreversible checkpoints precede presentation; downed units can be carried and healed; retries can rewind a four-chapter section while preserving deaths and enemy preparation. Legacy credits unlock equipment early and bring selected existing recruits ahead of schedule. Casual sacrifice grants a temporary opening but reduces the returning unit’s health/supplies. See [the experiment guide](docs/campaign-experiments.md) for exact trial rules, measurements and limits.
 
 ## Earlier checkpoints
 

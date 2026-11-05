@@ -60,6 +60,16 @@ func run():
    assert(not actor.visible and departure.visibility==0,"Packaged material variants complete the defeated actor exit")
    departure.queue_free()
   actor.queue_free();await process_frame
+ app.game.new_campaign(true);app.game.story_seen=["opening_0"];app.show_camp();app.show_options("camp")
+ app.ui.find_child("DebugMode",true,false).button_pressed=true
+ for key in ["action_saves","death_door","section_restarts","reset_pressure","hard_campaign","death_legacies","sacrifice_cost"]:
+  app.ui.find_child(key,true,false).button_pressed=true
+ app.close_options();app.game.start_battle()
+ var patient=app.game.units[1];patient.hp=0;app.game.DeathDoor.fall(app.game,patient)
+ app.make_map();app.show_battle()
+ assert(app.unit_nodes.has(patient.id) and app.unit_nodes[patient.id].downed,"Packaged experiment keeps a rescuable downed ally visible")
+ app.show_debug_tools("battle");assert(app.ui.find_child("DebugCasualty",true,false)!=null,"Release contains the debug experiment harness")
+ assert(app.persist_campaign("battle") and FileAccess.file_exists(app.save_path+".debug"),"Packaged debug actions save separately")
  await Shutdown.dispose(app);await process_frame
  print("PASS: exported catalog, all three act scores, chapter scenes, sixteen promotion costumes, licenses and credits")
  quit()

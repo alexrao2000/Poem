@@ -18,6 +18,7 @@ const TERRAIN_PROFILES={
  "#":{"name":"Blocked","move":0,"cover":0,"avoid":0,"heal":0},
  "~":{"name":"Water","move":0,"cover":0,"avoid":0,"heal":0}
 }
+var save_sequence=0
 var chapter: int = 0
 var turn: int = 1
 var phase: String = "player"
@@ -31,6 +32,7 @@ var death_door=false
 var action_saves=false
 var permadeath=false
 var battle_supports: Dictionary={}
+var trials=preload("res://scripts/campaign_trials.gd").new()
 var story_seen: Array = []
 
 func _init():
@@ -42,8 +44,9 @@ func _init():
 
 func new_campaign(permadeath_enabled=false):
 	permadeath=permadeath_enabled
-	death_door=false;action_saves=false
+	death_door=false;action_saves=false;trials.reset()
 	chapter = 0
+	save_sequence=0
 	turn = 1
 	phase = "player"
 	units.clear()
@@ -65,7 +68,7 @@ func new_campaign(permadeath_enabled=false):
 	deployed = ["lyra", "oren", "sera", "ivo"]
 
 func available() -> Array:
-	return roster.filter(func(u): return int(u.join) <= chapter and not u.get("fallen",false))
+	return roster.filter(func(u): return trials.joined(self,u) and not u.get("fallen",false))
 
 func lost_ids(include_current=false) -> Array:
 	var ids=roster.filter(func(u):return u.get("fallen",false)).map(func(u):return u.id)
@@ -88,7 +91,13 @@ func objective_position() -> Vector2i:
 	var point=info().get("objective_position",[12,4])
 	return Vector2i(point[0],point[1])
 
+func ensure_leader():
+	if not (trials.flags.reset_pressure or (trials.flags.section_restarts and permadeath)):return
+	deployed.erase("lyra");deployed.push_front("lyra");deployed=deployed.slice(0,6)
+
 func start_battle():
+	ensure_leader()
+	trials.capture_section(self)
 	battle_supports=supports.state.duplicate(true)
 	units.clear()
 	turn = 1
@@ -121,6 +130,7 @@ func start_battle():
 		e.item=entry.get("item",DEFAULT_ITEMS[e.weapon])
 		normalize_equipment(e)
 		units.append(e)
+	trials.prepare_battle(self)
 
 func terrain(p: Vector2i) -> String:
 	if p.x<0 or p.y<0 or p.x>=board_size().x or p.y>=board_size().y: return "#"
@@ -212,14 +222,14 @@ func normalize_equipment(u: Dictionary):
 	var item=item_for(u);u.item=item.id;u.reach=int(item.max_range)
 
 func equip(u: Dictionary,id: String) -> bool:
-	if not roster.has(u) or int(u.join)>chapter or u.get("fallen",false):return false
+	if not roster.has(u) or not trials.joined(self,u) or u.get("fallen",false):return false
 	for item in equipment:
-		if item.id==id and item.kind==u.weapon and int(item.unlock)<=chapter:
+		if item.id==id and item.kind==u.weapon and (int(item.unlock)<=chapter or id in trials.purchases):
 			u.item=id;u.reach=int(item.max_range);return true
 	return false
 
 func attack_power(u: Dictionary) -> int:
-	return int(u.pow)+int(item_for(u).might)
+	return int(u.pow)+int(item_for(u).might)+(2 if u.get("resolve_until",-1)>=turn else 0)
 
 func attack_speed(u: Dictionary) -> int:
 	return maxi(0,int(u.speed)-int(item_for(u).weight))
@@ -241,8 +251,9 @@ func heal(a: Dictionary,b: Dictionary) -> bool:
 	return true
 
 func use_tonic(u: Dictionary) -> bool:
-	if not can_act(u) or u.get("potions",0)<=0 or u.hp>=u.max_hp:return false
-	u.hp=mini(u.max_hp,u.hp+12);u.potions-=1;u.acted=true
+	var key="held_tonics" if u.team=="enemy" else "potions"
+	if not can_act(u) or u.get(key,0)<=0 or u.hp>=u.max_hp:return false
+	u.hp=mini(u.max_hp,u.hp+12);u[key]-=1;u.acted=true
 	return true
 
 func begin_enemy_phase():
@@ -273,14 +284,14 @@ func strike(a: Dictionary,b: Dictionary) -> Dictionary:
 	var damage = mini(int(b.hp),int(f.damage)*(3 if crit else 1)) if hit else 0
 	b.hp -= damage
 	if b.hp<=0:DeathDoor.fall(self,b)
-	return {"actor":a.id,"target":b.id,"damage":damage,"crit":crit,"hit":hit,"remaining":b.hp}
+	return {"actor":a.id,"target":b.id,"damage":damage,"crit":crit,"hit":hit,"remaining":int(b.hp)}
 
 func combat(a: Dictionary,b: Dictionary) -> Array:
 	if a.team!=phase or a.acted or not can_attack(a,b): return []
 	var f = forecast(a,b)
 	var exchange_forecast={a.id:f.duplicate(true),b.id:forecast(b,a)}
 	exchange_forecast[a.id].available=true;exchange_forecast[b.id].available=f.counter
-	exchange_forecast[a.id].max_hp=a.max_hp;exchange_forecast[b.id].max_hp=b.max_hp
+	exchange_forecast[a.id].max_hp=int(a.max_hp);exchange_forecast[b.id].max_hp=int(b.max_hp)
 	var result = [strike(a,b)]
 	if b.hp>0 and can_attack(b,a): result.append(strike(b,a))
 	if a.hp>0 and b.hp>0:
@@ -313,7 +324,7 @@ func raise_stat(unit: Dictionary,key: String,amount: int) -> int:
 	return int(unit[key])-before
 
 func result() -> String:
-	if permadeath and units.any(func(u):return u.id=="lyra" and u.team=="player" and u.hp<=0 and not DeathDoor.downed(u)):return "defeat"
+	if (permadeath or trials.flags.reset_pressure) and units.any(func(u):return u.id=="lyra" and u.team=="player" and u.hp<=0 and not DeathDoor.downed(u)):return "defeat"
 	if living("player").is_empty(): return "defeat"
 	var boss_alive = units.any(func(u): return u.get("boss",false) and u.hp>0)
 	match info().objective:
@@ -341,14 +352,13 @@ func finish_chapter():
 	if chapter>=content.chapters.size():
 		completed=true
 		chapter=content.chapters.size()-1
+	trials.arrive(self)
 	for u in available():
 		if deployed.size()<6 and u.id not in deployed:deployed.append(u.id)
 
 func retry_battle() -> bool:
 	if result()!="defeat":return false
-	if permadeath:supports.state=battle_supports.duplicate(true)
-	units.clear();turn=1;phase="player"
-	return true
+	return trials.restart(self)
 
 func next_player_turn():
 	turn+=1
@@ -359,14 +369,15 @@ func next_player_turn():
 		if u.hp>0 and recovery>0:u.hp=mini(u.max_hp,u.hp+recovery)
 
 func commit_casualties():
-	if not action_saves or not permadeath:return
+	trials.record_losses(self)
+	if not permadeath or not (action_saves or trials.flags.section_restarts or trials.flags.death_legacies):return
 	for unit in units:
 		if unit.team!="player" or unit.id=="lyra" or unit.hp>0 or DeathDoor.downed(unit):continue
 		for recruit in roster:
 			if recruit.id==unit.id:
 				recruit.fallen=true;recruit.fallen_chapter=chapter;recruit.hp=0;deployed.erase(unit.id)
 
-const SAVE_VERSION=5
+const SAVE_VERSION=6
 
 func layout_signature() -> String:
 	# Equipment changes are safe for an existing battle: each unit saves its item.
@@ -375,17 +386,29 @@ func layout_signature() -> String:
 	return JSON.stringify([info().map,info().deployment_positions,placement,info().objective_position]).sha256_text()
 
 func save_data(stage: String) -> Dictionary:
-	return {"version":SAVE_VERSION,"death_door":death_door,"action_saves":action_saves,"permadeath":permadeath,"battle_supports":battle_supports,"layout_signature":layout_signature(),"story_seen":story_seen,"supports":supports.state,"chapter":chapter,"turn":turn,"phase":phase,"roster":roster,"units":units,"deployed":deployed,"completed":completed,"rng":str(rng.state),"stage":stage}
+	return {"version":SAVE_VERSION,"save_sequence":save_sequence,"trials":trials.to_data(),"death_door":death_door,"action_saves":action_saves,"permadeath":permadeath,"battle_supports":battle_supports,"layout_signature":layout_signature(),"story_seen":story_seen,"supports":supports.state,"chapter":chapter,"turn":turn,"phase":phase,"roster":roster,"units":units,"deployed":deployed,"completed":completed,"rng":str(rng.state),"stage":stage}
 
 func save_game(path: String,stage: String) -> bool:
+	var previous=read_saved_data(path)
+	save_sequence=maxi(save_sequence,int(previous.get("save_sequence",0)))+1
 	var data=save_data(stage)
 	var file=FileAccess.open(path+".tmp",FileAccess.WRITE)
 	if file==null:return false
 	file.store_string(JSON.stringify(data));file.flush();file.close()
-	if not action_saves and FileAccess.file_exists(path) and DirAccess.copy_absolute(path,path+".bak")!=OK:return false
-	if DirAccess.rename_absolute(path+".tmp",path)!=OK:return false
-	if action_saves:return DirAccess.copy_absolute(path,path+".bak")==OK
-	return true
+	if action_saves:
+		if DirAccess.copy_absolute(path+".tmp",path+".bak.tmp")!=OK:return false
+		if DirAccess.rename_absolute(path+".bak.tmp",path+".bak")!=OK:return false
+	elif FileAccess.file_exists(path) and DirAccess.copy_absolute(path,path+".bak")!=OK:return false
+	return DirAccess.rename_absolute(path+".tmp",path)==OK
+
+func read_saved_data(path: String) -> Dictionary:
+	var newest={}
+	for candidate in [path,path+".bak",path+".tmp"]:
+		if not FileAccess.file_exists(candidate):continue
+		var parser=JSON.new()
+		if parser.parse(FileAccess.get_file_as_string(candidate))!=OK or not valid_save(parser.data):continue
+		if newest.is_empty() or int(parser.data.get("save_sequence",0))>int(newest.get("save_sequence",0)):newest=parser.data
+	return newest
 
 func valid_save(data) -> bool:
 	if not data is Dictionary:return false
@@ -393,11 +416,14 @@ func valid_save(data) -> bool:
 		if not data.has(key):return false
 	for key in ["version","chapter","turn"]:
 		if not (data[key] is float or data[key] is int) or not is_finite(float(data[key])) or data[key]!=int(data[key]):return false
-	if int(data.version) not in [1,2,3,4,SAVE_VERSION]:return false
+	if int(data.version) not in [1,2,3,4,5,SAVE_VERSION]:return false
 	for flag in ["permadeath","death_door","action_saves"]:
 		if not data.get(flag,false) is bool:return false
 		if int(data.version)>=5 and not data.has(flag):return false
 	if int(data.version)>=4 and not data.has("permadeath"):return false
+	if int(data.version)>=6 and not data.has("trials"):return false
+	if not trials.valid(self,data.get("trials",{})):return false
+	if not trials.integer(data.get("save_sequence",0),0,9007199254740990):return false
 	if int(data.chapter)<0 or int(data.chapter)>=content.chapters.size() or int(data.turn)<1:return false
 	if data.phase not in ["player","enemy"] or data.stage not in ["camp","battle","ending"]:return false
 	if not data.completed is bool or not data.rng is String or not data.rng.is_valid_int():return false
@@ -415,7 +441,7 @@ func valid_save(data) -> bool:
 		if not unit.get("bio") is String or unit.bio.length()>2000:return false
 		if not (unit.get("join") is int or unit.get("join") is float) or unit.join!=originals[0].join:return false
 		if unit.get("fallen",false):
-			if unit.hp!=0 or unit.fallen_chapter<unit.join or unit.fallen_chapter>data.chapter or unit.id=="lyra":return false
+			if unit.hp!=0 or unit.id=="lyra":return false
 		ids[unit.id]=unit
 	var deployment_ids={}
 	for id in data.deployed:
@@ -468,9 +494,13 @@ func valid_unit(unit,in_battle: bool) -> bool:
 		if unit.get("team") not in ["player","enemy"] or not unit.get("acted") is bool:return false
 		for key in ["x","y"]:
 			if not (unit.get(key) is float or unit.get(key) is int) or not is_finite(float(unit[key])) or unit[key]!=int(unit[key]):return false
-		for key in ["moved","alerted","boss"]:
+		for key in ["moved","alerted","boss","raider","recovering"]:
 			if unit.has(key) and not unit[key] is bool:return false
 		if unit.has("potions") and (not (unit.potions is int or unit.potions is float) or unit.potions<0 or unit.potions>2):return false
+		for key in ["held_tonics","reset_supplies_spent"]:
+			if unit.has(key) and not trials.integer(unit[key],0,2):return false
+		if unit.has("resolve_until") and not trials.integer(unit.resolve_until,0,9007199254740990):return false
+		if unit.has("carried_by") and unit.hp==0 and not DeathDoor.downed(unit):return false
 		if unit.has("ai") and unit.ai not in ["guard","sentry","pursue"]:return false
 		if unit.has("move_origin"):
 			if not unit.move_origin is Array or unit.move_origin.size()!=2:return false
@@ -479,20 +509,15 @@ func valid_unit(unit,in_battle: bool) -> bool:
 	return true
 
 func load_game(path: String) -> String:
-	var data=null
-	for candidate in [path,path+".bak"]:
-		if not FileAccess.file_exists(candidate):continue
-		var parser=JSON.new()
-		if parser.parse(FileAccess.get_file_as_string(candidate))!=OK:continue
-		var parsed=parser.data
-		if valid_save(parsed):data=parsed;break
-	return restore_save(data)
+	return restore_save(read_saved_data(path))
 
 func restore_save(data) -> String:
 	if not valid_save(data):return ""
 	data=data.duplicate(true)
+	save_sequence=int(data.get("save_sequence",0))
 	permadeath=data.get("permadeath",false)
 	death_door=data.get("death_door",false);action_saves=data.get("action_saves",false)
+	trials.from_data(data.get("trials",{}))
 	story_seen=data.get("story_seen",[])
 	supports.state=data.get("supports",{})
 	battle_supports=data.get("battle_supports",{}).duplicate(true)
@@ -533,12 +558,8 @@ func export_code(stage: String) -> String:
 	return "POEM1:"+Marshalls.utf8_to_base64(JSON.stringify(save_data(stage)))
 
 func export_saved_code(path: String) -> String:
-	for candidate in [path,path+".bak"]:
-		if not FileAccess.file_exists(candidate):continue
-		var parser=JSON.new()
-		if parser.parse(FileAccess.get_file_as_string(candidate))==OK and valid_save(parser.data):
-			return "POEM1:"+Marshalls.utf8_to_base64(JSON.stringify(parser.data))
-	return ""
+	var data=read_saved_data(path)
+	return "POEM1:"+Marshalls.utf8_to_base64(JSON.stringify(data)) if not data.is_empty() else ""
 
 func import_code(code: String) -> String:
 	code=code.strip_edges().replace("\n","").replace("\r","").replace(" ","").replace("\t","")
@@ -573,7 +594,7 @@ func promotion_options(unit: Dictionary) -> Array:
 	return promotions.filter(func(path):return path.base==unit.job)
 
 func can_promote(unit: Dictionary,id: String) -> bool:
-	if not roster.has(unit) or unit.join>chapter or completed or unit.get("fallen",false) or not unit.get("promotion","").is_empty():return false
+	if not roster.has(unit) or not trials.joined(self,unit) or completed or unit.get("fallen",false) or not unit.get("promotion","").is_empty():return false
 	return promotion_options(unit).any(func(path):return path.id==id and unit.level>=path.min_level)
 
 func promote(unit: Dictionary,id: String) -> bool:

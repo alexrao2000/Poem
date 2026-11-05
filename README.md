@@ -74,9 +74,11 @@ Click an enemy to inspect its stats and reach. The terrain card follows the poin
 
 Open a recruit's portrait at the war council, then **Equipment**, to choose from 22 weapons and staves. Supplies unlock by chapter, and equipment is freely shared. Enemy equipment appears in models, inspection panels, and forecasts.
 
-**Permadeath** is a toggle on the new-campaign screen and in **Options**. When on, allies lost during a victorious chapter remain permanently fallen. Their memorial records and previously read support scenes remain available, but they cannot deploy, train, equip gear, unlock new bonds, or speak in later story scenes. If Lyra or the whole deployed company falls, retry from chapter preparation; earlier permanent losses remain. When off, new casualties recover next chapter. Turning the toggle off keeps earlier memorials; existing saves start with it off.
+**Permadeath** is a toggle on the new-campaign screen and in **Options**. Ordinary permadeath commits casualties after a chapter victory. With **Save every action**, deaths commit during battle and survive a retry; movement cannot be undone. Memorial records and read support scenes remain available. Turning permadeath off preserves earlier losses.
 
-For experiments, enable **Debug mode · temporary sandbox** in Options, then open **Debug tools**. You can load any chapter with a fresh roster, reset the current battle, heal living deployed allies, or revive the company and restart the battle. Debug saves use a separate slot. Turning Debug mode off restores the exact campaign state from when you enabled it, including unsaved progress. The normal campaign save remains untouched during experiments.
+Options also exposes independent campaign experiments: section restarts, increasing enemy preparation after resets, rescuable downed allies, stronger enemy forces, death-triggered legacy supplies, and sacrifice costs/openings. See the [experiment rules and initial balance measurements](docs/campaign-experiments.md) for the exact behavior and current limits.
+
+Enable **Debug mode · temporary sandbox**, then open **Debug tools**, to try these safely. Tools load any chapter, heal or revive the company, make a selected ally fall, and exercise the actual reset/section-retreat path. Debug saves use a separate slot. Turning Debug mode off restores the campaign state from when you enabled it, including unsaved progress. The normal campaign save remains untouched during experiments.
 
 Combat includes weighted terrain movement, occupancy, the weapon triangle, two-roll hit checks, critical hits, counters, and speed follow-ups. Equipment weight reduces combat speed; a four-point speed advantage grants a follow-up. Physical attacks check Defense, while magic checks Resistance.
 

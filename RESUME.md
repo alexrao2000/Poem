@@ -6,7 +6,9 @@ Resumed at the user's request on 2026-11-04. Continue development in this chat u
 
 Read this file, the current `DEVELOPMENT.md` checkpoint, and the latest sections of `docs/art-direction.md`. Run the user's Marble sync and read its three indexes as instructed in AGENTS.md. Check Git status before editing; preserve unrelated changes. Resume improving resemblance to Awakening/Fates, with particular attention to complete scenes and animation rather than accumulating isolated geometry details.
 
-Current work adds an experimental Permadeath toggle, permanent casualty records, memorials and save version 5. Save every action commits movement/combat before presentation, disables movement undo and commits deaths before retries. Death’s door provides a two-player-phase countdown, rescue/carry/drop, staff revival and victory evacuation. An interrupted enemy phase resumes from unacted enemies. Existing saves start with permadeath off. Losses carry forward on victory when enabled; leader/company defeat permits a chapter retry. Debug mode provides a temporary sandbox with a separate save slot, chapter loading, battle reset, healing and revival. Disabling debug restores the original live campaign.
+Current work adds independent campaign experiments and save version 6. See [the experiment guide](docs/campaign-experiments.md). Action checkpoints commit before presentation and recover the newest complete pending save. Death’s door supports rescue, carrying, dropping, staff revival and victory evacuation. Three four-chapter sections retain casualties, purchases and pressure on restart. Optional enemy preparation, scaling hard enemies, legacy credits/early volunteers, and casual sacrifice costs/openings are implemented. Debug remains isolated, including forced casualty and real retreat controls. Focused regressions pass; the full release run is the next gate.
+
+The earlier 72-suite full run stopped at an outdated presentation assertion that treated compact stat-strip labels as HP labels. That check and an Options camera-reset regression were fixed and their focused suites passed. Do not describe that earlier run as a full pass.
 
 The earlier elbow change replaces spherical metal elbows on armored outfits with closed, faceted elbow guards and continues cloth across unarmored elbows. It preserves joints and animation sockets. `scripts/elbow_guard.gd` owns the shared 120-triangle mesh; `scripts/fighters.gd` chooses the covering; `tests/test_equipment_visuals.gd` verifies topology, normals, UVs, armor classification and cloth tint. Explicit face normals fixed the initial smoothed-normal test failure. A standalone eight-panel original geometry study was inspected. This is not a rendered-game review.
 
@@ -23,12 +25,11 @@ Prior completed work includes five class cloak cuts and exposed ranger quivers, 
 - No subagents unless subsequently authorized by applicable instructions.
 - Use `open -g` for launching applications; preserve focus.
 
-The campaign has 24 recruits, eight classes, twelve chapters, sixteen promotions and 36 supports. The default test runner has 73 suites. Current rigid roster count is 1,774 source meshes / 1,057 joint batches plus three dynamic reins (the elbow guards now share the existing armor vertex format). Map totals last measured 13,554 sources / 616 batches plus cloth/atmosphere. Do not confuse historical counts in the development log with these current totals.
+The campaign has 24 recruits, eight classes, twelve chapters, sixteen promotions and 36 supports. The default test runner has 74 suites. Current rigid roster count is 1,774 source meshes / 1,057 joint batches plus three dynamic reins (the elbow guards now share the existing armor vertex format). Map totals last measured 13,554 sources / 616 batches plus cloth/atmosphere. Do not confuse historical counts in the development log with these current totals.
 
 ## Verification and packages
 
-All seven final focused suites passed: `equipment_visuals rig_batching slash_contact locomotion preview_camera costumes combat_defeat`. The release pipeline also completed successfully: resource import, model catalog check, web export/packing, exported-resource smoke checks, macOS export and web archive packaging. The complete 70-suite default run was not repeated for this bounded geometry change.
-
+The current experiment changes passed focused rules, action/rescue, section/legacy/reset, saves, transfer, debug, preferences, menus, tactics and campaign suites. The optional hard-campaign probe cleared six twelve-chapter campaigns across three seeds; these are automated measurements, not human playtesting. Run the complete build pipeline before delivering the updated local packages.
 Use:
 
 ```sh
