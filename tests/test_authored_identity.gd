@@ -40,7 +40,7 @@ func run():
   var fade=load("res://scripts/combat_defeat.gd").new();world.add_child(fade);fade.begin(actor);fade.apply_visibility(.5)
   assert(fade.shaders.size()>=identity.painted_materials.size()+1,"Dyed clothing and the painted face participate in defeat fade")
   for material in identity.painted_materials:
-   assert(fade.copies.has(material) and fade.copies[material].get_shader_parameter("defeat_visibility")==.5)
+   assert(material in fade.copies.values() and material.get_shader_parameter("defeat_visibility")==.5)
   assert(other.visible and other.model.get_node("Identity").painted_materials[0]!=identity.painted_materials[0])
   fade.queue_free();actor.queue_free();other.queue_free();plain.queue_free();await process_frame
  world.queue_free();await process_frame

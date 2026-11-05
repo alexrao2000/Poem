@@ -91,6 +91,9 @@ func run():
   assert(app.preview_actor.model.get_node("Rig/Armature/Skeleton3D/WeaponHand/Grip").equipped=="tempered_sword","Packaged authored rig uses the selected sword")
   assert(app.preview_actor.weapon_trail_points().size()==2,"Packaged original sword keeps its animated trail sockets")
   var identity=app.preview_actor.model.get_node("Identity")
+  assert(identity.outline!=null and identity.outline.pairs.size()>10,"Packaged revised models include their private skinned-normal outlines")
+  for entry in identity.outline.pairs:
+   assert(entry.material.next_pass==entry.shell and entry.shell.shader.resource_path.ends_with("authored-outline.gdshader"))
   assert(identity.cloak.cloth.mesh!=null and identity.cloak.cloth.material_override.get_shader_parameter("cape_mark")==load("res://assets/art/cape-company.svg"),"Packaged styled study retains its original company cloak")
   assert(identity.identity in ["nell","silas"] and identity.painted_materials.size()>=3,"Packaged study retains original identity and private dyed materials")
   var gaze_target=Marker3D.new();app.stage.add_child(gaze_target);gaze_target.global_position=app.preview_actor.to_global(Vector3(0,2.4,-2))

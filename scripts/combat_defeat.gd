@@ -5,7 +5,7 @@ extends Node
 
 const Actor=preload("res://scripts/fighter_actor.gd")
 const DURATION=.32
-const SUPPORTED=[preload("res://assets/shaders/authored-cloth.gdshader"),preload("res://assets/shaders/character.gdshader"),preload("res://assets/shaders/character-outline.gdshader"),preload("res://assets/shaders/face-blink.gdshader")]
+const SUPPORTED=[preload("res://assets/shaders/authored-cloth.gdshader"),preload("res://assets/shaders/authored-outline.gdshader"),preload("res://assets/shaders/character.gdshader"),preload("res://assets/shaders/character-outline.gdshader"),preload("res://assets/shaders/face-blink.gdshader")]
 static var fade_shaders={}
 var actor: Node3D
 var motion: Tween

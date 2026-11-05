@@ -176,3 +176,10 @@ Material-remap listeners are discovered independently of pose listeners, allowin
 The Vanguard study reuses the female sword rig and fits Lyra’s original long hair, soft face, ivory shoulder mantle, lapels, gold fastening and full company cloak. The normal revised-model preference includes her from chapter one with supported swords before promotion. Debug tools provides an independent **Revised Lyra model** switch and source study. Enemies, unsupported weapons and promotion outfits retain the normal builder.
 
 `authored_mantle.gd` fits the garment to the upper spine, with separate private fabric/metal batches and floor/fade bindings. A diagnostic asset close-up exposed intersections with the supplied bodice. The final collar flare and lapel depth were checked against actual skinned torso vertices in nine poses; the covered region clears the body. The original source outfit is unchanged beneath it. Pose, viewer, mounted-contact and camera checks include the mantle. The isolated software asset study is not an assembled-game rendering review.
+
+
+### Revised silhouette outlines
+
+Styled source actors use `authored_outline.gd` and `authored-outline.gdshader`, with a 2.5 mm maximum local shell. Unlike the rigid procedural helper, this pass uses native `NORMAL`, which follows the renderer's skin transform; no source mesh/color/skin buffers are rewritten. Each actor owns its main-material copies and shell passes. All surface slots are handled, including the two male arm materials. Hidden source heads, painted expression cards, printed folio pages, transparent/emissive materials and unknown shaders are excluded.
+
+The outline driver runs after the cloth drivers, copying the exact cloth clock/drive and floor plane. Flattened shells sit 0.5 mm below the fabric plane to avoid coplanar ink. The defeat material remap updates both sides of each pair and the identity's live dye references. Inherited hit-stop and visibility suspend motion. This adds one draw pass per eligible surface; actual browser GPU cost and assembled appearance still need measurement. Isolated software comparisons are asset studies, not GPU screenshots.

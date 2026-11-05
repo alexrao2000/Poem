@@ -18,6 +18,7 @@ var painted_materials=[]
 var head: Node3D
 var gaze: Node
 var cloak: Node
+var outline: Node
 static var reference_cache={}
 
 func configure_identity(id: String) -> String:
@@ -81,6 +82,10 @@ func configure_identity(id: String) -> String:
  if robe_enabled:
   robe=preload("res://scripts/authored_robe.gd").new();robe.name="RobeDriver";add_child(robe);robe.configure(model,rig,painter,appearance)
  gaze=preload("res://scripts/authored_gaze.gd").new();gaze.name="GazeDriver";add_child(gaze);gaze.configure(model,rig)
+ outline=preload("res://scripts/authored_outline.gd").new();outline.name="OutlineDriver";add_child(outline)
+ var copies=outline.configure(model)
+ for listener in model.find_children("*","",true,false):
+  if listener.has_method("materials_remapped"):listener.materials_remapped(copies)
  return ""
 
 static func reference_luma(mesh: Mesh,surface: int,texture: Texture2D,mode: int) -> float:
@@ -99,7 +104,9 @@ static func reference_luma(mesh: Mesh,surface: int,texture: Texture2D,mode: int)
  var result=maxf(.005,total/count) if count>0 else .2
  reference_cache[key]=result;return result
 
-func materials_remapped(copies: Dictionary):blink.surface=copies.get(blink.surface,blink.surface)
+func materials_remapped(copies: Dictionary):
+ blink.surface=copies.get(blink.surface,blink.surface)
+ for index in range(painted_materials.size()):painted_materials[index]=copies.get(painted_materials[index],painted_materials[index])
 
 func combat_pose(key: String):current_pose=key;blink.begin_pose(key)
 func face_opponent(other: Node3D):blink.opponent=weakref(other)
