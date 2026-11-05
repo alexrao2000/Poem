@@ -24,6 +24,8 @@ Decisive enemy exchanges now end at their terminal checkpoint, without starting 
 
 Casualty presentation now gives all 24 recruits original downed, retreat and permanent-loss lines with their existing portraits. Skippable cards follow full/quick exchanges and bleed-outs, preserve the tactical sidebar and controls, and keep Lyra’s dialogue consistent with the reset mechanic. All 216 roster/outcome/viewport layouts pass after fixing initial zero-width text expansion. Real exchanges, skipping, healing, finishing animations and map returns retain resolved state. Condition explanations now receive hover input. Assembled visual review remains outstanding.
 
+The local test runner now stops Godot when a script error leaves the process alive, retaining its diagnostic instead of waiting for the 90-second deadline. Silent hangs still have the original deadline. Four child-process fixtures, a real Godot assertion (0.51 seconds), and ordinary save/phase suites pass.
+
 ## Earlier checkpoints
 
 Spell flight now has a continuous soft-edged wake and luminous elemental cores/halos, replacing the six opaque trailing beads. It uses four fewer mesh instances per spell while keeping the existing path/timing. Focused geometry, transformed physical/elemental flights, actual exchanges and skip cleanup pass; the isolated additive study was corrected for a measured headless gradient readback artifact rather than treating that artifact as a game defect.

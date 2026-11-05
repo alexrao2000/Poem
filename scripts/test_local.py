@@ -5,6 +5,7 @@ from pathlib import Path
 import subprocess
 import sys
 import tempfile
+from test_process import run_engine
 
 ROOT = Path(__file__).resolve().parent.parent
 ENGINE = os.environ.get("GODOT_BIN", "godot")
@@ -23,8 +24,7 @@ for name in SUITES:
     if name == "export":
         command.extend(["--main-pack", str(ROOT / "build/web/index.pck")])
     try:
-        result = subprocess.run(command, cwd=ROOT, stdout=subprocess.PIPE,
-                                stderr=subprocess.STDOUT, text=True, timeout=90)
+        result = run_engine(command, cwd=ROOT, timeout=90)
     except subprocess.TimeoutExpired as error:
         output = error.stdout or b""
         if isinstance(output, bytes):
