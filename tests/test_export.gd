@@ -188,8 +188,8 @@ func run():
  assert(app.game.trials.scenes.size()==10,"Release includes relief, retreat, volunteer and memorial story scenes")
  assert(app.persist_campaign("battle") and FileAccess.file_exists(app.save_path+".debug"),"Packaged debug actions save separately")
  app.debug_session.end(app.game);app.preferences.values.character_models="revised"
- for id in ["lyra","nell","silas","yuna","tarin","vela","noor","cassian","rhea","ivo","esme","galen","mara","dax","hale"]:
-  var campaign_recruit=app.game.roster.filter(func(value):return value.id==id)[0].duplicate(true);campaign_recruit.team="player";campaign_recruit.item="iron_sword" if campaign_recruit.weapon=="sword" else "iron_axe" if campaign_recruit.weapon=="axe" else "field_staff" if campaign_recruit.weapon=="staff" else "ember"
+ for id in ["lyra","nell","silas","yuna","tarin","vela","noor","cassian","rhea","ivo","esme","galen","mara","dax","hale","sera","ari","faye"]:
+  var campaign_recruit=app.game.roster.filter(func(value):return value.id==id)[0].duplicate(true);campaign_recruit.team="player";campaign_recruit.item="iron_sword" if campaign_recruit.weapon=="sword" else "iron_axe" if campaign_recruit.weapon=="axe" else "scout_bow" if campaign_recruit.weapon=="bow" else "field_staff" if campaign_recruit.weapon=="staff" else "ember"
   var campaign_model=app.make_fighter(campaign_recruit,Vector3.ZERO)
   assert(not app.debug_session.active and campaign_model is Imported and campaign_model.model.get_meta("character_identity")==id,"Packaged appearance preference works for every revised recruit in the ordinary campaign")
   campaign_model.queue_free();await process_frame

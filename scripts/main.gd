@@ -109,6 +109,7 @@ var debug_duelists=preload("res://scripts/debug_duelist_models.gd").new()
 var debug_vanguard=preload("res://scripts/debug_source_models.gd").new(["vanguard","vanguard_male"])
 var debug_caster=preload("res://scripts/debug_source_models.gd").new(["caster","caster_female"])
 var debug_corsair=preload("res://scripts/debug_source_models.gd").new(["corsair_female","corsair_male"])
+var debug_ranger=preload("res://scripts/debug_source_models.gd").new(["ranger_female","ranger_male"])
 var debug_warden=preload("res://scripts/debug_source_models.gd").new(["warden","warden_female"])
 var save_failed=false
 var save_warning_queued=false
@@ -967,6 +968,9 @@ func make_fighter(u,position) -> Node3D:
 	if (debug_session.revised_corsair if debug_session.active else revised):
 		var study=debug_corsair.build(stage,u,position)
 		if study!=null:return study
+	if (debug_session.revised_ranger if debug_session.active else revised):
+		var study=debug_ranger.build(stage,u,position)
+		if study!=null:return study
 	return fighters.build(stage,u,position)
 
 func staff_healing(healer,recipient,amount: int,before: Dictionary={}):
@@ -1760,7 +1764,7 @@ func show_options(return_to: String):
 	for title in ["Current roster","Revised models · preview"]:model_mode.add_item(title)
 	model_mode.selected=["current","revised"].find(preferences.values.character_models);model_mode.disabled=debug_session.active;panel.add_child(model_mode)
 	model_mode.item_selected.connect(func(index):preferences.values.character_models=["current","revised"][index])
-	label_in(panel,"Try revised models for every Vanguard, Duelist, Arcanist, Warden and Corsair in battles and outfit previews before promotion. Other characters and unsupported equipment keep their current models. You can switch back at any time.",16)
+	label_in(panel,"Try revised models for every Vanguard, Duelist, Arcanist, Warden, Corsair and Ranger in battles and outfit previews before promotion. Other characters and unsupported equipment keep their current models. You can switch back at any time.",16)
 	if debug_session.active:label_in(panel,"Debug tools has separate model switches for this sandbox. Leave Debug mode to change campaign presentation.",16)
 	for key in ["music","effects"]:
 		var row=HBoxContainer.new();row.add_theme_constant_override("separation",20);panel.add_child(row)
@@ -1817,6 +1821,9 @@ func show_debug_tools(return_to: String):
 	corsair.toggled.connect(func(value):debug_session.set_revised_corsair(value))
 	label_in(panel,"Try Mara, Dax and Hale’s revised models before promotion with axes and hammers. Resets when Debug mode ends.",16)
 	var studies=JSON.parse_string(FileAccess.get_file_as_string("res://data/model_studies.json"))
+	var ranger=CheckButton.new();ranger.name="DebugRangerModel";ranger.text="Revised Ranger models";ranger.button_pressed=debug_session.revised_ranger;panel.add_child(ranger)
+	ranger.toggled.connect(func(value):debug_session.set_revised_ranger(value))
+	label_in(panel,"Try Sera, Ari and Faye’s revised models before promotion with Scout Bow, Recurve or Longbow. Resets when Debug mode ends.",16)
 	for gender in studies:
 		var study=button_in(panel,"View "+studies[gender].study_label+" rig",func():show_source_model_view(gender));study.name="ModelStudy_"+gender
 	var chapters=OptionButton.new();chapters.name="DebugChapter";chapters.custom_minimum_size.y=42
@@ -1875,7 +1882,7 @@ func show_debug_report():
 	var report=TextEdit.new();report.name="DebugReport";report.editable=false;report.wrap_mode=TextEdit.LINE_WRAPPING_BOUNDARY
 	report.custom_minimum_size.y=160;report.size_flags_vertical=Control.SIZE_EXPAND_FILL;report.add_theme_font_size_override("font_size",14)
 	var record=debug_session.report(game,"battle" if options_return=="battle" else "camp")
-	record.presentation={"campaign_models":preferences.values.character_models,"revised_vanguard":debug_session.revised_vanguard,"revised_duelists":debug_session.revised_duelists,"revised_caster":debug_session.revised_caster,"revised_warden":debug_session.revised_warden,"revised_corsair":debug_session.revised_corsair}
+	record.presentation={"campaign_models":preferences.values.character_models,"revised_vanguard":debug_session.revised_vanguard,"revised_duelists":debug_session.revised_duelists,"revised_caster":debug_session.revised_caster,"revised_warden":debug_session.revised_warden,"revised_corsair":debug_session.revised_corsair,"revised_ranger":debug_session.revised_ranger}
 	report.text=JSON.stringify(record,"\t",false);panel.add_child(report)
 	var actions=HBoxContainer.new();actions.add_theme_constant_override("separation",12);panel.add_child(actions)
 	button_in(actions,"Copy report",func():DisplayServer.clipboard_set(report.text);show_notice("Experiment report copied."))

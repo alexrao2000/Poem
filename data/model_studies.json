@@ -996,7 +996,11 @@
     },
     "study_character": "sera",
     "study_label": "female Ranger",
-    "study_title": "Ranger \u00b7 Sera"
+    "study_title": "Ranger \u00b7 Sera",
+    "campaign_characters": [
+      "sera",
+      "faye"
+    ]
   },
   "ranger_male": {
     "scene": "res://assets/models/quaternius/study_ranger_male.tscn",
