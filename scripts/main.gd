@@ -1514,7 +1514,9 @@ func show_options(return_to: String):
 	var debugging=CheckButton.new();debugging.name="DebugMode";debugging.text="Debug mode · temporary sandbox";debugging.button_pressed=debug_session.active;panel.add_child(debugging)
 	debugging.toggled.connect(func(value):
 		if value:debug_session.begin(game,options_return)
-		else:options_return=debug_session.end(game)
+		else:
+			options_return=debug_session.end(game)
+			if options_return=="battle":make_map()
 		show_options(options_return))
 	label_in(panel,"Debug mode keeps a separate save. Turning it off restores your campaign to where you enabled it.",16)
 	if debug_session.active:button_in(panel,"Open debug tools",func():show_debug_tools(options_return))
@@ -1542,7 +1544,7 @@ func show_options(return_to: String):
 
 func close_options():
 	var saved=preferences.save_file(settings_path)
-	if options_return=="battle":make_map();show_battle()
+	if options_return=="battle":show_battle()
 	elif options_return=="camp":show_camp()
 	else:show_title()
 	if options_return in ["camp","battle"]:persist_campaign(options_return)

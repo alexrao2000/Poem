@@ -7,7 +7,8 @@ func inspect_combat_hud(app):
 	var hud=app.ui.get_node("CombatHUD")
 	var bounds=hud.get_global_rect()
 	assert(bounds.end.y<=app.ui.get_global_rect().end.y,"Combat HP panel stays inside viewport")
-	for heading in hud.find_children("*","Label",true,false):
+	for record in hud.records.values():
+		var heading=record.hp
 		assert(heading.size.x>70,"Health text has enough horizontal space")
 		assert(heading.size.y<55,"Health text never wraps into a vertical column")
 	inspected_hud=true

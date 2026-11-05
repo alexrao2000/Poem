@@ -35,9 +35,12 @@ func run():
  while app.busy:await process_frame
  assert(a.hp==a.max_hp and a.potions==0 and app.game.rng.state==rng,"Healing feedback does not apply health twice or consume RNG")
  assert(app.unit_nodes[a.id].player.state=="idle" and app.unit_nodes[a.id].spent,"Finished field action returns to spent idle")
+ app.camera.size=15.25;app.camera.h_offset=1.5
+ var map_view=app.camera.transform
  app.show_options("battle");await process_frame;await process_frame
  for control in app.ui.find_children("*","Button",true,false):assert(control.get_global_rect().end.y<=app.ui.size.y,"Options controls fit viewport")
  app.close_options();assert(app.screen=="battle","Options return to tactical play")
+ assert(app.camera.transform==map_view and app.camera.size==15.25 and app.camera.h_offset==1.5,"Options preserve the tactical camera view")
  app.show_title();await process_frame;await process_frame
  for control in app.ui.find_children("*","Button",true,false):assert(control.get_global_rect().end.y<=app.ui.size.y,"Title controls fit viewport")
  app.show_credits();await process_frame;await process_frame
