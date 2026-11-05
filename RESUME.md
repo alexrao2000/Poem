@@ -358,3 +358,29 @@ Enemy checks:
 `/private/tmp/poem-export-enemy-study.gd` uses production metadata/wrapper and writes native skin/material JSON. `/private/tmp/poem-render-enemy-study.py` regenerated the inspected ready/rear/strike/fall asset study. Temporary enemy prototype identity/build helpers are obsolete. A web image search found Fates/Awakening references, but direct image opens missed the cache; do not claim fresh visual inspection of those web images.
 
 Next: extend source studies to other anonymous enemy classes. Knight needs the existing closed helmet without source hair; Rider needs enemy cloth/horse colors; Vanguard needs light armor instead of the recruit mantle. Preserve commander and promoted fallback until those appearances are fitted. Keep the established GPU/browser permission boundary; no assembled rendering, FPS, audio or browser-reload approval is claimed.
+
+## Anonymous enemy families and full-outfit fall checkpoint · 2026-11-05
+
+Enemy Duelist checkpoint `5f3e591` was pushed to both branches and copied to the primary checkout/local packages. The next source checkpoint adds the other seven anonymous enemy studies: Vanguard light armor, closed-helmet Knight, Ranger, Arcanist, Warden, original-color mounted Rider and Corsair. All use existing faction faces, headgear, palette and imperial cloak; the source viewer preserves enemy faction. Campaign enemy selection is still unchanged at this checkpoint. Knight keeps a hidden painted face bound for expression state but excludes hair. Mounted enemy colors come from an explicit `AuthoredMount.enemy_colors` wrapper setting.
+
+A dense full-outfit diagnostic exposed source-body/custom-head/hair clipping during falls in both existing revised recruits and the new enemies (up to about 13 cm). `authored_fall_fit.gd` now installs a measured private Death01 root track through the appearance adapter after equipment setup. `data/authored_fall_fit.json` has 28 curves / 1,394 keys for 21 infantry recruits and seven infantry enemies. Riders retain their private seated slump. The existing Knight body-only fit remains for unstyled source studies. Runtime does no mesh scanning and does not modify shared clips.
+
+`calibrate_authored_falls.gd` samples 257 full poses per outfit, excludes shader-floor-clamped cloth, uses conservative max/Gaussian smoothing and .4 mm curve reduction. It is excluded from both release packages. Reproduce into a temporary output and rerun dense suites before replacing the data. The initial calibration assumed a root-position track existed; some source clips omit it, so the tool now creates one when necessary.
+
+The new root support exposed a sharp axe-wrist adjustment at the middle of the female fall (hatchet excess .138 rad). Broad-blade floor support now raises its clearance plane with the fitted root height, retaining the prior smooth orientation independently of hair/armor lift. Both axe bodies pass their unchanged .065-rad excess bound (worst .050122 rad), exact standing motion, grip, contact and floor checks. No test threshold was weakened.
+
+Verified logs:
+- `/private/tmp/poem-authored-fall-tests.log`: seven dense floor suites, 14,364 complete outfit samples, minimum over 11.94 mm, continuous private root support, native/direct attachments and unchanged shared clips.
+- `/private/tmp/poem-enemy-family-controls.log`: eight study buttons/styles, 29 equipment bindings, three UI sizes, private faction materials/expressions, ordinary fallback, state/RNG/profile isolation; Corsair dense floors rechecked after the wrist fix.
+- `/private/tmp/poem-fall-prop-regressions.log`: both caster and staff suites pass before the diagnosed axe failure. `/private/tmp/poem-fall-prop-fixed.log`: both axe/bow/Knight bodies and equipment pass after correction.
+- `/private/tmp/poem-enemy-family-framing.log`: nine enemy camera suites pass. `/private/tmp/poem-fall-camera-regressions.log`: fifteen recruit/updated Corsair camera suites pass.
+- `/private/tmp/poem-enemy-family-combat.log`: all four suites pass, covering all eight classes, 19 fitted melee contacts, eight actual tip/hand flights, three healing recoveries, critical/counter attacks, miss/guard/defeat, seven windup skips and exact campaign/RNG/profile isolation.
+- `/private/tmp/poem-enemy-rider-gait.log`: enemy plus both recruit mounted gait/native-direct/fade suites pass, 771 samples each.
+- `/private/tmp/poem-enemy-family-regressions.log`: seven source/catalog/identity/cloak/mantle/robe regressions pass.
+- `/private/tmp/poem-enemy-families-export.log`: exported resource smoke, local browser/macOS packaging and both ZIP integrity checks pass.
+
+Default runner now registers 173 unique existing suite paths. No full default run is claimed. New helper suites live in `tests/helpers/{authored_falls,enemy_combat_studies,enemy_study_models}.gd`.
+
+Both final production asset studies were inspected: `/private/tmp/poem-enemy-infantry-study.png` and `/private/tmp/poem-enemy-special-study.png`. Their exporters/renderers have corresponding `poem-export-enemy-{infantry,special}-study.gd` and `poem-render-enemy-{infantry,special}-study.py` paths. Infantry was regenerated after the axe fix. These are isolated software geometry/material studies, not GPU/game captures. Keep the established browser/GPU permission boundary; no browser, performance or audio approval is claimed.
+
+Next: after this checkpoint is delivered, integrate the anonymous enemy models with the existing revised appearance preference and an independent debug switch. Preserve commanders, promotions, incompatible class/weapon pairs and unsupported equipment on the original builder. Verify normal campaign selection, debug inheritance/reset/reporting, real mixed revised combat, and save/RNG isolation before updating local packages again.

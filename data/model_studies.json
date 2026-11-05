@@ -1545,5 +1545,625 @@
     "study_label": "enemy Duelist",
     "study_title": "Enemy Duelist",
     "study_enemy_class": "Duelist"
+  },
+  "enemy_vanguard": {
+    "scene": "res://assets/models/quaternius/study_enemy_vanguard.tscn",
+    "player": "Rig/AnimationPlayer",
+    "yaw": 180,
+    "scale": 1,
+    "offset": [
+      0,
+      0.01,
+      0
+    ],
+    "poses": {
+      "idle": {
+        "clip": "Sword_Idle"
+      },
+      "advance": {
+        "clip": "Jog_Fwd"
+      },
+      "windup": {
+        "clip": "Sword_Attack",
+        "from": 0,
+        "to": 0.36
+      },
+      "strike": {
+        "clip": "Sword_Attack",
+        "from": 0.36,
+        "to": 0.433
+      },
+      "recover": {
+        "clip": "Sword_Attack",
+        "from": 0.433,
+        "to": 1.5333333
+      },
+      "hit": {
+        "clip": "Hit_Chest"
+      },
+      "evade": {
+        "clip": "Hit_Chest",
+        "from": 0,
+        "to": 0.1666667
+      },
+      "down": {
+        "clip": "Death01"
+      },
+      "guard": {
+        "clip": "Sword_Idle",
+        "from": 0,
+        "to": 0.1
+      },
+      "victory": {
+        "clip": "Idle",
+        "from": 0,
+        "to": 0.2
+      }
+    },
+    "sockets": {
+      "impact": "Rig/Armature/Skeleton3D/Chest/Impact",
+      "gaze": "Rig/Armature/Skeleton3D/Face/Gaze",
+      "projectile": "Rig/Armature/Skeleton3D/WeaponHand/Grip",
+      "trail_inner": "Rig/Armature/Skeleton3D/WeaponHand/Grip/Weapon/TrailInner",
+      "trail_tip": "Rig/Armature/Skeleton3D/WeaponHand/Grip/Weapon/TrailTip"
+    },
+    "contact": {
+      "skeleton": "Rig/Armature/Skeleton3D",
+      "bones": [
+        "hand_r",
+        "lowerarm_r",
+        "upperarm_r"
+      ]
+    },
+    "study_id": "enemy_vanguard",
+    "equipment": "Rig/Armature/Skeleton3D/WeaponHand/Grip",
+    "supported_items": [
+      "iron_sword",
+      "dueling_sword",
+      "tempered_sword"
+    ],
+    "stride": {
+      "length": 5.6643,
+      "skeleton": "Rig/Armature/Skeleton3D",
+      "feet": [
+        "ball_l",
+        "ball_r"
+      ],
+      "contacts": [
+        0.05,
+        0.55
+      ]
+    },
+    "framing": {
+      "windup": 1.14
+    },
+    "study_character": "cassian",
+    "study_label": "enemy Vanguard",
+    "study_title": "Enemy Vanguard",
+    "study_enemy_class": "Vanguard"
+  },
+  "enemy_knight": {
+    "scene": "res://assets/models/quaternius/study_enemy_knight.tscn",
+    "player": "Rig/AnimationPlayer",
+    "yaw": 180,
+    "scale": 1,
+    "offset": [
+      0,
+      0.035,
+      0
+    ],
+    "poses": {
+      "idle": {
+        "clip": "LanceIdle"
+      },
+      "advance": {
+        "clip": "Jog_Fwd"
+      },
+      "windup": {
+        "clip": "LanceWindup"
+      },
+      "strike": {
+        "clip": "LanceStrike"
+      },
+      "recover": {
+        "clip": "LanceRecover"
+      },
+      "hit": {
+        "clip": "Hit_Chest"
+      },
+      "evade": {
+        "clip": "Hit_Chest",
+        "from": 0,
+        "to": 0.1666667
+      },
+      "down": {
+        "clip": "Death01"
+      },
+      "guard": {
+        "clip": "LanceIdle",
+        "from": 0,
+        "to": 0.1
+      },
+      "victory": {
+        "clip": "LanceIdle",
+        "from": 0,
+        "to": 0.2
+      },
+      "throw_windup": {
+        "clip": "LanceThrowWindup"
+      },
+      "throw": {
+        "clip": "LanceThrow"
+      },
+      "throw_recover": {
+        "clip": "LanceThrowRecover"
+      }
+    },
+    "sockets": {
+      "impact": "Rig/Armature/Skeleton3D/Chest/Impact",
+      "gaze": "Rig/Armature/Skeleton3D/Face/Gaze",
+      "projectile": "Rig/Armature/Skeleton3D/WeaponHand/Grip/Weapon",
+      "trail_inner": "Rig/Armature/Skeleton3D/WeaponHand/Grip/Weapon/TrailInner",
+      "trail_tip": "Rig/Armature/Skeleton3D/WeaponHand/Grip/Weapon/TrailTip",
+      "guard": "Rig/Armature/Skeleton3D/KnightShield/Plate/Guard"
+    },
+    "study_id": "enemy_knight",
+    "equipment": "Rig/Armature/Skeleton3D/WeaponHand/Grip",
+    "supported_items": [
+      "iron_lance",
+      "light_lance",
+      "pike",
+      "riders_bane",
+      "javelin"
+    ],
+    "stride": {
+      "length": 5.6643,
+      "skeleton": "Rig/Armature/Skeleton3D",
+      "feet": [
+        "ball_l",
+        "ball_r"
+      ],
+      "contacts": [
+        0.05,
+        0.55
+      ]
+    },
+    "study_character": "oren",
+    "study_label": "enemy Knight",
+    "study_title": "Enemy Knight",
+    "aim_targets": true,
+    "framing": {
+      "wide": 1.22,
+      "windup": 1.22,
+      "impact": 1.28
+    },
+    "study_enemy_class": "Knight"
+  },
+  "enemy_ranger": {
+    "scene": "res://assets/models/quaternius/study_enemy_ranger.tscn",
+    "player": "Rig/AnimationPlayer",
+    "yaw": 180,
+    "scale": 1,
+    "offset": [
+      0,
+      0.01,
+      0
+    ],
+    "poses": {
+      "idle": {
+        "clip": "BowIdle"
+      },
+      "advance": {
+        "clip": "Jog_Fwd"
+      },
+      "windup": {
+        "clip": "BowDraw"
+      },
+      "strike": {
+        "clip": "BowRelease"
+      },
+      "recover": {
+        "clip": "BowRecover"
+      },
+      "hit": {
+        "clip": "Hit_Chest"
+      },
+      "evade": {
+        "clip": "Hit_Chest",
+        "from": 0,
+        "to": 0.1666667
+      },
+      "down": {
+        "clip": "Death01"
+      },
+      "guard": {
+        "clip": "BowIdle",
+        "from": 0,
+        "to": 0.1
+      },
+      "victory": {
+        "clip": "BowIdle",
+        "from": 0,
+        "to": 0.2
+      }
+    },
+    "sockets": {
+      "impact": "Rig/Armature/Skeleton3D/Chest/Impact",
+      "gaze": "Rig/Armature/Skeleton3D/Face/Gaze",
+      "projectile": "Rig/Armature/Skeleton3D/WeaponHand/Bow/Weapon/NockedArrow"
+    },
+    "study_id": "enemy_ranger",
+    "equipment": "Rig/Armature/Skeleton3D/WeaponHand/Bow",
+    "supported_items": [
+      "scout_bow",
+      "recurve",
+      "longbow"
+    ],
+    "stride": {
+      "length": 5.6643,
+      "skeleton": "Rig/Armature/Skeleton3D",
+      "feet": [
+        "ball_l",
+        "ball_r"
+      ],
+      "contacts": [
+        0.05,
+        0.55
+      ]
+    },
+    "study_character": "ari",
+    "study_label": "enemy Ranger",
+    "study_title": "Enemy Ranger",
+    "study_enemy_class": "Ranger"
+  },
+  "enemy_arcanist": {
+    "scene": "res://assets/models/quaternius/study_enemy_arcanist.tscn",
+    "player": "Rig/AnimationPlayer",
+    "yaw": 180,
+    "scale": 1,
+    "offset": [
+      0,
+      0.01,
+      0
+    ],
+    "poses": {
+      "idle": {
+        "clip": "Idle"
+      },
+      "advance": {
+        "clip": "Jog_Fwd"
+      },
+      "windup": {
+        "clip": "Spell_Simple_Enter"
+      },
+      "strike": {
+        "clip": "Spell_Simple_Shoot",
+        "from": 0,
+        "to": 0.2
+      },
+      "recover": {
+        "clip": "Spell_Simple_Exit"
+      },
+      "hit": {
+        "clip": "Hit_Chest"
+      },
+      "evade": {
+        "clip": "Hit_Chest",
+        "from": 0,
+        "to": 0.1666667
+      },
+      "down": {
+        "clip": "Death01"
+      },
+      "guard": {
+        "clip": "Idle",
+        "from": 0,
+        "to": 0.1
+      },
+      "victory": {
+        "clip": "Idle",
+        "from": 0,
+        "to": 0.2
+      }
+    },
+    "sockets": {
+      "impact": "Rig/Armature/Skeleton3D/Chest/Impact",
+      "gaze": "Rig/Armature/Skeleton3D/Face/Gaze",
+      "projectile": "Rig/Armature/Skeleton3D/CastingHand/Release"
+    },
+    "study_id": "enemy_arcanist",
+    "equipment": "Rig/Armature/Skeleton3D/BookHand/Folio",
+    "supported_items": [
+      "ember",
+      "gale",
+      "thunder"
+    ],
+    "stride": {
+      "length": 5.4124,
+      "skeleton": "Rig/Armature/Skeleton3D",
+      "feet": [
+        "ball_l",
+        "ball_r"
+      ],
+      "contacts": [
+        0.05,
+        0.55
+      ]
+    },
+    "study_character": "vela",
+    "study_label": "enemy Arcanist",
+    "study_title": "Enemy Arcanist",
+    "study_enemy_class": "Arcanist"
+  },
+  "enemy_warden": {
+    "scene": "res://assets/models/quaternius/study_enemy_warden.tscn",
+    "player": "Rig/AnimationPlayer",
+    "yaw": 180,
+    "scale": 1,
+    "offset": [
+      0,
+      0.01,
+      0
+    ],
+    "poses": {
+      "idle": {
+        "clip": "Idle"
+      },
+      "advance": {
+        "clip": "Jog_Fwd"
+      },
+      "windup": {
+        "clip": "Spell_Simple_Enter"
+      },
+      "strike": {
+        "clip": "Spell_Simple_Shoot",
+        "from": 0,
+        "to": 0.2
+      },
+      "recover": {
+        "clip": "Spell_Simple_Exit"
+      },
+      "hit": {
+        "clip": "Hit_Chest"
+      },
+      "evade": {
+        "clip": "Hit_Chest",
+        "from": 0,
+        "to": 0.1666667
+      },
+      "down": {
+        "clip": "Death01"
+      },
+      "guard": {
+        "clip": "Idle",
+        "from": 0,
+        "to": 0.1
+      },
+      "victory": {
+        "clip": "Idle",
+        "from": 0,
+        "to": 0.2
+      },
+      "cast_windup": {
+        "clip": "Spell_Simple_Enter"
+      },
+      "cast": {
+        "clip": "Spell_Simple_Shoot",
+        "from": 0,
+        "to": 0.2
+      }
+    },
+    "sockets": {
+      "impact": "Rig/Armature/Skeleton3D/Chest/Impact",
+      "gaze": "Rig/Armature/Skeleton3D/Face/Gaze",
+      "projectile": "Rig/Armature/Skeleton3D/WeaponHand/Staff/Weapon/Crown"
+    },
+    "study_id": "enemy_warden",
+    "equipment": "Rig/Armature/Skeleton3D/WeaponHand/Staff",
+    "supported_items": [
+      "field_staff",
+      "mend_staff",
+      "beacon_staff"
+    ],
+    "stride": {
+      "length": 5.4124,
+      "skeleton": "Rig/Armature/Skeleton3D",
+      "feet": [
+        "ball_l",
+        "ball_r"
+      ],
+      "contacts": [
+        0.05,
+        0.55
+      ]
+    },
+    "study_character": "esme",
+    "study_label": "enemy Warden",
+    "study_title": "Enemy Warden",
+    "study_enemy_class": "Warden"
+  },
+  "enemy_rider": {
+    "scene": "res://assets/models/quaternius/study_enemy_rider.tscn",
+    "player": "Rig/AnimationPlayer",
+    "yaw": 180,
+    "scale": 1,
+    "offset": [
+      0,
+      0,
+      0
+    ],
+    "poses": {
+      "idle": {
+        "clip": "LanceIdle"
+      },
+      "advance": {
+        "clip": "LanceIdle"
+      },
+      "windup": {
+        "clip": "LanceWindup"
+      },
+      "strike": {
+        "clip": "LanceStrike"
+      },
+      "recover": {
+        "clip": "LanceRecover"
+      },
+      "hit": {
+        "clip": "Hit_Chest"
+      },
+      "evade": {
+        "clip": "Hit_Chest",
+        "from": 0,
+        "to": 0.1666667
+      },
+      "down": {
+        "clip": "RiderDown"
+      },
+      "guard": {
+        "clip": "LanceIdle",
+        "from": 0,
+        "to": 0.1
+      },
+      "victory": {
+        "clip": "LanceIdle",
+        "from": 0,
+        "to": 0.2
+      },
+      "throw_windup": {
+        "clip": "LanceThrowWindup"
+      },
+      "throw": {
+        "clip": "LanceThrow"
+      },
+      "throw_recover": {
+        "clip": "LanceThrowRecover"
+      }
+    },
+    "sockets": {
+      "impact": "Rig/Armature/Skeleton3D/Chest/Impact",
+      "gaze": "Rig/Armature/Skeleton3D/Face/Gaze",
+      "projectile": "Rig/Armature/Skeleton3D/WeaponHand/Grip/Weapon",
+      "trail_inner": "Rig/Armature/Skeleton3D/WeaponHand/Grip/Weapon/TrailInner",
+      "trail_tip": "Rig/Armature/Skeleton3D/WeaponHand/Grip/Weapon/TrailTip",
+      "rein_grip": "Rig/Armature/Skeleton3D/ReinHand/Grip"
+    },
+    "study_id": "enemy_rider",
+    "equipment": "Rig/Armature/Skeleton3D/WeaponHand/Grip",
+    "supported_items": [
+      "iron_lance",
+      "light_lance",
+      "pike",
+      "riders_bane",
+      "javelin"
+    ],
+    "study_character": "bram",
+    "study_label": "enemy Rider",
+    "study_title": "Enemy Rider",
+    "aim_targets": true,
+    "framing": {
+      "wide": 1.22,
+      "windup": 1.22,
+      "impact": 1.28,
+      "finish": 1.65
+    },
+    "mount": "Mount",
+    "study_enemy_class": "Rider"
+  },
+  "enemy_corsair": {
+    "scene": "res://assets/models/quaternius/study_enemy_corsair.tscn",
+    "player": "Rig/AnimationPlayer",
+    "yaw": 180,
+    "scale": 1,
+    "offset": [
+      0,
+      0.01,
+      0
+    ],
+    "poses": {
+      "idle": {
+        "clip": "Sword_Idle"
+      },
+      "advance": {
+        "clip": "Jog_Fwd"
+      },
+      "windup": {
+        "clip": "Sword_Attack",
+        "from": 0,
+        "to": 0.36
+      },
+      "strike": {
+        "clip": "Sword_Attack",
+        "from": 0.36,
+        "to": 0.433
+      },
+      "recover": {
+        "clip": "Sword_Attack",
+        "from": 0.433,
+        "to": 1.5333333
+      },
+      "hit": {
+        "clip": "Hit_Chest"
+      },
+      "evade": {
+        "clip": "Hit_Chest",
+        "from": 0,
+        "to": 0.1666667
+      },
+      "down": {
+        "clip": "Death01"
+      },
+      "guard": {
+        "clip": "Sword_Idle",
+        "from": 0,
+        "to": 0.1
+      },
+      "victory": {
+        "clip": "Idle",
+        "from": 0,
+        "to": 0.2
+      }
+    },
+    "sockets": {
+      "impact": "Rig/Armature/Skeleton3D/Chest/Impact",
+      "gaze": "Rig/Armature/Skeleton3D/Face/Gaze",
+      "projectile": "Rig/Armature/Skeleton3D/WeaponHand/Grip",
+      "trail_inner": "Rig/Armature/Skeleton3D/WeaponHand/Grip/Weapon/TrailInner",
+      "trail_tip": "Rig/Armature/Skeleton3D/WeaponHand/Grip/Weapon/TrailTip"
+    },
+    "contact": {
+      "skeleton": "Rig/Armature/Skeleton3D",
+      "bones": [
+        "hand_r",
+        "lowerarm_r",
+        "upperarm_r"
+      ]
+    },
+    "study_id": "enemy_corsair",
+    "equipment": "Rig/Armature/Skeleton3D/WeaponHand/Grip",
+    "supported_items": [
+      "iron_axe",
+      "hatchet",
+      "great_axe",
+      "war_hammer"
+    ],
+    "stride": {
+      "length": 5.6643,
+      "skeleton": "Rig/Armature/Skeleton3D",
+      "feet": [
+        "ball_l",
+        "ball_r"
+      ],
+      "contacts": [
+        0.05,
+        0.55
+      ]
+    },
+    "framing": {
+      "windup": 1.14
+    },
+    "study_character": "dax",
+    "study_label": "enemy Corsair",
+    "study_title": "Enemy Corsair",
+    "study_enemy_class": "Corsair"
   }
 }

@@ -259,8 +259,23 @@ Private pelvis tracks keep the seat at 1.61 m above the nominal floor. Melee pre
 Dense checks cover 1,290 seated poses per body, horse-body/neck clearance, full geometry floor clearance, fourteen-bone continuity, exact melee targets and fitted projectile release. Separate gait checks cover 771 support samples per body plus native/direct attachment agreement and actual distance-based contacts. Camera tests include horse, head, armor and lance at both attack distances, both directions, foot/mounted opponents and three sizes. The victory shot uses 1.65 distance padding to keep the hooves above the combat HUD. Isolated software asset studies supplement these checks; they are not GPU gameplay review.
 
 
-## Enemy infantry study
+## Enemy source studies
 
-The Debug source viewer offers an enemy Duelist using the same fitted male sword body. Character styling applies the existing anonymous face, dark uniform, class face covering, burgundy cloak and imperial emblem. All three supported sword variants retain their fitted grip and strike contacts. Campaign enemies keep the existing builder while this comparison is evaluated.
+The Debug source viewer offers all eight anonymous enemy classes, using the fitted infantry and mounted bodies. Styling applies the existing enemy faces, uniforms, masks, hoods and imperial emblem. The Vanguard wears light armor, the Knight retains its closed helmet and hidden face, and the Rider uses the existing enemy horse and saddle colors. The 29 equipment choices retain the corresponding fitted grip, contact, casting or throwing behavior. Campaign enemies keep the existing builder while these comparisons are evaluated.
 
 The wrapper selects `AuthoredIdentity.enemy_job`; ordinary recruit wrappers leave it empty. Enemy styling reads the existing enemy appearance profile without modifying it or aliasing a recruit. The cloak adapter selects the existing imperial texture on private materials. The viewer clones its presentation record, marks it as an enemy and preserves that faction when rebuilding the study. Company model selectors reject enemy study entries. No enemy rules, stats, inventory or campaign save changes accompany the visual study.
+
+
+## Full-outfit fall support
+
+Styled infantry use `data/authored_fall_fit.json`: 28 private root-height curves cover all 21 recruits and seven anonymous enemy outfits. This extends the Knight correction to source bodies, custom heads, hair and headgear that otherwise crossed the floor midway through a fall. Mounted studies retain their seated `RiderDown` clip. Shared source animations remain unchanged.
+
+`AuthoredIdentity.configure_animations` runs after the equipment adapter on the actor's private animation library. The runtime replaces only the `Death01` root-position track; it performs no geometry scans. Unstyled Knight studies retain their earlier body-specific fallback fit. Reproduce the full outfit calibration with:
+
+```sh
+/path/to/Godot --headless --path . --script scripts/calibrate_authored_falls.gd -- /tmp/authored-fall-fit.json
+```
+
+The offline tool samples 257 complete poses per outfit, excludes separately shader-clamped cloth, builds a conservative smoothed height envelope and reduces it within .4 mm. The seven dense floor suites check 14,364 poses, private/source clip ownership and native/direct attachment agreement. Weapon suites separately retain their continuity, grip and ground-clearance checks. Broad axe heads use a clearance plane raised by the outfit's root support: this preserves their established smooth wrist correction instead of abruptly releasing it as hair or armor raises the body. It does not change standing swings or source bone lengths.
+
+The eight enemy outfits were inspected as isolated software geometry/material studies. These are not assembled gameplay captures, and do not establish GPU appearance, frame rate or audio quality.

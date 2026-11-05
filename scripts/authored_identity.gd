@@ -67,10 +67,18 @@ func configure_identity(id: String) -> String:
  var shape=painter.Head.shape_key(appearance.get("face_shape","tapered"));head.set_meta("face_shape",shape)
  var skull=painter.geo.mesh(head,painter.Head.mesh(shape),Vector3.ZERO,Vector3.ONE,painter.geo.material(skin));skull.name="SculptedHead"
  for x in [-.14,.14]:painter.ellipsoid(head,Vector3(x,-.015,0),Vector3(.025,.05,.025),skin)
- painter.Hair.build(painter,head,appearance,Color("bca26b"))
+ if enemy_job=="Knight":
+  var helmet=preload("res://scripts/knight_helmet.gd")
+  var steel=painter.geo.material(Color(appearance.get("steel","a8b3bb")));var gold=painter.geo.material(Color(appearance.get("metal","bca26b")))
+  painter.geo.mesh(head,helmet.mesh(),Vector3.ZERO,Vector3.ONE,steel).name="HelmetShell"
+  var lining=painter.geo.material(Color("252c38")).duplicate();lining.set_meta("no_character_outline",true)
+  painter.geo.mesh(head,helmet.visor_lining(),Vector3.ZERO,Vector3.ONE,lining).name="HelmetLining"
+  painter.geo.mesh(head,helmet.nasal_trim(),Vector3.ZERO,Vector3.ONE,gold).name="HelmetNasal"
+ else:painter.Hair.build(painter,head,appearance,Color("bca26b"))
  if not enemy_job.is_empty():painter.EnemyHeadgear.build(painter,head,enemy_job,Color(appearance.get("steel","a8b3bb")),Color(appearance.get("metal","bca26b")),appearance)
  var face_index=painter.FACE_INDICES.get(id,5) if enemy_job.is_empty() else int(appearance.get("face_variant",5))
  var face=painter.face_surface(head,face_index,shape)
+ if enemy_job=="Knight":face.hide()
  face.set_meta("dynamic",true)
  blink.bind(face,painter.face_atlas,"authored:"+id)
  painter.geo.batcher.combine(head,false)
@@ -99,6 +107,10 @@ func configure_identity(id: String) -> String:
  for listener in model.find_children("*","",true,false):
   if listener.has_method("materials_remapped"):listener.materials_remapped(copies)
  return ""
+
+func configure_animations(player: AnimationPlayer) -> String:
+ if get_parent().has_node("Mount"):return ""
+ return preload("res://scripts/authored_fall_fit.gd").apply(player,"recruit:"+identity if enemy_job.is_empty() else "enemy:"+enemy_job)
 
 static func reference_luma(mesh: Mesh,surface: int,texture: Texture2D,mode: int) -> float:
  var key=(mesh.resource_path if not mesh.resource_path.is_empty() else str(mesh.get_instance_id()))+":"+str(surface)+":"+texture.resource_path+":"+str(mode)

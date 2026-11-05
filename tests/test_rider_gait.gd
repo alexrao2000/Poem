@@ -1,11 +1,13 @@
 extends SceneTree
 const Rider=preload("res://scripts/imported_rider.gd")
+var pairs=[["female","una"],["male","bram"]]
+func create_models(pair):return load("res://scripts/debug_source_models.gd").new(["rider_"+pair[0]])
 func _initialize():call_deferred("run")
 func run():
  var world=Node3D.new();root.add_child(world);var rules=load("res://scripts/rules.gd").new()
- for pair in [["female","una"],["male","bram"]]:
+ for pair in pairs:
   var unit=rules.roster.filter(func(value):return value.id==pair[1])[0].duplicate(true);unit.team="player";unit.item="iron_lance"
-  var models=load("res://scripts/debug_source_models.gd").new(["rider_"+pair[0]])
+  var models=create_models(pair)
   var actor=models.build(world,unit,Vector3(35,.65,0));assert(actor is Rider and models.models.issues.is_empty());actor.rotation.y=.7;await actor.pose("idle",.02).finished;actor.set_process(false);actor.player.pause()
   var rig=actor.model.get_node("Rig/Armature/Skeleton3D");var arms=rig.get_node("WeaponHand/Grip").arms;var mount=actor.model.get_node("Mount");var foot_gap=0.0;var hand_gap=0.0;var floor_gap=0.0;mount.set_process(false)
   for weight in [0.0,.5,1.0]:

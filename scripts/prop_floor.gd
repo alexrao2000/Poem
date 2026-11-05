@@ -28,9 +28,11 @@ func flatten(world: Transform3D) -> Basis:
  if horizontal.length_squared()<.000001:horizontal=Vector3(world.basis.x.x,0,world.basis.x.z)
  return Basis(Rotation.rotation_between(direction,horizontal.normalized()))*world.basis
 
+func floor_support() -> float:return 0.0
+
 func clear_floor(desired: Transform3D) -> Transform3D:
  if corners.is_empty() or not is_instance_valid(model) or not model.is_inside_tree():return desired
- var world=rig.global_transform*desired;var floor_y=model.get_parent().global_position.y+.018
+ var world=rig.global_transform*desired;var floor_y=model.get_parent().global_position.y+.018+floor_support()
  if minimum_height(world)>=floor_y:return desired
  var flat=Transform3D(flatten(world),world.origin)
  world.origin.y+=maxf(0,floor_y-minimum_height(flat));flat.origin=world.origin

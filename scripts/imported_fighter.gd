@@ -45,6 +45,11 @@ func configure(scene: Node3D,spec: Dictionary) -> String:
   if equipment.has_method("configure_animations"):
    var error=equipment.configure_animations(player)
    if not error.is_empty():return error
+ if spec.has("appearance"):
+  var appearance=model.get_node(NodePath(spec.appearance))
+  if appearance.has_method("configure_animations"):
+   var error=appearance.configure_animations(player)
+   if not error.is_empty():return error
  # Identity adapters may add cloth and armor after equipment creates its solver.
  for constraint in pose_constraints:
   if constraint.has_method("refresh_attachments"):constraint.refresh_attachments()

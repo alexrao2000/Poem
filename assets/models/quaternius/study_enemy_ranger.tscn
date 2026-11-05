@@ -1,0 +1,10 @@
+[gd_scene load_steps=2 format=3]
+
+[ext_resource type="PackedScene" path="res://assets/models/quaternius/study_ranger_male.tscn" id="1_base"]
+
+[node name="EnemyRangerStudy" instance=ExtResource("1_base")]
+
+[node name="Identity" parent="." index="0"]
+enemy_job = "Ranger"
+
+[editable path="Rig"]

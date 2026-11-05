@@ -9,6 +9,14 @@ func flatten(world: Transform3D) -> Basis:
 
 func target_pose() -> Transform3D:return clear_floor(rig.get_bone_global_pose(chain[0]))
 
+func floor_support() -> float:
+ # Whole-outfit root support must not repeatedly release/reapply the broad
+ # blade's wrist fit. Raise its clearance plane with that support so the
+ # original smooth fall rotation survives differences in hair and armor.
+ var root=rig.find_bone("root")
+ if root<0:return 0.0
+ return maxf(0,(rig.global_basis*(rig.get_bone_pose_position(root)-rig.get_bone_rest(root).origin)).y)
+
 func bend_pole(desired: Transform3D,upper: Transform3D,elbow: Transform3D) -> Vector3:
  # When floor contact begins, retain the animated elbow's side of the arm.
  # Switching to a prop-defined pole can snap a bent elbow despite a smooth wrist.

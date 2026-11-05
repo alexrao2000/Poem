@@ -3,6 +3,7 @@ extends Node3D
 # seat and stirrups move with the same measured hoof support height.
 const Mount=preload("res://scripts/mount_visuals.gd")
 const Stride=preload("res://scripts/mount_stride.gd")
+@export var enemy_colors=false
 var bones={}
 var rest={}
 var reins: MeshInstance3D
@@ -24,8 +25,8 @@ func configure_mount(id: String) -> String:
  var model=get_parent();source_rig=model.get_node_or_null("Rig");skeleton=model.get_node_or_null("Rig/Armature/Skeleton3D") as Skeleton3D;rein_grip=model.get_node_or_null("Rig/Armature/Skeleton3D/ReinHand/Grip")
  if source_rig==null or skeleton==null or rein_grip==null:return "Mounted model needs its source rig and rein grip"
  base_lift=source_rig.position.y
- var painter=load("res://scripts/fighters.gd").new();var look=painter.profiles.get(id,{}).get("appearance",{})
- Mount.build(painter,self,id,Color(look.get("cloth","3d566d")),Color(look.get("metal","bca26b")),Color("554337"))
+ var painter=load("res://scripts/fighters.gd").new();var look=painter.enemy_looks.Rider if enemy_colors else painter.profiles.get(id,{}).get("appearance",{})
+ Mount.build(painter,self,"enemy_rider" if enemy_colors else id,Color(look.get("cloth","3d566d")),Color(look.get("metal","bca26b")),Color("554337"))
  for bone in bones.values():bone.set_meta("dynamic",true)
  for name_value in ["LeftStirrup","RightStirrup"]:bones.Horse.get_node(name_value).set_meta("dynamic",true)
  reins.set_meta("dynamic",true)

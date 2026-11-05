@@ -124,6 +124,21 @@ func run():
  var enemy_edge=enemy_study.weapon_trail_points();var enemy_point=enemy_study.get_node("StudyContactTarget").global_position
  assert(Geometry3D.get_closest_point_to_segment(enemy_point,enemy_edge[0],enemy_edge[1]).distance_to(enemy_point)<.006)
  app.close_model_view();await process_frame
+ var support_curves=JSON.parse_string(FileAccess.get_file_as_string("res://data/authored_fall_fit.json"))
+ assert(support_curves.size()==28,"Packaged full-outfit support includes 21 recruits and seven infantry enemies")
+ var enemy_metadata=JSON.parse_string(FileAccess.get_file_as_string("res://data/model_studies.json"))
+ for job in ["Vanguard","Knight","Corsair","Ranger","Arcanist","Warden","Rider"]:
+  var key="enemy_"+job.to_lower();app.show_source_model_view(key,enemy_metadata[key].supported_items[0],true);await process_frame
+  var actor=app.preview_actor;var appearance=actor.model.get_node("Identity")
+  assert(actor is Imported and app.preview_unit.team=="enemy" and actor.model.get_meta("enemy_appearance")==job)
+  assert(appearance.cloak.cloth.material_override.get_shader_parameter("cape_mark")==app.fighters.IMPERIAL_CAPE)
+  if job=="Knight":assert(not appearance.head.get_node("PaintedFace").visible and appearance.hair_motion.root==null)
+  if job=="Rider":assert(actor is Rider and actor.model.get_node("Mount").enemy_colors)
+  else:
+   var fall=actor.player.get_animation("Death01");var track=fall.find_track(NodePath("Armature/Skeleton3D:root"),Animation.TYPE_POSITION_3D)
+   assert(track>=0 and fall.track_get_key_count(track)==support_curves["enemy:"+job].size(),"Packaged enemy fall uses its private fitted root track")
+  await actor.pose("down",.02).finished;assert(appearance.blink.closed)
+  app.close_model_view();await process_frame
  for pair in [["caster","tarin"],["caster_female","vela"]]:
   app.show_source_model_view(pair[0],"thunder",true);await process_frame
   var caster=app.preview_actor;assert(caster is Imported and caster.model.get_meta("character_identity")==pair[1],"Packaged casting study retains the original identity")

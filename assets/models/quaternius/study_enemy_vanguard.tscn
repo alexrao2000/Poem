@@ -1,0 +1,14 @@
+[gd_scene load_steps=2 format=3]
+
+[ext_resource type="PackedScene" path="res://assets/models/quaternius/study_vanguard_male.tscn" id="1_base"]
+
+[node name="EnemyVanguardStudy" instance=ExtResource("1_base")]
+
+[node name="Identity" parent="." index="0"]
+enemy_job = "Vanguard"
+mantle_enabled = false
+armor_enabled = true
+light_armor = true
+cloak_cut = "mantle"
+
+[editable path="Rig"]
