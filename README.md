@@ -54,18 +54,18 @@ These controls apply to campaign battles; menus and the visual workshop have the
 | Zoom the tactical map | Mouse wheel / + / − |
 | Pan the tactical map | Middle-button drag |
 | Reset the map view | Home |
-| Skip a chapter card, phase announcement, or combat scene | Tab |
+| Skip a chapter card, phase announcement, combat scene, or casualty card | Tab |
 | Play combat animation at double speed | Hold Shift |
 | Advance dialogue | Space / Enter |
 | Skip the current dialogue sequence | Escape |
 
-Click an enemy to inspect its stats and reach. The terrain card follows the pointer or keyboard cursor and shows movement costs and bonuses. Keyboard cursor movement keeps distant tiles in view; map zoom and pan are preserved when returning from combat. Chapter cards also accept a click to skip.
+Click an enemy to inspect its stats and reach. The terrain card follows the pointer or keyboard cursor and shows movement costs and bonuses. Keyboard cursor movement keeps distant tiles in view; map zoom and pan are preserved when returning from combat. Chapter and casualty cards also accept a click to skip.
 
 ## Campaign guide
 
 ### Roster and objectives
 
-- **24 named recruits across 8 classes**, each with a portrait, dossier, battle call, and epilogue. Recruitment happens automatically at the relevant chapter's war council.
+- **24 named recruits across 8 classes**, each with a portrait, dossier, battle call, casualty dialogue, and epilogue. Recruitment happens automatically at the relevant chapter's war council.
 - **12 authored battlefields** with rout, seize, boss, and six-turn defense objectives, opening and closing dialogue, and a campaign ending.
 - **12 named enemy commanders** with individual portraits, model palettes, critical calls, and clickable crown markers on the map.
 - Persistent levels and experience, deployment selection, and an experimental permadeath toggle.
@@ -78,7 +78,7 @@ Open a recruit's portrait at the war council, then **Equipment**, to choose from
 
 Options also exposes independent campaign experiments: section restarts, increasing enemy preparation after resets, rescuable downed allies, stronger enemy forces, death-triggered legacy supplies, and sacrifice costs/openings. See the [experiment rules and initial balance measurements](docs/campaign-experiments.md) for the exact behavior and current limits.
 
-Enable **Debug mode · temporary sandbox**, then open **Debug tools**, to try these safely. Tools load any chapter, heal or revive the company, make a selected ally fall, and exercise the actual reset/section-retreat path. Debug saves use a separate slot. Turning Debug mode off restores the campaign state from when you enabled it, including unsaved progress. The normal campaign save remains untouched during experiments.
+Enable **Debug mode · temporary sandbox**, then open **Debug tools**, to try these safely. Tools load any chapter, set a reproducible combat seed or reset pressure, heal or revive the company, make a selected ally fall, and exercise the actual reset/section-retreat path. Experiment reports include a restore code for the current position. Debug saves use a separate slot. Turning Debug mode off restores the campaign state from when you enabled it, including unsaved progress. The normal campaign save remains untouched during experiments.
 
 Combat includes weighted terrain movement, occupancy, the weapon triangle, two-roll hit checks, critical hits, counters, and speed follow-ups. Equipment weight reduces combat speed; a four-point speed advantage grants a follow-up. Physical attacks check Defense, while magic checks Resistance.
 
@@ -114,7 +114,7 @@ Browser storage can be cleared by the browser. Returning to the war council rest
 
 ### Transfer a save
 
-1. Choose **Transfer a local save** on the title screen or at the war council, or **Transfer code** from the battle menu.
+1. Choose **Transfer a local save** on the title screen or at the war council, or **Transfer code** from the battle menu or result screen.
 2. Copy the `POEM1:` code. Battle transfer exports the live state and returns to the same map.
 3. In the destination build, open the transfer screen, paste the code, and choose **Import pasted code**.
 
@@ -128,7 +128,7 @@ Failed autosaves display a warning and a phase-status marker. Keep the game open
 
 ## Development
 
-Run commands below from the repository root. Python 3 is required for the test runner and packaging tools. NumPy is needed only for audio generation and the separate score-render checks.
+Run commands below from the repository root. Python 3 is required for the test runner and packaging tools. Node.js runs the browser-storage unit checks; playing the game does not require it. NumPy supports optional audio/texture generation, and Pillow is also needed for texture generation.
 
 The [project configuration](project.godot) selects the Compatibility renderer for browser parity and a 1440 × 900 logical viewport. Keep gameplay rules independent of presentation.
 
@@ -138,7 +138,7 @@ The [project configuration](project.godot) selects the Compatibility renderer fo
 | Pathfinding, enemy behavior, and automated play planning | [tactics.gd](scripts/tactics.gd) |
 | Menus, input, board rendering, and orchestration | [main.gd](scripts/main.gd) |
 | Roster, classes, and chapters | [campaign.json](data/campaign.json) |
-| Dialogue, biographies, and epilogues | [story.json](data/story.json), [characters.json](data/characters.json) |
+| Dialogue, biographies, and epilogues | [story.json](data/story.json), [characters.json](data/characters.json), [casualty_lines.json](data/casualty_lines.json) |
 | Promotions and support conversations | [promotions.json](data/promotions.json), [supports.json](data/supports.json), [supports.gd](scripts/supports.gd) |
 | Map sprites and reusable renderers | [campaign_map_unit.gd](scripts/campaign_map_unit.gd), [visual package](visuals/README.md) |
 | Map navigation and tactical overlays | [tactical_camera.gd](scripts/tactical_camera.gd), [map_overlay.gd](scripts/map_overlay.gd), [terrain_card.gd](scripts/terrain_card.gd) |
@@ -174,7 +174,7 @@ Run selected suites by passing their names:
 GODOT_BIN=/path/to/godot python3 scripts/test_local.py rules saves controls
 ```
 
-The [runner](scripts/test_local.py) writes logs to `build/logs/`, detects script errors, and gives each suite a 90-second deadline. Default suites cover rules, movement, persistence, campaign progression, controls, menus, audio, and presentation. The [campaign suite](tests/test_campaign.gd) checks 72 chapter victories across three seeds, both promotion branches, and a complete permadeath campaign with saved casualties.
+The [runner](scripts/test_local.py) writes logs to `build/logs/`, stops promptly on script errors, and gives each suite a 90-second deadline. Default suites cover rules, movement, persistence, campaign progression, controls, menus, audio, and presentation. The [campaign suite](tests/test_campaign.gd) checks 72 chapter victories across three seeds, both promotion branches, and a complete permadeath campaign with saved casualties.
 
 The Python score-render check is separate from the default runner. It requires NumPy and the cached instrument bank:
 

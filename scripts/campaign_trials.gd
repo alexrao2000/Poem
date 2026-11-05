@@ -156,15 +156,16 @@ func valid(game,data) -> bool:
  for key in FLAGS:
   if not data.flags.get(key) is bool:return false
  for key in ["pressure","credits"]:
-  if not integer(data[key],0,10 if key=="pressure" else 24):return false
+  if not integer(data[key],0,10 if key=="pressure" else game.content.roster.size()):return false
  var ids=game.content.roster.map(func(unit):return unit.id)
  for key in ["losses","injuries"]:
   if not data[key] is Dictionary or data[key].size()>ids.size():return false
   for id in data[key]:
-   if id not in ids or not integer(data[key][id],0,12):return false
+   var last_chapter=game.content.chapters.size()-(1 if key=="losses" else 0)
+   if id not in ids or not integer(data[key][id],0,last_chapter):return false
  if data.losses.has("lyra"):return false
  for key in ["volunteers","purchases"]:
-  if not data[key] is Array or data[key].size()>24:return false
+  if not data[key] is Array or data[key].size()>ids.size():return false
   var seen=[]
   for id in data[key]:
    if not id is String or id in seen:return false

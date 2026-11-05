@@ -26,6 +26,8 @@ Casualty presentation now gives all 24 recruits original downed, retreat and per
 
 The local test runner now stops Godot when a script error leaves the process alive, retaining its diagnostic instead of waiting for the 90-second deadline. Silent hangs still have the original deadline. Four child-process fixtures, a real Godot assertion (0.51 seconds), and ordinary save/phase suites pass.
 
+Staff target highlights now include downed allies while excluding hidden carried patients, and downed inspection explains rescue instead of movement. Trial import validation derives roster/chapter bounds from campaign content and rejects losses after the last chapter. Rescue, exact action-range geometry and campaign-trial suites pass.
+
 ## Earlier checkpoints
 
 Spell flight now has a continuous soft-edged wake and luminous elemental cores/halos, replacing the six opaque trailing beads. It uses four fewer mesh instances per spell while keeping the existing path/timing. Focused geometry, transformed physical/elemental flights, actual exchanges and skip cleanup pass; the isolated additive study was corrected for a measured headless gradient readback artifact rather than treating that artifact as a game defect.

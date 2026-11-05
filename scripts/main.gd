@@ -636,6 +636,7 @@ func update_side():
 			battle_hint.text="Blue: move · Orange: reach · Enter: act · Esc: undo"
 			if selected.team=="enemy":battle_hint.text="Red tiles: enemy reach · R: all ranges · Esc: close"
 			elif selected.weapon=="staff":battle_hint.text="Blue: move · Green: heal · Enter: act · Esc: undo"
+			if game.DeathDoor.downed(selected):battle_hint.text="Needs help: select a nearby ally for Rescue & triage, or heal with a staff."
 			if game.action_saves:battle_hint.text=battle_hint.text.replace("Esc: undo","Esc: deselect")
 	arrange_battle_side()
 
@@ -700,7 +701,8 @@ func highlight():
 	for point in range_map:reach.erase(point)
 	MapOverlay.tiles(markers,reach.keys(),Color(.22,.68,.45,.23) if healing else Color(.88,.40,.14,.23),.035,"HealingReach" if healing else "ActionReach",map_height)
 	var targets=[]
-	for unit in game.living(selected.team if healing else "enemy"):
+	var candidates=game.units.filter(func(unit):return unit.team==selected.team and unit.get("carried_by","").is_empty()) if healing else game.living("enemy")
+	for unit in candidates:
 		if game.can_heal(selected,unit) if healing else game.can_attack(selected,unit):targets.append(game.pos(unit))
 	MapOverlay.tiles(markers,targets,Color(.25,.78,.49,.40) if healing else Color(.87,.29,.16,.38),.039,"HealingTargets" if healing else "AttackRange",map_height)
 

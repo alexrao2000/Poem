@@ -67,6 +67,10 @@ func rules():
  invalid=valid.duplicate(true);invalid.trials.volunteers.append("unknown");assert(not copied.valid_save(invalid))
  invalid=valid.duplicate(true);invalid.trials.flags.hard_campaign="yes";assert(not copied.valid_save(invalid))
  invalid=valid.duplicate(true);invalid.trials.credits+=1;assert(not copied.valid_save(invalid),"Credits must match recorded losses and purchases")
+ invalid=valid.duplicate(true);invalid.trials.losses[invalid.trials.losses.keys()[0]]=copied.content.chapters.size()
+ assert(not copied.valid_save(invalid),"A recorded loss must belong to an existing chapter")
+ invalid=valid.duplicate(true);invalid.trials.injuries.oren=copied.content.chapters.size()
+ assert(copied.valid_save(invalid),"Recovery through the chapter after the finale remains a valid terminal record")
  casual.start_battle();var enemy=casual.living("enemy")[0];enemy.hp=1;casual.phase="enemy"
  var planner=preload("res://scripts/tactics.gd").new();var plan=planner.plan(casual,enemy)
  assert(plan.action=="tonic");planner.apply_plan(casual,enemy,plan)

@@ -92,6 +92,13 @@ func run():
  assert(downed_actor.screen_bounds(app.camera).has_point(point) and app.pick_map_unit(point)==patient,"Clicking the rescue badge inspects its downed ally")
  app.selected=patient;app.update_side()
  assert("2 phases left" in app.side.find_child("UnitConditions",true,false).text,"Inspection describes the same phase-ending deadline as the badge")
+ assert("Rescue & triage" in app.battle_hint.text and not "Blue: move" in app.battle_hint.text,"Downed inspection explains how to help instead of offering impossible movement")
+ var field_medic=app.game.units.filter(func(unit):return unit.weapon=="staff")[0]
+ field_medic.x=3;field_medic.y=3;app.selected=field_medic;app.refresh_pieces();app.highlight();app.update_side()
+ var healing_targets=app.markers.get_node_or_null("HealingTargets")
+ assert(healing_targets!=null,"Downed allies receive the same green target highlight as injured allies")
+ var vertices=healing_targets.mesh.surface_get_arrays(0)[Mesh.ARRAY_VERTEX]
+ assert(Array(vertices).any(func(vertex):return Vector2(vertex.x,vertex.z).distance_to(Vector2(app.game.pos(patient)))<.61),"The healing target mesh covers the actual downed tile")
  for foe in app.game.living("enemy"):foe.ai="guard"
  app.end_turn()
  assert(app.unit_nodes[patient.id].rescue_marker.get_meta("turns")==1,"The rescue badge updates before the enemy-phase announcement")
