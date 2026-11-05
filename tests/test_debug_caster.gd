@@ -49,7 +49,7 @@ func run():
   var actor=app.make_fighter(unit,Vector3.ZERO);assert(actor is Imported and actor.model.get_meta("character_identity")==character_id)
   assert(actor.model.get_node("Rig/Armature/Skeleton3D/BookHand/Folio").equipped==item)
   actor.queue_free();await process_frame
- for patch in [{"team":"enemy"},{"id":"noor"},{"job":"Warden"},{"weapon":"staff","item":"mend_staff"},{"item":"unsupported_folio"},{"promotion":"test_promotion"}]:
+ for patch in [{"team":"enemy"},{"id":"lyra"},{"job":"Warden"},{"weapon":"staff","item":"mend_staff"},{"item":"unsupported_folio"},{"promotion":"test_promotion"}]:
   var changed=unit.duplicate(true);changed.merge(patch,true)
   assert(app.debug_caster.build(app.stage,changed,Vector3.ZERO)==null,"Unsupported identity, class, promotion or equipment retains the normal builder")
  var nell=app.game.roster.filter(func(value):return value.id=="nell")[0].duplicate(true);nell.team="player"

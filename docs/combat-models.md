@@ -186,3 +186,8 @@ The outline driver runs after the cloth drivers, copying the exact cloth clock/d
 
 
 Revised cloak/robe/mantle linen uses `fabric_detail=0.25` in the original character shader. The mix is centered on the current atlas quadrant’s measured linear RGB mean `(0.661445, 0.568573, 0.449824)`, preserving mean brightness and color rather than whitening the material. The company embroidery is composed afterward and retains its contrast. Other users keep the shader default `1.0`. Before/after close studies used bilinear sampling to avoid exaggerating weave with nearest-neighbor sampling; actual GPU appearance remains unreviewed. If the linen atlas is replaced, remeasure this neutral point.
+
+
+### Additional recruit identities
+
+A study may list `campaign_characters` to offer its fitted rig to additional canonical recruits of the same base class and weapon. Each gets a separate specification and live identity/material state; meshes and source animations remain shared. Missing or incompatible recruits are rejected. `study_character` remains the representative in the source viewer. Female Duelist now covers Nell/Yuna; female Arcanist covers Vela/Noor. Together with Lyra, Silas and Tarin, seven recruits use the opt-in revised campaign models. Promotions, enemy units, changed classes and unsupported items still fall back. No campaign save or simulation changes are involved.

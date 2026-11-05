@@ -1,6 +1,6 @@
 extends SceneTree
 var study_ids=["female","male"]
-var character_ids=["nell","silas"]
+var character_ids=["nell","silas","yuna"]
 func _initialize():call_deferred("run")
 func run():
  var viewport=SubViewport.new();viewport.size=Vector2i(1024,640);root.add_child(viewport);var world=Node3D.new();viewport.add_child(world);var camera=Camera3D.new();world.add_child(camera);camera.current=true

@@ -92,7 +92,11 @@
     },
     "study_character": "nell",
     "study_label": "female duelist",
-    "study_title": "Duelist \u00b7 Female"
+    "study_title": "Duelist \u00b7 Female",
+    "campaign_characters": [
+      "nell",
+      "yuna"
+    ]
   },
   "male": {
     "scene": "res://assets/models/quaternius/study_male.tscn",
@@ -343,7 +347,11 @@
     },
     "study_character": "vela",
     "study_label": "female casting",
-    "study_title": "Caster \u00b7 Female"
+    "study_title": "Caster \u00b7 Female",
+    "campaign_characters": [
+      "vela",
+      "noor"
+    ]
   },
   "vanguard": {
     "scene": "res://assets/models/quaternius/study_vanguard_female.tscn",

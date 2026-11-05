@@ -137,7 +137,7 @@ func run():
  revised.queue_free();await process_frame
  app.ui.find_child("DebugDuelistModels",true,false).button_pressed=false
  app.ui.find_child("DebugCasterModel",true,false).button_pressed=true
- for id in ["tarin","vela"]:
+ for id in ["tarin","vela","noor"]:
   var mage=app.game.roster.filter(func(unit):return unit.id==id)[0].duplicate(true);mage.team="player";mage.item="gale"
   var revised_mage=app.make_fighter(mage,Vector3.ZERO)
   assert(revised_mage is Imported and revised_mage.model.get_meta("character_identity")==id and revised_mage.model.get_node("Rig/Armature/Skeleton3D/BookHand/Folio").equipped=="gale","Packaged casting toggle selects the styled mage independently")
@@ -147,10 +147,11 @@ func run():
  assert(app.game.trials.scenes.size()==10,"Release includes relief, retreat, volunteer and memorial story scenes")
  assert(app.persist_campaign("battle") and FileAccess.file_exists(app.save_path+".debug"),"Packaged debug actions save separately")
  app.debug_session.end(app.game);app.preferences.values.character_models="revised"
- var campaign_recruit=app.game.roster[0].duplicate(true);campaign_recruit.team="player";campaign_recruit.item="iron_sword"
- var campaign_model=app.make_fighter(campaign_recruit,Vector3.ZERO)
- assert(not app.debug_session.active and campaign_model is Imported and campaign_model.model.get_meta("character_identity")=="lyra","Packaged appearance preference works in the ordinary campaign")
- campaign_model.queue_free();await process_frame
+ for id in ["lyra","nell","silas","yuna","tarin","vela","noor"]:
+  var campaign_recruit=app.game.roster.filter(func(value):return value.id==id)[0].duplicate(true);campaign_recruit.team="player";campaign_recruit.item="iron_sword" if campaign_recruit.weapon=="sword" else "ember"
+  var campaign_model=app.make_fighter(campaign_recruit,Vector3.ZERO)
+  assert(not app.debug_session.active and campaign_model is Imported and campaign_model.model.get_meta("character_identity")==id,"Packaged appearance preference works for every revised recruit in the ordinary campaign")
+  campaign_model.queue_free();await process_frame
  await Shutdown.dispose(app);await process_frame
  print("PASS: exported catalog, all three act scores, chapter scenes, sixteen promotion costumes, licenses and credits")
  quit()

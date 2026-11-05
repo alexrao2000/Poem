@@ -1752,7 +1752,7 @@ func show_options(return_to: String):
 	for title in ["Current roster","Revised models · preview"]:model_mode.add_item(title)
 	model_mode.selected=["current","revised"].find(preferences.values.character_models);model_mode.disabled=debug_session.active;panel.add_child(model_mode)
 	model_mode.item_selected.connect(func(index):preferences.values.character_models=["current","revised"][index])
-	label_in(panel,"Try revised Lyra, Nell, Silas, Tarin and Vela in battles and outfit previews before promotion. Other characters and unsupported equipment keep their current models. You can switch back at any time.",16)
+	label_in(panel,"Try revised Lyra, Nell, Silas, Yuna, Tarin, Vela and Noor in battles and outfit previews before promotion. Other characters and unsupported equipment keep their current models. You can switch back at any time.",16)
 	if debug_session.active:label_in(panel,"Debug tools has separate model switches for this sandbox. Leave Debug mode to change campaign presentation.",16)
 	for key in ["music","effects"]:
 		var row=HBoxContainer.new();row.add_theme_constant_override("separation",20);panel.add_child(row)
@@ -1798,10 +1798,10 @@ func show_debug_tools(return_to: String):
 	label_in(panel,"Try Lyra’s revised model before promotion with iron, dueling or tempered swords. The comparison resets when Debug mode ends.",16)
 	var revised=CheckButton.new();revised.name="DebugDuelistModels";revised.text="Revised duelist models";revised.button_pressed=debug_session.revised_duelists;panel.add_child(revised)
 	revised.toggled.connect(func(value):debug_session.set_revised_duelists(value))
-	label_in(panel,"Try Nell and Silas’s revised models in battles and outfit previews. Applies before promotion with iron, dueling or tempered swords. Other outfits keep their current models. Resets when Debug mode ends.",16)
+	label_in(panel,"Try Nell, Silas and Yuna’s revised models in battles and outfit previews. Applies before promotion with iron, dueling or tempered swords. Other outfits keep their current models. Resets when Debug mode ends.",16)
 	var caster=CheckButton.new();caster.name="DebugCasterModel";caster.text="Revised casting models";caster.button_pressed=debug_session.revised_caster;panel.add_child(caster)
 	caster.toggled.connect(func(value):debug_session.set_revised_caster(value))
-	label_in(panel,"Try Tarin and Vela’s revised models in battles and outfit previews with Ember, Gale or Thunder before promotion. Resets when Debug mode ends.",16)
+	label_in(panel,"Try Tarin, Vela and Noor’s revised models in battles and outfit previews with Ember, Gale or Thunder before promotion. Resets when Debug mode ends.",16)
 	var studies=JSON.parse_string(FileAccess.get_file_as_string("res://data/model_studies.json"))
 	for gender in studies:
 		var study=button_in(panel,"View "+studies[gender].study_label+" rig",func():show_source_model_view(gender));study.name="ModelStudy_"+gender
