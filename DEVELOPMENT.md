@@ -6,6 +6,10 @@ User direction: keep developing continuously in this chat until the user returns
 
 ## Current checkpoint
 
+Styled Nell and Silas now track opponents with bounded skeletal head turns, including mounted-height targets. Their original faces retain authored reactions and finishing poses; hit-stop also freezes gaze. A small licensed skinned-neck crop replaces the rigid collar connection. Tests cover final poses, deformation, private material state and source preservation; actual rendered-game review remains outstanding.
+
+The revised duelists are selectable through a reversible Debug tools toggle for supported base-class swords, with normal fallback for promotions, estoc and other units. Their run follows actual ground distance, standing evade keeps the blade above the floor, and windup framing leaves room for the raised weapon. Crowded downed allies now open a per-unit chooser; revivals require an unoccupied destination without consuming an action when blocked.
+
 Source-model studies now use the selected iron, dueling or tempered sword, preserving each original weapon shape, color and blade sockets. A declared supported-item list keeps estoc attacks on their existing thrust animation. The viewer can switch swords without equipping a campaign unit or changing the inspection angle. Six real rig/item combinations, fitted contacts, invalid configurations and compact viewer switching pass.
 
 The authored source studies now offer standing/mounted strike targets. A bounded skeletal arm modifier fits a point on the actual blade after the source animation, retaining the authored elbow side, bone lengths and fixed grip. Twenty sampled contacts and eight full cinematic shield/mounted exchanges pass; direct samples restore the animation input and leave campaign/RNG state unchanged. This remains debug-only while character styling and broader presentation are developed.

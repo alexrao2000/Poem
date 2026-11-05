@@ -9,6 +9,7 @@ var current_pose="idle"
 var source_meshes=[]
 var painted_materials=[]
 var head: Node3D
+var gaze: Node
 static var reference_cache={}
 
 func configure_identity(id: String) -> String:
@@ -21,8 +22,10 @@ func configure_identity(id: String) -> String:
  var appearance=painter.profiles[id].appearance
  var skin=Color(appearance.skin);var cloth=Color(appearance.cloth)
  identity=id;model.set_meta("character_identity",id)
+ var source_head: MeshInstance3D
  for mesh in rig.find_children("*","MeshInstance3D",true,false):
   if str(mesh.name).begins_with("Head_") or str(mesh.name).begins_with("Hair_"):
+   if str(mesh.name).begins_with("Head_") and str(mesh.name) not in ["Head_Eyes","Head_Eyebrows"]:source_head=mesh
    source_meshes.append(mesh);mesh.hide();continue
   if mesh.mesh==null:continue
   for surface in range(mesh.mesh.get_surface_count()):
@@ -52,11 +55,22 @@ func configure_identity(id: String) -> String:
  face.set_meta("dynamic",true)
  blink.bind(face,painter.face_atlas,"authored:"+id)
  painter.geo.batcher.combine(head,false)
- var neck=painter.geo.cylinder(face_anchor,Vector3(0,-.03,0),.15,.064,skin);neck.name="PortraitNeck"
+ if source_head==null:return "Source neck mesh is missing"
+ var neck_mesh=preload("res://scripts/authored_neck.gd").mesh_for(source_head,rig)
+ if neck_mesh==null:return "Source neck skin could not be isolated"
+ var neck=MeshInstance3D.new();neck.name="PortraitNeck";neck.mesh=neck_mesh;neck.skin=source_head.skin;neck.skeleton=source_head.skeleton;neck.transform=source_head.transform;rig.add_child(neck)
+ var source_skin=source_head.get_active_material(0) as StandardMaterial3D
+ if source_skin==null or source_skin.albedo_texture==null:return "Source neck material is missing"
+ var neck_material=ShaderMaterial.new();neck_material.shader=DYED;neck_material.set_shader_parameter("albedo_map",source_skin.albedo_texture)
+ neck_material.set_shader_parameter("normal_map",source_skin.normal_texture);neck_material.set_shader_parameter("has_normal",source_skin.normal_texture!=null)
+ neck_material.set_shader_parameter("tint",skin);neck_material.set_shader_parameter("dye_mode",3)
+ neck_material.set_shader_parameter("reference_luma",reference_luma(neck_mesh,0,source_skin.albedo_texture,3))
+ neck_material.set_meta("identity",id);neck_material.set_meta("dye_mode",3);neck.material_override=neck_material;painted_materials.append(neck_material)
+ gaze=preload("res://scripts/authored_gaze.gd").new();gaze.name="GazeDriver";add_child(gaze);gaze.configure(model,rig)
  return ""
 
 static func reference_luma(mesh: Mesh,surface: int,texture: Texture2D,mode: int) -> float:
- var key=str(mesh.get_instance_id())+":"+str(surface)+":"+texture.resource_path+":"+str(mode)
+ var key=(mesh.resource_path if not mesh.resource_path.is_empty() else str(mesh.get_instance_id()))+":"+str(surface)+":"+texture.resource_path+":"+str(mode)
  if reference_cache.has(key):return reference_cache[key]
  var image=texture.get_image();var total=0.0;var count=0
  if image!=null:

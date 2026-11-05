@@ -92,7 +92,13 @@ func run():
   assert(app.preview_actor.weapon_trail_points().size()==2,"Packaged original sword keeps its animated trail sockets")
   var identity=app.preview_actor.model.get_node("Identity")
   assert(identity.identity in ["nell","silas"] and identity.painted_materials.size()>=3,"Packaged study retains original identity and private dyed materials")
-  app.preview_actor.pose("hit",.01);assert(identity.blink.closed,"Packaged styled head retains facial reactions")
+  var gaze_target=Marker3D.new();app.stage.add_child(gaze_target);gaze_target.global_position=app.preview_actor.to_global(Vector3(0,2.4,-2))
+  app.preview_actor.face_opponent(gaze_target);app.preview_actor.pose("idle",.01);await create_timer(.4).timeout
+  var head=identity.gaze.rig.get_node("Face")
+  assert(identity.gaze.modifier.active and head.global_basis.z.normalized().dot((identity.gaze.target.global_position-head.global_position).normalized())>.998,"Packaged original head follows a mounted opponent")
+  assert(identity.gaze.rig.get_node("PortraitNeck").skin!=null,"Packaged original identity retains the cropped neck skin")
+  app.preview_actor.pose("hit",.01);assert(identity.blink.closed and not identity.gaze.modifier.active,"Packaged styled head retains complete facial/neck reactions")
+  gaze_target.queue_free()
   var actions=app.stage.get_node("PreviewActionPlayer");actions.play("advance");await create_timer(.08).timeout
   assert(app.preview_actor.stride_phase>0 and not app.preview_actor.player.is_playing(),"Packaged study drives the imported jog explicitly by distance")
   var target_choice=app.ui.find_child("StudyTarget",true,false);target_choice.select(2);target_choice.item_selected.emit(2)
