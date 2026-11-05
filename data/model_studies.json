@@ -1273,5 +1273,177 @@
       "oren",
       "rook"
     ]
+  },
+  "rider_female": {
+    "scene": "res://assets/models/quaternius/study_rider_female.tscn",
+    "player": "Rig/AnimationPlayer",
+    "yaw": 180,
+    "scale": 1,
+    "offset": [
+      0,
+      0,
+      0
+    ],
+    "poses": {
+      "idle": {
+        "clip": "LanceIdle"
+      },
+      "advance": {
+        "clip": "LanceIdle"
+      },
+      "windup": {
+        "clip": "LanceWindup"
+      },
+      "strike": {
+        "clip": "LanceStrike"
+      },
+      "recover": {
+        "clip": "LanceRecover"
+      },
+      "hit": {
+        "clip": "Hit_Chest"
+      },
+      "evade": {
+        "clip": "Hit_Chest",
+        "from": 0,
+        "to": 0.1666667
+      },
+      "down": {
+        "clip": "RiderDown"
+      },
+      "guard": {
+        "clip": "LanceIdle",
+        "from": 0,
+        "to": 0.1
+      },
+      "victory": {
+        "clip": "LanceIdle",
+        "from": 0,
+        "to": 0.2
+      },
+      "throw_windup": {
+        "clip": "LanceThrowWindup"
+      },
+      "throw": {
+        "clip": "LanceThrow"
+      },
+      "throw_recover": {
+        "clip": "LanceThrowRecover"
+      }
+    },
+    "sockets": {
+      "impact": "Rig/Armature/Skeleton3D/Chest/Impact",
+      "gaze": "Rig/Armature/Skeleton3D/Face/Gaze",
+      "projectile": "Rig/Armature/Skeleton3D/WeaponHand/Grip/Weapon",
+      "trail_inner": "Rig/Armature/Skeleton3D/WeaponHand/Grip/Weapon/TrailInner",
+      "trail_tip": "Rig/Armature/Skeleton3D/WeaponHand/Grip/Weapon/TrailTip",
+      "rein_grip": "Rig/Armature/Skeleton3D/ReinHand/Grip"
+    },
+    "study_id": "rider_female",
+    "equipment": "Rig/Armature/Skeleton3D/WeaponHand/Grip",
+    "supported_items": [
+      "iron_lance",
+      "light_lance",
+      "pike",
+      "riders_bane",
+      "javelin"
+    ],
+    "study_character": "una",
+    "study_label": "female Rider",
+    "study_title": "Rider \u00b7 Una",
+    "aim_targets": true,
+    "framing": {
+      "wide": 1.22,
+      "windup": 1.22,
+      "impact": 1.28,
+      "finish": 1.65
+    },
+    "mount": "Mount"
+  },
+  "rider_male": {
+    "scene": "res://assets/models/quaternius/study_rider_male.tscn",
+    "player": "Rig/AnimationPlayer",
+    "yaw": 180,
+    "scale": 1,
+    "offset": [
+      0,
+      0,
+      0
+    ],
+    "poses": {
+      "idle": {
+        "clip": "LanceIdle"
+      },
+      "advance": {
+        "clip": "LanceIdle"
+      },
+      "windup": {
+        "clip": "LanceWindup"
+      },
+      "strike": {
+        "clip": "LanceStrike"
+      },
+      "recover": {
+        "clip": "LanceRecover"
+      },
+      "hit": {
+        "clip": "Hit_Chest"
+      },
+      "evade": {
+        "clip": "Hit_Chest",
+        "from": 0,
+        "to": 0.1666667
+      },
+      "down": {
+        "clip": "RiderDown"
+      },
+      "guard": {
+        "clip": "LanceIdle",
+        "from": 0,
+        "to": 0.1
+      },
+      "victory": {
+        "clip": "LanceIdle",
+        "from": 0,
+        "to": 0.2
+      },
+      "throw_windup": {
+        "clip": "LanceThrowWindup"
+      },
+      "throw": {
+        "clip": "LanceThrow"
+      },
+      "throw_recover": {
+        "clip": "LanceThrowRecover"
+      }
+    },
+    "sockets": {
+      "impact": "Rig/Armature/Skeleton3D/Chest/Impact",
+      "gaze": "Rig/Armature/Skeleton3D/Face/Gaze",
+      "projectile": "Rig/Armature/Skeleton3D/WeaponHand/Grip/Weapon",
+      "trail_inner": "Rig/Armature/Skeleton3D/WeaponHand/Grip/Weapon/TrailInner",
+      "trail_tip": "Rig/Armature/Skeleton3D/WeaponHand/Grip/Weapon/TrailTip",
+      "rein_grip": "Rig/Armature/Skeleton3D/ReinHand/Grip"
+    },
+    "study_id": "rider_male",
+    "equipment": "Rig/Armature/Skeleton3D/WeaponHand/Grip",
+    "supported_items": [
+      "iron_lance",
+      "light_lance",
+      "pike",
+      "riders_bane",
+      "javelin"
+    ],
+    "study_character": "bram",
+    "study_label": "male Rider",
+    "study_title": "Rider \u00b7 Bram",
+    "aim_targets": true,
+    "framing": {
+      "wide": 1.22,
+      "windup": 1.22,
+      "impact": 1.28,
+      "finish": 1.65
+    },
+    "mount": "Mount"
   }
 }

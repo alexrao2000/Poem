@@ -14,11 +14,13 @@ var revisions=0
 func configure(subject: Node3D,surface: ShaderMaterial):
  actor=subject;name="MountedReins";cast_shadow=GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
  material_override=surface.duplicate();material_override.set_meta("no_character_outline",true)
- update()
+ if is_inside_tree():update()
+
+func _ready():update()
 
 func update():
  if actor==null or not actor.bones.has("HorseHead"):return
- var head=actor.bones.HorseHead;var hand=actor.bones.LeftElbow.to_global(Vector3(0,-.29,0))
+ var head=actor.bones.HorseHead;var hand=actor.rein_grip_position() if actor.has_method("rein_grip_position") else actor.bones.LeftElbow.to_global(Vector3(0,-.29,0))
  var next=[to_local(head.to_global(BIT*Vector3(-1,1,1))),to_local(head.to_global(BIT)),to_local(hand)]
  if next==inputs:return
  inputs=next;paths.clear();revisions+=1

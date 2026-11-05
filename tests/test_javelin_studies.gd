@@ -3,6 +3,8 @@ const Actor=preload("res://scripts/fighter_actor.gd")
 const Imported=preload("res://scripts/imported_fighter.gd")
 const Projectile=preload("res://scripts/combat_projectile.gd")
 const Shutdown=preload("helpers/game_shutdown.gd")
+var study_pairs=[["knight_female","petra"],["knight_male","oren"]]
+var save_name="javelin"
 var flights=0
 var observing=false
 var recoveries=0
@@ -39,7 +41,7 @@ func skip_phase(app,key: String,record: Dictionary):
  assert(false,"Reached the requested javelin skip phase")
 func run():
  root.size=Vector2i(1024,640)
- var app=load("res://main.tscn").instantiate();app.settings_path="";app.save_path="/private/tmp/poem-javelin-studies-save.json";root.add_child(app);await process_frame
+ var app=load("res://main.tscn").instantiate();app.settings_path="";app.save_path="/private/tmp/poem-"+save_name+"-studies-save.json";root.add_child(app);await process_frame
  app.debug_session.begin(app.game,"camp");app.options_return="camp";var before=app.game.save_data("camp").duplicate(true);var rng=app.game.rng.state
  var ordinary_unit=app.game.roster.filter(func(value):return value.id=="oren")[0].duplicate(true);ordinary_unit.team="player";ordinary_unit.item="javelin"
  app.show_model_view(ordinary_unit);await process_frame
@@ -48,7 +50,8 @@ func run():
  for action in ["throw","throw","throw_recover","idle"]:
   replay.play(action);await replay.finished;assert(original.bones.Weapon.visible==(action=="idle"),"Original models also reload and release correctly when replayed")
  app.close_model_view();await process_frame
- for key in ["knight_female","knight_male"]:
+ for study in study_pairs:
+  var key=study[0]
   app.show_source_model_view(key,"javelin",true);await process_frame;await process_frame
   assert(app.preview_actor is Imported)
   var choice=app.ui.find_child("PreviewAction",true,false);var controller=app.stage.get_node("PreviewActionPlayer");var weapon=app.preview_actor.projectile_source()
@@ -69,7 +72,7 @@ func run():
  app.debug_session.load_chapter(app.game,11);app.make_map();app.show_battle();app.busy=true;app.stage.child_entered_tree.connect(watch);observing=true;observe(app)
  var catalog=app.fighters.models.catalog.duplicate(true);var studies=JSON.parse_string(FileAccess.get_file_as_string("res://data/model_studies.json"))
  var enemy=app.game.living("enemy")[0].duplicate(true);enemy.x=9;enemy.y=4;enemy.weapon="lance";enemy.item="javelin"
- for pair in [["knight_female","petra"],["knight_male","oren"]]:
+ for pair in study_pairs:
   var spec=studies[pair[0]].duplicate(true);spec.appearance="Identity";app.fighters.models.catalog={"characters":{pair[1]:spec}}
   var unit=app.game.roster.filter(func(value):return value.id==pair[1])[0].duplicate(true);unit.team="player";unit.x=7;unit.y=4;unit.item="javelin"
   before=app.game.save_data("battle").duplicate(true);rng=app.game.rng.state

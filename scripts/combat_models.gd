@@ -1,6 +1,7 @@
 extends RefCounted
 # Optional authored assets selected independently of campaign rules and save files.
 const ImportedFighter=preload("res://scripts/imported_fighter.gd")
+const ImportedRider=preload("res://scripts/imported_rider.gd")
 var catalog: Dictionary={}
 var issues: PackedStringArray=[]
 
@@ -38,6 +39,7 @@ func specification_error(spec) -> String:
  for value in spec.get("sockets",{}).values():
   if not value is String:return "Socket paths must be strings"
  if spec.has("equipment") and not spec.equipment is String:return "Invalid equipment attachment path"
+ if spec.has("mount") and (not spec.mount is String or spec.mount.is_empty()):return "Invalid mount path"
  if spec.has("appearance") and not spec.appearance is String:return "Invalid appearance adapter path"
  if spec.has("supported_items"):
   if not spec.supported_items is Array or spec.supported_items.is_empty() or not spec.supported_items.all(func(item):return item is String):return "Supported equipment must be a nonempty list of item IDs"
@@ -57,12 +59,17 @@ func build(parent: Node3D,unit: Dictionary,position: Vector3) -> Node3D:
    if attachment==null or not attachment.has_method("configure_equipment"):report(spec.scene+": Missing equipment attachment");scene.free();continue
    error=attachment.configure_equipment(unit.weapon,str(unit.get("item","")))
    if not error.is_empty():report(spec.scene+": "+error);scene.free();continue
+  if spec.has("mount"):
+   var mount=scene.get_node_or_null(NodePath(spec.mount))
+   if mount==null or not mount.has_method("configure_mount"):report(spec.scene+": Missing mount adapter");scene.free();continue
+   error=mount.configure_mount(str(unit.id))
+   if not error.is_empty():report(spec.scene+": "+error);scene.free();continue
   if spec.has("appearance"):
    var appearance=scene.get_node_or_null(NodePath(spec.appearance))
    if appearance==null or not appearance.has_method("configure_identity"):report(spec.scene+": Missing appearance adapter");scene.free();continue
    error=appearance.configure_identity(str(unit.id))
    if not error.is_empty():report(spec.scene+": "+error);scene.free();continue
-  var actor=ImportedFighter.new()
+  var actor=ImportedRider.new() if spec.has("mount") else ImportedFighter.new()
   error=actor.configure(scene,spec)
   if not error.is_empty():report(spec.scene+": "+error);actor.free();continue
   parent.add_child(actor);actor.position=position;actor.kind=unit.weapon

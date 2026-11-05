@@ -2,6 +2,8 @@ extends SceneTree
 const Imported=preload("res://scripts/imported_fighter.gd")
 const Impact=preload("res://scripts/combat_impact.gd")
 const Defeat=preload("res://scripts/combat_defeat.gd")
+var study_pairs=[["knight_female","petra"],["knight_male","oren"]]
+var save_name="knight"
 var contacts=0
 var blocks=0
 var departures=0
@@ -27,9 +29,10 @@ func watch(node):
   assert(not victim.visible and victim.model.get_node("Identity").blink.closed);departures+=1
 func run():
  root.size=Vector2i(1024,640)
- var app=load("res://main.tscn").instantiate();app.settings_path="";app.save_path="/private/tmp/poem-knight-studies-save.json";root.add_child(app);await process_frame
+ var app=load("res://main.tscn").instantiate();app.settings_path="";app.save_path="/private/tmp/poem-"+save_name+"-studies-save.json";root.add_child(app);await process_frame
  app.debug_session.begin(app.game,"camp");app.options_return="camp";var before=app.game.save_data("camp").duplicate(true);var seed=app.game.rng.state
- for key in ["knight_female","knight_male"]:
+ for study in study_pairs:
+  var key=study[0]
   app.show_debug_tools("camp");await process_frame
   app.ui.find_child("ModelStudy_"+key,true,false).pressed.emit();await process_frame
   assert(app.preview_actor is Imported and app.preview_actor.kind=="lance")
@@ -54,7 +57,7 @@ func run():
  app.debug_session.load_chapter(app.game,11);app.make_map();app.show_battle();app.busy=true;app.stage.child_entered_tree.connect(watch)
  var catalog=app.fighters.models.catalog.duplicate(true);var studies=JSON.parse_string(FileAccess.get_file_as_string("res://data/model_studies.json"))
  var enemy=app.game.living("enemy")[0].duplicate(true);enemy.x=9;enemy.y=4;enemy.weapon="lance";enemy.item="iron_lance"
- for pair in [["knight_female","petra"],["knight_male","oren"]]:
+ for pair in study_pairs:
   var spec=studies[pair[0]].duplicate(true);spec.appearance="Identity";app.fighters.models.catalog={"characters":{pair[1]:spec}}
   var unit=app.game.roster.filter(func(value):return value.id==pair[1])[0].duplicate(true);unit.team="player";unit.x=8;unit.y=4
   before=app.game.save_data("battle").duplicate(true);seed=app.game.rng.state
@@ -67,6 +70,9 @@ func run():
   assert(app.game.save_data("battle")==before and app.game.rng.state==seed)
   assert(app.world.visible and app.pieces.visible and not app.stage.visible and app.camera.projection==Camera3D.PROJECTION_ORTHOGONAL)
  assert(contacts==8 and blocks==2 and departures==2)
+ verify_extras()
  app.fighters.models.catalog=catalog;app.busy=false;await Shutdown.dispose(app);await process_frame
- print("PASS: both Knight study buttons, eight real equipment switches, sixteen foot/mounted target selections, cleared targets, preserved view angle, three-size controls, eight real tip contacts, two shield blocks, both defeats, restored map and exact campaign/RNG isolation")
+ print("PASS: ",save_name," study buttons, eight real equipment switches, sixteen foot/mounted target selections, cleared targets, preserved view angle, three-size controls, eight real tip contacts, two shield blocks, both defeats, restored map and exact campaign/RNG isolation")
  quit()
+
+func verify_extras():pass

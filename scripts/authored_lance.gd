@@ -9,6 +9,7 @@ var recovering=false
 var throw_raise=0.0
 var throw_push=0.0
 func equipment_kind() -> String:return "lance"
+func arm_driver() -> Script:return preload("res://scripts/lance_hold.gd")
 func fit_handle():
  super()
  if not has_node("Weapon"):return
@@ -17,7 +18,7 @@ func fit_handle():
  get_node("Weapon/LanceShaft").scale=Vector3(handle_radius/.024,1,handle_radius/.024)
  var anchor=get_parent() as BoneAttachment3D
  if anchor!=null and arms==null:
-  arms=load("res://scripts/lance_hold.gd").new();arms.name="LanceArm";anchor.get_parent().add_child(arms);arms.setup(anchor.get_parent(),self)
+  arms=arm_driver().new();arms.name="LanceArm";anchor.get_parent().add_child(arms);arms.setup(anchor.get_parent(),self)
  if arms!=null:arms.fit_prop(anchor,get_node("Weapon"))
 func configure_animations(player: AnimationPlayer) -> String:
  var error=super(player)

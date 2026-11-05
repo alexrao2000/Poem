@@ -4,6 +4,7 @@ var character_id="tarin"
 var equipped_item="thunder"
 var combat_spacing=4.0
 var ranged=true
+var mounted_subject=false
 var extra_paths=[]
 var pose_keys={}
 var prop_path="Rig/Armature/Skeleton3D/BookHand/Folio/Weapon"
@@ -37,7 +38,7 @@ func run():
       actor.player.stop();actor.player.play(mapping.clip,0);actor.player.seek(lerpf(mapping.from,mapping.to,float(step)/8),true,true);actor.player.pause();actor.refresh_skeleton()
       for size_value in [Vector2i(1024,640),Vector2i(1280,720),Vector2i(1440,900)]:
        viewport.size=size_value
-       var frame=framing.frame_for(actor.position,other,sample[1],ranged,mounted if sample[1]!="finish" else false,unit.weapon)
+       var frame=framing.frame_for(actor.position,other,sample[1],ranged,mounted_subject or (mounted if sample[1]!="finish" else false),unit.weapon)
        camera.position=frame.anchor;camera.look_at(frame.focus);camera.fov=frame.lens
        var palm=camera.unproject_position(actor.socket_position("projectile"))
        var low=palm;var high=palm

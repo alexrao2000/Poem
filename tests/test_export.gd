@@ -1,4 +1,5 @@
 extends SceneTree
+const Rider=preload("res://scripts/imported_rider.gd")
 const Imported=preload("res://scripts/imported_fighter.gd")
 const Shutdown=preload("helpers/game_shutdown.gd")
 const Vertices=preload("helpers/authored_vertices.gd")
@@ -178,7 +179,7 @@ func run():
   await knight.pose("down",.02).finished
   assert(Vertices.minimum(knight,cache)>knight.global_position.y+.01,"Packaged root-height fit keeps the complete armored body and shield clear of the floor")
   app.close_model_view();await process_frame
- for pair in [["knight_female","petra"],["knight_male","oren"]]:
+ for pair in [["knight_female","petra"],["knight_male","oren"],["rider_female","una"],["rider_male","bram"]]:
   app.show_source_model_view(pair[0],"javelin",true);await process_frame
   var knight=app.preview_actor;var weapon=knight.projectile_source();assert(weapon!=null)
   var point=knight.to_global(Vector3(0,1.85,-4));knight.aim_at(point)
@@ -192,6 +193,24 @@ func run():
    for vertex in mesh.mesh.surface_get_arrays(0)[Mesh.ARRAY_VERTEX]:assert(mesh.to_global(vertex).distance_to(copied.to_global(vertex))<.0001,"Packaged flight retains every fitted spear vertex at release")
   await knight.pose("recover",.02).finished;assert(not weapon.visible and knight.player.assigned_animation=="LanceThrowRecover")
   flight.queue_free();app.close_model_view();await process_frame
+ for pair in [["rider_female","una"],["rider_male","bram"]]:
+  app.show_source_model_view(pair[0],"riders_bane",true);await process_frame
+  var rider=app.preview_actor;assert(rider is Rider and rider.mount.configured)
+  var rig=rider.model.get_node("Rig/Armature/Skeleton3D");var grip=rig.get_node("WeaponHand/Grip")
+  assert(grip.arms.chain.size()==14 and rider.player.has_animation("RiderDown") and rider.model.get_node("Identity").armor.anchors.size()==5)
+  var point=rider.to_global(Vector3(0,1.1,-2.1));rider.aim_at(point)
+  await rider.pose("windup",.02).finished;await rider.pose("strike",.02).finished
+  assert(rider.weapon_trail_points()[1].distance_to(point)<.005,"Packaged seated lance reaches an infantry opponent")
+  var contacts=[];rider.travel_contact.connect(func(index):contacts.append(index))
+  await rider.pose("advance",.02).finished
+  for step in range(72):
+   rider.position-=rider.global_basis.z*(1.8/72);rider.update_locomotion()
+   assert(absf(rider.ground_contact_position().y-rider.global_position.y)<.0001)
+  assert(contacts==[0,1],"Packaged horse uses the distance-driven hoof cadence")
+  await rider.pose("down",.02).finished
+  assert(rider.mount.gait_weight==0 and Vertices.minimum(rider,Vertices.prepare(rider))>rider.global_position.y-.0001)
+  assert(rider.socket_position("rein_grip").distance_to(rig.get_node("ReinHand").to_global(grip.rein_pad))<.0001)
+  app.close_model_view();await process_frame
  app.show_source_model_view("vanguard","iron_sword",true);await process_frame
  var vanguard=app.preview_actor;assert(vanguard is Imported and vanguard.model.get_meta("character_identity")=="lyra" and vanguard.model.get_node("Identity").mantle!=null,"Packaged Vanguard study retains Lyra’s ivory mantle")
  await vanguard.pose("strike",.02).finished
