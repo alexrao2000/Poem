@@ -136,6 +136,10 @@ func face_opponent(other: Node3D):
  for listener in pose_listeners:
   if listener.has_method("face_opponent"):listener.face_opponent(other)
 
+func remap_materials(copies: Dictionary):
+ for listener in pose_listeners:
+  if listener.has_method("materials_remapped"):listener.materials_remapped(copies)
+
 func number(value) -> bool:
  return (value is float or value is int) and is_finite(float(value))
 

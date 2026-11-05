@@ -10,6 +10,7 @@ var source_meshes=[]
 var painted_materials=[]
 var head: Node3D
 var gaze: Node
+var cloak: Node
 static var reference_cache={}
 
 func configure_identity(id: String) -> String:
@@ -66,6 +67,7 @@ func configure_identity(id: String) -> String:
  neck_material.set_shader_parameter("tint",skin);neck_material.set_shader_parameter("dye_mode",3)
  neck_material.set_shader_parameter("reference_luma",reference_luma(neck_mesh,0,source_skin.albedo_texture,3))
  neck_material.set_meta("identity",id);neck_material.set_meta("dye_mode",3);neck.material_override=neck_material;painted_materials.append(neck_material)
+ cloak=preload("res://scripts/authored_cloak.gd").new();cloak.name="CloakDriver";add_child(cloak);cloak.configure(model,rig,painter,appearance)
  gaze=preload("res://scripts/authored_gaze.gd").new();gaze.name="GazeDriver";add_child(gaze);gaze.configure(model,rig)
  return ""
 
@@ -84,6 +86,8 @@ static func reference_luma(mesh: Mesh,surface: int,texture: Texture2D,mode: int)
    total+=pixel.r*.2126+pixel.g*.7152+pixel.b*.0722;count+=1
  var result=maxf(.005,total/count) if count>0 else .2
  reference_cache[key]=result;return result
+
+func materials_remapped(copies: Dictionary):blink.surface=copies.get(blink.surface,blink.surface)
 
 func combat_pose(key: String):current_pose=key;blink.begin_pose(key)
 func face_opponent(other: Node3D):blink.opponent=weakref(other)

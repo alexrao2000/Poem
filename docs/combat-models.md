@@ -133,3 +133,10 @@ Styled Nell/Silas turn their heads toward the opponent during ready, approach, a
 The original replacement heads now meet a small cropped section of the supplied skinned neck, retaining its weights, UVs, normals and inverse binds. The crop excludes the source chin so it cannot protrude through the smaller original face. Immutable neck meshes are cached across previews; palette and defeat opacity remain private to each actor. Unstyled source figures remain unchanged.
 
 `authored_gaze` checks both final head attachments and skin poses across 36 headings/target heights/offsets, normalized neck weights, bounded deformation, source preservation, cache reuse, reaction release, hit-stop and invalid-target teardown. Export smoke also exercises a mounted-height gaze. The inspected four-panel software geometry study is an asset review, not assembled-game or GPU rendering.
+
+
+## Company cloaks on the revised duelists
+
+Styled Nell/Silas retain their original blue forked company cloaks, including the shared embroidered mark and individual palette. `authored_cloak.gd` fits the original 72-triangle cut to the supplied shoulder width and upper-spine rest transform. The existing bounded cloth motion follows combat poses and freezes during hit-stop. Only these instance-owned materials opt into a world-height floor clamp after cloth displacement, preventing the falling source clip from sending the cloak below the arena. This is a simple floor constraint, not simulated fabric or body collision.
+
+Imported presentation listeners can implement `materials_remapped(copies)` to keep live controllers bound when defeat creates private fading materials. The cloak and original face use this hook; surviving actors and source material caches stay untouched. Tests cover 306 actual shoulder-edge samples, identity/material isolation, floor-plane relocation, hit-stop/hidden clocks, fade rebinding, original cloak regressions, wide/finish framing and complete debug battles. The eight-panel isolated software asset study was inspected; GPU floor shading and assembled appearance still require review.

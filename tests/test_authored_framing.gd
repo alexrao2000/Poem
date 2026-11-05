@@ -28,7 +28,9 @@ func run():
        var frame=framing.frame_for(actor.position,other,sample[1],false,mounted if sample[1]!="finish" else false,"sword")
        camera.position=frame.anchor;camera.look_at(frame.focus);camera.fov=frame.lens
        var low=Vector2(INF,INF);var high=Vector2(-INF,-INF)
-       for mesh in pieces:
+       var visible_pieces=pieces.duplicate()
+       if sample[1] in ["wide","finish"]:visible_pieces.append(actor.model.get_node("Identity").cloak.cloth)
+       for mesh in visible_pieces:
         for surface in range(mesh.mesh.get_surface_count()):
          for vertex in mesh.mesh.surface_get_arrays(surface)[Mesh.ARRAY_VERTEX]:
           var point=camera.unproject_position(mesh.to_global(vertex));low=low.min(point);high=high.max(point)
@@ -37,7 +39,7 @@ func run():
        count+=1
   actor.queue_free();await process_frame
  for failure in failures.slice(0,30):print(failure)
- assert(failures.is_empty(),"Original heads and equipped swords stay inside the clear combat frame")
+ assert(failures.is_empty(),"Original heads and equipped swords stay inside the clear combat frame, with full cloaks in wide/finish shots")
  var unit=game.roster.filter(func(value):return value.id=="nell")[0].duplicate(true);unit.team="player"
  for invalid in [null,{"windup":.5},{"windup":INF},{"unknown":1.2},{"wide":"bad"}]:
   models.models.catalog.characters.nell.framing=invalid;models.models.issues.clear();var before=world.get_child_count()

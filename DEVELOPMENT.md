@@ -6,6 +6,8 @@ User direction: keep developing continuously in this chat until the user returns
 
 ## Current checkpoint
 
+The revised duelists now retain their original embroidered blue forked cloaks on the imported bodies. Upper-spine fitting, private pose-driven cloth and a floor constraint preserve the silhouette during falls. Defeat now rebinds imported face and cloth controllers to their fading material copies. Six affected suites pass, including actual shoulder attachment, camera framing and debug battles; an isolated asset study was inspected, with assembled/GPU review still pending.
+
 Styled Nell and Silas now track opponents with bounded skeletal head turns, including mounted-height targets. Their original faces retain authored reactions and finishing poses; hit-stop also freezes gaze. A small licensed skinned-neck crop replaces the rigid collar connection. Tests cover final poses, deformation, private material state and source preservation; actual rendered-game review remains outstanding.
 
 The revised duelists are selectable through a reversible Debug tools toggle for supported base-class swords, with normal fallback for promotions, estoc and other units. Their run follows actual ground distance, standing evade keeps the blade above the floor, and windup framing leaves room for the raised weapon. Crowded downed allies now open a per-unit chooser; revivals require an unoccupied destination without consuming an action when blocked.

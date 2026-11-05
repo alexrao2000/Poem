@@ -26,6 +26,7 @@ func begin(subject: Node3D):
  if actor is Actor:
   actor.face_blink.surface=copies.get(actor.face_blink.surface,actor.face_blink.surface)
   actor.cape_motion.bind(actor)
+ elif actor.has_method("remap_materials"):actor.remap_materials(copies)
  apply_visibility(1.0)
  motion=create_tween();motion.tween_method(apply_visibility,1.0,0.0,DURATION)
  motion.tween_callback(finish)
