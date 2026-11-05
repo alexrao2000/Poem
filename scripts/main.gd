@@ -1412,7 +1412,7 @@ func show_model_view(unit,on_close=Callable(),model_spec: Dictionary={}):
 	portrait.expand_mode=TextureRect.EXPAND_IGNORE_SIZE;portrait.stretch_mode=TextureRect.STRETCH_KEEP_ASPECT_CENTERED;panel.add_child(portrait)
 	if not model_spec.is_empty():
 		portrait.hide()
-		label_in(panel,"Quaternius source rig with Poem sword. Pose and grip study; campaign characters are unchanged.",17)
+		label_in(panel,"Imported body with the recruit’s original face, hair, expressions and colors." if model_spec.get("styled",false) else "Quaternius source rig with Poem sword. Campaign characters are unchanged.",17)
 	if model_spec.has("supported_items") and model_spec.has("study_id"):
 		var equipment_choice=OptionButton.new();equipment_choice.name="StudyEquipment";equipment_choice.custom_minimum_size.y=42
 		for item_id in model_spec.supported_items:
@@ -1422,9 +1422,15 @@ func show_model_view(unit,on_close=Callable(),model_spec: Dictionary={}):
 		panel.add_child(equipment_choice)
 		equipment_choice.item_selected.connect(func(index):
 			var facing=preview_actor.rotation.y
-			show_source_model_view(model_spec.study_id,equipment_choice.get_item_metadata(index))
+			show_source_model_view(model_spec.study_id,equipment_choice.get_item_metadata(index),model_spec.get("styled",false))
 			preview_actor.rotation.y=facing)
 	else:label_in(panel,game.class_name_for(unit)+" · "+game.item_for(unit).name,21)
+	if model_spec.has("study_id"):
+		var styled=CheckButton.new();styled.name="StudyStyle";styled.text="Character styling";styled.button_pressed=model_spec.get("styled",false);panel.add_child(styled)
+		styled.toggled.connect(func(value):
+			var facing=preview_actor.rotation.y
+			show_source_model_view(model_spec.study_id,unit.item,value)
+			preview_actor.rotation.y=facing)
 	var spacer=Control.new();spacer.size_flags_vertical=Control.SIZE_EXPAND_FILL;panel.add_child(spacer)
 	var turns: Control=panel
 	if not model_spec.is_empty():
@@ -1437,7 +1443,7 @@ func show_model_view(unit,on_close=Callable(),model_spec: Dictionary={}):
 	actions.insert(1,["Run / trot","advance"])
 	actions.append_array([["Guard","guard"],["Hit reaction","hit"],["Critical reaction","critical_hit"],["Defeated","down"],["Finishing flourish","victory_flourish"],["Finish","victory"]])
 	if not model_spec.is_empty():
-		actions=actions.filter(func(entry):return model_spec.poses.has(entry[1]))
+		actions=actions.filter(func(entry):return model_spec.poses.has(entry[1]) or (model_spec.get("styled",false) and entry[1] in ["critical_windup","critical_hit"]))
 		actions.append(["Evasion","evade"])
 	var choice=OptionButton.new();choice.name="PreviewAction";choice.custom_minimum_size.y=42
 	for entry in actions:
@@ -1461,12 +1467,14 @@ func show_model_view(unit,on_close=Callable(),model_spec: Dictionary={}):
 	framing.configure(preview_actor,camera,panel.get_parent(),actions.map(func(entry):return entry[1]))
 	framing.add_hint(ui)
 
-func show_source_model_view(gender: String,item="iron_sword"):
+func show_source_model_view(gender: String,item="iron_sword",styled=false):
 	if not debug_session.active or gender not in ["female","male"]:return
 	var studies=JSON.parse_string(FileAccess.get_file_as_string("res://data/model_studies.json"))
 	if item not in studies[gender].supported_items:return
 	var unit=game.roster.filter(func(value):return value.id==("nell" if gender=="female" else "silas"))[0].duplicate(true)
-	unit.name="Duelist · "+gender.capitalize();unit.item=item;unit.promotion=""
+	unit.name=(unit.name+" · study") if styled else "Duelist · "+gender.capitalize();unit.item=item;unit.promotion=""
+	studies[gender].styled=styled
+	if styled:studies[gender].appearance="Identity"
 	var return_to=options_return
 	show_model_view(unit,func():show_debug_tools(return_to),studies[gender])
 

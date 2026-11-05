@@ -38,6 +38,7 @@ func specification_error(spec) -> String:
  for value in spec.get("sockets",{}).values():
   if not value is String:return "Socket paths must be strings"
  if spec.has("equipment") and not spec.equipment is String:return "Invalid equipment attachment path"
+ if spec.has("appearance") and not spec.appearance is String:return "Invalid appearance adapter path"
  if spec.has("supported_items"):
   if not spec.supported_items is Array or spec.supported_items.is_empty() or not spec.supported_items.all(func(item):return item is String):return "Supported equipment must be a nonempty list of item IDs"
  return ""
@@ -55,6 +56,11 @@ func build(parent: Node3D,unit: Dictionary,position: Vector3) -> Node3D:
    var attachment=scene.get_node_or_null(NodePath(spec.equipment))
    if attachment==null or not attachment.has_method("configure_equipment"):report(spec.scene+": Missing equipment attachment");scene.free();continue
    error=attachment.configure_equipment(unit.weapon,str(unit.get("item","")))
+   if not error.is_empty():report(spec.scene+": "+error);scene.free();continue
+  if spec.has("appearance"):
+   var appearance=scene.get_node_or_null(NodePath(spec.appearance))
+   if appearance==null or not appearance.has_method("configure_identity"):report(spec.scene+": Missing appearance adapter");scene.free();continue
+   error=appearance.configure_identity(str(unit.id))
    if not error.is_empty():report(spec.scene+": "+error);scene.free();continue
   var actor=ImportedFighter.new()
   error=actor.configure(scene,spec)

@@ -2,6 +2,7 @@ extends RefCounted
 # Original articulated low-poly actors. Batch rigid details within each joint,
 # preserving every animated joint, painted face and authored model adapter.
 var models=preload("res://scripts/combat_models.gd").new()
+const FACE_INDICES={"lyra":0,"sera":1,"mara":3,"nell":2,"esme":2,"faye":3,"vela":1,"una":0,"petra":3,"noor":2,"yuna":1,"rhea":0,"oren":5,"ivo":4,"tarin":6,"bram":4,"rook":5,"cassian":6,"dax":5,"silas":6,"ari":4,"galen":7,"hale":7,"elian":6}
 const Actor=preload("res://scripts/fighter_actor.gd")
 const Mount=preload("res://scripts/mount_visuals.gd")
 const Capes=preload("res://scripts/character_cape.gd")
@@ -167,7 +168,7 @@ func build(parent,u,p) -> Node3D:
   var loose_hair=head.get_node_or_null("HairFall")
   if loose_hair!=null:
    actor.register_bone("HairFall",loose_hair);actor.hair_motion.bind(actor,str(u.id))
-  var face_index={"lyra":0,"sera":1,"mara":3,"nell":2,"esme":2,"faye":3,"vela":1,"una":0,"petra":3,"noor":2,"yuna":1,"rhea":0,"oren":5,"ivo":4,"tarin":6,"bram":4,"rook":5,"cassian":6,"dax":5,"silas":6,"ari":4,"galen":7,"hale":7,"elian":6}.get(u.id,5)
+  var face_index=FACE_INDICES.get(u.id,5)
   if not company:face_index=int(appearance.get("face_variant",5))
   var face=face_surface(head,face_index,head_shape)
   actor.face_blink.bind(face,face_atlas,str(u.team)+":"+str(u.id)+":"+str(u.job))

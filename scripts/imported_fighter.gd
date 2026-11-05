@@ -10,11 +10,13 @@ var pose_tween: Tween
 var skeletons=[]
 var attachments=[]
 var contact: SkeletonModifier3D
+var pose_listeners=[]
 
 func configure(scene: Node3D,spec: Dictionary) -> String:
  model=scene;add_child(model)
  skeletons=model.find_children("*","Skeleton3D",true,false)
  attachments=model.find_children("*","BoneAttachment3D",true,false)
+ pose_listeners=model.find_children("*","",true,false).filter(func(node):return node.has_method("combat_pose"))
  model.scale=Vector3.ONE*float(spec.get("scale",1.0))
  model.rotation.y=deg_to_rad(float(spec.get("yaw",0.0)))
  var offset=spec.get("offset",[0,0,0]);model.position=Vector3(offset[0],offset[1],offset[2])
@@ -56,6 +58,10 @@ func prepare_contact(spec: Dictionary) -> String:
 func aim_at(point: Vector3):
  if contact!=null and point.is_finite():contact.target=point;contact.has_target=true
 
+func face_opponent(other: Node3D):
+ for listener in pose_listeners:
+  if listener.has_method("face_opponent"):listener.face_opponent(other)
+
 func number(value) -> bool:
  return (value is float or value is int) and is_finite(float(value))
 
@@ -65,6 +71,7 @@ func finish_flourish(duration=.22) -> Tween:
 func pose(key: String,duration=.18) -> Tween:
  if pose_tween and pose_tween.is_valid():pose_tween.kill()
  pose_name=key
+ for listener in pose_listeners:listener.combat_pose(key)
  if contact!=null and key!="recover":contact.influence=0.0
  var fallback="windup" if key in ["throw_windup","cast_windup","critical_windup","critical_throw_windup"] else "strike" if key in ["throw","cast"] else "idle"
  if key=="critical_hit":fallback="hit"
