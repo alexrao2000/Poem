@@ -392,6 +392,7 @@ func show_credits():
 	label_in(panel,"Instrument recordings: VSCO 2 Community Edition\nVersilian Studios · Sam Gossner and Simon Dalzell\nSample cutting: Elan Hickler / Soundemote\nReleased under CC0 1.0 Universal.",19)
 	label_in(panel,"ART & TYPE",20,GOLD)
 	label_in(panel,"Original generated illustrations and sprite artwork.\nOriginal 3D environments and character figures.\nCormorant Garamond · Cormorant Project Authors\nSIL Open Font License.",19)
+	label_in(panel,"Additional character models and animations: Quaternius\nUniversal Base Characters · Modular Fantasy Outfits\nUniversal Animation Library · CC0 1.0 Universal.",19)
 	label_in(panel,"Created with Godot Engine.",19)
 	button_in(frame,"Return to title",show_title)
 

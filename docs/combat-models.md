@@ -1,6 +1,6 @@
 # Authored combat models
 
-The game can now use authored skeletal characters without changing campaign data, combat rules or saved games. The shipped catalog is empty: all current characters still use the procedural figures. No external models have been acquired. This adapter is infrastructure for replacing those figures, not a claim that their visual quality has improved.
+The game can now use authored skeletal characters without changing campaign data, combat rules or saved games. The shipped catalog is empty: all current characters still use the procedural figures. Two locally supplied CC0 Quaternius rigs are now assembled and imported as source prototypes. Weapon fitting, contact timing and character styling remain unfinished, so they are not enabled in the catalog.
 
 Godot 4.5 imports `.glb` and `.gltf` into scenes and exports those imported resources for both browser and native builds. Put model files and their textures under `assets/models/`. Prefer a `.tscn` wrapper around the imported scene when adding weapons, a mount, `BoneAttachment3D` effect sockets, or other accessories. The wrapper and all dependencies must remain local. The project exports all resources, so catalog references are included even when no `.tscn` directly references them.
 
@@ -54,3 +54,19 @@ Run `GODOT_BIN=/path/to/godot python3 scripts/test_local.py models` for adapter 
 References: [Godot 4.5 model formats](https://docs.godotengine.org/en/4.5/tutorials/assets_pipeline/importing_3d_scenes/available_formats.html), [AnimationPlayer sections](https://docs.godotengine.org/en/4.5/classes/class_animationplayer.html), [BoneAttachment3D](https://docs.godotengine.org/en/4.5/classes/class_boneattachment3d.html).
 
 Optional `trail_inner` and `trail_tip` sockets enable swept melee ribbons. Both must resolve to distinct animated Node3D positions on the held weapon. Their world positions are sampled during the strike, including the model's scale/yaw/offset. Models without a usable pair keep the painted contact-accent fallback. These presentation sockets do not change weapon reach or combat rules.
+
+## Local CC0 source prototypes
+
+`assets/models/quaternius/` contains female/male peasant outfits, trimmed head/neck meshes, eyes, brows and rigged hair assembled from the locally supplied Standard packs. These packs contain only peasant/ranger outfits, not the entire armor collection shown in the promotional image. The [provenance manifest](../assets/models/quaternius/provenance.json) records archive hashes and modifications; the supplied licenses are retained beside it and in both exported packages.
+
+Regenerate with Python's standard library and the three local ZIPs:
+
+```sh
+python3 scripts/import_quaternius.py --outfits /path/to/outfits.zip --base /path/to/base.zip --animations /path/to/animations.zip
+```
+
+The assembler verifies the named bone hierarchy, preserves separate mesh inverse binds, trims the base body below the head/neck influences, and converts mannequin animation offsets to the outfit rest pose. It includes seven in-place clips: idle, sword-ready, sword attack, jog, chest hit, death and roll. Godot removes the `_Loop` suffix from imported clip names. Two broken eye/hair normal filenames in the source archive are resolved only when the adjacent bytes match its explicitly labeled Unity/Godot texture copy.
+
+Unused body vertices, mannequin data and unselected animations are removed; the two binary buffers total about 3.8 MB. Original texture bytes remain intact, with Godot imports capped at 1024 pixels and mipmaps enabled. An isolated software pose study showed coherent head/clothing attachment. Its image was byte-identical before and after buffer compaction; it is not a game screenshot or shader review.
+
+Validation: `python3 -m unittest discover -s tests -p test_quaternius_import.py -v` checks source hashes/licenses, buffer reachability, indices, normalized attributes, rotation remapping and import settings. `GODOT_BIN=/path/to/godot python3 scripts/test_local.py source_models models` checks 70 actual imported poses (over one million skinned-vertex samples), one shared 65-bone skeleton per model, eye attachment, bounded geometry, clip track types, runtime texture dimensions and the authored adapter. These checks do not establish weapon contact, character identity or rendered-game quality.

@@ -9,6 +9,12 @@ func run():
  assert(load("res://scripts/casualty_card.gd").lines.size()==24,"Export includes all recruit casualty dialogue")
  for path in ["res://assets/fonts/OFL.txt","res://assets/audio/VSCO-LICENSE.txt","res://assets/audio/VSCO-CREDITS.txt"]:
   assert(FileAccess.file_exists(path) and FileAccess.get_file_as_string(path).length()>100,"Export includes font and instrument credits/licenses")
+ for family in ["base","outfits","animations"]:
+  assert(FileAccess.get_file_as_string("res://assets/models/quaternius/licenses/"+family+".txt").contains("CC0 1.0 Universal"),"Release retains the supplied model and animation licenses")
+ for gender in ["female","male"]:
+  var model=load("res://assets/models/quaternius/duelist_"+gender+".gltf").instantiate()
+  assert(model.get_node("AnimationPlayer").has_animation("Sword_Attack"),"Packaged source rigs retain their selected skeletal clips")
+  model.free()
  var wang=load("res://assets/art/terrain-wang.png")
  assert(wang is Texture2D and wang.get_size()==Vector2(576,1152) and wang.get_image().has_mipmaps(),"Release includes the padded natural-ground Wang atlas and mipmaps")
  var metadata=JSON.parse_string(FileAccess.get_file_as_string("res://assets/audio/score.json"))

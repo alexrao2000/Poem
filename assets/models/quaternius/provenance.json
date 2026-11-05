@@ -1,0 +1,28 @@
+{
+  "author": "Quaternius",
+  "source_url": "https://quaternius.com",
+  "license": "CC0 1.0 Universal",
+  "sources": {
+    "outfits": {
+      "archive": "Modular Character Outfits - Fantasy[Standard].zip",
+      "sha256": "c3468b18871cc8c8f05ab14df7712baf22cb9f389cbd870babf130e595187f70"
+    },
+    "base": {
+      "archive": "Universal Base Characters[Standard].zip",
+      "sha256": "fdbf1804c90dfc1ea03e992bff7da2dfd1a79318e13270a660180f9308455f40"
+    },
+    "animations": {
+      "archive": "Universal Animation Library[Standard].zip",
+      "sha256": "cc73fc4e495b82958207316596317a3f40b9fa38065bde1027937452da537724"
+    }
+  },
+  "modifications": [
+    "Combined outfits, head-only base meshes and hair on the shared named hierarchy, preserving each mesh skin bind.",
+    "Removed triangles below the head/neck skin influences.",
+    "Compacted referenced mesh and animation buffers; removed unused body vertices and unselected animation data.",
+    "Set engine texture imports to a 1024-pixel limit with mipmaps; source image bytes are unchanged.",
+    "Selected seven supplied in-place animation clips.",
+    "Remapped mannequin animation deltas onto each outfit rest pose after verifying the named hierarchy.",
+    "Corrected missing eye/hair normal URIs to the verified adjacent Godot normal maps."
+  ]
+}
