@@ -97,6 +97,15 @@ func run():
  await app.load_campaign()
  assert(app.game.phase=="player" and app.game.turn==2 and app.game.rng.state==before,"Reload completes an interrupted enemy phase without repeating already resolved attacks")
  app.game.new_campaign(true);app.game.death_door=true;app.game.action_saves=true;app.game.start_battle()
+ var medic=app.game.units.filter(func(unit):return unit.weapon=="staff")[0];patient=app.game.units[1]
+ medic.x=2;medic.y=3;patient.x=3;patient.y=3;casualty(app.game,patient);assert(Door.rescue(app.game,medic,patient))
+ app.game.begin_enemy_phase();app.game.next_player_turn();app.make_map();app.show_battle();app.selected=medic;app.show_triage()
+ var healing_button=app.ui.find_children("*","Button",true,false).filter(func(button):return button.text=="Heal carried "+patient.name)
+ assert(healing_button.size()==1);healing_button[0].pressed.emit()
+ assert(app.busy and app.screen=="battle" and patient.hp>0,"Carried-ally treatment routes into real healing feedback after resolving health")
+ while app.busy:await process_frame
+ assert(medic.acted and patient.acted and app.unit_nodes.has(patient.id) and not app.unit_nodes[patient.id].downed,"Healing returns both units to the tactical map with spent actions")
+ app.game.new_campaign(true);app.game.death_door=true;app.game.action_saves=true;app.game.start_battle()
  var leader=app.game.units[0];casualty(app.game,leader);leader.bleed_turns=1
  app.make_map();app.show_battle();var state=app.game.rng.state
  var health=app.game.living("player").map(func(unit):return unit.hp)

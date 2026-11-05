@@ -2,6 +2,10 @@
 
 These are independent switches in Options, all off for an existing campaign unless its save already enabled them. Permadeath remains a separate toggle. Debug mode creates a temporary sandbox with a different save slot; disabling it restores the original live campaign. Use **Open debug tools** to load a chapter, make a selected ally fall, heal/revive units, or test the real retreat path.
 
+The debug seed control accepts whole numbers from 0 through 2147483647. **Apply seed to next rolls** changes the sandbox’s random stream immediately. Loading a chapter, clean-resetting a battle or reviving/resetting the company reuses that seed; ordinary penalty retreats follow the campaign’s restart rules. The same seed, settings and sequence of actions reproduce the same results.
+
+**View experiment report** opens a read-only JSON record of the rules, seed, current random state, casualties, pressure and combatants. It includes a transfer code to restore the exact position in another debug session. Viewing or copying the report does not change the simulation. Reports stay local unless you choose to share them.
+
 ## Current rules
 
 | Switch | Behavior |

@@ -717,6 +717,8 @@ func _input(event):
 		get_viewport().set_input_as_handled()
 
 func _unhandled_input(event):
+	if screen=="debug_report" and event is InputEventKey and event.pressed and event.keycode==KEY_ESCAPE:
+		show_debug_tools(options_return);get_viewport().set_input_as_handled();return
 	if screen=="triage" and event is InputEventKey and event.pressed and event.keycode==KEY_ESCAPE:
 		show_battle();get_viewport().set_input_as_handled();return
 	if screen=="debug_tools" and event is InputEventKey and event.pressed and event.keycode==KEY_ESCAPE:
@@ -1596,12 +1598,18 @@ func show_debug_tools(return_to: String):
 	label_in(panel,"DEBUG / TEMPORARY SANDBOX",17,GOLD)
 	label_in(panel,"Experiment with the company",36,GOLD)
 	label_in(panel,"Changes save only to the debug slot. Turn Debug mode off in Options to restore the original campaign.",19)
+	label_in(panel,"Reproduce a run",23,GOLD)
+	var seed_input=SpinBox.new();seed_input.name="DebugSeed";seed_input.min_value=0;seed_input.max_value=2147483647;seed_input.step=1;seed_input.value=debug_session.combat_seed;seed_input.custom_minimum_size.y=42;panel.add_child(seed_input)
+	button_in(panel,"Apply seed to next rolls",func():
+		if debug_session.set_combat_seed(game,seed_input.value):persist_campaign("battle" if options_return=="battle" else "camp");show_notice("Combat seed applied. Chapter loads and clean resets reuse it."))
+	label_in(panel,"The same seed, rules and actions reproduce the same rolls. Clean resets reuse this seed; penalty retreats follow the campaign’s restart rules.",16)
+	button_in(panel,"View experiment report",show_debug_report)
 	var chapters=OptionButton.new();chapters.name="DebugChapter";chapters.custom_minimum_size.y=42
 	for index in range(game.content.chapters.size()):chapters.add_item("%02d · %s"%[index+1,game.content.chapters[index].title])
 	chapters.selected=game.chapter;panel.add_child(chapters)
 	button_in(panel,"Load chapter with fresh roster",func():
 		debug_session.load_chapter(game,chapters.selected);make_map();show_battle();persist_campaign("battle"))
-	button_in(panel,"Reset current battle",func():game.start_battle();make_map();show_battle();persist_campaign("battle"))
+	button_in(panel,"Reset current battle",func():debug_session.reset_battle(game);make_map();show_battle();persist_campaign("battle"))
 	button_in(panel,"Heal deployed allies",func():
 		debug_session.heal(game);persist_campaign("battle" if options_return=="battle" else "camp");show_notice("Living allies restored to full health."))
 	button_in(panel,"Revive company and reset battle",func():
@@ -1620,6 +1628,20 @@ func show_debug_tools(return_to: String):
 	,allies.item_count==0)
 	button_in(panel,"Return to preparation",func():game.units.clear();game.phase="player";show_camp();persist_campaign("camp"))
 	button_in(frame,"Return to Options",func():show_options(options_return))
+
+func show_debug_report():
+	if not debug_session.active:return
+	screen="debug_report";reset_ui()
+	var panel=menu_panel(1040)
+	label_in(panel,"EXPERIMENT REPORT",18,GOLD);label_in(panel,"A reproducible battle record",36,GOLD)
+	label_in(panel,"Copy the rules, seed, casualties and unit states for comparison. The included save code can restore this exact position in another debug session.",19)
+	var report=TextEdit.new();report.name="DebugReport";report.editable=false;report.wrap_mode=TextEdit.LINE_WRAPPING_BOUNDARY
+	report.custom_minimum_size.y=160;report.size_flags_vertical=Control.SIZE_EXPAND_FILL;report.add_theme_font_size_override("font_size",14)
+	report.text=JSON.stringify(debug_session.report(game,"battle" if options_return=="battle" else "camp"),"\t");panel.add_child(report)
+	var actions=HBoxContainer.new();actions.add_theme_constant_override("separation",12);panel.add_child(actions)
+	button_in(actions,"Copy report",func():DisplayServer.clipboard_set(report.text);show_notice("Experiment report copied."))
+	button_in(actions,"Select all text",func():report.grab_focus();report.select_all())
+	button_in(panel,"Return to debug tools",func():show_debug_tools(options_return))
 
 func action_save_ready() -> bool:
 	return not game.action_saves or not save_failed or persist_campaign("battle")
@@ -1687,7 +1709,11 @@ func drop_ally(tile: Vector2i):
 
 func heal_carried_ally(patient: Dictionary):
 	if busy or selected==null or not action_save_ready():return
-	if game.heal(selected,patient) and checkpoint_action():show_battle();finish_action()
+	var healer=selected;var before=game.progress_snapshot();var old_hp=patient.hp
+	if not game.heal(healer,patient) or not checkpoint_action():return
+	busy=true;show_battle();refresh_pieces();update_side()
+	await staff_healing(healer,patient,int(patient.hp-old_hp));await show_progress(before)
+	busy=false;finish_action()
 
 func campaign_save_path() -> String:
 	return save_path+".debug" if debug_session.active else save_path

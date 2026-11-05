@@ -27,10 +27,21 @@ func inspect(app):
 func run():
  var rules=Rules.new();rules.new_campaign(true);rules.start_battle()
  var session=Session.new();var original=rules.save_data("battle").duplicate(true)
- session.load_chapter(rules,11);session.heal(rules);session.revive(rules)
+ session.load_chapter(rules,11);session.heal(rules);session.revive(rules);session.reset_battle(rules)
+ assert(not session.set_combat_seed(rules,17) and session.report(rules).is_empty())
  assert(rules.save_data("battle")==original,"Disabled debug methods cannot change gameplay")
  session.begin(rules,"battle");rules.turn=8;session.begin(rules,"camp")
  session.load_chapter(rules,-1);session.load_chapter(rules,12);assert(rules.turn==8,"Out-of-range chapter requests have no effect")
+ assert(not session.set_combat_seed(rules,-1) and not session.set_combat_seed(rules,1.5) and not session.set_combat_seed(rules,"bad"))
+ assert(session.set_combat_seed(rules,17));session.reset_battle(rules)
+ var initial=rules.rng.state;var a=rules.units[0];var b=rules.living("enemy")[0];a.x=8;a.y=4;b.x=9;b.y=4
+ var outcome=rules.combat(a,b);var state=rules.rng.state
+ session.reset_battle(rules);assert(rules.rng.state==initial)
+ a=rules.units[0];b=rules.living("enemy")[0];a.x=8;a.y=4;b.x=9;b.y=4
+ assert(rules.combat(a,b)==outcome and rules.rng.state==state,"A seeded clean reset reproduces the actual exchange and random stream")
+ var before_report=rules.save_data("battle").duplicate(true);var report=session.report(rules)
+ assert(report.seed_for_new_attempts==17 and report.rng_state==str(state) and report.combatants.size()==rules.units.size() and rules.save_data("battle")==before_report,"Report inspection is read-only")
+ var replay=Rules.new();assert(replay.import_code(report.save_code)=="battle" and replay.rng.state==state and replay.units[0].hp==a.hp,"Reports carry an exact restorable position")
  assert(session.end(rules)=="battle" and rules.save_data("battle")==original,"Repeated enabling never overwrites the original checkpoint")
  root.size=Vector2i(1440,900)
  var app=load("res://main.tscn").instantiate();app.settings_path="/private/tmp/poem-debug-preferences.json";app.save_path="/private/tmp/poem-debug-campaign.json"
@@ -46,10 +57,18 @@ func run():
  app.ui.find_child("Permadeath",true,false).button_pressed=false
  assert(not app.game.permadeath,"Experimental rule toggle applies immediately")
  press(app,"Open debug tools");await inspect(app)
+ app.ui.find_child("DebugSeed",true,false).value=309;press(app,"Apply seed to next rolls")
+ assert(app.debug_session.combat_seed==309)
+ press(app,"View experiment report");await inspect(app)
+ var report_text=app.ui.find_child("DebugReport",true,false)
+ assert(not report_text.editable and JSON.parse_string(report_text.text).seed_for_new_attempts==309)
+ press(app,"Return to debug tools")
  var chooser=app.ui.find_child("DebugChapter",true,false)
  assert(chooser.item_count==12);chooser.select(11);press(app,"Load chapter with fresh roster")
  assert(app.screen=="battle" and app.game.chapter==11 and not app.game.permadeath and app.game.phase=="player","Chapter loader opens the actual chosen map with the experimental rule")
  assert("DEBUG" in app.status.text and not app.busy)
+ var expected_rng=RandomNumberGenerator.new();expected_rng.seed=309
+ assert(app.game.rng.state==expected_rng.state,"Fresh chapter loads use the chosen seed")
  var loaded=Rules.new();assert(loaded.load_game(app.save_path+".debug")=="battle" and loaded.chapter==11,"Debug actions persist into the separate slot")
  assert(FileAccess.get_file_as_string(app.save_path)==disk,"Chapter jump cannot overwrite the normal save")
  var ally=app.game.living("player")[0];ally.hp=1;ally.acted=true;var rng=app.game.rng.state
