@@ -62,6 +62,8 @@ func run():
  press(app,"View experiment report");await inspect(app)
  var report_text=app.ui.find_child("DebugReport",true,false)
  assert(not report_text.editable and JSON.parse_string(report_text.text).seed_for_new_attempts==309)
+ assert(report_text.text.find("\"settings\"")<report_text.text.find("\"save_code\""),"Readable report settings precede the long restore code")
+ assert(app.ui.find_children("*","Button",true,false).any(func(button):return button.text=="Copy restore code" and not button.disabled))
  press(app,"Return to debug tools")
  var chooser=app.ui.find_child("DebugChapter",true,false)
  assert(chooser.item_count==12);chooser.select(11);press(app,"Load chapter with fresh roster")

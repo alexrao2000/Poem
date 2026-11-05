@@ -10,6 +10,7 @@ static var selected_material: StandardMaterial3D
 var unit_id=""
 var downed=false
 var commander_insignia: Sprite3D
+var rescue_marker: Sprite3D
 var reaction_motion: Tween
 var reaction_origin=Vector3.ZERO
 var departing=false
@@ -31,6 +32,14 @@ func configure(source: RefCounted,unit: Dictionary,facing="south"):
  ring.cast_shadow=GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
  marker.cast_shadow=GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
  player.play("idle",facing);update_frame()
+ if downed:
+  rescue_marker=Sprite3D.new();rescue_marker.name="RescueCountdown"
+  rescue_marker.texture=preload("res://assets/ui/rescue-one.svg") if unit.get("bleed_turns",2)==1 else preload("res://assets/ui/rescue-two.svg")
+  rescue_marker.set_meta("turns",unit.get("bleed_turns",2))
+  rescue_marker.billboard=BaseMaterial3D.BILLBOARD_ENABLED;rescue_marker.texture_filter=BaseMaterial3D.TEXTURE_FILTER_LINEAR
+  rescue_marker.pixel_size=1.0/80;rescue_marker.position.y=(sprite.texture.get_height()+sprite.offset.y)*sprite.pixel_size*sprite.scale.y+.29
+  rescue_marker.no_depth_test=true;rescue_marker.render_priority=4;rescue_marker.cast_shadow=GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+  add_child(rescue_marker)
  if unit.get("boss",false) and team=="enemy":
   var insignia=Sprite3D.new();insignia.name="CommanderInsignia";insignia.texture=preload("res://assets/ui/commander.svg")
   insignia.billboard=BaseMaterial3D.BILLBOARD_ENABLED;insignia.texture_filter=BaseMaterial3D.TEXTURE_FILTER_LINEAR
@@ -150,6 +159,7 @@ func set_defeat_opacity(value: float):
  defeat_opacity=clampf(value,0,1);sprite.modulate.a=defeat_opacity;health.modulate.a=defeat_opacity
  marker.material_override.albedo_color.a=defeat_opacity
  if is_instance_valid(commander_insignia):commander_insignia.modulate.a=defeat_opacity
+ if is_instance_valid(rescue_marker):rescue_marker.modulate.a=defeat_opacity
 
 func screen_bounds(camera: Camera3D) -> Rect2:
  var foot=global_position+sprite.position
@@ -161,11 +171,18 @@ func screen_bounds(camera: Camera3D) -> Rect2:
  var bounds=Rect2(projected+corner,texture_size*pixel_scale)
  if is_instance_valid(commander_insignia) and commander_insignia.visible:
   bounds=bounds.merge(commander_screen_bounds(camera))
+ if is_instance_valid(rescue_marker) and rescue_marker.visible:bounds=bounds.merge(rescue_screen_bounds(camera))
  return bounds
 
 func commander_screen_bounds(camera: Camera3D) -> Rect2:
- if not is_instance_valid(commander_insignia) or not commander_insignia.is_visible_in_tree():return Rect2()
- var center=camera.unproject_position(commander_insignia.global_position)
- var density=center.distance_to(camera.unproject_position(commander_insignia.global_position+camera.global_basis.x))
- var extent=commander_insignia.texture.get_size()*commander_insignia.pixel_size*density
+ return marker_screen_bounds(commander_insignia,camera)
+
+func rescue_screen_bounds(camera: Camera3D) -> Rect2:
+ return marker_screen_bounds(rescue_marker,camera)
+
+func marker_screen_bounds(icon: Sprite3D,camera: Camera3D) -> Rect2:
+ if not is_instance_valid(icon) or not icon.is_visible_in_tree():return Rect2()
+ var center=camera.unproject_position(icon.global_position)
+ var density=center.distance_to(camera.unproject_position(icon.global_position+camera.global_basis.x))
+ var extent=icon.texture.get_size()*icon.pixel_size*density
  return Rect2(center-extent*.5,extent)

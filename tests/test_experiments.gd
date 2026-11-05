@@ -86,6 +86,16 @@ func run():
  var patient=app.game.units[1];patient.x=3;patient.y=2;casualty(app.game,patient)
  app.refresh_pieces();app.selected=ally;app.update_side();await process_frame
  assert(app.unit_nodes.has(patient.id) and app.unit_nodes[patient.id].downed,"Downed units remain visible on the tactical map")
+ var downed_actor=app.unit_nodes[patient.id];var badge=downed_actor.rescue_marker
+ assert(badge.get_meta("turns")==2 and badge.texture.get_size()==Vector2(64,36),"The tactical rescue badge shows the actual remaining phase endings")
+ var point=app.camera.unproject_position(badge.global_position)
+ assert(downed_actor.screen_bounds(app.camera).has_point(point) and app.pick_map_unit(point)==patient,"Clicking the rescue badge inspects its downed ally")
+ for foe in app.game.living("enemy"):foe.ai="guard"
+ app.end_turn()
+ assert(app.unit_nodes[patient.id].rescue_marker.get_meta("turns")==1,"The rescue badge updates before the enemy-phase announcement")
+ while app.busy:await process_frame
+ assert(app.unit_nodes[patient.id].rescue_marker.texture.resource_path.ends_with("rescue-one.svg"),"The last opportunity uses the urgent one-turn badge")
+ app.selected=ally;app.update_side()
  app.show_triage()
  var rescue=app.ui.find_children("*","Button",true,false).filter(func(b):return b.text=="Rescue "+patient.name)
  assert(rescue.size()==1);rescue[0].pressed.emit();await process_frame
@@ -93,9 +103,9 @@ func run():
  assert(loaded.load_game(app.save_path)=="battle" and loaded.units[1].carried_by==ally.id,"Rescue autosaves its carrier relation")
  app.game.begin_enemy_phase()
  for foe in app.game.living("enemy"):foe.acted=true
- app.persist_campaign("battle");var before=app.game.rng.state
+ app.persist_campaign("battle");var before=app.game.rng.state;var next_turn=app.game.turn+1
  await app.load_campaign()
- assert(app.game.phase=="player" and app.game.turn==2 and app.game.rng.state==before,"Reload completes an interrupted enemy phase without repeating already resolved attacks")
+ assert(app.game.phase=="player" and app.game.turn==next_turn and app.game.rng.state==before,"Reload completes an interrupted enemy phase without repeating already resolved attacks")
  app.game.new_campaign(true);app.game.death_door=true;app.game.action_saves=true;app.game.start_battle()
  var medic=app.game.units.filter(func(unit):return unit.weapon=="staff")[0];patient=app.game.units[1]
  medic.x=2;medic.y=3;patient.x=3;patient.y=3;casualty(app.game,patient);assert(Door.rescue(app.game,medic,patient))
@@ -104,7 +114,7 @@ func run():
  assert(healing_button.size()==1);healing_button[0].pressed.emit()
  assert(app.busy and app.screen=="battle" and patient.hp>0,"Carried-ally treatment routes into real healing feedback after resolving health")
  while app.busy:await process_frame
- assert(medic.acted and patient.acted and app.unit_nodes.has(patient.id) and not app.unit_nodes[patient.id].downed,"Healing returns both units to the tactical map with spent actions")
+ assert(medic.acted and patient.acted and app.unit_nodes.has(patient.id) and not app.unit_nodes[patient.id].downed and app.unit_nodes[patient.id].rescue_marker==null,"Healing returns both units to the tactical map with spent actions")
  app.game.new_campaign(true);app.game.death_door=true;app.game.action_saves=true;app.game.start_battle()
  var leader=app.game.units[0];casualty(app.game,leader);leader.bleed_turns=1
  app.make_map();app.show_battle();var state=app.game.rng.state

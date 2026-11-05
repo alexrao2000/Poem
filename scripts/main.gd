@@ -768,7 +768,7 @@ func pick_map_unit(point: Vector2):
 	for unit in game.units:
 		if (unit.hp<=0 and not game.DeathDoor.downed(unit)) or not unit_nodes.has(unit.id):continue
 		var actor=unit_nodes[unit.id]
-		if actor.commander_screen_bounds(camera).has_point(point):return unit
+		if actor.commander_screen_bounds(camera).has_point(point) or actor.rescue_screen_bounds(camera).has_point(point):return unit
 		if not actor.screen_bounds(camera).has_point(point):continue
 		var depth=camera.unproject_position(actor.global_position).y
 		if depth>front:picked=unit;front=depth
@@ -839,7 +839,9 @@ func end_turn(resuming=false):
 	if busy or screen!="battle" or (game.phase!="player" and not resuming) or not action_save_ready():return
 	cancel_selection();busy=true
 	if not resuming:
+		var had_downed=game.units.any(func(unit):return game.DeathDoor.downed(unit))
 		game.begin_enemy_phase()
+		if had_downed:refresh_pieces();highlight()
 		if not checkpoint_action():return
 		if await check_result():busy=false;return
 		update_side();await announce_phase("enemy")
@@ -1640,9 +1642,11 @@ func show_debug_report():
 	label_in(panel,"Copy the rules, seed, casualties and unit states for comparison. The included save code can restore this exact position in another debug session.",19)
 	var report=TextEdit.new();report.name="DebugReport";report.editable=false;report.wrap_mode=TextEdit.LINE_WRAPPING_BOUNDARY
 	report.custom_minimum_size.y=160;report.size_flags_vertical=Control.SIZE_EXPAND_FILL;report.add_theme_font_size_override("font_size",14)
-	report.text=JSON.stringify(debug_session.report(game,"battle" if options_return=="battle" else "camp"),"\t");panel.add_child(report)
+	var record=debug_session.report(game,"battle" if options_return=="battle" else "camp")
+	report.text=JSON.stringify(record,"\t",false);panel.add_child(report)
 	var actions=HBoxContainer.new();actions.add_theme_constant_override("separation",12);panel.add_child(actions)
 	button_in(actions,"Copy report",func():DisplayServer.clipboard_set(report.text);show_notice("Experiment report copied."))
+	button_in(actions,"Copy restore code",func():DisplayServer.clipboard_set(record.save_code);show_notice("Restore code copied. Paste it into Transfer a local save in another debug session."))
 	button_in(actions,"Select all text",func():report.grab_focus();report.select_all())
 	button_in(panel,"Return to debug tools",func():show_debug_tools(options_return))
 
