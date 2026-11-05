@@ -54,6 +54,12 @@ func run():
  assert(actor.model.get_node("Hand").position.y<.8,"Replaying a held authored strike returns through its preparation clip")
  preview.play("hit");await preview.finished
  assert(actor.pose_name=="hit" and actor.model.get_node("Hand").position.is_equal_approx(Vector3(0,.6,0)),"A replacement preview cancels pending authored actions")
+ preview.play("advance")
+ var deadline=Time.get_ticks_msec()+350
+ while Time.get_ticks_msec()<deadline:await process_frame
+ assert(preview.playing and actor.player.is_playing() and actor.player.current_animation=="walk","Authored travel previews keep their original looping clip")
+ preview.play("guard");await preview.finished
+ assert(actor.pose_name=="guard" and not actor.player.is_playing(),"Leaving authored travel cancels its loop")
  preview.queue_free();await process_frame
  await actor.pose("strike",.05).finished
  assert(actor.model.get_node("Hand").position.is_equal_approx(Vector3(0,2,0)),"Strike reaches authored impact")

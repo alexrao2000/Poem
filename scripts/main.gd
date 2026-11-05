@@ -1256,6 +1256,7 @@ func show_model_view(unit,on_close=Callable()):
 	label_in(panel,"Preview action",15,GOLD)
 	var actions=[["Ready","idle"],["Attack preparation","windup"],["Critical preparation","critical_windup"],["Attack","strike"],["Recovery","recover"]]
 	if unit.weapon=="staff":actions=[["Ready","idle"],["Healing preparation","cast_windup"],["Heal","cast"]]
+	actions.insert(1,["Run / trot","advance"])
 	actions.append_array([["Guard","guard"],["Hit reaction","hit"],["Critical reaction","critical_hit"],["Defeated","down"],["Finishing flourish","victory_flourish"],["Finish","victory"]])
 	var choice=OptionButton.new();choice.name="PreviewAction";choice.custom_minimum_size.y=42
 	for entry in actions:

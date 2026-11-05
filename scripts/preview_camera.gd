@@ -31,6 +31,12 @@ func configure(subject: Node3D,view: Camera3D,panel: Control,poses: Array):
    var motion=actor.pose(key,1)
    for step in range(4):
     motion.custom_step(.25);actor.apply_constraints();measure()
+  if "advance" in poses:
+   var saved_phase=actor.gait_phase
+   actor.pose("advance",1).custom_step(1)
+   var stride=Actor.MountStride.LENGTH if actor.mounted else Actor.Stride.ROBE_LENGTH if actor.kind in ["magic","staff"] else Actor.Stride.LENGTH
+   for step in range(16):actor.advance_stride(stride*actor.global_basis.z.length()/16.0);actor.apply_constraints();measure()
+   actor.gait_phase=saved_phase
   actor.pose("idle",1).custom_step(1);actor.apply_constraints()
  measure()
  radius+=.08;low-=.08;high+=.08

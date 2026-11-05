@@ -3,7 +3,7 @@ const Fighters=preload("res://scripts/fighters.gd")
 const Rules=preload("res://scripts/rules.gd")
 const Framing=preload("res://scripts/preview_camera.gd")
 const Shutdown=preload("helpers/game_shutdown.gd")
-const POSES=["idle","windup","critical_windup","strike","recover","cast_windup","cast","guard","hit","critical_hit","down","victory_flourish","victory"]
+const POSES=["idle","advance","windup","critical_windup","strike","recover","cast_windup","cast","guard","hit","critical_hit","down","victory_flourish","victory"]
 func _initialize():call_deferred("run")
 func run():
  var viewport=SubViewport.new();viewport.size=Vector2i(1024,640);root.add_child(viewport)
@@ -33,6 +33,14 @@ func run():
         assert(not camera.is_position_behind(point) and area.has_point(camera.unproject_position(point)),"Complete outfit and weapon fit beside controls: "+unit.id+" "+path+" "+pose_key+" "+str(size_value)+" "+str(turn))
       assert(camera.transform==fixed and camera.h_offset==offset,"Pose and rotation never pump the sampled camera frame")
       samples+=1
+   actor.pose("advance",1).custom_step(1)
+   var stride=actor.MountStride.LENGTH if actor.mounted else actor.Stride.ROBE_LENGTH if actor.kind in ["magic","staff"] else actor.Stride.LENGTH
+   for step in range(16):
+    actor.advance_stride(stride*actor.global_basis.z.length()/16.0);actor.apply_constraints()
+    for size_value in [Vector2i(1024,640),Vector2i(1280,720),Vector2i(1440,900)]:
+     viewport.size=size_value;framing.reframe();actor.rotation.y=step*PI/8
+     for entry in framing.geometry:
+      for vertex in entry[1]:assert(framing.clear_rect().grow(.01).has_point(camera.unproject_position(entry[0].to_global(vertex))),"Running outfit stays inside the premeasured frame: "+unit.id+" "+path)
    assert(framing.radius==radius and framing.low==low and framing.high==high,"Measured envelope stays stable throughout normal actions")
    for zoom_value in [.6,1.3]:
     framing.zoom=zoom_value
@@ -57,6 +65,18 @@ func run():
   verify_gestures(app,framing)
   var selector=app.ui.find_child("PreviewAction",true,false)
   var actions=app.stage.get_node("PreviewActionPlayer")
+  var home=app.preview_actor.global_transform;var saved_campaign=app.game.save_data("camp").duplicate(true);var rng_before=app.game.rng.state
+  selector.select(1);selector.item_selected.emit(1)
+  var until=Time.get_ticks_msec()+450
+  while Time.get_ticks_msec()<until:await process_frame
+  assert(actions.playing and app.preview_actor.pose_name=="advance" and absf(app.preview_actor.gait_phase)>.01,"The real travel option keeps the combat gait moving after preparation")
+  var phase=app.preview_actor.gait_phase;var leg=app.preview_actor.bones.HorseLeg0 if app.preview_actor.mounted else app.preview_actor.bones.LeftLeg
+  var leg_rotation=leg.rotation
+  until=Time.get_ticks_msec()+120
+  while Time.get_ticks_msec()<until:await process_frame
+  assert(absf(angle_difference(phase,app.preview_actor.gait_phase))>.1 and leg.rotation.distance_to(leg_rotation)>.01,"Loop continues changing the actual limbs")
+  assert(app.preview_actor.global_transform.is_equal_approx(home),"Inspection travel never carries the actor off the stage")
+  assert(app.game.save_data("camp")==saved_campaign and app.game.rng.state==rng_before,"Travel inspection cannot alter campaign state")
   selector.select(selector.item_count-2);selector.item_selected.emit(selector.selected)
   assert(actions.playing and app.preview_actor.pose_name=="idle","Changing the action first returns through a readable ready pose")
   await actions.finished
@@ -71,7 +91,7 @@ func run():
   assert(app.preview_actor.pose_name==("windup" if job!="Warden" else "cast_windup"),"Attacks restart from their matching preparation after cancelling a prior selection")
   await actions.finished
   assert(app.preview_actor.pose_name==("strike" if job!="Warden" else "cast") and actions.pending.is_empty(),"Cancelled preview cannot later overwrite the selected action")
-  actions.play("recover");var interrupted=actions.current
+  actions.play("advance");var interrupted=actions.current
   app.close_model_view();await process_frame
   assert(app.screen=="dossier" and not is_instance_valid(framing) and not is_instance_valid(actions) and not interrupted.is_valid(),"Closing preview destroys camera/action controllers and cancels pending poses")
  await Shutdown.dispose(app);await process_frame

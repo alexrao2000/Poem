@@ -90,7 +90,7 @@ Read support ranks grant +5 Hit/Avoid per rank while the partner is nearby. Rank
 
 ### Character viewer and workshop
 
-Open **View character** from a dossier to rotate a recruit's 3D preview and choose attack, reaction, defeat, or finishing poses. Staff users can preview healing. **Play again** repeats a pose; **Escape** returns to the record or training choice.
+Open **View character** from a dossier to rotate a recruit's 3D preview and choose attack, reaction, defeat, or finishing poses. Staff users can preview healing. **Run / trot** loops the combat gait in place while you rotate or zoom the outfit. **Play again** restarts the selected action; **Escape** returns to the record or training choice.
 
 The title screen's **Character & map workshop** runs a separate skirmish with the same animated sprite foundation over either 2D tiles or 3D terrain. It does not write campaign saves. See the [reusable sprite package](visuals/README.md) for its preview scene, controls, and integration contract.
 

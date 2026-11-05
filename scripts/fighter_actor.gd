@@ -85,6 +85,9 @@ func update_locomotion():
  if displacement.length_squared()>.00000001:travel_direction=displacement.normalized()
  var travelled=displacement.dot(-global_basis.z.normalized())
  travel_previous=global_position
+ advance_stride(travelled)
+
+func advance_stride(travelled: float):
  var stride=MountStride.LENGTH if mounted else Stride.ROBE_LENGTH if kind in ["magic","staff"] else Stride.LENGTH
  var next_phase=gait_phase+travelled*TAU/(stride*global_basis.z.length())
  # Alternate contacts at each stride extremum, including reversed travel.
