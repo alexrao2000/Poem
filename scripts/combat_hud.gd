@@ -121,7 +121,7 @@ func configure(parent: Control,entries: Array):
   var matchup=MatchupMarker.new();matchup.name="WeaponMatchup";matchup.advantage=int(entry.get("triangle",0));matchup.visible=matchup.advantage!=0
   matchup.tooltip_text="Weapon advantage" if matchup.advantage>0 else "Weapon disadvantage";plate.add_child(matchup)
   var hp=make_label(plate,"",24,Color("fff8e7"));hp.horizontal_alignment=HORIZONTAL_ALIGNMENT_RIGHT
-  var meter=HealthMeter.new();meter.name="Health";meter.maximum=maxf(1,forecast.get("max_hp",unit.max_hp))
+  var meter=HealthMeter.new();meter.name="Health";meter.maximum=maxf(1,entry.get("health_max",forecast.get("max_hp",unit.max_hp)))
   meter.accent=Color("d98684") if plate.enemy else Color("8fc8b8")
   meter.mouse_filter=Control.MOUSE_FILTER_IGNORE;plate.add_child(meter)
   meter.value_changed.connect(func(amount):hp.text="%d / %d"%[ceili(amount),int(meter.maximum)])

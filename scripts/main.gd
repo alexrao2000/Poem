@@ -790,7 +790,7 @@ func click_tile(p: Vector2i):
 			var old_hp=u.hp
 			if game.heal(selected,u):
 				if not checkpoint_action():return
-				busy=true;update_side();await staff_healing(selected,u,u.hp-old_hp);await show_progress(before);busy=false;finish_action();return
+				busy=true;update_side();await staff_healing(selected,u,u.hp-old_hp,before);await show_progress(before);busy=false;finish_action();return
 	if u!=null and u.team=="player":
 		cancel_selection();selected=u;play_sfx("select");highlight();update_side();return
 	if u!=null and u.team=="enemy" and (selected==null or selected.team=="enemy"):
@@ -875,10 +875,13 @@ func end_turn(resuming=false):
 func make_fighter(u,position) -> Node3D:
 	return fighters.build(stage,u,position)
 
-func staff_healing(healer,recipient,amount: int):
+func staff_healing(healer,recipient,amount: int,before: Dictionary={}):
 	if not preferences.show_cinematic(healer.team):
 		play_sfx("heal");await map_heal_feedback(healer,recipient,amount);return
-	await cinematic(healer,recipient,[{"actor":healer.id,"target":recipient.id,"healing":amount}],{healer.id:healer.hp,recipient.id:recipient.hp-amount})
+	var old_max=before.get(healer.id,{}).get("max_hp",healer.max_hp)
+	var old_hp=healer.hp-(healer.max_hp-old_max)
+	var limits={healer.id:old_max,recipient.id:recipient.max_hp}
+	await cinematic(healer,recipient,[{"actor":healer.id,"target":recipient.id,"healing":amount,"health_limits":limits}],{healer.id:old_hp,recipient.id:recipient.hp-amount})
 
 func cinematic(a,b,events,initial_hp={}):
 	if events.is_empty():return
@@ -939,7 +942,7 @@ func cinematic(a,b,events,initial_hp={}):
 		var opponent=b if unit.id==a.id else a
 		var snapshot=events[0].get("exchange_forecast",{}).get(unit.id,{})
 		var triangle=0 if events[0].has("healing") else snapshot.triangle if not snapshot.is_empty() else game.forecast(unit,opponent).triangle
-		entries.append({"unit":unit,"hp":displayed_hp[unit.id],"portrait":portraits.get_unit_portrait(unit),"class_name":game.class_name_for(unit),"weapon":game.item_for(unit).name,"triangle":triangle,"forecast":snapshot})
+		entries.append({"unit":unit,"hp":displayed_hp[unit.id],"portrait":portraits.get_unit_portrait(unit),"class_name":game.class_name_for(unit),"weapon":game.item_for(unit).name,"triangle":triangle,"forecast":snapshot,"health_max":events[0].get("health_limits",{}).get(unit.id,snapshot.get("max_hp",unit.max_hp))})
 	var banner=CombatHUD.new();banner.configure(ui,entries);banner.reveal()
 	var caption=Label.new();caption.name="CombatCaption";caption.set_anchors_and_offsets_preset(Control.PRESET_TOP_WIDE);caption.offset_top=36;caption.horizontal_alignment=HORIZONTAL_ALIGNMENT_CENTER
 	caption.add_theme_font_size_override("font_size",30);caption.add_theme_color_override("font_color",Color("f7edce"));caption.add_theme_color_override("font_outline_color",Color("373d42"));caption.add_theme_constant_override("outline_size",7)
@@ -1712,7 +1715,7 @@ func heal_carried_ally(patient: Dictionary):
 	var healer=selected;var before=game.progress_snapshot();var old_hp=patient.hp
 	if not game.heal(healer,patient) or not checkpoint_action():return
 	busy=true;show_battle();refresh_pieces();update_side()
-	await staff_healing(healer,patient,int(patient.hp-old_hp));await show_progress(before)
+	await staff_healing(healer,patient,int(patient.hp-old_hp),before);await show_progress(before)
 	busy=false;finish_action()
 
 func campaign_save_path() -> String:

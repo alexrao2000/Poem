@@ -47,16 +47,18 @@ func run():
  var app=load("res://main.tscn").instantiate();app.settings_path="";app.save_path="/private/tmp/poem-healing-test.json";root.add_child(app);await process_frame
  app.preferences.values.auto_end=false
  var score=app.score
- for mode in ["all","player","map","skip_windup","skip_light"]:
+ for mode in ["all","player","map","skip_windup","skip_light","growth"]:
   app.game.start_battle();app.make_map();app.show_battle();app.preferences.values.combat=mode if mode in ["all","player","map"] else "all"
   app.stage.child_entered_tree.connect(watch_effect)
   var healer=app.game.units.filter(func(unit):return unit.id=="ivo")[0];var recipient=app.game.units[0]
   healer.x=4;healer.y=4;healer.xp=0;recipient.x=4;recipient.y=5;recipient.hp=recipient.max_hp-6
   if mode=="player":recipient.job="Rider"
+  if mode=="growth":healer.xp=90;healer.hp=healer.max_hp-3
+  var caster_hp=healer.hp;var caster_max=healer.max_hp;var saw_growth=false
   app.refresh_pieces();app.selected=healer
   var camera_position=app.camera.position;var rng=app.game.rng.state;var effect_count=light_count;var observed_hp=[];var did_skip=false
   app.click_tile(app.game.pos(recipient))
-  assert(app.busy and healer.acted and healer.xp==30 and recipient.hp==recipient.max_hp,"Staff action resolves health and experience once before presentation")
+  assert(app.busy and healer.acted and healer.xp==(20 if mode=="growth" else 30) and recipient.hp==recipient.max_hp,"Staff action resolves health and experience once before presentation")
   var resolved=app.game.save_data("battle").duplicate(true)
   # Repeated input during the cutaway must not spend another action or award XP.
   app.click_tile(app.game.pos(recipient))
@@ -66,13 +68,19 @@ func run():
    if hud!=null and not hud.is_queued_for_deletion():
     assert(not app.ui.get_node("CombatCaption").visible,"Healing uses its local number and health meter without a duplicate headline")
     observed_hp.append(hud.records[recipient.id].meter.value)
+    assert(hud.records[healer.id].meter.maximum==caster_max and hud.records[healer.id].meter.value==caster_hp,"Staff cutaway retains pre-growth caster HP and maximum")
+    assert(not hud.records[healer.id].stats.visible,"Healing health limits do not reveal attack statistics")
     assert(hud.records.values().all(func(record):return not record.plate.enemy and not record.matchup.visible),"Healing shows two allied nameplates")
    var actors=app.stage.get_children().filter(func(node):return node is Actor and not node.is_queued_for_deletion())
    if app.stage.visible and actors.size()==2:
     assert(actors[1].pose_name=="idle","Ally never recoils, dodges or falls during recovery")
     if mode=="skip_windup" and actors[0].pose_name=="cast_windup":app.skip_combat=true;did_skip=true
     if mode=="skip_light" and light_count>effect_count:app.skip_combat=true;did_skip=true
+   if mode=="growth" and is_instance_valid(app.reward_panel):
+    assert(app.reward_panel.leveled and healer.max_hp==caster_max+2 and healer.hp==caster_hp+2,"Growth follows the cutaway with the already resolved health gain")
+    saw_growth=true;app.reward_skip=true
    if mode=="map":assert(not app.stage.visible and app.camera.position==camera_position,"Quick healing retains the tactical camera")
+  if mode=="growth":assert(saw_growth,"Level-up is presented after the healing cutaway")
   assert(app.game.save_data("battle")==resolved and app.game.rng.state==rng,"Animation, repeated input and skip preserve HP, XP, support and RNG")
   assert(app.world.visible and app.pieces.visible and not app.stage.visible and app.camera.position==camera_position and app.camera.projection==Camera3D.PROJECTION_ORTHOGONAL,"Staff cutaway restores the complete map view")
   assert(app.unit_nodes[healer.id].spent and app.selected==null,"Completed recovery consumes exactly one field action")
