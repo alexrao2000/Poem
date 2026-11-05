@@ -31,6 +31,8 @@ func run():
     framing.measure()
     for size_value in [Vector2i(1024,640),Vector2i(1280,720),Vector2i(1440,900)]:
      app.ui.size=size_value;root.size=size_value;await process_frame;framing.reframe()
+     for button in app.ui.find_children("*","Button",true,false):
+      if button.is_visible_in_tree():assert(Rect2(Vector2.ZERO,size_value).grow(.1).encloses(button.get_global_rect()),"Study controls remain inside the smallest viewport")
      for turn in [0,2,4]:
       actor.rotation.y=turn*PI/3
       var clear=framing.clear_rect().grow(.01)
@@ -40,11 +42,21 @@ func run():
        for point in entry[1]:assert(clear.has_point(app.camera.unproject_position(entry[0].to_global(point))),"Original equipped sword fits the same preview")
       samples+=1
   var actions=app.stage.get_node("PreviewActionPlayer")
+  var target_choice=app.ui.find_child("StudyTarget",true,false);var contact_target=actor.get_node("StudyContactTarget")
+  for target_index in [1,2]:
+   target_choice.select(target_index);target_choice.item_selected.emit(target_index);await actions.finished
+   var target_edge=actor.weapon_trail_points()
+   assert(Geometry3D.get_closest_point_to_segment(contact_target.global_position,target_edge[0],target_edge[1]).distance_to(contact_target.global_position)<.006,"Actual viewer selection fits the strike to its visible target")
+   actor.rotation.y+=.7;await process_frame;await process_frame
+   assert(actor.contact.target.is_equal_approx(contact_target.global_position),"Study target follows inspection rotation")
+  target_choice.select(0);target_choice.item_selected.emit(0);await actions.finished
+  assert(not actor.contact.has_target and contact_target.parts.all(func(part):return not part.visible),"Disabling the target restores the unmodified source strike")
   actions.play("strike");await actions.finished
   assert(actor.pose_name=="strike" and not actor.player.is_playing())
   assert(is_equal_approx(actor.player.current_animation_position,.433),"Attack ends at the measured forward-crossing frame")
   var edge=actor.weapon_trail_points();var local_tip=actor.to_local(edge[1])
   assert(local_tip.z< -1.5 and absf(local_tip.x)<.05 and local_tip.y>1.2 and local_tip.y<1.5,"Source strike crosses directly in front at chest height")
+  target_choice.select(2);target_choice.item_selected.emit(2);await actions.finished
   actions.play("advance");await create_timer(.1).timeout
   assert(actions.playing and actor.player.is_playing())
   app.close_model_view();await process_frame

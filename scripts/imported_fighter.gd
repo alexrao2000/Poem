@@ -9,6 +9,7 @@ var sockets: Dictionary={}
 var pose_tween: Tween
 var skeletons=[]
 var attachments=[]
+var contact: SkeletonModifier3D
 
 func configure(scene: Node3D,spec: Dictionary) -> String:
  model=scene;add_child(model)
@@ -41,6 +42,20 @@ func configure(scene: Node3D,spec: Dictionary) -> String:
   sockets[key]=socket
  return ""
 
+func prepare_contact(spec: Dictionary) -> String:
+ if not spec.has("contact"):return ""
+ var setup=spec.contact
+ if not setup is Dictionary or not setup.get("skeleton") is String or not setup.get("bones") is Array:return "Invalid contact configuration"
+ if setup.bones.size()!=3 or not setup.bones.all(func(value):return value is String):return "Contact configuration needs three bone names"
+ if not sockets.has("trail_tip") or not sockets.has("trail_inner"):return "Contact correction needs blade-edge sockets"
+ var rig=model.get_node_or_null(NodePath(setup.skeleton)) as Skeleton3D
+ if rig==null:return "Contact skeleton is missing"
+ contact=preload("res://scripts/skeletal_contact.gd").new();rig.add_child(contact)
+ return contact.configure(rig,setup.bones,sockets.trail_inner,sockets.trail_tip)
+
+func aim_at(point: Vector3):
+ if contact!=null and point.is_finite():contact.target=point;contact.has_target=true
+
 func number(value) -> bool:
  return (value is float or value is int) and is_finite(float(value))
 
@@ -50,6 +65,7 @@ func finish_flourish(duration=.22) -> Tween:
 func pose(key: String,duration=.18) -> Tween:
  if pose_tween and pose_tween.is_valid():pose_tween.kill()
  pose_name=key
+ if contact!=null and key!="recover":contact.influence=0.0
  var fallback="windup" if key in ["throw_windup","cast_windup","critical_windup","critical_throw_windup"] else "strike" if key in ["throw","cast"] else "idle"
  if key=="critical_hit":fallback="hit"
  if key=="critical_throw_windup" and poses.has("throw_windup"):fallback="throw_windup"
@@ -62,7 +78,10 @@ func pose(key: String,duration=.18) -> Tween:
  player.play_section(mapping.clip,mapping.from,mapping.to,minf(.06,seconds*.25),speed)
  player.seek(mapping.from,true,true)
  refresh_skeleton()
- pose_tween=create_tween();pose_tween.tween_interval(seconds)
+ pose_tween=create_tween()
+ if contact!=null:
+  pose_tween.tween_property(contact,"influence",1.0 if key=="strike" and contact.has_target else 0.0,seconds)
+ else:pose_tween.tween_interval(seconds)
  if not looping:pose_tween.tween_callback(func():player.seek(mapping.to,true,true);player.pause();refresh_skeleton())
  return pose_tween
 
@@ -71,6 +90,7 @@ func refresh_skeleton():
  # Synchronize effect/weapon sockets before sampling a held contact or preview.
  for skeleton in skeletons:skeleton.force_update_all_bone_transforms()
  for attachment in attachments:attachment.on_skeleton_update()
+ if contact!=null:contact.sample_attachments()
 
 func socket_position(key: String) -> Vector3:
  if sockets.has(key):return sockets[key].global_position

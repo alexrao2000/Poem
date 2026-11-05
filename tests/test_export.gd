@@ -84,6 +84,10 @@ func run():
   app.show_source_model_view(gender);await process_frame
   assert(app.preview_actor is Imported,"Packaged debug model study uses its authored source wrapper")
   assert(app.preview_actor.weapon_trail_points().size()==2,"Packaged original sword keeps its animated trail sockets")
+  var target_choice=app.ui.find_child("StudyTarget",true,false);target_choice.select(2);target_choice.item_selected.emit(2)
+  await app.stage.get_node("PreviewActionPlayer").finished
+  var edge=app.preview_actor.weapon_trail_points();var point=app.preview_actor.get_node("StudyContactTarget").global_position
+  assert(Geometry3D.get_closest_point_to_segment(point,edge[0],edge[1]).distance_to(point)<.006,"Packaged skeletal strike reaches the mounted study target")
   app.close_model_view();await process_frame
  app.show_debug_report();assert(JSON.parse_string(app.ui.find_child("DebugReport",true,false).text).debug,"Packaged debug reports contain the current experiment record")
  assert(app.game.trials.scenes.size()==10,"Release includes relief, retreat, volunteer and memorial story scenes")

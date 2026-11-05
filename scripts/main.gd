@@ -1415,8 +1415,11 @@ func show_model_view(unit,on_close=Callable(),model_spec: Dictionary={}):
 		label_in(panel,"Quaternius source rig with Poem sword. Pose and grip study; campaign characters are unchanged.",17)
 	label_in(panel,game.class_name_for(unit)+" · "+game.item_for(unit).name,21)
 	var spacer=Control.new();spacer.size_flags_vertical=Control.SIZE_EXPAND_FILL;panel.add_child(spacer)
-	button_in(panel,"Turn left",func():preview_actor.rotation.y-=PI/6)
-	button_in(panel,"Turn right",func():preview_actor.rotation.y+=PI/6)
+	var turns: Control=panel
+	if not model_spec.is_empty():
+		turns=HBoxContainer.new();panel.add_child(turns)
+	button_in(turns,"Turn left",func():preview_actor.rotation.y-=PI/6).size_flags_horizontal=Control.SIZE_EXPAND_FILL
+	button_in(turns,"Turn right",func():preview_actor.rotation.y+=PI/6).size_flags_horizontal=Control.SIZE_EXPAND_FILL
 	label_in(panel,"Preview action",15,GOLD)
 	var actions=[["Ready","idle"],["Attack preparation","windup"],["Critical preparation","critical_windup"],["Attack","strike"],["Recovery","recover"]]
 	if unit.weapon=="staff":actions=[["Ready","idle"],["Healing preparation","cast_windup"],["Heal","cast"]]
@@ -1431,6 +1434,16 @@ func show_model_view(unit,on_close=Callable(),model_spec: Dictionary={}):
 	panel.add_child(choice)
 	var action_player=preload("res://scripts/preview_action.gd").new();action_player.name="PreviewActionPlayer";stage.add_child(action_player);action_player.configure(preview_actor)
 	choice.item_selected.connect(func(index):action_player.play(str(choice.get_item_metadata(index))))
+	if not model_spec.is_empty() and preview_actor.contact!=null:
+		var contact_target=preload("res://scripts/model_contact_target.gd").new();preview_actor.add_child(contact_target);contact_target.configure(preview_actor)
+		var target_choice=OptionButton.new();target_choice.name="StudyTarget";target_choice.custom_minimum_size.y=42
+		for label in ["Target: none","Target: standing foe","Target: mounted foe"]:target_choice.add_item(label)
+		panel.add_child(target_choice)
+		target_choice.item_selected.connect(func(index):
+			contact_target.choose(index)
+			for at in range(choice.item_count):
+				if choice.get_item_metadata(at)=="strike":choice.select(at);break
+			action_player.play("strike"))
 	button_in(panel,"Play again",func():action_player.play(str(choice.get_item_metadata(choice.selected))))
 	button_in(panel,"Return to debug tools [Esc]" if not model_spec.is_empty() else "Return to training [Esc]" if preview_return.is_valid() else "Return to record [Esc]",close_model_view)
 	var framing=preload("res://scripts/preview_camera.gd").new();framing.name="PreviewCamera";stage.add_child(framing)

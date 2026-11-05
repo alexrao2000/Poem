@@ -57,6 +57,14 @@
       "projectile": "Rig/Armature/Skeleton3D/WeaponHand/Grip",
       "trail_inner": "Rig/Armature/Skeleton3D/WeaponHand/Grip/Weapon/TrailInner",
       "trail_tip": "Rig/Armature/Skeleton3D/WeaponHand/Grip/Weapon/TrailTip"
+    },
+    "contact": {
+      "skeleton": "Rig/Armature/Skeleton3D",
+      "bones": [
+        "hand_r",
+        "lowerarm_r",
+        "upperarm_r"
+      ]
     }
   },
   "male": {
@@ -117,6 +125,14 @@
       "projectile": "Rig/Armature/Skeleton3D/WeaponHand/Grip",
       "trail_inner": "Rig/Armature/Skeleton3D/WeaponHand/Grip/Weapon/TrailInner",
       "trail_tip": "Rig/Armature/Skeleton3D/WeaponHand/Grip/Weapon/TrailTip"
+    },
+    "contact": {
+      "skeleton": "Rig/Armature/Skeleton3D",
+      "bones": [
+        "hand_r",
+        "lowerarm_r",
+        "upperarm_r"
+      ]
     }
   }
 }

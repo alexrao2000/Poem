@@ -51,6 +51,8 @@ func build(parent: Node3D,unit: Dictionary,position: Vector3) -> Node3D:
   error=actor.configure(scene,spec)
   if not error.is_empty():report(spec.scene+": "+error);actor.free();continue
   parent.add_child(actor);actor.position=position;actor.kind=unit.weapon
+  error=actor.prepare_contact(spec)
+  if not error.is_empty():report(spec.scene+": "+error);actor.free();continue
   actor.set_meta("source_model",spec.scene);actor.pose("idle",.01)
   return actor
  return null
