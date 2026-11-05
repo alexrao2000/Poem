@@ -826,6 +826,7 @@ func click_tile(p: Vector2i):
 			if game.heal(selected,u):
 				if not checkpoint_action():return
 				busy=true;update_side();await staff_healing(selected,u,u.hp-old_hp,before);await show_progress(before);busy=false;finish_action();return
+		if game.DeathDoor.can_rescue(game,selected,u):show_triage(u);return
 	if u!=null and u.team=="player":
 		cancel_selection();selected=u;play_sfx("select");highlight();update_side();return
 	if u!=null and u.team=="enemy" and (selected==null or selected.team=="enemy"):
@@ -1778,13 +1779,16 @@ func show_campaign_trials():
 		button_in(panel,"Replay · "+id.replace("_"," ").capitalize(),func():show_dialogue(game.trials.scenes[id],show_campaign_trials,"support"))
 	button_in(frame,"Return to war council",show_camp)
 
-func show_triage():
+func show_triage(focus_patient: Dictionary={}):
 	if selected==null or not game.can_act(selected):return
 	screen="triage";reset_ui()
 	var frame=menu_panel(720);var panel=scrolling_column(frame)
 	label_in(panel,"RESCUE & TRIAGE",18,GOLD);label_in(panel,selected.name,36,GOLD)
 	label_in(panel,"Carrying pauses bleeding and costs 2 movement. Healing revives the ally with their action spent. Rescue and drop each use your action.",20)
+	if not focus_patient.is_empty():
+		label_in(panel,"%s · %d player-phase ending(s) before loss"%[focus_patient.name,focus_patient.get("bleed_turns",0)],22,GOLD)
 	for patient in game.units:
+		if not focus_patient.is_empty() and patient.id!=focus_patient.id:continue
 		if game.DeathDoor.can_rescue(game,selected,patient):button_in(panel,"Rescue "+patient.name,func():rescue_ally(patient))
 		elif game.can_heal(selected,patient) and not patient.get("carried_by","").is_empty():button_in(panel,"Heal carried "+patient.name,func():heal_carried_ally(patient))
 	var carried=game.DeathDoor.passenger(game,selected)

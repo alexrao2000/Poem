@@ -6,6 +6,8 @@ User direction: keep developing continuously in this chat until the user returns
 
 ## Current checkpoint
 
+Adjacent downed allies now open a focused rescue choice when clicked with a ready non-staff rescuer. The choice shows the patient’s remaining phase endings and preserves selection, uncommitted movement and simulation state until confirmed. Staff clicks retain direct healing.
+
 2026-11-04 user-requested trial: Wang variation now supplies grass and earth on campaign ground and natural banks. Existing stone sampling and terrain control weights remain. See [art notes and texture comparison](docs/art-direction.md#wang-variation-for-natural-ground). This change is integrated into the resumed development branch.
 
 **Resumed by user request on 2026-11-04. See [RESUME.md](RESUME.md) for the development handoff.**

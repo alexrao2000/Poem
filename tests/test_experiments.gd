@@ -70,6 +70,25 @@ func verify_rules():
  assert(safe.result()=="victory");safe.finish_chapter();safe.start_battle()
  assert(safe.units.any(func(u):return u.id=="oren" and u.hp>0),"Victory evacuates downed allies before memorials are committed")
 
+func verify_rescue_selection(app):
+ app.game.new_campaign(true);app.game.death_door=true;app.game.start_battle();app.preferences.values.auto_end=false
+ var rescuer=app.game.units[0];var patient=app.game.units[1]
+ rescuer.x=2;rescuer.y=3;patient.x=4;patient.y=3;casualty(app.game,patient)
+ app.make_map();app.show_battle();app.selected=rescuer;app.click_tile(Vector2i(3,3))
+ while app.busy:await process_frame
+ var snapshot=app.game.save_data("battle").duplicate(true)
+ app.click_tile(app.game.pos(patient));await process_frame
+ assert(app.screen=="triage" and app.selected==rescuer and app.origin==Vector2i(2,3),"Clicking an adjacent patient keeps the rescuer and uncommitted move")
+ assert(app.game.save_data("battle")==snapshot,"Opening rescue choices consumes no action, movement or random roll")
+ var choices=app.ui.find_children("*","Button",true,false)
+ assert(choices.filter(func(button):return button.text.begins_with("Rescue ")).size()==1)
+ assert(app.ui.find_children("*","Label",true,false).any(func(label):return patient.name in label.text and "2 player-phase ending(s)" in label.text),"Focused rescue shows the patient's deadline")
+ choices.filter(func(button):return button.text=="Return to battle")[0].pressed.emit()
+ assert(app.screen=="battle" and app.selected==rescuer and app.origin==Vector2i(2,3) and app.game.save_data("battle")==snapshot)
+ app.click_tile(app.game.pos(patient))
+ app.ui.find_children("*","Button",true,false).filter(func(button):return button.text=="Rescue "+patient.name)[0].pressed.emit()
+ assert(patient.carried_by==rescuer.id and rescuer.acted and app.game.pos(rescuer)==Vector2i(3,3),"Confirming rescue uses the moved position and spends the action")
+
 func verify_drop_controls(app):
  app.game.new_campaign(true);app.game.death_door=true;app.game.start_battle();app.preferences.values.auto_end=false
  var carrier=app.game.units.filter(func(unit):return unit.weapon=="staff")[0];var patient=app.game.units[1]
@@ -179,6 +198,7 @@ func run():
  assert(app.busy and app.screen=="battle" and patient.hp>0,"Carried-ally treatment routes into real healing feedback after resolving health")
  while app.busy:await process_frame
  assert(medic.acted and patient.acted and app.unit_nodes.has(patient.id) and not app.unit_nodes[patient.id].downed and app.unit_nodes[patient.id].rescue_marker==null,"Healing returns both units to the tactical map with spent actions")
+ await verify_rescue_selection(app)
  await verify_drop_controls(app)
  app.game.new_campaign(true);app.game.death_door=true;app.game.action_saves=true;app.game.start_battle()
  var leader=app.game.units[0];casualty(app.game,leader);leader.bleed_turns=1
