@@ -38,7 +38,15 @@ func run():
  app.camera.size=15.25;app.camera.h_offset=1.5
  var map_view=app.camera.transform
  app.show_options("battle");await process_frame;await process_frame
- for control in app.ui.find_children("*","Button",true,false):assert(control.get_global_rect().end.y<=app.ui.size.y,"Options controls fit viewport")
+ for control in app.ui.find_children("*","Button",true,false):
+  var ancestor=control.get_parent();var scrolled=false
+  while ancestor!=app.ui:
+   if ancestor is ScrollContainer:scrolled=true;break
+   ancestor=ancestor.get_parent()
+  if not scrolled:assert(control.get_global_rect().end.y<=app.ui.size.y,"Fixed Options controls fit viewport")
+ var scroller=app.ui.find_children("*","ScrollContainer",true,false)[0]
+ scroller.ensure_control_visible(app.ui.find_child("AutoEnd",true,false));await process_frame;await process_frame
+ assert(scroller.get_global_rect().encloses(app.ui.find_child("AutoEnd",true,false).get_global_rect()),"Scrolled Options can reach the final setting")
  app.close_options();assert(app.screen=="battle","Options return to tactical play")
  assert(app.camera.transform==map_view and app.camera.size==15.25 and app.camera.h_offset==1.5,"Options preserve the tactical camera view")
  app.show_title();await process_frame;await process_frame

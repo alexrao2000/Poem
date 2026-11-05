@@ -8,6 +8,7 @@ static var contact_material: StandardMaterial3D
 static var selected_mesh: ArrayMesh
 static var selected_material: StandardMaterial3D
 var unit_id=""
+var downed=false
 var commander_insignia: Sprite3D
 var reaction_motion: Tween
 var reaction_origin=Vector3.ZERO
@@ -16,7 +17,7 @@ var defeat_opacity=1.0
 var defeat_motion: Tween
 
 func configure(source: RefCounted,unit: Dictionary,facing="south"):
- unit_id=unit.id;team=unit.team;spent=unit.acted
+ unit_id=unit.id;team=unit.team;spent=unit.acted;downed=unit.get("downed",false)
  hp_ratio=clampf(float(unit.hp)/maxf(1,unit.max_hp),0,1)
  var individual="recruit."+unit.id
  var enemy="enemy."+unit.job.to_lower()
@@ -82,6 +83,7 @@ func _process(dt):
  var breath=1.0+sin(clock*4)*.045
  ring.scale=Vector3(breath,1,breath)
  if team=="enemy" and not spent and not visual_id.begins_with("enemy."):sprite.modulate*=Color(1,.72,.68)
+ if downed:sprite.modulate=Color("d8a178");sprite.rotation.z=PI*.35
  if departing:set_defeat_opacity(defeat_opacity);ring.hide()
 
 func update_frame():

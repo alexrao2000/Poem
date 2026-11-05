@@ -26,6 +26,9 @@ var units: Array = []
 var deployed: Array = []
 var rng := RandomNumberGenerator.new()
 var completed: bool = false
+const DeathDoor=preload("res://scripts/death_door.gd")
+var death_door=false
+var action_saves=false
 var permadeath=false
 var battle_supports: Dictionary={}
 var story_seen: Array = []
@@ -39,6 +42,7 @@ func _init():
 
 func new_campaign(permadeath_enabled=false):
 	permadeath=permadeath_enabled
+	death_door=false;action_saves=false
 	chapter = 0
 	turn = 1
 	phase = "player"
@@ -67,7 +71,7 @@ func lost_ids(include_current=false) -> Array:
 	var ids=roster.filter(func(u):return u.get("fallen",false)).map(func(u):return u.id)
 	if include_current and permadeath:
 		for u in units:
-			if u.team=="player" and u.hp<=0 and u.id not in ids:ids.append(u.id)
+			if u.team=="player" and u.hp<=0 and not DeathDoor.downed(u) and u.id not in ids:ids.append(u.id)
 	return ids
 
 func bond_available(entry: Dictionary) -> bool:
@@ -130,11 +134,11 @@ func terrain_profile(p: Vector2i) -> Dictionary:
 
 func at(p: Vector2i):
 	for u in units:
-		if u.hp>0 and pos(u)==p: return u
+		if (u.hp>0 or DeathDoor.downed(u)) and u.get("carried_by","").is_empty() and pos(u)==p: return u
 	return null
 
 func living(team: String) -> Array:
-	return units.filter(func(u): return u.team==team and u.hp>0)
+	return units.filter(func(u): return u.team==team and u.hp>0 and u.get("carried_by","").is_empty())
 
 func distance(a: Dictionary,b: Dictionary) -> int:
 	return absi(int(a.x-b.x))+absi(int(a.y-b.y))
@@ -152,7 +156,7 @@ func reachable(u: Dictionary) -> Dictionary:
 			var other = at(q)
 			if other!=null and other.team!=u.team: continue
 			var cost = costs[p]+terrain_profile(q).move
-			if cost<=u.move and (not costs.has(q) or cost<costs[q]):
+			if cost<=movement_allowance(u) and (not costs.has(q) or cost<costs[q]):
 				costs[q]=cost
 				queue.append(q)
 	return costs
@@ -172,19 +176,24 @@ func movement_path(unit: Dictionary,destination: Vector2i) -> Array:
 		path.push_front(previous);point=previous
 	return path
 
+func movement_allowance(u: Dictionary) -> int:
+	return maxi(1,int(u.move)-(2 if DeathDoor.passenger(self,u)!=null else 0))
+
 func can_act(u: Dictionary) -> bool:
-	return u.hp>0 and u.team==phase and not u.acted
+	return u.get("carried_by","").is_empty() and u.hp>0 and u.team==phase and not u.acted
 
 func move_unit(u: Dictionary,destination: Vector2i) -> bool:
 	if not can_act(u) or u.get("moved",false):return false
 	if destination!=pos(u) and at(destination)!=null:return false
 	if not reachable(u).has(destination):return false
 	u.move_origin=[u.x,u.y];u.x=destination.x;u.y=destination.y;u.moved=true
+	DeathDoor.synchronize(self,u)
 	return true
 
 func undo_move(u: Dictionary) -> bool:
-	if not can_act(u) or not u.has("move_origin"):return false
+	if action_saves or not can_act(u) or not u.has("move_origin"):return false
 	u.x=u.move_origin[0];u.y=u.move_origin[1];u.moved=false;u.erase("move_origin")
+	DeathDoor.synchronize(self,u)
 	return true
 
 func wait_unit(u: Dictionary) -> bool:
@@ -224,11 +233,11 @@ func range_text(u: Dictionary) -> String:
 	return str(int(item.min_range)) if item.min_range==item.max_range else "%d–%d"%[item.min_range,item.max_range]
 
 func can_heal(a: Dictionary,b: Dictionary) -> bool:
-	return can_act(a) and a.weapon=="staff" and a.team==b.team and a.id!=b.id and b.hp>0 and b.hp<b.max_hp and in_weapon_range(a,distance(a,b))
+	return can_act(a) and a.weapon=="staff" and a.team==b.team and a.id!=b.id and (b.hp>0 or DeathDoor.downed(b)) and b.hp<b.max_hp and in_weapon_range(a,distance(a,b))
 
 func heal(a: Dictionary,b: Dictionary) -> bool:
 	if not can_heal(a,b):return false
-	b.hp=mini(b.max_hp,b.hp+healing_power(a));a.acted=true;award_xp(a,30);supports.earn(self,a)
+	b.hp=mini(b.max_hp,b.hp+healing_power(a));DeathDoor.recover(self,b);a.acted=true;award_xp(a,30);supports.earn(self,a)
 	return true
 
 func use_tonic(u: Dictionary) -> bool:
@@ -237,13 +246,14 @@ func use_tonic(u: Dictionary) -> bool:
 	return true
 
 func begin_enemy_phase():
+	DeathDoor.end_player_phase(self);commit_casualties()
 	phase="enemy"
 	for u in living("enemy"):
 		u.acted=false;u.moved=false;u.erase("move_origin")
 
 func can_attack(a: Dictionary,b: Dictionary) -> bool:
 	var d = distance(a,b)
-	return a.hp>0 and b.hp>0 and a.team!=b.team and in_weapon_range(a,d) and a.weapon!="staff"
+	return a.hp>0 and b.hp>0 and a.get("carried_by","").is_empty() and b.get("carried_by","").is_empty() and a.team!=b.team and in_weapon_range(a,d) and a.weapon!="staff"
 
 func forecast(a: Dictionary,b: Dictionary) -> Dictionary:
 	var support_attack=supports.nearby_rank(self,a);var support_defense=supports.nearby_rank(self,b)
@@ -262,6 +272,7 @@ func strike(a: Dictionary,b: Dictionary) -> Dictionary:
 	var crit = hit and rng.randi_range(0,99)<f.crit
 	var damage = mini(int(b.hp),int(f.damage)*(3 if crit else 1)) if hit else 0
 	b.hp -= damage
+	if b.hp<=0:DeathDoor.fall(self,b)
 	return {"actor":a.id,"target":b.id,"damage":damage,"crit":crit,"hit":hit,"remaining":b.hp}
 
 func combat(a: Dictionary,b: Dictionary) -> Array:
@@ -276,6 +287,7 @@ func combat(a: Dictionary,b: Dictionary) -> Array:
 		if f.double: result.append(strike(a,b))
 		elif attack_speed(b)-attack_speed(a)>=4 and can_attack(b,a): result.append(strike(b,a))
 	a.acted = true
+	commit_casualties()
 	for u in [a,b]:
 		if u.team=="player" and u.hp>0:
 			award_xp(u,45 if (b.hp<=0 if u==a else a.hp<=0) else 25)
@@ -301,7 +313,7 @@ func raise_stat(unit: Dictionary,key: String,amount: int) -> int:
 	return int(unit[key])-before
 
 func result() -> String:
-	if permadeath and units.any(func(u):return u.id=="lyra" and u.team=="player" and u.hp<=0):return "defeat"
+	if permadeath and units.any(func(u):return u.id=="lyra" and u.team=="player" and u.hp<=0 and not DeathDoor.downed(u)):return "defeat"
 	if living("player").is_empty(): return "defeat"
 	var boss_alive = units.any(func(u): return u.get("boss",false) and u.hp>0)
 	match info().objective:
@@ -323,7 +335,7 @@ func finish_chapter():
 		for r in roster:
 			if r.id==u.id:
 				for key in ["level","xp","max_hp","pow","defense","resistance","speed","item","reach"]:r[key]=u[key]
-				if permadeath and u.hp<=0:
+				if permadeath and u.hp<=0 and not DeathDoor.downed(u):
 					r.fallen=true;r.fallen_chapter=chapter;r.hp=0;deployed.erase(r.id)
 	chapter+=1
 	if chapter>=content.chapters.size():
@@ -342,11 +354,19 @@ func next_player_turn():
 	turn+=1
 	phase="player"
 	for u in units:
-		u.acted=false;u.moved=false;u.erase("move_origin")
+		u.acted=DeathDoor.downed(u);u.moved=false;u.erase("move_origin")
 		var recovery=terrain_profile(pos(u)).heal
 		if u.hp>0 and recovery>0:u.hp=mini(u.max_hp,u.hp+recovery)
 
-const SAVE_VERSION=4
+func commit_casualties():
+	if not action_saves or not permadeath:return
+	for unit in units:
+		if unit.team!="player" or unit.id=="lyra" or unit.hp>0 or DeathDoor.downed(unit):continue
+		for recruit in roster:
+			if recruit.id==unit.id:
+				recruit.fallen=true;recruit.fallen_chapter=chapter;recruit.hp=0;deployed.erase(unit.id)
+
+const SAVE_VERSION=5
 
 func layout_signature() -> String:
 	# Equipment changes are safe for an existing battle: each unit saves its item.
@@ -355,15 +375,17 @@ func layout_signature() -> String:
 	return JSON.stringify([info().map,info().deployment_positions,placement,info().objective_position]).sha256_text()
 
 func save_data(stage: String) -> Dictionary:
-	return {"version":SAVE_VERSION,"permadeath":permadeath,"battle_supports":battle_supports,"layout_signature":layout_signature(),"story_seen":story_seen,"supports":supports.state,"chapter":chapter,"turn":turn,"phase":phase,"roster":roster,"units":units,"deployed":deployed,"completed":completed,"rng":str(rng.state),"stage":stage}
+	return {"version":SAVE_VERSION,"death_door":death_door,"action_saves":action_saves,"permadeath":permadeath,"battle_supports":battle_supports,"layout_signature":layout_signature(),"story_seen":story_seen,"supports":supports.state,"chapter":chapter,"turn":turn,"phase":phase,"roster":roster,"units":units,"deployed":deployed,"completed":completed,"rng":str(rng.state),"stage":stage}
 
 func save_game(path: String,stage: String) -> bool:
 	var data=save_data(stage)
 	var file=FileAccess.open(path+".tmp",FileAccess.WRITE)
 	if file==null:return false
 	file.store_string(JSON.stringify(data));file.flush();file.close()
-	if FileAccess.file_exists(path) and DirAccess.copy_absolute(path,path+".bak")!=OK:return false
-	return DirAccess.rename_absolute(path+".tmp",path)==OK
+	if not action_saves and FileAccess.file_exists(path) and DirAccess.copy_absolute(path,path+".bak")!=OK:return false
+	if DirAccess.rename_absolute(path+".tmp",path)!=OK:return false
+	if action_saves:return DirAccess.copy_absolute(path,path+".bak")==OK
+	return true
 
 func valid_save(data) -> bool:
 	if not data is Dictionary:return false
@@ -371,8 +393,10 @@ func valid_save(data) -> bool:
 		if not data.has(key):return false
 	for key in ["version","chapter","turn"]:
 		if not (data[key] is float or data[key] is int) or not is_finite(float(data[key])) or data[key]!=int(data[key]):return false
-	if int(data.version) not in [1,2,3,SAVE_VERSION]:return false
-	if not data.get("permadeath",false) is bool:return false
+	if int(data.version) not in [1,2,3,4,SAVE_VERSION]:return false
+	for flag in ["permadeath","death_door","action_saves"]:
+		if not data.get(flag,false) is bool:return false
+		if int(data.version)>=5 and not data.has(flag):return false
 	if int(data.version)>=4 and not data.has("permadeath"):return false
 	if int(data.chapter)<0 or int(data.chapter)>=content.chapters.size() or int(data.turn)<1:return false
 	if data.phase not in ["player","enemy"] or data.stage not in ["camp","battle","ending"]:return false
@@ -408,10 +432,19 @@ func valid_save(data) -> bool:
 			if ids[unit.id].get("fallen",false) and unit.hp>0:return false
 		var grid=content.chapters[int(data.chapter)].map
 		if unit.x<0 or unit.y<0 or unit.x>=grid[0].length() or unit.y>=grid.size():return false
+	for unit in data.units:
+		if not unit.get("carried_by","").is_empty():
+			if not combat_ids.has(unit.carried_by):return false
+			var carriers=data.units.filter(func(other):return other.id==unit.carried_by)
+			var carrier=carriers[0]
+			if carrier.hp<=0 or carrier.team!="player" or unit.team!="player" or not carrier.get("carried_by","").is_empty() or carrier.id==unit.id:return false
+			if carrier.x!=unit.x or carrier.y!=unit.y:return false
+			if data.units.filter(func(other):return other.get("carried_by","")==carrier.id).size()!=1:return false
 	return true
 
 func valid_unit(unit,in_battle: bool) -> bool:
 	if not unit is Dictionary:return false
+	if not DeathDoor.valid(unit):return false
 	for key in ["id","name","job","weapon","color"]:
 		if not unit.get(key) is String:return false
 	if unit.name.length()>80 or not Color.html_is_valid(unit.color):return false
@@ -459,6 +492,7 @@ func restore_save(data) -> String:
 	if not valid_save(data):return ""
 	data=data.duplicate(true)
 	permadeath=data.get("permadeath",false)
+	death_door=data.get("death_door",false);action_saves=data.get("action_saves",false)
 	story_seen=data.get("story_seen",[])
 	supports.state=data.get("supports",{})
 	battle_supports=data.get("battle_supports",{}).duplicate(true)

@@ -334,7 +334,7 @@ func refresh_pieces():
 	for n in pieces.get_children():n.queue_free()
 	sprites.clear();unit_nodes.clear()
 	for u in game.units:
-		if u.hp<=0:continue
+		if (u.hp<=0 and not game.DeathDoor.downed(u)) or not u.get("carried_by","").is_empty():continue
 		var visual=MapUnit.new();visual.name=str(u.id).validate_node_name();visual.position=map_position(game.pos(u))
 		pieces.add_child(visual);visual.configure(map_catalog,u,map_facings.get(u.id,"south"))
 		visual.selected=selected!=null and selected.id==u.id
@@ -590,16 +590,20 @@ func update_side():
 				return Vector2(bounds.get_center().x,bounds.position.y))
 			label_in(side,("Foe has an effective counter!" if counter.effective else "Counter if both survive.") if f.counter else "Foe cannot counter at this range.",14,GOLD)
 			button_in(side,"Confirm attack",func():player_attack(),busy)
-		if selected.team=="player" and not selected.acted:
+		if selected.team=="player" and game.can_act(selected):
 			button_in(side,"Wait / secure position",wait_action,busy)
 			button_in(side,"Field tonic (+12 HP)  ·  "+str(int(selected.potions)),tonic,busy or selected.potions<=0 or selected.hp>=selected.max_hp)
 			if selected.weapon=="staff":label_in(side,"Heal %d HP · range %s. Click an injured ally."%[game.healing_power(selected),game.range_text(selected)],16,GOLD)
+		if game.DeathDoor.downed(selected):label_in(side,"Death’s door · %d turns to help"%selected.bleed_turns,17,GOLD)
+		if game.can_act(selected) and (game.DeathDoor.passenger(game,selected)!=null or game.units.any(func(patient):return game.DeathDoor.can_rescue(game,selected,patient) or (game.can_heal(selected,patient) and not patient.get("carried_by","").is_empty()))):
+			button_in(side,"Rescue & triage",show_triage,busy)
 	else:
 		label_in(side,"THE COMPANY",15,GOLD)
 		label_in(side,"%d allies  ·  %d enemies"%[game.living("player").size(),game.living("enemy").size()],18)
 		label_in(side,"Choose an ally to move or inspect a foe.",17,Color("6f6c5e"))
 		button_in(side,"Enemy ranges [R]: "+("on" if show_danger else "off"),toggle_danger,busy)
-	button_in(side,"End player phase",end_turn,busy)
+	if save_failed and game.action_saves:button_in(side,"Retry autosave",retry_action_save,busy)
+	button_in(side,"End player phase",end_turn,busy or game.phase!="player")
 	button_in(side,"Menu [M]",show_battle_menu,busy)
 	if is_instance_valid(battle_hint):
 		battle_hint.text="Arrows: cursor · Enter: select · Q/E: allies · M: menu"
@@ -607,6 +611,7 @@ func update_side():
 			battle_hint.text="Blue: move · Orange: reach · Enter: act · Esc: undo"
 			if selected.team=="enemy":battle_hint.text="Red tiles: enemy reach · R: all ranges · Esc: close"
 			elif selected.weapon=="staff":battle_hint.text="Blue: move · Green: heal · Enter: act · Esc: undo"
+			if game.action_saves:battle_hint.text=battle_hint.text.replace("Esc: undo","Esc: deselect")
 	arrange_battle_side()
 
 func arrange_battle_side():
@@ -702,6 +707,8 @@ func _input(event):
 		get_viewport().set_input_as_handled()
 
 func _unhandled_input(event):
+	if screen=="triage" and event is InputEventKey and event.pressed and event.keycode==KEY_ESCAPE:
+		show_battle();get_viewport().set_input_as_handled();return
 	if screen=="debug_tools" and event is InputEventKey and event.pressed and event.keycode==KEY_ESCAPE:
 		show_options(options_return);get_viewport().set_input_as_handled();return
 	if screen in ["credits","campaign_rules"] and event is InputEventKey and event.pressed and event.keycode==KEY_ESCAPE:
@@ -747,7 +754,7 @@ func _unhandled_input(event):
 func pick_map_unit(point: Vector2):
 	var picked=null;var front=-INF
 	for unit in game.units:
-		if unit.hp<=0 or not unit_nodes.has(unit.id):continue
+		if (unit.hp<=0 and not game.DeathDoor.downed(unit)) or not unit_nodes.has(unit.id):continue
 		var actor=unit_nodes[unit.id]
 		if actor.commander_screen_bounds(camera).has_point(point):return unit
 		if not actor.screen_bounds(camera).has_point(point):continue
@@ -761,7 +768,7 @@ func cancel_selection():
 	selected=null;target=null;origin=null;refresh_pieces();highlight();update_side()
 
 func click_tile(p: Vector2i):
-	if busy:return
+	if busy or not action_save_ready():return
 	if is_instance_valid(terrain_card):terrain_card.inspect(game,p)
 	var u=game.at(p)
 	if selected!=null and selected.team=="player" and not selected.acted and u!=null:
@@ -770,6 +777,7 @@ func click_tile(p: Vector2i):
 			var before=game.progress_snapshot()
 			var old_hp=u.hp
 			if game.heal(selected,u):
+				if not checkpoint_action():return
 				busy=true;update_side();await staff_healing(selected,u,u.hp-old_hp);await show_progress(before);busy=false;finish_action();return
 	if u!=null and u.team=="player":
 		cancel_selection();selected=u;play_sfx("select");highlight();update_side();return
@@ -779,29 +787,32 @@ func click_tile(p: Vector2i):
 		origin=game.pos(selected)
 		var path=game.movement_path(selected,p)
 		if game.move_unit(selected,p):
+			if not checkpoint_action():return
 			target=null;busy=true;highlight();update_side()
 			await animate_map_move(selected,path)
 			busy=false;refresh_pieces();highlight();update_side()
 		else:origin=null
 
 func wait_action():
-	if busy or selected==null:return
-	if game.wait_unit(selected):finish_action()
+	if busy or selected==null or not action_save_ready():return
+	if game.wait_unit(selected) and checkpoint_action():show_battle();finish_action()
 
 func tonic():
-	if busy or selected==null:return
+	if busy or selected==null or not action_save_ready():return
 	var unit=selected;var old_hp=unit.hp
 	if game.use_tonic(unit):
+		if not checkpoint_action():return
 		busy=true;play_sfx("heal");update_side();await map_heal_feedback(unit,unit,unit.hp-old_hp);busy=false;finish_action()
 
 func player_attack():
-	if busy or selected==null or target==null:return
+	if busy or selected==null or target==null or not action_save_ready():return
 	busy=true
 	update_side()
 	var a=selected;var b=target
 	var initial_hp={a.id:a.hp,b.id:b.hp}
 	var before=game.progress_snapshot()
 	var events=game.combat(a,b)
+	if not checkpoint_action():return
 	await cinematic(a,b,events,initial_hp)
 	await show_progress(before)
 	busy=false;finish_action()
@@ -812,10 +823,15 @@ func finish_action():
 	persist_campaign("battle")
 	if preferences.values.auto_end and game.living("player").all(func(u):return u.acted):end_turn()
 
-func end_turn():
-	if busy or screen!="battle":return
-	cancel_selection();busy=true;game.begin_enemy_phase();update_side();await announce_phase("enemy")
+func end_turn(resuming=false):
+	if busy or screen!="battle" or not action_save_ready():return
+	cancel_selection();busy=true
+	if not resuming:
+		game.begin_enemy_phase()
+		if not checkpoint_action():return
+		update_side();await announce_phase("enemy")
 	for e in game.living("enemy"):
+		if e.acted:continue
 		if game.living("player").is_empty():break
 		var choice=tactics.plan(game,e)
 		var candidates=game.units.filter(func(u):return u.id==choice.target)
@@ -826,6 +842,7 @@ func end_turn():
 		var path=game.movement_path(e,choice.position)
 		await animate_map_move(e,path)
 		var events=tactics.apply_plan(game,e,choice)
+		if not checkpoint_action():return
 		highlight();await get_tree().create_timer(.12).timeout
 		if chosen!=null and not events.is_empty():
 			await cinematic(e,chosen,events,initial_hp)
@@ -833,6 +850,7 @@ func end_turn():
 		refresh_pieces()
 		if game.result()!="":break
 	game.next_player_turn();update_side();refresh_pieces();highlight()
+	if not checkpoint_action():return
 	if await check_result():busy=false;return
 	var allies=game.living("player")
 	if not allies.is_empty():await frame_map_action([allies[0]])
@@ -1131,7 +1149,7 @@ func check_result() -> bool:
 			if unit.team!="player":continue
 			var row=HBoxContainer.new();row.size_flags_horizontal=Control.SIZE_EXPAND_FILL;summary.add_child(row)
 			var portrait=TextureRect.new();portrait.texture=portraits.get_portrait(unit.id);portrait.custom_minimum_size=Vector2(55,55);portrait.expand_mode=TextureRect.EXPAND_IGNORE_SIZE;portrait.stretch_mode=TextureRect.STRETCH_KEEP_ASPECT_CENTERED;row.add_child(portrait)
-			label_in(row,"%s · Lv %d\n%s"%[unit.name,unit.level,"Ready for the next march" if unit.hp>0 else "Fallen — permanently lost" if game.permadeath else "Recovering at camp"],16)
+			label_in(row,"%s · Lv %d\n%s"%[unit.name,unit.level,"Rescued after battle" if game.DeathDoor.downed(unit) else "Ready for the next march" if unit.hp>0 else "Fallen — permanently lost" if game.permadeath else "Recovering at camp"],16)
 		button_in(frame,"Continue the chronicle",func():
 			var onward=func():
 				game.finish_chapter()
@@ -1142,7 +1160,7 @@ func check_result() -> bool:
 	else:
 		label_in(v,"THE STANDARD FALLS",38,GOLD)
 		label_in(v,"Lyra has fallen. This chapter is lost." if game.permadeath and game.units.any(func(u):return u.id=="lyra" and u.hp<=0) else "Your company is scattered.",24)
-		label_in(v,"Retry from chapter preparation. Losses and gains from this failed attempt are discarded; earlier permanent losses remain." if game.permadeath else "Regroup at the war council and choose a new approach.",20)
+		label_in(v,"Retry from preparation. Committed deaths remain lost." if game.action_saves and game.permadeath else "Retry from chapter preparation. Losses and gains from this failed attempt are discarded; earlier permanent losses remain." if game.permadeath else "Regroup at the war council and choose a new approach.",20)
 		button_in(frame,"Regroup and retry",func():
 			if game.retry_battle():persist_campaign("camp");show_camp())
 	return true
@@ -1220,7 +1238,7 @@ func load_campaign():
 	if saved=="":show_notice("No readable campaign save was found on this device.");return
 	if not music.playing:music.play()
 	if saved=="ending":show_ending()
-	elif saved=="battle":make_map();show_battle();await check_result()
+	elif saved=="battle":await resume_saved_battle()
 	else:show_camp()
 
 func show_equipment(unit):
@@ -1335,7 +1353,7 @@ func import_pasted_save():
 	var persisted=persist_campaign(saved,false)
 	if not music.playing:music.play()
 	if saved=="ending":show_ending()
-	elif saved=="battle":make_map();show_battle();await check_result()
+	elif saved=="battle":await resume_saved_battle()
 	else:show_camp()
 	show_notice("Campaign imported and saved on this device." if persisted else "Campaign imported, but this device could not write the save.")
 
@@ -1520,6 +1538,10 @@ func show_options(return_to: String):
 		show_options(options_return))
 	label_in(panel,"Debug mode keeps a separate save. Turning it off restores your campaign to where you enabled it.",16)
 	if debug_session.active:button_in(panel,"Open debug tools",func():show_debug_tools(options_return))
+	for setting in [{"key":"action_saves","name":"Save every action","text":"Commit movement and combat before animation. No movement undo. With permadeath, deaths survive retries."},{"key":"death_door","name":"Death’s door & rescue","text":"Downed allies have two player turns for rescue or staff healing. Carrying pauses the countdown and costs 2 movement."}]:
+		var toggle=CheckButton.new();toggle.name=setting.key;toggle.text=setting.name;toggle.button_pressed=game.get(setting.key);panel.add_child(toggle)
+		toggle.toggled.connect(func(value):game.set(setting.key,value))
+		label_in(panel,setting.text,16)
 	label_in(panel,"Battle presentation",21,GOLD)
 	var mode=OptionButton.new();mode.name="CombatMode";mode.custom_minimum_size.y=42
 	for title in ["All 3D battles","3D for player attacks","Quick map battles"]:mode.add_item(title)
@@ -1569,6 +1591,49 @@ func show_debug_tools(return_to: String):
 		debug_session.revive(game);make_map();show_battle();persist_campaign("battle"))
 	button_in(panel,"Return to preparation",func():game.units.clear();game.phase="player";show_camp();persist_campaign("camp"))
 	button_in(frame,"Return to Options",func():show_options(options_return))
+
+func action_save_ready() -> bool:
+	return not game.action_saves or not save_failed or persist_campaign("battle")
+
+func checkpoint_action() -> bool:
+	if not game.action_saves or persist_campaign("battle"):return true
+	busy=false;selected=null;target=null;origin=null;refresh_pieces();highlight();update_side()
+	return false
+
+func retry_action_save():
+	if persist_campaign("battle"):await resume_saved_battle()
+
+func resume_saved_battle():
+	make_map();show_battle()
+	if await check_result():return
+	if game.phase=="enemy":await end_turn(true)
+
+func show_triage():
+	if selected==null or not game.can_act(selected):return
+	screen="triage";reset_ui()
+	var frame=menu_panel(720);var panel=scrolling_column(frame)
+	label_in(panel,"RESCUE & TRIAGE",18,GOLD);label_in(panel,selected.name,36,GOLD)
+	label_in(panel,"Carrying pauses bleeding and costs 2 movement. Healing revives the ally with their action spent. Rescue and drop each use your action.",20)
+	for patient in game.units:
+		if game.DeathDoor.can_rescue(game,selected,patient):button_in(panel,"Rescue "+patient.name,func():rescue_ally(patient))
+		elif game.can_heal(selected,patient) and not patient.get("carried_by","").is_empty():button_in(panel,"Heal carried "+patient.name,func():heal_carried_ally(patient))
+	var carried=game.DeathDoor.passenger(game,selected)
+	if carried!=null:
+		label_in(panel,"Carrying "+carried.name,22,GOLD)
+		for tile in game.DeathDoor.drop_positions(game,selected):button_in(panel,"Drop at %d, %d"%[tile.x+1,tile.y+1],func():drop_ally(tile))
+	button_in(frame,"Return to battle",show_battle)
+
+func rescue_ally(patient: Dictionary):
+	if busy or selected==null or not action_save_ready():return
+	if game.DeathDoor.rescue(game,selected,patient) and checkpoint_action():show_battle();finish_action()
+
+func drop_ally(tile: Vector2i):
+	if busy or selected==null or not action_save_ready():return
+	if game.DeathDoor.drop(game,selected,tile) and checkpoint_action():show_battle();finish_action()
+
+func heal_carried_ally(patient: Dictionary):
+	if busy or selected==null or not action_save_ready():return
+	if game.heal(selected,patient) and checkpoint_action():show_battle();finish_action()
 
 func campaign_save_path() -> String:
 	return save_path+".debug" if debug_session.active else save_path
