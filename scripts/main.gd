@@ -1413,7 +1413,18 @@ func show_model_view(unit,on_close=Callable(),model_spec: Dictionary={}):
 	if not model_spec.is_empty():
 		portrait.hide()
 		label_in(panel,"Quaternius source rig with Poem sword. Pose and grip study; campaign characters are unchanged.",17)
-	label_in(panel,game.class_name_for(unit)+" · "+game.item_for(unit).name,21)
+	if model_spec.has("supported_items") and model_spec.has("study_id"):
+		var equipment_choice=OptionButton.new();equipment_choice.name="StudyEquipment";equipment_choice.custom_minimum_size.y=42
+		for item_id in model_spec.supported_items:
+			var item=game.equipment.filter(func(value):return value.id==item_id)[0]
+			equipment_choice.add_item(item.name);equipment_choice.set_item_metadata(equipment_choice.item_count-1,item.id)
+			if unit.item==item.id:equipment_choice.select(equipment_choice.item_count-1)
+		panel.add_child(equipment_choice)
+		equipment_choice.item_selected.connect(func(index):
+			var facing=preview_actor.rotation.y
+			show_source_model_view(model_spec.study_id,equipment_choice.get_item_metadata(index))
+			preview_actor.rotation.y=facing)
+	else:label_in(panel,game.class_name_for(unit)+" · "+game.item_for(unit).name,21)
 	var spacer=Control.new();spacer.size_flags_vertical=Control.SIZE_EXPAND_FILL;panel.add_child(spacer)
 	var turns: Control=panel
 	if not model_spec.is_empty():
@@ -1450,11 +1461,12 @@ func show_model_view(unit,on_close=Callable(),model_spec: Dictionary={}):
 	framing.configure(preview_actor,camera,panel.get_parent(),actions.map(func(entry):return entry[1]))
 	framing.add_hint(ui)
 
-func show_source_model_view(gender: String):
+func show_source_model_view(gender: String,item="iron_sword"):
 	if not debug_session.active or gender not in ["female","male"]:return
 	var studies=JSON.parse_string(FileAccess.get_file_as_string("res://data/model_studies.json"))
+	if item not in studies[gender].supported_items:return
 	var unit=game.roster.filter(func(value):return value.id==("nell" if gender=="female" else "silas"))[0].duplicate(true)
-	unit.name="Duelist · "+gender.capitalize();unit.item="iron_sword";unit.promotion=""
+	unit.name="Duelist · "+gender.capitalize();unit.item=item;unit.promotion=""
 	var return_to=options_return
 	show_model_view(unit,func():show_debug_tools(return_to),studies[gender])
 

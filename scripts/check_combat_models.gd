@@ -9,8 +9,11 @@ func run():
   if not entries is Dictionary:models.report(category+" must be an object");continue
   for key in entries:
    var one=Models.new("");one.catalog={"characters":{"check":entries[key]}}
-   var actor=one.build(stage,{"id":"check","job":"Vanguard","weapon":"sword","team":"player"},Vector3.ZERO)
+   var item="iron_sword"
+   if entries[key] is Dictionary and entries[key].get("supported_items") is Array and not entries[key].supported_items.is_empty():item=entries[key].supported_items[0]
+   var actor=one.build(stage,{"id":"check","job":"Vanguard","weapon":"sword","item":item,"team":"player"},Vector3.ZERO)
    if actor==null:
+    if one.issues.is_empty():models.report(category+"/"+str(key)+": No model built for its declared supported equipment")
     for issue in one.issues:models.report(category+"/"+str(key)+": "+issue)
    else:count+=1;actor.queue_free()
  await process_frame;stage.queue_free();await process_frame

@@ -81,8 +81,9 @@ func run():
  assert(app.unit_nodes[carrier.id].carry_marker.texture.get_width()==64 and not app.unit_nodes.has(patient.id),"The exported package includes the carrier badge and hides its passenger")
  app.show_debug_tools("battle");assert(app.ui.find_child("DebugCasualty",true,false)!=null and app.ui.find_child("DebugSeed",true,false)!=null,"Release contains the debug experiment harness and reproducible seed controls")
  for gender in ["female","male"]:
-  app.show_source_model_view(gender);await process_frame
+  app.show_source_model_view(gender,"tempered_sword");await process_frame
   assert(app.preview_actor is Imported,"Packaged debug model study uses its authored source wrapper")
+  assert(app.preview_actor.model.get_node("Rig/Armature/Skeleton3D/WeaponHand/Grip").equipped=="tempered_sword","Packaged authored rig uses the selected sword")
   assert(app.preview_actor.weapon_trail_points().size()==2,"Packaged original sword keeps its animated trail sockets")
   var target_choice=app.ui.find_child("StudyTarget",true,false);target_choice.select(2);target_choice.item_selected.emit(2)
   await app.stage.get_node("PreviewActionPlayer").finished

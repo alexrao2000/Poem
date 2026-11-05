@@ -65,7 +65,14 @@
         "lowerarm_r",
         "upperarm_r"
       ]
-    }
+    },
+    "study_id": "female",
+    "equipment": "Rig/Armature/Skeleton3D/WeaponHand/Grip",
+    "supported_items": [
+      "iron_sword",
+      "dueling_sword",
+      "tempered_sword"
+    ]
   },
   "male": {
     "scene": "res://assets/models/quaternius/study_male.tscn",
@@ -133,6 +140,13 @@
         "lowerarm_r",
         "upperarm_r"
       ]
-    }
+    },
+    "study_id": "male",
+    "equipment": "Rig/Armature/Skeleton3D/WeaponHand/Grip",
+    "supported_items": [
+      "iron_sword",
+      "dueling_sword",
+      "tempered_sword"
+    ]
   }
 }
