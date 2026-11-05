@@ -1268,6 +1268,10 @@
       "wide": 1.22,
       "windup": 1.22,
       "impact": 1.28
-    }
+    },
+    "campaign_characters": [
+      "oren",
+      "rook"
+    ]
   }
 }

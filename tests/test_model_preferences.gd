@@ -30,8 +30,8 @@ func run():
  before_save.erase("save_sequence");after_save.erase("save_sequence")
  assert(app.game.save_data("camp")==original and before_save==after_save,"Applying visual preferences preserves the campaign payload")
  var units=[]
- for id in ["lyra","nell","silas","tarin","vela","yuna","noor","cassian","rhea","ivo","esme","galen","mara","dax","hale","sera","ari","faye"]:
-  var unit=app.game.roster.filter(func(value):return value.id==id)[0].duplicate(true);unit.team="player";unit.item="iron_sword" if unit.weapon=="sword" else "iron_axe" if unit.weapon=="axe" else "scout_bow" if unit.weapon=="bow" else "field_staff" if unit.weapon=="staff" else "ember";units.append(unit)
+ for id in ["lyra","nell","silas","tarin","vela","yuna","noor","cassian","rhea","ivo","esme","galen","mara","dax","hale","sera","ari","faye","oren","petra","rook"]:
+  var unit=app.game.roster.filter(func(value):return value.id==id)[0].duplicate(true);unit.team="player";unit.item="iron_sword" if unit.weapon=="sword" else "iron_axe" if unit.weapon=="axe" else "javelin" if unit.weapon=="lance" else "scout_bow" if unit.weapon=="bow" else "field_staff" if unit.weapon=="staff" else "ember";units.append(unit)
   var actor=app.make_fighter(unit,Vector3.ZERO);assert(actor is Imported and actor.model.get_meta("character_identity")==id);actor.queue_free();await process_frame
   app.show_model_view(unit);await process_frame;assert(app.preview_actor is Imported and app.preview_actor.model.get_meta("character_identity")==id)
   app.close_model_view();await process_frame
@@ -49,9 +49,9 @@ func run():
    var patient=enemy.duplicate(true);patient.team="player"
    await app.cinematic(unit,patient,[{"actor":unit.id,"target":patient.id,"healing":3}],{unit.id:unit.hp,patient.id:patient.hp-3})
   else:await app.cinematic(unit,enemy,[{"actor":unit.id,"target":enemy.id,"damage":3,"remaining":17,"hit":true,"crit":false}],{unit.id:unit.hp,enemy.id:20})
- assert(seen==["lyra","nell","silas","tarin","vela","yuna","noor","cassian","rhea","ivo","esme","galen","mara","dax","hale","sera","ari","faye"] and app.game.save_data("battle")==battle and app.game.rng.state==rng,"The ordinary campaign builder uses revised actors without rerolling or mutating battle state")
+ assert(seen==["lyra","nell","silas","tarin","vela","yuna","noor","cassian","rhea","ivo","esme","galen","mara","dax","hale","sera","ari","faye","oren","petra","rook"] and app.game.save_data("battle")==battle and app.game.rng.state==rng,"The ordinary campaign builder uses revised actors without rerolling or mutating battle state")
  app.busy=false;app.show_options("battle");app.ui.find_child("DebugMode",true,false).button_pressed=true
- assert(app.debug_session.active and app.debug_session.revised_duelists and app.debug_session.revised_caster and app.debug_session.revised_vanguard and app.debug_session.revised_warden and app.debug_session.revised_corsair and app.debug_session.revised_ranger,"New debug comparisons inherit the campaign's selected appearance")
+ assert(app.debug_session.active and app.debug_session.revised_duelists and app.debug_session.revised_caster and app.debug_session.revised_vanguard and app.debug_session.revised_warden and app.debug_session.revised_corsair and app.debug_session.revised_ranger and app.debug_session.revised_knight,"New debug comparisons inherit the campaign's selected appearance")
  assert(app.ui.find_child("CharacterModels",true,false).disabled)
  app.debug_session.set_revised_duelists(false)
  var plain=app.make_fighter(units[1],Vector3.ZERO);assert(plain is Actor);plain.queue_free();await process_frame
@@ -60,12 +60,12 @@ func run():
  var report=JSON.parse_string(app.ui.find_child("DebugReport",true,false).text).presentation
  assert(report.campaign_models=="revised" and not report.revised_duelists and report.revised_caster)
  app.show_options("battle");app.ui.find_child("DebugMode",true,false).button_pressed=false
- assert(not app.debug_session.active and not app.debug_session.revised_ranger and app.game.save_data("battle")==battle and app.preferences.values.character_models=="revised")
+ assert(not app.debug_session.active and not app.debug_session.revised_ranger and not app.debug_session.revised_knight and app.game.save_data("battle")==battle and app.preferences.values.character_models=="revised")
  styled=app.make_fighter(units[0],Vector3.ZERO);assert(styled is Imported);styled.queue_free();await process_frame
  app.show_options("battle");app.ui.find_children("*","Button",true,false).filter(func(button):return button.text=="Restore defaults")[0].pressed.emit();await process_frame
  assert(app.preferences.values.character_models=="current" and app.ui.find_child("CharacterModels",true,false).selected==0)
  plain=app.make_fighter(units[1],Vector3.ZERO);assert(plain is Actor);plain.queue_free();await process_frame
  assert(app.game.save_data("battle")==battle and FileAccess.get_file_as_string(app.save_path)==disk and app.fighters.models.catalog==catalog)
  await Shutdown.dispose(app);await process_frame
- print("PASS: old preference migration, enum validation/persistence, three-size UI, eighteen real campaign model/preview/exchange selections, promotion fallback, inherited independent debug overrides, exact campaign/save/RNG isolation and default restoration")
+ print("PASS: old preference migration, enum validation/persistence, three-size UI, twenty-one real campaign model/preview/exchange selections, promotion fallback, inherited independent debug overrides, exact campaign/save/RNG isolation and default restoration")
  quit()

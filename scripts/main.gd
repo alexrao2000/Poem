@@ -110,6 +110,7 @@ var debug_vanguard=preload("res://scripts/debug_source_models.gd").new(["vanguar
 var debug_caster=preload("res://scripts/debug_source_models.gd").new(["caster","caster_female"])
 var debug_corsair=preload("res://scripts/debug_source_models.gd").new(["corsair_female","corsair_male"])
 var debug_ranger=preload("res://scripts/debug_source_models.gd").new(["ranger_female","ranger_male"])
+var debug_knight=preload("res://scripts/debug_source_models.gd").new(["knight_female","knight_male"])
 var debug_warden=preload("res://scripts/debug_source_models.gd").new(["warden","warden_female"])
 var save_failed=false
 var save_warning_queued=false
@@ -971,6 +972,9 @@ func make_fighter(u,position) -> Node3D:
 	if (debug_session.revised_ranger if debug_session.active else revised):
 		var study=debug_ranger.build(stage,u,position)
 		if study!=null:return study
+	if (debug_session.revised_knight if debug_session.active else revised):
+		var study=debug_knight.build(stage,u,position)
+		if study!=null:return study
 	return fighters.build(stage,u,position)
 
 func staff_healing(healer,recipient,amount: int,before: Dictionary={}):
@@ -1827,6 +1831,8 @@ func show_debug_tools(return_to: String):
 	var studies=JSON.parse_string(FileAccess.get_file_as_string("res://data/model_studies.json"))
 	var ranger=CheckButton.new();ranger.name="DebugRangerModel";ranger.text="Revised Ranger models";ranger.button_pressed=debug_session.revised_ranger;panel.add_child(ranger)
 	ranger.toggled.connect(func(value):debug_session.set_revised_ranger(value))
+	var knight=CheckButton.new();knight.name="DebugKnightModel";knight.text="Revised Knight models";knight.button_pressed=debug_session.revised_knight;panel.add_child(knight)
+	knight.toggled.connect(func(value):debug_session.set_revised_knight(value))
 	label_in(panel,"Try Sera, Ari and Faye’s revised models before promotion with Scout Bow, Recurve or Longbow. Resets when Debug mode ends.",16)
 	for gender in studies:
 		var study=button_in(panel,"View "+studies[gender].study_label+" rig",func():show_source_model_view(gender));study.name="ModelStudy_"+gender
@@ -1886,7 +1892,7 @@ func show_debug_report():
 	var report=TextEdit.new();report.name="DebugReport";report.editable=false;report.wrap_mode=TextEdit.LINE_WRAPPING_BOUNDARY
 	report.custom_minimum_size.y=160;report.size_flags_vertical=Control.SIZE_EXPAND_FILL;report.add_theme_font_size_override("font_size",14)
 	var record=debug_session.report(game,"battle" if options_return=="battle" else "camp")
-	record.presentation={"campaign_models":preferences.values.character_models,"revised_vanguard":debug_session.revised_vanguard,"revised_duelists":debug_session.revised_duelists,"revised_caster":debug_session.revised_caster,"revised_warden":debug_session.revised_warden,"revised_corsair":debug_session.revised_corsair,"revised_ranger":debug_session.revised_ranger}
+	record.presentation={"campaign_models":preferences.values.character_models,"revised_vanguard":debug_session.revised_vanguard,"revised_duelists":debug_session.revised_duelists,"revised_caster":debug_session.revised_caster,"revised_warden":debug_session.revised_warden,"revised_corsair":debug_session.revised_corsair,"revised_ranger":debug_session.revised_ranger,"revised_knight":debug_session.revised_knight}
 	report.text=JSON.stringify(record,"\t",false);panel.add_child(report)
 	var actions=HBoxContainer.new();actions.add_theme_constant_override("separation",12);panel.add_child(actions)
 	button_in(actions,"Copy report",func():DisplayServer.clipboard_set(report.text);show_notice("Experiment report copied."))
