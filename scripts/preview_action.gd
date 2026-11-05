@@ -16,13 +16,16 @@ func configure(subject: Node3D):actor=subject;process_priority=-1
 func play(key: String):
  stop();selected_action=key
  if not is_instance_valid(actor):return
+ var target=actor.get_node_or_null("StudyContactTarget")
+ if target!=null:target.set_action(key)
  if key=="advance":
   if actor is Actor:actor.gait_phase=0.0
   pending=[["advance",.24]]
  elif key=="idle":pending=[["idle",.18]]
  elif key=="strike":pending=[["windup",.26],["strike",.16]]
  elif key=="cast":pending=[["cast_windup",.28],["cast",.18]]
- elif key=="throw":pending=[["throw_windup",.26],["throw",.16]]
+ elif key=="throw":pending=[["idle",.16],["throw_windup",.26],["throw",.16]]
+ elif key=="throw_recover":pending=[["idle",.16],["throw_windup",.26],["throw",.16],["recover",.28]]
  elif key=="recover":pending=[["windup",.20],["strike",.14],["recover",.28]]
  else:pending=[["idle",.16],[key,.28]]
  playing=true;next_pose()
@@ -30,6 +33,7 @@ func play(key: String):
 func next_pose():
  if pending.is_empty():playing=false;finished.emit();return
  var step=pending.pop_front();current=actor.pose(step[0],step[1])
+ if step[0]=="throw" and actor is Actor:current.finished.connect(actor.release_projectile)
 
 func _process(dt):
  if not playing:return

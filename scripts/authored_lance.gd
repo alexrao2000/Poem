@@ -4,6 +4,10 @@ var lift=0.0
 var thrust=0.0
 var holding=true
 var fall=0.0
+var throwing=false
+var recovering=false
+var throw_raise=0.0
+var throw_push=0.0
 func equipment_kind() -> String:return "lance"
 func fit_handle():
  super()
@@ -26,6 +30,23 @@ func configure_animations(player: AnimationPlayer) -> String:
    var track=animation.add_track(Animation.TYPE_VALUE);animation.track_set_path(track,NodePath("Armature/Skeleton3D/WeaponHand/Grip:"+pair[0]));animation.track_insert_key(track,0,float(pair[1]));animation.track_insert_key(track,1,float(pair[2]))
   if library.has_animation(setup[0]):library.remove_animation(setup[0])
   library.add_animation(setup[0],animation)
+ for setup in [["LanceThrowWindup",0,1,0,0],["LanceThrow",1,1,0,1],["LanceThrowRecover",1,0,1,0]]:
+  var animation=player.get_animation("Idle").duplicate(true);animation.length=1
+  for pair in [["throw_raise",setup[1],setup[2]],["throw_push",setup[3],setup[4]]]:
+   var track=animation.add_track(Animation.TYPE_VALUE);animation.track_set_path(track,NodePath("Armature/Skeleton3D/WeaponHand/Grip:"+pair[0]));animation.track_insert_key(track,0,float(pair[1]));animation.track_insert_key(track,1,float(pair[2]))
+  if setup[0] in ["LanceThrow","LanceThrowRecover"]:
+   var rig=get_parent().get_parent()
+   for track in range(animation.get_track_count()-1,-1,-1):
+    if animation.track_get_type(track)!=Animation.TYPE_ROTATION_3D:continue
+    var path=animation.track_get_path(track)
+    if not grip_rotations.has(path):continue
+    animation.remove_track(track);var fresh=animation.add_track(Animation.TYPE_ROTATION_3D);animation.track_set_path(fresh,path)
+    var rest=rig.get_bone_rest(rig.find_bone(str(path.get_subname(0)))).basis.get_rotation_quaternion()
+    animation.track_insert_key(fresh,0,grip_rotations[path] if setup[0]=="LanceThrow" else rest)
+    if setup[0]=="LanceThrow":animation.track_insert_key(fresh,.65,grip_rotations[path])
+    animation.track_insert_key(fresh,1,rest)
+  if library.has_animation(setup[0]):library.remove_animation(setup[0])
+  library.add_animation(setup[0],animation)
  var death=player.get_animation("Death01");var path=NodePath("Armature/Skeleton3D/WeaponHand/Grip:fall")
  var track=death.find_track(path,Animation.TYPE_VALUE)
  if track>=0:death.remove_track(track)
@@ -43,6 +64,9 @@ func configure_animations(player: AnimationPlayer) -> String:
  return ""
 func combat_pose(key: String):
  fall=0
+ recovering=key in ["recover","throw_recover"]
+ if key!="recover":throwing=key in ["throw_windup","critical_throw_windup","throw","throw_recover"]
+ if key in ["throw_windup","critical_throw_windup"]:throw_raise=0;throw_push=0;get_node("Weapon").show()
  holding=key not in ["down","hit","critical_hit","evade"]
  if key not in ["windup","critical_windup","strike","recover"]:lift=0;thrust=0
  if key in ["idle","advance","windup","critical_windup","victory"]:get_node("Weapon").show()
@@ -52,3 +76,10 @@ func release_projectile():get_node("Weapon").hide()
 
 func clear_aim():
  if arms!=null:arms.has_aim=false
+
+func animation_pose(key: String) -> String:return "throw_recover" if key=="recover" and throwing else key
+
+func pose_finished(key: String):
+ if key=="throw":release_projectile()
+
+func projectile_source() -> Node3D:return get_node("Weapon") if equipped=="javelin" else null

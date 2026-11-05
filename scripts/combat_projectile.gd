@@ -18,13 +18,21 @@ var body: Node3D
 var wake: MeshInstance3D
 var wake_color=Color.WHITE
 var motion: Tween
+var launch_up=Vector3.UP
 
-func launch(from: Vector3,to: Vector3,weapon: String,duration=.23,spell_id="",appearance={},miss=false) -> Tween:
+func launch(from: Vector3,to: Vector3,weapon: String,duration=.23,spell_id="",appearance={},miss=false,source: Node3D=null) -> Tween:
  name="CombatProjectile";origin=from;destination=to;kind=weapon;spell=spell_id
  global_basis=Basis.IDENTITY
  arc=.14 if kind=="bow" else .08 if kind=="lance" else .04
  body=Node3D.new();body.name="FlightBody";add_child(body)
- if kind in ["bow","lance"]:
+ if kind=="lance" and is_instance_valid(source) and source.has_node("TrailTip"):
+  # Snapshot the fitted held weapon before its actor is recovered or removed.
+  # The tip is the flight origin; geometry, materials and roll survive release.
+  var tip=source.get_node("TrailTip").position;var scale_value=source.global_basis.get_scale()
+  var copy=source.duplicate(0);copy.name="HeldSpear";body.add_child(copy);copy.show()
+  copy.transform=Transform3D(Basis.from_scale(scale_value),-tip*scale_value)
+  origin=source.to_global(tip);launch_up=source.global_basis.y.normalized()
+ elif kind in ["bow","lance"]:
   var reach=physical_geometry(body,kind,appearance)
   for part in body.get_children():part.position.z+=reach
   origin=from+from.direction_to(to)*minf(reach,from.distance_to(to)*.5)
@@ -84,7 +92,7 @@ func _process(_dt):
  global_position=point_at(progress)
  var direction=destination-origin+Vector3.UP*cos(minf(progress,1.0)*PI)*PI*arc
  if direction.length_squared()>.0001:
-  body.look_at(global_position+direction,Vector3.FORWARD if direction.normalized().cross(Vector3.UP).length_squared()<.001 else Vector3.UP)
+  body.look_at(global_position+direction,Vector3.FORWARD if direction.normalized().cross(launch_up).length_squared()<.001 else launch_up)
  if kind=="magic" and spell=="gale":body.rotate_object_local(Vector3.FORWARD,progress*TAU*2)
  if wake!=null:update_wake(direction.normalized())
 

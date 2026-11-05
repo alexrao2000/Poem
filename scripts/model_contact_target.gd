@@ -3,6 +3,7 @@ extends Node3D
 var actor: Node3D
 var parts=[]
 var selected=0
+var action="strike"
 
 func _init():
  name="StudyContactTarget"
@@ -15,9 +16,13 @@ func _init():
 
 func configure(subject: Node3D):actor=subject
 
+func set_action(key: String):
+ action=key;choose(selected)
+
 func choose(index: int):
  selected=clampi(index,0,2)
- position=Vector3(0,1.1 if selected==1 else 1.85,-preload("res://scripts/fighter_actor.gd").melee_spacing(actor.kind))
+ var distance=4.0 if action.begins_with("throw") else preload("res://scripts/fighter_actor.gd").melee_spacing(actor.kind)
+ position=Vector3(0,1.1 if selected==1 else 1.85,-distance)
  for part in parts:part.visible=selected>0
  if selected>0:actor.aim_at(global_position)
  else:

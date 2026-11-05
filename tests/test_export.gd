@@ -178,6 +178,20 @@ func run():
   await knight.pose("down",.02).finished
   assert(Vertices.minimum(knight,cache)>knight.global_position.y+.01,"Packaged root-height fit keeps the complete armored body and shield clear of the floor")
   app.close_model_view();await process_frame
+ for pair in [["knight_female","petra"],["knight_male","oren"]]:
+  app.show_source_model_view(pair[0],"javelin",true);await process_frame
+  var knight=app.preview_actor;var weapon=knight.projectile_source();assert(weapon!=null)
+  var point=knight.to_global(Vector3(0,1.85,-4));knight.aim_at(point)
+  await knight.pose("throw_windup",.02).finished;await knight.pose("throw",.02).finished;assert(not weapon.visible)
+  var flight=load("res://scripts/combat_projectile.gd").new();app.stage.add_child(flight)
+  flight.launch(knight.socket_position("projectile"),point,"lance",.23,"",{},true,weapon).pause()
+  assert(flight.origin.distance_to(weapon.get_node("TrailTip").global_position)<.00001 and flight.travel_end>1)
+  var copy=flight.body.get_node("HeldSpear")
+  for mesh in weapon.find_children("*","MeshInstance3D",true,false):
+   var copied=copy.get_node(weapon.get_path_to(mesh))
+   for vertex in mesh.mesh.surface_get_arrays(0)[Mesh.ARRAY_VERTEX]:assert(mesh.to_global(vertex).distance_to(copied.to_global(vertex))<.0001,"Packaged flight retains every fitted spear vertex at release")
+  await knight.pose("recover",.02).finished;assert(not weapon.visible and knight.player.assigned_animation=="LanceThrowRecover")
+  flight.queue_free();app.close_model_view();await process_frame
  app.show_source_model_view("vanguard","iron_sword",true);await process_frame
  var vanguard=app.preview_actor;assert(vanguard is Imported and vanguard.model.get_meta("character_identity")=="lyra" and vanguard.model.get_node("Identity").mantle!=null,"Packaged Vanguard study retains Lyra’s ivory mantle")
  await vanguard.pose("strike",.02).finished

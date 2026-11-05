@@ -1124,6 +1124,15 @@
         "clip": "LanceIdle",
         "from": 0,
         "to": 0.2
+      },
+      "throw_windup": {
+        "clip": "LanceThrowWindup"
+      },
+      "throw": {
+        "clip": "LanceThrow"
+      },
+      "throw_recover": {
+        "clip": "LanceThrowRecover"
       }
     },
     "sockets": {
@@ -1140,7 +1149,8 @@
       "iron_lance",
       "light_lance",
       "pike",
-      "riders_bane"
+      "riders_bane",
+      "javelin"
     ],
     "stride": {
       "length": 5.4124,
@@ -1161,7 +1171,7 @@
     "framing": {
       "wide": 1.22,
       "windup": 1.22,
-      "impact": 1.22
+      "impact": 1.28
     }
   },
   "knight_male": {
@@ -1210,6 +1220,15 @@
         "clip": "LanceIdle",
         "from": 0,
         "to": 0.2
+      },
+      "throw_windup": {
+        "clip": "LanceThrowWindup"
+      },
+      "throw": {
+        "clip": "LanceThrow"
+      },
+      "throw_recover": {
+        "clip": "LanceThrowRecover"
       }
     },
     "sockets": {
@@ -1226,7 +1245,8 @@
       "iron_lance",
       "light_lance",
       "pike",
-      "riders_bane"
+      "riders_bane",
+      "javelin"
     ],
     "stride": {
       "length": 5.6643,
@@ -1247,7 +1267,7 @@
     "framing": {
       "wide": 1.22,
       "windup": 1.22,
-      "impact": 1.22
+      "impact": 1.28
     }
   }
 }

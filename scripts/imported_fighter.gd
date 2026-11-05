@@ -174,7 +174,12 @@ func pose(key: String,duration=.18) -> Tween:
  var fallback="windup" if key in ["throw_windup","cast_windup","critical_windup","critical_throw_windup"] else "strike" if key in ["throw","cast"] else "idle"
  if key=="critical_hit":fallback="hit"
  if key=="critical_throw_windup" and poses.has("throw_windup"):fallback="throw_windup"
- var mapping=poses.get(key,poses[fallback])
+ var animation_key=key
+ for listener in pose_listeners:
+  if listener.has_method("animation_pose"):
+   var candidate=listener.animation_pose(key)
+   if candidate is String and poses.has(candidate):animation_key=candidate
+ var mapping=poses.get(animation_key,poses[fallback])
  var animation=player.get_animation(mapping.clip)
  var looping=key in ["idle","advance"]
  animation.loop_mode=Animation.LOOP_LINEAR if looping else Animation.LOOP_NONE
@@ -206,6 +211,13 @@ func socket_position(key: String) -> Vector3:
  if key=="guard":return socket_position("impact")
  if key=="gaze":return socket_position("impact")+Vector3.UP*.55
  return global_position+Vector3(0,1.2 if key=="projectile" else 1.1,0)
+
+func projectile_source() -> Node3D:
+ for listener in pose_listeners:
+  if listener.has_method("projectile_source"):
+   var source=listener.projectile_source()
+   if source is Node3D:return source
+ return null
 
 func release_projectile():
  for listener in pose_listeners:

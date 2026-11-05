@@ -1139,10 +1139,11 @@ func cinematic(a,b,events,initial_hp={}):
 				trail.start(contact_point+Vector3(-direction*.28,0,.18),unit.weapon,direction,event.crit)
 		if is_ranged:
 			var release=who.socket_position("projectile")
+			var source=who.projectile_source() if who.has_method("projectile_source") else null
 			if who.has_method("release_projectile"):who.release_projectile()
 			if is_instance_valid(gathering):gathering.release()
 			play_sfx(combat_release_sound(unit))
-			if not await projectile(release,contact_point,unit.weapon,spell,fighters.equipment_profile(unit),not event.hit):break
+			if not await projectile(release,contact_point,unit.weapon,spell,fighters.equipment_profile(unit),not event.hit,source):break
 		director.shot(who.position,whom.position,"impact",is_ranged,mounted,.16)
 		if event.hit:
 			play_combat_contact(unit,event)
@@ -1259,9 +1260,9 @@ func combat_pause(duration: float) -> bool:
 	var motion=create_tween();motion.tween_interval(duration)
 	return await combat_wait(motion)
 
-func projectile(from: Vector3,to: Vector3,kind: String,spell="",appearance={},miss=false) -> bool:
+func projectile(from: Vector3,to: Vector3,kind: String,spell="",appearance={},miss=false,source: Node3D=null) -> bool:
 	var visual=CombatProjectile.new();stage.add_child(visual)
-	var completed=await combat_wait(visual.launch(from,to,kind,.23,spell,appearance,miss))
+	var completed=await combat_wait(visual.launch(from,to,kind,.23,spell,appearance,miss,source))
 	if is_instance_valid(visual):visual.queue_free()
 	return completed
 
@@ -1474,6 +1475,7 @@ func show_model_view(unit,on_close=Callable(),model_spec: Dictionary={}):
 	var actions=[["Ready","idle"],["Attack preparation","windup"],["Critical preparation","critical_windup"],["Attack","strike"],["Recovery","recover"]]
 	if unit.weapon=="magic":actions=[["Ready","idle"],["Casting preparation","windup"],["Critical preparation","critical_windup"],["Cast","strike"],["Recovery","recover"]]
 	if unit.weapon=="staff":actions=[["Ready","idle"],["Healing preparation","cast_windup"],["Heal","cast"]]
+	if unit.weapon=="lance" and unit.get("item","")=="javelin":actions.append_array([["Throw preparation","throw_windup"],["Throw","throw"],["Throw recovery","throw_recover"]])
 	actions.insert(1,["Run / trot","advance"])
 	actions.append_array([["Guard","guard"],["Hit reaction","hit"],["Critical reaction","critical_hit"],["Defeated","down"],["Finishing flourish","victory_flourish"],["Finish","victory"]])
 	if not model_spec.is_empty():
@@ -1492,9 +1494,11 @@ func show_model_view(unit,on_close=Callable(),model_spec: Dictionary={}):
 		panel.add_child(target_choice)
 		target_choice.item_selected.connect(func(index):
 			contact_target.choose(index)
+			var action=str(choice.get_item_metadata(choice.selected))
+			if not action.begins_with("throw"):action="strike"
 			for at in range(choice.item_count):
-				if choice.get_item_metadata(at)=="strike":choice.select(at);break
-			action_player.play("strike"))
+				if choice.get_item_metadata(at)==action:choice.select(at);break
+			action_player.play(action))
 	button_in(panel,"Play again",func():action_player.play(str(choice.get_item_metadata(choice.selected))))
 	button_in(panel,"Return to debug tools [Esc]" if not model_spec.is_empty() else "Return to training [Esc]" if preview_return.is_valid() else "Return to record [Esc]",close_model_view)
 	var framing=preload("res://scripts/preview_camera.gd").new();framing.name="PreviewCamera";stage.add_child(framing)

@@ -5,6 +5,7 @@ var equipped_item="thunder"
 var combat_spacing=4.0
 var ranged=true
 var extra_paths=[]
+var pose_keys={}
 var prop_path="Rig/Armature/Skeleton3D/BookHand/Folio/Weapon"
 func _initialize():call_deferred("run")
 func run():
@@ -26,6 +27,7 @@ func run():
   for side in [-1,1]:
    actor.rotation.y=-side*PI/2
    for sample in [["idle","wide",combat_spacing],["windup","windup",combat_spacing],["strike","impact",combat_spacing],["recover","impact",combat_spacing],["evade","impact",combat_spacing],["victory","finish",combat_spacing]]:
+    sample[0]=pose_keys.get(sample[0],sample[0])
     for listener in actor.pose_listeners:listener.combat_pose(sample[0])
     var mapping=actor.poses[sample[0]];var other=actor.position+Vector3(side*sample[2],0,0)
     actor.player.get_animation(mapping.clip).loop_mode=Animation.LOOP_NONE
