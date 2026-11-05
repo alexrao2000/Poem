@@ -1449,5 +1449,101 @@
       "bram",
       "elian"
     ]
+  },
+  "enemy_duelist": {
+    "scene": "res://assets/models/quaternius/study_enemy_duelist.tscn",
+    "player": "Rig/AnimationPlayer",
+    "yaw": 180,
+    "scale": 1,
+    "offset": [
+      0,
+      0.01,
+      0
+    ],
+    "poses": {
+      "idle": {
+        "clip": "Sword_Idle"
+      },
+      "advance": {
+        "clip": "Jog_Fwd"
+      },
+      "windup": {
+        "clip": "Sword_Attack",
+        "from": 0,
+        "to": 0.36
+      },
+      "strike": {
+        "clip": "Sword_Attack",
+        "from": 0.36,
+        "to": 0.433
+      },
+      "recover": {
+        "clip": "Sword_Attack",
+        "from": 0.433,
+        "to": 1.5333333
+      },
+      "hit": {
+        "clip": "Hit_Chest"
+      },
+      "evade": {
+        "clip": "Hit_Chest",
+        "from": 0,
+        "to": 0.1666667
+      },
+      "down": {
+        "clip": "Death01"
+      },
+      "guard": {
+        "clip": "Sword_Idle",
+        "from": 0,
+        "to": 0.1
+      },
+      "victory": {
+        "clip": "Idle",
+        "from": 0,
+        "to": 0.2
+      }
+    },
+    "sockets": {
+      "impact": "Rig/Armature/Skeleton3D/Chest/Impact",
+      "gaze": "Rig/Armature/Skeleton3D/Face/Gaze",
+      "projectile": "Rig/Armature/Skeleton3D/WeaponHand/Grip",
+      "trail_inner": "Rig/Armature/Skeleton3D/WeaponHand/Grip/Weapon/TrailInner",
+      "trail_tip": "Rig/Armature/Skeleton3D/WeaponHand/Grip/Weapon/TrailTip"
+    },
+    "contact": {
+      "skeleton": "Rig/Armature/Skeleton3D",
+      "bones": [
+        "hand_r",
+        "lowerarm_r",
+        "upperarm_r"
+      ]
+    },
+    "study_id": "enemy_duelist",
+    "equipment": "Rig/Armature/Skeleton3D/WeaponHand/Grip",
+    "supported_items": [
+      "iron_sword",
+      "dueling_sword",
+      "tempered_sword"
+    ],
+    "stride": {
+      "length": 5.6643,
+      "skeleton": "Rig/Armature/Skeleton3D",
+      "feet": [
+        "ball_l",
+        "ball_r"
+      ],
+      "contacts": [
+        0.05,
+        0.55
+      ]
+    },
+    "framing": {
+      "windup": 1.14
+    },
+    "study_character": "silas",
+    "study_label": "enemy Duelist",
+    "study_title": "Enemy Duelist",
+    "study_enemy_class": "Duelist"
   }
 }

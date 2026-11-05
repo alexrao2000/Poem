@@ -9,7 +9,7 @@ var model: Node3D
 var elapsed=0.0
 var pose_name="idle"
 
-func configure(body: Node3D,rig: Skeleton3D,painter,appearance: Dictionary,cut="forked"):
+func configure(body: Node3D,rig: Skeleton3D,painter,appearance: Dictionary,cut="forked",company=true):
  model=body
  anchor=BoneAttachment3D.new();anchor.name="CompanyCloak";rig.add_child(anchor);anchor.bone_name="spine_03"
  var rest=rig.get_bone_global_rest(rig.find_bone("spine_03"))
@@ -19,14 +19,14 @@ func configure(body: Node3D,rig: Skeleton3D,painter,appearance: Dictionary,cut="
  var width=(absf(arm.x)+.06)*4.0
  cape.transform=rest.affine_inverse()*Transform3D(Basis(Vector3.UP,PI).scaled(Vector3(width,1,1)),neck+Vector3(0,-.025,-.07))
  var color=Color(appearance.cape)
- painter.cape_surface(cape,color,true,Color("bca26b"),cut)
+ painter.cape_surface(cape,color,company,Color("bca26b"),cut)
  cloth=cape.get_child(0);cloth.name="CompanyFabric"
  var material=painter.painted(color,0).duplicate()
  material.set_shader_parameter("fabric_detail",.25)
  material.set_shader_parameter("cloth_amount",1.0)
  material.set_shader_parameter("cloth_floor_enabled",true)
  material.set_shader_parameter("cloth_floor_y",.018)
- material.set_shader_parameter("cape_mark",painter.COMPANY_CAPE)
+ material.set_shader_parameter("cape_mark",painter.COMPANY_CAPE if company else painter.IMPERIAL_CAPE)
  material.set_shader_parameter("cape_trim",Color("bca26b").lightened(.10))
  cloth.material_override=material;motion.surfaces.append(material);motion.update(0,pose_name,0)
  anchor.on_skeleton_update()

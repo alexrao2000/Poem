@@ -1437,7 +1437,7 @@ func show_model_view(unit,on_close=Callable(),model_spec: Dictionary={}):
 	world.hide();pieces.hide();markers.hide();stage.show()
 	var theme=game.info().get("environment","village");battle_lighting(theme)
 	scenery.battle_landscape(stage,Vector3(35,0,0),{"environment":theme})
-	var actor_data=unit.duplicate(true);actor_data.team="player"
+	var actor_data=unit.duplicate(true);actor_data.team="enemy" if model_spec.has("study_enemy_class") else "player"
 	if model_spec.is_empty():preview_actor=make_fighter(actor_data,Vector3(35,0,0))
 	else:
 		var library=preload("res://scripts/combat_models.gd").new("")
@@ -1454,7 +1454,8 @@ func show_model_view(unit,on_close=Callable(),model_spec: Dictionary={}):
 	portrait.expand_mode=TextureRect.EXPAND_IGNORE_SIZE;portrait.stretch_mode=TextureRect.STRETCH_KEEP_ASPECT_CENTERED;panel.add_child(portrait)
 	if not model_spec.is_empty():
 		portrait.hide()
-		label_in(panel,"Imported body with the recruit’s original face, hair, expressions and colors." if model_spec.get("styled",false) else "Quaternius source rig with Poem equipment. Campaign characters are unchanged.",17)
+		var identity_hint="Original enemy face, class headgear, colors and imperial cloak." if model_spec.has("study_enemy_class") else "Imported body with the recruit’s original face, hair, expressions and colors."
+		label_in(panel,identity_hint if model_spec.get("styled",false) else "Quaternius source rig with Poem equipment. Campaign characters are unchanged.",17)
 	if model_spec.has("supported_items") and model_spec.has("study_id"):
 		var equipment_choice=OptionButton.new();equipment_choice.name="StudyEquipment";equipment_choice.custom_minimum_size.y=42
 		for item_id in model_spec.supported_items:
@@ -1520,6 +1521,8 @@ func show_source_model_view(gender: String,item="",styled=false):
 	if item.is_empty():item=studies[gender].supported_items[0]
 	if item not in studies[gender].supported_items:return
 	var unit=game.roster.filter(func(value):return value.id==studies[gender].study_character)[0].duplicate(true)
+	if studies[gender].has("study_enemy_class"):
+		unit.id="study_"+gender;unit.name=studies[gender].study_title;unit.job=studies[gender].study_enemy_class;unit.team="enemy"
 	unit.name=(unit.name+" · study") if styled else studies[gender].study_title;unit.item=item;unit.promotion=""
 	studies[gender].styled=styled
 	if styled:studies[gender].appearance="Identity"

@@ -8,6 +8,7 @@ const FaceBlink=preload("res://scripts/face_blink.gd")
 @export var mantle_enabled=false
 @export var armor_enabled=false
 @export var light_armor=false
+@export var enemy_job=""
 var armor: Node
 @export_range(.75,1.5) var mantle_depth=1.0
 var mantle: Node
@@ -28,13 +29,15 @@ static var reference_cache={}
 func configure_identity(id: String) -> String:
  if not identity.is_empty():return "Identity is already configured"
  var painter=load("res://scripts/fighters.gd").new()
- if not painter.profiles.has(id):return "Unknown character identity: "+id
+ if enemy_job.is_empty() and not painter.profiles.has(id):return "Unknown character identity: "+id
+ if not enemy_job.is_empty() and not painter.enemy_looks.has(enemy_job):return "Unknown enemy class: "+enemy_job
  var model=get_parent();var rig=model.get_node_or_null("Rig/Armature/Skeleton3D") as Skeleton3D
  var face_anchor=model.get_node_or_null("Rig/Armature/Skeleton3D/Face") as BoneAttachment3D
  if rig==null or face_anchor==null:return "The source identity needs its head attachment"
- var appearance=painter.profiles[id].appearance
+ var appearance=painter.profiles[id].appearance if enemy_job.is_empty() else painter.enemy_looks[enemy_job]
  var skin=Color(appearance.skin);var cloth=Color(appearance.cloth)
  identity=id;model.set_meta("character_identity",id)
+ if not enemy_job.is_empty():model.set_meta("enemy_appearance",enemy_job)
  var source_head: MeshInstance3D
  for mesh in rig.find_children("*","MeshInstance3D",true,false):
   if str(mesh.name).begins_with("Head_") or str(mesh.name).begins_with("Hair_"):
@@ -65,7 +68,9 @@ func configure_identity(id: String) -> String:
  var skull=painter.geo.mesh(head,painter.Head.mesh(shape),Vector3.ZERO,Vector3.ONE,painter.geo.material(skin));skull.name="SculptedHead"
  for x in [-.14,.14]:painter.ellipsoid(head,Vector3(x,-.015,0),Vector3(.025,.05,.025),skin)
  painter.Hair.build(painter,head,appearance,Color("bca26b"))
- var face=painter.face_surface(head,painter.FACE_INDICES.get(id,5),shape)
+ if not enemy_job.is_empty():painter.EnemyHeadgear.build(painter,head,enemy_job,Color(appearance.get("steel","a8b3bb")),Color(appearance.get("metal","bca26b")),appearance)
+ var face_index=painter.FACE_INDICES.get(id,5) if enemy_job.is_empty() else int(appearance.get("face_variant",5))
+ var face=painter.face_surface(head,face_index,shape)
  face.set_meta("dynamic",true)
  blink.bind(face,painter.face_atlas,"authored:"+id)
  painter.geo.batcher.combine(head,false)
@@ -81,7 +86,7 @@ func configure_identity(id: String) -> String:
  neck_material.set_shader_parameter("tint",skin);neck_material.set_shader_parameter("dye_mode",3)
  neck_material.set_shader_parameter("reference_luma",reference_luma(neck_mesh,0,source_skin.albedo_texture,3))
  neck_material.set_meta("identity",id);neck_material.set_meta("dye_mode",3);neck.material_override=neck_material;painted_materials.append(neck_material)
- cloak=preload("res://scripts/authored_cloak.gd").new();cloak.name="CloakDriver";add_child(cloak);cloak.configure(model,rig,painter,appearance,cloak_cut)
+ cloak=preload("res://scripts/authored_cloak.gd").new();cloak.name="CloakDriver";add_child(cloak);cloak.configure(model,rig,painter,appearance,cloak_cut,enemy_job.is_empty())
  if mantle_enabled:
   mantle=preload("res://scripts/authored_mantle.gd").new();mantle.name="MantleDriver";add_child(mantle);mantle.configure(model,rig,painter,appearance,mantle_depth)
  if robe_enabled:

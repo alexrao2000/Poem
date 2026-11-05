@@ -116,6 +116,14 @@ func run():
   var finger=rig.to_global(rig.get_bone_global_pose(rig.find_bone("middle_04_leaf_r")).origin)
   assert(finger.distance_to(Geometry3D.get_closest_point_to_segment(finger,held_sword.to_global(Vector3(0,0,-.195)),held_sword.to_global(Vector3(0,0,.035))))<.045,"Packaged falling actor retains its equipped grip")
   app.close_model_view();await process_frame
+ app.show_source_model_view("enemy_duelist","tempered_sword",true);await process_frame
+ var enemy_study=app.preview_actor;var enemy_identity=enemy_study.model.get_node("Identity")
+ assert(app.preview_unit.team=="enemy" and enemy_study.model.get_meta("enemy_appearance")=="Duelist" and enemy_identity.head.get_meta("enemy_headgear")=="Duelist")
+ assert(enemy_identity.cloak.cloth.material_override.get_shader_parameter("cape_mark")==app.fighters.IMPERIAL_CAPE,"Packaged enemy study keeps the imperial insignia")
+ var enemy_target=app.ui.find_child("StudyTarget",true,false);enemy_target.select(1);enemy_target.item_selected.emit(1);await app.stage.get_node("PreviewActionPlayer").finished
+ var enemy_edge=enemy_study.weapon_trail_points();var enemy_point=enemy_study.get_node("StudyContactTarget").global_position
+ assert(Geometry3D.get_closest_point_to_segment(enemy_point,enemy_edge[0],enemy_edge[1]).distance_to(enemy_point)<.006)
+ app.close_model_view();await process_frame
  for pair in [["caster","tarin"],["caster_female","vela"]]:
   app.show_source_model_view(pair[0],"thunder",true);await process_frame
   var caster=app.preview_actor;assert(caster is Imported and caster.model.get_meta("character_identity")==pair[1],"Packaged casting study retains the original identity")

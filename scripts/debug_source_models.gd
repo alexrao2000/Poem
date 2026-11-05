@@ -11,6 +11,8 @@ func _init(study_ids: Array):
  models.catalog={"characters":{}}
  for key in study_ids:
   var spec=studies[key].duplicate(true);spec.appearance="Identity"
+  if spec.has("study_enemy_class"):
+   models.report("Enemy studies cannot replace company recruits: "+str(key));continue
   var source=roster.filter(func(unit):return unit.id==spec.study_character)[0]
   for id in spec.get("campaign_characters",[spec.study_character]):
    var recruits=roster.filter(func(unit):return unit.id==id)

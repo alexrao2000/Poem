@@ -2,15 +2,17 @@ extends SceneTree
 var study_ids=["female","male"]
 var character_ids=["nell","silas","yuna"]
 var equipped_items=["tempered_sword"]
+var unit_team="player"
+func create_models():return load("res://scripts/debug_source_models.gd").new(study_ids)
 func _initialize():call_deferred("run")
 func run():
  var viewport=SubViewport.new();viewport.size=Vector2i(1024,640);root.add_child(viewport);var world=Node3D.new();viewport.add_child(world);var camera=Camera3D.new();world.add_child(camera);camera.current=true
- var models=load("res://scripts/debug_source_models.gd").new(study_ids);var game=load("res://scripts/rules.gd").new();var director=load("res://scripts/combat_camera.gd")
+ var models=create_models();var game=load("res://scripts/rules.gd").new();var director=load("res://scripts/combat_camera.gd")
  var failures=[];var count=0
  var framing=director.new();world.add_child(framing)
  for id in character_ids:
   for item in equipped_items:
-   var unit=game.roster.filter(func(value):return value.id==id)[0].duplicate(true);unit.team="player";unit.item=item
+   var unit=game.roster.filter(func(value):return value.id==id)[0].duplicate(true);unit.team=unit_team;unit.item=item
    var spacing=load("res://scripts/fighter_actor.gd").melee_spacing(unit.weapon)
    var actor=models.build(world,unit,Vector3(35,0,0));await process_frame;actor.set_process(false);actor.player.pause()
    framing.configure(camera,[actor])
@@ -47,7 +49,7 @@ func run():
    actor.queue_free();await process_frame
  for failure in failures.slice(0,30):print(failure)
  assert(failures.is_empty(),"Original heads and equipped weapons stay inside the clear combat frame, with full cloaks in wide/finish shots")
- var unit=game.roster.filter(func(value):return value.id==character_ids[0])[0].duplicate(true);unit.team="player"
+ var unit=game.roster.filter(func(value):return value.id==character_ids[0])[0].duplicate(true);unit.team=unit_team
  for invalid in [null,{"windup":.5},{"windup":INF},{"unknown":1.2},{"wide":"bad"}]:
   models.models.catalog.characters[character_ids[0]].framing=invalid;models.models.issues.clear();var before=world.get_child_count()
   assert(models.build(world,unit,Vector3.ZERO)==null and not models.models.issues.is_empty() and world.get_child_count()==before,"Invalid framing falls back without a partial actor")
