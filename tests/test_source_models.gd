@@ -43,7 +43,7 @@ func run():
     assert(material!=null)
     for texture in [material.albedo_texture,material.normal_texture,material.roughness_texture,material.metallic_texture]:
      if texture!=null:assert(texture.get_width()<=1024 and texture.get_height()<=1024,"Runtime textures obey the browser import budget")
-  for clip in ["Idle","Jog_Fwd","Sword_Idle","Sword_Attack","Hit_Chest","Death01","Roll"]:
+  for clip in ["Idle","Jog_Fwd","Sword_Idle","Sword_Attack","Hit_Chest","Death01","Roll","Spell_Simple_Enter","Spell_Simple_Exit","Spell_Simple_Idle","Spell_Simple_Shoot"]:
    assert(player.has_animation(clip))
    var animation=player.get_animation(clip)
    for track in range(animation.get_track_count()):

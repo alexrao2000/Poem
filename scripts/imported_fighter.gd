@@ -11,6 +11,7 @@ var skeletons=[]
 var attachments=[]
 var contact: SkeletonModifier3D
 var pose_listeners=[]
+var pose_constraints=[]
 signal travel_contact(index: int)
 var stride_length=0.0
 var stride_contacts=[]
@@ -27,6 +28,7 @@ func configure(scene: Node3D,spec: Dictionary) -> String:
  skeletons=model.find_children("*","Skeleton3D",true,false)
  attachments=model.find_children("*","BoneAttachment3D",true,false)
  pose_listeners=model.find_children("*","",true,false).filter(func(node):return node.has_method("combat_pose"))
+ pose_constraints=model.find_children("*","SkeletonModifier3D",true,false).filter(func(node):return node.has_method("sample_attachments"))
  model.scale=Vector3.ONE*float(spec.get("scale",1.0))
  model.rotation.y=deg_to_rad(float(spec.get("yaw",0.0)))
  var offset=spec.get("offset",[0,0,0]);model.position=Vector3(offset[0],offset[1],offset[2])
@@ -131,7 +133,7 @@ func prepare_contact(spec: Dictionary) -> String:
  if not sockets.has("trail_tip") or not sockets.has("trail_inner"):return "Contact correction needs blade-edge sockets"
  var rig=model.get_node_or_null(NodePath(setup.skeleton)) as Skeleton3D
  if rig==null:return "Contact skeleton is missing"
- contact=preload("res://scripts/skeletal_contact.gd").new();rig.add_child(contact)
+ contact=preload("res://scripts/skeletal_contact.gd").new();rig.add_child(contact);pose_constraints.append(contact)
  return contact.configure(rig,setup.bones,sockets.trail_inner,sockets.trail_tip)
 
 func aim_at(point: Vector3):
@@ -182,7 +184,7 @@ func refresh_skeleton():
  # Synchronize effect/weapon sockets before sampling a held contact or preview.
  for skeleton in skeletons:skeleton.force_update_all_bone_transforms()
  for attachment in attachments:attachment.on_skeleton_update()
- if contact!=null:contact.sample_attachments()
+ for constraint in pose_constraints:constraint.sample_attachments()
 
 func socket_position(key: String) -> Vector3:
  if sockets.has(key):return sockets[key].global_position

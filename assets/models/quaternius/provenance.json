@@ -21,7 +21,7 @@
     "Removed triangles below the head/neck skin influences.",
     "Compacted referenced mesh and animation buffers; removed unused body vertices and unselected animation data.",
     "Set engine texture imports to a 1024-pixel limit with mipmaps; source image bytes are unchanged.",
-    "Selected seven supplied in-place animation clips.",
+    "Selected eleven supplied in-place sword, locomotion, reaction and casting clips.",
     "Remapped mannequin animation deltas onto each outfit rest pose after verifying the named hierarchy.",
     "Corrected missing eye/hair normal URIs to the verified adjacent Godot normal maps."
   ]

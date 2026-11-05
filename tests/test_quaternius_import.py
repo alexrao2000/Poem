@@ -59,7 +59,7 @@ class QuaterniusImport(unittest.TestCase):
                 data = json.loads((ASSETS / ('duelist_' + gender + '.gltf')).read_text())
                 raw = (ASSETS / data['buffers'][0]['uri']).read_bytes()
                 self.assertEqual(len(raw), data['buffers'][0]['byteLength'])
-                self.assertLess(len(raw), 2_100_000)
+                self.assertLess(len(raw), 2_800_000)
                 used = set()
 
                 def values(index):

@@ -1424,7 +1424,7 @@ func show_model_view(unit,on_close=Callable(),model_spec: Dictionary={}):
 	portrait.expand_mode=TextureRect.EXPAND_IGNORE_SIZE;portrait.stretch_mode=TextureRect.STRETCH_KEEP_ASPECT_CENTERED;panel.add_child(portrait)
 	if not model_spec.is_empty():
 		portrait.hide()
-		label_in(panel,"Imported body with the recruit’s original face, hair, expressions and colors." if model_spec.get("styled",false) else "Quaternius source rig with Poem sword. Campaign characters are unchanged.",17)
+		label_in(panel,"Imported body with the recruit’s original face, hair, expressions and colors." if model_spec.get("styled",false) else "Quaternius source rig with Poem equipment. Campaign characters are unchanged.",17)
 	if model_spec.has("supported_items") and model_spec.has("study_id"):
 		var equipment_choice=OptionButton.new();equipment_choice.name="StudyEquipment";equipment_choice.custom_minimum_size.y=42
 		for item_id in model_spec.supported_items:
@@ -1451,6 +1451,7 @@ func show_model_view(unit,on_close=Callable(),model_spec: Dictionary={}):
 	button_in(turns,"Turn right",func():preview_actor.rotation.y+=PI/6).size_flags_horizontal=Control.SIZE_EXPAND_FILL
 	label_in(panel,"Preview action",15,GOLD)
 	var actions=[["Ready","idle"],["Attack preparation","windup"],["Critical preparation","critical_windup"],["Attack","strike"],["Recovery","recover"]]
+	if unit.weapon=="magic":actions=[["Ready","idle"],["Casting preparation","windup"],["Critical preparation","critical_windup"],["Cast","strike"],["Recovery","recover"]]
 	if unit.weapon=="staff":actions=[["Ready","idle"],["Healing preparation","cast_windup"],["Heal","cast"]]
 	actions.insert(1,["Run / trot","advance"])
 	actions.append_array([["Guard","guard"],["Hit reaction","hit"],["Critical reaction","critical_hit"],["Defeated","down"],["Finishing flourish","victory_flourish"],["Finish","victory"]])
@@ -1479,12 +1480,14 @@ func show_model_view(unit,on_close=Callable(),model_spec: Dictionary={}):
 	framing.configure(preview_actor,camera,panel.get_parent(),actions.map(func(entry):return entry[1]))
 	framing.add_hint(ui)
 
-func show_source_model_view(gender: String,item="iron_sword",styled=false):
-	if not debug_session.active or gender not in ["female","male"]:return
+func show_source_model_view(gender: String,item="",styled=false):
+	if not debug_session.active:return
 	var studies=JSON.parse_string(FileAccess.get_file_as_string("res://data/model_studies.json"))
+	if not studies.has(gender):return
+	if item.is_empty():item=studies[gender].supported_items[0]
 	if item not in studies[gender].supported_items:return
-	var unit=game.roster.filter(func(value):return value.id==("nell" if gender=="female" else "silas"))[0].duplicate(true)
-	unit.name=(unit.name+" · study") if styled else "Duelist · "+gender.capitalize();unit.item=item;unit.promotion=""
+	var unit=game.roster.filter(func(value):return value.id==studies[gender].study_character)[0].duplicate(true)
+	unit.name=(unit.name+" · study") if styled else studies[gender].study_title;unit.item=item;unit.promotion=""
 	studies[gender].styled=styled
 	if styled:studies[gender].appearance="Identity"
 	var return_to=options_return
@@ -1777,8 +1780,9 @@ func show_debug_tools(return_to: String):
 	var revised=CheckButton.new();revised.name="DebugDuelistModels";revised.text="Revised duelist models";revised.button_pressed=debug_session.revised_duelists;panel.add_child(revised)
 	revised.toggled.connect(func(value):debug_session.set_revised_duelists(value))
 	label_in(panel,"Try Nell and Silas’s revised models in battles and outfit previews. Applies before promotion with iron, dueling or tempered swords. Other outfits keep their current models. Resets when Debug mode ends.",16)
-	for gender in ["female","male"]:
-		var study=button_in(panel,"View "+gender+" duelist rig",func():show_source_model_view(gender));study.name="ModelStudy_"+gender
+	var studies=JSON.parse_string(FileAccess.get_file_as_string("res://data/model_studies.json"))
+	for gender in studies:
+		var study=button_in(panel,"View "+studies[gender].study_label+" rig",func():show_source_model_view(gender));study.name="ModelStudy_"+gender
 	var chapters=OptionButton.new();chapters.name="DebugChapter";chapters.custom_minimum_size.y=42
 	for index in range(game.content.chapters.size()):chapters.add_item("%02d · %s"%[index+1,game.content.chapters[index].title])
 	chapters.selected=game.chapter;panel.add_child(chapters)

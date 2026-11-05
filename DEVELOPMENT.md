@@ -6,6 +6,8 @@ User direction: keep developing continuously in this chat until the user returns
 
 ## Current checkpoint
 
+A new casting study offers Tarin's original identity and all three folios on the supplied male rig. His free left hand casts while a bounded two-bone solve supports the open tome in front of his torso. The source library now retains eleven clips. Tests cover 918 poses, supported-book floor clearance, viewer controls, hit-stop and three actual elemental exchanges; eight shared regression suites pass. The normal catalog and revised-duelist comparison remain unchanged. An isolated asset study was inspected; assembled rendering remains unreviewed.
+
 Imported sword users now keep a fitted grip through running, recoil and falls. Private clip copies retain fifteen right-finger rotations around slimmer handles; the free hand, wrist, body and original source animations are preserved. A closeup asset study corrected the initial fist/handle intersection. Tests cover 1,836 poses, all non-finger bones, source independence and actual hilt proximity.
 
 The revised duelists now retain their original embroidered blue forked cloaks on the imported bodies. Upper-spine fitting, private pose-driven cloth and a floor constraint preserve the silhouette during falls. Defeat now rebinds imported face and cloth controllers to their fading material copies. Six affected suites pass, including actual shoulder attachment, camera framing and debug battles; an isolated asset study was inspected, with assembled/GPU review still pending.

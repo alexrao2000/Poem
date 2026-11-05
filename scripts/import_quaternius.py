@@ -17,7 +17,8 @@ import zipfile
 COMPONENTS = {5121: ('B', 1), 5123: ('H', 2), 5125: ('I', 4), 5126: ('f', 4)}
 WIDTHS = {'SCALAR': 1, 'VEC2': 2, 'VEC3': 3, 'VEC4': 4, 'MAT4': 16}
 CLIPS = {'Idle_Loop', 'Sword_Idle', 'Sword_Attack', 'Jog_Fwd_Loop',
-         'Hit_Chest', 'Death01', 'Roll'}
+         'Hit_Chest', 'Death01', 'Roll', 'Spell_Simple_Enter',
+         'Spell_Simple_Exit', 'Spell_Simple_Idle_Loop', 'Spell_Simple_Shoot'}
 
 
 def texture_import(path):
@@ -395,7 +396,7 @@ def main():
                                   'Removed triangles below the head/neck skin influences.',
                                   'Compacted referenced mesh and animation buffers; removed unused body vertices and unselected animation data.',
                                   'Set engine texture imports to a 1024-pixel limit with mipmaps; source image bytes are unchanged.',
-                                  'Selected seven supplied in-place animation clips.',
+                                  'Selected eleven supplied in-place sword, locomotion, reaction and casting clips.',
                                   'Remapped mannequin animation deltas onto each outfit rest pose after verifying the named hierarchy.',
                                   'Corrected missing eye/hair normal URIs to the verified adjacent Godot normal maps.']}
     (args.output / 'provenance.json').write_text(json.dumps(manifest, indent=2) + '\n')
