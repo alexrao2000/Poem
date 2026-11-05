@@ -806,3 +806,9 @@ The [texture comparison](previews/wang-ground-comparison.png) samples the old mi
 All 24 recruits now have original lines for being downed, withdrawing and permanent loss. A quiet parchment card uses the existing portrait, a restrained outcome heading and a short line after map return. It occupies the space left of the tactical sidebar and above the command strip at 1024×640, 1280×720 and 1440×900. Click or Tab dismisses it; it also clears automatically. Lyra retains the retreat outcome used by the campaign reset rule.
 
 The initial wrapped label inherited an oversized minimum height before it had a width. Setting the wrapping width before adding text resolved that layout fault. All 216 roster/outcome/size layouts and actual quick/3D casualty exchanges pass, along with unchanged HP, actions and RNG. Cards also follow bleed-out after its checkpoint. These are behavior/layout checks, not a rendered review of the new presentation.
+
+### Rescue feedback
+
+Rescue and drop use short map transfers rather than an arena cutaway. The patient travels between the two adjacent positions over 280 ms while their figure, health bar, countdown and private shadow fade together. A small gold RESCUED / SET DOWN cue clears within 480 ms; Tab skips the sequence. The existing action camera frames both positions, with narrow/wide viewport and sidebar-clearance checks. Saving precedes presentation.
+
+A new original vector badge, `assets/ui/carrying.svg`, depicts an ally being supported beside the existing medical cross. It remains above a carrier, participates in unit picking, and clears after dropping or releasing the patient. It does not display a countdown because carrying pauses bleeding. Runtime tests cover actual rescue/drop, skipping, unchanged resolved state, private opacity ownership and exported resources. Assembled visual review remains outstanding.

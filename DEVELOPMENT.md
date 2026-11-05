@@ -6,6 +6,8 @@ User direction: keep developing continuously in this chat until the user returns
 
 ## Current checkpoint
 
+Rescue and drop now animate the patient between adjacent tiles with coordinated figure/health/countdown/shadow opacity and a short gold cue. Tab skips feedback after the irreversible checkpoint. Carriers retain a clickable badge until their passenger leaves. Narrow/wide runtime layout, save ordering, state independence and existing quick-map defeat checks pass; assembled appearance remains unreviewed.
+
 Automated healers now recognize downed/carried patients, prioritize imminent bleed-outs, and approach patients outside staff range without mutating state during planning. The ordinary 72-chapter regression passes. An optional `--death-door` hard-campaign probe clears all six seeded runs, with 4–28 staff revivals and 0–22 terminal losses per campaign; detailed results and planner limitations are recorded in the experiment guide.
 
 Adjacent downed allies now open a focused rescue choice when clicked with a ready non-staff rescuer. The choice shows the patient’s remaining phase endings and preserves selection, uncommitted movement and simulation state until confirmed. Staff clicks retain direct healing.

@@ -70,6 +70,31 @@ func verify_rules():
  assert(safe.result()=="victory");safe.finish_chapter();safe.start_battle()
  assert(safe.units.any(func(u):return u.id=="oren" and u.hp>0),"Victory evacuates downed allies before memorials are committed")
 
+func observe_rescue_feedback(app,patient,skip=false):
+ assert(app.busy and app.screen=="battle","Rescue feedback locks commands on the tactical field")
+ var checkpoint=app.game.save_data("battle").duplicate(true);var visual=app.unit_nodes[patient.id]
+ var start=visual.position;var saw_motion=false;var saw_fade=false;var saw_cue=false
+ while app.busy:
+  if is_instance_valid(visual):
+   saw_motion=saw_motion or visual.position.distance_to(start)>.01
+   if visual.rescue_opacity>.05 and visual.rescue_opacity<.95:
+    saw_fade=true
+    assert(is_equal_approx(visual.sprite.modulate.a,visual.rescue_opacity) and is_equal_approx(visual.health.modulate.a,visual.rescue_opacity))
+    if visual.rescue_marker!=null:assert(is_equal_approx(visual.rescue_marker.modulate.a,visual.rescue_opacity),"The countdown badge travels and fades with its patient")
+   assert(visual.marker.material_override!=app.unit_nodes[app.selected.id].marker.material_override,"Rescue opacity owns its shadow material")
+  var cue=app.ui.get_node_or_null("RescueCue")
+  saw_cue=saw_cue or cue!=null
+  if cue!=null and cue.size.x>0:
+   assert(Rect2(Vector2.ZERO,app.ui.size).encloses(cue.get_global_rect()),"Rescue feedback stays within the viewport")
+   assert(not cue.get_global_rect().intersects(app.side.get_parent().get_global_rect()),"Rescue feedback stays clear of the tactical sidebar")
+  if skip and saw_motion and saw_fade:
+   var tab=InputEventKey.new();tab.pressed=true;tab.keycode=KEY_TAB;app._unhandled_input(tab)
+  await process_frame
+ assert(saw_motion and saw_fade and saw_cue,"A rescue action presents travel, translucent coverage and its short cue")
+ assert(app.game.save_data("battle")==checkpoint,"Rescue animation and skipping preserve the resolved checkpoint and RNG")
+ await process_frame
+ assert(app.ui.get_node_or_null("RescueCue")==null,"The rescue cue is removed on completion or skip")
+
 func verify_rescue_selection(app):
  app.game.new_campaign(true);app.game.death_door=true;app.game.start_battle();app.preferences.values.auto_end=false
  var rescuer=app.game.units[0];var patient=app.game.units[1]
@@ -87,6 +112,11 @@ func verify_rescue_selection(app):
  assert(app.screen=="battle" and app.selected==rescuer and app.origin==Vector2i(2,3) and app.game.save_data("battle")==snapshot)
  app.click_tile(app.game.pos(patient))
  app.ui.find_children("*","Button",true,false).filter(func(button):return button.text=="Rescue "+patient.name)[0].pressed.emit()
+ await observe_rescue_feedback(app,patient,true)
+ var badge=app.unit_nodes[rescuer.id].carry_marker
+ assert(badge!=null and badge.get_meta("passenger")==patient.name and badge.texture.get_size()==Vector2(64,36),"A carrier has a persistent passenger badge after the rescue transition")
+ var point=app.camera.unproject_position(badge.global_position)
+ assert(app.pick_map_unit(point)==rescuer and app.unit_nodes[rescuer.id].screen_bounds(app.camera).has_point(point),"The carrier badge is part of the unit’s clickable bounds")
  assert(patient.carried_by==rescuer.id and rescuer.acted and app.game.pos(rescuer)==Vector2i(3,3),"Confirming rescue uses the moved position and spends the action")
 
 func verify_drop_controls(app):
@@ -119,10 +149,13 @@ func verify_drop_controls(app):
  assert(not app.drop_mode and app.game.save_data("battle")==snapshot,"Right-click also cancels only the drop choice")
  app.game.action_saves=true;app.begin_drop();var destination=app.cursor_tile;var rng=app.game.rng.state
  var enter=InputEventKey.new();enter.pressed=true;enter.keycode=KEY_ENTER;app._unhandled_input(enter);await process_frame
+ var immediate=Rules.new();assert(immediate.load_game(app.save_path)=="battle" and immediate.units.filter(func(unit):return unit.id==patient.id)[0].get("carried_by","").is_empty(),"Drop is saved before the transition finishes")
+ await observe_rescue_feedback(app,patient)
  assert(not app.drop_mode and carrier.acted and patient.get("carried_by","").is_empty() and app.game.pos(patient)==destination and app.game.rng.state==rng)
  var loaded=Rules.new();assert(loaded.load_game(app.save_path)=="battle")
  var saved_patient=loaded.units.filter(func(unit):return unit.id==patient.id)[0]
  assert(saved_patient.get("carried_by","").is_empty() and loaded.pos(saved_patient)==destination,"Keyboard drop commits the exact passenger destination")
+ assert(app.unit_nodes[carrier.id].carry_marker==null,"Dropping removes the carrier badge")
  assert(app.unit_nodes.has(patient.id) and app.markers.get_node_or_null("DropTargets")==null,"A dropped ally returns to the map and clears target highlights")
  carrier.acted=false;assert(Door.rescue(app.game,carrier,patient));carrier.acted=false
  var blockers=app.game.units.filter(func(unit):return unit.id not in [carrier.id,patient.id])
@@ -172,6 +205,8 @@ func run():
  app.show_triage()
  var rescue=app.ui.find_children("*","Button",true,false).filter(func(b):return b.text=="Rescue "+patient.name)
  assert(rescue.size()==1);rescue[0].pressed.emit();await process_frame
+ assert(loaded.load_game(app.save_path)=="battle" and loaded.units[1].carried_by==ally.id,"Rescue is saved before the transition finishes")
+ await observe_rescue_feedback(app,patient)
  assert(patient.carried_by==ally.id and not app.unit_nodes.has(patient.id),"Rescue command removes carried ally from the map")
  assert(loaded.load_game(app.save_path)=="battle" and loaded.units[1].carried_by==ally.id,"Rescue autosaves its carrier relation")
  app.game.begin_enemy_phase()
@@ -198,7 +233,9 @@ func run():
  assert(app.busy and app.screen=="battle" and patient.hp>0,"Carried-ally treatment routes into real healing feedback after resolving health")
  while app.busy:await process_frame
  assert(medic.acted and patient.acted and app.unit_nodes.has(patient.id) and not app.unit_nodes[patient.id].downed and app.unit_nodes[patient.id].rescue_marker==null,"Healing returns both units to the tactical map with spent actions")
+ root.size=Vector2i(1024,640);await process_frame
  await verify_rescue_selection(app)
+ root.size=Vector2i(1440,900);await process_frame
  await verify_drop_controls(app)
  app.game.new_campaign(true);app.game.death_door=true;app.game.action_saves=true;app.game.start_battle()
  var leader=app.game.units[0];casualty(app.game,leader);leader.bleed_turns=1

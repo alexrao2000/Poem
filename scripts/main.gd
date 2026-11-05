@@ -338,7 +338,8 @@ func refresh_pieces():
 	for u in game.units:
 		if (u.hp<=0 and not game.DeathDoor.downed(u)) or not u.get("carried_by","").is_empty():continue
 		var visual=MapUnit.new();visual.name=str(u.id).validate_node_name();visual.position=map_position(game.pos(u))
-		pieces.add_child(visual);visual.configure(map_catalog,u,map_facings.get(u.id,"south"))
+		var passenger=game.DeathDoor.passenger(game,u)
+		pieces.add_child(visual);visual.configure(map_catalog,u,map_facings.get(u.id,"south"),passenger.name if passenger!=null else "")
 		visual.selected=selected!=null and selected.id==u.id
 		unit_nodes[u.id]=visual;sprites.append(visual.sprite)
 
@@ -799,7 +800,7 @@ func pick_map_unit(point: Vector2):
 	for unit in game.units:
 		if (unit.hp<=0 and not game.DeathDoor.downed(unit)) or not unit_nodes.has(unit.id):continue
 		var actor=unit_nodes[unit.id]
-		if actor.commander_screen_bounds(camera).has_point(point) or actor.rescue_screen_bounds(camera).has_point(point):return unit
+		if actor.commander_screen_bounds(camera).has_point(point) or actor.rescue_screen_bounds(camera).has_point(point) or actor.carry_screen_bounds(camera).has_point(point):return unit
 		if not actor.screen_bounds(camera).has_point(point):continue
 		var depth=camera.unproject_position(actor.global_position).y
 		if depth>front:picked=unit;front=depth
@@ -1810,13 +1811,44 @@ func cancel_drop():
 
 func rescue_ally(patient: Dictionary):
 	if busy or selected==null or not action_save_ready():return
-	if game.DeathDoor.rescue(game,selected,patient) and checkpoint_action():show_battle();finish_action()
+	var carrier=selected;var departure=patient.duplicate(true)
+	if not game.DeathDoor.rescue(game,carrier,patient) or not checkpoint_action():return
+	busy=true;skip_combat=false;show_battle()
+	await map_rescue_feedback(carrier,patient,departure,true)
+	busy=false;finish_action()
 
 func drop_ally(tile: Vector2i):
 	if busy or selected==null or not action_save_ready():return
+	var carrier=selected;var patient=game.DeathDoor.passenger(game,carrier)
 	if game.DeathDoor.drop(game,selected,tile):
 		drop_mode=false
-		if checkpoint_action():show_battle();finish_action()
+		if not checkpoint_action():return
+		busy=true;skip_combat=false;show_battle();refresh_pieces()
+		await map_rescue_feedback(carrier,patient,patient,false)
+		busy=false;finish_action()
+
+func map_rescue_feedback(carrier: Dictionary,patient: Dictionary,field_patient: Dictionary,picking_up: bool):
+	var visual=unit_nodes.get(patient.id);var actor=unit_nodes.get(carrier.id)
+	if visual==null:return
+	var cue_text="RESCUED" if picking_up else "SET DOWN"
+	var field_position=map_position(game.pos(field_patient));var carrier_position=map_position(game.pos(carrier))
+	visual.position=field_position if picking_up else carrier_position
+	visual.begin_rescue_transfer(1.0 if picking_up else 0.0)
+	await frame_map_action([carrier,field_patient],map_cue_padding(cue_text))
+	if actor!=null:
+		actor.act_toward(game.pos(field_patient),game.pos(carrier));map_facings[carrier.id]=actor.player.facing
+	var destination=carrier_position if picking_up else field_position
+	var cue=Label.new();cue.name="RescueCue";cue.text=cue_text;cue.mouse_filter=Control.MOUSE_FILTER_IGNORE
+	cue.add_theme_font_size_override("font_size",28);cue.add_theme_color_override("font_color",GOLD);cue.add_theme_color_override("font_outline_color",Color("30353a"));cue.add_theme_constant_override("outline_size",5)
+	ui.add_child(cue);cue.position=camera.unproject_position(destination+Vector3.UP*1.1)-Vector2(cue.get_minimum_size().x*.5,20)
+	play_sfx("select")
+	var motion=create_tween().set_parallel(true)
+	motion.tween_property(visual,"position",destination,.28).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN_OUT)
+	motion.tween_method(visual.set_rescue_opacity,1.0 if picking_up else 0.0,0.0 if picking_up else 1.0,.28)
+	motion.tween_property(cue,"position:y",cue.position.y-18,.36);motion.tween_property(cue,"modulate:a",0.0,.36).set_delay(.12)
+	await combat_wait(motion)
+	if is_instance_valid(cue):cue.queue_free()
+	if actor!=null:actor.finish_move()
 
 func heal_carried_ally(patient: Dictionary):
 	if busy or selected==null or not action_save_ready():return
