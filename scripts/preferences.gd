@@ -1,11 +1,12 @@
 extends RefCounted
-const DEFAULTS={"combat":"all","music":1.0,"effects":1.0,"text_speed":55,"auto_end":true}
+const DEFAULTS={"combat":"all","music":1.0,"effects":1.0,"text_speed":55,"auto_end":true,"character_models":"current"}
 var values=DEFAULTS.duplicate()
 
 func reset():values=DEFAULTS.duplicate()
 
 func valid(data) -> bool:
  if not data is Dictionary or data.get("combat") not in ["all","player","map"]:return false
+ if data.get("character_models","current") not in ["current","revised"]:return false
  if not (data.get("text_speed") is int or data.get("text_speed") is float):return false
  if not is_finite(float(data.text_speed)) or data.text_speed!=int(data.text_speed) or int(data.text_speed) not in [0,55,90] or not data.get("auto_end") is bool:return false
  for key in ["music","effects"]:
@@ -18,7 +19,7 @@ func load_file(path: String) -> bool:
  if file==null or file.get_length()>4096:return false
  var parser=JSON.new()
  if parser.parse(file.get_as_text())!=OK or not valid(parser.data):return false
- values=parser.data;values.text_speed=int(values.text_speed)
+ values=DEFAULTS.duplicate();values.merge(parser.data,true);values.text_speed=int(values.text_speed)
  return true
 
 func save_file(path: String) -> bool:

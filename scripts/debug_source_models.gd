@@ -1,5 +1,5 @@
 extends RefCounted
-# Debug comparisons select only the named recruit's original class and equipment.
+# Opt-in model comparisons select only the named recruit's original class and equipment.
 # Promotion costumes, enemies and unsupported weapons retain the normal builder.
 var models=preload("res://scripts/combat_models.gd").new("")
 var identities: Dictionary={}

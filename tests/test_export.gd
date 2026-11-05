@@ -138,6 +138,11 @@ func run():
  app.show_debug_report();assert(JSON.parse_string(app.ui.find_child("DebugReport",true,false).text).debug,"Packaged debug reports contain the current experiment record")
  assert(app.game.trials.scenes.size()==10,"Release includes relief, retreat, volunteer and memorial story scenes")
  assert(app.persist_campaign("battle") and FileAccess.file_exists(app.save_path+".debug"),"Packaged debug actions save separately")
+ app.debug_session.end(app.game);app.preferences.values.character_models="revised"
+ var campaign_recruit=app.game.roster.filter(func(unit):return unit.id=="vela")[0].duplicate(true);campaign_recruit.team="player";campaign_recruit.item="gale"
+ var campaign_model=app.make_fighter(campaign_recruit,Vector3.ZERO)
+ assert(not app.debug_session.active and campaign_model is Imported and campaign_model.model.get_meta("character_identity")=="vela","Packaged appearance preference works in the ordinary campaign")
+ campaign_model.queue_free();await process_frame
  await Shutdown.dispose(app);await process_frame
  print("PASS: exported catalog, all three act scores, chapter scenes, sixteen promotion costumes, licenses and credits")
  quit()

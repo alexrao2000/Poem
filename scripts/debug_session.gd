@@ -9,9 +9,9 @@ var revised_caster=false
 var checkpoint: Dictionary={}
 var return_screen="title"
 
-func begin(game,screen: String):
+func begin(game,screen: String,revised_models=false):
  if active:return
- return_screen=screen;combat_seed=472019;revised_duelists=false;revised_caster=false
+ return_screen=screen;combat_seed=472019;revised_duelists=revised_models;revised_caster=revised_models
  checkpoint=game.save_data("battle" if screen=="battle" else "camp").duplicate(true)
  active=true
 

@@ -948,10 +948,11 @@ func end_turn(resuming=false):
 	persist_campaign("battle")
 
 func make_fighter(u,position) -> Node3D:
-	if debug_session.active and debug_session.revised_duelists:
+	var revised=preferences.values.character_models=="revised"
+	if (debug_session.revised_duelists if debug_session.active else revised):
 		var study=debug_duelists.build(stage,u,position)
 		if study!=null:return study
-	if debug_session.active and debug_session.revised_caster:
+	if (debug_session.revised_caster if debug_session.active else revised):
 		var study=debug_caster.build(stage,u,position)
 		if study!=null:return study
 	return fighters.build(stage,u,position)
@@ -1716,13 +1717,13 @@ func show_options(return_to: String):
 	var panel=scrolling_column(frame)
 	label_in(panel,"PLAYBACK & CONTROLS",17,GOLD)
 	label_in(panel,"Options",44,GOLD)
-	label_in(panel,"Playback settings stay on this device. Permadeath is saved with the campaign.",19)
+	label_in(panel,"Presentation settings stay on this device. Permadeath is saved with the campaign.",19)
 	var permanent=CheckButton.new();permanent.name="Permadeath";permanent.text="Permadeath";permanent.button_pressed=game.permadeath;panel.add_child(permanent)
 	permanent.toggled.connect(func(value):game.permadeath=value)
 	label_in(panel,"Turning this off keeps earlier losses. Use Debug tools to experiment with revival.",16)
 	var debugging=CheckButton.new();debugging.name="DebugMode";debugging.text="Debug mode · temporary sandbox";debugging.button_pressed=debug_session.active;panel.add_child(debugging)
 	debugging.toggled.connect(func(value):
-		if value:debug_session.begin(game,options_return)
+		if value:debug_session.begin(game,options_return,preferences.values.character_models=="revised")
 		else:
 			options_return=debug_session.end(game)
 			if options_return=="battle":make_map()
@@ -1742,6 +1743,13 @@ func show_options(return_to: String):
 	for title in ["All 3D battles","3D for player attacks","Quick map battles"]:mode.add_item(title)
 	mode.selected=["all","player","map"].find(preferences.values.combat);panel.add_child(mode)
 	mode.item_selected.connect(func(index):preferences.values.combat=["all","player","map"][index])
+	label_in(panel,"Character models",21,GOLD)
+	var model_mode=OptionButton.new();model_mode.name="CharacterModels";model_mode.custom_minimum_size.y=42
+	for title in ["Current roster","Revised models · preview"]:model_mode.add_item(title)
+	model_mode.selected=["current","revised"].find(preferences.values.character_models);model_mode.disabled=debug_session.active;panel.add_child(model_mode)
+	model_mode.item_selected.connect(func(index):preferences.values.character_models=["current","revised"][index])
+	label_in(panel,"Try revised Nell, Silas, Tarin and Vela in battles and outfit previews before promotion. Other characters and unsupported equipment keep their current models. You can switch back at any time.",16)
+	if debug_session.active:label_in(panel,"Debug tools has separate model switches for this sandbox. Leave Debug mode to change campaign presentation.",16)
 	for key in ["music","effects"]:
 		var row=HBoxContainer.new();row.add_theme_constant_override("separation",20);panel.add_child(row)
 		var title=label_in(row,key.capitalize()+" volume",20);title.custom_minimum_size.x=180
@@ -1846,7 +1854,7 @@ func show_debug_report():
 	var report=TextEdit.new();report.name="DebugReport";report.editable=false;report.wrap_mode=TextEdit.LINE_WRAPPING_BOUNDARY
 	report.custom_minimum_size.y=160;report.size_flags_vertical=Control.SIZE_EXPAND_FILL;report.add_theme_font_size_override("font_size",14)
 	var record=debug_session.report(game,"battle" if options_return=="battle" else "camp")
-	record.presentation={"revised_duelists":debug_session.revised_duelists,"revised_caster":debug_session.revised_caster}
+	record.presentation={"campaign_models":preferences.values.character_models,"revised_duelists":debug_session.revised_duelists,"revised_caster":debug_session.revised_caster}
 	report.text=JSON.stringify(record,"\t",false);panel.add_child(report)
 	var actions=HBoxContainer.new();actions.add_theme_constant_override("separation",12);panel.add_child(actions)
 	button_in(actions,"Copy report",func():DisplayServer.clipboard_set(report.text);show_notice("Experiment report copied."))
