@@ -4,6 +4,7 @@ var content: Dictionary
 var equipment: Array
 var promotions: Array
 var supports=preload("res://scripts/supports.gd").new()
+var browser_journal=preload("res://scripts/browser_journal.gd").new()
 const MAX_LEVEL=99
 const STAT_CAPS={"max_hp":999,"pow":255,"defense":255,"resistance":255,"speed":255,"move":20}
 const DEFAULT_ITEMS={"sword":"iron_sword","lance":"iron_lance","axe":"iron_axe","bow":"scout_bow","magic":"ember","staff":"field_staff"}
@@ -391,9 +392,11 @@ func save_game(path: String,stage: String) -> bool:
 	var previous=read_saved_data(path)
 	var data=save_data(stage)
 	data.save_sequence=int(previous.get("save_sequence",0))+1
+	var serialized=JSON.stringify(data)
 	var file=FileAccess.open(path+".tmp",FileAccess.WRITE)
 	if file==null:return false
-	file.store_string(JSON.stringify(data));file.flush();file.close()
+	file.store_string(serialized);file.flush();file.close()
+	if not browser_journal.write_record(path,serialized):return false
 	if action_saves:
 		if DirAccess.copy_absolute(path+".tmp",path+".bak.tmp")!=OK:return false
 		if DirAccess.rename_absolute(path+".bak.tmp",path+".bak")!=OK:return false
@@ -402,10 +405,14 @@ func save_game(path: String,stage: String) -> bool:
 
 func read_saved_data(path: String) -> Dictionary:
 	var newest={}
+	var records=[browser_journal.read_record(path)]
 	for candidate in [path,path+".bak",path+".tmp"]:
 		if not FileAccess.file_exists(candidate):continue
+		records.append(FileAccess.get_file_as_string(candidate))
+	for record in records:
+		if record.is_empty():continue
 		var parser=JSON.new()
-		if parser.parse(FileAccess.get_file_as_string(candidate))!=OK or not valid_save(parser.data):continue
+		if parser.parse(record)!=OK or not valid_save(parser.data):continue
 		if newest.is_empty() or int(parser.data.get("save_sequence",0))>int(newest.get("save_sequence",0)):newest=parser.data
 	return newest
 

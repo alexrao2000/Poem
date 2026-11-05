@@ -5,6 +5,7 @@ const Shutdown=preload("helpers/game_shutdown.gd")
 func _initialize():call_deferred("run")
 
 func run():
+ assert(FileAccess.get_file_as_string("res://scripts/browser_journal.js").contains("poemSaveJournal"),"Export includes browser checkpoint recovery")
  for path in ["res://assets/fonts/OFL.txt","res://assets/audio/VSCO-LICENSE.txt","res://assets/audio/VSCO-CREDITS.txt"]:
   assert(FileAccess.file_exists(path) and FileAccess.get_file_as_string(path).length()>100,"Export includes font and instrument credits/licenses")
  var wang=load("res://assets/art/terrain-wang.png")

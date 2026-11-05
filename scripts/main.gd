@@ -358,7 +358,7 @@ func show_title():
 	label_in(v,"Twelve chapters. Twenty-four paths to dawn.",17,Color("766e5e"))
 	var spacer=Control.new();spacer.size_flags_vertical=Control.SIZE_EXPAND_FILL;v.add_child(spacer)
 	button_in(v,"Begin the chronicle",show_campaign_rules)
-	button_in(v,"Continue saved campaign",load_campaign,not FileAccess.file_exists(campaign_save_path()) and not FileAccess.file_exists(campaign_save_path()+".bak") and not FileAccess.file_exists(campaign_save_path()+".tmp"))
+	button_in(v,"Continue saved campaign",load_campaign,game.read_saved_data(campaign_save_path()).is_empty())
 	button_in(v,"Transfer a local save",func():show_save_transfer("title"))
 	var extras=HBoxContainer.new();extras.add_theme_constant_override("separation",8);v.add_child(extras)
 	button_in(extras,"Options",func():show_options("title")).size_flags_horizontal=Control.SIZE_EXPAND_FILL

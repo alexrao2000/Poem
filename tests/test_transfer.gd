@@ -1,6 +1,13 @@
 extends SceneTree
 const Shutdown=preload("helpers/game_shutdown.gd")
 const Rules=preload("res://scripts/rules.gd")
+class Journal extends RefCounted:
+ var record=""
+ var writable=false
+ func read_record(_path: String) -> String:return record
+ func write_record(_path: String,value: String) -> bool:
+  if not writable:return false
+  record=value;return true
 func _initialize():call_deferred("run")
 func run():
  var source=Rules.new();source.chapter=4;source.equip(source.roster[2],"longbow");source.story_seen=["opening_4"];source.start_battle()
@@ -50,6 +57,26 @@ func run():
  for unit in app.game.living("player"):unit.hp=0
  assert(await app.check_result());await process_frame
  assert(app.screen=="result" and app.ui.find_child("Notice",true,false)!=null,"Result screen reset does not hide failed autosave")
+ # A browser can retain only the journal if it reloads before its first FS sync.
+ app.save_path="/private/tmp/poem-journal-only-ui.json"
+ for suffix in ["",".bak",".tmp"]:
+  if FileAccess.file_exists(app.save_path+suffix):DirAccess.remove_absolute(app.save_path+suffix)
+ var journal=Journal.new();app.game.browser_journal=journal
+ source.action_saves=true;source.turn=11
+ journal.record=JSON.stringify(source.save_data("battle"))
+ app.show_title();await process_frame
+ var continues=app.ui.find_children("*","Button",true,false).filter(func(button):return button.text=="Continue saved campaign")
+ assert(continues.size()==1 and not continues[0].disabled,"Continue discovers journal-only progress")
+ await app.load_campaign();await process_frame
+ assert(app.screen=="battle" and app.game.turn==11,"Continue restores journal-only campaign")
+ assert(not app.checkpoint_action() and app.save_failed,"Rejected browser writes use the normal checkpoint warning")
+ var snapshot=JSON.stringify(app.game.save_data("battle"))
+ app.click_tile(app.game.pos(app.game.living("player")[0]));await process_frame
+ assert(app.selected==null and JSON.stringify(app.game.save_data("battle"))==snapshot,"Further actions stay blocked while browser storage fails")
+ journal.writable=true
+ assert(app.action_save_ready() and not app.save_failed,"A successful browser retry unlocks actions")
+ for suffix in ["",".bak",".tmp"]:
+  if FileAccess.file_exists(app.save_path+suffix):DirAccess.remove_absolute(app.save_path+suffix)
  app.score_director.stop();await create_timer(.2).timeout
  await Shutdown.dispose(app);await process_frame
  print("PASS: local transfer, equipment/RNG continuity, bounded validation, legacy migration, failed autosave recovery and live battle export")

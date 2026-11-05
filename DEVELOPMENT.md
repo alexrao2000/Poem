@@ -16,6 +16,8 @@ Campaign experiments now have separate toggles and an isolated debug harness. Sa
 
 Healing cutaways now preserve pre-growth HP until the reward panel. Downed allies have clickable two/one-phase rescue badges that update before enemies move. Debug reports put readable settings first and offer a separate restore-code copy button. Focused runtime/layout checks, exported-resource smoke and browser/macOS packaging pass; these do not replace assembled visual review.
 
+Browser saving now keeps a checked localStorage recovery record per normal/debug slot, alongside the atomic filesystem saves. Load selects the newest validated record; Continue also finds a journal-only campaign. Storage rejection reports failure and blocks action-saving battles until retry succeeds. JavaScript storage-double tests plus headless save/transfer/UI/experiment/debug/menu checks pass. Actual browser reload verification remains unavailable.
+
 ## Earlier checkpoints
 
 Spell flight now has a continuous soft-edged wake and luminous elemental cores/halos, replacing the six opaque trailing beads. It uses four fewer mesh instances per spell while keeping the existing path/timing. Focused geometry, transformed physical/elemental flights, actual exchanges and skip cleanup pass; the isolated additive study was corrected for a measured headless gradient readback artifact rather than treating that artifact as a game defect.
