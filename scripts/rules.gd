@@ -241,7 +241,8 @@ func range_text(u: Dictionary) -> String:
 	return str(int(item.min_range)) if item.min_range==item.max_range else "%d–%d"%[item.min_range,item.max_range]
 
 func can_heal(a: Dictionary,b: Dictionary) -> bool:
-	return can_act(a) and a.weapon=="staff" and a.team==b.team and a.id!=b.id and (b.hp>0 or DeathDoor.downed(b)) and b.hp<b.max_hp and in_weapon_range(a,distance(a,b))
+	var reach=1 if b.get("carried_by","")==a.id else distance(a,b)
+	return can_act(a) and a.weapon=="staff" and a.team==b.team and a.id!=b.id and (b.hp>0 or DeathDoor.downed(b)) and b.hp<b.max_hp and in_weapon_range(a,reach)
 
 func heal(a: Dictionary,b: Dictionary) -> bool:
 	if not can_heal(a,b):return false
@@ -282,14 +283,14 @@ func strike(a: Dictionary,b: Dictionary) -> Dictionary:
 	var damage = mini(int(b.hp),int(f.damage)*(3 if crit else 1)) if hit else 0
 	b.hp -= damage
 	if b.hp<=0:DeathDoor.fall(self,b)
-	return {"actor":a.id,"target":b.id,"damage":damage,"crit":crit,"hit":hit,"remaining":int(b.hp)}
+	return {"actor":a.id,"target":b.id,"damage":damage,"crit":crit,"hit":hit,"remaining":b.hp}
 
 func combat(a: Dictionary,b: Dictionary) -> Array:
 	if a.team!=phase or a.acted or not can_attack(a,b): return []
 	var f = forecast(a,b)
 	var exchange_forecast={a.id:f.duplicate(true),b.id:forecast(b,a)}
 	exchange_forecast[a.id].available=true;exchange_forecast[b.id].available=f.counter
-	exchange_forecast[a.id].max_hp=int(a.max_hp);exchange_forecast[b.id].max_hp=int(b.max_hp)
+	exchange_forecast[a.id].max_hp=a.max_hp;exchange_forecast[b.id].max_hp=b.max_hp
 	var result = [strike(a,b)]
 	if b.hp>0 and can_attack(b,a): result.append(strike(b,a))
 	if a.hp>0 and b.hp>0:

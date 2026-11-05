@@ -70,6 +70,7 @@ func record_losses(game):
     log_event(recruits[0].name+" answers the company's loss and arrives ahead of the planned rendezvous.")
 
 func prepare_battle(game):
+ if not flags.reset_pressure and not flags.hard_campaign and not flags.sacrifice_cost:return
  var extra=pressure if flags.reset_pressure else 0
  for unit in game.units:
   if unit.team=="enemy":

@@ -60,6 +60,11 @@ func verify_rules():
  assert(Door.drop(rescue,carrier,Vector2i(3,3)) and patient.bleed_turns==2)
  carrier.acted=false;assert(Door.rescue(rescue,carrier,patient));casualty(rescue,carrier)
  assert(not patient.has("carried_by") and rescue.pos(patient)!=rescue.pos(carrier),"A downed carrier releases their passenger onto free terrain")
+ var self_heal=Rules.new();self_heal.death_door=true;self_heal.start_battle()
+ var staff=self_heal.units.filter(func(u):return u.weapon=="staff")[0];var passenger=self_heal.units[1]
+ staff.x=2;staff.y=3;passenger.x=3;passenger.y=3;casualty(self_heal,passenger)
+ assert(Door.rescue(self_heal,staff,passenger));self_heal.begin_enemy_phase();self_heal.next_player_turn()
+ assert(self_heal.can_heal(staff,passenger) and self_heal.heal(staff,passenger) and passenger.hp>0,"A healer can treat their own carried ally on their next action")
  var safe=Rules.new();safe.new_campaign(true);safe.death_door=true;safe.start_battle();casualty(safe,safe.units[1])
  for enemy in safe.living("enemy"):enemy.hp=0
  assert(safe.result()=="victory");safe.finish_chapter();safe.start_battle()

@@ -47,7 +47,7 @@ func _initialize():
 	var copy=Rules.new()
 	verify(copy.load_game("/private/tmp/poem-test-save.json")=="battle","Load stage")
 	var results2=copy.combat(copy.units[0],copy.living("enemy")[0])
-	verify(JSON.stringify(results)==JSON.stringify(results2),"Save preserves RNG and outcomes")
+	verify(JSON.parse_string(JSON.stringify(results))==JSON.parse_string(JSON.stringify(results2)),"Save preserves RNG and outcomes")
 	verify(g.combat(a,b).is_empty(),"No second action")
 	g.new_campaign();g.start_battle()
 	for u in g.living("player"):u.hp=0
