@@ -1,6 +1,12 @@
 extends SceneTree
 const Shutdown=preload("helpers/game_shutdown.gd")
 func _initialize():call_deferred("run")
+func place_duel(app,unit,enemy):
+ for pair in [[unit,Vector2i(8,4)],[enemy,Vector2i(9,4)]]:
+  var blocker=app.game.at(pair[1]);var previous=app.game.pos(pair[0])
+  if blocker!=null and blocker.id!=pair[0].id:blocker.x=previous.x;blocker.y=previous.y
+  pair[0].x=pair[1].x;pair[0].y=pair[1].y
+ app.refresh_pieces()
 func run():
  var app=load("res://main.tscn").instantiate();app.settings_path="";app.save_path="/private/tmp/poem-controls.json";root.add_child(app);await process_frame
  app.game.start_battle();app.make_map();app.show_battle();app.preferences.values.auto_end=false;app.preferences.values.combat="map"
@@ -20,7 +26,7 @@ func run():
  app.selected=unit;app.cursor_tile=origin;app.wait_action();await process_frame
  assert(unit.acted and app.game.phase=="player","Wait commits action without forced phase when disabled")
  app.game.start_battle();app.make_map();app.show_battle();unit=app.game.units[0]
- var enemy=app.game.living("enemy")[0];unit.x=8;unit.y=4;enemy.x=9;enemy.y=4
+ var enemy=app.game.living("enemy")[0];place_duel(app,unit,enemy)
  app.selected=unit;app.cursor_tile=app.game.pos(enemy);app.cursor_visible=true;app.activate_map_cursor()
  assert(app.target==enemy and not unit.acted,"First confirmation opens forecast")
  app.activate_map_cursor()
@@ -31,7 +37,7 @@ func run():
  assert(app.selected!=null and not app.selected.acted)
  var old=app.cursor_tile;key.keycode=KEY_UP;app._input(key);assert(app.cursor_tile.y==maxi(0,old.y-1))
  app.game.start_battle();app.make_map();app.show_battle();unit=app.game.units[0];enemy=app.game.living("enemy")[0]
- unit.x=8;unit.y=4;enemy.x=9;enemy.y=4
+ place_duel(app,unit,enemy)
  for dimensions in [Vector2(1024,640),Vector2(1280,720),Vector2(1440,900)]:
   app.ui.set_anchors_and_offsets_preset(Control.PRESET_TOP_LEFT);app.ui.size=dimensions
   for state in ["company","unit","forecast","enemy"]:

@@ -12,6 +12,7 @@ var downed=false
 var commander_insignia: Sprite3D
 var rescue_marker: Sprite3D
 var carry_marker: Sprite3D
+var shared_marker: Sprite3D
 var reaction_motion: Tween
 var reaction_origin=Vector3.ZERO
 var departing=false
@@ -20,7 +21,7 @@ var defeat_motion: Tween
 var transferring=false
 var rescue_opacity=1.0
 
-func configure(source: RefCounted,unit: Dictionary,facing="south",carried_name=""):
+func configure(source: RefCounted,unit: Dictionary,facing="south",carried_name="",shared_count=0):
  unit_id=unit.id;team=unit.team;spent=unit.acted;downed=unit.get("downed",false)
  hp_ratio=clampf(float(unit.hp)/maxf(1,unit.max_hp),0,1)
  var individual="recruit."+unit.id
@@ -50,6 +51,13 @@ func configure(source: RefCounted,unit: Dictionary,facing="south",carried_name="
   carry_marker.pixel_size=1.0/80;carry_marker.position.y=(sprite.texture.get_height()+sprite.offset.y)*sprite.pixel_size*sprite.scale.y+.29
   carry_marker.no_depth_test=true;carry_marker.render_priority=4;carry_marker.cast_shadow=GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
   add_child(carry_marker)
+ if shared_count>1:
+  shared_marker=Sprite3D.new();shared_marker.name="SharedAllies";shared_marker.texture=preload("res://assets/ui/shared-allies.svg")
+  shared_marker.set_meta("count",shared_count)
+  shared_marker.billboard=BaseMaterial3D.BILLBOARD_ENABLED;shared_marker.texture_filter=BaseMaterial3D.TEXTURE_FILTER_LINEAR
+  shared_marker.pixel_size=1.0/80;shared_marker.position.y=(sprite.texture.get_height()+sprite.offset.y)*sprite.pixel_size*sprite.scale.y+.77
+  shared_marker.no_depth_test=true;shared_marker.render_priority=5;shared_marker.cast_shadow=GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+  add_child(shared_marker)
  if unit.get("boss",false) and team=="enemy":
   var insignia=Sprite3D.new();insignia.name="CommanderInsignia";insignia.texture=preload("res://assets/ui/commander.svg")
   insignia.billboard=BaseMaterial3D.BILLBOARD_ENABLED;insignia.texture_filter=BaseMaterial3D.TEXTURE_FILTER_LINEAR
@@ -183,6 +191,7 @@ func apply_opacity(value: float):
  if is_instance_valid(commander_insignia):commander_insignia.modulate.a=value
  if is_instance_valid(rescue_marker):rescue_marker.modulate.a=value
  if is_instance_valid(carry_marker):carry_marker.modulate.a=value
+ if is_instance_valid(shared_marker):shared_marker.modulate.a=value
 
 func screen_bounds(camera: Camera3D) -> Rect2:
  var foot=global_position+sprite.position
@@ -196,6 +205,7 @@ func screen_bounds(camera: Camera3D) -> Rect2:
   bounds=bounds.merge(commander_screen_bounds(camera))
  if is_instance_valid(rescue_marker) and rescue_marker.visible:bounds=bounds.merge(rescue_screen_bounds(camera))
  if is_instance_valid(carry_marker) and carry_marker.visible:bounds=bounds.merge(carry_screen_bounds(camera))
+ if is_instance_valid(shared_marker) and shared_marker.visible:bounds=bounds.merge(shared_screen_bounds(camera))
  return bounds
 
 func commander_screen_bounds(camera: Camera3D) -> Rect2:
@@ -206,6 +216,9 @@ func rescue_screen_bounds(camera: Camera3D) -> Rect2:
 
 func carry_screen_bounds(camera: Camera3D) -> Rect2:
  return marker_screen_bounds(carry_marker,camera)
+
+func shared_screen_bounds(camera: Camera3D) -> Rect2:
+ return marker_screen_bounds(shared_marker,camera)
 
 func marker_screen_bounds(icon: Sprite3D,camera: Camera3D) -> Rect2:
  if not is_instance_valid(icon) or not icon.is_visible_in_tree():return Rect2()

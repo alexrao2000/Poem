@@ -25,7 +25,7 @@ static func release_passenger(game,carrier: Dictionary):
   if not free.is_empty():unit.x=free[0].x;unit.y=free[0].y
 
 static func can_rescue(game,carrier: Dictionary,unit: Dictionary) -> bool:
- return game.can_act(carrier) and carrier.team=="player" and downed(unit) and unit.get("carried_by","").is_empty() and carrier.id!=unit.id and game.distance(carrier,unit)==1 and passenger(game,carrier)==null
+ return game.can_act(carrier) and carrier.team=="player" and downed(unit) and unit.get("carried_by","").is_empty() and carrier.id!=unit.id and game.distance(carrier,unit)<=1 and passenger(game,carrier)==null
 
 static func rescue(game,carrier: Dictionary,unit: Dictionary) -> bool:
  if not can_rescue(game,carrier,unit):return false
@@ -49,8 +49,21 @@ static func synchronize(game,carrier: Dictionary):
  var unit=passenger(game,carrier)
  if unit!=null:unit.x=carrier.x;unit.y=carrier.y
 
+static func revival_position(game,unit: Dictionary):
+ var occupied=game.units.any(func(other):return other.id!=unit.id and other.hp>0 and other.get("carried_by","").is_empty() and game.pos(other)==game.pos(unit))
+ if not occupied:return game.pos(unit)
+ var free=drop_positions(game,unit)
+ return null if free.is_empty() else free[0]
+
+static func can_recover(game,unit: Dictionary) -> bool:
+ return not downed(unit) or not unit.get("carried_by","").is_empty() or revival_position(game,unit)!=null
+
 static func recover(game,unit: Dictionary):
  if not downed(unit):return
+ var standing=revival_position(game,unit)
+ if unit.get("carried_by","").is_empty():
+  if standing==null:return
+  unit.x=standing.x;unit.y=standing.y
  unit.erase("downed");unit.erase("bleed_turns");unit.acted=true
  if not unit.get("carried_by","").is_empty():
   var free=drop_positions(game,unit)

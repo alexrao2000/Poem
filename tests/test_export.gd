@@ -77,6 +77,11 @@ func run():
  var patient=app.game.units[1];patient.hp=0;app.game.DeathDoor.fall(app.game,patient)
  app.make_map();app.show_battle()
  assert(app.unit_nodes.has(patient.id) and app.unit_nodes[patient.id].downed and app.unit_nodes[patient.id].rescue_marker.texture.get_width()==64,"Packaged experiment keeps a rescuable downed ally visible")
+ var second_patient=app.game.units.filter(func(unit):return unit.team=="player" and unit.id not in [patient.id,app.game.units[0].id])[0]
+ var previous=second_patient.duplicate(true);second_patient.hp=0;app.game.DeathDoor.fall(app.game,second_patient);second_patient.x=patient.x;second_patient.y=patient.y
+ app.refresh_pieces();app.click_tile(app.game.pos(patient));await process_frame
+ assert(app.screen=="tile_units" and app.unit_nodes[patient.id].shared_marker.texture.get_width()==64 and app.ui.find_child("TileUnit_"+second_patient.id,true,false)!=null,"Packaged shared-position badge opens both patient choices")
+ second_patient.clear();second_patient.merge(previous,true);app.refresh_pieces();app.show_battle()
  var carrier=app.game.units[0];assert(app.game.DeathDoor.rescue(app.game,carrier,patient));app.refresh_pieces()
  assert(app.unit_nodes[carrier.id].carry_marker.texture.get_width()==64 and not app.unit_nodes.has(patient.id),"The exported package includes the carrier badge and hides its passenger")
  app.show_debug_tools("battle");assert(app.ui.find_child("DebugCasualty",true,false)!=null and app.ui.find_child("DebugSeed",true,false)!=null,"Release contains the debug experiment harness and reproducible seed controls")

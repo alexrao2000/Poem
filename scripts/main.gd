@@ -340,7 +340,8 @@ func refresh_pieces():
 		if (u.hp<=0 and not game.DeathDoor.downed(u)) or not u.get("carried_by","").is_empty():continue
 		var visual=MapUnit.new();visual.name=str(u.id).validate_node_name();visual.position=map_position(game.pos(u))
 		var passenger=game.DeathDoor.passenger(game,u)
-		pieces.add_child(visual);visual.configure(map_catalog,u,map_facings.get(u.id,"south"),passenger.name if passenger!=null else "")
+		var occupants=game.occupants(game.pos(u));var count=occupants.size() if occupants[0].id==u.id else 0
+		pieces.add_child(visual);visual.configure(map_catalog,u,map_facings.get(u.id,"south"),passenger.name if passenger!=null else "",count)
 		visual.selected=selected!=null and selected.id==u.id
 		unit_nodes[u.id]=visual;sprites.append(visual.sprite)
 
@@ -635,7 +636,7 @@ func update_side():
 			var condition_label=label_in(side," · ".join(conditions),16,GOLD);condition_label.name="UnitConditions"
 			condition_label.mouse_filter=Control.MOUSE_FILTER_PASS
 			condition_label.autowrap_mode=TextServer.AUTOWRAP_OFF;condition_label.text_overrun_behavior=TextServer.OVERRUN_TRIM_ELLIPSIS;condition_label.tooltip_text="\n".join(condition_help)
-		if not drop_mode and game.can_act(selected) and (game.DeathDoor.passenger(game,selected)!=null or game.units.any(func(patient):return game.DeathDoor.can_rescue(game,selected,patient) or (game.can_heal(selected,patient) and not patient.get("carried_by","").is_empty()))):
+		if not drop_mode and game.can_act(selected) and (game.DeathDoor.passenger(game,selected)!=null or game.units.any(func(patient):return game.DeathDoor.can_rescue(game,selected,patient) or (game.can_heal(selected,patient) and (game.DeathDoor.downed(patient) or not patient.get("carried_by","").is_empty())))):
 			button_in(side,"Rescue & triage",show_triage,busy)
 	else:
 		label_in(side,"THE COMPANY",15,GOLD)
@@ -764,7 +765,7 @@ func _input(event):
 func _unhandled_input(event):
 	if screen=="debug_report" and event is InputEventKey and event.pressed and event.keycode==KEY_ESCAPE:
 		show_debug_tools(options_return);get_viewport().set_input_as_handled();return
-	if screen=="triage" and event is InputEventKey and event.pressed and event.keycode==KEY_ESCAPE:
+	if screen in ["triage","tile_units"] and event is InputEventKey and event.pressed and event.keycode==KEY_ESCAPE:
 		show_battle();get_viewport().set_input_as_handled();return
 	if screen=="debug_tools" and event is InputEventKey and event.pressed and event.keycode==KEY_ESCAPE:
 		show_options(options_return);get_viewport().set_input_as_handled();return
@@ -820,7 +821,7 @@ func pick_map_unit(point: Vector2):
 	for unit in game.units:
 		if (unit.hp<=0 and not game.DeathDoor.downed(unit)) or not unit_nodes.has(unit.id):continue
 		var actor=unit_nodes[unit.id]
-		if actor.commander_screen_bounds(camera).has_point(point) or actor.rescue_screen_bounds(camera).has_point(point) or actor.carry_screen_bounds(camera).has_point(point):return unit
+		if actor.commander_screen_bounds(camera).has_point(point) or actor.rescue_screen_bounds(camera).has_point(point) or actor.carry_screen_bounds(camera).has_point(point) or actor.shared_screen_bounds(camera).has_point(point):return unit
 		if not actor.screen_bounds(camera).has_point(point):continue
 		var depth=camera.unproject_position(actor.global_position).y
 		if depth>front:picked=unit;front=depth
@@ -832,20 +833,27 @@ func cancel_selection():
 		game.undo_move(selected)
 	selected=null;target=null;origin=null;refresh_pieces();highlight();update_side()
 
-func click_tile(p: Vector2i):
+func click_tile(p: Vector2i,unit_id=""):
 	if busy or not action_save_ready():return
 	if is_instance_valid(terrain_card):terrain_card.inspect(game,p)
 	if drop_mode:
 		if selected!=null and p in game.DeathDoor.drop_positions(game,selected):drop_ally(p)
 		return
+	var occupants=game.occupants(p)
+	if occupants.size()>1 and unit_id.is_empty():show_tile_units(p);return
 	var u=game.at(p)
+	if not unit_id.is_empty():
+		var chosen=occupants.filter(func(unit):return unit.id==unit_id)
+		if chosen.is_empty():return
+		u=chosen[0]
 	if selected!=null and selected.team=="player" and not selected.acted and u!=null:
 		if game.can_attack(selected,u):target=u;update_side();return
 		if game.can_heal(selected,u):
 			var before=game.progress_snapshot()
-			var old_hp=u.hp
+			var old_hp=u.hp;var old_position=game.pos(u)
 			if game.heal(selected,u):
 				if not checkpoint_action():return
+				if game.pos(u)!=old_position:refresh_pieces()
 				busy=true;update_side();await staff_healing(selected,u,u.hp-old_hp,before);await show_progress(before);busy=false;finish_action();return
 		if game.DeathDoor.can_rescue(game,selected,u):show_triage(u);return
 	if u!=null and u.team=="player":
@@ -1889,6 +1897,16 @@ func show_campaign_trials():
 		button_in(panel,"Replay · "+game.trials.SCENE_TITLES.get(id,id.replace("_"," ").capitalize()),func():show_dialogue(game.trials.scenes[id],show_campaign_trials,"support"))
 	button_in(frame,"Return to epilogue" if game.completed else "Return to war council",show_ending if game.completed else show_camp)
 
+func show_tile_units(tile: Vector2i):
+	screen="tile_units";reset_ui()
+	var frame=menu_panel(720);var panel=scrolling_column(frame)
+	label_in(panel,"SHARED POSITION",18,GOLD);label_in(panel,"Choose an ally",36,GOLD)
+	label_in(panel,"Choose who to help or inspect. Returning keeps your current selection and movement.",20)
+	for unit in game.occupants(tile):
+		var condition="Downed · %d phases left"%unit.bleed_turns if game.DeathDoor.downed(unit) else "HP %d/%d"%[unit.hp,unit.max_hp]
+		var choice=button_in(panel,unit.name+" · "+condition,func():show_battle();click_tile(tile,unit.id));choice.name="TileUnit_"+unit.id
+	button_in(frame,"Return to battle",show_battle)
+
 func show_triage(focus_patient: Dictionary={}):
 	if selected==null or not game.can_act(selected):return
 	screen="triage";reset_ui()
@@ -1900,7 +1918,10 @@ func show_triage(focus_patient: Dictionary={}):
 	for patient in game.units:
 		if not focus_patient.is_empty() and patient.id!=focus_patient.id:continue
 		if game.DeathDoor.can_rescue(game,selected,patient):button_in(panel,"Rescue "+patient.name,func():rescue_ally(patient))
-		elif game.can_heal(selected,patient) and not patient.get("carried_by","").is_empty():button_in(panel,"Heal carried "+patient.name,func():heal_carried_ally(patient))
+		if game.can_heal(selected,patient) and (game.DeathDoor.downed(patient) or not patient.get("carried_by","").is_empty()):
+			button_in(panel,("Heal carried " if not patient.get("carried_by","").is_empty() else "Revive ")+patient.name,func():heal_carried_ally(patient))
+		elif game.DeathDoor.downed(patient) and not game.DeathDoor.can_recover(game,patient) and selected.weapon=="staff" and game.in_weapon_range(selected,maxi(1,game.distance(selected,patient))):
+			label_in(panel,"No adjacent tile is free for %s to stand. Rescue them or clear a tile first."%patient.name,17)
 	var carried=game.DeathDoor.passenger(game,selected)
 	if carried!=null:
 		label_in(panel,"Carrying "+carried.name,22,GOLD)

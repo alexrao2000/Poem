@@ -142,9 +142,20 @@ func terrain_profile(p: Vector2i) -> Dictionary:
 	return TERRAIN_PROFILES.get(terrain(p),TERRAIN_PROFILES["."])
 
 func at(p: Vector2i):
+	var patient=null
 	for u in units:
-		if (u.hp>0 or DeathDoor.downed(u)) and u.get("carried_by","").is_empty() and pos(u)==p: return u
-	return null
+		if not u.get("carried_by","").is_empty() or pos(u)!=p:continue
+		if u.hp>0:return u
+		if patient==null and DeathDoor.downed(u):patient=u
+	return patient
+
+func occupants(p: Vector2i) -> Array:
+	var standing=[];var patients=[]
+	for unit in units:
+		if not unit.get("carried_by","").is_empty() or pos(unit)!=p:continue
+		if unit.hp>0:standing.append(unit)
+		elif DeathDoor.downed(unit):patients.append(unit)
+	return standing+patients
 
 func living(team: String) -> Array:
 	return units.filter(func(u): return u.team==team and u.hp>0 and u.get("carried_by","").is_empty())
@@ -242,8 +253,8 @@ func range_text(u: Dictionary) -> String:
 	return str(int(item.min_range)) if item.min_range==item.max_range else "%d–%d"%[item.min_range,item.max_range]
 
 func can_heal(a: Dictionary,b: Dictionary) -> bool:
-	var reach=1 if b.get("carried_by","")==a.id else distance(a,b)
-	return can_act(a) and a.weapon=="staff" and a.team==b.team and a.id!=b.id and (b.hp>0 or DeathDoor.downed(b)) and b.hp<b.max_hp and in_weapon_range(a,reach)
+	var reach=1 if b.get("carried_by","")==a.id or (DeathDoor.downed(b) and pos(a)==pos(b)) else distance(a,b)
+	return can_act(a) and a.weapon=="staff" and a.team==b.team and a.id!=b.id and (b.hp>0 or DeathDoor.downed(b)) and b.hp<b.max_hp and in_weapon_range(a,reach) and DeathDoor.can_recover(self,b)
 
 func heal(a: Dictionary,b: Dictionary) -> bool:
 	if not can_heal(a,b):return false
