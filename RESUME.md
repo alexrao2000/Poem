@@ -1,6 +1,6 @@
-# Poem — paused handoff
+# Poem — development handoff
 
-Paused at the user's request on 2026-10-30. **Do not continue development until the user says “go” or otherwise asks to resume.** No scheduled work or background development is requested.
+Resumed at the user's request on 2026-11-04. Continue development in this chat until the user asks to stop. No scheduled work is requested.
 
 ## Resume here
 
@@ -21,7 +21,7 @@ Prior completed work includes five class cloak cuts and exposed ranger quivers, 
 - No subagents unless subsequently authorized by applicable instructions.
 - Use `open -g` for launching applications; preserve focus.
 
-The campaign has 24 recruits, eight classes, twelve chapters, sixteen promotions and 36 supports. The default test runner has 70 suites. Current rigid roster count is 1,774 source meshes / 1,073 joint batches plus three dynamic reins (the elbow update adds sixteen batches). Map totals last measured 13,554 sources / 616 batches plus cloth/atmosphere. Do not confuse historical counts in the development log with these current totals.
+The campaign has 24 recruits, eight classes, twelve chapters, sixteen promotions and 36 supports. The default test runner has 70 suites. Current rigid roster count is 1,774 source meshes / 1,057 joint batches plus three dynamic reins (the elbow guards now share the existing armor vertex format). Map totals last measured 13,554 sources / 616 batches plus cloth/atmosphere. Do not confuse historical counts in the development log with these current totals.
 
 ## Verification and packages
 
@@ -44,7 +44,7 @@ Local distributables: `/Users/alexr/Poem/build/native/Poem.zip`, `/Users/alexr/P
 2. Compare complete presentation against the already-inspected Awakening/Fates references: readable map sprites on terrain, restrained camera motion, character silhouette/materials, pale stat rows and calm/Ablaze transitions. Prior geometry-only checks cannot establish visual fidelity.
 3. The model catalog remains empty; combat characters are procedural. No downloaded authored characters are available. Do not claim otherwise.
 4. The viewer replays individual actions; a continuous travel-preview loop was considered but not implemented. Only pursue if it helps inspect movement.
-5. Consider whether the elbow mesh can share existing vertex formats to avoid sixteen additional batches, after measuring; do not sacrifice normals/outline correctness merely for a count.
+5. The elbow format correction is complete: topology/normals and animated rig equivalence pass, restoring 1,057 batches.
 
 Reference images previously inspected, if their temporary paths still exist: `/private/tmp/ashen-fates-hud-reference.png`, `/private/tmp/ashen-awakening-combat-reference.jpg`, `/private/tmp/poem-cavalier-reference.jpg`. Final isolated elbow study: `/private/tmp/poem-elbow-study.png` (software flat shading, not the actual game shader). References are not shipped Nintendo assets.
 

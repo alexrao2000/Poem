@@ -31,4 +31,4 @@ static func mesh() -> ArrayMesh:
    triangle(surface,[a,b,c],[Vector2(u,v),Vector2(next_u,v),Vector2(next_u,next_v)],outward)
    triangle(surface,[a,c,d],[Vector2(u,v),Vector2(next_u,next_v),Vector2(u,next_v)],outward)
   triangle(surface,[center(4),point(4,side),point(4,side+1)],[Vector2(.5,.5),Vector2(0,1),Vector2(1,1)],Vector3.DOWN)
- cached=surface.commit();return cached
+ surface.generate_tangents();surface.index();cached=surface.commit();return cached

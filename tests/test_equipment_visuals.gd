@@ -15,7 +15,10 @@ func watch_flight(node):
  assert(node.body.get_node("Shaft").material_override.albedo_color==Color(Looks.profiles.javelin.grip),"Real cinematic carries equipped shaft color into flight")
 
 func closed_mesh(mesh: Mesh):
- var arrays=mesh.surface_get_arrays(0);var points=arrays[Mesh.ARRAY_VERTEX];var normals=arrays[Mesh.ARRAY_NORMAL];var edges={}
+ var arrays=mesh.surface_get_arrays(0);var vertices=arrays[Mesh.ARRAY_VERTEX];var source_normals=arrays[Mesh.ARRAY_NORMAL];var edges={}
+ var indices=arrays[Mesh.ARRAY_INDEX];var points=[];var normals=[]
+ if indices==null or indices.is_empty():indices=range(vertices.size())
+ for index in indices:points.append(vertices[index]);normals.append(source_normals[index])
  for i in range(0,points.size(),3):
   var normal=(points[i+1]-points[i]).cross(points[i+2]-points[i])
   assert(normal.length()>.000001 and normal.normalized().dot(normals[i])<-.999,"Item geometry has outward normals and no collapsed triangles")
@@ -260,9 +263,10 @@ func verify_pauldrons():
 
 func verify_elbow_guard():
  var shape=preload("res://scripts/elbow_guard.gd");var mesh=shape.mesh();closed_mesh(mesh)
- var arrays=mesh.surface_get_arrays(0);var vertices=arrays[Mesh.ARRAY_VERTEX];var volume=0.0
- assert(mesh==shape.mesh() and vertices.size()==360,"Armored elbows share one closed 120-triangle cup")
- for index in range(0,vertices.size(),3):volume+=vertices[index].dot(vertices[index+1].cross(vertices[index+2]))/6.0
+ var arrays=mesh.surface_get_arrays(0);var vertices=arrays[Mesh.ARRAY_VERTEX];var indices=arrays[Mesh.ARRAY_INDEX];var volume=0.0
+ assert(mesh==shape.mesh() and indices.size()==360,"Armored elbows share one closed 120-triangle cup")
+ assert(arrays[Mesh.ARRAY_TANGENT].size()==vertices.size()*4,"Forged cup shares the existing metal primitives' vertex format")
+ for index in range(0,indices.size(),3):volume+=vertices[indices[index]].dot(vertices[indices[index+1]].cross(vertices[indices[index+2]]))/6.0
  assert(volume<0,"Forged cup uses outward Godot winding throughout its closed volume")
  for uv in arrays[Mesh.ARRAY_TEX_UV]:assert(Rect2(Vector2.ZERO,Vector2.ONE).grow(.00001).has_point(uv),"Painted steel stays within its existing texture coordinates")
  assert(mesh.get_aabb().end.z>.11 and mesh.get_aabb().size.x>.18 and mesh.get_aabb().size.y<.181,"Elbow silhouette has a rear point and side wings inside the joint envelope")

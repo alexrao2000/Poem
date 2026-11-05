@@ -8,9 +8,9 @@ User direction: keep developing continuously in this chat until the user returns
 
 2026-11-04 user-requested trial: Wang variation now supplies grass and earth on campaign ground and natural banks. Existing stone sampling and terrain control weights remain. See [art notes and texture comparison](docs/art-direction.md#wang-variation-for-natural-ground). This is a bounded requested change; the broader development pause below still applies.
 
-**Paused by user request on 2026-10-30. Resume only when asked. See [RESUME.md](RESUME.md) for the complete handoff.**
+**Resumed by user request on 2026-11-04. See [RESUME.md](RESUME.md) for the development handoff.**
 
-Latest delivered presentation work includes world-planted infantry/cavalry steps, level soles/hooves, shaped cavalry skull/body/neck, fitted animated reins, coordinated arena/map defeat exits and a descending push through the arena reveal. The default runner contains 70 suites. Current measured totals are 1,774 rigid character sources / 1,073 joint batches plus three dynamic reins, and 13,554 static map sources / 616 batches plus cloth and atmosphere. Local browser/macOS packages and the private GitHub repository are kept in sync after focused verification. Assembled visual/audio review and browser FPS measurements remain outstanding.
+Latest delivered presentation work includes world-planted infantry/cavalry steps, level soles/hooves, shaped cavalry skull/body/neck, fitted animated reins, coordinated arena/map defeat exits and a descending push through the arena reveal. The default runner contains 70 suites. Current measured totals are 1,774 rigid character sources / 1,057 joint batches plus three dynamic reins, and 13,554 static map sources / 616 batches plus cloth and atmosphere. Local browser/macOS packages and the private GitHub repository are kept in sync after focused verification. Assembled visual/audio review and browser FPS measurements remain outstanding.
 
 ## Earlier checkpoints
 
@@ -374,3 +374,5 @@ The combat-camera audit now covers 24 recruits, eight ordinary enemy classes and
 Class silhouettes now use five shared cloak cuts: full, cropped mantle, ranger half-cloak, forked duelist and riding. The ranger cut exposes the quiver that the old full cloak covered, with actual geometry clearance checked across its base and promotion outfits. Isolated cuts were inspected; full motion/embroidery, outfit framing, promotions, batching and defeat ownership pass. Mesh/batch totals are unchanged.
 
 Armored elbows now use closed faceted guards with rear points and side wings; unarmored elbows continue the sleeve cloth instead of showing a metal sphere. Joint positions and weapon sockets are retained. Explicit flat normals, topology, UVs, roster bindings, actual slash contact, locomotion, all outfit previews/promotions and defeat ownership pass. An isolated arm study was inspected; assembled rendering remains unreviewed. Roster totals are 1,774 sources / 1,073 joint batches plus three dynamic reins.
+
+The elbow guards now share the existing armor vertex format, removing sixteen extra joint batches while retaining their flat normals, closed shape, UVs and outlines. Equipment and full animated-rig equivalence pass; current roster totals return to 1,774 sources / 1,057 batches plus three dynamic reins. Development resumed with the newer natural-ground Wang tiles integrated from main.
