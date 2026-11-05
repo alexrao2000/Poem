@@ -70,6 +70,22 @@ func verify_rules():
  assert(safe.result()=="victory");safe.finish_chapter();safe.start_battle()
  assert(safe.units.any(func(u):return u.id=="oren" and u.hp>0),"Victory evacuates downed allies before memorials are committed")
 
+func verify_downed_objectives():
+ for chapter in [1,4,7,10]:
+  for permanent in [false,true]:
+   var g=Rules.new();g.new_campaign(permanent);g.death_door=true;g.chapter=chapter;g.start_battle()
+   var objective=g.objective_position();var blocker=g.at(objective)
+   if blocker!=null:blocker.hp=0
+   var medic=g.units.filter(func(unit):return unit.team=="player" and unit.weapon=="staff")[0]
+   var patient=g.units[1];patient.x=objective.x;patient.y=objective.y;casualty(g,patient)
+   var adjacent=Door.drop_positions(g,patient)[0];medic.x=adjacent.x;medic.y=adjacent.y
+   assert(Door.rescue(g,medic,patient));g.begin_enemy_phase();g.next_player_turn()
+   assert(Door.drop(g,medic,objective))
+   assert(g.result()=="","A downed passenger cannot seize an objective after being dropped")
+   var copy=Rules.new();assert(copy.import_code(g.export_code("battle"))=="battle" and copy.result()=="","Reloading a downed objective occupant cannot award victory")
+   g.begin_enemy_phase();g.next_player_turn();assert(g.heal(medic,patient))
+   assert(g.result()=="victory" and patient.acted,"A living recovered ally can secure the objective even with their action spent")
+
 func observe_rescue_feedback(app,patient,skip=false):
  assert(app.busy and app.screen=="battle","Rescue feedback locks commands on the tactical field")
  var checkpoint=app.game.save_data("battle").duplicate(true);var visual=app.unit_nodes[patient.id]
@@ -169,6 +185,7 @@ func verify_drop_controls(app):
 
 func run():
  verify_rules()
+ verify_downed_objectives()
  root.size=Vector2i(1440,900)
  var app=load("res://main.tscn").instantiate();app.settings_path="";app.save_path="/private/tmp/poem-experiment-ui.json"
  root.add_child(app);await process_frame

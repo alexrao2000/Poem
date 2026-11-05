@@ -677,6 +677,7 @@ func show_battle_menu():
 	button_in(commands,"Save",func():close_battle_menu();save_with_feedback("battle"))
 	button_in(commands,"Transfer code",func():close_battle_menu();show_save_transfer("battle"))
 	button_in(commands,"Options / audio",func():close_battle_menu();show_options("battle"))
+	var retreat=label_in(commands,restart_summary(),15,GOLD);retreat.name="RestartPreview"
 	button_in(commands,("War council (restart section)" if game.trials.flags.section_restarts and game.permadeath else "War council (restart map)"),func():close_battle_menu();restart_campaign_attempt())
 	label_in(commands,"Arrows / Enter: select · Q/E: allies · W: wait\nR: danger · Space: end phase · Esc: undo\nWheel / + −: zoom · Middle drag: pan · Home: reset\nTab: skip animation · M / Esc: close menu",14,Color("777163"))
 	var buttons=commands.find_children("*","Button",true,false)
@@ -1245,6 +1246,7 @@ func check_result() -> bool:
 		label_in(v,"THE STANDARD FALLS",38,GOLD)
 		label_in(v,"Lyra has fallen. This chapter is lost." if (game.permadeath or game.trials.flags.reset_pressure) and game.units.any(func(u):return u.id=="lyra" and u.hp<=0) else "Your company is scattered.",24)
 		label_in(v,"Retry from the beginning of this section. Deaths, legacy supplies and reset pressure remain." if game.trials.flags.section_restarts and game.permadeath else "Retry from preparation. Committed deaths remain lost." if (game.action_saves or game.trials.flags.death_legacies) and game.permadeath else "Retry from chapter preparation. Losses and gains from this failed attempt are discarded; earlier permanent losses remain." if game.permadeath else "Regroup at the war council and choose a new approach.",20)
+		var retreat=label_in(v,restart_summary(),18,GOLD);retreat.name="RestartPreview"
 		button_in(frame,"Regroup and retry",func():
 			if not action_save_ready():return
 			if game.retry_battle():persist_campaign("camp");show_camp())
@@ -1751,6 +1753,15 @@ func resume_saved_battle():
 	make_map();show_battle()
 	if await check_result():return
 	if game.phase=="enemy":await end_turn(true)
+
+func restart_summary() -> String:
+	var preview=game.trials.restart_preview(game);var modifiers=preview.enemies
+	var text="Return to Chapter %02d"%(preview.chapter+1)
+	if game.trials.flags.reset_pressure:text+=" · Pressure %d → %d"%[game.trials.pressure,preview.pressure]
+	if game.trials.flags.reset_pressure or game.trials.flags.hard_campaign:
+		text+="\nNext enemies: +%d HP · +%d attack · +%d speed · +%d defense"%[modifiers.max_hp,modifiers.pow,modifiers.speed,modifiers.defense]
+	if game.trials.flags.reset_pressure:text+="\nHeld tonics: %d · Raiders %s"%[modifiers.held_tonics,"advance before deployment" if modifiers.raiders_advance else "stay at their starting positions"]
+	return text
 
 func restart_campaign_attempt():
 	if not action_save_ready():return

@@ -12,6 +12,15 @@ func victory(game):
  if game.info().objective=="seize":game.units[0].x=game.objective_position().x;game.units[0].y=game.objective_position().y
  assert(game.result()=="victory");game.finish_chapter()
 func rules():
+ for chapter in [2,5,11]:
+  for permanent in [false,true]:
+   for initial_pressure in [0,9,10]:
+    var g=Rules.new();g.new_campaign(permanent);g.chapter=chapter;g.trials.flags.section_restarts=true;g.trials.flags.reset_pressure=true;g.trials.flags.hard_campaign=true;g.trials.pressure=initial_pressure;g.start_battle()
+    var before=g.save_data("battle").duplicate(true);var preview=g.trials.restart_preview(g)
+    assert(g.save_data("battle")==before,"Viewing retreat consequences cannot save a checkpoint, roll RNG or increase pressure")
+    assert(preview.chapter==(int(chapter/4)*4 if permanent else chapter) and preview.pressure==mini(10,initial_pressure+1))
+    assert(g.trials.restart(g) and g.chapter==preview.chapter and g.trials.pressure==preview.pressure,"The actual retreat uses the previewed chapter and capped pressure")
+    assert(g.trials.enemy_modifiers(g.chapter)==preview.enemies,"Retreat preview includes hard bonuses from the destination chapter")
  for chapter in range(12):
   var unmodified=Rules.new();unmodified.chapter=chapter;unmodified.start_battle()
   for pressure in [0,1,2,10]:
@@ -102,10 +111,21 @@ func run():
  var purchase=app.ui.find_children("*","Button",true,false).filter(func(b):return b.text.begins_with("Secure · Tempered"))
  assert(purchase.size()==1 and not purchase[0].disabled);purchase[0].pressed.emit()
  var loaded=Rules.new();assert(loaded.load_game(app.save_path)=="camp" and loaded.trials.credits==0 and "tempered_sword" in loaded.trials.purchases,"Actual legacy shop purchase saves the campaign ledger")
- app.make_map();app.show_battle();app.restart_campaign_attempt()
+ app.make_map();app.show_battle();var before_retreat=app.game.save_data("battle").duplicate(true)
+ app.show_battle_menu();await inspect(app)
+ var preview=app.ui.find_child("RestartPreview",true,false)
+ assert("Pressure 0 → 1" in preview.text and "Held tonics: 1" in preview.text and "advance before deployment" in preview.text)
+ assert(app.game.save_data("battle")==before_retreat,"Opening the visible retreat preview preserves the campaign")
+ app.close_battle_menu();app.restart_campaign_attempt()
  assert(app.screen=="dialogue","A retreat enters its earned company scenes")
  while app.screen=="dialogue":app.finish_dialogue()
  assert(app.screen=="camp" and app.game.trials.pressure==1 and app.game.units.is_empty(),"Player-requested restart uses the same penalty and section path as defeat")
+ app.game.new_campaign(true);app.game.chapter=5
+ for key in ["reset_pressure","section_restarts","hard_campaign"]:app.game.trials.flags[key]=true
+ app.game.start_battle();fall(app.game,"lyra");app.make_map();assert(await app.check_result())
+ await inspect(app)
+ var defeat_preview=app.ui.find_child("RestartPreview",true,false)
+ assert("Return to Chapter 05" in defeat_preview.text and "Pressure 0 → 1" in defeat_preview.text and "+12 HP" in defeat_preview.text,"Defeat previews the beginning of the destination section, including its hard modifiers")
  app.game.new_campaign();app.game.trials.flags.reset_pressure=true;app.game.start_battle()
  app.preferences.values.combat="map"
  var enemy=app.game.living("enemy")[0];enemy.hp=1

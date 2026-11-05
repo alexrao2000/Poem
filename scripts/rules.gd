@@ -336,7 +336,7 @@ func result() -> String:
 			if turn>info().turn_limit or living("enemy").is_empty(): return "victory"
 		"seize":
 			var occupant = at(objective_position())
-			if occupant!=null and occupant.team=="player": return "victory"
+			if occupant!=null and occupant.team=="player" and occupant.hp>0: return "victory"
 	return ""
 
 func finish_chapter():

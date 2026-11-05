@@ -69,9 +69,14 @@ func record_losses(game):
     volunteers.append(volunteer);queue_scene("volunteer_"+volunteer)
     log_event(recruits[0].name+" answers the company's loss and arrives ahead of the planned rendezvous.")
 
-func enemy_modifiers(chapter: int) -> Dictionary:
- var extra=pressure if flags.reset_pressure else 0
+func enemy_modifiers(chapter: int,pressure_override: int=-1) -> Dictionary:
+ var extra=(pressure if pressure_override<0 else clampi(pressure_override,0,10)) if flags.reset_pressure else 0
  return {"max_hp":extra*2+(6+chapter if flags.hard_campaign else 0),"pow":extra+(2+int(chapter/2) if flags.hard_campaign else 0),"speed":1+int(chapter/4) if flags.hard_campaign else 0,"defense":int(chapter/3) if flags.hard_campaign else 0,"held_tonics":maxi(0,2-extra) if flags.reset_pressure else 0,"raiders_advance":extra>0}
+
+func restart_preview(game) -> Dictionary:
+ var chapter=section_start(game.chapter) if flags.section_restarts and game.permadeath else game.chapter
+ var next_pressure=mini(10,pressure+1) if flags.reset_pressure else pressure
+ return {"chapter":chapter,"pressure":next_pressure,"enemies":enemy_modifiers(chapter,next_pressure)}
 
 func deployment_condition(game,unit: Dictionary) -> Dictionary:
  var recovering=flags.sacrifice_cost and not unit.get("fallen",false) and int(injuries.get(unit.id,-1))>=game.chapter
