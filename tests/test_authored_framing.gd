@@ -1,11 +1,13 @@
 extends SceneTree
+var study_ids=["female","male"]
+var character_ids=["nell","silas"]
 func _initialize():call_deferred("run")
 func run():
  var viewport=SubViewport.new();viewport.size=Vector2i(1024,640);root.add_child(viewport);var world=Node3D.new();viewport.add_child(world);var camera=Camera3D.new();world.add_child(camera);camera.current=true
- var models=load("res://scripts/debug_duelist_models.gd").new();var game=load("res://scripts/rules.gd").new();var director=load("res://scripts/combat_camera.gd")
+ var models=load("res://scripts/debug_source_models.gd").new(study_ids);var game=load("res://scripts/rules.gd").new();var director=load("res://scripts/combat_camera.gd")
  var failures=[];var count=0
  var framing=director.new();world.add_child(framing)
- for id in ["nell","silas"]:
+ for id in character_ids:
   var unit=game.roster.filter(func(value):return value.id==id)[0].duplicate(true);unit.team="player";unit.item="tempered_sword"
   var actor=models.build(world,unit,Vector3(35,0,0));await process_frame;actor.set_process(false);actor.player.pause()
   framing.configure(camera,[actor])
@@ -15,6 +17,8 @@ func run():
   var head=actor.model.get_node("Identity").head
   var pieces=head.find_children("*","MeshInstance3D",true,false)
   pieces.append_array(actor.model.get_node("Rig/Armature/Skeleton3D/WeaponHand/Grip/Weapon").find_children("*","MeshInstance3D",true,false))
+  var mantle=actor.model.get_node("Identity").mantle
+  if mantle!=null:pieces.append_array(mantle.garment.find_children("*","MeshInstance3D",true,false))
   for side in [-1,1]:
    actor.rotation.y=-side*PI/2
    for sample in [["idle","wide",3.2],["windup","windup",1.4],["strike","impact",1.4],["evade","impact",1.4],["victory","finish",1.4]]:
@@ -40,9 +44,9 @@ func run():
   actor.queue_free();await process_frame
  for failure in failures.slice(0,30):print(failure)
  assert(failures.is_empty(),"Original heads and equipped swords stay inside the clear combat frame, with full cloaks in wide/finish shots")
- var unit=game.roster.filter(func(value):return value.id=="nell")[0].duplicate(true);unit.team="player"
+ var unit=game.roster.filter(func(value):return value.id==character_ids[0])[0].duplicate(true);unit.team="player"
  for invalid in [null,{"windup":.5},{"windup":INF},{"unknown":1.2},{"wide":"bad"}]:
-  models.models.catalog.characters.nell.framing=invalid;models.models.issues.clear();var before=world.get_child_count()
+  models.models.catalog.characters[character_ids[0]].framing=invalid;models.models.issues.clear();var before=world.get_child_count()
   assert(models.build(world,unit,Vector3.ZERO)==null and not models.models.issues.is_empty() and world.get_child_count()==before,"Invalid framing falls back without a partial actor")
  framing.configure(camera,[])
  var ordinary=director.frame_pair(Vector3.ZERO,Vector3(1.4,0,0),"windup",false)

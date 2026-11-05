@@ -6,7 +6,9 @@ User direction: keep developing continuously in this chat until the user returns
 
 ## Current checkpoint
 
-**Options → Character models → Revised models · preview** makes Nell, Silas, Tarin and Vela available in normal campaign battles and outfit previews without enabling Debug mode. The device-local setting defaults to the current models. Promotions, other recruits and unsupported equipment retain their existing presentation. Debug starts from the selected appearance, then its independent class switches override it until the sandbox ends.
+Lyra now has a revised Vanguard study and optional campaign model from chapter one, with her original long hair, ivory mantle, gold fastening and full company cloak. The mantle was fitted against actual skinned torso samples after a close-up exposed bodice intersections. It has its own debug comparison switch and retains sword grip/contact, gaze, hair motion, framing and promotion fallback.
+
+**Options → Character models → Revised models · preview** makes Lyra, Nell, Silas, Tarin and Vela available in normal campaign battles and outfit previews without enabling Debug mode. The device-local setting defaults to the current models. Promotions, other recruits and unsupported equipment retain their existing presentation. Debug starts from the selected appearance, then its independent class switches override it until the sandbox ends.
 
 Styled casters now wear the original open-front robe fitted to the source skeleton. A rear vent separates the leg panels, and the hem follows the lower legs. Immutable geometry is cached per body; fabric, floor contact and defeat fading remain actor-owned. This is a skinned garment, not cloth simulation.
 

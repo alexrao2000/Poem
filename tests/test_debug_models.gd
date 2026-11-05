@@ -3,6 +3,9 @@ const Imported=preload("res://scripts/imported_fighter.gd")
 const Actor=preload("res://scripts/fighter_actor.gd")
 const Defeat=preload("res://scripts/combat_defeat.gd")
 const Shutdown=preload("helpers/game_shutdown.gd")
+var character_ids=["nell","silas"]
+var setting_name="revised_duelists"
+var toggle_name="DebugDuelistModels"
 var watched=false
 var actual=[]
 var departures=0
@@ -23,15 +26,15 @@ func run():
  var app=load("res://main.tscn").instantiate();app.settings_path="";app.save_path="/private/tmp/poem-debug-models-save.json";root.add_child(app);await process_frame
  app.game.story_seen=["opening_0"];app.show_camp();assert(app.persist_campaign("camp"))
  var disk=FileAccess.get_file_as_string(app.save_path);var original=app.game.save_data("camp").duplicate(true);var catalog=app.fighters.models.catalog.duplicate(true)
- var nell=app.game.roster.filter(func(unit):return unit.id=="nell")[0].duplicate(true);nell.team="player"
- assert(not app.debug_session.set_revised_duelists(true))
- app.debug_session.revised_duelists=true
+ var nell=app.game.roster.filter(func(unit):return unit.id==character_ids[0])[0].duplicate(true);nell.team="player"
+ assert(not app.debug_session.call("set_"+setting_name,true))
+ app.debug_session.set(setting_name,true)
  var plain=app.make_fighter(nell,Vector3.ZERO);assert(plain is Actor,"The live debug guard prevents revised models outside the sandbox");plain.queue_free();await process_frame
  app.show_options("camp");app.ui.find_child("DebugMode",true,false).button_pressed=true;app.show_debug_tools("camp");await process_frame
- var toggle=app.ui.find_child("DebugDuelistModels",true,false);assert(not toggle.button_pressed,"A fresh debug session starts with the current campaign models")
+ var toggle=app.ui.find_child(toggle_name,true,false);assert(not toggle.button_pressed,"A fresh debug session starts with the current campaign models")
  var state=app.game.save_data("camp").duplicate(true);var seed=app.game.rng.state
  toggle.button_pressed=true
- for id in ["nell","silas"]:
+ for id in character_ids:
   var unit=app.game.roster.filter(func(value):return value.id==id)[0].duplicate(true);unit.team="player"
   for item in ["iron_sword","dueling_sword","tempered_sword"]:
    unit.item=item
@@ -48,47 +51,49 @@ func run():
    model.queue_free();await process_frame
   unit.item="estoc"
   var thrust=app.make_fighter(unit,Vector3.ZERO);assert(thrust is Actor and thrust.attack_style=="thrust","The experiment retains the estoc's point-first motion");thrust.queue_free();await process_frame
-  unit.item="iron_sword";unit.promotion=app.game.promotions.filter(func(value):return value.base=="Duelist")[0].id
+  unit.item="iron_sword";unit.promotion=app.game.promotions.filter(func(value):return value.base==unit.job)[0].id
   var promoted=app.make_fighter(unit,Vector3.ZERO);assert(promoted is Actor and promoted.get_meta("promotion_look")==unit.promotion,"Promotion costumes remain visible in the experiment");promoted.queue_free();await process_frame
   unit.promotion="";unit.team="enemy"
   var enemy=app.make_fighter(unit,Vector3.ZERO);assert(enemy is Actor,"Enemies cannot inherit a recruit's experimental identity");enemy.queue_free();await process_frame
- var other=app.game.roster[0].duplicate(true);other.team="player"
+ var other=app.game.roster.filter(func(value):return value.id not in character_ids)[0].duplicate(true);other.team="player"
  var lord=app.make_fighter(other,Vector3.ZERO);assert(lord is Actor);lord.queue_free();await process_frame
  app.show_model_view(nell);await process_frame
- assert(app.preview_actor is Imported and app.preview_actor.model.get_meta("character_identity")=="nell","Normal outfit previews honor the debug comparison")
+ assert(app.preview_actor is Imported and app.preview_actor.model.get_meta("character_identity")==character_ids[0],"Normal outfit previews honor the debug comparison")
  app.close_model_view();await process_frame;app.show_debug_tools("camp")
- assert(app.ui.find_child("DebugDuelistModels",true,false).button_pressed)
+ assert(app.ui.find_child(toggle_name,true,false).button_pressed)
  app.show_debug_report();await process_frame
- assert(JSON.parse_string(app.ui.find_child("DebugReport",true,false).text).presentation.revised_duelists)
+ assert(JSON.parse_string(app.ui.find_child("DebugReport",true,false).text).presentation[setting_name])
  assert(app.game.save_data("camp")==state and app.game.rng.state==seed and app.fighters.models.catalog==catalog,"Model selection does not alter rules, RNG, equipment or the normal catalog")
  assert(app.persist_campaign("camp") and FileAccess.get_file_as_string(app.save_path)==disk)
  app.debug_session.load_chapter(app.game,6);app.make_map();app.show_battle();app.busy=true
  app.stage.child_entered_tree.connect(watch);watched=true
  var opponent=app.game.living("enemy")[0];opponent.x=9;opponent.y=4
- for id in ["nell","silas"]:
+ for id in character_ids:
   var unit=app.game.roster.filter(func(value):return value.id==id)[0].duplicate(true);unit.team="player";unit.x=8;unit.y=4;unit.item="dueling_sword"
   var before=app.game.save_data("battle").duplicate(true);var rng=app.game.rng.state
   await app.cinematic(unit,opponent,[{"actor":unit.id,"target":opponent.id,"damage":2,"remaining":18,"hit":true,"crit":true}],{unit.id:unit.hp,opponent.id:20})
   await app.cinematic(opponent,unit,[{"actor":opponent.id,"target":unit.id,"damage":0,"remaining":unit.hp,"hit":false,"crit":false}],{unit.id:unit.hp,opponent.id:20})
   assert(app.game.save_data("battle")==before and app.game.rng.state==rng)
- assert(actual==["nell","nell","silas","silas"],"Real critical and missed exchanges use the styled imported fighters through the normal builder")
+ var expected=[]
+ for id in character_ids:expected.append_array([id,id])
+ assert(actual==expected,"Real critical and missed exchanges use the styled imported fighters through the normal builder")
  nell.x=8;nell.y=4
  var before_finish=app.game.save_data("battle").duplicate(true);var finish_rng=app.game.rng.state
  await app.cinematic(nell,opponent,[{"actor":nell.id,"target":opponent.id,"damage":20,"remaining":0,"hit":true,"crit":false}],{nell.id:nell.hp,opponent.id:20})
  await app.cinematic(opponent,nell,[{"actor":opponent.id,"target":nell.id,"damage":nell.hp,"remaining":0,"hit":true,"crit":false}],{nell.id:nell.hp,opponent.id:20})
  assert(departures==1 and app.game.save_data("battle")==before_finish and app.game.rng.state==finish_rng,"Styled victory and defeat playback complete without changing resolved simulation state")
- watched=false;app.busy=false;app.show_debug_tools("battle");app.ui.find_child("DebugDuelistModels",true,false).button_pressed=false
+ watched=false;app.busy=false;app.show_debug_tools("battle");app.ui.find_child(toggle_name,true,false).button_pressed=false
  var disabled=app.make_fighter(nell,Vector3.ZERO);assert(disabled is Actor);disabled.queue_free();await process_frame
- app.ui.find_child("DebugDuelistModels",true,false).button_pressed=true
+ app.ui.find_child(toggle_name,true,false).button_pressed=true
  var back=app.ui.find_children("*","Button",true,false).filter(func(button):return button.text=="Return to Options")[0]
  back.pressed.emit();await process_frame
  assert(app.screen=="options","Returning from battle debug tools does not access the discarded battle panel")
  app.ui.find_children("*","Button",true,false).filter(func(button):return button.text=="Restore defaults")[0].pressed.emit();await process_frame
  assert(app.screen=="options","Rebuilding battle Options after restoring preferences also works")
  app.ui.find_child("DebugMode",true,false).button_pressed=false
- assert(not app.debug_session.active and not app.debug_session.revised_duelists and app.game.save_data("camp")==original)
+ assert(not app.debug_session.active and not app.debug_session.get(setting_name) and app.game.save_data("camp")==original)
  assert(FileAccess.get_file_as_string(app.save_path)==disk and app.fighters.models.catalog==catalog,"Leaving the model experiment restores the campaign and leaves its disk save intact")
- app.debug_session.begin(app.game,"camp");assert(not app.debug_session.revised_duelists);app.debug_session.end(app.game)
+ app.debug_session.begin(app.game,"camp");assert(not app.debug_session.get(setting_name));app.debug_session.end(app.game)
  await Shutdown.dispose(app);await process_frame
- print("PASS: reversible debug model toggle, six styled sword bindings, estoc/promotion/enemy/roster fallback, real outfit preview, critical/missed exchanges, victory/defeat playback, floor-safe standing dodges, report visibility, fresh-session reset and exact campaign/save/RNG isolation")
+ print("PASS: reversible debug model toggle, ",character_ids.size()*3," styled sword bindings, estoc/promotion/enemy/roster fallback, real outfit preview, critical/missed exchanges, victory/defeat playback, floor-safe standing dodges, report visibility, fresh-session reset and exact campaign/save/RNG isolation")
  quit()

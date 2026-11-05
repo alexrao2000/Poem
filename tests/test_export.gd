@@ -122,6 +122,11 @@ func run():
   assert(caster_rig.get_node("BookHand").position.distance_to((caster_rig.get_bone_global_pose(support.chest)*support.target).origin)<.0001,"Packaged folio retains its actual skeletal support")
   assert(caster.to_local(caster.socket_position("projectile")).z<-.5 and caster_rig.get_node("BookHand/Folio").equipped=="thunder","Packaged casting hand and selected folio use separate attachments")
   app.close_model_view();await process_frame
+ app.show_source_model_view("vanguard","iron_sword",true);await process_frame
+ var vanguard=app.preview_actor;assert(vanguard is Imported and vanguard.model.get_meta("character_identity")=="lyra" and vanguard.model.get_node("Identity").mantle!=null,"Packaged Vanguard study retains Lyra’s ivory mantle")
+ await vanguard.pose("strike",.02).finished
+ assert(vanguard.model.get_node("Identity").mantle.surfaces[0].get_shader_parameter("cloth_floor_enabled"))
+ app.close_model_view();await process_frame
  app.show_debug_tools("battle");app.ui.find_child("DebugDuelistModels",true,false).button_pressed=true
  var recruit=app.game.roster.filter(func(unit):return unit.id=="nell")[0].duplicate(true);recruit.team="player"
  var revised=app.make_fighter(recruit,Vector3.ZERO)
@@ -139,9 +144,9 @@ func run():
  assert(app.game.trials.scenes.size()==10,"Release includes relief, retreat, volunteer and memorial story scenes")
  assert(app.persist_campaign("battle") and FileAccess.file_exists(app.save_path+".debug"),"Packaged debug actions save separately")
  app.debug_session.end(app.game);app.preferences.values.character_models="revised"
- var campaign_recruit=app.game.roster.filter(func(unit):return unit.id=="vela")[0].duplicate(true);campaign_recruit.team="player";campaign_recruit.item="gale"
+ var campaign_recruit=app.game.roster[0].duplicate(true);campaign_recruit.team="player";campaign_recruit.item="iron_sword"
  var campaign_model=app.make_fighter(campaign_recruit,Vector3.ZERO)
- assert(not app.debug_session.active and campaign_model is Imported and campaign_model.model.get_meta("character_identity")=="vela","Packaged appearance preference works in the ordinary campaign")
+ assert(not app.debug_session.active and campaign_model is Imported and campaign_model.model.get_meta("character_identity")=="lyra","Packaged appearance preference works in the ordinary campaign")
  campaign_model.queue_free();await process_frame
  await Shutdown.dispose(app);await process_frame
  print("PASS: exported catalog, all three act scores, chapter scenes, sixteen promotion costumes, licenses and credits")
