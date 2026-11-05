@@ -19,6 +19,8 @@ func aim(bone: int,basis: Basis):
 
 func target_pose() -> Transform3D:return rig.get_bone_global_pose(chest)*target
 
+func bend_pole(desired: Transform3D,_upper: Transform3D,_elbow: Transform3D) -> Vector3:return desired.basis.z
+
 func solve() -> Array[Quaternion]:
  var originals: Array[Quaternion]=[]
  for bone in chain:originals.append(rig.get_bone_pose_rotation(bone))
@@ -29,7 +31,7 @@ func solve() -> Array[Quaternion]:
  if distance<.00001:return originals
  axis/=distance;distance=clampf(distance,absf(a-b)+.0001,a+b-.0001)
  var wrist=upper.origin+axis*distance
- var pole=desired.basis.z;pole-=axis*pole.dot(axis)
+ var pole=bend_pole(desired,upper,elbow);pole-=axis*pole.dot(axis)
  if pole.length_squared()<.000001:pole=desired.basis.x;pole-=axis*pole.dot(axis)
  var along=(a*a-b*b+distance*distance)/(2*distance)
  var bend=upper.origin+axis*along+pole.normalized()*sqrt(maxf(0,a*a-along*along))

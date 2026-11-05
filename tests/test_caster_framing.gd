@@ -22,7 +22,9 @@ func run():
   for side in [-1,1]:
    actor.rotation.y=-side*PI/2
    for sample in [["idle","wide",4.0],["windup","windup",4.0],["strike","impact",4.0],["recover","impact",4.0],["evade","impact",4.0],["victory","finish",4.0]]:
+    for listener in actor.pose_listeners:listener.combat_pose(sample[0])
     var mapping=actor.poses[sample[0]];var other=actor.position+Vector3(side*sample[2],0,0)
+    actor.player.get_animation(mapping.clip).loop_mode=Animation.LOOP_NONE
     for mounted in [false,true]:
      actor.aim_at(other+Vector3.UP*(1.85 if mounted else 1.1))
      for step in range(9):
@@ -39,7 +41,7 @@ func run():
         for surface in range(mesh.mesh.get_surface_count()):
          for vertex in mesh.mesh.surface_get_arrays(surface)[Mesh.ARRAY_VERTEX]:
           var point=camera.unproject_position(mesh.to_global(vertex));low=low.min(point);high=high.max(point)
-       if sample[1] in ["wide","finish"]:
+       if sample[1] in ["wide","finish"] and actor.model.get_node("Identity").robe!=null:
         for mesh in actor.model.get_node("Identity").robe.pieces:
          for vertex in garment_points(mesh):
           var point=camera.unproject_position(vertex);low=low.min(point);high=high.max(point)

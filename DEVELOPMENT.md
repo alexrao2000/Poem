@@ -6,6 +6,11 @@ User direction: keep developing continuously in this chat until the user returns
 
 ## Current checkpoint
 
+Debug source studies now include Rangers on both supplied body rigs with fitted bows, drawing fingers, aimed arrows and original draw/release/recovery poses. A torso turn supports the shot; release leaves the drawing hand back while the string returns and removes the held arrow. The complete source idle breathing cycle remains. These Ranger studies are not yet selected in ordinary campaign builds.
+
+Bow floor contact lifts the hand and retracts it within arm reach while preserving wrist rotation and a small elbow bend. Weapon floor correction now transports the existing elbow bend direction with the arm, avoiding a jolt when correction begins. Both-body bow poses, string/finger fit, actual shots/skips/defeats, camera bounds and existing weapon regressions pass. Isolated asset studies are reviewed separately from GPU gameplay.
+
+
 Mara, Dax and Hale now have revised Corsair models with their original faces, hair, colors and short cloaks. All four axe/hammer items use fitted source hands; the broad heads stay above the floor during falls without changing standing swings. The ordinary revised-model option covers fifteen recruits across five base classes, and Corsairs have an independent debug switch. The source viewer uses each weapon family’s actual combat spacing.
 
 

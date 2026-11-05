@@ -139,6 +139,8 @@ func prepare_contact(spec: Dictionary) -> String:
  return contact.configure(rig,setup.bones,sockets.trail_inner,sockets.trail_tip)
 
 func aim_at(point: Vector3):
+ for listener in pose_listeners:
+  if listener.has_method("aim_at"):listener.aim_at(point)
  if contact!=null and point.is_finite():contact.target=point;contact.has_target=true
 
 func face_opponent(other: Node3D):
@@ -177,7 +179,10 @@ func pose(key: String,duration=.18) -> Tween:
  if contact!=null:
   pose_tween.tween_property(contact,"influence",1.0 if key=="strike" and contact.has_target else 0.0,seconds)
  else:pose_tween.tween_interval(seconds)
- if not looping:pose_tween.tween_callback(func():player.seek(mapping.to,true,true);player.pause();refresh_skeleton())
+ if not looping:pose_tween.tween_callback(func():
+  player.seek(mapping.to,true,true);player.pause();refresh_skeleton()
+  for listener in pose_listeners:
+   if listener.has_method("pose_finished"):listener.pose_finished(key))
  return pose_tween
 
 func refresh_skeleton():
@@ -192,6 +197,10 @@ func socket_position(key: String) -> Vector3:
  if key=="guard":return socket_position("impact")
  if key=="gaze":return socket_position("impact")+Vector3.UP*.55
  return global_position+Vector3(0,1.2 if key=="projectile" else 1.1,0)
+
+func release_projectile():
+ for listener in pose_listeners:
+  if listener.has_method("release_projectile"):listener.release_projectile()
 
 func weapon_trail_points() -> PackedVector3Array:
  if not sockets.has("trail_inner") or not sockets.has("trail_tip"):return PackedVector3Array()

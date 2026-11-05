@@ -150,6 +150,22 @@ func run():
    for surface in range(mesh.mesh.get_surface_count()):
     for vertex in mesh.mesh.surface_get_arrays(surface)[Mesh.ARRAY_VERTEX]:assert(mesh.to_global(vertex).y>corsair.global_position.y+.01,"Packaged falling hammer clears the floor")
   app.close_model_view();await process_frame
+ for pair in [["ranger_female","sera"],["ranger_male","ari"]]:
+  app.show_source_model_view(pair[0],"longbow",true);await process_frame
+  var ranger=app.preview_actor;assert(ranger is Imported and ranger.model.get_meta("character_identity")==pair[1])
+  var rig=ranger.model.get_node("Rig/Armature/Skeleton3D");var bow=rig.get_node("WeaponHand/Bow");var arrow=bow.get_node("Weapon/NockedArrow")
+  assert(bow.equipped=="longbow" and bow.arms.model==ranger.model and bow.arms.chain.size()==8 and ranger.player.get_animation_list().size()==15,"Packaged Ranger retains both-arm fitting and four private bow clips")
+  var point=ranger.to_global(Vector3(0,1.85,-4));ranger.aim_at(point);await ranger.pose("windup",.02).finished
+  assert(rig.get_node("DrawingHand").to_global(bow.finger_pad).distance_to(bow.get_node("Weapon").to_global(Vector3(0,0,.52)))<.0001)
+  assert((-arrow.global_basis.z.normalized()).dot((point-arrow.global_position).normalized())>.999999)
+  await ranger.pose("strike",.02).finished;assert(not arrow.visible and bow.projectile_spent,"Packaged release hides the nocked arrow")
+  await ranger.pose("recover",.02).finished;assert(not arrow.visible)
+  await ranger.pose("down",.02).finished
+  for mesh in bow.get_node("Weapon").find_children("*","MeshInstance3D",true,false):
+   if not mesh.is_visible_in_tree():continue
+   for surface in range(mesh.mesh.get_surface_count()):
+    for vertex in mesh.mesh.surface_get_arrays(surface)[Mesh.ARRAY_VERTEX]:assert(mesh.to_global(vertex).y>ranger.global_position.y+.01)
+  app.close_model_view();await process_frame
  app.show_source_model_view("vanguard","iron_sword",true);await process_frame
  var vanguard=app.preview_actor;assert(vanguard is Imported and vanguard.model.get_meta("character_identity")=="lyra" and vanguard.model.get_node("Identity").mantle!=null,"Packaged Vanguard study retains Lyra’s ivory mantle")
  await vanguard.pose("strike",.02).finished

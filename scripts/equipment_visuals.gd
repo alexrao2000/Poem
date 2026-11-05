@@ -54,12 +54,12 @@ static func build(painter,arm: Node3D,kind: String,item: String) -> Node3D:
    var start=Vector3(0,cos(t)*look.height,.22-sin(t)*.22+sin(t*4)*look.curve)
    var end=Vector3(0,cos(next_t)*look.height,.22-sin(next_t)*.22+sin(next_t*4)*look.curve)
    var segment=painter.geo.cylinder(hand,(start+end)*.5,start.distance_to(end)+.008,look.thickness,wood)
-   segment.quaternion=Quaternion(Vector3.UP,(end-start).normalized())
+   segment.name="BowLimb"+str(i);segment.quaternion=Quaternion(Vector3.UP,(end-start).normalized())
   for key in ["BowStringTop","BowStringBottom"]:
    var segment=painter.joint(hand,key,Vector3.ZERO)
    painter.geo.block(segment,Vector3.ZERO,Vector3(.007,1,.007),Color("d6c9a4"))
   var arrow=painter.joint(hand,"NockedArrow",Vector3(0,0,-.14));Projectile.physical_geometry(arrow,"bow")
-  painter.geo.cylinder(hand,Vector3.ZERO,.13,look.thickness*1.4,gold)
+  var grip=painter.geo.cylinder(hand,Vector3.ZERO,.13,look.thickness*1.4,gold);grip.name="BowGrip"
  else:
   var grip=painter.geo.cylinder(hand,Vector3(0,0,-.08),.23,.027,wood);grip.name="WeaponGrip";grip.rotation.x=PI/2
   if kind=="lance":
