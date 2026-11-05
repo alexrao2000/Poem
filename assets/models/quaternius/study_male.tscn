@@ -18,6 +18,7 @@ bone_name = "hand_r"
 [node name="Grip" type="Node3D" parent="Rig/Armature/Skeleton3D/WeaponHand"]
 position = Vector3(-0.032, 0.1, -0.004)
 script = ExtResource("2_weapon")
+handle_radius = 0.017
 
 [node name="Chest" type="BoneAttachment3D" parent="Rig/Armature/Skeleton3D"]
 bone_name = "spine_03"

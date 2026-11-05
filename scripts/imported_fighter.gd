@@ -36,6 +36,11 @@ func configure(scene: Node3D,spec: Dictionary) -> String:
  for library_name in player.get_animation_library_list():
   var library=player.get_animation_library(library_name).duplicate(true)
   player.remove_animation_library(library_name);player.add_animation_library(library_name,library)
+ if spec.has("equipment"):
+  var equipment=model.get_node(NodePath(spec.equipment))
+  if equipment.has_method("configure_animations"):
+   var error=equipment.configure_animations(player)
+   if not error.is_empty():return error
  player.stop();player.autoplay="";player.speed_scale=1.0
  poses=spec.get("poses",{}).duplicate(true)
  for key in ["idle","advance","windup","strike","hit","evade","down"]:

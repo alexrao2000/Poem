@@ -6,6 +6,8 @@ User direction: keep developing continuously in this chat until the user returns
 
 ## Current checkpoint
 
+Imported sword users now keep a fitted grip through running, recoil and falls. Private clip copies retain fifteen right-finger rotations around slimmer handles; the free hand, wrist, body and original source animations are preserved. A closeup asset study corrected the initial fist/handle intersection. Tests cover 1,836 poses, all non-finger bones, source independence and actual hilt proximity.
+
 The revised duelists now retain their original embroidered blue forked cloaks on the imported bodies. Upper-spine fitting, private pose-driven cloth and a floor constraint preserve the silhouette during falls. Defeat now rebinds imported face and cloth controllers to their fading material copies. Six affected suites pass, including actual shoulder attachment, camera framing and debug battles; an isolated asset study was inspected, with assembled/GPU review still pending.
 
 Styled Nell and Silas now track opponents with bounded skeletal head turns, including mounted-height targets. Their original faces retain authored reactions and finishing poses; hit-stop also freezes gaze. A small licensed skinned-neck crop replaces the rigid collar connection. Tests cover final poses, deformation, private material state and source preservation; actual rendered-game review remains outstanding.

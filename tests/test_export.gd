@@ -106,6 +106,10 @@ func run():
   await app.stage.get_node("PreviewActionPlayer").finished
   var edge=app.preview_actor.weapon_trail_points();var point=app.preview_actor.get_node("StudyContactTarget").global_position
   assert(Geometry3D.get_closest_point_to_segment(point,edge[0],edge[1]).distance_to(point)<.006,"Packaged skeletal strike reaches the mounted study target")
+  await app.preview_actor.pose("down",.02).finished
+  var rig=app.preview_actor.model.get_node("Rig/Armature/Skeleton3D");var held_sword=app.preview_actor.model.get_node("Rig/Armature/Skeleton3D/WeaponHand/Grip/Weapon")
+  var finger=rig.to_global(rig.get_bone_global_pose(rig.find_bone("middle_04_leaf_r")).origin)
+  assert(finger.distance_to(Geometry3D.get_closest_point_to_segment(finger,held_sword.to_global(Vector3(0,0,-.195)),held_sword.to_global(Vector3(0,0,.035))))<.045,"Packaged falling actor retains its equipped grip")
   app.close_model_view();await process_frame
  app.show_debug_tools("battle");app.ui.find_child("DebugDuelistModels",true,false).button_pressed=true
  var recruit=app.game.roster.filter(func(unit):return unit.id=="nell")[0].duplicate(true);recruit.team="player"
