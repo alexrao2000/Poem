@@ -34,5 +34,20 @@
     {"speaker":"noor","text":"The reports reached the observatory. I kept calculating how long we had. All the while, people were paying for that time."},
     {"speaker":"lyra","text":"Your work may still be what saves the valley."},
     {"speaker":"noor","text":"Then I will bring it with me. I am done asking other people to hold the road alone."}
+  ],
+  "memorial_0": [
+    {"speaker":"lyra","text":"We will enter their names in the company book tonight. Leave room beside each one for the people who should hear from us when the roads are open."},
+    {"speaker":"lyra","text":"They left instructions with the quartermaster. The sealed supplies are for whoever can carry the work forward. We will honor those instructions before the next march."},
+    {"speaker":"lyra","text":"Cinderford has no monument for this company. For now, we keep the book dry, bring each other home when we can, and make sure their families hear more than a name."}
+  ],
+  "memorial_4": [
+    {"speaker":"lyra","text":"The abbey has offered us a shelf in its record room. I am leaving a copy of our company book here. If the causeway closes behind us, their names will still have a way home."},
+    {"speaker":"lyra","text":"The quartermaster has set aside the supplies they entrusted to us. Take what the next march needs. Tell the new arrivals whose hands kept this company together."},
+    {"speaker":"lyra","text":"At dawn we count the people who can travel, the wounded who need beds, and the promises we are still able to keep. The road east will be planned around that company."}
+  ],
+  "memorial_8": [
+    {"speaker":"lyra","text":"The monastery bell has stopped, but the room is still listening. Leave the company book open until everyone who wishes to write in it has had their turn."},
+    {"speaker":"lyra","text":"Their last requests came with supplies for the engine road. The quartermaster will see them carried out. Whatever reaches the gates with us will carry a part of this march."},
+    {"speaker":"lyra","text":"When the engine falls silent, there will be letters to deliver and places to return to. Keep those addresses with the charts. We are planning the journey home as well."}
   ]
 }

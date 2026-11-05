@@ -140,7 +140,7 @@ The [project configuration](project.godot) selects the Compatibility renderer fo
 | Pathfinding, enemy behavior, and automated play planning | [tactics.gd](scripts/tactics.gd) |
 | Menus, input, board rendering, and orchestration | [main.gd](scripts/main.gd) |
 | Roster, classes, and chapters | [campaign.json](data/campaign.json) |
-| Dialogue, biographies, and epilogues | [story.json](data/story.json), [characters.json](data/characters.json), [casualty_lines.json](data/casualty_lines.json) |
+| Dialogue, biographies, and epilogues | [story.json](data/story.json), [characters.json](data/characters.json), [casualty_lines.json](data/casualty_lines.json), [campaign_trial_scenes.json](data/campaign_trial_scenes.json) |
 | Promotions and support conversations | [promotions.json](data/promotions.json), [supports.json](data/supports.json), [supports.gd](scripts/supports.gd) |
 | Map sprites and reusable renderers | [campaign_map_unit.gd](scripts/campaign_map_unit.gd), [visual package](visuals/README.md) |
 | Map navigation and tactical overlays | [tactical_camera.gd](scripts/tactical_camera.gd), [map_overlay.gd](scripts/map_overlay.gd), [terrain_card.gd](scripts/terrain_card.gd) |

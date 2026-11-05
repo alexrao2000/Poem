@@ -54,6 +54,7 @@ func run():
  var supports=JSON.parse_string(FileAccess.get_file_as_string("res://data/supports.json"))
  for pair in supports:
   for scene in pair.scenes:scenes.append(scene.lines)
+ for scene in g.trials.scenes.values():scenes.append(scene)
  var checked=0
  for dimensions in [Vector2(1024,640),Vector2(1280,720),Vector2(1440,900)]:
   for scene in scenes:
@@ -87,5 +88,5 @@ func run():
  for player in app.sfx_players:player.stop()
  app.music.stop();await create_timer(.15).timeout
  await Shutdown.dispose(app);await process_frame
- print("PASS: ",lines," story lines, 24 transparent dialogue portraits, ",checked," story/support layouts, speaker continuity, scene controls and persistence")
+ print("PASS: ",lines," story lines, 24 transparent dialogue portraits, ",checked," story/support/trial layouts, speaker continuity, scene controls and persistence")
  quit()

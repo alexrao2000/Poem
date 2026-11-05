@@ -74,7 +74,7 @@ func run():
  assert(app.unit_nodes[carrier.id].carry_marker.texture.get_width()==64 and not app.unit_nodes.has(patient.id),"The exported package includes the carrier badge and hides its passenger")
  app.show_debug_tools("battle");assert(app.ui.find_child("DebugCasualty",true,false)!=null and app.ui.find_child("DebugSeed",true,false)!=null,"Release contains the debug experiment harness and reproducible seed controls")
  app.show_debug_report();assert(JSON.parse_string(app.ui.find_child("DebugReport",true,false).text).debug,"Packaged debug reports contain the current experiment record")
- assert(app.game.trials.scenes.size()==7,"Release includes relief, retreat and volunteer story scenes")
+ assert(app.game.trials.scenes.size()==10,"Release includes relief, retreat, volunteer and memorial story scenes")
  assert(app.persist_campaign("battle") and FileAccess.file_exists(app.save_path+".debug"),"Packaged debug actions save separately")
  await Shutdown.dispose(app);await process_frame
  print("PASS: exported catalog, all three act scores, chapter scenes, sixteen promotion costumes, licenses and credits")

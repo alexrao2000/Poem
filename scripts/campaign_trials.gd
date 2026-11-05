@@ -5,6 +5,7 @@ extends RefCounted
 
 const FLAGS={"section_restarts":false,"reset_pressure":false,"hard_campaign":false,"death_legacies":false,"sacrifice_cost":false}
 const LEGACY_STOCK=[{"id":"tempered_sword","cost":1,"losses":1},{"id":"war_hammer","cost":2,"losses":2},{"id":"longbow","cost":3,"losses":3}]
+const SCENE_TITLES={"relief_4":"Relief at the abbey","relief_8":"Relief at the monastery","retreat_0":"Regrouping at Cinderford","retreat_4":"Return to the abbey","retreat_8":"Return to Starfall","volunteer_faye":"Faye answers the call","volunteer_noor":"Noor leaves the observatory","memorial_0":"Names in the company book","memorial_4":"The abbey record","memorial_8":"The monastery bell"}
 var scenes: Dictionary=JSON.parse_string(FileAccess.get_file_as_string("res://data/campaign_trial_scenes.json"))
 var earned_scenes: Array=[]
 var read_scenes: Array=[]
@@ -61,6 +62,7 @@ func record_losses(game):
    log_event(unit.name+" buys an opening: surviving allies gain +2 attack through the next player turn. The fallen ally needs a chapter to recover fully.")
   if not flags.death_legacies or not game.permadeath or unit.id=="lyra" or losses.has(unit.id):continue
   losses[unit.id]=game.chapter;credits+=1
+  queue_scene("memorial_"+str(section_start(game.chapter)))
   log_event(unit.name+" is lost. Their last request brings one legacy supply credit to the company.")
   var volunteer="faye" if losses.size()==1 else "noor" if losses.size()==3 else ""
   if not volunteer.is_empty() and volunteer not in volunteers:

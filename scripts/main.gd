@@ -765,7 +765,10 @@ func _unhandled_input(event):
 	if screen=="model" and event is InputEventKey and event.pressed and event.keycode==KEY_ESCAPE:
 		interface_audio.cue("back");close_model_view();get_viewport().set_input_as_handled();return
 	if screen in ["dossier","campaign_route","campaign_trials"] and event is InputEventKey and event.pressed and event.keycode==KEY_ESCAPE:
-		interface_audio.cue("back");show_camp();get_viewport().set_input_as_handled();return
+		interface_audio.cue("back")
+		if screen=="campaign_trials" and game.completed:show_ending()
+		else:show_camp()
+		get_viewport().set_input_as_handled();return
 	if screen=="dialogue" and event is InputEventKey and event.pressed:
 		if event.keycode in [KEY_SPACE,KEY_ENTER]:advance_dialogue();get_viewport().set_input_as_handled()
 		elif event.keycode==KEY_ESCAPE:finish_dialogue();get_viewport().set_input_as_handled()
@@ -1266,6 +1269,10 @@ func check_result() -> bool:
 	return true
 
 func show_ending():
+	if game.completed:
+		var trial_scene=game.trials.next_scene(game)
+		if not trial_scene.is_empty():
+			persist_campaign("ending");show_dialogue(trial_scene,show_ending,"closing");return
 	screen="ending";reset_ui()
 	var v=menu_panel()
 	label_in(v,"DAWN WITHOUT KINGS",40,GOLD)
@@ -1275,6 +1282,7 @@ func show_ending():
 	for u in game.roster:
 		label_in(list,u.name+" · "+game.class_name_for(u)+" · Level "+str(int(u.level)),19,Color(u.color))
 		label_in(list,"Fell in chapter %02d — %s. The company carries their memory."%[int(u.fallen_chapter)+1,game.content.chapters[int(u.fallen_chapter)].title] if u.get("fallen",false) else profiles.get(u.id,{}).get("ending",u.bio),17)
+	if not game.trials.read_scenes.is_empty() or not game.trials.events.is_empty():button_in(v,"Company memories",show_campaign_trials)
 	button_in(v,"Return to title",show_title)
 
 func show_dialogue(lines: Array,on_complete: Callable,kind="opening"):
@@ -1788,12 +1796,13 @@ func restart_campaign_attempt():
 func show_campaign_trials():
 	screen="campaign_trials";reset_ui()
 	var frame=menu_panel(880);var panel=scrolling_column(frame)
-	label_in(panel,"CAMPAIGN EXPERIMENTS",18,GOLD)
+	label_in(panel,"COMPANY MEMORIES" if game.completed else "CAMPAIGN EXPERIMENTS",18,GOLD)
 	label_in(panel,"Section %d · Pressure %d / 10"%[int(game.chapter/4)+1,game.trials.pressure],34,GOLD)
 	label_in(panel,"Legacy supply credits: %d"%game.trials.credits,22)
-	var preparation=game.trials.enemy_modifiers(game.chapter)
-	label_in(panel,"Next deployment · enemies gain %d HP, %d attack, %d speed and %d defense. Held tonics: %d. Raiders %s."%[preparation.max_hp,preparation.pow,preparation.speed,preparation.defense,preparation.held_tonics,"advance before the battle" if preparation.raiders_advance else "start at their usual positions"],19)
-	if game.trials.flags.death_legacies and game.permadeath:
+	if not game.completed:
+		var preparation=game.trials.enemy_modifiers(game.chapter)
+		label_in(panel,"Next deployment · enemies gain %d HP, %d attack, %d speed and %d defense. Held tonics: %d. Raiders %s."%[preparation.max_hp,preparation.pow,preparation.speed,preparation.defense,preparation.held_tonics,"advance before the battle" if preparation.raiders_advance else "start at their usual positions"],19)
+	if not game.completed and game.trials.flags.death_legacies and game.permadeath:
 		for stock in game.trials.LEGACY_STOCK:
 			var item=game.equipment.filter(func(entry):return entry.id==stock.id)[0]
 			var bought=stock.id in game.trials.purchases
@@ -1805,8 +1814,8 @@ func show_campaign_trials():
 	for event in game.trials.events:label_in(panel,event,19)
 	if not game.trials.read_scenes.is_empty():label_in(panel,"Company memories",24,GOLD)
 	for id in game.trials.read_scenes:
-		button_in(panel,"Replay · "+id.replace("_"," ").capitalize(),func():show_dialogue(game.trials.scenes[id],show_campaign_trials,"support"))
-	button_in(frame,"Return to war council",show_camp)
+		button_in(panel,"Replay · "+game.trials.SCENE_TITLES.get(id,id.replace("_"," ").capitalize()),func():show_dialogue(game.trials.scenes[id],show_campaign_trials,"support"))
+	button_in(frame,"Return to epilogue" if game.completed else "Return to war council",show_ending if game.completed else show_camp)
 
 func show_triage(focus_patient: Dictionary={}):
 	if selected==null or not game.can_act(selected):return
