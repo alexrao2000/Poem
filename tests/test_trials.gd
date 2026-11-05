@@ -82,6 +82,15 @@ func run():
  var loaded=Rules.new();assert(loaded.load_game(app.save_path)=="camp" and loaded.trials.credits==0 and "tempered_sword" in loaded.trials.purchases,"Actual legacy shop purchase saves the campaign ledger")
  app.make_map();app.show_battle();app.restart_campaign_attempt()
  assert(app.screen=="camp" and app.game.trials.pressure==1 and app.game.units.is_empty(),"Player-requested restart uses the same penalty and section path as defeat")
+ app.game.new_campaign();app.game.trials.flags.reset_pressure=true;app.game.start_battle()
+ app.preferences.values.combat="map"
+ var enemy=app.game.living("enemy")[0];enemy.hp=1
+ for foe in app.game.living("enemy"):
+  if foe!=enemy:foe.hp=0
+ app.make_map();app.show_battle();app.selected=enemy;app.update_side();await process_frame
+ assert(app.side.find_children("*","Label",true,false).any(func(label):return "Held tonics: 2" in label.text),"Enemy inspection exposes its remaining consumables")
+ await app.end_turn()
+ assert(enemy.held_tonics==1 and enemy.hp>1 and not app.busy and app.game.phase=="player","Real enemy phase resolves and presents tonic use")
  await Shutdown.dispose(app);await process_frame
  print("PASS: independent campaign trials, harder enemies, irreversible legacy rewards/purchases, volunteers, section checkpoints/restarts, replacement arrivals, reset supply loss/raider advances, casual sacrifice openings/recovery and import validation")
  quit()

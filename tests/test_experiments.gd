@@ -91,6 +91,14 @@ func run():
  app.persist_campaign("battle");var before=app.game.rng.state
  await app.load_campaign()
  assert(app.game.phase=="player" and app.game.turn==2 and app.game.rng.state==before,"Reload completes an interrupted enemy phase without repeating already resolved attacks")
+ app.game.new_campaign(true);app.game.death_door=true;app.game.action_saves=true;app.game.start_battle()
+ var leader=app.game.units[0];casualty(app.game,leader);leader.bleed_turns=1
+ app.make_map();app.show_battle();var state=app.game.rng.state
+ var health=app.game.living("player").map(func(unit):return unit.hp)
+ await app.end_turn()
+ assert(app.screen=="result" and app.game.result()=="defeat" and app.game.rng.state==state,"Lord bleed-out ends the attempt before any enemy action or roll")
+ assert(app.game.living("player").map(func(unit):return unit.hp)==health and not app.busy)
+ assert(loaded.load_game(app.save_path)=="battle" and loaded.result()=="defeat","The phase-boundary defeat is checkpointed")
  await Shutdown.dispose(app);await process_frame
  print("PASS: downed countdown, rescue/carry/drop, revival, carrier loss, evacuation, irreversible deaths and movement, current recovery saves, validation and interrupted phase continuation")
  quit()

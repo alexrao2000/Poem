@@ -576,6 +576,7 @@ func update_side():
 		if selected.team=="enemy":
 			var behavior={"guard":"Holds position","sentry":"Waits until approached","pursue":"Advances toward the company"}
 			label_in(side,behavior.get(selected.get("ai","pursue"),"Advances"),17,GOLD)
+			if selected.has("held_tonics"):label_in(side,"Held tonics: %d%s"%[selected.held_tonics," · Raider" if selected.get("raider",false) else ""],16,GOLD)
 			label_in(side,"Red tiles show this unit’s possible attacks, including movement. Other units may block its route.",16)
 			button_in(side,"All enemy ranges [R]: "+("on" if show_danger else "off"),toggle_danger,busy)
 		if target!=null:
@@ -801,7 +802,7 @@ func click_tile(p: Vector2i):
 
 func wait_action():
 	if busy or selected==null or not action_save_ready():return
-	if game.wait_unit(selected) and checkpoint_action():show_battle();finish_action()
+	if game.wait_unit(selected) and checkpoint_action():finish_action()
 
 func tonic():
 	if busy or selected==null or not action_save_ready():return
@@ -835,10 +836,11 @@ func end_turn(resuming=false):
 	if not resuming:
 		game.begin_enemy_phase()
 		if not checkpoint_action():return
+		if await check_result():busy=false;return
 		update_side();await announce_phase("enemy")
 	for e in game.living("enemy"):
 		if e.acted:continue
-		if game.living("player").is_empty():break
+		if game.result()!="":break
 		var choice=tactics.plan(game,e)
 		var candidates=game.units.filter(func(u):return u.id==choice.target)
 		var chosen=candidates[0] if not candidates.is_empty() else null
@@ -849,6 +851,8 @@ func end_turn(resuming=false):
 		await animate_map_move(e,path)
 		var events=tactics.apply_plan(game,e,choice)
 		if not checkpoint_action():return
+		if choice.action=="tonic" and e.hp>initial_hp[e.id]:
+			play_sfx("heal");await map_heal_feedback(e,e,int(e.hp-initial_hp[e.id]))
 		highlight();await get_tree().create_timer(.12).timeout
 		if chosen!=null and not events.is_empty():
 			await cinematic(e,chosen,events,initial_hp)
