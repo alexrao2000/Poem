@@ -194,3 +194,10 @@ A study may list `campaign_characters` to offer its fitted rig to additional can
 
 
 The Vanguard group now includes Lyra/Rhea on the female wrapper and Cassian on `study_vanguard_male.tscn`. Male palm offsets, grip width, stride and contact intervals come from the verified male sword study. The identity adapter’s exported `mantle_depth` defaults to 1; Cassian selects 1.2, eliminating the measured 9.76 mm torso protrusion found in the initial falling pose. No source body or animation changes are needed. All nine base Vanguards, Duelists and Arcanists are now covered by the revised preference.
+
+
+### Warden staff studies
+
+`warden`/`warden_female` are source studies for Ivo/Esme, using the supplied casting clips and original robe/cape identities. `cast_windup`/`cast` are explicit aliases so the study UI exposes healing. `authored_staff.gd` fits the right-palm grip and original field/mend/beacon staff; healing uses its actual crown marker, while the free left hand gestures. The shaft is 14/17 mm in radius to match the fitted female/male fingers. Emissive crowns retain their original glow and have no outline.
+
+`staff_hold.gd` extends the exact arm solver through a `target_pose()` hook. Eight corners bound the original prop in wrist space. If that target would place the staff beneath the actor's floor, the target turns toward horizontal and rises only as needed; a bounded orientation search keeps the target box above the floor. The arm still obeys its existing length limits, and direct samples restore animation inputs. This adjusts the wrist and prop together; it does not squash the staff or detach it. The initial unchanged wrist sent the staff about 35 cm below ground. Dense final fall samples clear it on both bodies; the male arm has at most 10.5 mm of clamped target reach error. Actual GPU rendering and general body collisions remain unreviewed. These studies do not yet alter campaign character selection.

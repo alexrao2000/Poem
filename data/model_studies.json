@@ -546,5 +546,177 @@
     "study_character": "cassian",
     "study_label": "male vanguard",
     "study_title": "Vanguard \u00b7 Cassian"
+  },
+  "warden": {
+    "scene": "res://assets/models/quaternius/study_warden_male.tscn",
+    "player": "Rig/AnimationPlayer",
+    "yaw": 180,
+    "scale": 1,
+    "offset": [
+      0,
+      0.01,
+      0
+    ],
+    "poses": {
+      "idle": {
+        "clip": "Idle"
+      },
+      "advance": {
+        "clip": "Jog_Fwd"
+      },
+      "windup": {
+        "clip": "Spell_Simple_Enter"
+      },
+      "strike": {
+        "clip": "Spell_Simple_Shoot",
+        "from": 0,
+        "to": 0.2
+      },
+      "recover": {
+        "clip": "Spell_Simple_Exit"
+      },
+      "hit": {
+        "clip": "Hit_Chest"
+      },
+      "evade": {
+        "clip": "Hit_Chest",
+        "from": 0,
+        "to": 0.1666667
+      },
+      "down": {
+        "clip": "Death01"
+      },
+      "guard": {
+        "clip": "Idle",
+        "from": 0,
+        "to": 0.1
+      },
+      "victory": {
+        "clip": "Idle",
+        "from": 0,
+        "to": 0.2
+      },
+      "cast_windup": {
+        "clip": "Spell_Simple_Enter"
+      },
+      "cast": {
+        "clip": "Spell_Simple_Shoot",
+        "from": 0,
+        "to": 0.2
+      }
+    },
+    "sockets": {
+      "impact": "Rig/Armature/Skeleton3D/Chest/Impact",
+      "gaze": "Rig/Armature/Skeleton3D/Face/Gaze",
+      "projectile": "Rig/Armature/Skeleton3D/WeaponHand/Staff/Weapon/Crown"
+    },
+    "study_id": "warden",
+    "equipment": "Rig/Armature/Skeleton3D/WeaponHand/Staff",
+    "supported_items": [
+      "field_staff",
+      "mend_staff",
+      "beacon_staff"
+    ],
+    "stride": {
+      "length": 5.6643,
+      "skeleton": "Rig/Armature/Skeleton3D",
+      "feet": [
+        "ball_l",
+        "ball_r"
+      ],
+      "contacts": [
+        0.05,
+        0.55
+      ]
+    },
+    "study_character": "ivo",
+    "study_label": "male Warden",
+    "study_title": "Warden \u00b7 Ivo"
+  },
+  "warden_female": {
+    "scene": "res://assets/models/quaternius/study_warden_female.tscn",
+    "player": "Rig/AnimationPlayer",
+    "yaw": 180,
+    "scale": 1,
+    "offset": [
+      0,
+      0.01,
+      0
+    ],
+    "poses": {
+      "idle": {
+        "clip": "Idle"
+      },
+      "advance": {
+        "clip": "Jog_Fwd"
+      },
+      "windup": {
+        "clip": "Spell_Simple_Enter"
+      },
+      "strike": {
+        "clip": "Spell_Simple_Shoot",
+        "from": 0,
+        "to": 0.2
+      },
+      "recover": {
+        "clip": "Spell_Simple_Exit"
+      },
+      "hit": {
+        "clip": "Hit_Chest"
+      },
+      "evade": {
+        "clip": "Hit_Chest",
+        "from": 0,
+        "to": 0.1666667
+      },
+      "down": {
+        "clip": "Death01"
+      },
+      "guard": {
+        "clip": "Idle",
+        "from": 0,
+        "to": 0.1
+      },
+      "victory": {
+        "clip": "Idle",
+        "from": 0,
+        "to": 0.2
+      },
+      "cast_windup": {
+        "clip": "Spell_Simple_Enter"
+      },
+      "cast": {
+        "clip": "Spell_Simple_Shoot",
+        "from": 0,
+        "to": 0.2
+      }
+    },
+    "sockets": {
+      "impact": "Rig/Armature/Skeleton3D/Chest/Impact",
+      "gaze": "Rig/Armature/Skeleton3D/Face/Gaze",
+      "projectile": "Rig/Armature/Skeleton3D/WeaponHand/Staff/Weapon/Crown"
+    },
+    "study_id": "warden_female",
+    "equipment": "Rig/Armature/Skeleton3D/WeaponHand/Staff",
+    "supported_items": [
+      "field_staff",
+      "mend_staff",
+      "beacon_staff"
+    ],
+    "stride": {
+      "length": 5.4124,
+      "skeleton": "Rig/Armature/Skeleton3D",
+      "feet": [
+        "ball_l",
+        "ball_r"
+      ],
+      "contacts": [
+        0.05,
+        0.55
+      ]
+    },
+    "study_character": "esme",
+    "study_label": "female Warden",
+    "study_title": "Warden \u00b7 Esme"
   }
 }

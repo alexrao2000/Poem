@@ -6,6 +6,8 @@ User direction: keep developing continuously in this chat until the user returns
 
 ## Current checkpoint
 
+Debug source studies now include male/female Wardens with original Ivo/Esme identities, fitted robes and all three staves. The right hand carries the staff while the left gestures; healing light leaves the crown. A floor-aware wrist target turns the rigid staff during falls while preserving its grip. This class is still a study and is not selected by the campaign appearance preference.
+
 Cassian and Rhea join the revised Vanguard group. Cassian uses the male rig with a 20% deeper mantle fit, measured against the animated torso; Rhea shares the female fit. The original class silhouettes, personal faces/hair, source grip and supported equipment remain intact. The revised-model option now covers all nine base-class Vanguards, Duelists and Arcanists; promoted outfits retain their current models.
 
 Yuna and Noor now share the fitted revised Duelist/Arcanist rigs while retaining their own original faces, purple palettes and ponytail/long hair. The optional campaign appearance setting and existing independent debug group switches include them. The source-study viewers keep their representative recruits.

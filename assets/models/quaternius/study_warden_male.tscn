@@ -1,0 +1,37 @@
+[gd_scene load_steps=4 format=3]
+
+[ext_resource type="PackedScene" path="res://assets/models/quaternius/duelist_male.gltf" id="1_rig"]
+[ext_resource type="Script" path="res://scripts/authored_staff.gd" id="2_weapon"]
+
+[ext_resource type="Script" path="res://scripts/authored_identity.gd" id="3_identity"]
+
+[node name="WardenStudy" type="Node3D"]
+
+[node name="Identity" type="Node3D" parent="."]
+script = ExtResource("3_identity")
+cloak_cut = "standard"
+robe_enabled = true
+
+[node name="Rig" parent="." instance=ExtResource("1_rig")]
+
+[node name="WeaponHand" type="BoneAttachment3D" parent="Rig/Armature/Skeleton3D"]
+bone_name = "hand_r"
+
+[node name="Staff" type="Node3D" parent="Rig/Armature/Skeleton3D/WeaponHand"]
+position = Vector3(-0.032, 0.1, -0.004)
+script = ExtResource("2_weapon")
+handle_radius = 0.017
+
+[node name="Chest" type="BoneAttachment3D" parent="Rig/Armature/Skeleton3D"]
+bone_name = "spine_03"
+
+[node name="Impact" type="Marker3D" parent="Rig/Armature/Skeleton3D/Chest"]
+position = Vector3(0, 0.05, 0.11)
+
+[node name="Face" type="BoneAttachment3D" parent="Rig/Armature/Skeleton3D"]
+bone_name = "Head"
+
+[node name="Gaze" type="Marker3D" parent="Rig/Armature/Skeleton3D/Face"]
+position = Vector3(0, 0.12, 0.08)
+
+[editable path="Rig"]

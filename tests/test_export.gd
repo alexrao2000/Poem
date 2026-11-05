@@ -125,6 +125,18 @@ func run():
   assert(caster_rig.get_node("BookHand").position.distance_to((caster_rig.get_bone_global_pose(support.chest)*support.target).origin)<.0001,"Packaged folio retains its actual skeletal support")
   assert(caster.to_local(caster.socket_position("projectile")).z<-.5 and caster_rig.get_node("BookHand/Folio").equipped=="thunder","Packaged casting hand and selected folio use separate attachments")
   app.close_model_view();await process_frame
+ for pair in [["warden","ivo"],["warden_female","esme"]]:
+  app.show_source_model_view(pair[0],"beacon_staff",true);await process_frame
+  var warden=app.preview_actor;assert(warden is Imported and warden.model.get_meta("character_identity")==pair[1])
+  var staff=warden.model.get_node("Rig/Armature/Skeleton3D/WeaponHand/Staff")
+  assert(staff.equipped=="beacon_staff" and staff.hold.model==warden.model and staff.hold.corners.size()==8,"Packaged staff retains its fitted wrist constraint and prop bounds")
+  await warden.pose("cast",.02).finished
+  assert(warden.socket_position("projectile").distance_to(staff.get_node("Weapon/Crown").global_position)<.00001,"Packaged healing uses the staff crown socket")
+  await warden.pose("down",.02).finished
+  for mesh in staff.get_node("Weapon").find_children("*","MeshInstance3D",true,false):
+   for surface in range(mesh.mesh.get_surface_count()):
+    for vertex in mesh.mesh.surface_get_arrays(surface)[Mesh.ARRAY_VERTEX]:assert(mesh.to_global(vertex).y>warden.global_position.y+.01,"Packaged falling staff clears the floor")
+  app.close_model_view();await process_frame
  app.show_source_model_view("vanguard","iron_sword",true);await process_frame
  var vanguard=app.preview_actor;assert(vanguard is Imported and vanguard.model.get_meta("character_identity")=="lyra" and vanguard.model.get_node("Identity").mantle!=null,"Packaged Vanguard study retains Lyra’s ivory mantle")
  await vanguard.pose("strike",.02).finished

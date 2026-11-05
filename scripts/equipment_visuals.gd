@@ -41,7 +41,7 @@ static func build(painter,arm: Node3D,kind: String,item: String) -> Node3D:
  if kind=="magic":
   Book.build(painter,hand,gold,Color(look.cover),Color(look.ribbon))
  elif kind=="staff":
-  painter.geo.cylinder(hand,Vector3(0,.05,0),1.35,.022,wood)
+  var shaft=painter.geo.cylinder(hand,Vector3(0,.05,0),1.35,.022,wood);shaft.name="StaffShaft"
   var orb=painter.ellipsoid(hand,Vector3(0,.78,0),Vector3(.11,.11,.11),Color(look.core))
   var glow=orb.material_override.duplicate();glow.emission_enabled=true;glow.emission=Color(look.core);glow.emission_energy_multiplier=1.4;orb.material_override=glow
   for i in range(int(look.rings)):

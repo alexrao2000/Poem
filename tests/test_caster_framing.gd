@@ -1,6 +1,8 @@
 extends SceneTree
 var study_key="caster"
 var character_id="tarin"
+var equipped_item="thunder"
+var prop_path="Rig/Armature/Skeleton3D/BookHand/Folio/Weapon"
 func _initialize():call_deferred("run")
 func run():
  var viewport=SubViewport.new();viewport.size=Vector2i(1024,640);root.add_child(viewport);var world=Node3D.new();viewport.add_child(world);var camera=Camera3D.new();world.add_child(camera);camera.current=true
@@ -8,7 +10,7 @@ func run():
  var failures=[];var count=0
  var framing=director.new();world.add_child(framing)
  for id in [character_id]:
-  var unit=game.roster.filter(func(value):return value.id==id)[0].duplicate(true);unit.team="player";unit.item="thunder"
+  var unit=game.roster.filter(func(value):return value.id==id)[0].duplicate(true);unit.team="player";unit.item=equipped_item
   var actor=models.build(world,unit,Vector3(35,0,0));await process_frame;actor.set_process(false);actor.player.pause()
   framing.configure(camera,[actor])
   var expected=framing.frame_for(actor.position,actor.position+Vector3(1.4,0,0),"windup",false)
@@ -16,7 +18,7 @@ func run():
   assert(framing.anchor.is_equal_approx(expected.anchor),"The actual shot tween uses the imported framing margin")
   var head=actor.model.get_node("Identity").head
   var pieces=head.find_children("*","MeshInstance3D",true,false)
-  pieces.append_array(actor.model.get_node("Rig/Armature/Skeleton3D/BookHand/Folio/Weapon").find_children("*","MeshInstance3D",true,false))
+  pieces.append_array(actor.model.get_node(NodePath(prop_path)).find_children("*","MeshInstance3D",true,false))
   for side in [-1,1]:
    actor.rotation.y=-side*PI/2
    for sample in [["idle","wide",4.0],["windup","windup",4.0],["strike","impact",4.0],["recover","impact",4.0],["evade","impact",4.0],["victory","finish",4.0]]:
@@ -27,7 +29,7 @@ func run():
       actor.player.stop();actor.player.play(mapping.clip,0);actor.player.seek(lerpf(mapping.from,mapping.to,float(step)/8),true,true);actor.player.pause();actor.refresh_skeleton()
       for size_value in [Vector2i(1024,640),Vector2i(1280,720),Vector2i(1440,900)]:
        viewport.size=size_value
-       var frame=framing.frame_for(actor.position,other,sample[1],true,mounted if sample[1]!="finish" else false,"magic")
+       var frame=framing.frame_for(actor.position,other,sample[1],true,mounted if sample[1]!="finish" else false,unit.weapon)
        camera.position=frame.anchor;camera.look_at(frame.focus);camera.fov=frame.lens
        var palm=camera.unproject_position(actor.socket_position("projectile"))
        var low=palm;var high=palm

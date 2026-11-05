@@ -17,10 +17,12 @@ func aim(bone: int,basis: Basis):
  var parent=rig.get_bone_global_pose(rig.get_bone_parent(bone))
  rig.set_bone_pose_rotation(bone,(parent.basis.inverse()*basis).get_rotation_quaternion().normalized());rig.force_update_bone_child_transform(bone)
 
+func target_pose() -> Transform3D:return rig.get_bone_global_pose(chest)*target
+
 func solve() -> Array[Quaternion]:
  var originals: Array[Quaternion]=[]
  for bone in chain:originals.append(rig.get_bone_pose_rotation(bone))
- var desired=rig.get_bone_global_pose(chest)*target
+ var desired=target_pose()
  var upper=rig.get_bone_global_pose(chain[2]);var elbow=rig.get_bone_global_pose(chain[1]);var hand=rig.get_bone_global_pose(chain[0])
  var a=upper.origin.distance_to(elbow.origin);var b=elbow.origin.distance_to(hand.origin)
  var axis=desired.origin-upper.origin;var distance=axis.length()
