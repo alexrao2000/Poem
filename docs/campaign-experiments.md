@@ -6,6 +6,8 @@ The debug seed control accepts whole numbers from 0 through 2147483647. **Apply 
 
 **Test pressure and reset battle** accepts pressure 0–10, enables enemy preparation and rebuilds the current chapter using the selected seed. It keeps other trial switches and the consequence ledger. Load the chapter first, then choose pressure; a fresh-roster chapter load clears earlier consequences. The company experiment panel and debug report show the stat bonuses, held tonics and raider advance that will apply on the next deployment.
 
+**Raise company and reset battle** raises currently available recruits to a chosen level, using ordinary growth and the selected combat seed. It never lowers a level, revives permanent losses, unlocks future recruits or removes a promotion. The section checkpoint remains unchanged, so a penalty retreat can still rewind this training. To start lower, load a chapter with a fresh roster; return to preparation to choose promotions once recruits reach level 10.
+
 **View experiment report** opens a read-only JSON record of the rules, seed, current random state, casualties, pressure and combatants. It includes a transfer code to restore the exact position in another debug session; **Copy restore code** copies that code by itself. Viewing or copying the report does not change the simulation. Reports stay local unless you choose to share them.
 
 ## Current rules

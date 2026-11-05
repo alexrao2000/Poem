@@ -28,6 +28,8 @@ The local test runner now stops Godot when a script error leaves the process ali
 
 Staff target highlights now include downed allies while excluding hidden carried patients, and downed inspection explains rescue instead of movement. Trial import validation derives roster/chapter bounds from campaign content and rejects losses after the last chapter. Rescue, exact action-range geometry and campaign-trial suites pass.
 
+Debug training can raise available recruits to a chosen level and rebuild the battle with the selected seed. It uses ordinary growth, preserves higher levels/promotions and permanent losses, and leaves the section checkpoint unchanged. The control reflects the prepared company’s minimum level. Debug isolation, normal growth equivalence, progression and promotion suites pass.
+
 ## Earlier checkpoints
 
 Spell flight now has a continuous soft-edged wake and luminous elemental cores/halos, replacing the six opaque trailing beads. It uses four fewer mesh instances per spell while keeping the existing path/timing. Focused geometry, transformed physical/elemental flights, actual exchanges and skip cleanup pass; the isolated additive study was corrected for a measured headless gradient readback artifact rather than treating that artifact as a game defect.

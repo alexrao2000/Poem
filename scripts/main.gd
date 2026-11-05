@@ -1670,6 +1670,14 @@ func show_debug_tools(return_to: String):
 	label_in(panel,"Enable enemy preparation at the chosen pressure and rebuild this battle with the current seed. Other trial switches and recorded losses remain.",16)
 	button_in(panel,"Test pressure and reset battle",func():
 		if debug_session.test_pressure(game,pressure_input.value):make_map();show_battle();persist_campaign("battle"))
+	label_in(panel,"Company training level",23,GOLD)
+	var company_levels=game.available().map(func(unit):return int(unit.level))
+	var suggested_level=maxi(game.chapter+1,company_levels.min() if not company_levels.is_empty() else 1)
+	var level_input=SpinBox.new();level_input.name="DebugLevel";level_input.min_value=1;level_input.max_value=game.MAX_LEVEL;level_input.step=1;level_input.value=mini(game.MAX_LEVEL,suggested_level);level_input.custom_minimum_size.y=42;panel.add_child(level_input)
+	label_in(panel,"Raise available recruits using normal level growth, then reset this battle. Higher levels, promotions and permanent losses remain. The original section checkpoint is unchanged.",16)
+	button_in(panel,"Raise company and reset battle",func():
+		if debug_session.train_company(game,level_input.value):make_map();show_battle();persist_campaign("battle"))
+	label_in(panel,"Use a fresh-roster chapter load to try lower levels. Return to preparation to choose promotions at level 10.",16)
 	button_in(panel,"Heal deployed allies",func():
 		debug_session.heal(game);persist_campaign("battle" if options_return=="battle" else "camp");show_notice("Living allies restored to full health."))
 	button_in(panel,"Revive company and reset battle",func():

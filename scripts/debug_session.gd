@@ -54,6 +54,13 @@ func test_pressure(game,value) -> bool:
  reset_battle(game)
  return true
 
+func train_company(game,value) -> bool:
+ if not active or not game.trials.integer(value,1,game.MAX_LEVEL):return false
+ for unit in game.available():
+  if unit.level<value:game.award_xp(unit,(int(value)-int(unit.level))*100-int(unit.xp))
+ reset_battle(game)
+ return true
+
 func report(game,stage="battle") -> Dictionary:
  if not active:return {}
  var settings=game.trials.flags.duplicate()
