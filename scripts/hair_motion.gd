@@ -8,7 +8,10 @@ var phase=0.0
 var strength=.1
 
 func bind(actor: Node3D,identity: String):
- root=actor.bone("HairFall")
+ bind_root(actor.bone("HairFall"),identity)
+
+func bind_root(node: Node3D,identity: String):
+ root=node
  if root==null:return
  strength=root.get_meta("sway_strength",.1)
  phase=float(absi(identity.hash())%1000)/100.0

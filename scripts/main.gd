@@ -106,7 +106,7 @@ const SAVE = "user://campaign.json"
 var save_path=SAVE
 var debug_session=preload("res://scripts/debug_session.gd").new()
 var debug_duelists=preload("res://scripts/debug_duelist_models.gd").new()
-var debug_caster=preload("res://scripts/debug_source_models.gd").new(["caster"])
+var debug_caster=preload("res://scripts/debug_source_models.gd").new(["caster","caster_female"])
 var save_failed=false
 var save_warning_queued=false
 
@@ -1784,9 +1784,9 @@ func show_debug_tools(return_to: String):
 	var revised=CheckButton.new();revised.name="DebugDuelistModels";revised.text="Revised duelist models";revised.button_pressed=debug_session.revised_duelists;panel.add_child(revised)
 	revised.toggled.connect(func(value):debug_session.set_revised_duelists(value))
 	label_in(panel,"Try Nell and Silas’s revised models in battles and outfit previews. Applies before promotion with iron, dueling or tempered swords. Other outfits keep their current models. Resets when Debug mode ends.",16)
-	var caster=CheckButton.new();caster.name="DebugCasterModel";caster.text="Revised casting model";caster.button_pressed=debug_session.revised_caster;panel.add_child(caster)
+	var caster=CheckButton.new();caster.name="DebugCasterModel";caster.text="Revised casting models";caster.button_pressed=debug_session.revised_caster;panel.add_child(caster)
 	caster.toggled.connect(func(value):debug_session.set_revised_caster(value))
-	label_in(panel,"Try Tarin’s revised model in battles and outfit previews with Ember, Gale or Thunder before promotion. Resets when Debug mode ends.",16)
+	label_in(panel,"Try Tarin and Vela’s revised models in battles and outfit previews with Ember, Gale or Thunder before promotion. Resets when Debug mode ends.",16)
 	var studies=JSON.parse_string(FileAccess.get_file_as_string("res://data/model_studies.json"))
 	for gender in studies:
 		var study=button_in(panel,"View "+studies[gender].study_label+" rig",func():show_source_model_view(gender));study.name="ModelStudy_"+gender

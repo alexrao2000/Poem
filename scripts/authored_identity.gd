@@ -7,6 +7,8 @@ const FaceBlink=preload("res://scripts/face_blink.gd")
 var identity=""
 var blink=FaceBlink.new()
 var current_pose="idle"
+var hair_motion=preload("res://scripts/hair_motion.gd").new()
+var elapsed=0.0
 var source_meshes=[]
 var painted_materials=[]
 var head: Node3D
@@ -57,6 +59,7 @@ func configure_identity(id: String) -> String:
  face.set_meta("dynamic",true)
  blink.bind(face,painter.face_atlas,"authored:"+id)
  painter.geo.batcher.combine(head,false)
+ hair_motion.bind_root(head.get_node_or_null("HairFall"),id)
  if source_head==null:return "Source neck mesh is missing"
  var neck_mesh=preload("res://scripts/authored_neck.gd").mesh_for(source_head,rig)
  if neck_mesh==null:return "Source neck skin could not be isolated"
@@ -93,4 +96,5 @@ func materials_remapped(copies: Dictionary):blink.surface=copies.get(blink.surfa
 func combat_pose(key: String):current_pose=key;blink.begin_pose(key)
 func face_opponent(other: Node3D):blink.opponent=weakref(other)
 func _process(delta):
- if not identity.is_empty():blink.update(delta,current_pose)
+ if identity.is_empty() or not is_visible_in_tree():return
+ elapsed+=maxf(0,delta);blink.update(delta,current_pose);hair_motion.update(elapsed,current_pose,delta)

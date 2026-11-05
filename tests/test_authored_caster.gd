@@ -5,6 +5,8 @@ const Imported=preload("res://scripts/imported_fighter.gd")
 const Projectile=preload("res://scripts/combat_projectile.gd")
 const Charge=preload("res://scripts/combat_charge.gd")
 const Shutdown=preload("helpers/game_shutdown.gd")
+var study_key="caster"
+var character_id="tarin"
 var caster: Node3D
 var shots=0
 var charges=0
@@ -22,14 +24,14 @@ func watch(node):
 func sample(actor,mapping,time):
  actor.player.stop();actor.player.play(mapping.clip,0);actor.player.seek(time,true,true);actor.player.pause();actor.refresh_skeleton()
 func run():
- var rules=Rules.new();var unit=rules.roster.filter(func(value):return value.id=="tarin")[0].duplicate(true);unit.team="player"
- var spec=JSON.parse_string(FileAccess.get_file_as_string("res://data/model_studies.json")).caster.duplicate(true);spec.appearance="Identity"
- var library=Models.new("");library.catalog={"characters":{"tarin":spec}}
+ var rules=Rules.new();var unit=rules.roster.filter(func(value):return value.id==character_id)[0].duplicate(true);unit.team="player"
+ var spec=JSON.parse_string(FileAccess.get_file_as_string("res://data/model_studies.json"))[study_key].duplicate(true);spec.appearance="Identity"
+ var library=Models.new("");library.catalog={"characters":{character_id:spec}}
  var world=Node3D.new();root.add_child(world);var cases=0;var worst=0.0
  for item in spec.supported_items:
   unit.item=item;var actor=library.build(world,unit,Vector3(35,0,0));assert(actor!=null and library.issues.is_empty());await process_frame
   var rig=actor.model.get_node("Rig/Armature/Skeleton3D");var hold=rig.get_node("FolioSupport");var hand=rig.get_node("BookHand");var book=hand.get_node("Folio/Weapon");var identity=actor.model.get_node("Identity")
-  assert(identity.identity=="tarin" and identity.cloak.cloth.get_parent().get_meta("cape_cut")=="standard" and actor.pose_constraints.has(hold))
+  assert(identity.identity==character_id and identity.cloak.cloth.get_parent().get_meta("cape_cut")=="standard" and actor.pose_constraints.has(hold))
   assert(hand.get_node("Folio").equipped==item and book.get_node("Spellbook/LeftLeaf/PrintedPage").material_override.albedo_texture!=null)
   assert(actor.contact==null and actor.weapon_trail_points().is_empty(),"A caster does not acquire melee contact correction or blade sockets")
   for side in [-1,1]:
@@ -59,15 +61,15 @@ func run():
   pause.play();await pause.finished;actor.queue_free();await process_frame
  world.queue_free();await process_frame
  root.size=Vector2i(1024,640)
- var app=load("res://main.tscn").instantiate();app.settings_path="";app.save_path="/private/tmp/poem-caster-study-save.json";root.add_child(app);await process_frame
- app.show_source_model_view("caster");assert(app.screen!="model","Casting studies remain behind Debug mode")
+ var app=load("res://main.tscn").instantiate();app.settings_path="";app.save_path="/private/tmp/poem-"+study_key+"-study-save.json";root.add_child(app);await process_frame
+ app.show_source_model_view(study_key);assert(app.screen!="model","Casting studies remain behind Debug mode")
  app.debug_session.begin(app.game,"camp");app.options_return="camp";var snapshot=app.game.save_data("camp").duplicate(true);var rng=app.game.rng.state
- app.show_debug_tools("camp");app.ui.find_child("ModelStudy_caster",true,false).pressed.emit();await process_frame
- assert(app.preview_actor is Imported and app.preview_unit.id=="tarin" and app.ui.find_child("StudyTarget",true,false)==null)
+ app.show_debug_tools("camp");app.ui.find_child("ModelStudy_"+study_key,true,false).pressed.emit();await process_frame
+ assert(app.preview_actor is Imported and app.preview_unit.id==character_id and app.ui.find_child("StudyTarget",true,false)==null)
  app.ui.find_child("StudyStyle",true,false).button_pressed=true;await process_frame;await process_frame
  for index in range(3):
   var choice=app.ui.find_child("StudyEquipment",true,false);choice.select(index);choice.item_selected.emit(index);await process_frame;await process_frame
-  assert(app.preview_actor.model.get_node("Identity").identity=="tarin" and app.preview_unit.item==spec.supported_items[index])
+  assert(app.preview_actor.model.get_node("Identity").identity==character_id and app.preview_unit.item==spec.supported_items[index])
   for size_value in [Vector2i(1024,640),Vector2i(1280,720),Vector2i(1440,900)]:
    root.size=size_value;app.ui.size=size_value;await process_frame;await process_frame
    for control in app.ui.find_children("*","Button",true,false):
@@ -85,7 +87,7 @@ func run():
  app.close_model_view();await process_frame
  assert(app.game.save_data("camp")==snapshot and app.game.rng.state==rng,"Study choices never change campaign equipment, progression or rolls")
  app.debug_session.load_chapter(app.game,6);app.make_map();app.show_battle();app.busy=true
- var catalog=app.fighters.models.catalog.duplicate(true);app.fighters.models.catalog.characters.tarin=spec
+ var catalog=app.fighters.models.catalog.duplicate(true);app.fighters.models.catalog.characters[character_id]=spec
  app.stage.child_entered_tree.connect(watch)
  var enemy=app.game.living("enemy")[0];enemy.x=9;enemy.y=4;unit.x=7;unit.y=4
  for item in spec.supported_items:

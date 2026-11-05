@@ -266,5 +266,83 @@
     "study_character": "tarin",
     "study_label": "male casting",
     "study_title": "Caster \u00b7 Male"
+  },
+  "caster_female": {
+    "scene": "res://assets/models/quaternius/study_caster_female.tscn",
+    "player": "Rig/AnimationPlayer",
+    "yaw": 180,
+    "scale": 1,
+    "offset": [
+      0,
+      0.01,
+      0
+    ],
+    "poses": {
+      "idle": {
+        "clip": "Idle"
+      },
+      "advance": {
+        "clip": "Jog_Fwd"
+      },
+      "windup": {
+        "clip": "Spell_Simple_Enter"
+      },
+      "strike": {
+        "clip": "Spell_Simple_Shoot",
+        "from": 0,
+        "to": 0.2
+      },
+      "recover": {
+        "clip": "Spell_Simple_Exit"
+      },
+      "hit": {
+        "clip": "Hit_Chest"
+      },
+      "evade": {
+        "clip": "Hit_Chest",
+        "from": 0,
+        "to": 0.1666667
+      },
+      "down": {
+        "clip": "Death01"
+      },
+      "guard": {
+        "clip": "Idle",
+        "from": 0,
+        "to": 0.1
+      },
+      "victory": {
+        "clip": "Idle",
+        "from": 0,
+        "to": 0.2
+      }
+    },
+    "sockets": {
+      "impact": "Rig/Armature/Skeleton3D/Chest/Impact",
+      "gaze": "Rig/Armature/Skeleton3D/Face/Gaze",
+      "projectile": "Rig/Armature/Skeleton3D/CastingHand/Release"
+    },
+    "study_id": "caster_female",
+    "equipment": "Rig/Armature/Skeleton3D/BookHand/Folio",
+    "supported_items": [
+      "ember",
+      "gale",
+      "thunder"
+    ],
+    "stride": {
+      "length": 5.4124,
+      "skeleton": "Rig/Armature/Skeleton3D",
+      "feet": [
+        "ball_l",
+        "ball_r"
+      ],
+      "contacts": [
+        0.05,
+        0.55
+      ]
+    },
+    "study_character": "vela",
+    "study_label": "female casting",
+    "study_title": "Caster \u00b7 Female"
   }
 }

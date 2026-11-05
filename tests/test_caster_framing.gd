@@ -1,11 +1,13 @@
 extends SceneTree
+var study_key="caster"
+var character_id="tarin"
 func _initialize():call_deferred("run")
 func run():
  var viewport=SubViewport.new();viewport.size=Vector2i(1024,640);root.add_child(viewport);var world=Node3D.new();viewport.add_child(world);var camera=Camera3D.new();world.add_child(camera);camera.current=true
- var models=load("res://scripts/debug_source_models.gd").new(["caster"]);var game=load("res://scripts/rules.gd").new();var director=load("res://scripts/combat_camera.gd")
+ var models=load("res://scripts/debug_source_models.gd").new([study_key]);var game=load("res://scripts/rules.gd").new();var director=load("res://scripts/combat_camera.gd")
  var failures=[];var count=0
  var framing=director.new();world.add_child(framing)
- for id in ["tarin"]:
+ for id in [character_id]:
   var unit=game.roster.filter(func(value):return value.id==id)[0].duplicate(true);unit.team="player";unit.item="thunder"
   var actor=models.build(world,unit,Vector3(35,0,0));await process_frame;actor.set_process(false);actor.player.pause()
   framing.configure(camera,[actor])

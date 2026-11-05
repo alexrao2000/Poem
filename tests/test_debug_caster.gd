@@ -3,13 +3,14 @@ const Imported=preload("res://scripts/imported_fighter.gd")
 const Actor=preload("res://scripts/fighter_actor.gd")
 const Defeat=preload("res://scripts/combat_defeat.gd")
 const Shutdown=preload("helpers/game_shutdown.gd")
+var character_id="tarin"
 var departures=0
 var appearances=0
 func _initialize():call_deferred("run")
 func watch(node):
  if node is Imported:
   appearances+=1
-  assert(node.model.get_meta("character_identity")=="tarin")
+  assert(node.model.get_meta("character_identity")==character_id)
  if node is Defeat:
   await process_frame
   if not node.actor is Imported:return
@@ -33,10 +34,10 @@ func skip_phase(app,phase,record):
  assert(false,"Reached requested source-casting phase: "+phase)
 func run():
  root.size=Vector2i(1024,640)
- var app=load("res://main.tscn").instantiate();app.settings_path="";app.save_path="/private/tmp/poem-debug-caster-save.json";root.add_child(app);await process_frame
+ var app=load("res://main.tscn").instantiate();app.settings_path="";app.save_path="/private/tmp/poem-debug-"+character_id+"-save.json";root.add_child(app);await process_frame
  app.game.story_seen=["opening_0"];app.show_camp();assert(app.persist_campaign("camp"))
  var disk=FileAccess.get_file_as_string(app.save_path);var original=app.game.save_data("camp").duplicate(true);var catalog=app.fighters.models.catalog.duplicate(true)
- var unit=app.game.roster.filter(func(value):return value.id=="tarin")[0].duplicate(true);unit.team="player"
+ var unit=app.game.roster.filter(func(value):return value.id==character_id)[0].duplicate(true);unit.team="player"
  assert(not app.debug_session.set_revised_caster(true))
  app.debug_session.revised_caster=true
  var plain=app.make_fighter(unit,Vector3.ZERO);assert(plain is Actor);plain.queue_free();await process_frame
@@ -45,10 +46,10 @@ func run():
  var state=app.game.save_data("camp").duplicate(true);var seed=app.game.rng.state
  for item in ["ember","gale","thunder"]:
   unit.item=item
-  var actor=app.make_fighter(unit,Vector3.ZERO);assert(actor is Imported and actor.model.get_meta("character_identity")=="tarin")
+  var actor=app.make_fighter(unit,Vector3.ZERO);assert(actor is Imported and actor.model.get_meta("character_identity")==character_id)
   assert(actor.model.get_node("Rig/Armature/Skeleton3D/BookHand/Folio").equipped==item)
   actor.queue_free();await process_frame
- for patch in [{"team":"enemy"},{"id":"vela"},{"job":"Warden"},{"weapon":"staff","item":"mend_staff"},{"item":"unsupported_folio"},{"promotion":"test_promotion"}]:
+ for patch in [{"team":"enemy"},{"id":"noor"},{"job":"Warden"},{"weapon":"staff","item":"mend_staff"},{"item":"unsupported_folio"},{"promotion":"test_promotion"}]:
   var changed=unit.duplicate(true);changed.merge(patch,true)
   assert(app.debug_caster.build(app.stage,changed,Vector3.ZERO)==null,"Unsupported identity, class, promotion or equipment retains the normal builder")
  var nell=app.game.roster.filter(func(value):return value.id=="nell")[0].duplicate(true);nell.team="player"
@@ -57,7 +58,7 @@ func run():
  duelist=app.make_fighter(nell,Vector3.ZERO);assert(duelist is Imported);duelist.queue_free();await process_frame
  app.debug_session.set_revised_duelists(false)
  app.show_model_view(unit);await process_frame
- assert(app.preview_actor is Imported and app.preview_actor.model.get_meta("character_identity")=="tarin")
+ assert(app.preview_actor is Imported and app.preview_actor.model.get_meta("character_identity")==character_id)
  app.close_model_view();await process_frame;app.show_debug_tools("camp");assert(app.ui.find_child("DebugCasterModel",true,false).button_pressed)
  app.show_debug_report();await process_frame
  var presentation=JSON.parse_string(app.ui.find_child("DebugReport",true,false).text).presentation

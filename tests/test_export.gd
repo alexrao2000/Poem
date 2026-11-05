@@ -111,13 +111,15 @@ func run():
   var finger=rig.to_global(rig.get_bone_global_pose(rig.find_bone("middle_04_leaf_r")).origin)
   assert(finger.distance_to(Geometry3D.get_closest_point_to_segment(finger,held_sword.to_global(Vector3(0,0,-.195)),held_sword.to_global(Vector3(0,0,.035))))<.045,"Packaged falling actor retains its equipped grip")
   app.close_model_view();await process_frame
- app.show_source_model_view("caster","thunder",true);await process_frame
- var caster=app.preview_actor;assert(caster is Imported and caster.model.get_meta("character_identity")=="tarin","Packaged casting study retains Tarin's original identity")
- await caster.pose("windup",.02).finished;await caster.pose("strike",.02).finished
- var caster_rig=caster.model.get_node("Rig/Armature/Skeleton3D");var support=caster_rig.get_node("FolioSupport")
- assert(caster_rig.get_node("BookHand").position.distance_to((caster_rig.get_bone_global_pose(support.chest)*support.target).origin)<.0001,"Packaged folio retains its actual skeletal support")
- assert(caster.to_local(caster.socket_position("projectile")).z<-.5 and caster_rig.get_node("BookHand/Folio").equipped=="thunder","Packaged casting hand and selected folio use separate attachments")
- app.close_model_view();await process_frame
+ for pair in [["caster","tarin"],["caster_female","vela"]]:
+  app.show_source_model_view(pair[0],"thunder",true);await process_frame
+  var caster=app.preview_actor;assert(caster is Imported and caster.model.get_meta("character_identity")==pair[1],"Packaged casting study retains the original identity")
+  await caster.pose("windup",.02).finished;await caster.pose("strike",.02).finished
+  if pair[1]=="vela":assert(caster.model.get_node("Identity").hair_motion.root!=null,"Packaged female caster retains her dynamic braid")
+  var caster_rig=caster.model.get_node("Rig/Armature/Skeleton3D");var support=caster_rig.get_node("FolioSupport")
+  assert(caster_rig.get_node("BookHand").position.distance_to((caster_rig.get_bone_global_pose(support.chest)*support.target).origin)<.0001,"Packaged folio retains its actual skeletal support")
+  assert(caster.to_local(caster.socket_position("projectile")).z<-.5 and caster_rig.get_node("BookHand/Folio").equipped=="thunder","Packaged casting hand and selected folio use separate attachments")
+  app.close_model_view();await process_frame
  app.show_debug_tools("battle");app.ui.find_child("DebugDuelistModels",true,false).button_pressed=true
  var recruit=app.game.roster.filter(func(unit):return unit.id=="nell")[0].duplicate(true);recruit.team="player"
  var revised=app.make_fighter(recruit,Vector3.ZERO)
@@ -125,10 +127,11 @@ func run():
  revised.queue_free();await process_frame
  app.ui.find_child("DebugDuelistModels",true,false).button_pressed=false
  app.ui.find_child("DebugCasterModel",true,false).button_pressed=true
- var mage=app.game.roster.filter(func(unit):return unit.id=="tarin")[0].duplicate(true);mage.team="player";mage.item="gale"
- var revised_mage=app.make_fighter(mage,Vector3.ZERO)
- assert(revised_mage is Imported and revised_mage.model.get_meta("character_identity")=="tarin" and revised_mage.model.get_node("Rig/Armature/Skeleton3D/BookHand/Folio").equipped=="gale","Packaged casting toggle selects the styled mage independently")
- revised_mage.queue_free();await process_frame
+ for id in ["tarin","vela"]:
+  var mage=app.game.roster.filter(func(unit):return unit.id==id)[0].duplicate(true);mage.team="player";mage.item="gale"
+  var revised_mage=app.make_fighter(mage,Vector3.ZERO)
+  assert(revised_mage is Imported and revised_mage.model.get_meta("character_identity")==id and revised_mage.model.get_node("Rig/Armature/Skeleton3D/BookHand/Folio").equipped=="gale","Packaged casting toggle selects the styled mage independently")
+  revised_mage.queue_free();await process_frame
  app.ui.find_child("DebugCasterModel",true,false).button_pressed=false
  app.show_debug_report();assert(JSON.parse_string(app.ui.find_child("DebugReport",true,false).text).debug,"Packaged debug reports contain the current experiment record")
  assert(app.game.trials.scenes.size()==10,"Release includes relief, retreat, volunteer and memorial story scenes")
