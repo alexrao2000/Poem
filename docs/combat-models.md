@@ -191,3 +191,6 @@ Revised cloak/robe/mantle linen uses `fabric_detail=0.25` in the original charac
 ### Additional recruit identities
 
 A study may list `campaign_characters` to offer its fitted rig to additional canonical recruits of the same base class and weapon. Each gets a separate specification and live identity/material state; meshes and source animations remain shared. Missing or incompatible recruits are rejected. `study_character` remains the representative in the source viewer. Female Duelist now covers Nell/Yuna; female Arcanist covers Vela/Noor. Together with Lyra, Silas and Tarin, seven recruits use the opt-in revised campaign models. Promotions, enemy units, changed classes and unsupported items still fall back. No campaign save or simulation changes are involved.
+
+
+The Vanguard group now includes Lyra/Rhea on the female wrapper and Cassian on `study_vanguard_male.tscn`. Male palm offsets, grip width, stride and contact intervals come from the verified male sword study. The identity adapter’s exported `mantle_depth` defaults to 1; Cassian selects 1.2, eliminating the measured 9.76 mm torso protrusion found in the initial falling pose. No source body or animation changes are needed. All nine base Vanguards, Duelists and Arcanists are now covered by the revised preference.

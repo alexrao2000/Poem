@@ -6,6 +6,7 @@ const FaceBlink=preload("res://scripts/face_blink.gd")
 @export var cloak_cut="forked"
 @export var robe_enabled=false
 @export var mantle_enabled=false
+@export_range(.75,1.5) var mantle_depth=1.0
 var mantle: Node
 var robe: Node
 var identity=""
@@ -78,7 +79,7 @@ func configure_identity(id: String) -> String:
  neck_material.set_meta("identity",id);neck_material.set_meta("dye_mode",3);neck.material_override=neck_material;painted_materials.append(neck_material)
  cloak=preload("res://scripts/authored_cloak.gd").new();cloak.name="CloakDriver";add_child(cloak);cloak.configure(model,rig,painter,appearance,cloak_cut)
  if mantle_enabled:
-  mantle=preload("res://scripts/authored_mantle.gd").new();mantle.name="MantleDriver";add_child(mantle);mantle.configure(model,rig,painter,appearance)
+  mantle=preload("res://scripts/authored_mantle.gd").new();mantle.name="MantleDriver";add_child(mantle);mantle.configure(model,rig,painter,appearance,mantle_depth)
  if robe_enabled:
   robe=preload("res://scripts/authored_robe.gd").new();robe.name="RobeDriver";add_child(robe);robe.configure(model,rig,painter,appearance)
  gaze=preload("res://scripts/authored_gaze.gd").new();gaze.name="GazeDriver";add_child(gaze);gaze.configure(model,rig)

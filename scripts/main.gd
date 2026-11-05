@@ -106,7 +106,7 @@ const SAVE = "user://campaign.json"
 var save_path=SAVE
 var debug_session=preload("res://scripts/debug_session.gd").new()
 var debug_duelists=preload("res://scripts/debug_duelist_models.gd").new()
-var debug_vanguard=preload("res://scripts/debug_source_models.gd").new(["vanguard"])
+var debug_vanguard=preload("res://scripts/debug_source_models.gd").new(["vanguard","vanguard_male"])
 var debug_caster=preload("res://scripts/debug_source_models.gd").new(["caster","caster_female"])
 var save_failed=false
 var save_warning_queued=false
@@ -1752,7 +1752,7 @@ func show_options(return_to: String):
 	for title in ["Current roster","Revised models · preview"]:model_mode.add_item(title)
 	model_mode.selected=["current","revised"].find(preferences.values.character_models);model_mode.disabled=debug_session.active;panel.add_child(model_mode)
 	model_mode.item_selected.connect(func(index):preferences.values.character_models=["current","revised"][index])
-	label_in(panel,"Try revised Lyra, Nell, Silas, Yuna, Tarin, Vela and Noor in battles and outfit previews before promotion. Other characters and unsupported equipment keep their current models. You can switch back at any time.",16)
+	label_in(panel,"Try revised models for every Vanguard, Duelist and Arcanist in battles and outfit previews before promotion. Other characters and unsupported equipment keep their current models. You can switch back at any time.",16)
 	if debug_session.active:label_in(panel,"Debug tools has separate model switches for this sandbox. Leave Debug mode to change campaign presentation.",16)
 	for key in ["music","effects"]:
 		var row=HBoxContainer.new();row.add_theme_constant_override("separation",20);panel.add_child(row)
@@ -1793,9 +1793,9 @@ func show_debug_tools(return_to: String):
 	label_in(panel,"The same seed, rules and actions reproduce the same rolls. Clean resets reuse this seed; penalty retreats follow the campaign’s restart rules.",16)
 	button_in(panel,"View experiment report",show_debug_report)
 	label_in(panel,"CHARACTER MODEL STUDIES",17,GOLD)
-	var vanguard=CheckButton.new();vanguard.name="DebugVanguardModel";vanguard.text="Revised Lyra model";vanguard.button_pressed=debug_session.revised_vanguard;panel.add_child(vanguard)
+	var vanguard=CheckButton.new();vanguard.name="DebugVanguardModel";vanguard.text="Revised Vanguard models";vanguard.button_pressed=debug_session.revised_vanguard;panel.add_child(vanguard)
 	vanguard.toggled.connect(func(value):debug_session.set_revised_vanguard(value))
-	label_in(panel,"Try Lyra’s revised model before promotion with iron, dueling or tempered swords. The comparison resets when Debug mode ends.",16)
+	label_in(panel,"Try Lyra, Cassian and Rhea’s revised models before promotion with iron, dueling or tempered swords. The comparison resets when Debug mode ends.",16)
 	var revised=CheckButton.new();revised.name="DebugDuelistModels";revised.text="Revised duelist models";revised.button_pressed=debug_session.revised_duelists;panel.add_child(revised)
 	revised.toggled.connect(func(value):debug_session.set_revised_duelists(value))
 	label_in(panel,"Try Nell, Silas and Yuna’s revised models in battles and outfit previews. Applies before promotion with iron, dueling or tempered swords. Other outfits keep their current models. Resets when Debug mode ends.",16)

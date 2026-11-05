@@ -1,10 +1,14 @@
 extends SceneTree
+var study_key="vanguard"
+var character_id="lyra"
+var body_name="Female_Peasant_Body"
+var minimum_samples=10000
 func _initialize():call_deferred("run")
 func run():
- var spec=JSON.parse_string(FileAccess.get_file_as_string("res://data/model_studies.json")).vanguard;spec.appearance="Identity"
- var models=load("res://scripts/combat_models.gd").new("");models.catalog={"characters":{"lyra":spec}};var game=load("res://scripts/rules.gd").new();var unit=game.roster[0].duplicate(true);unit.team="player"
+ var spec=JSON.parse_string(FileAccess.get_file_as_string("res://data/model_studies.json"))[study_key];spec.appearance="Identity"
+ var models=load("res://scripts/combat_models.gd").new("");models.catalog={"characters":{character_id:spec}};var game=load("res://scripts/rules.gd").new();var unit=game.roster.filter(func(value):return value.id==character_id)[0].duplicate(true);unit.team="player"
  var stage=Node3D.new();root.add_child(stage);var actor=models.build(stage,unit,Vector3.ZERO);await process_frame;actor.set_process(false)
- var mantle=actor.model.get_node("Identity").mantle;var rig=actor.model.get_node("Rig/Armature/Skeleton3D");var body=rig.get_node("Female_Peasant_Body");var arrays=body.mesh.surface_get_arrays(0);var vertices=arrays[Mesh.ARRAY_VERTEX];var triangles=[]
+ var mantle=actor.model.get_node("Identity").mantle;var rig=actor.model.get_node("Rig/Armature/Skeleton3D");var body=rig.get_node(body_name);var arrays=body.mesh.surface_get_arrays(0);var vertices=arrays[Mesh.ARRAY_VERTEX];var triangles=[]
  for mesh in mantle.garment.find_children("*","MeshInstance3D",true,false):
   if mesh.get_active_material(0)!=mantle.surfaces[0]:continue
   var a=mesh.mesh.surface_get_arrays(0);var ix=a[Mesh.ARRAY_INDEX];var v=a[Mesh.ARRAY_VERTEX]
@@ -38,6 +42,6 @@ func run():
     count+=1
     if nearest-p.z>worst:worst=nearest-p.z;where=[key,fraction,str(p),nearest]
  print("Mantle covered torso samples=",count," max penetration=",worst," case=",where)
- assert(count>10000 and worst<.002,"Covered source bodice stays behind the fitted mantle through combat and travel poses")
+ assert(count>minimum_samples and worst<.002,"Covered source bodice stays behind the fitted mantle through combat and travel poses")
  print("PASS: ",count," actual skinned torso vertices projected against the fitted mantle across nine source poses; maximum protrusion ",worst," m")
  stage.queue_free();await process_frame;quit()

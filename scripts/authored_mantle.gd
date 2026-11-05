@@ -1,5 +1,5 @@
 extends Node
-# Lyra's original ivory shoulder mantle follows the supplied upper spine.
+# The original Vanguard shoulder mantle follows the supplied upper spine.
 # Preserve its lapels, fastening and personal palette without editing the source
 # outfit. Private painted materials follow the actor's floor and defeat fade.
 var model: Node3D
@@ -7,13 +7,13 @@ var anchor: BoneAttachment3D
 var garment: Node3D
 var surfaces=[]
 
-func configure(body: Node3D,rig: Skeleton3D,painter,appearance: Dictionary):
+func configure(body: Node3D,rig: Skeleton3D,painter,appearance: Dictionary,depth_scale=1.0):
  model=body;anchor=BoneAttachment3D.new();anchor.name="ShoulderMantle";rig.add_child(anchor);anchor.bone_name="spine_03"
  var chest=rig.get_bone_global_rest(rig.find_bone("spine_03"));var neck=rig.get_bone_global_rest(rig.find_bone("neck_01")).origin
  var shoulder=rig.get_bone_global_rest(rig.find_bone("upperarm_l")).origin
  garment=Node3D.new();garment.name="IvoryMantle";anchor.add_child(garment)
  var width=(absf(shoulder.x)+.04)/.28
- garment.transform=chest.affine_inverse()*Transform3D(Basis(Vector3.UP,PI).scaled(Vector3(width,1,1)),neck+Vector3(0,-.47,0))
+ garment.transform=chest.affine_inverse()*Transform3D(Basis(Vector3.UP,PI).scaled(Vector3(width,1,depth_scale)),neck+Vector3(0,-.47,0))
  var ivory=Color(appearance.cape);var gold=Color("bca26b")
  painter.shell(garment,Vector3(0,0,.025),[[.34,.30,.23],[.425,.30,.20],[.455,.25,.15],[.48,.11,.10]],ivory)
  for side in [-1,1]:

@@ -30,7 +30,7 @@ func run():
  before_save.erase("save_sequence");after_save.erase("save_sequence")
  assert(app.game.save_data("camp")==original and before_save==after_save,"Applying visual preferences preserves the campaign payload")
  var units=[]
- for id in ["lyra","nell","silas","tarin","vela","yuna","noor"]:
+ for id in ["lyra","nell","silas","tarin","vela","yuna","noor","cassian","rhea"]:
   var unit=app.game.roster.filter(func(value):return value.id==id)[0].duplicate(true);unit.team="player";unit.item="iron_sword" if unit.weapon=="sword" else "ember";units.append(unit)
   var actor=app.make_fighter(unit,Vector3.ZERO);assert(actor is Imported and actor.model.get_meta("character_identity")==id);actor.queue_free();await process_frame
   app.show_model_view(unit);await process_frame;assert(app.preview_actor is Imported and app.preview_actor.model.get_meta("character_identity")==id)
@@ -46,7 +46,7 @@ func run():
  for unit in units:
   unit.x=8 if unit.weapon=="sword" else 7;unit.y=4
   await app.cinematic(unit,enemy,[{"actor":unit.id,"target":enemy.id,"damage":3,"remaining":17,"hit":true,"crit":false}],{unit.id:unit.hp,enemy.id:20})
- assert(seen==["lyra","nell","silas","tarin","vela","yuna","noor"] and app.game.save_data("battle")==battle and app.game.rng.state==rng,"The ordinary campaign builder uses revised actors without rerolling or mutating battle state")
+ assert(seen==["lyra","nell","silas","tarin","vela","yuna","noor","cassian","rhea"] and app.game.save_data("battle")==battle and app.game.rng.state==rng,"The ordinary campaign builder uses revised actors without rerolling or mutating battle state")
  app.busy=false;app.show_options("battle");app.ui.find_child("DebugMode",true,false).button_pressed=true
  assert(app.debug_session.active and app.debug_session.revised_duelists and app.debug_session.revised_caster and app.debug_session.revised_vanguard,"New debug comparisons inherit the campaign's selected appearance")
  assert(app.ui.find_child("CharacterModels",true,false).disabled)
@@ -64,5 +64,5 @@ func run():
  plain=app.make_fighter(units[1],Vector3.ZERO);assert(plain is Actor);plain.queue_free();await process_frame
  assert(app.game.save_data("battle")==battle and FileAccess.get_file_as_string(app.save_path)==disk and app.fighters.models.catalog==catalog)
  await Shutdown.dispose(app);await process_frame
- print("PASS: old preference migration, enum validation/persistence, three-size UI, seven real campaign model/preview/exchange selections, promotion fallback, inherited independent debug overrides, exact campaign/save/RNG isolation and default restoration")
+ print("PASS: old preference migration, enum validation/persistence, three-size UI, nine real campaign model/preview/exchange selections, promotion fallback, inherited independent debug overrides, exact campaign/save/RNG isolation and default restoration")
  quit()
