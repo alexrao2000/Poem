@@ -1077,5 +1077,177 @@
     "study_character": "ari",
     "study_label": "male Ranger",
     "study_title": "Ranger \u00b7 Ari"
+  },
+  "knight_female": {
+    "scene": "res://assets/models/quaternius/study_knight_female.tscn",
+    "player": "Rig/AnimationPlayer",
+    "yaw": 180,
+    "scale": 1,
+    "offset": [
+      0,
+      0.035,
+      0
+    ],
+    "poses": {
+      "idle": {
+        "clip": "LanceIdle"
+      },
+      "advance": {
+        "clip": "Jog_Fwd"
+      },
+      "windup": {
+        "clip": "LanceWindup"
+      },
+      "strike": {
+        "clip": "LanceStrike"
+      },
+      "recover": {
+        "clip": "LanceRecover"
+      },
+      "hit": {
+        "clip": "Hit_Chest"
+      },
+      "evade": {
+        "clip": "Hit_Chest",
+        "from": 0,
+        "to": 0.1666667
+      },
+      "down": {
+        "clip": "Death01"
+      },
+      "guard": {
+        "clip": "LanceIdle",
+        "from": 0,
+        "to": 0.1
+      },
+      "victory": {
+        "clip": "LanceIdle",
+        "from": 0,
+        "to": 0.2
+      }
+    },
+    "sockets": {
+      "impact": "Rig/Armature/Skeleton3D/Chest/Impact",
+      "gaze": "Rig/Armature/Skeleton3D/Face/Gaze",
+      "projectile": "Rig/Armature/Skeleton3D/WeaponHand/Grip/Weapon",
+      "trail_inner": "Rig/Armature/Skeleton3D/WeaponHand/Grip/Weapon/TrailInner",
+      "trail_tip": "Rig/Armature/Skeleton3D/WeaponHand/Grip/Weapon/TrailTip",
+      "guard": "Rig/Armature/Skeleton3D/KnightShield/Plate/Guard"
+    },
+    "study_id": "knight_female",
+    "equipment": "Rig/Armature/Skeleton3D/WeaponHand/Grip",
+    "supported_items": [
+      "iron_lance",
+      "light_lance",
+      "pike",
+      "riders_bane"
+    ],
+    "stride": {
+      "length": 5.4124,
+      "skeleton": "Rig/Armature/Skeleton3D",
+      "feet": [
+        "ball_l",
+        "ball_r"
+      ],
+      "contacts": [
+        0.05,
+        0.55
+      ]
+    },
+    "study_character": "petra",
+    "study_label": "female Knight",
+    "study_title": "Knight \u00b7 Petra",
+    "aim_targets": true,
+    "framing": {
+      "wide": 1.22,
+      "windup": 1.22,
+      "impact": 1.22
+    }
+  },
+  "knight_male": {
+    "scene": "res://assets/models/quaternius/study_knight_male.tscn",
+    "player": "Rig/AnimationPlayer",
+    "yaw": 180,
+    "scale": 1,
+    "offset": [
+      0,
+      0.035,
+      0
+    ],
+    "poses": {
+      "idle": {
+        "clip": "LanceIdle"
+      },
+      "advance": {
+        "clip": "Jog_Fwd"
+      },
+      "windup": {
+        "clip": "LanceWindup"
+      },
+      "strike": {
+        "clip": "LanceStrike"
+      },
+      "recover": {
+        "clip": "LanceRecover"
+      },
+      "hit": {
+        "clip": "Hit_Chest"
+      },
+      "evade": {
+        "clip": "Hit_Chest",
+        "from": 0,
+        "to": 0.1666667
+      },
+      "down": {
+        "clip": "Death01"
+      },
+      "guard": {
+        "clip": "LanceIdle",
+        "from": 0,
+        "to": 0.1
+      },
+      "victory": {
+        "clip": "LanceIdle",
+        "from": 0,
+        "to": 0.2
+      }
+    },
+    "sockets": {
+      "impact": "Rig/Armature/Skeleton3D/Chest/Impact",
+      "gaze": "Rig/Armature/Skeleton3D/Face/Gaze",
+      "projectile": "Rig/Armature/Skeleton3D/WeaponHand/Grip/Weapon",
+      "trail_inner": "Rig/Armature/Skeleton3D/WeaponHand/Grip/Weapon/TrailInner",
+      "trail_tip": "Rig/Armature/Skeleton3D/WeaponHand/Grip/Weapon/TrailTip",
+      "guard": "Rig/Armature/Skeleton3D/KnightShield/Plate/Guard"
+    },
+    "study_id": "knight_male",
+    "equipment": "Rig/Armature/Skeleton3D/WeaponHand/Grip",
+    "supported_items": [
+      "iron_lance",
+      "light_lance",
+      "pike",
+      "riders_bane"
+    ],
+    "stride": {
+      "length": 5.6643,
+      "skeleton": "Rig/Armature/Skeleton3D",
+      "feet": [
+        "ball_l",
+        "ball_r"
+      ],
+      "contacts": [
+        0.05,
+        0.55
+      ]
+    },
+    "study_character": "oren",
+    "study_label": "male Knight",
+    "study_title": "Knight \u00b7 Oren",
+    "aim_targets": true,
+    "framing": {
+      "wide": 1.22,
+      "windup": 1.22,
+      "impact": 1.22
+    }
   }
 }

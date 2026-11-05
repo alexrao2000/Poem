@@ -75,10 +75,10 @@ func run():
    sample(actor,key,.7)
    for influence in [0.0,.5,1.0]:
     hold.influence=influence;actor.refresh_skeleton();var direct=[]
-    for anchor in [hand,rig.get_node("DrawingHand"),rig.get_node("Face")]:direct.append(anchor.transform)
+    for anchor in rig.find_children("*","BoneAttachment3D",true,false):direct.append(anchor.transform)
     await process_frame;await process_frame
-    var anchors=[hand,rig.get_node("DrawingHand"),rig.get_node("Face")]
-    for index in range(3):assert(anchors[index].transform.is_equal_approx(direct[index]),"Native and direct torso/head/both-arm solving agree at partial influence")
+    var anchors=rig.find_children("*","BoneAttachment3D",true,false)
+    for index in range(anchors.size()):assert(anchors[index].transform.is_equal_approx(direct[index]),"Native and direct torso/head/both-arm and late-added cloak attachments agree at partial influence")
    hold.influence=1
   actor.queue_free();await process_frame
  stage.queue_free();await process_frame

@@ -1,6 +1,7 @@
 extends SceneTree
 const Imported=preload("res://scripts/imported_fighter.gd")
 const Shutdown=preload("helpers/game_shutdown.gd")
+const Vertices=preload("helpers/authored_vertices.gd")
 # Run this external script against an exported PCK from a different working
 # directory, so resource and text checks cannot silently use the source tree.
 func _initialize():call_deferred("run")
@@ -165,6 +166,17 @@ func run():
    if not mesh.is_visible_in_tree():continue
    for surface in range(mesh.mesh.get_surface_count()):
     for vertex in mesh.mesh.surface_get_arrays(surface)[Mesh.ARRAY_VERTEX]:assert(mesh.to_global(vertex).y>ranger.global_position.y+.01)
+  app.close_model_view();await process_frame
+ for pair in [["knight_female","petra"],["knight_male","oren"]]:
+  app.show_source_model_view(pair[0],"riders_bane",true);await process_frame
+  var knight=app.preview_actor;assert(knight is Imported and knight.model.get_meta("character_identity")==pair[1])
+  var armor=knight.model.get_node("Identity").armor;assert(armor!=null and armor.anchors.size()==11 and armor.surfaces[0].get_shader_parameter("paint_average").is_equal_approx(Vector3(.229348,.231699,.239027)))
+  var target=app.ui.find_child("StudyTarget",true,false);target.select(2);target.item_selected.emit(2);await app.stage.get_node("PreviewActionPlayer").finished
+  assert(knight.weapon_trail_points()[1].distance_to(knight.get_node("StudyContactTarget").global_position)<.005,"Packaged lance constraints reach the mounted target")
+  assert(knight.socket_position("guard").is_equal_approx(knight.model.get_node("Rig/Armature/Skeleton3D/KnightShield/Plate/Guard").global_position))
+  var cache=Vertices.prepare(knight)
+  await knight.pose("down",.02).finished
+  assert(Vertices.minimum(knight,cache)>knight.global_position.y+.01,"Packaged root-height fit keeps the complete armored body and shield clear of the floor")
   app.close_model_view();await process_frame
  app.show_source_model_view("vanguard","iron_sword",true);await process_frame
  var vanguard=app.preview_actor;assert(vanguard is Imported and vanguard.model.get_meta("character_identity")=="lyra" and vanguard.model.get_node("Identity").mantle!=null,"Packaged Vanguard study retains Lyra’s ivory mantle")

@@ -1485,7 +1485,7 @@ func show_model_view(unit,on_close=Callable(),model_spec: Dictionary={}):
 	panel.add_child(choice)
 	var action_player=preload("res://scripts/preview_action.gd").new();action_player.name="PreviewActionPlayer";stage.add_child(action_player);action_player.configure(preview_actor)
 	choice.item_selected.connect(func(index):action_player.play(str(choice.get_item_metadata(index))))
-	if not model_spec.is_empty() and preview_actor.contact!=null:
+	if not model_spec.is_empty() and (preview_actor.contact!=null or model_spec.get("aim_targets",false)):
 		var contact_target=preload("res://scripts/model_contact_target.gd").new();preview_actor.add_child(contact_target);contact_target.configure(preview_actor)
 		var target_choice=OptionButton.new();target_choice.name="StudyTarget";target_choice.custom_minimum_size.y=42
 		for label in ["Target: none","Target: standing foe","Target: mounted foe"]:target_choice.add_item(label)

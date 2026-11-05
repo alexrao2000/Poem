@@ -45,6 +45,9 @@ func configure(scene: Node3D,spec: Dictionary) -> String:
   if equipment.has_method("configure_animations"):
    var error=equipment.configure_animations(player)
    if not error.is_empty():return error
+ # Identity adapters may add cloth and armor after equipment creates its solver.
+ for constraint in pose_constraints:
+  if constraint.has_method("refresh_attachments"):constraint.refresh_attachments()
  player.stop();player.autoplay="";player.speed_scale=1.0
  poses=spec.get("poses",{}).duplicate(true)
  for key in ["idle","advance","windup","strike","hit","evade","down"]:
@@ -142,6 +145,12 @@ func aim_at(point: Vector3):
  for listener in pose_listeners:
   if listener.has_method("aim_at"):listener.aim_at(point)
  if contact!=null and point.is_finite():contact.target=point;contact.has_target=true
+
+func clear_aim():
+ for listener in pose_listeners:
+  if listener.has_method("clear_aim"):listener.clear_aim()
+ if contact!=null:contact.has_target=false;contact.influence=0
+ refresh_skeleton()
 
 func face_opponent(other: Node3D):
  for listener in pose_listeners:

@@ -2,6 +2,9 @@ extends SceneTree
 var study_key="caster"
 var character_id="tarin"
 var equipped_item="thunder"
+var combat_spacing=4.0
+var ranged=true
+var extra_paths=[]
 var prop_path="Rig/Armature/Skeleton3D/BookHand/Folio/Weapon"
 func _initialize():call_deferred("run")
 func run():
@@ -19,9 +22,10 @@ func run():
   var head=actor.model.get_node("Identity").head
   var pieces=head.find_children("*","MeshInstance3D",true,false)
   pieces.append_array(actor.model.get_node(NodePath(prop_path)).find_children("*","MeshInstance3D",true,false))
+  for path in extra_paths:pieces.append_array(actor.model.get_node(NodePath(path)).find_children("*","MeshInstance3D",true,false))
   for side in [-1,1]:
    actor.rotation.y=-side*PI/2
-   for sample in [["idle","wide",4.0],["windup","windup",4.0],["strike","impact",4.0],["recover","impact",4.0],["evade","impact",4.0],["victory","finish",4.0]]:
+   for sample in [["idle","wide",combat_spacing],["windup","windup",combat_spacing],["strike","impact",combat_spacing],["recover","impact",combat_spacing],["evade","impact",combat_spacing],["victory","finish",combat_spacing]]:
     for listener in actor.pose_listeners:listener.combat_pose(sample[0])
     var mapping=actor.poses[sample[0]];var other=actor.position+Vector3(side*sample[2],0,0)
     actor.player.get_animation(mapping.clip).loop_mode=Animation.LOOP_NONE
@@ -31,7 +35,7 @@ func run():
       actor.player.stop();actor.player.play(mapping.clip,0);actor.player.seek(lerpf(mapping.from,mapping.to,float(step)/8),true,true);actor.player.pause();actor.refresh_skeleton()
       for size_value in [Vector2i(1024,640),Vector2i(1280,720),Vector2i(1440,900)]:
        viewport.size=size_value
-       var frame=framing.frame_for(actor.position,other,sample[1],true,mounted if sample[1]!="finish" else false,unit.weapon)
+       var frame=framing.frame_for(actor.position,other,sample[1],ranged,mounted if sample[1]!="finish" else false,unit.weapon)
        camera.position=frame.anchor;camera.look_at(frame.focus);camera.fov=frame.lens
        var palm=camera.unproject_position(actor.socket_position("projectile"))
        var low=palm;var high=palm

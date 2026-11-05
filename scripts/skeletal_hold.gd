@@ -11,6 +11,9 @@ var attachments=[]
 func configure(skeleton: Skeleton3D,goal: Transform3D):
  rig=skeleton;target=goal;chest=rig.find_bone("spine_03")
  for name_value in ["hand_r","lowerarm_r","upperarm_r"]:chain.append(rig.find_bone(name_value))
+ refresh_attachments()
+
+func refresh_attachments():
  attachments=rig.find_children("*","BoneAttachment3D",true,false)
 
 func aim(bone: int,basis: Basis):

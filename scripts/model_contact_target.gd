@@ -21,7 +21,7 @@ func choose(index: int):
  for part in parts:part.visible=selected>0
  if selected>0:actor.aim_at(global_position)
  else:
-  actor.contact.has_target=false;actor.contact.influence=0;actor.refresh_skeleton()
+  actor.clear_aim()
 
 func _process(_delta):
  if selected>0 and is_instance_valid(actor):actor.aim_at(global_position)

@@ -6,6 +6,10 @@ User direction: keep developing continuously in this chat until the user returns
 
 ## Current checkpoint
 
+Knight source studies now pair Oren/Petra’s original identities with fitted plate armor, a forearm-mounted shield and four melee lances. Private carry/preparation/thrust/recovery clips preserve source breathing and keep the original spear length; moving the grip rearward provides measured foot/mounted target reach. The falling lance settles beside the body. A calibrated private root-height curve allows the rigid armor and shield to settle above the floor. Knights remain studies while the normal revised preference covers eighteen recruits.
+
+Private Knight metal uses 15% texture contrast around the measured steel-atlas average. The shared shader retains its prior defaults. A corrected attachment-binding step makes direct pose sampling include cloaks and armor added after the hand constraints; both Ranger bodies and their camera checks pass this regression. No assembled-game render or browser performance measurement is claimed.
+
 Debug source studies now include Rangers on both supplied body rigs with fitted bows, drawing fingers, aimed arrows and original draw/release/recovery poses. A torso turn supports the shot; release leaves the drawing hand back while the string returns and removes the held arrow. The complete source idle breathing cycle remains. The optional revised-model campaign preference now includes Sera, Ari and Faye, bringing it to eighteen recruits across six base classes. An independent Ranger debug switch inherits that preference and restores on exit.
 
 Bow floor contact lifts the hand and retracts it within arm reach while preserving wrist rotation and a small elbow bend. Weapon floor correction now transports the existing elbow bend direction with the arm, avoiding a jolt when correction begins. Both-body bow poses, string/finger fit, actual shots/skips/defeats, camera bounds and existing weapon regressions pass. Isolated asset studies are reviewed separately from GPU gameplay.

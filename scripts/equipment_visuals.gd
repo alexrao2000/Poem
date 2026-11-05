@@ -63,7 +63,7 @@ static func build(painter,arm: Node3D,kind: String,item: String) -> Node3D:
  else:
   var grip=painter.geo.cylinder(hand,Vector3(0,0,-.08),.23,.027,wood);grip.name="WeaponGrip";grip.rotation.x=PI/2
   if kind=="lance":
-   var shaft=painter.geo.cylinder(hand,Vector3(0,0,-.5),1.8,.024,wood);shaft.rotation.x=PI/2
+   var shaft=painter.geo.cylinder(hand,Vector3(0,0,-.5),1.8,.024,wood);shaft.name="LanceShaft";shaft.rotation.x=PI/2
    var tip=painter.geo.mesh(hand,blade(item),Vector3.ZERO,Vector3.ONE,metal);tip.name="SpearBlade"
    if look.get("lugs",false):
     painter.geo.block(hand,Vector3(0,0,-1.38),Vector3(.30,.045,.045),gold)
