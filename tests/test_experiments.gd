@@ -70,6 +70,51 @@ func verify_rules():
  assert(safe.result()=="victory");safe.finish_chapter();safe.start_battle()
  assert(safe.units.any(func(u):return u.id=="oren" and u.hp>0),"Victory evacuates downed allies before memorials are committed")
 
+func verify_drop_controls(app):
+ app.game.new_campaign(true);app.game.death_door=true;app.game.start_battle();app.preferences.values.auto_end=false
+ var carrier=app.game.units.filter(func(unit):return unit.weapon=="staff")[0];var patient=app.game.units[1]
+ carrier.x=2;carrier.y=3;patient.x=3;patient.y=3;casualty(app.game,patient)
+ assert(Door.rescue(app.game,carrier,patient));app.game.begin_enemy_phase();app.game.next_player_turn()
+ app.make_map();app.show_battle();app.selected=carrier;app.click_tile(Vector2i(3,3))
+ while app.busy:await process_frame
+ assert(app.game.pos(carrier)==Vector2i(3,3) and app.origin==Vector2i(2,3))
+ var snapshot=app.game.save_data("battle").duplicate(true)
+ app.show_triage()
+ app.ui.find_children("*","Button",true,false).filter(func(button):return button.text=="Choose drop tile")[0].pressed.emit()
+ assert(app.screen=="battle" and app.drop_mode and app.markers.get_node_or_null("MovementRange")==null and app.markers.get_node_or_null("HealingReach")==null)
+ var drops=app.markers.get_node("DropTargets");var tiles={}
+ for vertex in drops.mesh.surface_get_arrays(0)[Mesh.ARRAY_VERTEX]:tiles[Vector2i(roundi(vertex.x),roundi(vertex.z))]=true
+ var legal=Door.drop_positions(app.game,carrier)
+ assert(tiles.size()==legal.size() and legal.all(func(tile):return tiles.has(tile)),"Gold target geometry covers exactly the free legal drop tiles")
+ for dimensions in [Vector2(1024,640),Vector2(1280,720),Vector2(1440,900)]:
+  app.ui.set_anchors_and_offsets_preset(Control.PRESET_TOP_LEFT);app.ui.size=dimensions;app.arrange_battle_side()
+  await process_frame;await process_frame
+  for control in app.side.get_children():assert(Rect2(Vector2.ZERO,dimensions).grow(1).encloses(control.get_global_rect()),"Drop guidance and cancellation fit the tactical panel")
+  assert(app.battle_hint.get_line_count()==1,"Drop guidance fits the narrow command strip")
+ app.preview_route(legal[0]);assert(app.route_preview==null,"Drop selection does not imply carrier movement")
+ app.click_tile(app.game.pos(carrier));app.wait_action()
+ assert(app.drop_mode and app.game.save_data("battle")==snapshot,"Invalid drop targets and the wait shortcut cannot spend the action")
+ var escape=InputEventKey.new();escape.pressed=true;escape.keycode=KEY_ESCAPE;app._unhandled_input(escape)
+ assert(not app.drop_mode and app.selected==carrier and app.origin==Vector2i(2,3) and app.game.save_data("battle")==snapshot,"Cancelling drop preserves the carrier's uncommitted movement")
+ app.begin_drop();var right=InputEventMouseButton.new();right.pressed=true;right.button_index=MOUSE_BUTTON_RIGHT;app._unhandled_input(right)
+ assert(not app.drop_mode and app.game.save_data("battle")==snapshot,"Right-click also cancels only the drop choice")
+ app.game.action_saves=true;app.begin_drop();var destination=app.cursor_tile;var rng=app.game.rng.state
+ var enter=InputEventKey.new();enter.pressed=true;enter.keycode=KEY_ENTER;app._unhandled_input(enter);await process_frame
+ assert(not app.drop_mode and carrier.acted and patient.get("carried_by","").is_empty() and app.game.pos(patient)==destination and app.game.rng.state==rng)
+ var loaded=Rules.new();assert(loaded.load_game(app.save_path)=="battle")
+ var saved_patient=loaded.units.filter(func(unit):return unit.id==patient.id)[0]
+ assert(saved_patient.get("carried_by","").is_empty() and loaded.pos(saved_patient)==destination,"Keyboard drop commits the exact passenger destination")
+ assert(app.unit_nodes.has(patient.id) and app.markers.get_node_or_null("DropTargets")==null,"A dropped ally returns to the map and clears target highlights")
+ carrier.acted=false;assert(Door.rescue(app.game,carrier,patient));carrier.acted=false
+ var blockers=app.game.units.filter(func(unit):return unit.id not in [carrier.id,patient.id])
+ var directions=[Vector2i.LEFT,Vector2i.RIGHT,Vector2i.UP,Vector2i.DOWN]
+ for index in range(4):
+  var tile=app.game.pos(carrier)+directions[index];blockers[index].x=tile.x;blockers[index].y=tile.y
+ app.selected=carrier;app.show_triage()
+ var choice=app.ui.find_children("*","Button",true,false).filter(func(button):return button.text=="Choose drop tile")[0]
+ assert(choice.disabled and app.ui.find_children("*","Label",true,false).any(func(label):return label.text.begins_with("No adjacent tile is free")))
+ app.begin_drop();assert(app.screen=="triage" and not app.drop_mode and not carrier.acted,"A surrounded carrier cannot enter an empty drop selection")
+
 func run():
  verify_rules()
  root.size=Vector2i(1440,900)
@@ -134,6 +179,7 @@ func run():
  assert(app.busy and app.screen=="battle" and patient.hp>0,"Carried-ally treatment routes into real healing feedback after resolving health")
  while app.busy:await process_frame
  assert(medic.acted and patient.acted and app.unit_nodes.has(patient.id) and not app.unit_nodes[patient.id].downed and app.unit_nodes[patient.id].rescue_marker==null,"Healing returns both units to the tactical map with spent actions")
+ await verify_drop_controls(app)
  app.game.new_campaign(true);app.game.death_door=true;app.game.action_saves=true;app.game.start_battle()
  var leader=app.game.units[0];casualty(app.game,leader);leader.bleed_turns=1
  app.make_map();app.show_battle();var state=app.game.rng.state

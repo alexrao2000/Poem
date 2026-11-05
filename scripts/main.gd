@@ -91,6 +91,7 @@ var cursor_visible=false
 var clock = 0.0
 var skip_combat = false
 var show_danger = false
+var drop_mode=false
 var preview_actor: Node3D
 var preview_unit: Dictionary
 var preview_return=Callable()
@@ -322,6 +323,7 @@ func map_camera():
 	map_navigation.configure(camera,game.board_size())
 
 func make_map():
+	drop_mode=false
 	select_score_theme()
 	cursor_visible=false
 	clear_world()
@@ -405,6 +407,7 @@ func show_visual_workshop():
 		canvas.remove_child(workshop);workshop.queue_free();camera.current=true;show_title())
 
 func show_camp():
+	drop_mode=false
 	game.ensure_leader()
 	select_score_theme()
 	screen="camp";busy=false;selected=null;target=null;origin=null
@@ -600,7 +603,10 @@ func update_side():
 				return Vector2(bounds.get_center().x,bounds.position.y))
 			label_in(side,("Foe has an effective counter!" if counter.effective else "Counter if both survive.") if f.counter else "Foe cannot counter at this range.",14,GOLD)
 			button_in(side,"Confirm attack",func():player_attack(),busy)
-		if selected.team=="player" and game.can_act(selected):
+		if drop_mode:
+			label_in(side,"Choose an adjacent gold tile to put your ally down.",17,GOLD)
+			button_in(side,"Cancel drop",cancel_drop,busy)
+		elif selected.team=="player" and game.can_act(selected):
 			button_in(side,"Wait / secure position",wait_action,busy)
 			button_in(side,"Field tonic (+12 HP)  ·  "+str(int(selected.potions)),tonic,busy or selected.potions<=0 or selected.hp>=selected.max_hp)
 			if selected.weapon=="staff":label_in(side,"Heal %d HP · range %s. Click an injured ally."%[game.healing_power(selected),game.range_text(selected)],16,GOLD)
@@ -620,7 +626,7 @@ func update_side():
 			var condition_label=label_in(side," · ".join(conditions),16,GOLD);condition_label.name="UnitConditions"
 			condition_label.mouse_filter=Control.MOUSE_FILTER_PASS
 			condition_label.autowrap_mode=TextServer.AUTOWRAP_OFF;condition_label.text_overrun_behavior=TextServer.OVERRUN_TRIM_ELLIPSIS;condition_label.tooltip_text="\n".join(condition_help)
-		if game.can_act(selected) and (game.DeathDoor.passenger(game,selected)!=null or game.units.any(func(patient):return game.DeathDoor.can_rescue(game,selected,patient) or (game.can_heal(selected,patient) and not patient.get("carried_by","").is_empty()))):
+		if not drop_mode and game.can_act(selected) and (game.DeathDoor.passenger(game,selected)!=null or game.units.any(func(patient):return game.DeathDoor.can_rescue(game,selected,patient) or (game.can_heal(selected,patient) and not patient.get("carried_by","").is_empty()))):
 			button_in(side,"Rescue & triage",show_triage,busy)
 	else:
 		label_in(side,"THE COMPANY",15,GOLD)
@@ -638,6 +644,7 @@ func update_side():
 			elif selected.weapon=="staff":battle_hint.text="Blue: move · Green: heal · Enter: act · Esc: undo"
 			if game.DeathDoor.downed(selected):battle_hint.text="Needs help: select a nearby ally for Rescue & triage, or heal with a staff."
 			if game.action_saves:battle_hint.text=battle_hint.text.replace("Esc: undo","Esc: deselect")
+		if drop_mode:battle_hint.text="Gold: drop ally · Arrows / Enter: choose · Esc / right-click: cancel drop"
 	arrange_battle_side()
 
 func arrange_battle_side():
@@ -694,6 +701,9 @@ func highlight():
 	MapOverlay.tiles(markers,danger.keys(),Color(.69,.21,.31,.24),.025,"DangerRange",map_height)
 	if cursor_visible:draw_map_cursor()
 	if selected==null or selected.team!="player" or selected.acted:return
+	if drop_mode:
+		MapOverlay.tiles(markers,game.DeathDoor.drop_positions(game,selected),Color(.86,.66,.23,.42),.039,"DropTargets",map_height)
+		return
 	var range_map=game.reachable(selected) if origin==null else {game.pos(selected):0}
 	MapOverlay.tiles(markers,range_map.keys(),Color(.18,.49,.85,.30),.032,"MovementRange",map_height)
 	var healing=selected.weapon=="staff"
@@ -755,7 +765,8 @@ func _unhandled_input(event):
 		if screen=="battle" and not busy:
 			if event.keycode==KEY_ESCAPE:
 				if selected!=null:interface_audio.cue("back")
-				cancel_selection()
+				if drop_mode:cancel_drop()
+				else:cancel_selection()
 			if event.keycode==KEY_SPACE:end_turn()
 			if event.keycode==KEY_R:toggle_danger()
 			if event.keycode==KEY_W and not event.echo:wait_action()
@@ -770,7 +781,10 @@ func _unhandled_input(event):
 		if event.button_index in [MOUSE_BUTTON_WHEEL_UP,MOUSE_BUTTON_WHEEL_DOWN]:
 			map_navigation.zoom(1 if event.button_index==MOUSE_BUTTON_WHEEL_UP else -1,event.position);return
 		if event.button_index==MOUSE_BUTTON_MIDDLE:map_navigation.begin_drag(event.position);return
-		if event.button_index==MOUSE_BUTTON_RIGHT:cancel_selection();return
+		if event.button_index==MOUSE_BUTTON_RIGHT:
+			if drop_mode:cancel_drop()
+			else:cancel_selection()
+			return
 		if event.button_index!=MOUSE_BUTTON_LEFT:return
 		cursor_visible=false;highlight()
 		var picked=pick_map_unit(event.position)
@@ -792,6 +806,7 @@ func pick_map_unit(point: Vector2):
 	return picked
 
 func cancel_selection():
+	drop_mode=false
 	if selected!=null and origin!=null and not selected.acted:
 		game.undo_move(selected)
 	selected=null;target=null;origin=null;refresh_pieces();highlight();update_side()
@@ -799,6 +814,9 @@ func cancel_selection():
 func click_tile(p: Vector2i):
 	if busy or not action_save_ready():return
 	if is_instance_valid(terrain_card):terrain_card.inspect(game,p)
+	if drop_mode:
+		if selected!=null and p in game.DeathDoor.drop_positions(game,selected):drop_ally(p)
+		return
 	var u=game.at(p)
 	if selected!=null and selected.team=="player" and not selected.acted and u!=null:
 		if game.can_attack(selected,u):target=u;update_side();return
@@ -823,7 +841,7 @@ func click_tile(p: Vector2i):
 		else:origin=null
 
 func wait_action():
-	if busy or selected==null or not action_save_ready():return
+	if busy or drop_mode or selected==null or not action_save_ready():return
 	if game.wait_unit(selected) and checkpoint_action():finish_action()
 
 func tonic():
@@ -847,6 +865,7 @@ func player_attack():
 	busy=false;finish_action()
 
 func finish_action():
+	drop_mode=false
 	selected=null;target=null;origin=null;refresh_pieces();highlight();update_side()
 	if await check_result():return
 	persist_campaign("battle")
@@ -1577,7 +1596,7 @@ func preview_route(destination: Vector2i):
 	last_hover=destination
 	if is_instance_valid(route_preview):
 		for child in route_preview.get_children():route_preview.remove_child(child);child.queue_free()
-	if busy or selected==null or selected.team!="player" or selected.acted or origin!=null:return
+	if busy or drop_mode or selected==null or selected.team!="player" or selected.acted or origin!=null:return
 	var path=game.movement_path(selected,destination)
 	if path.size()<2:return
 	if not is_instance_valid(route_preview):route_preview=Node3D.new();markers.add_child(route_preview)
@@ -1720,7 +1739,7 @@ func action_save_ready() -> bool:
 
 func checkpoint_action() -> bool:
 	if not game.action_saves or persist_campaign("battle"):return true
-	busy=false;selected=null;target=null;origin=null;refresh_pieces();highlight();update_side()
+	busy=false;drop_mode=false;selected=null;target=null;origin=null;refresh_pieces();highlight();update_side()
 	return false
 
 func retry_action_save():
@@ -1771,8 +1790,19 @@ func show_triage():
 	var carried=game.DeathDoor.passenger(game,selected)
 	if carried!=null:
 		label_in(panel,"Carrying "+carried.name,22,GOLD)
-		for tile in game.DeathDoor.drop_positions(game,selected):button_in(panel,"Drop at %d, %d"%[tile.x+1,tile.y+1],func():drop_ally(tile))
+		var blocked=game.DeathDoor.drop_positions(game,selected).is_empty()
+		button_in(panel,"Choose drop tile",begin_drop,blocked)
+		if blocked:label_in(panel,"No adjacent tile is free. Move to an open space before dropping your ally.",17)
 	button_in(frame,"Return to battle",show_battle)
+
+func begin_drop():
+	if busy or selected==null or not game.can_act(selected) or game.DeathDoor.passenger(game,selected)==null:return
+	var positions=game.DeathDoor.drop_positions(game,selected)
+	if positions.is_empty():return
+	drop_mode=true;target=null;cursor_visible=true;cursor_tile=positions[0];show_battle()
+
+func cancel_drop():
+	drop_mode=false;show_battle()
 
 func rescue_ally(patient: Dictionary):
 	if busy or selected==null or not action_save_ready():return
@@ -1780,7 +1810,9 @@ func rescue_ally(patient: Dictionary):
 
 func drop_ally(tile: Vector2i):
 	if busy or selected==null or not action_save_ready():return
-	if game.DeathDoor.drop(game,selected,tile) and checkpoint_action():show_battle();finish_action()
+	if game.DeathDoor.drop(game,selected,tile):
+		drop_mode=false
+		if checkpoint_action():show_battle();finish_action()
 
 func heal_carried_ally(patient: Dictionary):
 	if busy or selected==null or not action_save_ready():return

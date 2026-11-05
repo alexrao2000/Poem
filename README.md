@@ -47,7 +47,8 @@ These controls apply to campaign battles; menus and the visual workshop have the
 | Select a tile or confirm a forecasted attack | Enter |
 | Cycle ready allies | Q / E |
 | Wait with the selected ally | W |
-| Cancel selection or undo an uncommitted move | Right-click / Escape |
+| Cancel a drop choice, selection, or uncommitted move | Right-click / Escape |
+| Place a carried ally | Rescue & triage → Choose drop tile, then click a gold tile or press Enter |
 | End the player phase | Space |
 | Toggle enemy threat ranges | R |
 | Open or close the battle menu | M; Escape also closes it |

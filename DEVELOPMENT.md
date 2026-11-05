@@ -32,6 +32,8 @@ Debug training can raise available recruits to a chosen level and rebuild the ba
 
 Company cards now mark recovering recruits and show their actual next-deployment HP. Dossiers explain the reduced tonic supply. Both previews share the deployment calculation, disappear when recovery expires or the switch is disabled, and leave roster progression unchanged. Company, trial and 567 menu-layout checks pass. Sacrifice descriptions now state the existing once-per-recruit-per-chapter opening limit.
 
+Carried allies now use a map-based drop choice: gold legal tiles, mouse or arrows/Enter, and Escape/right-click cancellation that preserves the carrier’s movement. The drop preview suppresses ordinary movement/attack overlays and the Wait shortcut. Blocked carriers get an explanation; completed drops checkpoint the destination and clear the preview. Experiment, controls and range suites pass, including three layouts and exact target geometry.
+
 ## Earlier checkpoints
 
 Spell flight now has a continuous soft-edged wake and luminous elemental cores/halos, replacing the six opaque trailing beads. It uses four fewer mesh instances per spell while keeping the existing path/timing. Focused geometry, transformed physical/elemental flights, actual exchanges and skip cleanup pass; the isolated additive study was corrected for a measured headless gradient readback artifact rather than treating that artifact as a game defect.
