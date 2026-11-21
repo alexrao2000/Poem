@@ -6,6 +6,8 @@ Development resumed on “go”. Continue in this chat until the user asks to st
 
 ### Current presentation
 
+Enemy Wardens in custom battles now approach and heal injured allies using the existing staff planner, while guards hold their posts and critically injured enemies retain held-tonic priority. Actual enemy turns use the same staff light, rising health and map recovery cues as player healing; both combat health panels retain enemy styling. Five actual current/revised/map/player-only/skip cases pass with committed health and unchanged RNG. Existing enemy checkpoints, tactics and both player-healing model variants also pass. Existing campaign formations are unchanged. Both local exports, packed-resource smoke and archive integrity pass. The registry now contains 349 suites.
+
 Enemy actions now resolve and checkpoint before their map walk, matching player action saves. The first suspended walk frame already contains the committed movement, casualties, item use and random state, while map figures retain their pre-action appearance for the ensuing feedback. Five interrupted reload cases finish identically without replay; a failed checkpoint blocks animation and further actions until saving succeeds. Six affected suites pass: the new enemy-checkpoint regression, experiments, tactics, map exchange, action camera and phase announcements. Both local exports, packed-resource smoke and archive integrity pass. The registry now contains 348 suites; the full 346-suite baseline remains the last complete run.
 
 - The game has 24 recruits and twelve chapters, with independent permadeath, action-save, rescue, section-restart, reset-pressure, difficulty, death-legacy and sacrifice experiments.

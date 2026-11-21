@@ -947,7 +947,9 @@ func end_turn(resuming=false):
 		if choice.action=="tonic" and e.hp>initial_hp[e.id]:
 			play_sfx("heal");await map_heal_feedback(e,e,int(e.hp-initial_hp[e.id]))
 		highlight();await get_tree().create_timer(.12).timeout
-		if chosen!=null and not events.is_empty():
+		if chosen!=null and choice.action=="heal" and chosen.hp>initial_hp[chosen.id]:
+			await staff_healing(e,chosen,int(chosen.hp-initial_hp[chosen.id]),before)
+		elif chosen!=null and not events.is_empty():
 			await cinematic(e,chosen,events,initial_hp)
 			await show_progress(before)
 		refresh_pieces()
