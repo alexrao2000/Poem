@@ -8,6 +8,7 @@ var hand_draw=0.0
 var lift=0.0
 var draw=0.0:
  set(value):draw=value;update_string()
+var critical_prepared=false
 var holding=true
 var projectile_spent=false
 var arms: SkeletonModifier3D
@@ -29,9 +30,11 @@ func configure_equipment(kind: String,item: String) -> String:
  if arms!=null:arms.fit_prop(anchor,get_node("Weapon"))
  update_string()
  return ""
+func draw_length() -> float:return .36 if critical_prepared else .30
+
 func update_string():
  if not has_node("Weapon/NockedArrow"):return
- var weapon=get_node("Weapon");var nock=Vector3(0,0,.22+.30*draw)
+ var weapon=get_node("Weapon");var nock=Vector3(0,0,.22+draw_length()*draw)
  weapon.get_node("NockedArrow").position=nock-Vector3(0,0,preload("res://scripts/combat_projectile.gd").ARROW_LENGTH*.5)
  for i in range(2):
   var segment=weapon.get_node("BowStringTop" if i==0 else "BowStringBottom");var height=weapon.get_meta("bow_height",.45);var tip=Vector3(0,height if i==0 else -height,.22)
@@ -75,7 +78,14 @@ func configure_animations(player: AnimationPlayer) -> String:
   if library.has_animation(setup[0]):library.remove_animation(setup[0])
   library.add_animation(setup[0],animation)
  return ""
+func additional_poses() -> Dictionary:
+ return {"critical_windup":{"clip":"BowDraw","from":0.0,"to":1.0},"critical_strike":{"clip":"BowRelease","from":0.0,"to":1.0}}
+
+func animation_pose(key: String) -> String:return "critical_strike" if key=="strike" and critical_prepared else key
+
 func combat_pose(key: String):
+ if key=="critical_windup":critical_prepared=true
+ elif key not in ["strike","recover"]:critical_prepared=false
  holding=key not in ["down","hit","critical_hit","evade"]
  if key not in ["windup","critical_windup","strike","recover"]:draw=0;lift=0;hand_draw=0
  if key in ["idle","advance","windup","critical_windup","victory"]:projectile_spent=false
@@ -83,6 +93,9 @@ func combat_pose(key: String):
 
 func aim_at(point: Vector3):
  if arms!=null and point.is_finite():arms.aim_point=point;arms.has_aim=true
+
+func clear_aim():
+ if arms!=null:arms.has_aim=false
 
 func release_projectile():
  projectile_spent=true;get_node("Weapon/NockedArrow").hide()

@@ -7,7 +7,7 @@ func sample(actor,key: String,fraction: float):
  for listener in actor.pose_listeners:listener.combat_pose(key)
  var mapping=actor.poses[key];actor.player.get_animation(mapping.clip).loop_mode=Animation.LOOP_NONE
  actor.player.stop();actor.player.play(mapping.clip,0);actor.player.seek(lerpf(mapping.from,mapping.to,fraction),true,true);actor.player.pause();actor.refresh_skeleton()
-func draw_pad(rig: Skeleton3D) -> Vector3:
+static func draw_pad(rig: Skeleton3D) -> Vector3:
  var hand=rig.get_bone_global_pose(rig.find_bone("hand_l"));var point=Vector3.ZERO
  for name_value in ["index_04_leaf_l","middle_04_leaf_l"]:point+=hand.affine_inverse()*rig.get_bone_global_pose(rig.find_bone(name_value)).origin*.5
  return rig.get_node("DrawingHand").to_global(point)

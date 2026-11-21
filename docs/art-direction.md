@@ -844,3 +844,10 @@ The isolated comparison covers Mara and Dax in both promoted costumes with a gre
 Critical lance attacks now draw the point back another 12 cm and turn the shoulders about ten degrees, then drive forward into the existing target. This is a tighter preparation than the sword/axe backswing and retains the Knight’s shield or Rider’s rein hand. Ordinary thrusts keep their previous motion.
 
 The isolated pose comparison covers promoted Petra and Bram with a light lance and Rider’s Bane. The difference is restrained: the weapon hand sits farther back while the feet or seated lower body retain support. Source geometry and camera projection checks do not replace the outstanding in-game animation review.
+
+
+### Revised Ranger critical draw
+
+Critical bow shots now hold a slightly deeper draw and a more turned upper body before release. The drawing hand stays back as the string returns. The gesture keeps the fitted archery stance.
+
+The finer motion samples also exposed two ordinary-shot discontinuities: the drawing arm’s elbow plane changed at the first positive lift, and elevated-target aiming switched on abruptly. Both now blend through the draw. The isolated promoted Sera/Ari comparison shows full-draw geometry; assembled motion and rendering still need review.

@@ -1,0 +1,47 @@
+extends SceneTree
+const Projectile=preload("res://scripts/combat_projectile.gd")
+const Imported=preload("res://scripts/imported_fighter.gd")
+const Shutdown=preload("helpers/game_shutdown.gd")
+var character_ids=["sera","faye"]
+var app
+var mode=""
+var flights=0
+var total=0
+var preparations=0
+func _initialize():call_deferred("run")
+func observe(node):
+ if node is Imported and mode=="skip_windup" and node.model.get_meta("character_identity","")==character_ids[0]:
+  while is_instance_valid(node) and node.pose_name!="critical_windup":await process_frame
+  assert(is_instance_valid(node));preparations+=1;app.skip_combat=true;return
+ if not node is Projectile:return
+ await process_frame
+ var archers=app.stage.get_children().filter(func(value):return value is Imported and value.kind=="bow" and value.pose_name=="strike")
+ assert(archers.size()==1)
+ var actor=archers[0];var bow=actor.model.get_node("Rig/Armature/Skeleton3D/WeaponHand/Bow");var arrow=bow.get_node("Weapon/NockedArrow")
+ assert(bow.critical_prepared==(flights==0) and bow.projectile_spent and not arrow.visible,"Critical and ordinary actual shots keep distinct preparation and release the held arrow")
+ assert(node.origin.distance_to(arrow.to_global(Vector3(0,0,-Projectile.ARROW_LENGTH*.5-.075)))<.001,"The actual flight starts at the fitted arrow tip")
+ flights+=1;total+=1
+ if mode=="skip_projectile":app.skip_combat=true
+func run():
+ app=load("res://main.tscn").instantiate();app.settings_path="";app.save_path="/private/tmp/poem-bow-anticipation-exchange.json";root.add_child(app);await process_frame
+ app.preferences.values.character_models="revised";app.preferences.values.combat="all";app.game.start_battle();app.make_map();app.show_battle();app.stage.child_entered_tree.connect(observe)
+ var foe=app.game.living("enemy")[0].duplicate(true);foe.job="Ranger";foe.weapon="bow";foe.item="longbow";foe.boss=false
+ var cases=[]
+ for id in character_ids:
+  for promotion in ["","sharpshooter","pathfinder"]:cases.append([id,promotion,""])
+ cases.append_array([[character_ids[0],"","counter"],[character_ids[0],"","skip_windup"],[character_ids[0],"","skip_projectile"]])
+ for index in range(cases.size()):
+  var entry=cases[index];mode=entry[2];flights=0
+  var a=app.game.roster.filter(func(value):return value.id==entry[0])[0].duplicate(true);a.team="player";a.acted=false;a.moved=false;a.promotion=entry[1];a.item=["scout_bow","recurve","longbow"][index%3];a.x=7;a.y=4;a.hp=12
+  var b=foe.duplicate(true);b.x=9;b.y=4;b.hp=12;app.game.units=[a,b];app.refresh_pieces();app.busy=true
+  var attacker=b if mode=="counter" else a;var target=a if mode=="counter" else b;target.hp=6
+  var saved=app.game.save_data("battle").duplicate(true);var rng=app.game.rng.state;var view=app.map_navigation.capture_view()
+  var events=[{"actor":attacker.id,"target":target.id,"damage":6,"remaining":6,"hit":true,"crit":true},{"actor":attacker.id,"target":target.id,"damage":0,"remaining":6,"hit":false,"crit":false}]
+  await app.cinematic(a,b,events,{a.id:12,b.id:12});await process_frame
+  assert(flights==(0 if mode=="skip_windup" else 1 if mode=="skip_projectile" else 2))
+  assert(app.game.save_data("battle")==saved and app.game.rng.state==rng and app.map_navigation.capture_view()==view)
+  assert(app.world.visible and not app.stage.visible and not app.stage.has_node("CombatProjectile"));app.busy=false
+ assert(total==character_ids.size()*6+3 and preparations==1)
+ await Shutdown.dispose(app);await process_frame
+ print("PASS: ",character_ids.size()*3," base/promoted Ranger exchanges, enemy counter, ",total," actual critical/ordinary arrow flights, preparation/projectile skips, correct launch origin and exact campaign/RNG/map restoration")
+ quit()

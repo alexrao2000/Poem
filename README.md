@@ -100,6 +100,8 @@ Read support ranks grant +5 Hit/Avoid per rank while the partner is nearby. Rank
 
 Open **View character** from a dossier to rotate a recruit's 3D preview and choose attack, reaction, defeat, or finishing poses. Staff users can preview healing. **Run / trot** loops the combat gait in place while you rotate or zoom the outfit. **Play again** restarts the selected action; **Escape** returns to the record or training choice.
 
+Choose **Critical attack** (or **Critical shot** for archers) to replay the complete preparation and strike. Revised sword fighters also offer a **Finishing flourish**. In Debug source studies, melee fighters and Rangers can aim at standing or mounted targets; changing the target preserves the selected critical action.
+
 In **Options → Character models**, choose **Revised models · preview** to use the fitted skeletal models for all 24 recruits, their promotion paths and ordinary enemies. This is a local appearance preference; it does not change campaign records. Debug tools also offer independent class switches and source studies for all eight anonymous enemy classes, with equipment and original faction styling. The revised sword fighters include a fitted point-first estoc thrust. All twelve named commanders retain their individual colors and insignia on the revised bodies. Unknown promotion paths, commanders and equipment retain the original models.
 
 These recruits retain revised bodies after advanced training:

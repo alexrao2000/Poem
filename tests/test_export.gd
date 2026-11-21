@@ -312,6 +312,11 @@ func run():
    await actor.pose("windup",.02).finished;await actor.pose("strike",.02).finished
    if unit.weapon=="bow":
     var bow=actor.model.get_node("Rig/Armature/Skeleton3D/WeaponHand/Bow");assert(bow.projectile_spent and not bow.get_node("Weapon/NockedArrow").visible)
+    await actor.pose("critical_windup",.02).finished
+    var promotion_arrow=bow.get_node("Weapon/NockedArrow")
+    assert(bow.critical_prepared and is_equal_approx(bow.draw_length(),.36) and (-promotion_arrow.global_basis.z.normalized()).dot((target-promotion_arrow.global_position).normalized())>.999999)
+    await actor.pose("strike",.02).finished;assert(bow.projectile_spent and not promotion_arrow.visible)
+    await actor.pose("windup",.02).finished;assert(not bow.critical_prepared and is_equal_approx(bow.draw_length(),.30))
    elif unit.weapon=="staff":
     var promotion_staff=actor.model.get_node("Rig/Armature/Skeleton3D/WeaponHand/Staff");assert(promotion_staff.equipped=="beacon_staff")
     await actor.pose("cast_windup",.02).finished;await actor.pose("cast",.02).finished
@@ -380,6 +385,15 @@ func run():
  assert("critical_strike" in export_keys and "victory_flourish" in export_keys,"Packed studies expose generated special actions")
  export_choice.select(export_keys.find("critical_strike"));export_choice.item_selected.emit(export_choice.selected);await export_actions.finished
  assert(app.preview_actor.pose_name=="strike" and app.preview_actor.player.assigned_animation=="SwordCriticalAttack","Packed critical preview replays the actual preparation and strike")
+ app.close_model_view();app.show_source_model_view("ranger_female","longbow",true);await process_frame
+ var ranger_choice=app.ui.find_child("PreviewAction",true,false);var ranger_actions=app.stage.get_node("PreviewActionPlayer")
+ for index in range(ranger_choice.item_count):
+  if ranger_choice.get_item_metadata(index)=="critical_strike":ranger_choice.select(index);break
+ assert(ranger_choice.get_item_metadata(ranger_choice.selected)=="critical_strike")
+ var ranger_target=app.ui.find_child("StudyTarget",true,false);assert(ranger_target!=null)
+ ranger_target.select(2);ranger_target.item_selected.emit(2);await ranger_actions.finished
+ var ranger_bow=app.preview_actor.model.get_node("Rig/Armature/Skeleton3D/WeaponHand/Bow")
+ assert(ranger_bow.critical_prepared and ranger_bow.projectile_spent and ranger_bow.arms.has_aim,"Packaged Ranger study preserves critical selection and aims at the mounted target")
  app.close_model_view();app.debug_session.end(app.game)
  await Shutdown.dispose(app);await process_frame
  print("PASS: exported catalog, all three act scores, chapter scenes, sixteen promotion patterns, all forty-eight revised promotion outfits, licenses and credits")

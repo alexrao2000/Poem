@@ -43,7 +43,7 @@ func target_pose() -> Transform3D:
  if not bow.holding:return clear_floor(rig.get_bone_global_pose(right_chain[0])) if not solving_left else rig.get_bone_global_pose(left_chain[0])
  if solving_left:
   var transform=rig.get_bone_global_pose(right_chain[0])*bow.transform*bow.get_node("Weapon").transform
-  var nock=transform*Vector3(0,0,.22+.30*bow.hand_draw)
+  var nock=transform*Vector3(0,0,.22+bow.draw_length()*bow.hand_draw)
   # Finger pads sit ahead of the left wrist; the palm faces the bow string.
   var basis=Basis(Vector3.DOWN,Vector3.FORWARD,Vector3.RIGHT)
   return rig.get_bone_global_pose(left_chain[0]).interpolate_with(Transform3D(basis,nock-basis*bow.finger_pad),smoothstep(0,1,bow.lift))
@@ -54,12 +54,17 @@ func target_pose() -> Transform3D:
   var horizontal=Vector3.UP.cross(forward).normalized();var up=forward.cross(horizontal).normalized()
   # Bow +Y follows wrist +Z; its arrow -Z follows wrist +Y.
   basis=Basis(-horizontal,forward,up)
-  if has_aim and bow.lift>.01:
+  if has_aim:
    var direction=rig.to_local(aim_point)-(goal+basis*bow.position)
-   if direction.length_squared()>.000001 and absf(direction.normalized().dot(Vector3.UP))<.995:forward=direction.normalized()
+   if direction.length_squared()>.000001 and absf(direction.normalized().dot(Vector3.UP))<.995:forward=Vector3.BACK.slerp(direction.normalized(),smoothstep(0,1,bow.lift))
  return clear_floor(Transform3D(basis,goal))
 
 func bend_pole(desired: Transform3D,upper: Transform3D,elbow: Transform3D) -> Vector3:
+ if bow.holding and solving_left:
+  # Ease out of the source elbow plane with the rising draw. Switching to
+  # the drawing pole at any positive lift snaps the nearly idle left arm.
+  var original=super(desired,upper,elbow).normalized()
+  return original.slerp(desired.basis.z.normalized(),smoothstep(0,1,bow.lift))
  return desired.basis.z if bow.holding else super(desired,upper,elbow)
 
 func solve() -> Array[Quaternion]:
@@ -67,7 +72,7 @@ func solve() -> Array[Quaternion]:
  for bone in combined:originals.append(rig.get_bone_pose_rotation(bone))
  var head_basis=rig.get_bone_global_pose(head).basis
  if bow.holding:
-  aim(torso,Basis(Vector3.UP,.75*bow.lift)*rig.get_bone_global_pose(torso).basis)
+  aim(torso,Basis(Vector3.UP,(.87 if bow.critical_prepared else .75)*bow.lift)*rig.get_bone_global_pose(torso).basis)
   aim(head,head_basis)
  chain=right_chain;solving_left=false;super()
  chain=left_chain;solving_left=true
