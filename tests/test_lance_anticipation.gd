@@ -63,7 +63,7 @@ func run():
  print("PASS: ",count," critical lance samples, nine base/promoted outfits, four weapons, two directions/heights, minimum draw ",smallest_draw," m, floor ",minimum," m, contact gap ",gap," m, joint step ",continuity," rad, fixed bones and action resets")
  quit()
 
-func check_seating(actor,rig,cache):
+static func check_seating(actor,rig,cache):
  for entry in cache:
   var mesh=entry[0];var arrays=entry[1];var vertices=arrays[Mesh.ARRAY_VERTEX];var transforms=[]
   for bind in range(entry[2].size()):transforms.append(rig.get_bone_global_pose(entry[2][bind])*mesh.skin.get_bind_pose(bind))

@@ -14,10 +14,12 @@ var mode=""
 var flights=0
 var total=0
 var preparations=0
+var preparation_key="critical_windup"
+var strike_key="strike"
 func _initialize():call_deferred("run")
 func observe(node):
  if node is Imported and mode=="skip_windup" and node.model.get_meta("character_identity","")==character_ids[0]:
-  while is_instance_valid(node) and node.pose_name!="critical_windup":await process_frame
+  while is_instance_valid(node) and node.pose_name!=preparation_key:await process_frame
   assert(is_instance_valid(node));preparations+=1;app.skip_combat=true;return
  if node is Charge:
   await process_frame
@@ -26,13 +28,18 @@ func observe(node):
   charges+=1;return
  if not node is Projectile:return
  await process_frame
- var archers=app.stage.get_children().filter(func(value):return value is Imported and value.kind==weapon_kind and value.pose_name=="strike")
+ var archers=app.stage.get_children().filter(func(value):return value is Imported and value.kind==weapon_kind and value.pose_name==strike_key)
  assert(archers.size()==1)
  var actor=archers[0]
  if weapon_kind=="magic":
   var folio=actor.model.get_node("Rig/Armature/Skeleton3D/BookHand/Folio")
   assert(folio.critical_prepared==(flights==0) and actor.player.assigned_animation==("CriticalSpellRelease" if flights==0 else "Spell_Simple_Shoot"))
   assert(node.origin.distance_to(actor.socket_position("projectile"))<.001,"Actual critical/ordinary spells launch from the fitted free palm")
+ elif weapon_kind=="lance":
+  var grip=actor.model.get_node("Rig/Armature/Skeleton3D/WeaponHand/Grip");var spear=actor.projectile_source()
+  assert(grip.critical_throw_prepared==(flights==0) and not grip.critical_prepared and not spear.visible,"Actual critical throws preserve ranged preparation and release the held spear")
+  assert(actor.player.assigned_animation=="LanceThrow" and node.body.has_node("HeldSpear"))
+  assert(node.origin.distance_to(spear.get_node("TrailTip").global_position)<.001,"Actual critical and ordinary flights start at the fitted spear tip")
  else:
   var bow=actor.model.get_node("Rig/Armature/Skeleton3D/WeaponHand/Bow");var arrow=bow.get_node("Weapon/NockedArrow")
   assert(bow.critical_prepared==(flights==0) and bow.projectile_spent and not arrow.visible,"Critical and ordinary actual shots keep distinct preparation and release the held arrow")

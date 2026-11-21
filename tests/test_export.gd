@@ -366,7 +366,13 @@ func run():
     actor.aim_at(Vector3(0,1.85,-4))
     await actor.pose("throw_windup",.02).finished;await actor.pose("throw",.02).finished
     assert(not actor.projectile_source().visible,"Packed promoted javelin leaves the fitted hand")
+    var ordinary_launch=actor.projectile_source().global_transform
+    await actor.pose("critical_throw_windup",.02).finished
+    assert(actor.model.get_node("Rig/Armature/Skeleton3D/WeaponHand/Grip").critical_throw_prepared and actor.projectile_source().visible)
+    await actor.pose("throw",.02).finished
+    assert(not actor.projectile_source().visible and actor.projectile_source().global_transform.is_equal_approx(ordinary_launch),"Packed critical javelin returns to the ordinary release transform")
     await actor.pose("idle").finished
+    assert(not actor.model.get_node("Rig/Armature/Skeleton3D/WeaponHand/Grip").critical_throw_prepared)
    if unit.weapon in ["axe","lance","magic","staff"]:
     var promotion_identity=actor.model.get_node("Identity")
     actor.clear_aim();await actor.pose("down",.02).finished
@@ -411,6 +417,13 @@ func run():
  ranger_target.select(2);ranger_target.item_selected.emit(2);await ranger_actions.finished
  var ranger_bow=app.preview_actor.model.get_node("Rig/Armature/Skeleton3D/WeaponHand/Bow")
  assert(ranger_bow.critical_prepared and ranger_bow.projectile_spent and ranger_bow.arms.has_aim,"Packaged Ranger study preserves critical selection and aims at the mounted target")
+ app.close_model_view();app.show_source_model_view("knight_female","javelin",true);await process_frame
+ var throw_choice=app.ui.find_child("PreviewAction",true,false);var throw_actions=app.stage.get_node("PreviewActionPlayer")
+ for index in range(throw_choice.item_count):
+  if throw_choice.get_item_metadata(index)=="critical_throw":throw_choice.select(index);break
+ assert(throw_choice.get_item_metadata(throw_choice.selected)=="critical_throw")
+ var throw_target=app.ui.find_child("StudyTarget",true,false);throw_target.select(2);throw_target.item_selected.emit(2);await throw_actions.finished
+ assert(app.preview_actor.model.get_node("Rig/Armature/Skeleton3D/WeaponHand/Grip").critical_throw_prepared and not app.preview_actor.projectile_source().visible and is_equal_approx(absf(app.preview_actor.get_node("StudyContactTarget").position.z),4.0),"Packaged critical-throw selection retains ranged target and releases the spear")
  app.close_model_view();app.show_source_model_view("caster_female","thunder",true);await process_frame
  var cast_choice=app.ui.find_child("PreviewAction",true,false);var cast_actions=app.stage.get_node("PreviewActionPlayer")
  for index in range(cast_choice.item_count):

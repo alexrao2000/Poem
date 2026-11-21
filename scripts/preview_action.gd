@@ -26,6 +26,7 @@ func play(key: String):
  elif key=="critical_strike":pending=[["critical_windup",.4],["strike",.16]]
  elif key=="cast":pending=[["cast_windup",.28],["cast",.18]]
  elif key=="throw":pending=[["idle",.16],["throw_windup",.26],["throw",.16]]
+ elif key=="critical_throw":pending=[["idle",.16],["critical_throw_windup",.4],["throw",.16]]
  elif key=="throw_recover":pending=[["idle",.16],["throw_windup",.26],["throw",.16],["recover",.28]]
  elif key=="recover":pending=[["windup",.20],["strike",.14],["recover",.28]]
  else:pending=[["idle",.16],[key,.28]]

@@ -1496,7 +1496,7 @@ func show_model_view(unit,on_close=Callable(),model_spec: Dictionary={}):
 	if unit.weapon=="magic":actions=[["Ready","idle"],["Casting preparation","windup"],["Critical preparation","critical_windup"],["Cast","strike"],["Recovery","recover"]]
 	if unit.weapon=="staff":actions=[["Ready","idle"],["Healing preparation","cast_windup"],["Heal","cast"]]
 	if unit.weapon in ["sword","axe","lance","bow","magic"] and (not preview_actor is ImportedFighter or preview_actor.poses.has("critical_strike")):actions.insert(4,["Critical cast" if unit.weapon=="magic" else "Critical shot" if unit.weapon=="bow" else "Critical attack","critical_strike"])
-	if unit.weapon=="lance" and unit.get("item","")=="javelin":actions.append_array([["Throw preparation","throw_windup"],["Throw","throw"],["Throw recovery","throw_recover"]])
+	if unit.weapon=="lance" and unit.get("item","")=="javelin":actions.append_array([["Throw preparation","throw_windup"],["Critical throw preparation","critical_throw_windup"],["Throw","throw"],["Critical throw","critical_throw"],["Throw recovery","throw_recover"]])
 	actions.insert(1,["Run / trot","advance"])
 	actions.append_array([["Guard","guard"],["Hit reaction","hit"],["Critical reaction","critical_hit"],["Defeated","down"],["Finishing flourish","victory_flourish"],["Finish","victory"]])
 	if preview_actor is ImportedFighter:actions=actions.filter(func(entry):return entry[1]!="victory_flourish" or preview_actor.poses.has(entry[1]))
@@ -1517,7 +1517,7 @@ func show_model_view(unit,on_close=Callable(),model_spec: Dictionary={}):
 		target_choice.item_selected.connect(func(index):
 			contact_target.choose(index)
 			var action=str(choice.get_item_metadata(choice.selected))
-			if not action.begins_with("throw") and action!="critical_strike":action="strike"
+			if not action.contains("throw") and action!="critical_strike":action="strike"
 			for at in range(choice.item_count):
 				if choice.get_item_metadata(at)==action:choice.select(at);break
 			action_player.play(action))

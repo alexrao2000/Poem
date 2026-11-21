@@ -8,6 +8,7 @@ var throwing=false
 var recovering=false
 var throw_raise=0.0
 var throw_push=0.0
+var critical_throw_prepared=false
 func equipment_kind() -> String:return "lance"
 func arm_driver() -> Script:return preload("res://scripts/lance_hold.gd")
 func fit_handle():
@@ -65,9 +66,12 @@ func configure_animations(player: AnimationPlayer) -> String:
  preload("res://scripts/authored_fall_fit.gd").reset_other_clips(player)
  return ""
 func additional_poses() -> Dictionary:
- return {"critical_windup":{"clip":"LanceWindup","from":0.0,"to":1.0},"critical_strike":{"clip":"LanceStrike","from":0.0,"to":1.0}}
+ return {"critical_windup":{"clip":"LanceWindup","from":0.0,"to":1.0},"critical_strike":{"clip":"LanceStrike","from":0.0,"to":1.0},"critical_throw_windup":{"clip":"LanceThrowWindup","from":0.0,"to":1.0},"critical_throw":{"clip":"LanceThrow","from":0.0,"to":1.0}}
 
 func combat_pose(key: String):
+ if key=="critical_throw":critical_throw_prepared=true;key="throw"
+ if key=="critical_throw_windup":critical_throw_prepared=true
+ elif key!="throw":critical_throw_prepared=false
  if key=="critical_windup":critical_prepared=true
  elif key!="strike":critical_prepared=false
  fall=0
@@ -89,6 +93,6 @@ func animation_pose(key: String) -> String:
  return "critical_strike" if key=="strike" and critical_prepared else key
 
 func pose_finished(key: String):
- if key=="throw":release_projectile()
+ if key in ["throw","critical_throw"]:release_projectile()
 
 func projectile_source() -> Node3D:return get_node("Weapon") if equipped=="javelin" else null

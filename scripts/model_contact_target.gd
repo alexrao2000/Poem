@@ -22,7 +22,7 @@ func set_action(key: String):
 
 func choose(index: int):
  selected=clampi(index,0,2)
- var distance=4.0 if action.begins_with("throw") or actor.kind=="bow" else actor.approach_spacing(item)
+ var distance=4.0 if action.contains("throw") or actor.kind=="bow" else actor.approach_spacing(item)
  position=Vector3(0,1.1 if selected==1 else 1.85,-distance)
  for part in parts:part.visible=selected>0
  if selected>0:actor.aim_at(global_position)

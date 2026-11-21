@@ -34,7 +34,8 @@ func configure(subject: Node3D,view: Camera3D,panel: Control,poses: Array):
   for key in poses:
    actor.pose("idle",1).custom_step(1)
    if key=="critical_strike":actor.pose("critical_windup",1).custom_step(1)
-   var motion=actor.pose("strike" if key=="critical_strike" else key,1)
+   if key=="critical_throw":actor.pose("critical_throw_windup",1).custom_step(1)
+   var motion=actor.pose("strike" if key=="critical_strike" else "throw" if key=="critical_throw" else key,1)
    for step in range(4):
     motion.custom_step(.25);actor.apply_constraints();measure()
   if "advance" in poses:
@@ -51,7 +52,8 @@ func configure(subject: Node3D,view: Camera3D,panel: Control,poses: Array):
    # Pose listeners enable fitted hands, throws and flourishes. Sampling only
    # the clip would miss those silhouettes and expand the camera during replay.
    if key=="critical_strike":actor.pose("critical_windup",.01)
-   var motion=actor.pose("strike" if key=="critical_strike" else key,.01);motion.kill()
+   if key=="critical_throw":actor.pose("critical_throw_windup",.01)
+   var motion=actor.pose("strike" if key=="critical_strike" else "throw" if key=="critical_throw" else key,.01);motion.kill()
    actor.player.get_animation(mapping.clip).loop_mode=Animation.LOOP_NONE
    actor.player.play(mapping.clip,0)
    for step in range(9):

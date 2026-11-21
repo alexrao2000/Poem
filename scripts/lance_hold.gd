@@ -14,7 +14,8 @@ func solve() -> Array[Quaternion]:
  for bone in combined:originals.append(rig.get_bone_pose_rotation(bone))
  if lance.throwing:
   var head_basis=rig.get_bone_global_pose(head).basis
-  aim(torso,Basis(Vector3.UP,-.55*lance.throw_raise*(1-lance.throw_push) if not lance.recovering else 0.0)*rig.get_bone_global_pose(torso).basis)
+  var turn=.55+(.20 if lance.critical_throw_prepared else 0.0)
+  aim(torso,Basis(Vector3.UP,-turn*lance.throw_raise*(1-lance.throw_push) if not lance.recovering else 0.0)*rig.get_bone_global_pose(torso).basis)
   aim(head,head_basis)
  elif lance.critical_prepared and lance.holding:
   var head_basis=rig.get_bone_global_pose(head).basis
@@ -43,7 +44,10 @@ func target_pose() -> Transform3D:
  return clear_floor(Transform3D(carry_basis,carry).interpolate_with(Transform3D(basis,goal),smoothstep(0,1,lance.lift)))
 func throw_pose() -> Transform3D:
  var shoulder=rig.get_bone_global_pose(chain[2]).origin
- var goal=shoulder+Vector3(-.09,lerpf(.32,.08,lance.throw_push),lerpf(-.20,.36,lance.throw_push))
+ # Finish raising the spear before drawing farther back; combining the deep
+ # draw with the shoulder's initial sweep makes the wrist turn too sharply.
+ var backswing=-.20-(.08*smoothstep(.72,1,lance.throw_raise) if lance.critical_throw_prepared else 0.0)
+ var goal=shoulder+Vector3(-.09,lerpf(.32,.08,lance.throw_push),lerpf(backswing,.36,lance.throw_push))
  var point=rig.to_local(aim_point) if has_aim else Vector3(0,1.1,4)
  point+=rig.global_basis.inverse()*Vector3.UP*PI*.08
  var forward=(point-goal).normalized();var basis=Basis.IDENTITY
