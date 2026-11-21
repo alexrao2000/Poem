@@ -1,15 +1,24 @@
 extends SceneTree
 const Rider=preload("res://scripts/imported_rider.gd")
+const Vertices=preload("helpers/authored_vertices.gd")
+const Fit=preload("res://tests/test_authored_rider.gd")
+var promotion_id=""
 var pairs=[["female","una"],["male","bram"]]
 func create_models(pair):return load("res://scripts/debug_source_models.gd").new(["rider_"+pair[0]])
 func _initialize():call_deferred("run")
 func run():
  var world=Node3D.new();root.add_child(world);var rules=load("res://scripts/rules.gd").new()
  for pair in pairs:
-  var unit=rules.roster.filter(func(value):return value.id==pair[1])[0].duplicate(true);unit.team="player";unit.item="iron_lance"
+  var unit=rules.roster.filter(func(value):return value.id==pair[1])[0].duplicate(true);unit.team="player";unit.item="iron_lance";unit.promotion=promotion_id
   var models=create_models(pair)
   var actor=models.build(world,unit,Vector3(35,.65,0));assert(actor is Rider and models.models.issues.is_empty());actor.rotation.y=.7;await actor.pose("idle",.02).finished;actor.set_process(false);actor.player.pause()
   var rig=actor.model.get_node("Rig/Armature/Skeleton3D");var arms=rig.get_node("WeaponHand/Grip").arms;var mount=actor.model.get_node("Mount");var foot_gap=0.0;var hand_gap=0.0;var floor_gap=0.0;mount.set_process(false)
+  var costume=actor.model.get_node("Identity").promotion;var costume_meshes=[];var collisions={}
+  if not promotion_id.is_empty():
+   assert(costume!=null and costume.id==promotion_id)
+   costume_meshes.append_array(costume.panels)
+   for anchor in costume.anchors:costume_meshes.append_array(anchor.find_children("*","MeshInstance3D",true,false))
+  var costume_vertices=Vertices.prepare(actor).filter(func(entry):return entry[0] in costume_meshes)
   for weight in [0.0,.5,1.0]:
    for step in range(257):
     mount.gait_weight=weight;mount.set_clock(TAU*step/256.0);actor.refresh_skeleton();var original=arms.solve()
@@ -17,6 +26,20 @@ func run():
      var ball=rig.to_global(rig.get_bone_global_pose(rig.find_bone("ball_"+side)).origin)
      var stirrup=mount.bones.Horse.get_node("RightStirrup" if side=="r" else "LeftStirrup")
      foot_gap=maxf(foot_gap,ball.distance_to(stirrup.global_position+Vector3.UP*.0275))
+    if step%16==0:
+     for entry in costume_vertices:
+      var mesh=entry[0];var arrays=entry[1];var transforms=[]
+      for bind in range(entry[2].size()):transforms.append(rig.get_bone_global_pose(entry[2][bind])*mesh.skin.get_bind_pose(bind))
+      for vertex in range(arrays[Mesh.ARRAY_VERTEX].size()):
+       var point=arrays[Mesh.ARRAY_VERTEX][vertex]
+       if not transforms.is_empty():
+        point=Vector3.ZERO
+        for influence in range(4):
+         var at=vertex*4+influence;point+=(transforms[arrays[Mesh.ARRAY_BONES][at]]*arrays[Mesh.ARRAY_VERTEX][vertex])*arrays[Mesh.ARRAY_WEIGHTS][at]
+        point=rig.to_global(point)
+       else:point=mesh.to_global(point)
+       var local=mount.bones.Horse.to_local(point)
+       if Fit.profile_inside(local,false) or Fit.profile_inside(local,true):collisions[str(mesh.name)]=true
     for index in range(arms.chain.size()):rig.set_bone_pose_rotation(arms.chain[index],original[index])
     rig.force_update_all_bone_transforms();mount.reins.update()
     var pad=rig.get_node("ReinHand").to_global(rig.get_node("WeaponHand/Grip").rein_pad)
@@ -25,8 +48,9 @@ func run():
     for index in range(4):lowest=minf(lowest,mount.bones["HorseFoot"+str(index)].to_global(Vector3(0,0,-.015)).y-.055)
     floor_gap=maxf(floor_gap,absf(lowest-actor.global_position.y))
     assert(actor.ground_contact_position().y-actor.global_position.y<.00001)
+  assert(collisions.is_empty(),"Promoted cloth and plates clear the moving horse: "+str(collisions))
   assert(foot_gap<.0001 and hand_gap<.0121 and floor_gap<.00001)
-  print("PASS: ",pair[1]," 771 mounted gait samples; toe/stirrup gap ",foot_gap," m, rein grip gap ",hand_gap," m, hoof floor gap ",floor_gap," m")
+  print("PASS: ",pair[1]," ",promotion_id," 771 mounted gait samples; toe/stirrup gap ",foot_gap," m, rein grip gap ",hand_gap," m, hoof floor gap ",floor_gap," m")
   var anchors=rig.find_children("*","BoneAttachment3D",true,false)
   for amount in [0.0,.5,1.0]:
    arms.influence=amount;actor.refresh_skeleton();var direct=anchors.map(func(anchor):return anchor.transform)

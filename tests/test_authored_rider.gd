@@ -4,8 +4,9 @@ const Body=preload("res://scripts/mount_body.gd")
 const Projectile=preload("res://scripts/combat_projectile.gd")
 var gender="female"
 var character_id="una"
+var promotion_id=""
 func _initialize():call_deferred("run")
-func profile_inside(point: Vector3,neck: bool) -> bool:
+static func profile_inside(point: Vector3,neck: bool) -> bool:
  var rows=Body.NECK if neck else Body.TORSO;var along=point.y if neck else point.z
  if along<rows[0][0] or along>rows[-1][0]:return false
  var index=0
@@ -16,13 +17,18 @@ func profile_inside(point: Vector3,neck: bool) -> bool:
  return q<.94
 func run():
  var world=Node3D.new();root.add_child(world);var rules=load("res://scripts/rules.gd").new()
- var unit=rules.roster.filter(func(value):return value.id==character_id)[0].duplicate(true);unit.team="player";unit.item="javelin"
+ var unit=rules.roster.filter(func(value):return value.id==character_id)[0].duplicate(true);unit.team="player";unit.item="javelin";unit.promotion=promotion_id
  var models=load("res://scripts/debug_source_models.gd").new(["rider_"+gender]);var actor=models.build(world,unit,Vector3(35,.65,0));assert(actor!=null and models.models.issues.is_empty());await process_frame;actor.set_process(false)
  var rig=actor.model.get_node("Rig/Armature/Skeleton3D");var grip=rig.get_node("WeaponHand/Grip");var arms=grip.arms;var mount=actor.mount;mount.set_process(false)
  assert(actor.model.get_node("Identity").armor.anchors.size()==5 and not rig.has_node("KnightShield"))
  assert(actor.player.get_animation_list().size()==19 and arms.chain.size()==14)
  var worst=0.0;var collisions={};var lowest=INF;var count=0;var all_geometry=Vertices.prepare(actor)
- var cache=all_geometry.filter(func(entry):return "Peasant" in str(entry[0].name) or str(entry[0].name) in ["Cuirass","Pauldron","ElbowGuard"])
+ var promotion_meshes=[];var costume=actor.model.get_node("Identity").promotion
+ if not promotion_id.is_empty():
+  assert(costume!=null and costume.id==promotion_id and actor.get_meta("promotion_look")==promotion_id)
+  promotion_meshes.append_array(costume.panels)
+  for anchor in costume.anchors:promotion_meshes.append_array(anchor.find_children("*","MeshInstance3D",true,false))
+ var cache=all_geometry.filter(func(entry):return "Peasant" in str(entry[0].name) or str(entry[0].name) in ["Cuirass","Pauldron","ElbowGuard"] or entry[0] in promotion_meshes)
  for key in ["idle","windup","strike","recover","hit","evade","throw_windup","throw","throw_recover","down"]:
   actor.aim_at(actor.to_global(Vector3(0,1.1,-4 if key.begins_with("throw") else -2.1)))
   var mapping=actor.poses[key];actor.player.get_animation(mapping.clip).loop_mode=Animation.LOOP_NONE;var previous=[]
@@ -82,6 +88,12 @@ func run():
    assert(release_gap<.0001,"Actual mounted javelin release preserves the fitted weapon")
    await actor.pose("recover",.02).finished;assert(not weapon.visible and actor.player.assigned_animation=="LanceThrowRecover")
    flight.queue_free();await process_frame
+ if costume!=null:
+  var other=models.build(world,unit,Vector3.ZERO);await process_frame
+  assert(other.model.get_node("Identity").promotion.surfaces[0]!=costume.surfaces[0]);other.queue_free();await process_frame
+  var defeat=load("res://scripts/combat_defeat.gd").new();world.add_child(defeat);defeat.begin(actor);defeat.apply_visibility(.35)
+  for material in costume.surfaces:assert(is_equal_approx(material.get_shader_parameter("defeat_visibility"),.35) and material.next_pass!=null)
+  defeat.queue_free()
  actor.queue_free();await process_frame;world.queue_free();await process_frame
- print("PASS: ",character_id," ",count," fitted seated poses, fourteen-bone continuity ",worst," rad, horse clearance, full outfit floor ",lowest," m, foot/mounted melee tip gap ",tip_gap," m and fitted flight gap ",release_gap," m")
+ print("PASS: ",character_id," ",promotion_id," ",count," fitted seated poses, fourteen-bone continuity ",worst," rad, horse clearance, full outfit floor ",lowest," m, foot/mounted melee tip gap ",tip_gap," m and fitted flight gap ",release_gap," m")
  quit()

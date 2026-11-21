@@ -291,8 +291,8 @@ func run():
   assert(rig.get_bone_pose_position(rig.find_bone("root")).is_equal_approx(Vector3.ZERO),"Packaged standing pose clears fitted fall support")
   actor.queue_free();await process_frame
  app.stage.show() # Geometry sampling skips meshes hidden by the preceding debug report.
- var fitted_promotions={"Vanguard":["standard_bearer","dawnblade"],"Duelist":["sword_dancer","oathkeeper"],"Ranger":["sharpshooter","pathfinder"],"Corsair":["stormbreaker","trailguard"],"Knight":["bastion","sentinel"],"Arcanist":["star_sage","spellwarden"],"Warden":["luminary","wayfarer"]}
- for id in ["lyra","cassian","rhea","nell","silas","yuna","sera","ari","faye","mara","dax","hale","petra","oren","rook","tarin","vela","noor","ivo","esme","galen"]:
+ var fitted_promotions={"Vanguard":["standard_bearer","dawnblade"],"Duelist":["sword_dancer","oathkeeper"],"Ranger":["sharpshooter","pathfinder"],"Corsair":["stormbreaker","trailguard"],"Knight":["bastion","sentinel"],"Arcanist":["star_sage","spellwarden"],"Warden":["luminary","wayfarer"],"Rider":["outrider","iron_lancer"]}
+ for id in ["lyra","cassian","rhea","nell","silas","yuna","sera","ari","faye","mara","dax","hale","petra","oren","rook","tarin","vela","noor","ivo","esme","galen","una","bram","elian"]:
   var promotion_recruit=app.game.roster.filter(func(value):return value.id==id)[0]
   for promotion in fitted_promotions[promotion_recruit.job]:
    var unit=promotion_recruit.duplicate(true);unit.team="player";unit.promotion=promotion;unit.item="longbow" if unit.weapon=="bow" else "war_hammer" if unit.weapon=="axe" else "javelin" if unit.weapon=="lance" else "thunder" if unit.weapon=="magic" else "beacon_staff" if unit.weapon=="staff" else "estoc"
@@ -318,10 +318,11 @@ func run():
    else:
     var promotion_edge=actor.weapon_trail_points();assert(Geometry3D.get_closest_point_to_segment(target,promotion_edge[0],promotion_edge[1]).distance_to(target)<.006)
    if unit.weapon=="lance":
-    var promotion_shield=actor.model.get_node("Rig/Armature/Skeleton3D/KnightShield/Plate")
-    var promotion_rim=promotion_shield.get_node("PromotionShieldRim" if promotion=="bastion" else "ShieldTrim")
-    assert(promotion_rim.scale.is_equal_approx(Vector3.ONE*.83))
-    assert(promotion_rim.mesh==(load("res://scripts/knight_shield.gd").promotion_trim_mesh() if promotion=="bastion" else load("res://scripts/knight_shield.gd").trim_mesh()))
+    if unit.job=="Knight":
+     var promotion_shield=actor.model.get_node("Rig/Armature/Skeleton3D/KnightShield/Plate")
+     var promotion_rim=promotion_shield.get_node("PromotionShieldRim" if promotion=="bastion" else "ShieldTrim")
+     assert(promotion_rim.scale.is_equal_approx(Vector3.ONE*.83))
+     assert(promotion_rim.mesh==(load("res://scripts/knight_shield.gd").promotion_trim_mesh() if promotion=="bastion" else load("res://scripts/knight_shield.gd").trim_mesh()))
     actor.aim_at(Vector3(0,1.85,-4))
     await actor.pose("throw_windup",.02).finished;await actor.pose("throw",.02).finished
     assert(not actor.projectile_source().visible,"Packed promoted javelin leaves the fitted hand")
@@ -337,7 +338,7 @@ func run():
     var promotion_mapping=actor.poses.down
     for fraction in [0.0,.39,.46,.52,.75,1.0]:
      actor.player.stop();actor.player.play(promotion_mapping.clip,0);actor.player.seek(lerpf(promotion_mapping.from,promotion_mapping.to,fraction),true,true);actor.player.pause();actor.refresh_skeleton()
-     assert(Vertices.minimum(actor,promotion_cache)-actor.global_position.y>.01,"Packaged rigid promoted plates retain their fitted floor support")
+     assert(Vertices.minimum(actor,promotion_cache)-actor.global_position.y>(-.0001 if actor is Rider else .01),"Packaged promoted bodies and mounted hooves retain their fitted floor support")
     await actor.pose("idle").finished
     var promotion_rig=actor.model.get_node("Rig/Armature/Skeleton3D");assert(promotion_rig.get_bone_pose_position(promotion_rig.find_bone("root")).is_equal_approx(Vector3.ZERO))
    actor.queue_free();await process_frame
@@ -357,5 +358,5 @@ func run():
  assert(app.preview_actor is Imported and app.preview_actor.get_meta("commander")=="vael","Packaged debug commander selector opens its own revised identity")
  app.close_model_view();app.debug_session.end(app.game)
  await Shutdown.dispose(app);await process_frame
- print("PASS: exported catalog, all three act scores, chapter scenes, sixteen promotion patterns, forty-two revised promotion outfits, licenses and credits")
+ print("PASS: exported catalog, all three act scores, chapter scenes, sixteen promotion patterns, all forty-eight revised promotion outfits, licenses and credits")
  quit()

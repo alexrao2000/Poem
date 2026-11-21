@@ -1430,7 +1430,11 @@
       "impact": 1.28,
       "finish": 1.65
     },
-    "mount": "Mount"
+    "mount": "Mount",
+    "supported_promotions": [
+      "outrider",
+      "iron_lancer"
+    ]
   },
   "rider_male": {
     "scene": "res://assets/models/quaternius/study_rider_male.tscn",
@@ -1520,6 +1524,10 @@
     "campaign_characters": [
       "bram",
       "elian"
+    ],
+    "supported_promotions": [
+      "outrider",
+      "iron_lancer"
     ]
   },
   "enemy_duelist": {

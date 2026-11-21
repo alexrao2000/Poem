@@ -1793,7 +1793,7 @@ func show_options(return_to: String):
 	for title in ["Current roster","Revised models · preview"]:model_mode.add_item(title)
 	model_mode.selected=["current","revised"].find(preferences.values.character_models);model_mode.disabled=debug_session.active;panel.add_child(model_mode)
 	model_mode.item_selected.connect(func(index):preferences.values.character_models=["current","revised"][index])
-	label_in(panel,"Revised models cover all 24 recruits, ordinary enemies, chapter commanders and seven classes’ promotions. Other promoted outfits and unknown equipment keep their current models. You can switch back at any time.",16)
+	label_in(panel,"Revised models cover all 24 recruits and their promotion paths, ordinary enemies and chapter commanders. Unknown equipment keeps its current models. You can switch back at any time.",16)
 	if debug_session.active:label_in(panel,"Debug tools has separate model switches for this sandbox. Leave Debug mode to change campaign presentation.",16)
 	for key in ["music","effects"]:
 		var row=HBoxContainer.new();row.add_theme_constant_override("separation",20);panel.add_child(row)

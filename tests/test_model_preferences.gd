@@ -37,7 +37,7 @@ func run():
   app.show_model_view(unit);await process_frame;assert(app.preview_actor is Imported and app.preview_actor.model.get_meta("character_identity")==id)
   app.close_model_view();await process_frame
   var promoted=unit.duplicate(true);promoted.promotion=app.game.promotions.filter(func(value):return value.base==unit.job)[0].id
-  actor=app.make_fighter(promoted,Vector3.ZERO);assert((actor is Imported if unit.job in ["Vanguard","Duelist","Ranger","Corsair","Knight","Arcanist","Warden"] else actor is Actor) and actor.get_meta("promotion_look")==promoted.promotion);actor.queue_free();await process_frame
+  actor=app.make_fighter(promoted,Vector3.ZERO);assert((actor is Imported if unit.job in ["Vanguard","Duelist","Ranger","Corsair","Knight","Arcanist","Warden","Rider"] else actor is Actor) and actor.get_meta("promotion_look")==promoted.promotion);actor.queue_free();await process_frame
  assert(app.game.save_data("camp")==original and app.fighters.models.catalog==catalog)
  app.game.start_battle();app.make_map();app.show_battle();app.busy=true
  app.stage.child_entered_tree.connect(func(node):
@@ -70,5 +70,5 @@ func run():
  plain=app.make_fighter(units[1],Vector3.ZERO);assert(plain is Actor);plain.queue_free();await process_frame
  assert(app.game.save_data("battle")==battle and FileAccess.get_file_as_string(app.save_path)==disk and app.fighters.models.catalog==catalog)
  await Shutdown.dispose(app);await process_frame
- print("PASS: old preference migration, enum validation/persistence, three-size UI, twenty-four real campaign model/preview/exchange selections, seven classes’ fitted promotions and other promotion fallback, inherited independent debug overrides, exact campaign/save/RNG isolation and default restoration")
+ print("PASS: old preference migration, enum validation/persistence, three-size UI, twenty-four real campaign model/preview/exchange selections, all eight classes’ fitted promotions, inherited independent debug overrides, exact campaign/save/RNG isolation and default restoration")
  quit()
