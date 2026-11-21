@@ -112,6 +112,7 @@ These recruits retain revised bodies after advanced training:
 | Mara, Dax, Hale | Stormbreaker / Trailguard | Layered shoulders, bracers and tabards |
 | Oren, Petra, Rook | Bastion / Sentinel | Armor, cloth and Bastion shield rim |
 | Tarin, Vela, Noor | Star Sage / Spellwarden | Articulated front stoles and original folios |
+| Ivo, Esme, Galen | Luminary / Wayfarer | Long stoles, split sashes and rigid belt pouch |
 
 
 The title screen's **Character & map workshop** runs a separate skirmish with the same animated sprite foundation over either 2D tiles or 3D terrain. It does not write campaign saves. See the [reusable sprite package](visuals/README.md) for its preview scene, controls, and integration contract.

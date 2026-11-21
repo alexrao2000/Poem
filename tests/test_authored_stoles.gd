@@ -1,6 +1,9 @@
 extends SceneTree
 # Sample both independently skinned pieces at their shared waist seam.
 const Models=preload("res://scripts/debug_source_models.gd")
+var study_ids=["caster","caster_female"]
+var character_ids=["tarin","vela","noor"]
+var promotion_ids=["star_sage","spellwarden"]
 func _initialize():call_deferred("run")
 func vertex_position(panel: MeshInstance3D,index: int,rig: Skeleton3D) -> Vector3:
  var arrays=panel.mesh.surface_get_arrays(0);var vertex=arrays[Mesh.ARRAY_VERTEX][index];var result=Vector3.ZERO
@@ -9,10 +12,10 @@ func vertex_position(panel: MeshInstance3D,index: int,rig: Skeleton3D) -> Vector
   result+=(rig.get_bone_global_pose(bone)*panel.skin.get_bind_pose(bind)*vertex)*arrays[Mesh.ARRAY_WEIGHTS][at]
  return rig.to_global(result)
 func run():
- var world=Node3D.new();root.add_child(world);var rules=load("res://scripts/rules.gd").new();var models=Models.new(["caster","caster_female"])
+ var world=Node3D.new();root.add_child(world);var rules=load("res://scripts/rules.gd").new();var models=Models.new(study_ids)
  var count=0;var gap=0.0
- for id in ["tarin","vela","noor"]:
-  for promotion in ["star_sage","spellwarden"]:
+ for id in character_ids:
+  for promotion in promotion_ids:
    var unit=rules.roster.filter(func(value):return value.id==id)[0].duplicate(true);unit.team="player";unit.promotion=promotion
    var actor=models.build(world,unit,Vector3(35,.65,0));assert(actor!=null);await process_frame;actor.set_process(false)
    var rig=actor.model.get_node("Rig/Armature/Skeleton3D");var waist=rig.get_bone_global_rest(rig.find_bone("pelvis")).origin.y+.075
@@ -40,5 +43,5 @@ func run():
       assert(distance<.0001,"The waist boundary remains joined during actual animation");count+=1
    actor.queue_free();await process_frame
  world.queue_free();await process_frame
- print("PASS: ",count," independently skinned stole seam samples across six outfits and nine living/falling actions; maximum gap ",gap," m")
+ print("PASS: ",count," independently skinned stole seam samples across ",character_ids.size()*promotion_ids.size()," outfits and nine living/falling actions; maximum gap ",gap," m")
  quit()

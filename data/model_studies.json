@@ -671,6 +671,10 @@
     "campaign_characters": [
       "ivo",
       "galen"
+    ],
+    "supported_promotions": [
+      "luminary",
+      "wayfarer"
     ]
   },
   "warden_female": {
@@ -757,7 +761,11 @@
     },
     "study_character": "esme",
     "study_label": "female Warden",
-    "study_title": "Warden \u00b7 Esme"
+    "study_title": "Warden \u00b7 Esme",
+    "supported_promotions": [
+      "luminary",
+      "wayfarer"
+    ]
   },
   "corsair_female": {
     "scene": "res://assets/models/quaternius/study_corsair_female.tscn",

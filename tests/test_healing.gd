@@ -8,13 +8,21 @@ const Impact=preload("res://scripts/combat_impact.gd")
 const HitStop=preload("res://scripts/combat_hit_stop.gd")
 const Imported=preload("res://scripts/imported_fighter.gd")
 var revised_models=false
+var healer_id="ivo"
+var promotion_id=""
+var staff_items=["field_staff"]
 var light_count=0
 var harmful_count=0
 
 func _initialize():call_deferred("run")
 
 func watch_effect(node):
- if node is Heal:light_count+=1
+ if node is Heal:
+  light_count+=1
+  await process_frame
+  if not is_instance_valid(node):return
+  var casters=node.get_parent().get_children().filter(func(actor):return (actor is Actor or actor is Imported) and actor.pose_name=="cast")
+  assert(casters.size()==1 and node.origin.distance_to(casters[0].socket_position("projectile"))<.001,"Actual healing leaves the equipped staff crown")
  if node is Impact or node is HitStop:harmful_count+=1
 
 func run():
@@ -46,13 +54,21 @@ func run():
   await motion.finished;await process_frame
   assert(reference.get_ref()==null,"Completed recovery releases all temporary geometry")
  world.queue_free();await process_frame
- var app=load("res://main.tscn").instantiate();app.settings_path="";app.save_path="/private/tmp/poem-healing-test.json";root.add_child(app);await process_frame
+ var app=load("res://main.tscn").instantiate();app.settings_path="";app.save_path="/private/tmp/poem-healing-"+healer_id+"-"+promotion_id+"-test.json";root.add_child(app);await process_frame
  app.preferences.values.auto_end=false;app.preferences.values.character_models="revised" if revised_models else "current"
+ if healer_id!="ivo":app.game.chapter=11
+ var healer_recruit=app.game.roster.filter(func(unit):return unit.id==healer_id)[0]
+ if not promotion_id.is_empty():
+  healer_recruit.level=10;assert(app.game.promote(healer_recruit,promotion_id))
+ if healer_id!="ivo":app.game.deployed.erase("ivo");app.game.deployed.append(healer_id)
+ var cast_index=0
+ app.select_score_theme()
  var score=app.score
  for mode in ["all","player","map","skip_windup","skip_light","growth"]:
   app.game.start_battle();app.make_map();app.show_battle();app.preferences.values.combat=mode if mode in ["all","player","map"] else "all"
   app.stage.child_entered_tree.connect(watch_effect)
-  var healer=app.game.units.filter(func(unit):return unit.id=="ivo")[0];var recipient=app.game.units[0]
+  var healer=app.game.units.filter(func(unit):return unit.id==healer_id)[0];var recipient=app.game.units[0]
+  healer.item=staff_items[cast_index%staff_items.size()];cast_index+=1
   healer.x=4;healer.y=4;healer.xp=0;recipient.x=4;recipient.y=5;recipient.hp=recipient.max_hp-6
   if mode=="player":recipient.job="Rider"
   if mode=="growth":healer.xp=90;healer.hp=healer.max_hp-3
@@ -75,7 +91,8 @@ func run():
     assert(hud.records.values().all(func(record):return not record.plate.enemy and not record.matchup.visible),"Healing shows two allied nameplates")
    var actors=app.stage.get_children().filter(func(node):return (node is Actor or node is Imported) and not node.is_queued_for_deletion())
    if app.stage.visible and actors.size()==2:
-    if revised_models:assert(actors[0] is Imported and actors[0].model.get_meta("character_identity")=="ivo","Real field healing honors the campaign appearance preference")
+    if revised_models:assert(actors[0] is Imported and actors[0].model.get_meta("character_identity")==healer_id,"Real field healing honors the campaign appearance preference")
+    if not promotion_id.is_empty():assert(actors[0].get_meta("promotion_look")==promotion_id,"Real field healing retains the selected advanced outfit")
     assert(actors[1].pose_name=="idle","Ally never recoils, dodges or falls during recovery")
     if mode=="skip_windup" and actors[0].pose_name=="cast_windup":app.skip_combat=true;did_skip=true
     if mode=="skip_light" and light_count>effect_count:app.skip_combat=true;did_skip=true

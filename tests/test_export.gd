@@ -291,11 +291,11 @@ func run():
   assert(rig.get_bone_pose_position(rig.find_bone("root")).is_equal_approx(Vector3.ZERO),"Packaged standing pose clears fitted fall support")
   actor.queue_free();await process_frame
  app.stage.show() # Geometry sampling skips meshes hidden by the preceding debug report.
- var fitted_promotions={"Vanguard":["standard_bearer","dawnblade"],"Duelist":["sword_dancer","oathkeeper"],"Ranger":["sharpshooter","pathfinder"],"Corsair":["stormbreaker","trailguard"],"Knight":["bastion","sentinel"],"Arcanist":["star_sage","spellwarden"]}
- for id in ["lyra","cassian","rhea","nell","silas","yuna","sera","ari","faye","mara","dax","hale","petra","oren","rook","tarin","vela","noor"]:
+ var fitted_promotions={"Vanguard":["standard_bearer","dawnblade"],"Duelist":["sword_dancer","oathkeeper"],"Ranger":["sharpshooter","pathfinder"],"Corsair":["stormbreaker","trailguard"],"Knight":["bastion","sentinel"],"Arcanist":["star_sage","spellwarden"],"Warden":["luminary","wayfarer"]}
+ for id in ["lyra","cassian","rhea","nell","silas","yuna","sera","ari","faye","mara","dax","hale","petra","oren","rook","tarin","vela","noor","ivo","esme","galen"]:
   var promotion_recruit=app.game.roster.filter(func(value):return value.id==id)[0]
   for promotion in fitted_promotions[promotion_recruit.job]:
-   var unit=promotion_recruit.duplicate(true);unit.team="player";unit.promotion=promotion;unit.item="longbow" if unit.weapon=="bow" else "war_hammer" if unit.weapon=="axe" else "javelin" if unit.weapon=="lance" else "thunder" if unit.weapon=="magic" else "estoc"
+   var unit=promotion_recruit.duplicate(true);unit.team="player";unit.promotion=promotion;unit.item="longbow" if unit.weapon=="bow" else "war_hammer" if unit.weapon=="axe" else "javelin" if unit.weapon=="lance" else "thunder" if unit.weapon=="magic" else "beacon_staff" if unit.weapon=="staff" else "estoc"
    var actor=app.make_fighter(unit,Vector3.ZERO)
    assert(actor is Imported and actor.get_meta("promotion_look")==promotion,"Packaged fitted promotions retain their costumes")
    var outfit=actor.model.get_node("Identity").promotion
@@ -307,6 +307,10 @@ func run():
    await actor.pose("windup",.02).finished;await actor.pose("strike",.02).finished
    if unit.weapon=="bow":
     var bow=actor.model.get_node("Rig/Armature/Skeleton3D/WeaponHand/Bow");assert(bow.projectile_spent and not bow.get_node("Weapon/NockedArrow").visible)
+   elif unit.weapon=="staff":
+    var promotion_staff=actor.model.get_node("Rig/Armature/Skeleton3D/WeaponHand/Staff");assert(promotion_staff.equipped=="beacon_staff")
+    await actor.pose("cast_windup",.02).finished;await actor.pose("cast",.02).finished
+    assert(actor.socket_position("projectile").distance_to(promotion_staff.get_node("Weapon").to_global(Vector3(0,.78,0)))<.001)
    elif unit.weapon=="magic":
     assert(actor.to_local(actor.socket_position("projectile")).z<-.5,"Promoted caster extends the free casting palm")
     assert(actor.model.get_node("Rig/Armature/Skeleton3D/BookHand/Folio").equipped=="thunder")
@@ -322,7 +326,7 @@ func run():
     await actor.pose("throw_windup",.02).finished;await actor.pose("throw",.02).finished
     assert(not actor.projectile_source().visible,"Packed promoted javelin leaves the fitted hand")
     await actor.pose("idle").finished
-   if unit.weapon in ["axe","lance","magic"]:
+   if unit.weapon in ["axe","lance","magic","staff"]:
     var promotion_identity=actor.model.get_node("Identity")
     actor.clear_aim();await actor.pose("down",.02).finished
     promotion_identity.hair_motion.update(0,"down",2)
@@ -353,5 +357,5 @@ func run():
  assert(app.preview_actor is Imported and app.preview_actor.get_meta("commander")=="vael","Packaged debug commander selector opens its own revised identity")
  app.close_model_view();app.debug_session.end(app.game)
  await Shutdown.dispose(app);await process_frame
- print("PASS: exported catalog, all three act scores, chapter scenes, sixteen promotion patterns, thirty-six revised promotion outfits, licenses and credits")
+ print("PASS: exported catalog, all three act scores, chapter scenes, sixteen promotion patterns, forty-two revised promotion outfits, licenses and credits")
  quit()
