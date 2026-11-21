@@ -765,7 +765,7 @@ func _input(event):
 		if event.keycode in [KEY_Q,KEY_E] and not event.echo:
 			cycle_ready_ally(-1 if event.keycode==KEY_Q else 1);get_viewport().set_input_as_handled();return
 	if is_instance_valid(reward_panel) and event is InputEventKey and event.pressed and event.keycode in [KEY_SPACE,KEY_ENTER,KEY_TAB]:
-		reward_skip=true;get_viewport().set_input_as_handled();return
+		reward_panel.request_continue();reward_skip=true;get_viewport().set_input_as_handled();return
 	if screen=="battle" and busy and event is InputEventKey and event.pressed and event.keycode==KEY_TAB:
 		if chapter_card_active:chapter_card_skip=true
 		elif phase_banner_active:phase_skip=true
@@ -1561,6 +1561,8 @@ func show_progress(before: Dictionary):
 		reward_skip=false
 		reward_panel=ProgressReward.new()
 		reward_panel.configure(ui,change,portraits.get_dialogue_portrait(change.unit.id),game.class_name_for(change.unit),game.MAX_LEVEL,profiles.get(change.unit.id,{}).get("growth_quote",""))
+		interface_audio.watch_navigation(reward_panel.close_button)
+		reward_panel.continue_requested.connect(func():interface_audio.cue("confirm"))
 		reward_panel.begin(func():play_sfx("levelup"))
 		var elapsed=0.0
 		while elapsed<(3.0 if reward_panel.leveled else .8) and not reward_skip and not reward_panel.requested_close:

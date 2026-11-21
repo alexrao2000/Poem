@@ -26,20 +26,38 @@ func run():
  var app=load("res://main.tscn").instantiate();app.settings_path="";app.save_path="/private/tmp/poem-test_progress-ui-save.json";root.add_child(app);await process_frame
  await verify_rewards(app)
  app.game.start_battle();app.make_map();app.show_battle();app.busy=true
- app.game.units[0].xp=90;before=app.game.progress_snapshot();app.game.award_xp(app.game.units[0],45)
- app.show_progress(before);await process_frame
- assert(is_instance_valid(app.reward_panel),"Growth panel is visible")
- assert(app.reward_panel.quote.text.contains(app.profiles[app.game.units[0].id].growth_quote),"Real progression uses the recruit’s authored reaction")
- await process_frame
- assert(app.reward_panel.get_global_rect().end.y<app.ui.size.y,"Growth fits viewport")
- app.reward_skip=true;await process_frame;await process_frame
- assert(not is_instance_valid(app.reward_panel),"Continue dismisses reward")
+ for mode in ["pointer","enter","space","muted_tab"]:
+  app.game.units[0].xp=90;before=app.game.progress_snapshot();app.game.award_xp(app.game.units[0],45)
+  var resolved=app.game.save_data("battle").duplicate(true);var rng=app.game.rng.state;var score=app.score
+  var audio=app.interface_audio;audio.player.stop();app.preferences.values.effects=0.0 if mode=="muted_tab" else 1.0;app.apply_audio_preferences()
+  app.show_progress(before);await process_frame;await process_frame
+  assert(is_instance_valid(app.reward_panel),"Growth panel is visible")
+  var panel=app.reward_panel;var continuations=[0]
+  panel.continue_requested.connect(func():continuations[0]+=1)
+  assert(panel.quote.text.contains(app.profiles[app.game.units[0].id].growth_quote),"Real progression uses the recruit’s authored reaction")
+  assert(panel.get_global_rect().end.y<app.ui.size.y,"Growth fits viewport")
+  while Time.get_ticks_msec()-audio.last_press<35:await process_frame
+  if mode=="pointer":
+   var point=panel.close_button.get_global_rect().get_center()
+   for pressed in [true,false]:
+    var event=InputEventMouseButton.new();event.button_index=MOUSE_BUTTON_LEFT;event.pressed=pressed;event.position=point;event.global_position=point;event.button_mask=MOUSE_BUTTON_MASK_LEFT if pressed else 0;root.push_input(event,true)
+  else:
+   var key={"enter":KEY_ENTER,"space":KEY_SPACE,"muted_tab":KEY_TAB}[mode]
+   for pressed in [true,false]:
+    var event=InputEventKey.new();event.keycode=key;event.pressed=pressed;root.push_input(event,true)
+  assert(panel.requested_close and panel.close_button.disabled,"Pointer and keyboard use the same accepted Continue request")
+  if mode=="muted_tab":assert(not audio.player.playing,"Muted Continue stays silent")
+  else:assert(audio.player.playing and audio.player.stream==audio.streams.confirm,"Accepted Continue plays the existing confirmation")
+  var press_time=audio.last_press;panel.request_continue();assert(continuations[0]==1 and audio.last_press==press_time)
+  await process_frame;await process_frame
+  assert(not is_instance_valid(app.reward_panel),"Continue dismisses reward")
+  assert(app.game.save_data("battle")==resolved and app.game.rng.state==rng and app.score==score and app.music.pitch_scale==1.0,"Feedback leaves resolved growth, RNG and score untouched")
  for enemy in app.game.living("enemy"):enemy.hp=0
  assert(await app.check_result(),"Victory creates chapter report")
  assert(app.screen=="result")
  var loaded=Rules.new();assert(loaded.load_game(app.save_path)=="battle" and loaded.result()=="victory","Victory is resumable before chapter continuation")
  await Shutdown.dispose(app);await process_frame
- print("PASS: XP rollover/caps, 144 roster reward layouts, sequential actual stat gains, cue timing, dismissal and resumable results")
+ print("PASS: XP rollover/caps, 144 roster reward layouts, sequential actual stat gains, cue timing, actual pointer/Enter/Space/Tab confirmation, mute/one-shot dismissal and resumable results")
  quit()
 
 func change_for(source,leveled):

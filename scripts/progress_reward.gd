@@ -9,6 +9,7 @@ const BLUE=Color("2b627f")
 const STATS=[["max_hp","HP"],["pow","Power"],["defense","Defense"],["resistance","Resistance"],["speed","Speed"]]
 var leveled=false
 var requested_close=false
+signal continue_requested
 var record: Dictionary
 var rows={}
 var meter: ProgressBar
@@ -80,12 +81,16 @@ func configure(parent: Control,change: Dictionary,portrait: Texture2D,job: Strin
  var focus=StyleBoxFlat.new();focus.bg_color=Color.TRANSPARENT;focus.border_color=Color("f4d489");focus.set_border_width_all(2)
  close_button.add_theme_stylebox_override("focus",focus)
  for state in ["font_color","font_hover_color","font_pressed_color","font_focus_color"]:close_button.add_theme_color_override(state,Color("f3efdf"))
- close_button.pressed.connect(func():requested_close=true);content.add_child(close_button)
+ close_button.pressed.connect(request_continue);content.add_child(close_button)
  label("Space / Enter",Vector2(x,378 if leveled else 116),Vector2(170,22),14,Color("56666b"))
  if leveled and not line.is_empty():
   quote=label("“"+line+"”",Vector2(22,320),Vector2(596,46),19,INK);quote.name="GrowthQuote"
   quote.autowrap_mode=TextServer.AUTOWRAP_WORD_SMART;quote.vertical_alignment=VERTICAL_ALIGNMENT_CENTER
  parent.resized.connect(arrange);arrange();entrance=0.0
+
+func request_continue():
+ if requested_close:return
+ requested_close=true;close_button.disabled=true;continue_requested.emit()
 
 func arrange():
  size=get_combined_minimum_size()
