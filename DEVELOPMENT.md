@@ -1,5 +1,7 @@
 # Poem development
 
+Deployment cards now show the actual next-deployment tonic supply: two normally and one during recovery. Locked recruits and memorials show no deployable stock. Camp help describes the 12 HP tonic effect and points to starting health/supplies. The company suite verifies all twelve recruit states, recovery expiry/toggle behavior, actual deployment agreement and card bounds at three sizes. Company, 567 menu layouts and experiments pass, followed by both local exports, packed-resource smoke and ZIP integrity. The registry remains 351; this is focused coverage, not a new complete run.
+
 Working title: **Poem**. The repository, application identifier, save folder and new transfer codes use Poem. Earlier transfer codes remain importable.
 
 Current status: **active after the user resumed development**. Keep building in this chat until asked to stop. Do not schedule work. Awakening/Fates-like presentation remains the priority alongside the existing full roster, campaign and independent experiments. Keep local builds; the authorized public remote is [alexrao2000/Poem](https://github.com/alexrao2000/Poem). No hosting deployment is requested.

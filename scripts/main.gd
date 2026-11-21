@@ -453,7 +453,7 @@ func show_camp():
 		label_in(briefing,"Section %d / 3 · Reset pressure %d / 10"%[int(game.chapter/4)+1,game.trials.pressure],18,GOLD)
 		button_in(briefing,"Campaign experiments & legacy supplies",show_campaign_trials)
 	label_in(briefing,game.info().get("tactical_brief",""),18,Color("6f6c5e"))
-	label_in(briefing,"Select up to six allies. Open a portrait to inspect equipment and support conversations. Wardens heal within staff range; everyone carries two field tonics.",16,Color("766e5e"))
+	label_in(briefing,"Select up to six allies. Open a portrait to inspect equipment and support conversations. Wardens heal within staff range; field tonics restore 12 HP. Cards show starting health and supplies.",16,Color("766e5e"))
 	label_in(left,"OBJECTIVE  /  "+objective_text(),18,GOLD)
 	label_in(left,"%s  ·  Available %d  ·  Deployed %d / 6"%["Permadeath ON" if game.permadeath else "Permadeath OFF",game.available().size(),game.deployed.size()],18)
 	button_in(left,"Deploy company  >",deploy_company,game.deployed.is_empty())

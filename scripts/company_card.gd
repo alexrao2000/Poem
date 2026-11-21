@@ -43,6 +43,10 @@ func configure(unit: Dictionary,class_title: String,portrait: Texture2D,weapon: 
  icon.custom_minimum_size=Vector2(20,20);gear.add_child(icon)
  var item=label_in(gear,weapon.name,12,Color("806537"));item.size_flags_horizontal=Control.SIZE_EXPAND_FILL
  item.tooltip_text=weapon.name
+ if available and not fallen:
+  var tonics=int(condition.get("tonics",2))
+  var supplies=label_in(info,"%d field tonic%s"%[tonics,"" if tonics==1 else "s"],12,Color("645e51"))
+  supplies.name="DeploymentSupplies";supplies.tooltip_text="Starting supplies on the next deployment. Each field tonic restores 12 HP."
  label_in(column,"Open portrait to remember" if fallen else "Support conversation ready" if support_ready else "Open portrait for dossier" if available else "The road will bring you together",12,Color("906b2e") if support_ready else Color("817b6b"))
  deploy_button=Button.new();deploy_button.text="Permanently lost" if fallen else "Remove" if deployed else "Add to company" if available else "Not yet recruited"
  deploy_button.custom_minimum_size.y=36;deploy_button.disabled=not available or (full and not deployed)
