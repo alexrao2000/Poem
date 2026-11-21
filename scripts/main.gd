@@ -863,11 +863,12 @@ func click_tile(p: Vector2i,unit_id=""):
 		if game.can_attack(selected,u):target=u;update_side();return
 		if game.can_heal(selected,u):
 			var before=game.progress_snapshot()
+			var bonds_before=game.supports.state.duplicate(true);var participant=selected.id
 			var old_hp=u.hp;var old_position=game.pos(u)
 			if game.heal(selected,u):
 				if not checkpoint_action():return
 				if game.pos(u)!=old_position:refresh_pieces()
-				busy=true;update_side();await staff_healing(selected,u,u.hp-old_hp,before);await show_progress(before);busy=false;finish_action();return
+				busy=true;update_side();await staff_healing(selected,u,u.hp-old_hp,before);await show_progress(before,bonds_before,participant);busy=false;finish_action();return
 		if game.DeathDoor.can_rescue(game,selected,u):show_triage(u);return
 	if u!=null and u.team=="player":
 		cancel_selection();selected=u;play_sfx("select");highlight();update_side();return
@@ -901,10 +902,11 @@ func player_attack():
 	var a=selected;var b=target
 	var initial_hp={a.id:a.hp,b.id:b.hp}
 	var before=game.progress_snapshot()
+	var bonds_before=game.supports.state.duplicate(true)
 	var events=game.combat(a,b)
 	if not checkpoint_action():return
 	await cinematic(a,b,events,initial_hp)
-	await show_progress(before)
+	await show_progress(before,bonds_before,a.id)
 	busy=false;finish_action()
 
 func finish_action():
@@ -938,6 +940,7 @@ func end_turn(resuming=false):
 		var initial_hp={e.id:e.hp}
 		if chosen!=null:initial_hp[chosen.id]=chosen.hp
 		var before=game.progress_snapshot()
+		var bonds_before=game.supports.state.duplicate(true)
 		var path=game.movement_path(e,choice.position)
 		var events=tactics.apply_plan(game,e,choice)
 		if not checkpoint_action():return
@@ -951,7 +954,7 @@ func end_turn(resuming=false):
 			await staff_healing(e,chosen,int(chosen.hp-initial_hp[chosen.id]),before)
 		elif chosen!=null and not events.is_empty():
 			await cinematic(e,chosen,events,initial_hp)
-			await show_progress(before)
+			await show_progress(before,bonds_before,chosen.id)
 		refresh_pieces()
 		if game.result()!="":break
 	if await check_result():busy=false;return
@@ -1560,8 +1563,22 @@ func close_model_view():
 	if return_action.is_valid():return_action.call()
 	else:show_dossier(preview_unit)
 
-func show_progress(before: Dictionary):
-	for change in game.progress_since(before):
+func show_progress(before: Dictionary,bonds_before=null,participant=""):
+	var changes=game.progress_since(before)
+	var bond={}
+	if bonds_before is Dictionary:
+		for gained in game.supports.gains_since(bonds_before):
+			var entry=game.supports.entry_for(gained.id)
+			if participant in gained.members and game.bond_available(entry):
+				bond=gained;bond.names=[]
+				for id in gained.members:bond.names.append(game.roster.filter(func(unit):return unit.id==id)[0].name)
+				bond.ready=game.supports.can_read(gained.id,game.chapter)
+	# At the level cap, cooperation can still advance even without experience.
+	if not bond.is_empty() and changes.is_empty() and before.has(participant):
+		var recruits=game.living("player").filter(func(unit):return unit.id==participant)
+		if not recruits.is_empty():changes.append({"unit":recruits[0],"xp_gain":0,"before":before[participant],"gains":{}})
+	for change in changes:
+		if not bond.is_empty() and change.unit.id==participant:change.bond=bond
 		reward_skip=false
 		reward_panel=ProgressReward.new()
 		reward_panel.configure(ui,change,portraits.get_dialogue_portrait(change.unit.id),game.class_name_for(change.unit),game.MAX_LEVEL,profiles.get(change.unit.id,{}).get("growth_quote",""))
@@ -2086,9 +2103,10 @@ func map_rescue_feedback(carrier: Dictionary,patient: Dictionary,field_patient: 
 func heal_carried_ally(patient: Dictionary):
 	if busy or selected==null or not action_save_ready():return
 	var healer=selected;var before=game.progress_snapshot();var old_hp=patient.hp
+	var bonds_before=game.supports.state.duplicate(true)
 	if not game.heal(healer,patient) or not checkpoint_action():return
 	busy=true;show_battle();refresh_pieces();update_side()
-	await staff_healing(healer,patient,int(patient.hp-old_hp),before);await show_progress(before)
+	await staff_healing(healer,patient,int(patient.hp-old_hp),before);await show_progress(before,bonds_before,healer.id)
 	busy=false;finish_action()
 
 func campaign_save_path() -> String:

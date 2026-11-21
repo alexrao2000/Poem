@@ -15,6 +15,14 @@ func for_unit(id: String) -> Array:
 func progress(id: String) -> Dictionary:
  return state.get(id,{"points":0,"rank":0,"chapter":-1,"earned":0,"turn":-1})
 
+func gains_since(before: Dictionary) -> Array:
+ var gains=[]
+ for entry in entries:
+  var record=progress(entry.id)
+  var gained=int(record.points)-int(before.get(entry.id,{}).get("points",0))
+  if gained>0:gains.append({"id":entry.id,"members":entry.members.duplicate(),"points":int(record.points),"gained":gained,"rank":int(record.rank)})
+ return gains
+
 func can_read(id: String,chapter: int) -> bool:
  var entry=entry_for(id);var record=progress(id);var rank=int(record.rank)
  return not entry.is_empty() and rank<3 and chapter>=int(entry.chapters[rank]) and record.points>=entry.points[rank]

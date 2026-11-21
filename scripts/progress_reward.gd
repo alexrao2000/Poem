@@ -7,6 +7,14 @@ const SCROLL=preload("res://assets/ui/river-scroll.svg")
 const INK=Color("334955")
 const BLUE=Color("2b627f")
 const STATS=[["max_hp","HP"],["pow","Power"],["defense","Defense"],["resistance","Resistance"],["speed","Speed"]]
+class BondPips extends Control:
+ var points=0
+ func _draw():
+  for index in range(6):
+   var center=Vector2(8+index*18,10)
+   var shape=PackedVector2Array([center+Vector2(0,-6),center+Vector2(6,0),center+Vector2(0,6),center+Vector2(-6,0)])
+   draw_colored_polygon(shape,Color("93607c") if index<points else Color("d1c3c2"))
+   shape.append(shape[0]);draw_polyline(shape,Color("78596b"),1.0,true)
 var leveled=false
 var requested_close=false
 signal continue_requested
@@ -70,7 +78,7 @@ func configure(parent: Control,change: Dictionary,portrait: Texture2D,job: Strin
  experience=label("",Vector2(x,y+17),Vector2(250,24),16)
  meter.value_changed.connect(func(value):experience.text="EXP  %02d / 100"%roundi(value))
  meter.value=change.before.xp;experience.text="EXP  %02d / 100"%int(change.before.xp)
- var earned=label("+%d XP"%change.xp_gain,Vector2(x+260,y+17),Vector2(width-260,24),16,BLUE);earned.horizontal_alignment=HORIZONTAL_ALIGNMENT_RIGHT
+ var earned=label("BOND +%d"%change.bond.gained if change.xp_gain==0 and change.has("bond") else "+%d XP"%change.xp_gain,Vector2(x+260,y+17),Vector2(width-260,24),16,BLUE);earned.horizontal_alignment=HORIZONTAL_ALIGNMENT_RIGHT
  close_button=Button.new();close_button.text="Continue";close_button.position=Vector2(x+width-120,374 if leveled else 112);close_button.size=Vector2(120,30);close_button.add_theme_font_size_override("font_size",16)
  var button_style=StyleBoxFlat.new();button_style.bg_color=Color("293f4d");button_style.border_color=Color("a69c7e");button_style.set_border_width_all(1)
  for state in ["normal","hover","pressed"]:
@@ -86,6 +94,13 @@ func configure(parent: Control,change: Dictionary,portrait: Texture2D,job: Strin
  if leveled and not line.is_empty():
   quote=label("“"+line+"”",Vector2(22,320),Vector2(596,46),19,INK);quote.name="GrowthQuote"
   quote.autowrap_mode=TextServer.AUTOWRAP_WORD_SMART;quote.vertical_alignment=VERTICAL_ALIGNMENT_CENTER
+ if change.has("bond"):
+  var bond=change.bond;var footer_y=content.custom_minimum_size.y
+  content.custom_minimum_size.y+=58
+  var rule=ColorRect.new();rule.color=Color("c5afaf");rule.position=Vector2(18,footer_y);rule.size=Vector2(content.custom_minimum_size.x-36,1);rule.mouse_filter=Control.MOUSE_FILTER_IGNORE;content.add_child(rule)
+  var title=label("%s · bond +%d"%[" & ".join(bond.names),bond.gained],Vector2(22,footer_y+5),Vector2(content.custom_minimum_size.x-170,24),17,Color("78516a"));title.name="BondNames"
+  var detail=label("Conversation ready at camp" if bond.ready else "%d / 6 bond points · Rank %s"%[bond.points,["—","C","B","A"][bond.rank]],Vector2(22,footer_y+29),Vector2(content.custom_minimum_size.x-44,22),14,INK);detail.name="BondReadiness"
+  var pips=BondPips.new();pips.name="BondProgress";pips.points=bond.points;pips.position=Vector2(content.custom_minimum_size.x-130,footer_y+7);pips.size=Vector2(112,22);pips.mouse_filter=Control.MOUSE_FILTER_IGNORE;content.add_child(pips)
  parent.resized.connect(arrange);arrange();entrance=0.0
 
 func request_continue():
