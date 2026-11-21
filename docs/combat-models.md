@@ -336,3 +336,11 @@ Outrider and Iron Lancer fit all three mounted recruits. Their original horses, 
 Each model builder retains a successfully loaded `PackedScene` for subsequent encounters and previews. It still instantiates fresh actors, clones their animation libraries and creates private identity, cloth and defeat materials. Supported-item validation and fallback run on every build. The cache dies with the builder; source resources remain resident for that lifetime. No live actor is pooled or carried between battles.
 
 A headless measurement through the running application compared seven builds each of Lyra, Tarin, Ivo and Bram, both unpromoted and with one promotion. Excluding the first sample, median actor construction fell from 135.69–186.13 ms to 8.29–19.39 ms. First-use loading still costs time. These CPU timings are local measurements, not browser FPS or rendered-transition approval.
+
+## Revised sword finishing gesture
+
+Supported revised sword users now make a brief blade lift before settling into the existing victory hold. A private `SwordFinishFlourish` clip drives a bounded, two-bone arm solve for 220 ms; the wrist rises about 10 cm and the blade tips upward. It applies only during a resolved finishing flourish, then disables itself for the quiet hold, attacks, reactions and travel. Source clips, bone lengths, grip and final victory pose remain unchanged.
+
+Equipment adapters may supply an `additional_poses()` dictionary for their generated private clips. Explicit catalog mappings take precedence, and the combined mappings pass the ordinary clip/interval validation. Other weapon families contribute no extra pose.
+
+Coverage includes 4,752 sampled poses across six sword recruits, their twelve promoted outfits, four blades and both headings (minimum weapon height 0.818 m above the actor floor; peak wrist lift 0.0982 m). The 7,776 camera layouts include all eighteen outfits and three viewport sizes. Ten actual exchanges cover six promoted victories, an enemy counter-kill, survival without a finish, and skipping the flourish or held pose. Four affected grip/estoc/adapter/original-finish suites pass. An eight-pose untextured software geometry study was inspected; assembled GPU appearance and timing remain outstanding.

@@ -57,6 +57,9 @@ func configure(scene: Node3D,spec: Dictionary) -> String:
   if constraint.has_method("refresh_attachments"):constraint.refresh_attachments()
  player.stop();player.autoplay="";player.speed_scale=1.0
  poses=spec.get("poses",{}).duplicate(true)
+ if spec.has("equipment"):
+  var equipment=model.get_node(NodePath(spec.equipment))
+  if equipment.has_method("additional_poses"):poses.merge(equipment.additional_poses(),false)
  for key in ["idle","advance","windup","strike","hit","evade","down"]:
   if not poses.has(key):return "Missing required pose: "+key
  for key in poses:

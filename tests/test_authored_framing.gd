@@ -4,6 +4,8 @@ var character_ids=["nell","silas","yuna"]
 var equipped_items=["tempered_sword"]
 var unit_team="player"
 var promotion_id=""
+var promotion_index=-1
+var finish_only=false
 func create_models():return load("res://scripts/debug_source_models.gd").new(study_ids)
 func _initialize():call_deferred("run")
 func run():
@@ -14,6 +16,7 @@ func run():
  for id in character_ids:
   for item in equipped_items:
    var unit=game.roster.filter(func(value):return value.id==id)[0].duplicate(true);unit.team=unit_team;unit.item=item;unit.promotion=promotion_id
+   if promotion_index>=0:unit.promotion=game.promotions.filter(func(value):return value.base==unit.job)[promotion_index].id
    var actor=models.build(world,unit,Vector3(35,0,0));await process_frame;actor.set_process(false);actor.player.pause()
    var spacing=actor.approach_spacing(unit.item)
    framing.configure(camera,[actor])
@@ -30,7 +33,8 @@ func run():
     for anchor in costume.anchors:pieces.append_array(anchor.find_children("*","MeshInstance3D",true,false))
    for side in [-1,1]:
     actor.rotation.y=-side*PI/2
-    for sample in [["idle","wide",3.2],["windup","windup",spacing],["strike","impact",spacing],["evade","impact",spacing],["victory","finish",spacing]]:
+    var samples=[["victory_flourish","finish",spacing]] if finish_only else [["idle","wide",3.2],["windup","windup",spacing],["strike","impact",spacing],["evade","impact",spacing],["victory","finish",spacing]]
+    for sample in samples:
      var mapping=actor.poses[sample[0]];var other=actor.position+Vector3(side*sample[2],0,0)
      for mounted in [false,true]:
       actor.aim_at(other+Vector3.UP*(1.85 if mounted else 1.1))

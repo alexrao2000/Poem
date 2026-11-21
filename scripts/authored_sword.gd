@@ -5,6 +5,7 @@ extends Node3D
 var equipped=""
 var grip_rotations={}
 var thrust_arm: SkeletonModifier3D
+var finish_arm: SkeletonModifier3D
 func equipment_kind() -> String:return "sword"
 func _init():configure_equipment(equipment_kind(),"")
 
@@ -29,6 +30,8 @@ func fit_handle():
  get_node("Weapon/WeaponGrip").scale=Vector3(handle_radius/.027,1,handle_radius/.027)
  if equipped=="estoc" and get_parent() is BoneAttachment3D and thrust_arm==null:
   thrust_arm=preload("res://scripts/estoc_hold.gd").new();thrust_arm.name="EstocArm";get_parent().get_parent().add_child(thrust_arm);thrust_arm.setup(get_parent().get_parent(),self)
+ if equipment_kind()=="sword" and get_parent() is BoneAttachment3D and finish_arm==null:
+  finish_arm=preload("res://scripts/sword_finish.gd").new();finish_arm.name="SwordFinish";get_parent().get_parent().add_child(finish_arm);finish_arm.setup(get_parent().get_parent(),self)
 
 func configure_animations(player: AnimationPlayer) -> String:
  fit_handle()
@@ -37,7 +40,11 @@ func configure_animations(player: AnimationPlayer) -> String:
  var result=preload("res://scripts/authored_hand_pose.gd").configure(player,rig,.2,.1,grip_rotations)
  if result.error.is_empty():grip_rotations=result.rotations
  if result.error.is_empty() and thrust_arm!=null:thrust_arm.configure_animations(player)
+ if result.error.is_empty() and finish_arm!=null:finish_arm.configure_animations(player)
  return result.error
+
+func additional_poses() -> Dictionary:
+ return {"victory_flourish":{"clip":"SwordFinishFlourish","from":0.0,"to":.2}} if finish_arm!=null else {}
 
 func handles_contact() -> bool:return thrust_arm!=null
 

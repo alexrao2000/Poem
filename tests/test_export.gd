@@ -302,6 +302,11 @@ func run():
    var look=load("res://scripts/promotion_costume.gd").looks[promotion]
    assert(outfit.panels.size()==((2 if look.has("tabard") else 0)+(4 if look.has("sash") else 0)+(6 if look.has("stole") else 0)))
    for panel in outfit.panels:assert(panel.skin.get_bind_count()==(6 if panel.get_meta("promotion_stole",false) else 5) and panel.material_override.next_pass!=null)
+   if unit.weapon=="sword":
+    assert(actor.poses.has("victory_flourish"),"Packed sword adapter contributes its private finishing clip")
+    var promotion_finish=actor.model.get_node("Rig/Armature/Skeleton3D/SwordFinish")
+    await actor.finish_flourish(.02).finished;assert(promotion_finish.active and is_zero_approx(promotion_finish.lift))
+    await actor.pose("victory",.02).finished;assert(not promotion_finish.active)
    var promotion_spacing=4.0 if unit.weapon=="bow" else actor.approach_spacing(unit.item)
    var target=Vector3(0,1.85,-promotion_spacing);actor.aim_at(target)
    await actor.pose("windup",.02).finished;await actor.pose("strike",.02).finished

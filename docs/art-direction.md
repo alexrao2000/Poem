@@ -818,3 +818,9 @@ A new original vector badge, `assets/ui/carrying.svg`, depicts an ally being sup
 The tactical zoom and radial transition now share the midpoint of the units’ actual map positions, including bridge and sanctuary heights. Previously the handoff aimed at height zero, below the raised figures. Flat-ground framing is unchanged. The return still begins from the captured close view and restores the player’s exact pan, zoom, lens and offsets.
 
 The expanded actual-exchange test first reproduced the old raised-focus failure. Verification covers bridge/ground and sanctuary/ground pairs, three viewport sizes, four facings, healing, defeats and skipping. Projection and state checks are separate from the outstanding rendered timing review.
+
+### Revised sword finishing punctuation
+
+The revised sword models now lift the blade briefly after a confirmed victory, then settle into their existing quiet hold. This adds a small finishing gesture to the source-body animation instead of cutting directly to a still pose. The existing personal line, survivor framing and defeated actor’s fade remain in place; Tab can interrupt either part.
+
+The private arm solve preserves the grip and source body motion. Dense pose, actual combat/skip and camera checks cover base and promoted sword outfits. The isolated software study shows the blade lift and final hold on both body rigs with a sword and estoc. It does not establish rendered animation quality.
