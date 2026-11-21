@@ -143,12 +143,18 @@ func arrive(game):
    names.append(unit.name)
  log_event("A new section begins. Relief columns reach the rally point: "+", ".join(names)+". The company carries its losses forward.")
 
-func buy(game,id: String) -> bool:
+func can_buy(game,id: String) -> bool:
  if not flags.death_legacies or not game.permadeath or id in purchases:return false
  for stock in LEGACY_STOCK:
-  if stock.id==id and losses.size()>=stock.losses and credits>=stock.cost and game.equipment.any(func(item):return item.id==id):
-   credits-=stock.cost;purchases.append(id);log_event("Legacy supplies secured: "+game.equipment.filter(func(item):return item.id==id)[0].name);return true
+  if stock.id==id and losses.size()>=stock.losses and credits>=stock.cost:
+   return game.equipment.any(func(item):return item.id==id and int(item.unlock)>game.chapter)
  return false
+
+func buy(game,id: String) -> bool:
+ if not can_buy(game,id):return false
+ var stock=LEGACY_STOCK.filter(func(entry):return entry.id==id)[0]
+ credits-=stock.cost;purchases.append(id);log_event("Legacy supplies secured: "+game.equipment.filter(func(item):return item.id==id)[0].name)
+ return true
 
 func to_data() -> Dictionary:
  return {"earned_scenes":earned_scenes.duplicate(),"read_scenes":read_scenes.duplicate(),"flags":flags.duplicate(),"pressure":pressure,"losses":losses.duplicate(),"injuries":injuries.duplicate(),"volunteers":volunteers.duplicate(),"purchases":purchases.duplicate(),"credits":credits,"events":events.duplicate(),"checkpoint":checkpoint.duplicate(true)}

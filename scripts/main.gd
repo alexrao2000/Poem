@@ -2211,9 +2211,11 @@ func show_campaign_trials():
 		for stock in game.trials.LEGACY_STOCK:
 			var item=game.equipment.filter(func(entry):return entry.id==stock.id)[0]
 			var bought=stock.id in game.trials.purchases
-			button_in(panel,("Secured · " if bought else "Secure · ")+item.name+" · %d credit(s), %d loss(es)"%[stock.cost,stock.losses],func():
+			var available=int(item.unlock)<=game.chapter
+			var title="Secured · "+item.name if bought else "Available in arsenal · "+item.name if available else "Secure · "+item.name+" · %d credit(s), %d loss(es)"%[stock.cost,stock.losses]
+			button_in(panel,title,func():
 				if game.trials.buy(game,stock.id):persist_campaign("camp");show_campaign_trials()
-			,bought or game.trials.credits<stock.cost or game.trials.losses.size()<stock.losses)
+			,not game.trials.can_buy(game,stock.id)).name="LegacyStock_"+stock.id
 	label_in(panel,"Company dispatches",24,GOLD)
 	if game.trials.events.is_empty():label_in(panel,"No experiment events yet. Change the rules in Options, or test them in Debug mode.",19)
 	for event in game.trials.events:label_in(panel,event,19)

@@ -11,6 +11,40 @@ func victory(game):
  for enemy in game.living("enemy"):enemy.hp=0
  if game.info().objective=="seize":game.units[0].x=game.objective_position().x;game.units[0].y=game.objective_position().y
  assert(game.result()=="victory");game.finish_chapter()
+func legacy_fixture(chapter: int):
+ var game=Rules.new();game.new_campaign(true);game.chapter=chapter;game.action_saves=true;game.trials.flags.death_legacies=true;game.start_battle()
+ for id in ["oren","sera","ivo"]:fall(game,id)
+ return game
+func legacy_stock():
+ var catalog=Rules.new()
+ for stock in catalog.trials.LEGACY_STOCK:
+  var item=catalog.equipment.filter(func(entry):return entry.id==stock.id)[0]
+  for chapter in [int(item.unlock)-1,int(item.unlock),11]:
+   var game=legacy_fixture(chapter);var before=game.save_data("battle").duplicate(true)
+   var early=chapter<int(item.unlock)
+   assert(game.trials.can_buy(game,stock.id)==early and game.save_data("battle")==before,"Purchase availability is read-only")
+   assert(game.trials.buy(game,stock.id)==early)
+   if early:
+    assert(game.trials.credits==3-stock.cost and game.trials.purchases==[stock.id] and not game.trials.can_buy(game,stock.id))
+    var saved=Rules.new();assert(saved.import_code(game.export_code("battle"))=="battle" and saved.trials.purchases==[stock.id])
+   else:
+    assert(game.save_data("battle")==before,"A redundant purchase changes no credit, event, inventory or RNG")
+    # Older builds allowed this transaction. Keep those existing records valid.
+    before.trials.purchases.append(stock.id);before.trials.credits-=stock.cost
+    var saved=Rules.new();assert(saved.restore_save(before)=="battle" and stock.id in saved.trials.purchases)
+ assert(not catalog.trials.can_buy(catalog,"unknown"))
+
+func legacy_stock_ui(app):
+ var original=app.game.save_data("battle").duplicate(true);var disk=FileAccess.get_file_as_string(app.save_path)
+ var fixture=legacy_fixture(5);assert(app.game.restore_save(fixture.save_data("battle"))=="battle")
+ app.show_campaign_trials();await inspect(app)
+ var before=app.game.save_data("battle").duplicate(true)
+ for stock in app.game.trials.LEGACY_STOCK:
+  var control=app.ui.find_child("LegacyStock_"+stock.id,true,false)
+  assert(control.disabled and control.text.begins_with("Available in arsenal · ") and not control.text.contains("credit"))
+  control.pressed.emit()
+ assert(app.game.save_data("battle")==before and FileAccess.get_file_as_string(app.save_path)==disk,"Disabled shop callbacks cannot consume credits or write a checkpoint")
+ assert(app.game.restore_save(original)=="battle");app.show_campaign_trials()
 func rules():
  for chapter in [2,5,11]:
   for permanent in [false,true]:
@@ -101,6 +135,11 @@ func inspect(app):
    if not clipped:assert(Rect2(Vector2.ZERO,dimensions).grow(1).encloses(node.get_global_rect()),"Experiment controls fit: "+app.screen)
 
 func run():
+ var redundant=Rules.new();redundant.new_campaign(true);redundant.chapter=5;redundant.trials.flags.death_legacies=true;redundant.start_battle()
+ for id in ["oren","sera","ivo"]:fall(redundant,id)
+ var before_stock=redundant.save_data("battle").duplicate(true)
+ assert(not redundant.trials.buy(redundant,"longbow") and redundant.save_data("battle")==before_stock,"Normally unlocked equipment cannot consume legacy credits without granting new access")
+ legacy_stock()
  rules()
  root.size=Vector2i(1440,900)
  var app=load("res://main.tscn").instantiate();app.settings_path="";app.save_path="/private/tmp/poem-trials-ui.json"
@@ -113,6 +152,7 @@ func run():
  var purchase=app.ui.find_children("*","Button",true,false).filter(func(b):return b.text.begins_with("Secure · Tempered"))
  assert(purchase.size()==1 and not purchase[0].disabled);purchase[0].pressed.emit()
  var loaded=Rules.new();assert(loaded.load_game(app.save_path)=="camp" and loaded.trials.credits==0 and "tempered_sword" in loaded.trials.purchases,"Actual legacy shop purchase saves the campaign ledger")
+ await legacy_stock_ui(app)
  app.make_map();app.show_battle();var before_retreat=app.game.save_data("battle").duplicate(true)
  app.show_battle_menu();await inspect(app)
  var preview=app.ui.find_child("RestartPreview",true,false)

@@ -554,6 +554,16 @@ func run():
  training_choice.select(2);training_choice.item_selected.emit(2)
  app.ui.find_child("StageRecruitEncounter",true,false).pressed.emit();await process_frame;await process_frame
  assert(app.screen=="battle" and app.selected.id=="galen" and app.selected.promotion=="wayfarer" and app.game.can_heal(app.selected,app.game.at(app.cursor_tile)),"Packed custom selector enters an actual promoted healing encounter")
+ app.game.permadeath=true;app.game.trials.flags.death_legacies=true
+ for unit in app.game.units:
+  if unit.id in ["oren","sera","ivo"]:unit.hp=0
+ app.game.commit_casualties();assert(app.game.trials.credits==3)
+ app.show_campaign_trials()
+ for stock in app.game.trials.LEGACY_STOCK:
+  assert(not app.game.trials.can_buy(app.game,stock.id) and not app.game.trials.buy(app.game,stock.id))
+  var stock_button=app.ui.find_child("LegacyStock_"+stock.id,true,false)
+  assert(stock_button.disabled and stock_button.text.begins_with("Available in arsenal · "),"Packed shop does not sell normally unlocked equipment for legacy credits")
+ assert(app.game.trials.credits==3)
  await Shutdown.dispose(app);await process_frame
  print("PASS: exported catalog, all three act scores, chapter scenes, sixteen promotion patterns, all forty-eight revised promotion outfits, licenses and credits")
  quit()
