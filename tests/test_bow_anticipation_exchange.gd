@@ -36,6 +36,7 @@ func observe(node):
   assert(folio.critical_prepared==(flights==0) and actor.player.assigned_animation==("CriticalSpellRelease" if flights==0 else "Spell_Simple_Shoot"))
   assert(node.origin.distance_to(actor.socket_position("projectile"))<.001,"Actual critical/ordinary spells launch from the fitted free palm")
  elif weapon_kind=="lance":
+  assert(actor.model.get_node("Identity").gaze.modifier.active,"Actual javelin releases keep looking toward the opponent")
   var grip=actor.model.get_node("Rig/Armature/Skeleton3D/WeaponHand/Grip");var spear=actor.projectile_source()
   assert(grip.critical_throw_prepared==(flights==0) and not grip.critical_prepared and not spear.visible,"Actual critical throws preserve ranged preparation and release the held spear")
   assert(actor.player.assigned_animation=="LanceThrow" and node.body.has_node("HeldSpear"))

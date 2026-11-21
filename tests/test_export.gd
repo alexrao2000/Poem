@@ -319,6 +319,8 @@ func run():
     await actor.pose("victory",.02).finished;assert(not promotion_finish.active)
    var promotion_spacing=4.0 if unit.weapon=="bow" else actor.approach_spacing(unit.item)
    var target=Vector3(0,1.85,-promotion_spacing);actor.aim_at(target)
+   var promotion_gaze_target=Marker3D.new();app.stage.add_child(promotion_gaze_target);promotion_gaze_target.position=Vector3(.5,2.4,-4)
+   if unit.weapon in ["staff","lance"]:actor.face_opponent(promotion_gaze_target)
    await actor.pose("windup",.02).finished;await actor.pose("strike",.02).finished
    if unit.weapon=="bow":
     var bow=actor.model.get_node("Rig/Armature/Skeleton3D/WeaponHand/Bow");assert(bow.projectile_spent and not bow.get_node("Weapon/NockedArrow").visible)
@@ -331,6 +333,7 @@ func run():
     var promotion_staff=actor.model.get_node("Rig/Armature/Skeleton3D/WeaponHand/Staff");assert(promotion_staff.equipped=="beacon_staff")
     await actor.pose("cast_windup",.02).finished;await actor.pose("cast",.02).finished
     assert(actor.socket_position("projectile").distance_to(promotion_staff.get_node("Weapon").to_global(Vector3(0,.78,0)))<.001)
+    assert(actor.model.get_node("Identity").gaze.modifier.active,"Packed healing keeps its recipient gaze")
    elif unit.weapon=="magic":
     assert(actor.to_local(actor.socket_position("projectile")).z<-.5,"Promoted caster extends the free casting palm")
     var promotion_folio=actor.model.get_node("Rig/Armature/Skeleton3D/BookHand/Folio")
@@ -371,6 +374,7 @@ func run():
     assert(actor.model.get_node("Rig/Armature/Skeleton3D/WeaponHand/Grip").critical_throw_prepared and actor.projectile_source().visible)
     await actor.pose("throw",.02).finished
     assert(not actor.projectile_source().visible and actor.projectile_source().global_transform.is_equal_approx(ordinary_launch),"Packed critical javelin returns to the ordinary release transform")
+    assert(actor.model.get_node("Identity").gaze.modifier.active,"Packed critical throwing keeps its opponent gaze")
     await actor.pose("idle").finished
     assert(not actor.model.get_node("Rig/Armature/Skeleton3D/WeaponHand/Grip").critical_throw_prepared)
    if unit.weapon in ["axe","lance","magic","staff"]:
@@ -387,7 +391,7 @@ func run():
      assert(Vertices.minimum(actor,promotion_cache)-actor.global_position.y>(-.0001 if actor is Rider else .01),"Packaged promoted bodies and mounted hooves retain their fitted floor support")
     await actor.pose("idle").finished
     var promotion_rig=actor.model.get_node("Rig/Armature/Skeleton3D");assert(promotion_rig.get_bone_pose_position(promotion_rig.find_bone("root")).is_equal_approx(Vector3.ZERO))
-   actor.queue_free();await process_frame
+   promotion_gaze_target.queue_free();actor.queue_free();await process_frame
  var commander_rules=load("res://scripts/rules.gd").new()
  for chapter in range(12):
   commander_rules.chapter=chapter;commander_rules.start_battle()
@@ -424,6 +428,14 @@ func run():
  assert(throw_choice.get_item_metadata(throw_choice.selected)=="critical_throw")
  var throw_target=app.ui.find_child("StudyTarget",true,false);throw_target.select(2);throw_target.item_selected.emit(2);await throw_actions.finished
  assert(app.preview_actor.model.get_node("Rig/Armature/Skeleton3D/WeaponHand/Grip").critical_throw_prepared and not app.preview_actor.projectile_source().visible and is_equal_approx(absf(app.preview_actor.get_node("StudyContactTarget").position.z),4.0),"Packaged critical-throw selection retains ranged target and releases the spear")
+ assert(app.preview_actor.model.get_node("Identity").gaze.modifier.active,"Packed target selector drives real throwing gaze")
+ app.close_model_view();app.show_source_model_view("warden_female","beacon_staff",true);await process_frame
+ var healing_choice=app.ui.find_child("PreviewAction",true,false);var healing_actions=app.stage.get_node("PreviewActionPlayer")
+ var healing_target=app.ui.find_child("StudyTarget",true,false);assert(healing_target!=null and healing_target.get_item_text(2)=="Target: mounted ally")
+ healing_target.select(2);healing_target.item_selected.emit(2);await healing_actions.finished
+ assert(healing_choice.get_item_metadata(healing_choice.selected)=="cast" and app.preview_actor.pose_name=="cast" and app.preview_actor.model.get_node("Identity").gaze.modifier.active,"Packed healing target plays the actual cast with recipient attention")
+ healing_target.select(0);healing_target.item_selected.emit(0);await healing_actions.finished
+ assert(not app.preview_actor.model.get_node("Identity").gaze.modifier.active,"Packed target clearing releases attention")
  app.close_model_view();app.show_source_model_view("caster_female","thunder",true);await process_frame
  var cast_choice=app.ui.find_child("PreviewAction",true,false);var cast_actions=app.stage.get_node("PreviewActionPlayer")
  for index in range(cast_choice.item_count):

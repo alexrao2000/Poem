@@ -2,7 +2,7 @@ extends Node
 # Bound the attention cone in actor space, then let Godot solve the head bone.
 # Actor-space limits avoid confusing the source rig's rotated neck rest axes
 # with anatomical yaw/pitch. Reactions retain their complete authored head pose.
-const TRACKING=["idle","advance","windup","critical_windup","strike","recover","guard"]
+const TRACKING=["idle","advance","windup","critical_windup","strike","recover","guard","throw_windup","critical_throw_windup","throw","critical_throw","throw_recover","cast_windup","cast"]
 const YAW=.45
 const PITCH=.32
 var model: Node3D

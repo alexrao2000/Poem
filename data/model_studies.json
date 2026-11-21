@@ -584,6 +584,7 @@
     ]
   },
   "warden": {
+    "aim_targets": true,
     "scene": "res://assets/models/quaternius/study_warden_male.tscn",
     "player": "Rig/AnimationPlayer",
     "yaw": 180,
@@ -678,6 +679,7 @@
     ]
   },
   "warden_female": {
+    "aim_targets": true,
     "scene": "res://assets/models/quaternius/study_warden_female.tscn",
     "player": "Rig/AnimationPlayer",
     "yaw": 180,
@@ -1984,6 +1986,7 @@
     "study_enemy_class": "Arcanist"
   },
   "enemy_warden": {
+    "aim_targets": true,
     "scene": "res://assets/models/quaternius/study_enemy_warden.tscn",
     "player": "Rig/AnimationPlayer",
     "yaw": 180,

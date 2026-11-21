@@ -1512,12 +1512,14 @@ func show_model_view(unit,on_close=Callable(),model_spec: Dictionary={}):
 	if not model_spec.is_empty() and (preview_actor.contact!=null or model_spec.get("aim_targets",false)):
 		var contact_target=preload("res://scripts/model_contact_target.gd").new();preview_actor.add_child(contact_target);contact_target.configure(preview_actor,preview_unit.get("item",""))
 		var target_choice=OptionButton.new();target_choice.name="StudyTarget";target_choice.custom_minimum_size.y=42
-		for label in ["Target: none","Target: standing foe","Target: mounted foe"]:target_choice.add_item(label)
+		for text in ["Target: none","Target: standing ally" if unit.weapon=="staff" else "Target: standing foe","Target: mounted ally" if unit.weapon=="staff" else "Target: mounted foe"]:target_choice.add_item(text)
 		panel.add_child(target_choice)
 		target_choice.item_selected.connect(func(index):
 			contact_target.choose(index)
 			var action=str(choice.get_item_metadata(choice.selected))
-			if not action.contains("throw") and action!="critical_strike":action="strike"
+			if unit.weapon=="staff":
+				if action not in ["cast","cast_windup"]:action="cast"
+			elif not action.contains("throw") and action!="critical_strike":action="strike"
 			for at in range(choice.item_count):
 				if choice.get_item_metadata(at)==action:choice.select(at);break
 			action_player.play(action))

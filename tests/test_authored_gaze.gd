@@ -72,7 +72,7 @@ func run():
  print("PASS: ",count," bounded native head-tracking cases across both rigs/directions/target heights, unchanged bone origins, normalized cached neck skin, unchanged source geometry, authored reactions/finishes, hit-stop, rear/invalid/freed targets and immediate teardown")
  quit()
 
-func skin_vertices(rig: Skeleton3D,mesh: MeshInstance3D,poses: Array) -> PackedVector3Array:
+static func skin_vertices(rig: Skeleton3D,mesh: MeshInstance3D,poses: Array) -> PackedVector3Array:
  var arrays=mesh.mesh.surface_get_arrays(0);var vertices=arrays[Mesh.ARRAY_VERTEX];var bones=arrays[Mesh.ARRAY_BONES];var weights=arrays[Mesh.ARRAY_WEIGHTS];var binds=[];var result=PackedVector3Array()
  for index in range(mesh.skin.get_bind_count()):binds.append(poses[rig.find_bone(mesh.skin.get_bind_name(index))]*mesh.skin.get_bind_pose(index))
  for index in range(vertices.size()):

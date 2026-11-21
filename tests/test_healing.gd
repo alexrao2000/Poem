@@ -23,6 +23,7 @@ func watch_effect(node):
   if not is_instance_valid(node):return
   var casters=node.get_parent().get_children().filter(func(actor):return (actor is Actor or actor is Imported) and actor.pose_name=="cast")
   assert(casters.size()==1 and node.origin.distance_to(casters[0].socket_position("projectile"))<.001,"Actual healing leaves the equipped staff crown")
+  if revised_models:assert(casters[0].model.get_node("Identity").gaze.modifier.active,"Actual revised healing keeps looking toward the recipient")
  if node is Impact or node is HitStop:harmful_count+=1
 
 func run():
