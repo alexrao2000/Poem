@@ -939,9 +939,11 @@ func end_turn(resuming=false):
 		if chosen!=null:initial_hp[chosen.id]=chosen.hp
 		var before=game.progress_snapshot()
 		var path=game.movement_path(e,choice.position)
-		await animate_map_move(e,path)
 		var events=tactics.apply_plan(game,e,choice)
 		if not checkpoint_action():return
+		# Keep the whole action durable before its first presentation await.
+		# Existing map figures retain pre-action health until feedback completes.
+		await animate_map_move(e,path)
 		if choice.action=="tonic" and e.hp>initial_hp[e.id]:
 			play_sfx("heal");await map_heal_feedback(e,e,int(e.hp-initial_hp[e.id]))
 		highlight();await get_tree().create_timer(.12).timeout

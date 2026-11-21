@@ -6,6 +6,8 @@ Development resumed on “go”. Continue in this chat until the user asks to st
 
 ### Current presentation
 
+Enemy actions now resolve and checkpoint before their map walk, matching player action saves. The first suspended walk frame already contains the committed movement, casualties, item use and random state, while map figures retain their pre-action appearance for the ensuing feedback. Five interrupted reload cases finish identically without replay; a failed checkpoint blocks animation and further actions until saving succeeds. Six affected suites pass: the new enemy-checkpoint regression, experiments, tactics, map exchange, action camera and phase announcements. Both local exports, packed-resource smoke and archive integrity pass. The registry now contains 348 suites; the full 346-suite baseline remains the last complete run.
+
 - The game has 24 recruits and twelve chapters, with independent permadeath, action-save, rescue, section-restart, reset-pressure, difficulty, death-legacy and sacrifice experiments.
 - **Options → Character models → Revised models · preview** selects the fitted skeletal bodies for all 24 recruits, their sixteen promotion paths and eight anonymous enemy families. Current models remain the default. This local preference is excluded from campaign transfers.
 - Revised Duelists and Vanguards now support a point-first estoc thrust on both bodies, with a fitted grip, upper-body preparation, recovery and narrow tip trail. Both enemy sword families support it too. This removes the last three ordinary campaign loadout fallbacks: all 77 nonboss enemies across twelve chapters have revised models. There are 31 enemy study equipment bindings.
