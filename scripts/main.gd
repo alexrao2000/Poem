@@ -1812,10 +1812,12 @@ func show_options(return_to: String):
 	options_return=return_to;screen="options";reset_ui()
 	if return_to=="title":title_backdrop()
 	var frame=menu_panel(800)
+	var sections=HBoxContainer.new();sections.name="OptionsSections";sections.add_theme_constant_override("separation",8);frame.add_child(sections)
 	var panel=scrolling_column(frame)
 	label_in(panel,"PLAYBACK & CONTROLS",17,GOLD)
 	label_in(panel,"Options",44,GOLD)
 	label_in(panel,"Presentation settings stay on this device. Permadeath is saved with the campaign.",19)
+	var campaign_heading=label_in(panel,"Campaign rules",21,GOLD)
 	var permanent=CheckButton.new();permanent.name="Permadeath";permanent.text="Permadeath";permanent.button_pressed=game.permadeath;panel.add_child(permanent)
 	permanent.toggled.connect(func(value):game.permadeath=value)
 	label_in(panel,"Turning this off keeps earlier losses. Use Debug tools to experiment with revival.",16)
@@ -1836,7 +1838,7 @@ func show_options(return_to: String):
 		var toggle=CheckButton.new();toggle.name=setting.key;toggle.text=setting.name;toggle.button_pressed=game.trials.flags[setting.key];panel.add_child(toggle)
 		toggle.toggled.connect(func(value):game.trials.flags[setting.key]=value)
 		label_in(panel,setting.text,16)
-	label_in(panel,"Battle presentation",21,GOLD)
+	var presentation_heading=label_in(panel,"Battle presentation",21,GOLD)
 	var mode=OptionButton.new();mode.name="CombatMode";mode.custom_minimum_size.y=42
 	for title in ["All 3D battles","3D for player attacks","Quick map battles"]:mode.add_item(title)
 	mode.selected=["all","player","map"].find(preferences.values.combat);panel.add_child(mode)
@@ -1848,6 +1850,7 @@ func show_options(return_to: String):
 	model_mode.item_selected.connect(func(index):preferences.values.character_models=["current","revised"][index])
 	label_in(panel,"Revised models cover all 24 recruits and their promotion paths, ordinary enemies and chapter commanders. Unknown equipment keeps its current models. You can switch back at any time.",16)
 	if debug_session.active:label_in(panel,"Debug tools has separate model switches for this sandbox. Leave Debug mode to change campaign presentation.",16)
+	var audio_heading=label_in(panel,"Audio",21,GOLD)
 	for key in ["music","effects"]:
 		var row=HBoxContainer.new();row.add_theme_constant_override("separation",20);panel.add_child(row)
 		var title=label_in(row,key.capitalize()+" volume",20);title.custom_minimum_size.x=180
@@ -1863,6 +1866,11 @@ func show_options(return_to: String):
 	speed.item_selected.connect(func(index):preferences.values.text_speed=[55,90,0][index])
 	var automatic=CheckButton.new();automatic.name="AutoEnd";automatic.text="End the phase when every ally has acted";automatic.button_pressed=preferences.values.auto_end;panel.add_child(automatic)
 	automatic.toggled.connect(func(value):preferences.values.auto_end=value)
+	for section in [{"title":"Presentation","heading":presentation_heading,"control":mode},{"title":"Audio","heading":audio_heading,"control":panel.find_child("MusicVolume",true,false)},{"title":"Campaign","heading":campaign_heading,"control":permanent}]:
+		var jump=button_in(sections,section.title,func():
+			section.control.grab_focus()
+			panel.get_parent().scroll_vertical=roundi(section.heading.position.y))
+		jump.name="OptionsSection_"+section.title;jump.size_flags_horizontal=Control.SIZE_EXPAND_FILL
 	button_in(frame,"Restore defaults",func():preferences.reset();apply_audio_preferences();show_options(options_return))
 	button_in(frame,"Apply and return",close_options)
 

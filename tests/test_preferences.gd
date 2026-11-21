@@ -2,6 +2,23 @@ extends SceneTree
 const Shutdown=preload("helpers/game_shutdown.gd")
 const Preferences=preload("res://scripts/preferences.gd")
 func _initialize():call_deferred("run")
+func verify_sections(app):
+ var snapshot=app.game.save_data("camp").duplicate(true);var settings=app.preferences.values.duplicate(true)
+ for dimensions in [Vector2(1024,640),Vector2(1280,720),Vector2(1440,900)]:
+  app.ui.set_anchors_and_offsets_preset(Control.PRESET_TOP_LEFT);app.ui.size=dimensions
+  await process_frame;await process_frame
+  var sections=app.ui.find_child("OptionsSections",true,false);var fixed=sections.get_global_rect()
+  assert(Rect2(Vector2.ZERO,dimensions).encloses(fixed))
+  for section in [{"title":"Presentation","control":"CombatMode"},{"title":"Audio","control":"MusicVolume"},{"title":"Campaign","control":"Permadeath"}]:
+   app.ui.find_child("OptionsSection_"+section.title,true,false).pressed.emit()
+   await process_frame;await process_frame
+   var control=app.ui.find_child(section.control,true,false);var scroll=control.get_parent()
+   while not scroll is ScrollContainer:scroll=scroll.get_parent()
+   if not control.has_focus() or not scroll.get_global_rect().grow(1).encloses(control.get_global_rect()):print("Section ",section.title," at ",dimensions," focused=",control.has_focus()," control=",control.get_global_rect()," scroll=",scroll.get_global_rect()," offset=",scroll.scroll_vertical)
+   assert(control.has_focus() and scroll.get_global_rect().grow(1).encloses(control.get_global_rect()),"Section shortcuts focus the corresponding visible setting")
+   assert(sections.get_global_rect()==fixed,"Options section shortcuts remain fixed while reading content scrolls")
+   for button in sections.get_children():assert(fixed.grow(1).encloses(button.get_global_rect()))
+ assert(app.game.save_data("camp")==snapshot and app.preferences.values==settings,"Section navigation changes no campaign state, RNG or setting")
 func run():
  var prefs=Preferences.new()
  assert(prefs.show_cinematic("player") and prefs.show_cinematic("enemy"),"Default retains full 3D combat")
@@ -14,6 +31,7 @@ func run():
  invalid.effects="loud";assert(not prefs.valid(invalid))
  var app=load("res://main.tscn").instantiate();app.settings_path="";app.save_path="/private/tmp/poem-preferences-campaign.json";root.add_child(app);await process_frame
  app.settings_path="/private/tmp/poem-preferences-ui.json";app.show_options("title");await process_frame;await process_frame
+ await verify_sections(app)
  var mode=app.ui.find_child("CombatMode",true,false);mode.selected=2;mode.item_selected.emit(2)
  var music=app.ui.find_child("MusicVolume",true,false);music.value=0
  assert(app.preferences.values.combat=="map" and app.music.volume_db==-80,"Menu updates playback and audio")
@@ -60,5 +78,5 @@ func run():
   for control in app.ui.find_children("*","Button",true,false):
    if control.text in ["Options","Save campaign","Transfer a local save","Return to title","Deploy company  >"]:assert(control.get_global_rect().end.y<=app.ui.size.y,"Camp controls fit all twelve chapters")
  await Shutdown.dispose(app);await process_frame
- print("PASS: local preferences, volume, cinematic modes, instant dialogue, persistence and unchanged combat simulation")
+ print("PASS: local preferences, fixed section navigation/focus at three sizes, volume, cinematic modes, instant dialogue, persistence and unchanged combat simulation")
  quit()
