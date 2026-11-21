@@ -16,6 +16,10 @@ func solve() -> Array[Quaternion]:
   var head_basis=rig.get_bone_global_pose(head).basis
   aim(torso,Basis(Vector3.UP,-.55*lance.throw_raise*(1-lance.throw_push) if not lance.recovering else 0.0)*rig.get_bone_global_pose(torso).basis)
   aim(head,head_basis)
+ elif lance.critical_prepared and lance.holding:
+  var head_basis=rig.get_bone_global_pose(head).basis
+  aim(torso,Basis(Vector3.UP,-.18*smoothstep(0,1,lance.lift)*(1-smoothstep(0,1,lance.thrust)))*rig.get_bone_global_pose(torso).basis)
+  aim(head,head_basis)
  chain=right_chain;super();chain=combined;return originals
 func target_pose() -> Transform3D:
  if lance.throwing:return throw_pose()
@@ -34,7 +38,8 @@ func target_pose() -> Transform3D:
  if absf(forward.dot(Vector3.UP))>.995:forward=Vector3.BACK
  var x=Vector3.UP.cross(forward).normalized();var basis=Basis(x,forward.cross(x),forward)
  var tip=lance.transform*lance.get_node("Weapon").transform*lance.get_node("Weapon/TrailTip").position
- var goal=destination-basis*tip-forward*.22*(1-lance.thrust)
+ var draw=.22+(.12*smoothstep(0,1,lance.lift) if lance.critical_prepared else 0.0)
+ var goal=destination-basis*tip-forward*draw*(1-lance.thrust)
  return clear_floor(Transform3D(carry_basis,carry).interpolate_with(Transform3D(basis,goal),smoothstep(0,1,lance.lift)))
 func throw_pose() -> Transform3D:
  var shoulder=rig.get_bone_global_pose(chain[2]).origin

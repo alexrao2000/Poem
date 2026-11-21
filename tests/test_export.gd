@@ -330,6 +330,12 @@ func run():
     var critical_axe_edge=actor.weapon_trail_points()
     assert(actor.player.assigned_animation=="AxeCriticalAttack" and Geometry3D.get_closest_point_to_segment(target,critical_axe_edge[0],critical_axe_edge[1]).distance_to(target)<.006,"Packed Corsair critical preparation retains its actual target")
    if unit.weapon=="lance":
+    await actor.pose("critical_windup",.02).finished
+    assert(actor.model.get_node("Rig/Armature/Skeleton3D/WeaponHand/Grip").critical_prepared)
+    await actor.pose("strike",.02).finished
+    assert(actor.sockets.trail_tip.global_position.distance_to(target)<.006,"Packed critical lance preparation preserves exact contact")
+    await actor.pose("recover",.02).finished
+    assert(not actor.model.get_node("Rig/Armature/Skeleton3D/WeaponHand/Grip").critical_prepared)
     if unit.job=="Knight":
      var promotion_shield=actor.model.get_node("Rig/Armature/Skeleton3D/KnightShield/Plate")
      var promotion_rim=promotion_shield.get_node("PromotionShieldRim" if promotion=="bastion" else "ShieldTrim")

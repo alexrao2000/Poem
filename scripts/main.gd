@@ -1490,7 +1490,7 @@ func show_model_view(unit,on_close=Callable(),model_spec: Dictionary={}):
 	var actions=[["Ready","idle"],["Attack preparation","windup"],["Critical preparation","critical_windup"],["Attack","strike"],["Recovery","recover"]]
 	if unit.weapon=="magic":actions=[["Ready","idle"],["Casting preparation","windup"],["Critical preparation","critical_windup"],["Cast","strike"],["Recovery","recover"]]
 	if unit.weapon=="staff":actions=[["Ready","idle"],["Healing preparation","cast_windup"],["Heal","cast"]]
-	if unit.weapon in ["sword","axe"] and (not preview_actor is ImportedFighter or preview_actor.poses.has("critical_strike")):actions.insert(4,["Critical attack","critical_strike"])
+	if unit.weapon in ["sword","axe","lance"] and (not preview_actor is ImportedFighter or preview_actor.poses.has("critical_strike")):actions.insert(4,["Critical attack","critical_strike"])
 	if unit.weapon=="lance" and unit.get("item","")=="javelin":actions.append_array([["Throw preparation","throw_windup"],["Throw","throw"],["Throw recovery","throw_recover"]])
 	actions.insert(1,["Run / trot","advance"])
 	actions.append_array([["Guard","guard"],["Hit reaction","hit"],["Critical reaction","critical_hit"],["Defeated","down"],["Finishing flourish","victory_flourish"],["Finish","victory"]])

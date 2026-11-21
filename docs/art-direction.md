@@ -837,3 +837,10 @@ The first nine-degree study was too subtle in an isolated geometry comparison; t
 Axe and hammer critical attacks now pull the upper body farther back before the hit: roughly nineteen degrees of turn with six degrees of backward lean. The ordinary attack keeps its existing preparation. Both reach the same final contact pose so the heavier anticipation does not shift the hit away from its target.
 
 The isolated comparison covers Mara and Dax in both promoted costumes with a great axe and war hammer. It shows the changed upper-body and weapon silhouette while the feet retain their source stance. This is an untextured geometry study; assembled rendering and motion timing remain unreviewed.
+
+
+### Revised lance critical preparation
+
+Critical lance attacks now draw the point back another 12 cm and turn the shoulders about ten degrees, then drive forward into the existing target. This is a tighter preparation than the sword/axe backswing and retains the Knight’s shield or Rider’s rein hand. Ordinary thrusts keep their previous motion.
+
+The isolated pose comparison covers promoted Petra and Bram with a light lance and Rider’s Bane. The difference is restrained: the weapon hand sits farther back while the feet or seated lower body retain support. Source geometry and camera projection checks do not replace the outstanding in-game animation review.

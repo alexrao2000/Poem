@@ -64,7 +64,12 @@ func configure_animations(player: AnimationPlayer) -> String:
  for pair in curves[gender]:death.track_insert_key(track,pair[0],Vector3(0,pair[1],0))
  preload("res://scripts/authored_fall_fit.gd").reset_other_clips(player)
  return ""
+func additional_poses() -> Dictionary:
+ return {"critical_windup":{"clip":"LanceWindup","from":0.0,"to":1.0},"critical_strike":{"clip":"LanceStrike","from":0.0,"to":1.0}}
+
 func combat_pose(key: String):
+ if key=="critical_windup":critical_prepared=true
+ elif key!="strike":critical_prepared=false
  fall=0
  recovering=key in ["recover","throw_recover"]
  if key!="recover":throwing=key in ["throw_windup","critical_throw_windup","throw","throw_recover"]
@@ -79,7 +84,9 @@ func release_projectile():get_node("Weapon").hide()
 func clear_aim():
  if arms!=null:arms.has_aim=false
 
-func animation_pose(key: String) -> String:return "throw_recover" if key=="recover" and throwing else key
+func animation_pose(key: String) -> String:
+ if key=="recover" and throwing:return "throw_recover"
+ return "critical_strike" if key=="strike" and critical_prepared else key
 
 func pose_finished(key: String):
  if key=="throw":release_projectile()
