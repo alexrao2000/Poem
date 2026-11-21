@@ -57,11 +57,11 @@ These controls apply to campaign battles; menus and the visual workshop have the
 | Pan the tactical map | Middle-button drag |
 | Reset the map view | Home |
 | Skip a chapter card, phase announcement, combat scene, or casualty card | Tab |
-| Play combat animation at double speed | Hold Shift |
+| Play combat animation at double speed | Hold Shift, or click **Fast ×2** to toggle |
 | Advance dialogue | Space / Enter |
 | Skip the current dialogue sequence | Escape |
 
-Click an enemy to inspect its stats and reach. The terrain card follows the pointer or keyboard cursor and shows movement costs and bonuses. Keyboard cursor movement keeps distant tiles in view; map zoom and pan are preserved when returning from combat. Chapter and casualty cards also accept a click to skip.
+Click an enemy to inspect its stats and reach. The terrain card follows the pointer or keyboard cursor and shows movement costs and bonuses. Keyboard cursor movement keeps distant tiles in view; map zoom and pan are preserved when returning from combat. Chapter and casualty cards also accept a click to skip. Full combat scenes have **Fast ×2** and **Skip** buttons between the health panels; speed toggles last only for that exchange and clear when the app loses focus.
 
 ## Campaign guide
 

@@ -909,3 +909,9 @@ Revised Arcanists briefly move the free casting arm outward and turn the wrist b
 The private animation changes only the free upper-arm and wrist rotation tracks. Its 240 ms interval is played by the existing 220 ms flourish. Keeping the copied clip’s full source duration preserves untouched interpolation exactly; the selected interval controls the short playback. Godot documents the relationship between animation endpoints, key placement and interpolation in [Animation.length](https://docs.godotengine.org/en/4.5/classes/class_animation.html#class-animation-property-length).
 
 Dense motion, source preservation, camera bounds, actual victories/skips and preview replay pass. The isolated eight-pose software comparison was inspected without game materials, lighting, shadows or audio. Rendered appearance and timing remain unreviewed.
+
+## Pointer playback controls
+
+Full combat scenes now place two compact controls in the gap between the health panels: **Fast ×2** toggles the presentation clock, and **Skip** requests the existing return transition once. Their 112×44 targets remain separate from both health panels and the bottom keyboard hint at all three supported sizes. Shift and Tab remain available. Pointer and keyboard speed ownership are separate: releasing Shift does not clear a latched pointer toggle, and application focus loss clears both. Completion and teardown restore the exact prior clock scale.
+
+Headless GUI input tests click the actual controls, including during melee and healing scenes, and check layout, mixed input, repeated skipping, focus loss, unchanged resolved campaign/RNG and exact map restoration. The existing faster-playback and nine phase-specific keyboard skips pass. Audio stream ownership and pitch remain unchanged. Browser interaction and rendered appearance remain unreviewed.

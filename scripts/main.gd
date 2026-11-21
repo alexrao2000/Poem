@@ -1013,6 +1013,7 @@ func cinematic(a,b,events,initial_hp={}):
 	var tactical_controls={}
 	for control in ui.get_children():tactical_controls[control]=control.visible;control.hide()
 	var playback=preload("res://scripts/combat_playback.gd").new();playback.configure(ui)
+	playback.skip_requested.connect(func():skip_combat=true)
 	var veil=CombatTransition.new();veil.configure(ui,func():return camera.unproject_position(focus))
 	veil.conceal()
 	var push=map_navigation.approach_combat(focus)
