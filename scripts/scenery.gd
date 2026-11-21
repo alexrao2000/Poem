@@ -56,6 +56,11 @@ func ground_material(tile: int) -> ShaderMaterial:
  var shader=preload("res://assets/shaders/ground.gdshader")
  var m=ShaderMaterial.new();m.shader=shader;m.set_shader_parameter("atlas_texture",atlas)
  m.set_shader_parameter("quadrant",Vector2((tile%2)*.5,(tile/2)*.5))
+ if tile in [0,2]:
+  m.set_shader_parameter("wang_enabled",true)
+  m.set_shader_parameter("natural_surface",0 if tile==0 else 1)
+  m.set_shader_parameter("wang_scale",float(atlas.get_width())/512.0)
+  m.set_shader_parameter("wang_texture",load("res://assets/art/terrain-wang.png"))
  materials[key]=m
  return m
 
@@ -293,7 +298,7 @@ func battle_landscape(parent,center,context={}):
  parent.set_meta("terrain",tile)
  var stone=theme in ["abbey","aqueduct","observatory","castle","engine","furnace"]
  var wooden_floor=theme=="harbor" or tile=="="
- var surface=3 if stone else 2 if tile=="h" else 1 if tile in ["p","o","+"] else 0
+ var surface=maxi(0,MapGround.surface_for(tile,theme))
  parent.set_meta("arena_surface",surface)
  ground(parent,center-Vector3(0,.06,0),Vector2(70,70),3 if stone else 0)
  if not wooden_floor:ground(parent,center,Vector2(24,6),surface)

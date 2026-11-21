@@ -858,3 +858,7 @@ The finer motion samples also exposed two ordinary-shot discontinuities: the dra
 Critical casts raise the free palm during the gathering effect, then lower it into the original forward release. The supporting folio stays in place. This gives the charge a distinct held gesture before the existing portrait cut-in while keeping spell departure consistent with the ordinary cast.
 
 The isolated Vela/Tarin comparison covers both promoted costumes and two folios. It shows the higher gathering hand and unchanged book support. Camera and attachment checks pass; assembled lighting, effects and timing still need visual review.
+
+## Shared map and arena ground
+
+Close-up grass and earth use the tactical map’s existing edge-matched terrain atlas, shared derivative-controlled mip sampling and physical texture scale. Standalone surfaces select their own grass/earth bank without a tactical weight texture. Stone and wood retain their existing paintings. Arena floor selection now follows the same terrain/chapter rules as the map, including cobblestone in abbey, aqueduct and castle scenes and earth on engine hills. This reuses original assets and adds no geometry; material bindings, atlas seams and batching are checked, while rendered appearance remains pending.

@@ -58,6 +58,8 @@ Arcanist critical gathering: a private free-arm variant raises the casting palm 
 
 Raised-map pointer alignment: hover routes and left clicks now intersect the nearest actual bridge/sanctuary surface instead of a flat ground plane. All 17,352 projected samples across twelve chapters, three sizes and three zooms pass, correcting 774 sampled edge slips. Actual hover, movement, cancellation, unit selection priority and off-board clearing pass. Six affected keyboard/camera/movement/terrain/handoff regressions pass. Both local exports, packaged raised-edge checks and archive integrity pass. Source and local packages are synchronized to both checkouts, with source pushed to both branches.
 
+Arena terrain continuity: standalone grass and dirt now use the same edge-matched atlas and physical texture scale as tactical maps. Close-up floors use the map terrain selector, preserving cobblestone in abbey/aqueduct/castle scenes and dirt on engine hills rather than replacing them with slate. Seventy-two raw/batched arena combinations verify material bindings and floor heights. The existing atlas seam, gutter and reproducibility tests pass. Four affected terrain/presentation/batching/contact suites, both local exports, packaged material checks and archive integrity pass. Source and local packages are synchronized to both checkouts, with source pushed to both branches. Rendered shader appearance still needs GPU review; no new artwork or geometry is added.
+
 ### Continue from here
 
 - Source branch: `codex/combat-presentation`; primary branch: `main`; authorized public remote: [alexrao2000/Poem](https://github.com/alexrao2000/Poem). Check both working trees before integrating and preserve unrelated changes/stashes.

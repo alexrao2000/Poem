@@ -30,6 +30,7 @@ func surface_geometry():
  parent.free()
 func run():
  surface_geometry()
+ verify_arena_ground()
  verify_ridges()
  verify_rocks()
  var game=Rules.new();var seen={}
@@ -231,3 +232,44 @@ func verify_rocks():
   assert(rock.mesh==forms.mesh(forms.variant_at(point)) and rock.position==point and rock.scale==Vector3(radius,radius*.6,radius*.8),"Map and arena rocks keep their existing placement, material scale and grounded attachment")
  assert(seen.size()==3,"Deterministic placement distributes all stone variants")
  stage.free()
+
+func verify_arena_ground():
+ var scenery=Scenery.new();var game=Rules.new();var count=0
+ for chapter in range(12):
+  game.chapter=chapter;var before=game.rng.state
+  var tactical=MapGround.material(game,scenery.atlas)
+  for tile in [0,2]:
+   var material=scenery.ground_material(tile)
+   assert(material==scenery.ground_material(tile),"Repeated arena terrain retains shared material identity")
+   assert(material.get_shader_parameter("wang_enabled")==true and material.get_shader_parameter("blend_edges")!=true,"Standalone natural surfaces use the varied atlas without sampling a missing tactical control map")
+   assert(material.get_shader_parameter("natural_surface")== (0 if tile==0 else 1),"Grass and dirt choose their own sixteen edge-matched paintings")
+   for parameter in ["wang_texture","wang_scale","atlas_texture"]:
+    assert(material.get_shader_parameter(parameter)==tactical.get_shader_parameter(parameter),"Map and close-up ground share painting and physical detail scale")
+  for tile in [1,3]:
+   assert(scenery.ground_material(tile).get_shader_parameter("wang_enabled")!=true,"Cobblestone, rock and slate retain their existing painting")
+  for symbol in [".","f","h","p","+","="]:
+   var arena=Node3D.new();root.add_child(arena);scenery.batching_enabled=false
+   scenery.battle_landscape(arena,Vector3(35,0,0),{"chapter":chapter,"environment":game.info().environment,"terrain":symbol})
+   var natural={};var geometry=[]
+   for node in arena.get_children():
+    if not node is MeshInstance3D or not node.mesh is PlaneMesh:continue
+    var paint=node.material_override
+    if paint is ShaderMaterial and paint.shader==tactical.shader and paint.get_shader_parameter("wang_enabled")==true:
+     var kind=paint.get_shader_parameter("natural_surface");natural[kind]=paint
+     assert(kind in [0,1] and (is_zero_approx(node.position.y) or is_equal_approx(node.position.y,-.06)),"Only intact ground sheets use standalone natural painting, without changing their floor height")
+     geometry.append(node.mesh.get_aabb().size)
+   var stone=game.info().environment in MapGround.STONE
+   var wood=symbol=="=" or game.info().environment=="harbor"
+   var expected=maxi(0,MapGround.surface_for(symbol,game.info().environment))
+   assert(arena.get_meta("arena_surface")==expected,"Combat retains the selected tactical tile's actual grass, earth or paving instead of replacing a whole chapter with slate")
+   assert(natural.has(0)==(not stone or (not wood and expected==0)),"Natural chapters retain varied grass around the fighting lane")
+   assert(natural.has(1)==(not wood and expected==2),"Hill combat retains varied dirt at the fighters' feet")
+   scenery.batcher.combine(arena)
+   for paint in natural.values():
+    var present=false
+    for node in arena.get_children():
+     if node is MeshInstance3D and node.get_meta("static_batch",false) and node.material_override==paint:present=true
+    assert(present,"Static batching preserves the actual arena ground binding")
+   count+=1;arena.free()
+  assert(game.rng.state==before,"Ground presentation consumes no campaign RNG")
+ print("PASS: %d raw/batched arena floors share tactical natural texture variety and scale while preserving stone, deck and water"%count)

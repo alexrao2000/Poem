@@ -6,6 +6,7 @@ shader_type spatial;
 uniform sampler2D atlas_texture : source_color, filter_linear_mipmap;
 uniform sampler2D wang_texture : source_color, filter_linear_mipmap, repeat_disable;
 uniform bool wang_enabled = false;
+uniform int natural_surface = 0;
 uniform float wang_scale = 2.44921875;
 uniform vec2 quadrant = vec2(0.0);
 uniform bool blend_edges = false;
@@ -59,6 +60,8 @@ void fragment() {
 				+ texture(atlas_texture, uv + vec2(0.0, 0.5)).rgb * weights.b
 				+ texture(atlas_texture, uv + vec2(0.5)).rgb * weights.a;
 		}
+	} else if (wang_enabled) {
+		paint = wang_paint(index, natural_surface, local_uv, dx, dy);
 	} else {
 		paint = texture(atlas_texture, uv + quadrant).rgb;
 	}

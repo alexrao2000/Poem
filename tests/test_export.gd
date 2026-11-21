@@ -34,6 +34,10 @@ func run():
  assert(app.map_catalog.enemy_errors.is_empty(),"Packaged enemy artwork validates")
  assert(app.fighters.enemy_looks.size()==8 and app.fighters.face_atlas.resource_path.ends_with("face-features-v2.png"),"Release includes the matching enemy profiles and current painted facial features")
  assert(app.fighters.EquipmentVisuals.profiles.size()==22 and app.fighters.EquipmentVisuals.profiles.war_hammer.shape=="hammer","Release includes every equipped item appearance")
+ for tile in [0,2]:
+  var terrain=app.scenery.ground_material(tile)
+  assert(terrain.get_shader_parameter("wang_enabled")==true and terrain.get_shader_parameter("natural_surface")== (0 if tile==0 else 1),"Packaged combat uses the same varied grass and dirt as the tactical map")
+  assert(terrain.get_shader_parameter("wang_texture")==wang,"Packaged standalone terrain binds the complete edge-matched atlas")
  assert(app.interface_audio.streams.size()==3 and app.interface_audio.streams.confirm.get_length()>.14,"Release includes the original interface cues")
  assert(app.travel_audio.streams.size()==6 and app.travel_audio.streams.hoof_wood.get_length()>.14,"Release includes all original terrain foot/hoof contacts")
  for element in ["ember","gale","thunder"]:assert(app.sfx_streams["impact_"+element].get_length()>.37,"Packaged spells include their elemental contact sound")
