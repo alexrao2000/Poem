@@ -14,6 +14,14 @@ The debug seed control accepts whole numbers from 0 through 2147483647. **Apply 
 
 **View experiment report** opens a read-only JSON record of the rules, seed, current random state, casualties, pressure and combatants. It includes a transfer code to restore the exact position in another debug session; **Copy restore code** copies that code by itself. Viewing or copying the report does not change the simulation. Reports stay local unless you choose to share them.
 
+## Complete combat scene starters
+
+In Debug tools, choose **Stage a combat encounter**. Eight starters cover sword, lance, bow, staff healing, axe, magic, duelist and mounted combat across village, river, abbey, harbor, mountain, observatory and furnace settings. The selected ally and marked target are already in range; press **Enter** to preview an attack and **Enter** again to confirm. Healing takes one Enter press. The initial tactical view stays clear of forecast portraits.
+
+Each starter replaces the temporary Debug campaign. It uses fresh recruits, ordinary growth to at least level 3 or the chapter’s one-based number, standard equipment and the selected combat seed. Permadeath and the campaign experiments are off; action saves are on in the separate Debug slot. Repeating a starter reproduces the same position and random stream. Hits, criticals and victories are not forced. The original campaign is restored when Debug is disabled.
+
+Model switches and combat-display preferences remain unchanged. Use the Debug character switches for revised models and **Options → Presentation → All 3D battles** for the full scene. Quick map mode stays available for comparison. The starters exercise the map zoom, chapter scenery, combat camera, health display, soundtrack transition and return through normal gameplay.
+
 ## Current rules
 
 | Switch | Behavior |

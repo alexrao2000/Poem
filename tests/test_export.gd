@@ -23,6 +23,11 @@ func run():
   assert(restored_formation.restore_save(formation_rules.save_data("battle"))=="battle" and restored_formation.living("enemy").size()==count+1)
   formation_rules.trials.flags.hard_campaign=false;formation_rules.start_battle()
   assert(formation_rules.living("enemy").size()==count,"Packed ordinary garrisons retain their original size")
+ var encounters=load("res://scripts/debug_encounters.gd")
+ assert(encounters.SCENES.size()==8)
+ for scene in encounters.SCENES:
+  var staged_rules=load("res://scripts/rules.gd").new()
+  assert(not encounters.start(staged_rules,scene.id,309).is_empty() and staged_rules.valid_save(staged_rules.save_data("battle")),"Packed encounter starters build complete valid playable positions")
  assert(load("res://scripts/casualty_card.gd").lines.size()==24,"Export includes all recruit casualty dialogue")
  for path in ["res://assets/fonts/OFL.txt","res://assets/audio/VSCO-LICENSE.txt","res://assets/audio/VSCO-CREDITS.txt"]:
   assert(FileAccess.file_exists(path) and FileAccess.get_file_as_string(path).length()>100,"Export includes font and instrument credits/licenses")

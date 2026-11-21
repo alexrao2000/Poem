@@ -819,7 +819,7 @@ func _unhandled_input(event):
 		get_viewport().set_input_as_handled();return
 	if screen=="music_room" and event is InputEventKey and event.pressed and not event.echo and event.keycode==KEY_ESCAPE:
 		interface_audio.cue("back");close_music_room();get_viewport().set_input_as_handled();return
-	if screen in ["debug_report","debug_experiments"] and event is InputEventKey and event.pressed and not event.echo and event.keycode==KEY_ESCAPE:
+	if screen in ["debug_report","debug_experiments","debug_encounters"] and event is InputEventKey and event.pressed and not event.echo and event.keycode==KEY_ESCAPE:
 		show_debug_tools(options_return);get_viewport().set_input_as_handled();return
 	if screen in ["triage","tile_units"] and event is InputEventKey and event.pressed and not event.echo and event.keycode==KEY_ESCAPE:
 		show_battle();get_viewport().set_input_as_handled();return
@@ -1973,6 +1973,7 @@ func show_debug_tools(return_to: String):
 	label_in(panel,"The same seed, rules and actions reproduce the same rolls. Clean resets reuse this seed; penalty retreats follow the campaign’s restart rules.",16)
 	button_in(panel,"View experiment report",show_debug_report)
 	button_in(panel,"Choose an experiment setup",show_debug_experiments)
+	button_in(panel,"Stage a combat encounter",show_debug_encounters)
 	var chapters=OptionButton.new();chapters.name="DebugChapter";chapters.custom_minimum_size.y=42
 	for index in range(game.content.chapters.size()):chapters.add_item("%02d · %s"%[index+1,game.content.chapters[index].title])
 	chapters.selected=game.chapter;panel.add_child(chapters)
@@ -2119,6 +2120,27 @@ func show_debug_experiments():
 				make_map();show_battle();persist_campaign("battle",true,"experiment:"+setup.id)
 		).name="StartExperiment_"+setup.id
 	button_in(frame,"Return to debug tools",func():show_debug_tools(options_return))
+
+func show_debug_encounters():
+	if not debug_session.active:return
+	screen="debug_encounters";reset_ui()
+	var frame=menu_panel(840);var panel=scrolling_column(frame)
+	label_in(panel,"DEBUG / COMBAT ENCOUNTERS",17,GOLD)
+	label_in(panel,"Try a complete combat scene",36,GOLD)
+	label_in(panel,"Each starter replaces the temporary debug campaign with a fresh company and a ready attack or healing action. Your original campaign stays preserved. Allies use normal level growth and the selected seed: %d."%debug_session.combat_seed,19)
+	label_in(panel,"For attacks, press Enter to preview the matchup, then Enter again to confirm. Healing takes one Enter press. Combat outcomes follow the ordinary rules; no hits or criticals are forced. Model and combat-display settings stay as you chose them.",17)
+	if preferences.values.combat=="map":label_in(panel,"Quick map battles is active. Choose All 3D battles in Options → Presentation to see the full scene.",17,GOLD).name="EncounterMapMode"
+	for scene in preload("res://scripts/debug_encounters.gd").SCENES:
+		button_in(panel,"Stage · "+scene.title,func():
+			var setup=debug_session.start_encounter(game,scene.id)
+			if setup.is_empty():show_notice("This encounter could not be prepared.");return
+			busy=false;origin=null;selected=null;target=null;make_map()
+			selected=game.units.filter(func(unit):return unit.id==setup.actor)[0]
+			var recipient=game.units.filter(func(unit):return unit.id==setup.target)[0]
+			cursor_tile=game.pos(recipient);cursor_visible=true
+			show_battle();persist_campaign("battle",true,"encounter:"+scene.id)
+		).name="StageEncounter_"+scene.id
+	button_in(frame,"Return to debug tools [Esc]",func():show_debug_tools(options_return))
 
 func show_campaign_trials():
 	screen="campaign_trials";reset_ui()
