@@ -3,6 +3,7 @@ const Card=preload("res://scripts/casualty_card.gd")
 const Rules=preload("res://scripts/rules.gd")
 const Shutdown=preload("helpers/game_shutdown.gd")
 var cards=0
+var sequence_done=false
 
 func _initialize():call_deferred("run")
 func watch(node):
@@ -52,6 +53,43 @@ func run():
   app.skip_combat=true;await app.present_casualties(events)
   assert(cards==before_cards+1,"Skipped exchanges cannot reintroduce casualty dialogue")
   app.busy=false
+ await verify_keyboard(app)
  await Shutdown.dispose(app);await process_frame
- print("PASS: 216 casualty portrait layouts, all roster outcome lines, lord/enemy fallbacks, skip cleanup and real quick/3D exchange isolation")
+ print("PASS: 216 casualty portrait layouts, all roster outcome lines, lord/enemy fallbacks, skip cleanup, real quick/3D exchange isolation and one-line Enter/Space continuation with held-key suppression")
  quit()
+
+func run_sequence(app,events):
+ await app.present_casualties(events);sequence_done=true
+
+func press(key,echo=false):
+ var event=InputEventKey.new();event.keycode=key;event.pressed=true;event.echo=echo;root.push_input(event,true)
+ var release=InputEventKey.new();release.keycode=key;release.pressed=false;root.push_input(release,true)
+
+func active_card(app):
+ var visible=app.ui.get_children().filter(func(node):return node is Card and node.visible and not node.is_queued_for_deletion())
+ return visible[0] if not visible.is_empty() else null
+
+func verify_keyboard(app):
+ app.game.new_campaign();app.game.death_door=true;app.game.start_battle()
+ var events=[]
+ for unit in [app.game.units[1],app.game.units[2]]:
+  unit.hp=0;app.game.DeathDoor.fall(app.game,unit);events.append({"target":unit.id,"remaining":0,"hit":true})
+ app.make_map();app.show_battle();app.busy=true;app.skip_combat=false
+ var snapshot=app.game.save_data("battle").duplicate(true)
+ run_sequence(app,events)
+ var previous_id=0
+ for key in [KEY_ENTER,KEY_SPACE]:
+  var card=active_card(app);var deadline=Time.get_ticks_msec()+2000
+  while card==null or card.get_instance_id()==previous_id:
+   assert(Time.get_ticks_msec()<deadline,"The next visible casualty line arrives without waiting for automatic dismissal")
+   await process_frame;card=active_card(app)
+  previous_id=card.get_instance_id()
+  press(key,true);await process_frame
+  assert(not card.dismissed and not sequence_done,"Held key does not skip a new casualty line")
+  press(key)
+  assert(card.dismissed and not app.skip_combat,"Fresh Enter/Space advances only the current casualty, preserving Tab's wider skip")
+  assert(app.game.save_data("battle")==snapshot,"Continuation cannot end the phase, select a unit or alter casualties")
+ while not sequence_done:await process_frame
+ await process_frame
+ assert(active_card(app)==null and app.game.save_data("battle")==snapshot)
+ app.busy=false

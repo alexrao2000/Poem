@@ -34,6 +34,10 @@ func run():
   assert(is_instance_valid(app.reward_panel),"Growth panel is visible")
   var panel=app.reward_panel;var continuations=[0]
   panel.continue_requested.connect(func():continuations[0]+=1)
+  var previous_press=audio.last_press
+  for repeated_key in [KEY_SPACE,KEY_ENTER,KEY_TAB]:
+   var repeated=InputEventKey.new();repeated.keycode=repeated_key;repeated.pressed=true;repeated.echo=true;root.push_input(repeated,true)
+  assert(not panel.requested_close and continuations[0]==0 and audio.last_press==previous_press,"Held keys cannot dismiss the next reward or replay confirmation")
   assert(panel.quote.text.contains(app.profiles[app.game.units[0].id].growth_quote),"Real progression uses the recruit’s authored reaction")
   assert(panel.get_global_rect().end.y<app.ui.size.y,"Growth fits viewport")
   while Time.get_ticks_msec()-audio.last_press<35:await process_frame

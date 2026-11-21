@@ -33,7 +33,7 @@ func configure(parent: Control,unit: Dictionary,portrait: Texture2D,mode: String
  # label otherwise retains its one-character-per-line minimum height.
  line.size=Vector2(minf(760,parent.size.x-370)-(158 if portrait!=null else 32),80);line.text=quote
  line.add_theme_font_size_override("font_size",24);line.add_theme_color_override("font_color",Color("343c49"));line.mouse_filter=Control.MOUSE_FILTER_IGNORE;add_child(line)
- prompt=Label.new();prompt.text="Click or Tab to skip";prompt.add_theme_font_size_override("font_size",14);prompt.add_theme_color_override("font_color",Color("736754"));prompt.mouse_filter=Control.MOUSE_FILTER_IGNORE;add_child(prompt)
+ prompt=Label.new();prompt.text="Click / Enter / Space: continue · Tab: skip";prompt.add_theme_font_size_override("font_size",14);prompt.add_theme_color_override("font_color",Color("736754"));prompt.mouse_filter=Control.MOUSE_FILTER_IGNORE;add_child(prompt)
  parent.resized.connect(arrange);arrange()
 
 func arrange():
@@ -50,6 +50,11 @@ func arrange():
 func _gui_input(event):
  if event is InputEventMouseButton and event.pressed and event.button_index==MOUSE_BUTTON_LEFT:
   dismissed=true;accept_event()
+
+func _input(event):
+ if not is_visible_in_tree() or not event is InputEventKey or not event.pressed or event.keycode not in [KEY_ENTER,KEY_SPACE]:return
+ if not event.echo:dismissed=true
+ get_viewport().set_input_as_handled()
 
 func play(cancelled: Callable):
  modulate.a=0

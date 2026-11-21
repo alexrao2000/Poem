@@ -765,7 +765,8 @@ func _input(event):
 		if event.keycode in [KEY_Q,KEY_E] and not event.echo:
 			cycle_ready_ally(-1 if event.keycode==KEY_Q else 1);get_viewport().set_input_as_handled();return
 	if is_instance_valid(reward_panel) and event is InputEventKey and event.pressed and event.keycode in [KEY_SPACE,KEY_ENTER,KEY_TAB]:
-		reward_panel.request_continue();reward_skip=true;get_viewport().set_input_as_handled();return
+		if not event.echo:reward_panel.request_continue();reward_skip=true
+		get_viewport().set_input_as_handled();return
 	if screen=="battle" and busy and event is InputEventKey and event.pressed and event.keycode==KEY_TAB:
 		if chapter_card_active:chapter_card_skip=true
 		elif phase_banner_active:phase_skip=true
