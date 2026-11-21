@@ -327,6 +327,7 @@ func run():
  enemy_model.queue_free();await process_frame
  app.ui.find_child("DebugEnemyModels",true,false).button_pressed=false
  app.show_debug_report();assert(JSON.parse_string(app.ui.find_child("DebugReport",true,false).text).debug,"Packaged debug reports contain the current experiment record")
+ assert(app.ui.find_child("DebugReportPosition",true,false).text.contains("Permadeath ") and app.ui.find_child("DebugReportSummary",true,false).text.contains("Pressure: %d"%app.game.trials.pressure),"Packed reports include the human-readable experiment summary")
  assert(app.game.trials.scenes.size()==10,"Release includes relief, retreat, volunteer and memorial story scenes")
  assert(app.persist_campaign("battle") and FileAccess.file_exists(app.save_path+".debug"),"Packaged debug actions save separately")
  app.debug_session.end(app.game);app.preferences.values.character_models="revised"

@@ -42,6 +42,7 @@ func run():
  session.end(game);assert(canonical(game.save_data("battle"))==canonical(original) and session.trace.entries.is_empty() and session.trace.baseline.is_empty())
  session.observe(game,"battle","inactive","written");assert(session.trace.entries.is_empty())
  await verify_app()
+ await verify_summary()
  print("PASS: bounded read-only Debug history for movement, rescue, recovery, permanent losses, legacy credit and RNG; actual checkpoint/save-failure/retry/import/report flows preserve the normal campaign")
  quit()
 
@@ -91,4 +92,47 @@ func verify_app():
  assert(FileAccess.get_file_as_string(app.save_path)==disk,"Debug actions never replace the normal save")
  app.show_options("battle");app.ui.find_child("DebugMode",true,false).button_pressed=false
  assert(canonical(app.game.save_data("battle"))==canonical(original) and trace.entries.is_empty() and FileAccess.get_file_as_string(app.save_path)==disk)
+ await Shutdown.dispose(app)
+
+func verify_summary():
+ var app=load("res://main.tscn").instantiate();app.settings_path="";app.save_path="/private/tmp/poem-debug-summary-%d.json"%Time.get_ticks_usec();root.add_child(app);await process_frame
+ app.game.story_seen=["opening_0"];app.show_camp();assert(app.persist_campaign("camp"))
+ var original=app.game.save_data("camp").duplicate(true);var normal_disk=FileAccess.get_file_as_string(app.save_path)
+ app.debug_session.begin(app.game,"camp")
+ var game=app.game;game.new_campaign(true);game.chapter=1;game.action_saves=true
+ for flag in ["death_legacies","sacrifice_cost","reset_pressure"]:game.trials.flags[flag]=true
+ game.trials.pressure=2;game.deployed=game.available().map(func(unit):return unit.id);game.start_battle()
+ var fallen=game.units.filter(func(unit):return unit.id=="oren")[0];fallen.hp=0;game.commit_casualties()
+ game.death_door=true
+ for id in ["sera","ivo"]:
+  var unit=game.units.filter(func(candidate):return candidate.id==id)[0];unit.hp=0;game.DeathDoor.fall(game,unit)
+ var carrier=game.units.filter(func(unit):return unit.id=="lyra")[0];var patient=game.units.filter(func(unit):return unit.id=="ivo")[0]
+ patient.x=carrier.x+1;patient.y=carrier.y;assert(game.DeathDoor.rescue(game,carrier,patient))
+ game.trials.injuries.mara=game.chapter+1
+ assert(game.valid_save(game.save_data("battle")) and app.persist_campaign("battle"))
+ var debug_disk=FileAccess.get_file_as_string(app.save_path+".debug");var preferences=app.preferences.values.duplicate(true)
+ for stage in ["battle","camp"]:
+  for permanent in [true,false]:
+   game.permadeath=permanent;app.options_return=stage
+   var state=game.save_data("battle").duplicate(true);var trace=app.debug_session.trace.report()
+   app.show_debug_report()
+   for dimensions in [Vector2(1024,640),Vector2(1280,720),Vector2(1440,900)]:
+    app.ui.set_anchors_and_offsets_preset(Control.PRESET_TOP_LEFT);app.ui.size=dimensions;await process_frame;await process_frame
+    var position=app.ui.find_child("DebugReportPosition",true,false);var summary=app.ui.find_child("DebugReportSummary",true,false);var report=app.ui.find_child("DebugReport",true,false)
+    assert(position.text.contains("Chapter 02") and position.text.contains("Permadeath "+("ON" if permanent else "OFF")))
+    assert(position.text.contains("War council") if stage=="camp" else position.text.contains("Turn 1 · Player phase"))
+    assert(summary.text.contains("Fallen: 1") and summary.text.contains("Recovering next: 1") and summary.text.contains("Pressure: 2") and summary.text.contains("Credits: 1"))
+    if stage=="battle":assert(summary.text.contains("Awaiting rescue: 1") and summary.text.contains("Carried: 1"),"A carried patient is not counted twice")
+    else:assert(not summary.text.contains("Awaiting rescue") and not summary.text.contains("Carried"),"Preparation does not report stale battle patients")
+    for control in [position,summary,report]+app.ui.find_children("*","Button",true,false):
+     assert(Rect2(Vector2.ZERO,dimensions).grow(1).encloses(control.get_global_rect()),"Report and fixed actions fit the viewport")
+     assert(control.size.x>=control.get_minimum_size().x and control.size.y>=control.get_minimum_size().y)
+    assert(position.get_global_rect().end.y<=summary.get_global_rect().position.y and summary.get_global_rect().end.y<=report.get_global_rect().position.y)
+    var displayed=JSON.parse_string(report.text);assert(displayed.report_version==2);displayed.erase("presentation")
+    assert(canonical(displayed)==canonical(app.debug_session.report(game,stage)),"Summary leaves copied JSON and restore data unchanged")
+   assert(game.save_data("battle")==state and app.debug_session.trace.report()==trace and app.preferences.values==preferences)
+   assert(FileAccess.get_file_as_string(app.save_path)==normal_disk and FileAccess.get_file_as_string(app.save_path+".debug")==debug_disk)
+ game.trials.flags.sacrifice_cost=false;app.show_debug_report()
+ assert(app.ui.find_child("DebugReportSummary",true,false).text.contains("Recovering next: 0"),"Stored injuries are inactive when the experiment is disabled")
+ assert(app.debug_session.end(game)=="camp" and game.save_data("camp")==original)
  await Shutdown.dispose(app)

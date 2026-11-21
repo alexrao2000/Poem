@@ -12,7 +12,7 @@ The debug seed control accepts whole numbers from 0 through 2147483647. **Apply 
 
 **Test selected ally falling** accepts only standing allies, so repeated testing cannot turn a permanent casualty back into a downed recruit. **Set rescue countdown** sets an uncarried downed ally to one or two remaining player-phase endings without advancing the turn or consuming RNG. Carried patients are paused and excluded. These actions use only the debug save slot.
 
-**View experiment report** opens a read-only JSON record of the rules, seed, current random state, casualties, pressure and combatants. It includes a transfer code to restore the exact position in another debug session; **Copy restore code** copies that code by itself. Viewing or copying the report does not change the simulation. Reports stay local unless you choose to share them.
+**View experiment report** shows the chapter, phase and permadeath toggle, followed by fallen allies, patients awaiting rescue, carried allies, next-deployment recovery, reset pressure and credits. Carried patients are counted separately from those awaiting rescue; camp omits stale battle patient counts. The detailed JSON below records the rules, seed, current random state, casualties, pressure and combatants. It includes a transfer code to restore the exact position in another debug session; **Copy restore code** copies that code by itself. Viewing or copying the report does not change the simulation. Reports stay local unless you choose to share them.
 
 ## Complete combat scene starters
 

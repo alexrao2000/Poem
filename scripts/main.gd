@@ -2071,10 +2071,20 @@ func show_debug_report():
 	screen="debug_report";reset_ui()
 	var panel=menu_panel(1040)
 	label_in(panel,"EXPERIMENT REPORT",18,GOLD);label_in(panel,"A reproducible battle record",36,GOLD)
+	var stage_name="battle" if options_return=="battle" else "camp"
+	var record=debug_session.report(game,stage_name)
+	var position="Turn %d · %s phase"%[game.turn,game.phase.capitalize()] if stage_name=="battle" else "War council"
+	label_in(panel,"Chapter %02d · %s · Permadeath %s"%[game.chapter+1,position,"ON" if game.permadeath else "OFF"],18,GOLD).name="DebugReportPosition"
+	var summary=["Fallen: %d"%game.lost_ids(stage_name=="battle").size()]
+	if stage_name=="battle":
+		summary.append("Awaiting rescue: %d"%game.units.filter(func(unit):return unit.team=="player" and game.DeathDoor.downed(unit) and unit.get("carried_by","").is_empty()).size())
+		summary.append("Carried: %d"%game.units.filter(func(unit):return unit.team=="player" and not unit.get("carried_by","").is_empty()).size())
+	summary.append("Recovering next: %d"%game.available().filter(func(unit):return game.trials.deployment_condition(game,unit).recovering).size())
+	summary.append("Pressure: %d"%game.trials.pressure);summary.append("Credits: %d"%game.trials.credits)
+	label_in(panel," · ".join(summary),16).name="DebugReportSummary"
 	label_in(panel,"Copy rules, casualties and the last 64 action changes, including RNG and save results. History lasts only for this Debug session; the restore code carries the current position.",19)
 	var report=TextEdit.new();report.name="DebugReport";report.editable=false;report.wrap_mode=TextEdit.LINE_WRAPPING_BOUNDARY
 	report.custom_minimum_size.y=160;report.size_flags_vertical=Control.SIZE_EXPAND_FILL;report.add_theme_font_size_override("font_size",14)
-	var record=debug_session.report(game,"battle" if options_return=="battle" else "camp")
 	record.presentation={"campaign_models":preferences.values.character_models,"revised_vanguard":debug_session.revised_vanguard,"revised_duelists":debug_session.revised_duelists,"revised_caster":debug_session.revised_caster,"revised_warden":debug_session.revised_warden,"revised_corsair":debug_session.revised_corsair,"revised_ranger":debug_session.revised_ranger,"revised_knight":debug_session.revised_knight,"revised_rider":debug_session.revised_rider,"revised_enemies":debug_session.revised_enemies}
 	report.text=JSON.stringify(record,"\t",false);panel.add_child(report)
 	var actions=HBoxContainer.new();actions.add_theme_constant_override("separation",12);panel.add_child(actions)
