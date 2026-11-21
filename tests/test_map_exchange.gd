@@ -18,6 +18,7 @@ var skip_arena=false
 var expected_facings={}
 var saw_facing=false
 var saw_entry_motion=false
+var expected_focus=Vector3.ZERO
 
 func _initialize():call_deferred("run")
 
@@ -37,8 +38,13 @@ func run():
  app=load("res://main.tscn").instantiate();app.settings_path="";app.save_path="/private/tmp/poem-map-exchange.json";root.add_child(app);await process_frame
  await verify_departures()
  var directions={"defeat":[Vector2i.RIGHT,"east","west"],"counter":[Vector2i.UP,"north","south"],"survive":[Vector2i.LEFT,"west","east"],"heal":[Vector2i.DOWN,"south","north"],"skip":[Vector2i.RIGHT,"east","west"]}
+ var origins={"defeat":Vector2i(6,4),"counter":Vector2i(3,4),"survive":Vector2i(8,4),"heal":Vector2i(10,6),"skip":Vector2i(8,4)}
+ var dimensions=[Vector2i(1024,640),Vector2i(1280,720),Vector2i(1440,900)]
+ var case_index=0
  for case in ["defeat","counter","survive","heal","skip"]:
+  root.size=dimensions[case_index%dimensions.size()];case_index+=1;await process_frame
   var pair=setup();var a=pair[0];var b=pair[1];mode="arena";app.busy=true;app.preferences.values.combat="all"
+  a.x=origins[case].x;a.y=origins[case].y
   b.x=a.x+directions[case][0].x;b.y=a.y+directions[case][0].y;app.refresh_pieces()
   lost_id="";skip_arena=case=="skip";var initial={a.id:a.hp,b.id:b.hp};var events=[]
   if case=="heal":
@@ -49,10 +55,15 @@ func run():
    var damage=3 if case=="survive" else target.hp;target.hp-=damage
    lost_id=target.id if target.hp==0 else ""
    events=[{"actor":attacker.id,"target":target.id,"damage":damage,"remaining":target.hp,"hit":true,"crit":false}]
+  expected_focus=(app.unit_nodes[a.id].position+app.unit_nodes[b.id].position)*.5
+  assert(is_equal_approx(expected_focus.y,0.0 if case=="skip" else .05 if case in ["counter","heal"] else .04),"Actual map pair spans the expected flat/bridge/sanctuary heights")
+  app.camera.position+=Vector3(2,0,-1);app.camera.size=12;app.camera.h_offset=.3;app.camera.v_offset=-.2
+  var tactical_view=app.map_navigation.capture_view()
   expected_facings={a.id:directions[case][1],b.id:directions[case][2]}
   var saved=app.game.save_data("battle").duplicate(true);var rng=app.game.rng.state
   await app.cinematic(a,b,events,initial)
   assert(saw_return and saw_facing and saw_entry_motion,"Field departure, moving arena reveal and return were observed for "+case)
+  assert(app.map_navigation.capture_view()==tactical_view,"Actual combat restores the complete panned/offset tactical view")
   assert(app.game.save_data("battle")==saved and app.game.rng.state==rng,"Field synchronization only presents resolved outcomes")
   app.busy=false
  for case in ["enemy_kill","enemy_counter"]:
@@ -68,12 +79,17 @@ func run():
   assert(not app.unit_nodes.has(lost_id),"Defeated map figure disappears after feedback")
   if case=="enemy_counter":assert(saw_reward,"Counterattack XP begins after field synchronization")
  mode="";await Shutdown.dispose(app);await process_frame
- print("PASS: five moving arena reveals/returns (defeat/counter/survival/heal/skip), actual enemy kill/counter map reactions, 25 coordinated sprite exits and teardown, updated health before XP, and unchanged resolved state")
+ print("PASS: five raised/flat map handoffs at three sizes with exact view restoration and moving arena reveals/returns (defeat/counter/survival/heal/skip), actual enemy kill/counter map reactions, 25 coordinated sprite exits and teardown, updated health before XP, and unchanged resolved state")
  quit()
 
 func watch_return():
  if mode!="arena":return
  if not app.pieces.visible:
+  var center=app.camera.get_viewport().get_visible_rect().size*.5
+  var projected=app.camera.unproject_position(expected_focus)
+  assert(projected.distance_to(center)<.01,"Zoom centers the actual raised map pair, including bridge/sanctuary heights")
+  var veil=app.ui.get_node("CombatTransition")
+  assert(veil.focal_source.is_valid() and veil.focal_source.call().distance_to(projected)<.01,"Transition streaks share the projected map-pair focus")
   for id in expected_facings:
    assert(app.unit_nodes[id].player.facing==expected_facings[id] and app.map_facings[id]==expected_facings[id],"Both map figures face the exchange before the arena handoff")
   saw_facing=true;return

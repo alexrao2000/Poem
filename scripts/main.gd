@@ -1007,7 +1007,7 @@ func cinematic(a,b,events,initial_hp={}):
 			visual.face_toward(game.pos(pair[1]),game.pos(pair[0]));map_facings[pair[0].id]=visual.player.facing
 	skip_combat=false;music_mix(true)
 	var tactical_view=map_navigation.capture_view()
-	var focus=Vector3((a.x+b.x)*.5,0,(a.y+b.y)*.5)
+	var focus=(map_position(game.pos(a))+map_position(game.pos(b)))*.5
 	markers.hide()
 	var tactical_controls={}
 	for control in ui.get_children():tactical_controls[control]=control.visible;control.hide()

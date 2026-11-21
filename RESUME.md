@@ -40,6 +40,8 @@ Warden fitting passes six outfits, 3,078 dense falls (minimum rigid/body clearan
 
 Rider fitting passes six mounted outfits, 7,740 seated poses, 4,626 gait samples and 7,776 camera layouts. Promoted cloth and plates clear the horse torso/neck; stirrup/rein contacts, whole-outfit floor fit, native/direct constraint agreement and private defeat materials pass. Thirty actual promoted attacks (24 melee contacts and six javelin flights), ordinary training previews and eight affected regressions pass. Both local exports, all forty-eight packed revised outfits and archive integrity pass. Source and local packages are synchronized to both branches/checkouts.
 
+Raised-terrain handoff: tactical zoom and transition streaks now use the actual bridge/sanctuary height of the engaged pair. The expanded exchange check reproduced the old failure and now passes five actual handoffs at three sizes, all four facings, healing/defeat/skip, exact panned view restoration and unchanged campaign/RNG state. Map camera and accelerated/skip playback regressions pass. Both local exports, the external packed-resource check and archive integrity pass. Source and local packages are synchronized to both branches/checkouts. Next, measure retained model-scene loading to reduce repeated construction cost; do not infer browser frame rate from headless CPU timings.
+
 ### Continue from here
 
 - Source branch: `codex/combat-presentation`; primary branch: `main`; authorized public remote: [alexrao2000/Poem](https://github.com/alexrao2000/Poem). Check both working trees before integrating and preserve unrelated changes/stashes.

@@ -812,3 +812,9 @@ The initial wrapped label inherited an oversized minimum height before it had a 
 Rescue and drop use short map transfers rather than an arena cutaway. The patient travels between the two adjacent positions over 280 ms while their figure, health bar, countdown and private shadow fade together. A small gold RESCUED / SET DOWN cue clears within 480 ms; Tab skips the sequence. The existing action camera frames both positions, with narrow/wide viewport and sidebar-clearance checks. Saving precedes presentation.
 
 A new original vector badge, `assets/ui/carrying.svg`, depicts an ally being supported beside the existing medical cross. It remains above a carrier, participates in unit picking, and clears after dropping or releasing the patient. It does not display a countdown because carrying pauses bleeding. Runtime tests cover actual rescue/drop, skipping, unchanged resolved state, private opacity ownership and exported resources. Assembled visual review remains outstanding.
+
+### Raised terrain in the combat zoom
+
+The tactical zoom and radial transition now share the midpoint of the units’ actual map positions, including bridge and sanctuary heights. Previously the handoff aimed at height zero, below the raised figures. Flat-ground framing is unchanged. The return still begins from the captured close view and restores the player’s exact pan, zoom, lens and offsets.
+
+The expanded actual-exchange test first reproduced the old raised-focus failure. Verification covers bridge/ground and sanctuary/ground pairs, three viewport sizes, four facings, healing, defeats and skipping. Projection and state checks are separate from the outstanding rendered timing review.
