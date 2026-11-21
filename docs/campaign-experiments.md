@@ -77,6 +77,20 @@ With section restarts and permadeath enabled, the route map marks reached sectio
 
 Before retreating, the battle menu and defeat screen show the destination chapter, next pressure level, enemy bonuses, held tonics and raider preparation. The preview includes section rewinds and caps pressure at 10. Viewing it does not advance pressure, consume RNG or change the save.
 
+## Matched experiment comparison
+
+Run the bounded nine-configuration comparison with the project’s Godot binary:
+
+```sh
+GODOT_BIN=godot python3 scripts/benchmark_experiments.py
+```
+
+The driver records 45 runs (nine configurations × five matching seeds), including failed campaigns, in `build/review/matched-experiments.json`. Use `--output path/to/result.json` for a separate record. It captures the source revision, whether the checkout was dirty, rules-file hashes and engine output. Script failures stop the run; a campaign losing within its two-retry limit is retained as a valid result. No player saves are accessed.
+
+At source `338e125b4584d1198818eec8b66c5b26055f6bd3`, ordinary recovery, Hard recovery, Hard recovery with sacrifice costs and Hard permadeath with death’s door each completed all five seeds. Hard permadeath alone, with legacies, with section relief, with reset pressure, and with all three each completed four. Death’s door reduced the completed-campaign median permanent losses from 19.5 to 1, but one seed still ended with 23 losses. These small deterministic samples do not establish human win rates or fair difficulty.
+
+All 48 chapter outcomes, turn counts and terminal-fall lists for the four matching seed-472019 runs agree with the separate actual app campaigns. The comparison itself runs only Rules and the existing tactical planner: default equipment, earned promotions/supports, no carrying strategy and no disk/UI verification. Eligible legacy purchases are recorded but not equipped. Reset pressure also changes the first deployment by supplying two enemy tonics and requiring Lyra, so its toggle is not an isolated stat-scaling comparison. No balance values changed in response to this survey.
+
 ## Initial balance measurements
 
 The optional [automated probe](../scripts/benchmark_trials.gd) runs three seeds with permadeath off and on, hard forces, sacrifice costs, action saving and the first promotion branch. It uses legal tactical actions and no reset-pressure bonuses. On November 4, 2026, all six runs cleared twelve chapters:
