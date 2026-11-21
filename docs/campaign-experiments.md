@@ -24,6 +24,8 @@ While in a Debug battle, **M → Combat encounters** opens the same list directl
 
 The encounter list offers **Current roster** and **Revised models · preview** buttons for all ally and enemy classes in this Debug sandbox. Its status distinguishes current, revised and mixed class choices; individual switches remain in Debug tools. These choices do not write saves, alter campaign/RNG state or change the ordinary campaign’s device preference. Use **Options → Presentation → All 3D battles** for the full scene. Quick map mode stays available for comparison. The starters exercise the map zoom, chapter scenery, combat camera, health display, soundtrack transition and return through normal gameplay.
 
+The full-company chooser also offers equipment choices for every compatible item, alongside normal equipment. Explicit choices place the target at the item’s maximum range: throwing spears at two tiles, Watchtower bows at three, and Beacon staves at two. The starter uses a chapter where both recruit and equipment are available, then equips the item through the ordinary rules. Its detail text shows the resulting chapter and distance before starting. Recruitment, promotion and equipment choices remain selected when returning to the chooser; changing recruit resets training and equipment. The original eight quick starters retain their normal equipment and placement.
+
 ## Current rules
 
 | Switch | Behavior |

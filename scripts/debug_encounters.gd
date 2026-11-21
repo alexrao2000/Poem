@@ -21,12 +21,12 @@ static func scene_for_recruit(roster: Array,recruit_id: String) -> Dictionary:
   if not template.is_empty() and template[0].job==recruits[0].job:return scene
  return {}
 
-static func start_recruit(game,recruit_id: String,promotion_id: String,seed_value: int) -> Dictionary:
+static func start_recruit(game,recruit_id: String,promotion_id: String,seed_value: int,item_id="") -> Dictionary:
  var scene=scene_for_recruit(game.content.roster,recruit_id)
  if scene.is_empty():return {}
- return start(game,scene.id,seed_value,recruit_id,promotion_id)
+ return start(game,scene.id,seed_value,recruit_id,promotion_id,item_id)
 
-static func start(game,id: String,seed_value: int,recruit_id="",promotion_id="") -> Dictionary:
+static func start(game,id: String,seed_value: int,recruit_id="",promotion_id="",item_id="") -> Dictionary:
  var matches=SCENES.filter(func(scene):return scene.id==id)
  if matches.is_empty():return {}
  var scene=matches[0];var staged=Rules.new()
@@ -36,6 +36,10 @@ static func start(game,id: String,seed_value: int,recruit_id="",promotion_id="")
  var recruit=actors[0]
  if not promotion_id.is_empty() and not staged.promotion_options(recruit).any(func(path):return path.id==promotion_id):return {}
  staged.chapter=maxi(scene.chapter,int(recruit.join))
+ if not item_id.is_empty():
+  var items=staged.equipment.filter(func(item):return item.id==item_id and item.kind==recruit.weapon)
+  if items.is_empty():return {}
+  staged.chapter=maxi(staged.chapter,int(items[0].unlock))
  staged.action_saves=true;staged.story_seen=["opening_"+str(staged.chapter)]
  staged.rng.seed=seed_value
  for unit in staged.available():
@@ -43,6 +47,7 @@ static func start(game,id: String,seed_value: int,recruit_id="",promotion_id="")
   if unit.id==recruit_id and not promotion_id.is_empty():level=maxi(level,10)
   if unit.level<level:staged.award_xp(unit,(level-int(unit.level))*100-int(unit.xp))
  if not promotion_id.is_empty() and not staged.promote(recruit,promotion_id):return {}
+ if not item_id.is_empty() and not staged.equip(recruit,item_id):return {}
  staged.deployed=[recruit_id]
  for unit in staged.available():
   if unit.id!=recruit_id and staged.deployed.size()<6:staged.deployed.append(unit.id)
@@ -60,6 +65,7 @@ static func start(game,id: String,seed_value: int,recruit_id="",promotion_id="")
   var da=Vector2(a).distance_squared_to(center);var db=Vector2(b).distance_squared_to(center)
   return (a.y<b.y or (a.y==b.y and a.x<b.x)) if is_equal_approx(da,db) else da<db)
  var reach=2 if actor.weapon in ["bow","magic"] else 1
+ if not item_id.is_empty():reach=int(staged.item_for(actor).max_range)
  for tile in tiles:
   for direction in [Vector2i.RIGHT,Vector2i.LEFT,Vector2i.DOWN,Vector2i.UP]:
    var other=tile+direction*reach

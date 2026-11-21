@@ -32,6 +32,13 @@ func run():
  for recruit in roster_rules.content.roster:
   for training in [""]+roster_rules.promotion_options(recruit).map(func(path):return path.id):
    assert(not encounters.start_recruit(roster_rules,recruit.id,training,309).is_empty() and roster_rules.valid_save(roster_rules.save_data("battle")),"Packed full-roster encounters retain all 72 base and promoted positions")
+ for recruit in roster_rules.content.roster:
+  for item in roster_rules.equipment:
+   if item.kind!=recruit.weapon:continue
+   var setup=encounters.start_recruit(roster_rules,recruit.id,"",309,item.id)
+   assert(not setup.is_empty())
+   var actor=roster_rules.units.filter(func(u):return u.id==setup.actor)[0];var recipient=roster_rules.units.filter(func(u):return u.id==setup.target)[0]
+   assert(actor.item==item.id and roster_rules.distance(actor,recipient)==int(item.max_range) and roster_rules.valid_save(roster_rules.save_data("battle")),"Packed equipment starters retain all93 legal item/recruit pairs")
  assert(load("res://scripts/casualty_card.gd").lines.size()==24,"Export includes all recruit casualty dialogue")
  for path in ["res://assets/fonts/OFL.txt","res://assets/audio/VSCO-LICENSE.txt","res://assets/audio/VSCO-CREDITS.txt"]:
   assert(FileAccess.file_exists(path) and FileAccess.get_file_as_string(path).length()>100,"Export includes font and instrument credits/licenses")
@@ -553,8 +560,11 @@ func run():
   if recruit_choice.get_item_metadata(index)=="galen":recruit_choice.select(index);recruit_choice.item_selected.emit(index);break
  var training_choice=app.ui.find_child("EncounterTraining",true,false);assert(training_choice.item_count==3)
  training_choice.select(2);training_choice.item_selected.emit(2)
+ var equipment_choice=app.ui.find_child("EncounterEquipment",true,false)
+ for index in equipment_choice.item_count:
+  if equipment_choice.get_item_metadata(index)=="beacon_staff":equipment_choice.select(index);equipment_choice.item_selected.emit(index);break
  app.ui.find_child("StageRecruitEncounter",true,false).pressed.emit();await process_frame;await process_frame
- assert(app.screen=="battle" and app.selected.id=="galen" and app.selected.promotion=="wayfarer" and app.game.can_heal(app.selected,app.game.at(app.cursor_tile)),"Packed custom selector enters an actual promoted healing encounter")
+ assert(app.screen=="battle" and app.selected.id=="galen" and app.selected.promotion=="wayfarer" and app.game.can_heal(app.selected,app.game.at(app.cursor_tile)) and app.selected.item=="beacon_staff" and app.game.distance(app.selected,app.game.at(app.cursor_tile))==2,"Packed custom selector enters an actual promoted ranged healing encounter")
  app.game.permadeath=true;app.game.trials.flags.death_legacies=true
  for unit in app.game.units:
   if unit.id in ["oren","sera","ivo"]:unit.hp=0
