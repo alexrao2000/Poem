@@ -28,6 +28,10 @@ func run():
  for scene in encounters.SCENES:
   var staged_rules=load("res://scripts/rules.gd").new()
   assert(not encounters.start(staged_rules,scene.id,309).is_empty() and staged_rules.valid_save(staged_rules.save_data("battle")),"Packed encounter starters build complete valid playable positions")
+ var roster_rules=load("res://scripts/rules.gd").new()
+ for recruit in roster_rules.content.roster:
+  for training in [""]+roster_rules.promotion_options(recruit).map(func(path):return path.id):
+   assert(not encounters.start_recruit(roster_rules,recruit.id,training,309).is_empty() and roster_rules.valid_save(roster_rules.save_data("battle")),"Packed full-roster encounters retain all 72 base and promoted positions")
  assert(load("res://scripts/casualty_card.gd").lines.size()==24,"Export includes all recruit casualty dialogue")
  for path in ["res://assets/fonts/OFL.txt","res://assets/audio/VSCO-LICENSE.txt","res://assets/audio/VSCO-CREDITS.txt"]:
   assert(FileAccess.file_exists(path) and FileAccess.get_file_as_string(path).length()>100,"Export includes font and instrument credits/licenses")
@@ -542,6 +546,14 @@ func run():
  assert(hidden_actors.size()==2 and hidden_actors.all(func(actor):return not actor.player.can_process()),"Packaged hidden animations inherit the stage suspension")
  app.show_model_view(stage_a);await app.preview_actor.pose("windup",.02).finished
  assert(app.preview_actor.player.can_process(),"Packaged outfit preview resumes animation after a suspended battle")
+ app.close_model_view();app.debug_session.begin(app.game,"battle",true);app.show_debug_encounters()
+ var recruit_choice=app.ui.find_child("EncounterRecruit",true,false);assert(recruit_choice.item_count==24)
+ for index in recruit_choice.item_count:
+  if recruit_choice.get_item_metadata(index)=="galen":recruit_choice.select(index);recruit_choice.item_selected.emit(index);break
+ var training_choice=app.ui.find_child("EncounterTraining",true,false);assert(training_choice.item_count==3)
+ training_choice.select(2);training_choice.item_selected.emit(2)
+ app.ui.find_child("StageRecruitEncounter",true,false).pressed.emit();await process_frame;await process_frame
+ assert(app.screen=="battle" and app.selected.id=="galen" and app.selected.promotion=="wayfarer" and app.game.can_heal(app.selected,app.game.at(app.cursor_tile)),"Packed custom selector enters an actual promoted healing encounter")
  await Shutdown.dispose(app);await process_frame
  print("PASS: exported catalog, all three act scores, chapter scenes, sixteen promotion patterns, all forty-eight revised promotion outfits, licenses and credits")
  quit()

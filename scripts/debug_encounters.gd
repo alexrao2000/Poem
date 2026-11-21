@@ -13,20 +13,41 @@ const SCENES=[
  {"id":"mounted","unit":"una","chapter":6,"title":"Una · Mounted lance in the mountains"}
 ]
 
-static func start(game,id: String,seed_value: int) -> Dictionary:
+static func scene_for_recruit(roster: Array,recruit_id: String) -> Dictionary:
+ var recruits=roster.filter(func(unit):return unit.id==recruit_id)
+ if recruits.is_empty():return {}
+ for scene in SCENES:
+  var template=roster.filter(func(unit):return unit.id==scene.unit)
+  if not template.is_empty() and template[0].job==recruits[0].job:return scene
+ return {}
+
+static func start_recruit(game,recruit_id: String,promotion_id: String,seed_value: int) -> Dictionary:
+ var scene=scene_for_recruit(game.content.roster,recruit_id)
+ if scene.is_empty():return {}
+ return start(game,scene.id,seed_value,recruit_id,promotion_id)
+
+static func start(game,id: String,seed_value: int,recruit_id="",promotion_id="") -> Dictionary:
  var matches=SCENES.filter(func(scene):return scene.id==id)
  if matches.is_empty():return {}
- var scene=matches[0];var staged=Rules.new();staged.chapter=scene.chapter
+ var scene=matches[0];var staged=Rules.new()
+ if recruit_id.is_empty():recruit_id=scene.unit
+ var actors=staged.roster.filter(func(unit):return unit.id==recruit_id)
+ if actors.is_empty() or scene_for_recruit(staged.roster,recruit_id).get("id","")!=scene.id:return {}
+ var recruit=actors[0]
+ if not promotion_id.is_empty() and not staged.promotion_options(recruit).any(func(path):return path.id==promotion_id):return {}
+ staged.chapter=maxi(scene.chapter,int(recruit.join))
  staged.action_saves=true;staged.story_seen=["opening_"+str(staged.chapter)]
  staged.rng.seed=seed_value
  for unit in staged.available():
   var level=maxi(3,staged.chapter+1)
+  if unit.id==recruit_id and not promotion_id.is_empty():level=maxi(level,10)
   if unit.level<level:staged.award_xp(unit,(level-int(unit.level))*100-int(unit.xp))
- staged.deployed=[scene.unit]
+ if not promotion_id.is_empty() and not staged.promote(recruit,promotion_id):return {}
+ staged.deployed=[recruit_id]
  for unit in staged.available():
-  if unit.id!=scene.unit and staged.deployed.size()<6:staged.deployed.append(unit.id)
+  if unit.id!=recruit_id and staged.deployed.size()<6:staged.deployed.append(unit.id)
  staged.rng.seed=seed_value;staged.start_battle()
- var actor=staged.units.filter(func(unit):return unit.id==scene.unit)[0]
+ var actor=staged.units.filter(func(unit):return unit.id==recruit_id)[0]
  var healing=actor.weapon=="staff"
  var recipient=staged.living("player").filter(func(unit):return unit.id!=actor.id)[0] if healing else staged.living("enemy")[1]
  var tiles=[];var center=Vector2(staged.board_size())*.5

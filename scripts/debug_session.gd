@@ -119,6 +119,10 @@ func start_encounter(game,id: String) -> Dictionary:
  if not active:return {}
  return preload("res://scripts/debug_encounters.gd").start(game,id,combat_seed)
 
+func start_recruit_encounter(game,recruit_id: String,promotion_id="") -> Dictionary:
+ if not active:return {}
+ return preload("res://scripts/debug_encounters.gd").start_recruit(game,recruit_id,promotion_id,combat_seed)
+
 func test_pressure(game,value) -> bool:
  if not active or not game.trials.integer(value,0,10):return false
  game.trials.flags.reset_pressure=true;game.trials.pressure=int(value)

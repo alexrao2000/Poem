@@ -98,6 +98,8 @@ var preview_actor: Node3D
 var preview_unit: Dictionary
 var preview_return=Callable()
 var encounter_return="debug_tools"
+var encounter_recruit="lyra"
+var encounter_training=""
 var reward_panel: PanelContainer
 var reward_skip=false
 var transfer_text: TextEdit
@@ -2153,17 +2155,44 @@ func show_debug_encounters(return_to="debug_tools"):
 		var pick=button_in(model_row,"Current roster" if choice=="current" else "Revised models · preview",func():debug_session.set_revised_models(choice=="revised");refresh_models.call())
 		pick.name="EncounterModels_"+choice;pick.toggle_mode=true;pick.size_flags_horizontal=Control.SIZE_EXPAND_FILL;model_buttons[choice]=pick
 	refresh_models.call()
+	label_in(panel,"Choose anyone in the company",24,GOLD)
+	var recruit_choice=OptionButton.new();recruit_choice.name="EncounterRecruit";recruit_choice.custom_minimum_size.y=42;panel.add_child(recruit_choice)
+	for recruit in game.content.roster:
+		recruit_choice.add_item(recruit.name+" · "+recruit.job)
+		recruit_choice.set_item_metadata(recruit_choice.item_count-1,recruit.id)
+		if recruit.id==encounter_recruit:recruit_choice.select(recruit_choice.item_count-1)
+	var training_choice=OptionButton.new();training_choice.name="EncounterTraining";training_choice.custom_minimum_size.y=42;panel.add_child(training_choice)
+	var encounter_detail=label_in(panel,"",17);encounter_detail.name="EncounterDetail"
+	var update_recruit=func():
+		var recruit=game.content.roster.filter(func(unit):return unit.id==encounter_recruit)[0]
+		training_choice.clear();training_choice.add_item("Base class · "+recruit.job);training_choice.set_item_metadata(0,"")
+		for path in game.promotion_options(recruit):
+			training_choice.add_item(path.name);training_choice.set_item_metadata(training_choice.item_count-1,path.id)
+			if path.id==encounter_training:training_choice.select(training_choice.item_count-1)
+		var scene=preload("res://scripts/debug_encounters.gd").scene_for_recruit(game.content.roster,encounter_recruit)
+		var chapter=maxi(scene.chapter,int(recruit.join))
+		encounter_detail.text="Chapter %02d · %s. Uses the recruit’s normal equipment and growth. Advanced paths train to at least level 10 before promotion."%[chapter+1,game.content.chapters[chapter].place]
+	recruit_choice.item_selected.connect(func(index):encounter_recruit=recruit_choice.get_item_metadata(index);encounter_training="";update_recruit.call())
+	training_choice.item_selected.connect(func(index):encounter_training=training_choice.get_item_metadata(index))
+	update_recruit.call()
+	button_in(panel,"Stage chosen recruit",func():
+		open_debug_encounter(debug_session.start_recruit_encounter(game,encounter_recruit,encounter_training),"encounter:recruit:"+encounter_recruit+":"+(encounter_training if not encounter_training.is_empty() else "base"))
+	).name="StageRecruitEncounter"
+	label_in(panel,"Quick starters",24,GOLD)
 	for scene in preload("res://scripts/debug_encounters.gd").SCENES:
 		button_in(panel,"Stage · "+scene.title,func():
-			var setup=debug_session.start_encounter(game,scene.id)
-			if setup.is_empty():show_notice("This encounter could not be prepared.");return
-			busy=false;origin=null;selected=null;target=null;make_map()
-			selected=game.units.filter(func(unit):return unit.id==setup.actor)[0]
-			var recipient=game.units.filter(func(unit):return unit.id==setup.target)[0]
-			cursor_tile=game.pos(recipient);cursor_visible=true
-			show_battle();persist_campaign("battle",true,"encounter:"+scene.id)
+			open_debug_encounter(debug_session.start_encounter(game,scene.id),"encounter:"+scene.id)
 		).name="StageEncounter_"+scene.id
 	button_in(frame,"Return to battle menu [Esc]" if encounter_return=="battle_menu" else "Return to debug tools [Esc]",close_debug_encounters)
+
+func open_debug_encounter(setup: Dictionary,reason: String):
+	if not debug_session.active:return
+	if setup.is_empty():show_notice("This encounter could not be prepared.");return
+	busy=false;origin=null;selected=null;target=null;make_map()
+	selected=game.units.filter(func(unit):return unit.id==setup.actor)[0]
+	var recipient=game.units.filter(func(unit):return unit.id==setup.target)[0]
+	cursor_tile=game.pos(recipient);cursor_visible=true
+	show_battle();persist_campaign("battle",true,reason)
 
 func close_debug_encounters():
 	if encounter_return=="battle_menu":show_battle();show_battle_menu()
