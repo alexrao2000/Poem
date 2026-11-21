@@ -13,3 +13,14 @@ func fit_handle():
  if floor_fit==null:
   floor_fit=preload("res://scripts/weapon_floor.gd").new();floor_fit.name="WeaponFloor";rig.add_child(floor_fit);floor_fit.configure(rig,Transform3D.IDENTITY)
  floor_fit.fit_prop(anchor,get_node("Weapon"))
+
+func configure_animations(player: AnimationPlayer) -> String:
+ var error=super(player)
+ if not error.is_empty():return error
+ return preload("res://scripts/sword_anticipation.gd").configure(player,get_parent().get_parent(),"AxeCriticalAttack",-.34,.10)
+
+func additional_poses() -> Dictionary:
+ return {"critical_windup":{"clip":"AxeCriticalAttack","from":0.0,"to":.36},"critical_strike":{"clip":"AxeCriticalAttack","from":.36,"to":.433}}
+
+func animation_pose(key: String) -> String:
+ return "critical_strike" if key=="strike" and critical_prepared else key

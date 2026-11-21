@@ -1,6 +1,7 @@
 extends SceneTree
 const Shutdown=preload("helpers/game_shutdown.gd")
 const Imported=preload("res://scripts/imported_fighter.gd")
+var study_ids=["female","male","vanguard","vanguard_male"]
 func _initialize():call_deferred("run")
 func index_for(choice,key):
  for index in range(choice.item_count):
@@ -10,26 +11,28 @@ func run():
  var app=load("res://main.tscn").instantiate();app.settings_path="";app.save_path="/private/tmp/poem-special-preview.json";root.add_child(app);await process_frame
  var normal=app.game.save_data("camp").duplicate(true);app.debug_session.begin(app.game,"camp");app.options_return="camp"
  var saved=app.game.save_data("camp").duplicate(true);var rng=app.game.rng.state;var count=0
- for study in ["female","male","vanguard","vanguard_male"]:
+ for study in study_ids:
+  var axe=study.begins_with("corsair");var clip="AxeCriticalAttack" if axe else "SwordCriticalAttack"
   for styled in [false,true]:
-   for item in ["iron_sword","estoc"]:
+   for item in (["hatchet","war_hammer"] if axe else ["iron_sword","estoc"]):
     app.show_source_model_view(study,item,styled);await process_frame;await process_frame
     var actor=app.preview_actor;var choice=app.ui.find_child("PreviewAction",true,false);var actions=app.stage.get_node("PreviewActionPlayer");var framing=app.stage.get_node("PreviewCamera")
-    assert(actor is Imported and index_for(choice,"critical_strike")>=0 and index_for(choice,"victory_flourish")>=0,"Source and styled studies expose generated critical and finishing actions")
+    assert(actor is Imported and index_for(choice,"critical_strike")>=0 and (index_for(choice,"victory_flourish")>=0)==(not axe),"Source and styled studies expose generated critical and finishing actions")
     for size_value in [Vector2i(1024,640),Vector2i(1280,720),Vector2i(1440,900)]:
      root.size=size_value;app.ui.size=size_value;await process_frame;framing.reframe()
      for button in app.ui.find_children("*","Button",true,false):
       if button.is_visible_in_tree():assert(Rect2(Vector2.ZERO,Vector2(size_value)).grow(.1).encloses(button.get_global_rect()),"Expanded action list keeps its controls inside the viewport")
     var before=Vector3(framing.radius,framing.low,framing.high)
-    choice.select(index_for(choice,"victory_flourish"));choice.item_selected.emit(choice.selected);await actions.finished
-    assert(actor.pose_name=="victory_flourish" and actor.player.assigned_animation=="SwordFinishFlourish")
+    if not axe:
+     choice.select(index_for(choice,"victory_flourish"));choice.item_selected.emit(choice.selected);await actions.finished
+     assert(actor.pose_name=="victory_flourish" and actor.player.assigned_animation=="SwordFinishFlourish")
     assert(Vector3(framing.radius,framing.low,framing.high).is_equal_approx(before),"Flourish replay uses the premeasured silhouette without pumping the frame")
     choice.select(index_for(choice,"critical_strike"));choice.item_selected.emit(choice.selected);await actions.finished
-    assert(actor.pose_name=="strike" and actor.player.assigned_animation=="SwordCriticalAttack","Critical attack preview plays preparation and the real contact clip")
+    assert(actor.pose_name=="strike" and actor.player.assigned_animation==clip,"Critical attack preview plays preparation and the real contact clip")
     var target=app.ui.find_child("StudyTarget",true,false)
     for target_index in [1,2]:
      target.select(target_index);target.item_selected.emit(target_index);await actions.finished
-     assert(choice.get_item_metadata(choice.selected)=="critical_strike" and actor.player.assigned_animation=="SwordCriticalAttack","Changing target height preserves critical preview selection")
+     assert(choice.get_item_metadata(choice.selected)=="critical_strike" and actor.player.assigned_animation==clip,"Changing target height preserves critical preview selection")
      var point=actor.get_node("StudyContactTarget").global_position;var edge=actor.weapon_trail_points()
      var gap=actor.sockets.trail_tip.global_position.distance_to(point) if item=="estoc" else Geometry3D.get_closest_point_to_segment(point,edge[0],edge[1]).distance_to(point)
      assert(gap<.006,"Replayed critical attack reaches the selected real target")
@@ -56,5 +59,5 @@ func run():
   app.close_model_view();await process_frame
  assert(not FileAccess.file_exists(app.save_path) and not FileAccess.file_exists(app.save_path+".debug"))
  await Shutdown.dispose(app);await process_frame
- print("PASS: ",count," source/styled sword previews, critical and flourish visibility, three-size controls, premeasured flourish, 32 real targets, replay/replacement/close, unsupported-action filtering and exact campaign/RNG isolation")
+ print("PASS: ",count," source/styled sword and axe previews, critical and flourish visibility, three-size controls, premeasured flourish, two real target heights per study, replay/replacement/close, unsupported-action filtering and exact campaign/RNG isolation")
  quit()

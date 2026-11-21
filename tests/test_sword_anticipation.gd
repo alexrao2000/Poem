@@ -1,23 +1,27 @@
 extends SceneTree
 const Models=preload("res://scripts/debug_source_models.gd")
 const Vertices=preload("helpers/authored_vertices.gd")
+var study_ids=["female","male","vanguard","vanguard_male"]
+var character_ids=["lyra","cassian","rhea","nell","silas","yuna"]
+var item_ids=["iron_sword","dueling_sword","tempered_sword","estoc"]
+var critical_clip="SwordCriticalAttack"
 func _initialize():call_deferred("run")
 func seek(actor,clip,time):
  actor.player.get_animation(clip).loop_mode=Animation.LOOP_NONE
  actor.player.play(clip,0);actor.player.seek(time,true,true);actor.player.pause();actor.refresh_skeleton()
 func run():
  var world=Node3D.new();root.add_child(world);var rules=load("res://scripts/rules.gd").new()
- var models=Models.new(["female","male","vanguard","vanguard_male"]);var count=0;var lowest=INF;var gap=0.0
- for id in ["lyra","cassian","rhea","nell","silas","yuna"]:
+ var models=Models.new(study_ids);var count=0;var lowest=INF;var gap=0.0
+ for id in character_ids:
   var source=rules.roster.filter(func(unit):return unit.id==id)[0];var promotions=[""]
   promotions.append_array(rules.promotions.filter(func(value):return value.base==source.job).map(func(value):return value.id))
   for promotion in promotions:
-   for item in ["iron_sword","dueling_sword","tempered_sword","estoc"]:
+   for item in item_ids:
     var unit=source.duplicate(true);unit.team="player";unit.promotion=promotion;unit.item=item
     var actor=models.build(world,unit,Vector3.ZERO);assert(actor!=null and models.models.issues.is_empty(),str(models.models.issues));await process_frame;actor.set_process(false)
     var rig=actor.model.get_node("Rig/Armature/Skeleton3D");var grip=rig.get_node("WeaponHand/Grip")
     var cache=Vertices.prepare(actor).filter(func(entry):return grip.is_ancestor_of(entry[0]))
-    var normal=actor.player.get_animation("Sword_Attack");var critical=actor.player.get_animation("SwordCriticalAttack")
+    var normal=actor.player.get_animation("Sword_Attack");var critical=actor.player.get_animation(critical_clip)
     assert(normal!=critical)
     var track=normal.find_track(NodePath("Armature/Skeleton3D:spine_02"),Animation.TYPE_ROTATION_3D)
     var extra=critical.find_track(NodePath("Armature/Skeleton3D:spine_02"),Animation.TYPE_ROTATION_3D)
@@ -45,5 +49,5 @@ func run():
       grip.combat_pose("critical_windup");grip.combat_pose(key);assert(grip.animation_pose("strike")=="strike","Ordinary pose selection clears critical anticipation")
     actor.queue_free();await process_frame
  world.queue_free();await process_frame
- print("PASS: ",count," critical sword preparation/contact samples, eighteen outfits, four blades, both headings, unchanged lower-body support, floor ",lowest," m, elevated contact gap ",gap," m and ordinary-pose reset")
+ print("PASS: ",count," ",critical_clip," preparation/contact samples, ",character_ids.size()*3," outfits, four weapons, both headings, unchanged lower-body support, floor ",lowest," m, elevated contact gap ",gap," m and ordinary-pose reset")
  quit()

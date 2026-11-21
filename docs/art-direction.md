@@ -830,3 +830,10 @@ The private arm solve preserves the grip and source body motion. Dense pose, act
 Critical sword attacks now wind the upper torso a further fifteen degrees during preparation, then unwind into the exact normal contact pose. This distinguishes the body motion before the existing portrait cut-in without changing the point of impact or source foot support. Ordinary preparation, reactions and finishing clear the critical variant.
 
 The first nine-degree study was too subtle in an isolated geometry comparison; the fifteen-degree version retains weapon/torso camera clearance. Dense pose/contact checks and actual normal/critical/skipped exchanges cover all sword families and base/promoted outfits. The comparison is an untextured software study, not an in-game animation review.
+
+
+### Revised Corsair critical preparation
+
+Axe and hammer critical attacks now pull the upper body farther back before the hit: roughly nineteen degrees of turn with six degrees of backward lean. The ordinary attack keeps its existing preparation. Both reach the same final contact pose so the heavier anticipation does not shift the hit away from its target.
+
+The isolated comparison covers Mara and Dax in both promoted costumes with a great axe and war hammer. It shows the changed upper-body and weapon silhouette while the feet retain their source stance. This is an untextured geometry study; assembled rendering and motion timing remain unreviewed.

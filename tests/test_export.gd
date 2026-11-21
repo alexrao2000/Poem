@@ -325,6 +325,10 @@ func run():
    if unit.weapon=="sword":
     await actor.pose("critical_windup",.02).finished;await actor.pose("strike",.02).finished
     assert(actor.player.assigned_animation=="SwordCriticalAttack" and actor.sockets.trail_tip.global_position.distance_to(target)<.006,"Packed critical sword preparation preserves its exact strike target: %s %s %s gap %s"%[unit.id,promotion,actor.player.assigned_animation,actor.sockets.trail_tip.global_position.distance_to(target)])
+   if unit.weapon=="axe":
+    await actor.pose("critical_windup",.02).finished;await actor.pose("strike",.02).finished
+    var critical_axe_edge=actor.weapon_trail_points()
+    assert(actor.player.assigned_animation=="AxeCriticalAttack" and Geometry3D.get_closest_point_to_segment(target,critical_axe_edge[0],critical_axe_edge[1]).distance_to(target)<.006,"Packed Corsair critical preparation retains its actual target")
    if unit.weapon=="lance":
     if unit.job=="Knight":
      var promotion_shield=actor.model.get_node("Rig/Armature/Skeleton3D/KnightShield/Plate")
