@@ -38,7 +38,7 @@ func observe(game,stage: String,reason: String,persistence: String):
    if previous.get(key)!=next.get(key):fields[key]={"before":previous.get(key),"after":next.get(key)}
   if not fields.is_empty():unit_changes.append({"id":id,"changes":fields})
  var saved_later=not entries.is_empty() and entries[-1].persistence in ["failed","not_requested"] and persistence=="written"
- var explicit_boundary=reason in ["import","reset_battle","load_chapter","return_to_camp","revive","test_pressure","train_company","set_seed"]
+ var explicit_boundary=reason in ["import","reset_battle","load_chapter","return_to_camp","revive","test_pressure","train_company","set_seed"] or reason.begins_with("experiment:")
  if changes.is_empty() and unit_changes.is_empty() and baseline.rng==current.rng and persistence!="failed" and not saved_later and not explicit_boundary:return
  sequence+=1
  entries.append({"sequence":sequence,"reason":reason,"chapter":current.chapter,"turn":current.turn,"phase":current.phase,"persistence":persistence,"rng_before":baseline.rng,"rng_after":current.rng,"changes":changes,"units":unit_changes})

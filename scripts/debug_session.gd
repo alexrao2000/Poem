@@ -99,6 +99,10 @@ func reset_battle(game):
  if not active:return
  game.rng.seed=combat_seed;game.start_battle()
 
+func start_experiment(game,id: String) -> bool:
+ if not active:return false
+ return preload("res://scripts/debug_experiments.gd").start(game,id,combat_seed)
+
 func test_pressure(game,value) -> bool:
  if not active or not game.trials.integer(value,0,10):return false
  game.trials.flags.reset_pressure=true;game.trials.pressure=int(value)

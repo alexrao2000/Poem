@@ -777,7 +777,7 @@ func _input(event):
 		get_viewport().set_input_as_handled()
 
 func _unhandled_input(event):
-	if screen=="debug_report" and event is InputEventKey and event.pressed and event.keycode==KEY_ESCAPE:
+	if screen in ["debug_report","debug_experiments"] and event is InputEventKey and event.pressed and not event.echo and event.keycode==KEY_ESCAPE:
 		show_debug_tools(options_return);get_viewport().set_input_as_handled();return
 	if screen in ["triage","tile_units"] and event is InputEventKey and event.pressed and event.keycode==KEY_ESCAPE:
 		show_battle();get_viewport().set_input_as_handled();return
@@ -1867,6 +1867,7 @@ func show_debug_tools(return_to: String):
 		if debug_session.set_combat_seed(game,seed_input.value):persist_campaign("battle" if options_return=="battle" else "camp",true,"set_seed");show_notice("Combat seed applied. Chapter loads and clean resets reuse it."))
 	label_in(panel,"The same seed, rules and actions reproduce the same rolls. Clean resets reuse this seed; penalty retreats follow the campaign’s restart rules.",16)
 	button_in(panel,"View experiment report",show_debug_report)
+	button_in(panel,"Choose an experiment setup",show_debug_experiments)
 	var chapters=OptionButton.new();chapters.name="DebugChapter";chapters.custom_minimum_size.y=42
 	for index in range(game.content.chapters.size()):chapters.add_item("%02d · %s"%[index+1,game.content.chapters[index].title])
 	chapters.selected=game.chapter;panel.add_child(chapters)
@@ -1995,6 +1996,24 @@ func restart_campaign_attempt():
 	if not action_save_ready():return
 	if game.trials.restart(game):persist_campaign("camp",true,"retreat")
 	show_camp()
+
+func show_debug_experiments():
+	if not debug_session.active:return
+	screen="debug_experiments";reset_ui()
+	var frame=menu_panel(840);var panel=scrolling_column(frame)
+	label_in(panel,"DEBUG / EXPERIMENT SETUPS",17,GOLD)
+	label_in(panel,"Try a campaign rule",36,GOLD)
+	label_in(panel,"Starting a setup replaces the temporary debug campaign, including its losses, items and rule switches. Your original campaign stays preserved. Each starts with fresh recruits and the selected seed: %d."%debug_session.combat_seed,19)
+	label_in(panel,"All rules remain independent toggles in Options. These starting positions demonstrate the mechanics; they are not campaign balance presets.",17)
+	for setup in preload("res://scripts/debug_experiments.gd").SETUPS:
+		label_in(panel,setup.title,26,GOLD)
+		label_in(panel,setup.rules,17)
+		label_in(panel,setup.steps,18)
+		button_in(panel,"Start · "+setup.title,func():
+			if debug_session.start_experiment(game,setup.id):
+				make_map();show_battle();persist_campaign("battle",true,"experiment:"+setup.id)
+		).name="StartExperiment_"+setup.id
+	button_in(frame,"Return to debug tools",func():show_debug_tools(options_return))
 
 func show_campaign_trials():
 	screen="campaign_trials";reset_ui()
