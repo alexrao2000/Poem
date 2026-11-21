@@ -1349,7 +1349,7 @@ func show_dialogue(lines: Array,on_complete: Callable,kind="opening"):
 	var backdrop=preload("res://scripts/dialogue_backdrop.gd").new()
 	backdrop.begin(ui,[world,pieces,markers],game.chapter,kind)
 	var losses=game.lost_ids(kind=="closing")
-	dialogue_lines=lines if kind=="support" else lines.filter(func(line):return line.speaker not in losses)
+	dialogue_lines=lines if kind=="support" else preload("res://scripts/story_survivors.gd").resolve(lines,losses)
 	dialogue_index=0;dialogue_callback=on_complete
 	dialogue_stage=preload("res://scripts/dialogue_stage.gd").new();ui.add_child(dialogue_stage)
 	dialogue_stage.configure(advance_dialogue,finish_dialogue)

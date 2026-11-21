@@ -24,6 +24,12 @@ func run():
  assert("CC0" in metadata.samples and metadata.frames==1568000,"Export uses the current orchestral arrangement")
  var app=load("res://main.tscn").instantiate();app.settings_path="";app.save_path="/private/tmp/poem-export-test.json";root.add_child(app);await process_frame
  assert(app.ui.get_node("TitleBackdrop").ART.get_width()==1536,"Release includes the original dawn title illustration")
+ var packed_story=JSON.parse_string(FileAccess.get_file_as_string("res://data/story.json"))
+ var survivor_dialogue=load("res://scripts/story_survivors.gd")
+ var survivor_closing=survivor_dialogue.resolve(packed_story.chapters[0].closing,["oren"])
+ assert(survivor_closing.any(func(line):return "carry his name" in line.text) and not survivor_closing.any(func(line):return line.speaker=="oren" or "go home now" in line.text),"Packaged story retains its loss-aware aftermath")
+ var final_survivor=survivor_dialogue.resolve(packed_story.chapters[11].closing,["rhea","noor","cassian","oren"])
+ assert(final_survivor.size()==2 and final_survivor.all(func(line):return line.speaker=="lyra"),"Packaged finale remains coherent after severe attrition")
  var dialogue_art=load("res://scripts/dialogue_backdrop.gd")
  for chapter in range(12):
   for kind in ["opening","closing"]:
@@ -318,9 +324,9 @@ func run():
    var look=load("res://scripts/promotion_costume.gd").looks[promotion]
    assert(outfit.panels.size()==((2 if look.has("tabard") else 0)+(4 if look.has("sash") else 0)+(6 if look.has("stole") else 0)))
    for panel in outfit.panels:assert(panel.skin.get_bind_count()==(6 if panel.get_meta("promotion_stole",false) else 5) and panel.material_override.next_pass!=null)
-   if unit.weapon=="sword":
-    assert(actor.poses.has("victory_flourish"),"Packed sword adapter contributes its private finishing clip")
-    var promotion_finish=actor.model.get_node("Rig/Armature/Skeleton3D/SwordFinish")
+   if unit.weapon in ["sword","axe"]:
+    assert(actor.poses.has("victory_flourish"),"Packed sword/axe adapter contributes its private finishing clip")
+    var promotion_finish=actor.model.get_node("Rig/Armature/Skeleton3D/"+("AxeFinish" if unit.weapon=="axe" else "SwordFinish"))
     await actor.finish_flourish(.02).finished;assert(promotion_finish.active and is_zero_approx(promotion_finish.lift))
     await actor.pose("victory",.02).finished;assert(not promotion_finish.active)
    var promotion_spacing=4.0 if unit.weapon=="bow" else actor.approach_spacing(unit.item)

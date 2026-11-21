@@ -92,9 +92,11 @@ func observe_approach(app):
   await process_frame
   if not observing:return
   var current={}
+  # The last entry frame can exceed .999 without being fully planted yet.
+  # Compare soles only after the entry tween reaches its exact terminal weight.
   if app.stage.visible:
    for actor in app.stage.get_children():
-    if not actor is Fighters.Actor or actor.mounted or actor.pose_name!="advance" or actor.infantry_gait_weight<.999:continue
+    if not actor is Fighters.Actor or actor.mounted or actor.pose_name!="advance" or actor.infantry_gait_weight!=1.0:continue
     assert(actor.travel_previous.distance_to(actor.global_position)<.0001,"Gait is updated after this frame's root tween, avoiding a one-frame sliding lag")
     for side in range(2):
      var phase=Stride.phase_for(actor.gait_phase,side)

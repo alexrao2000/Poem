@@ -4,19 +4,40 @@
       "opening": [
         {
           "speaker": "oren",
-          "text": "The evacuation order is signed. They want every house empty before sunset."
+          "text": "The evacuation order is signed. They want every house empty before sunset.",
+          "when_absent": [
+            {
+              "speaker": "lyra",
+              "text": "The evacuation order leaves no room for anyone who cannot walk. We will make room."
+            }
+          ]
         },
         {
           "speaker": "lyra",
-          "text": "And the people who cannot walk?"
+          "text": "And the people who cannot walk?",
+          "requires": [
+            "oren"
+          ]
         },
         {
           "speaker": "ivo",
-          "text": "They were not mentioned in the order. I have six patients still on this side of the river."
+          "text": "They were not mentioned in the order. I have six patients still on this side of the river.",
+          "when_absent": [
+            {
+              "speaker": "lyra",
+              "text": "Six patients are still waiting on this side of the river. The wagons cannot leave them."
+            }
+          ]
         },
         {
           "speaker": "sera",
-          "text": "The patrol is crossing the upper bridge. If we hold the square, the wagons can reach the south road."
+          "text": "The patrol is crossing the upper bridge. If we hold the square, the wagons can reach the south road.",
+          "when_absent": [
+            {
+              "speaker": "lyra",
+              "text": "The patrol is coming over the upper bridge. Hold the square until the wagons reach the south road."
+            }
+          ]
         },
         {
           "speaker": "lyra",
@@ -30,11 +51,26 @@
       "closing": [
         {
           "speaker": "ivo",
-          "text": "The last wagon is across. All six patients are still complaining, which I take as a good sign."
+          "text": "The last wagon is across. All six patients are still complaining, which I take as a good sign.",
+          "when_absent": [
+            {
+              "speaker": "lyra",
+              "text": "The last wagon is across. The people we came for are on the south road."
+            }
+          ]
         },
         {
           "speaker": "lyra",
-          "text": "Oren, you can go home now."
+          "text": "Oren, you can go home now.",
+          "requires": [
+            "oren"
+          ],
+          "when_absent": [
+            {
+              "speaker": "lyra",
+              "text": "Oren should have been here to see that road clear. We will carry his name with us."
+            }
+          ]
         },
         {
           "speaker": "oren",
@@ -46,19 +82,40 @@
       "opening": [
         {
           "speaker": "mara",
-          "text": "I can carry your people north. I cannot sail through an iron chain."
+          "text": "I can carry your people north. I cannot sail through an iron chain.",
+          "when_absent": [
+            {
+              "speaker": "lyra",
+              "text": "The boats are ready, but an iron chain still closes the river."
+            }
+          ]
         },
         {
           "speaker": "tarin",
-          "text": "The chain is raised from the eastern tollhouse. The guards are protecting a shipment with the royal observatory seal."
+          "text": "The chain is raised from the eastern tollhouse. The guards are protecting a shipment with the royal observatory seal.",
+          "when_absent": [
+            {
+              "speaker": "lyra",
+              "text": "The eastern tollhouse raises the chain. Its manifests bear the royal observatory seal."
+            }
+          ]
         },
         {
           "speaker": "lyra",
-          "text": "Food? Weapons?"
+          "text": "Food? Weapons?",
+          "requires": [
+            "tarin"
+          ]
         },
         {
           "speaker": "tarin",
-          "text": "Sunstone. More than any furnace could safely burn."
+          "text": "Sunstone. More than any furnace could safely burn.",
+          "when_absent": [
+            {
+              "speaker": "lyra",
+              "text": "Sunstone. The cargo list names more than any furnace could safely burn."
+            }
+          ]
         },
         {
           "speaker": "mara",
@@ -68,11 +125,23 @@
       "closing": [
         {
           "speaker": "mara",
-          "text": "The river is open. You owe me one chain and a great deal of rope."
+          "text": "The river is open. You owe me one chain and a great deal of rope.",
+          "when_absent": [
+            {
+              "speaker": "lyra",
+              "text": "The river is open. Get the boats through before another patrol reaches the tollhouse."
+            }
+          ]
         },
         {
           "speaker": "tarin",
-          "text": "These manifests lead to the abbey furnaces. Whatever the regent is building, he is running out of time."
+          "text": "These manifests lead to the abbey furnaces. Whatever the regent is building, he is running out of time.",
+          "when_absent": [
+            {
+              "speaker": "lyra",
+              "text": "These manifests lead to the abbey furnaces. If the regent needs this much sunstone, he is running out of time."
+            }
+          ]
         },
         {
           "speaker": "lyra",
@@ -84,11 +153,23 @@
       "opening": [
         {
           "speaker": "nell",
-          "text": "The children know to follow my lantern. The soldiers know it too."
+          "text": "The children know to follow my lantern. The soldiers know it too.",
+          "when_absent": [
+            {
+              "speaker": "lyra",
+              "text": "The children are following the lanterns. Keep those lights ahead of the soldiers."
+            }
+          ]
         },
         {
           "speaker": "bram",
-          "text": "My horses can pull the last wagon, but the axle will not survive a gallop."
+          "text": "My horses can pull the last wagon, but the axle will not survive a gallop.",
+          "when_absent": [
+            {
+              "speaker": "lyra",
+              "text": "The last wagon has a damaged axle. We must give it time to clear the road."
+            }
+          ]
         },
         {
           "speaker": "sera",
@@ -96,7 +177,13 @@
         },
         {
           "speaker": "ivo",
-          "text": "Six bells. That is how long we need."
+          "text": "Six bells. That is how long we need.",
+          "when_absent": [
+            {
+              "speaker": "lyra",
+              "text": "Six bells. Hold the bends until the last wagon is clear."
+            }
+          ]
         },
         {
           "speaker": "lyra",
@@ -106,11 +193,27 @@
       "closing": [
         {
           "speaker": "nell",
-          "text": "Every lantern accounted for. Bram even brought back the broken axle."
+          "text": "Every lantern accounted for. Bram even brought back the broken axle.",
+          "requires": [
+            "bram"
+          ],
+          "when_absent": [
+            {
+              "speaker": "nell",
+              "text": "Every lantern accounted for. I wish the road had cost us less."
+            },
+            {
+              "speaker": "lyra",
+              "text": "The lanterns have reached the abbey road. Let the wagons rest before we follow."
+            }
+          ]
         },
         {
           "speaker": "bram",
-          "text": "Good timber is good timber."
+          "text": "Good timber is good timber.",
+          "requires": [
+            "nell"
+          ]
         },
         {
           "speaker": "sera",
@@ -122,29 +225,68 @@
       "opening": [
         {
           "speaker": "esme",
-          "text": "They took the bell three mornings ago. Now they make us ring an iron plate for the work shifts."
+          "text": "They took the bell three mornings ago. Now they make us ring an iron plate for the work shifts.",
+          "when_absent": [
+            {
+              "speaker": "lyra",
+              "text": "The abbey bell is gone. An iron plate calls the work shifts now. We can hear it from here."
+            }
+          ]
         },
         {
           "speaker": "rook",
-          "text": "I helped them seize this abbey. I know the sentries, and I know the man giving the orders."
+          "text": "I helped them seize this abbey. I know the sentries, and I know the man giving the orders.",
+          "when_absent": [
+            {
+              "speaker": "lyra",
+              "text": "We have the sentry routes. Stay together when we enter the granary court."
+            }
+          ]
         },
         {
           "speaker": "oren",
-          "text": "You expect us to trust you?"
+          "text": "You expect us to trust you?",
+          "requires": [
+            "rook"
+          ]
         },
         {
           "speaker": "rook",
-          "text": "No. Put me at the front, where you can see what I do."
+          "text": "No. Put me at the front, where you can see what I do.",
+          "requires": [
+            "oren"
+          ],
+          "when_absent": [
+            {
+              "speaker": "rook",
+              "text": "Put me at the front. I will not ask anyone else to take that risk for me."
+            }
+          ]
         },
         {
           "speaker": "lyra",
-          "text": "We free the granary and remove the overseer. What comes after that, you will have to earn."
+          "text": "We free the granary and remove the overseer. What comes after that, you will have to earn.",
+          "requires": [
+            "rook"
+          ],
+          "when_absent": [
+            {
+              "speaker": "lyra",
+              "text": "We free the granary and remove the overseer. The people here have waited long enough."
+            }
+          ]
         }
       ],
       "closing": [
         {
           "speaker": "esme",
-          "text": "The granary keys were in his desk. He kept the bell\u2019s clapper beside them."
+          "text": "The granary keys were in his desk. He kept the bell’s clapper beside them.",
+          "when_absent": [
+            {
+              "speaker": "lyra",
+              "text": "We found the granary keys. Open every storehouse before the next work bell."
+            }
+          ]
         },
         {
           "speaker": "rook",
@@ -152,7 +294,20 @@
         },
         {
           "speaker": "esme",
-          "text": "No. But you can help us hang another bell."
+          "text": "No. But you can help us hang another bell.",
+          "requires": [
+            "rook"
+          ],
+          "when_absent": [
+            {
+              "speaker": "esme",
+              "text": "We will hang another bell. This time it will call people home."
+            },
+            {
+              "speaker": "lyra",
+              "text": "The grain belongs to the people who grew it. We will stay until it reaches them."
+            }
+          ]
         }
       ]
     },
@@ -160,23 +315,46 @@
       "opening": [
         {
           "speaker": "cassian",
-          "text": "Your standard bears my family\u2019s colors."
+          "text": "Your standard bears my family’s colors."
         },
         {
           "speaker": "lyra",
-          "text": "It was the only cloth large enough to cover a wagon. You may have it when everyone is safe."
+          "text": "It was the only cloth large enough to cover a wagon. You may have it when everyone is safe.",
+          "requires": [
+            "cassian"
+          ]
         },
         {
           "speaker": "faye",
-          "text": "The imperial checkpoint will arrest both of you while you argue over laundry."
+          "text": "The imperial checkpoint will arrest both of you while you argue over laundry.",
+          "requires": [
+            "cassian"
+          ],
+          "when_absent": [
+            {
+              "speaker": "faye",
+              "text": "The imperial checkpoint blocks the road. I know two routes through the trees."
+            },
+            {
+              "speaker": "lyra",
+              "text": "The checkpoint blocks the road. We will reach its eastern gate through the trees."
+            }
+          ]
         },
         {
           "speaker": "cassian",
-          "text": "You have a route through the trees?"
+          "text": "You have a route through the trees?",
+          "requires": [
+            "faye"
+          ]
         },
         {
           "speaker": "faye",
-          "text": "Two. Neither is wide enough for your pride."
+          "text": "Two. Neither is wide enough for your pride.",
+          "requires": [
+            "cassian",
+            "faye"
+          ]
         },
         {
           "speaker": "lyra",
@@ -190,15 +368,41 @@
         },
         {
           "speaker": "faye",
-          "text": "They rallied when you helped push a cart out of the ditch."
+          "text": "They rallied when you helped push a cart out of the ditch.",
+          "requires": [
+            "cassian"
+          ],
+          "when_absent": [
+            {
+              "speaker": "faye",
+              "text": "The carts are through. People remember who helped them out of the ditch."
+            },
+            {
+              "speaker": "lyra",
+              "text": "The carts are through the checkpoint. Get them clear of the road before we rest."
+            }
+          ]
         },
         {
           "speaker": "cassian",
-          "text": "A rather less dignified kind of leadership."
+          "text": "A rather less dignified kind of leadership.",
+          "requires": [
+            "faye"
+          ]
         },
         {
           "speaker": "lyra",
-          "text": "You may be good at it."
+          "text": "You may be good at it.",
+          "requires": [
+            "cassian",
+            "faye"
+          ],
+          "when_absent": [
+            {
+              "speaker": "lyra",
+              "text": "That cloth is still a promise to get people home. We have work left to do."
+            }
+          ]
         }
       ]
     },
@@ -206,11 +410,23 @@
       "opening": [
         {
           "speaker": "vela",
-          "text": "The beacon is still lit, but there are soldiers in every warehouse."
+          "text": "The beacon is still lit, but there are soldiers in every warehouse.",
+          "when_absent": [
+            {
+              "speaker": "lyra",
+              "text": "The beacon is lit, but patrols still hold the warehouses below it."
+            }
+          ]
         },
         {
           "speaker": "dax",
-          "text": "Dock crews are trapped between the occupation and the fires. They will come out when the patrols fall."
+          "text": "Dock crews are trapped between the occupation and the fires. They will come out when the patrols fall.",
+          "when_absent": [
+            {
+              "speaker": "lyra",
+              "text": "The dock crews are trapped between the soldiers and the fires. Give them a way out."
+            }
+          ]
         },
         {
           "speaker": "mara",
@@ -228,11 +444,23 @@
       "closing": [
         {
           "speaker": "dax",
-          "text": "Three warehouses, two barges, and everyone we could find. The harbor is ours."
+          "text": "Three warehouses, two barges, and everyone we could find. The harbor is ours.",
+          "when_absent": [
+            {
+              "speaker": "lyra",
+              "text": "The warehouses are clear. Search the barges once more before we call everyone in."
+            }
+          ]
         },
         {
           "speaker": "vela",
-          "text": "The beacon is clear to the far shore. Someone has answered it."
+          "text": "The beacon is clear to the far shore. Someone has answered it.",
+          "when_absent": [
+            {
+              "speaker": "lyra",
+              "text": "There is an answering light across the water. Keep our beacon burning."
+            }
+          ]
         },
         {
           "speaker": "mara",
@@ -244,11 +472,23 @@
       "opening": [
         {
           "speaker": "una",
-          "text": "The embassy was promised safe passage. The promise lasted until we entered the pass."
+          "text": "The embassy was promised safe passage. The promise lasted until we entered the pass.",
+          "when_absent": [
+            {
+              "speaker": "lyra",
+              "text": "The embassy was ambushed in the pass after being promised safe passage. We are taking the survivors out."
+            }
+          ]
         },
         {
           "speaker": "silas",
-          "text": "I have the written order that arranged the ambush. Get it to the cities, and the regent loses his excuses."
+          "text": "I have the written order that arranged the ambush. Get it to the cities, and the regent loses his excuses.",
+          "when_absent": [
+            {
+              "speaker": "lyra",
+              "text": "We have the written ambush order. Copies must reach the cities, along with the survivors."
+            }
+          ]
         },
         {
           "speaker": "cassian",
@@ -256,7 +496,16 @@
         },
         {
           "speaker": "una",
-          "text": "Then take the documents anyway. I am tired of being the reason someone else stays behind."
+          "text": "Then take the documents anyway. I am tired of being the reason someone else stays behind.",
+          "requires": [
+            "cassian"
+          ],
+          "when_absent": [
+            {
+              "speaker": "una",
+              "text": "Send copies of the orders ahead. I will stay with the embassy survivors."
+            }
+          ]
         },
         {
           "speaker": "lyra",
@@ -266,7 +515,13 @@
       "closing": [
         {
           "speaker": "silas",
-          "text": "The orders are in the hands of every city council. I have never delivered so many copies of the truth."
+          "text": "The orders are in the hands of every city council. I have never delivered so many copies of the truth.",
+          "when_absent": [
+            {
+              "speaker": "lyra",
+              "text": "The copies are on their way to the city councils. The regent cannot call this an accident now."
+            }
+          ]
         },
         {
           "speaker": "una",
@@ -274,7 +529,20 @@
         },
         {
           "speaker": "ivo",
-          "text": "All here. Tired of diplomats asking after them, but here."
+          "text": "All here. Tired of diplomats asking after them, but here.",
+          "requires": [
+            "una"
+          ],
+          "when_absent": [
+            {
+              "speaker": "ivo",
+              "text": "The embassy survivors are all here. They need rest more than another account of the ambush."
+            },
+            {
+              "speaker": "lyra",
+              "text": "The embassy survivors are with the wagons. Give them water, and room to rest."
+            }
+          ]
         }
       ]
     },
@@ -282,7 +550,13 @@
       "opening": [
         {
           "speaker": "petra",
-          "text": "I built the west supports. The old maintenance walk still crosses underneath the garrison."
+          "text": "I built the west supports. The old maintenance walk still crosses underneath the garrison.",
+          "when_absent": [
+            {
+              "speaker": "lyra",
+              "text": "The old maintenance walk passes beneath the garrison. We can reach the eastern gate from there."
+            }
+          ]
         },
         {
           "speaker": "ari",
@@ -290,11 +564,23 @@
         },
         {
           "speaker": "oren",
-          "text": "Can the aqueduct bear the company?"
+          "text": "Can the aqueduct bear the company?",
+          "requires": [
+            "petra"
+          ]
         },
         {
           "speaker": "petra",
-          "text": "It bore a city\u2019s water for two hundred years. Walk where I tell you."
+          "text": "It bore a city’s water for two hundred years. Walk where I tell you.",
+          "requires": [
+            "oren"
+          ],
+          "when_absent": [
+            {
+              "speaker": "petra",
+              "text": "The aqueduct carried a city’s water for two hundred years. Keep to the maintenance walk."
+            }
+          ]
         },
         {
           "speaker": "lyra",
@@ -304,7 +590,13 @@
       "closing": [
         {
           "speaker": "petra",
-          "text": "Listen. That is water reaching the lower channels."
+          "text": "Listen. That is water reaching the lower channels.",
+          "when_absent": [
+            {
+              "speaker": "lyra",
+              "text": "The lower channels are filling. The valley has its water back."
+            }
+          ]
         },
         {
           "speaker": "ari",
@@ -320,11 +612,23 @@
       "opening": [
         {
           "speaker": "noor",
-          "text": "The engine is not making sunlight. It is drawing heat from the land and storing it above the capital."
+          "text": "The engine is not making sunlight. It is drawing heat from the land and storing it above the capital.",
+          "when_absent": [
+            {
+              "speaker": "lyra",
+              "text": "The observatory records are clear: the engine draws heat out of the valley and stores it above the capital."
+            }
+          ]
         },
         {
           "speaker": "tarin",
-          "text": "That cannot continue. The valley would freeze, then burn when the containment fails."
+          "text": "That cannot continue. The valley would freeze, then burn when the containment fails.",
+          "when_absent": [
+            {
+              "speaker": "lyra",
+              "text": "If the containment fails, everything the engine has taken will fall back on the city."
+            }
+          ]
         },
         {
           "speaker": "galen",
@@ -332,17 +636,32 @@
         },
         {
           "speaker": "lyra",
-          "text": "Can we stop it here?"
+          "text": "Can we stop it here?",
+          "requires": [
+            "noor"
+          ]
         },
         {
           "speaker": "noor",
-          "text": "The observatory controls its aim. Break that control first. Then I can find the anchors."
+          "text": "The observatory controls its aim. Break that control first. Then I can find the anchors.",
+          "when_absent": [
+            {
+              "speaker": "lyra",
+              "text": "This observatory controls the engine’s aim. Break that control, then find its remaining anchors."
+            }
+          ]
         }
       ],
       "closing": [
         {
           "speaker": "noor",
-          "text": "Three anchors. One in the furnace, two under the palace. We can reach them."
+          "text": "Three anchors. One in the furnace, two under the palace. We can reach them.",
+          "when_absent": [
+            {
+              "speaker": "lyra",
+              "text": "The records show three anchors: one in the furnace and two under the palace. We can reach them."
+            }
+          ]
         },
         {
           "speaker": "galen",
@@ -350,11 +669,23 @@
         },
         {
           "speaker": "tarin",
-          "text": "For a siege?"
+          "text": "For a siege?",
+          "requires": [
+            "galen"
+          ]
         },
         {
           "speaker": "galen",
-          "text": "For the day after. Someone ought to think of it."
+          "text": "For the day after. Someone ought to think of it.",
+          "requires": [
+            "tarin"
+          ],
+          "when_absent": [
+            {
+              "speaker": "galen",
+              "text": "I will bring seeds for the day after. Someone ought to think of it."
+            }
+          ]
         }
       ]
     },
@@ -362,15 +693,33 @@
       "opening": [
         {
           "speaker": "hale",
-          "text": "I dug these tunnels. They told us the engine would end the hungry winters."
+          "text": "I dug these tunnels. They told us the engine would end the hungry winters.",
+          "when_absent": [
+            {
+              "speaker": "lyra",
+              "text": "These tunnels were built on a promise to end the hungry winters. People are still trapped working below."
+            }
+          ]
         },
         {
           "speaker": "yuna",
-          "text": "In the palace they told a different story. They said the workers were honored volunteers."
+          "text": "In the palace they told a different story. They said the workers were honored volunteers.",
+          "requires": [
+            "hale"
+          ],
+          "when_absent": [
+            {
+              "speaker": "yuna",
+              "text": "The palace calls the trapped workers honored volunteers. We will bring them out where the city can see them."
+            }
+          ]
         },
         {
           "speaker": "hale",
-          "text": "Then let us show them some honored volunteers walking out."
+          "text": "Then let us show them some honored volunteers walking out.",
+          "requires": [
+            "yuna"
+          ]
         },
         {
           "speaker": "ivo",
@@ -384,11 +733,23 @@
       "closing": [
         {
           "speaker": "hale",
-          "text": "Nobody left below. I checked the old shafts myself."
+          "text": "Nobody left below. I checked the old shafts myself.",
+          "when_absent": [
+            {
+              "speaker": "lyra",
+              "text": "The old shafts are clear. Call the search parties back to the treatment stations."
+            }
+          ]
         },
         {
           "speaker": "yuna",
-          "text": "The palace service doors open at dawn. I still remember every step."
+          "text": "The palace service doors open at dawn. I still remember every step.",
+          "when_absent": [
+            {
+              "speaker": "lyra",
+              "text": "We have the route through the palace service doors. They open at dawn."
+            }
+          ]
         },
         {
           "speaker": "lyra",
@@ -400,15 +761,30 @@
       "opening": [
         {
           "speaker": "elian",
-          "text": "My regiment has opened the outer defenses. The inner guard has not answered."
+          "text": "My regiment has opened the outer defenses. The inner guard has not answered.",
+          "when_absent": [
+            {
+              "speaker": "lyra",
+              "text": "The outer defenses have opened to us. The inner guard has not answered our surrender offer."
+            }
+          ]
         },
         {
           "speaker": "rhea",
-          "text": "My father read your offer of surrender. Then he locked the engine chamber."
+          "text": "My father read your offer of surrender. Then he locked the engine chamber.",
+          "when_absent": [
+            {
+              "speaker": "lyra",
+              "text": "The engine chamber is locked from within. The keeper has refused to come out."
+            }
+          ]
         },
         {
           "speaker": "lyra",
-          "text": "Do you still want to go in?"
+          "text": "Do you still want to go in?",
+          "requires": [
+            "rhea"
+          ]
         },
         {
           "speaker": "rhea",
@@ -422,11 +798,23 @@
       "closing": [
         {
           "speaker": "elian",
-          "text": "The guard has stood down. No one outside the chamber is still fighting."
+          "text": "The guard has stood down. No one outside the chamber is still fighting.",
+          "when_absent": [
+            {
+              "speaker": "lyra",
+              "text": "The guard has stood down. Only the engine chamber remains closed."
+            }
+          ]
         },
         {
           "speaker": "rhea",
-          "text": "I can hear him speaking through the door. He is giving orders to an empty room."
+          "text": "I can hear him speaking through the door. He is giving orders to an empty room.",
+          "when_absent": [
+            {
+              "speaker": "lyra",
+              "text": "We can hear the keeper through the door. He is still giving orders, but no one answers."
+            }
+          ]
         },
         {
           "speaker": "lyra",
@@ -438,11 +826,23 @@
       "opening": [
         {
           "speaker": "noor",
-          "text": "The anchors are failing. Every order sworn to the crown feeds the binding again."
+          "text": "The anchors are failing. Every order sworn to the crown feeds the binding again.",
+          "when_absent": [
+            {
+              "speaker": "lyra",
+              "text": "The anchors are failing. Every order sworn to the crown feeds the binding again. We must stop the keeper."
+            }
+          ]
         },
         {
           "speaker": "rhea",
-          "text": "He thinks keeping his oath will keep the city alive."
+          "text": "He thinks keeping his oath will keep the city alive.",
+          "when_absent": [
+            {
+              "speaker": "lyra",
+              "text": "He believes the oath is holding the city together. It is holding the engine open."
+            }
+          ]
         },
         {
           "speaker": "oren",
@@ -458,7 +858,16 @@
         },
         {
           "speaker": "lyra",
-          "text": "Let us try not to need them all."
+          "text": "Let us try not to need them all.",
+          "requires": [
+            "ivo"
+          ],
+          "when_absent": [
+            {
+              "speaker": "lyra",
+              "text": "Stay together. Bring out everyone we can."
+            }
+          ]
         }
       ],
       "closing": [
@@ -468,7 +877,20 @@
         },
         {
           "speaker": "noor",
-          "text": "That was only the borrowed light. Morning does not need the engine."
+          "text": "That was only the borrowed light. Morning does not need the engine.",
+          "requires": [
+            "rhea"
+          ],
+          "when_absent": [
+            {
+              "speaker": "noor",
+              "text": "The borrowed light is gone. Morning does not need the engine."
+            },
+            {
+              "speaker": "lyra",
+              "text": "The engine is quiet. There is still light over the valley."
+            }
+          ]
         },
         {
           "speaker": "cassian",
@@ -476,7 +898,16 @@
         },
         {
           "speaker": "lyra",
-          "text": "We can discuss chairs after we get everyone home."
+          "text": "We can discuss chairs after we get everyone home.",
+          "requires": [
+            "cassian"
+          ],
+          "when_absent": [
+            {
+              "speaker": "lyra",
+              "text": "We will decide what comes next together, after we get everyone home."
+            }
+          ]
         },
         {
           "speaker": "oren",
