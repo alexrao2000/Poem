@@ -22,10 +22,16 @@ func _init(study_ids: Array):
    identities[id]={"job":source.job,"weapon":source.weapon}
    models.catalog.characters[id]=spec.duplicate(true)
 
-func build(parent: Node3D,unit: Dictionary,position: Vector3) -> Node3D:
+func accepts(unit: Dictionary) -> bool:
  var identity=identities.get(unit.get("id",""),{})
- if identity.is_empty() or unit.get("team","")!="player":return null
+ if identity.is_empty() or unit.get("team","")!="player":return false
  var promotion=str(unit.get("promotion",""))
- if not promotion.is_empty() and promotion not in models.catalog.characters[unit.id].get("supported_promotions",[]):return null
- if unit.get("job","")!=identity.job or unit.get("weapon","")!=identity.weapon:return null
+ if not promotion.is_empty() and promotion not in models.catalog.characters[unit.id].get("supported_promotions",[]):return false
+ return unit.get("job","")==identity.job and unit.get("weapon","")==identity.weapon
+
+func prefetch(unit: Dictionary):
+ if accepts(unit):models.prefetch(unit)
+
+func build(parent: Node3D,unit: Dictionary,position: Vector3) -> Node3D:
+ if not accepts(unit):return null
  return models.build(parent,unit,position)

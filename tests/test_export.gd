@@ -493,6 +493,7 @@ func run():
  assert(app.preview_actor.player.assigned_animation=="CriticalSpellRelease" and app.preview_actor.model.get_node("Rig/Armature/Skeleton3D/BookHand/Folio").critical_prepared)
  app.close_model_view();app.debug_session.end(app.game)
  app.preferences.values.character_models="revised";app.game.chapter=0;app.game.start_battle();app.make_map();app.show_battle()
+ assert(app.debug_vanguard.models.scene_cache.size()>0 and app.debug_knight.models.scene_cache.size()>0 and app.revised_enemies.models.scene_cache.size()>0,"Packaged battle setup retains chapter model sources before combat")
  var stage_a=app.game.living("player")[0];var stage_b=app.game.living("enemy")[0];stage_a.x=8;stage_a.y=4;stage_b.x=9;stage_b.y=4
  await app.cinematic(stage_a,stage_b,[{"actor":stage_a.id,"target":stage_b.id,"damage":1,"remaining":19,"hit":true,"crit":false}],{stage_a.id:20,stage_b.id:20})
  assert(not app.stage.visible and app.stage.process_mode==Node.PROCESS_MODE_DISABLED,"Packaged combat suspends its hidden arena after returning to the map")

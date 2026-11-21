@@ -48,16 +48,32 @@ func specification_error(spec) -> String:
   if not spec.supported_items is Array or spec.supported_items.is_empty() or not spec.supported_items.all(func(item):return item is String):return "Supported equipment must be a nonempty list of item IDs"
  return ""
 
-func build(parent: Node3D,unit: Dictionary,position: Vector3) -> Node3D:
+func eligible_specs(unit: Dictionary) -> Array:
+ var result=[]
  for spec in candidates(unit):
   var error=specification_error(spec)
   if not error.is_empty():report(error);continue
   if spec.has("supported_items") and unit.get("item","") not in spec.supported_items:continue
-  var packed=scene_cache.get(spec.scene) as PackedScene
-  if packed==null:
-   packed=load(spec.scene) as PackedScene
-   if packed==null:report("Not a model scene: "+spec.scene);continue
-   scene_cache[spec.scene]=packed
+  result.append(spec)
+ return result
+
+func source_scene(spec: Dictionary) -> PackedScene:
+ var packed=scene_cache.get(spec.scene) as PackedScene
+ if packed==null:
+  packed=load(spec.scene) as PackedScene
+  if packed==null:report("Not a model scene: "+spec.scene);return null
+  scene_cache[spec.scene]=packed
+ return packed
+
+func prefetch(unit: Dictionary):
+ # Resource loading only: do not instantiate actors or run identity/rig setup.
+ for spec in eligible_specs(unit):source_scene(spec)
+
+func build(parent: Node3D,unit: Dictionary,position: Vector3) -> Node3D:
+ for spec in eligible_specs(unit):
+  var packed=source_scene(spec)
+  if packed==null:continue
+  var error=""
   var scene=packed.instantiate()
   if not scene is Node3D:report("Model root must be Node3D: "+spec.scene);scene.free();continue
   if spec.has("equipment"):

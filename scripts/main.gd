@@ -554,6 +554,7 @@ func announce_phase(side: String):
 	ui.remove_child(banner);banner.queue_free();phase_banner_active=false
 
 func show_battle():
+	prefetch_battle_models()
 	screen="battle";reset_ui()
 	var top=PanelContainer.new();top.set_anchors_and_offsets_preset(Control.PRESET_TOP_WIDE);top.offset_left=22;top.offset_right=-22;top.offset_top=18;top.offset_bottom=100;ui.add_child(top)
 	var row=HBoxContainer.new();top.add_child(row)
@@ -955,35 +956,24 @@ func end_turn(resuming=false):
 	await announce_phase("player");busy=false;update_side()
 	persist_campaign("battle")
 
-func make_fighter(u,position) -> Node3D:
+func selected_model_builders() -> Array:
 	var revised=preferences.values.character_models=="revised"
-	if (debug_session.revised_enemies if debug_session.active else revised):
-		var enemy=revised_enemies.build(stage,u,position)
-		if enemy!=null:return enemy
-	if (debug_session.revised_vanguard if debug_session.active else revised):
-		var study=debug_vanguard.build(stage,u,position)
-		if study!=null:return study
-	if (debug_session.revised_duelists if debug_session.active else revised):
-		var study=debug_duelists.build(stage,u,position)
-		if study!=null:return study
-	if (debug_session.revised_caster if debug_session.active else revised):
-		var study=debug_caster.build(stage,u,position)
-		if study!=null:return study
-	if (debug_session.revised_warden if debug_session.active else revised):
-		var study=debug_warden.build(stage,u,position)
-		if study!=null:return study
-	if (debug_session.revised_corsair if debug_session.active else revised):
-		var study=debug_corsair.build(stage,u,position)
-		if study!=null:return study
-	if (debug_session.revised_ranger if debug_session.active else revised):
-		var study=debug_ranger.build(stage,u,position)
-		if study!=null:return study
-	if (debug_session.revised_knight if debug_session.active else revised):
-		var study=debug_knight.build(stage,u,position)
-		if study!=null:return study
-	if (debug_session.revised_rider if debug_session.active else revised):
-		var study=debug_rider.build(stage,u,position)
-		if study!=null:return study
+	var result=[]
+	for entry in [[revised_enemies,debug_session.revised_enemies],[debug_vanguard,debug_session.revised_vanguard],[debug_duelists,debug_session.revised_duelists],[debug_caster,debug_session.revised_caster],[debug_warden,debug_session.revised_warden],[debug_corsair,debug_session.revised_corsair],[debug_ranger,debug_session.revised_ranger],[debug_knight,debug_session.revised_knight],[debug_rider,debug_session.revised_rider]]:
+		if (entry[1] if debug_session.active else revised):result.append(entry[0])
+	return result
+
+func prefetch_battle_models():
+	if preferences.values.combat=="map":return
+	# Pay first-use source loading during setup, before chapter/phase animations.
+	# This also covers restored battles and enabling revised models in Options.
+	for builder in selected_model_builders():
+		for unit in game.units:builder.prefetch(unit)
+
+func make_fighter(u,position) -> Node3D:
+	for builder in selected_model_builders():
+		var actor=builder.build(stage,u,position)
+		if actor!=null:return actor
 	return fighters.build(stage,u,position)
 
 func staff_healing(healer,recipient,amount: int,before: Dictionary={}):

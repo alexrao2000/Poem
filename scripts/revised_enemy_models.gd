@@ -17,10 +17,16 @@ func _init():
   var spec=entry.duplicate(true);spec.appearance="Identity"
   weapons[entry.study_enemy_class]=source[0].weapon
   models.catalog.enemy_classes[entry.study_enemy_class]=spec
-func build(parent: Node3D,unit: Dictionary,position: Vector3) -> Node3D:
- if unit.get("team","")!="enemy" or not str(unit.get("promotion","")).is_empty():return null
+func accepts(unit: Dictionary) -> bool:
+ if unit.get("team","")!="enemy" or not str(unit.get("promotion","")).is_empty():return false
  var commander=Commanders.profile(unit)
- if unit.get("boss",false) and commander.is_empty():return null
+ if unit.get("boss",false) and commander.is_empty():return false
  var job=unit.get("job","")
- if not weapons.has(job) or weapons[job]!=unit.get("weapon",""):return null
+ return weapons.has(job) and weapons[job]==unit.get("weapon","")
+
+func prefetch(unit: Dictionary):
+ if accepts(unit):models.prefetch(unit)
+
+func build(parent: Node3D,unit: Dictionary,position: Vector3) -> Node3D:
+ if not accepts(unit):return null
  return models.build(parent,unit,position)
