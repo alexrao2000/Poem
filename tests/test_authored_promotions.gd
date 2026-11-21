@@ -29,6 +29,13 @@ func run():
    if look.get("satchel",false):
     var belt=rig.get_node("PromotionHip");assert(belt.bone_name=="pelvis")
     for mesh in belt.find_children("*","MeshInstance3D",true,false):assert(not mesh.material_override.get_shader_parameter("cloth_floor_enabled"),"Rigid belt accessories must not flatten through cloth floor correction")
+   if unit.job=="Knight":
+    var shield=rig.get_node("KnightShield/Plate")
+    var trim=shield.get_node("PromotionShieldRim" if look.get("shield_rim",false) else "ShieldTrim")
+    var expected_trim=load("res://scripts/knight_shield.gd").promotion_trim_mesh() if look.get("shield_rim",false) else load("res://scripts/knight_shield.gd").trim_mesh()
+    assert(trim.mesh==expected_trim and trim.scale.is_equal_approx(Vector3.ONE*.83),"Promoted shield uses its fitted rigid pattern")
+    assert(not trim.material_override.get_shader_parameter("cloth_floor_enabled"))
+    assert(rig.get_node("KnightShield").bone_name=="lowerarm_l")
    for panel in costume.panels:
     var arrays=panel.mesh.surface_get_arrays(0);assert(arrays[Mesh.ARRAY_VERTEX].size()>50 and panel.skin.get_bind_count()==5 and panel.get_node(panel.skeleton)==rig)
     for vertex in range(arrays[Mesh.ARRAY_VERTEX].size()):

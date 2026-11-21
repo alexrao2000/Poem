@@ -1220,7 +1220,11 @@
       "wide": 1.22,
       "windup": 1.22,
       "impact": 1.28
-    }
+    },
+    "supported_promotions": [
+      "bastion",
+      "sentinel"
+    ]
   },
   "knight_male": {
     "scene": "res://assets/models/quaternius/study_knight_male.tscn",
@@ -1320,6 +1324,10 @@
     "campaign_characters": [
       "oren",
       "rook"
+    ],
+    "supported_promotions": [
+      "bastion",
+      "sentinel"
     ]
   },
   "rider_female": {

@@ -29,6 +29,8 @@ func configure(body: Node3D,rig: Skeleton3D,painter,unit: Dictionary,appearance:
   for pair in [["LeftArm" if side<0 else "Arm","upperarm_"],["LeftElbow" if side<0 else "Elbow","lowerarm_"]]:
    var bone=pair[1]+suffix;var origin=rig.get_bone_global_rest(rig.find_bone(bone)).origin
    proxy.joints[pair[0]]=attachment(rig,bone,"Promotion"+pair[0],Transform3D(Basis(Vector3.BACK,-side*PI/2)*Basis(Vector3.UP,PI),origin))
+ if Costume.looks[id].get("shield_rim",false):
+  proxy.joints.Shield=rig.get_node("KnightShield/Plate")
  var cloth=Color(appearance.cloth);var cape=Color(appearance.cape);var steel=Color(appearance.get("steel","a8b3bb"));var gold=Color(appearance.get("metal","bca26b"))
  Costume.build(painter,proxy,unit,torso,cloth,cape,steel,gold,Color("554337"))
  var group=torso.get_node("PromotionCostume");var converted={}

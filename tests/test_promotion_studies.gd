@@ -7,6 +7,7 @@ const Shutdown=preload("helpers/game_shutdown.gd")
 var character_ids=["lyra","rhea"]
 var promotion_ids=["standard_bearer","dawnblade"]
 var item_ids=["iron_sword","dueling_sword","tempered_sword","estoc"]
+var ranged_items=[]
 var contacts=0
 var flights=0
 func _initialize():call_deferred("run")
@@ -53,11 +54,11 @@ func run():
   for promotion in promotion_ids:
    unit.promotion=promotion;enemy.job="Knight" if promotion==promotion_ids[0] else "Rider"
    for item in item_ids:
-    unit.item=item
+    unit.item=item;unit.x=7 if unit.weapon=="bow" or item in ranged_items else 8
     await app.cinematic(unit,enemy,[{"actor":unit.id,"target":enemy.id,"damage":0 if item==item_ids[0] else 2,"remaining":20 if item==item_ids[0] else 18,"hit":true,"crit":item in item_ids.slice(2)}],{unit.id:unit.hp,enemy.id:20})
     assert(app.world.visible and app.pieces.visible and not app.stage.visible)
  assert(contacts+flights==character_ids.size()*promotion_ids.size()*item_ids.size(),str([contacts,flights,character_ids]))
  assert(app.game.save_data("battle")==before and app.game.rng.state==rng)
  app.busy=false;await Shutdown.dispose(app);await process_frame
- print("PASS: ",character_ids," ordinary promotion previews, three-size controls, cancel without training, ",contacts," critical/guard/mounted blade contacts, ",flights," exact arrow launches and campaign/RNG isolation")
+ print("PASS: ",character_ids," ordinary promotion previews, three-size controls, cancel without training, ",contacts," critical/guard/mounted blade contacts, ",flights," exact projectile launches and campaign/RNG isolation")
  quit()
