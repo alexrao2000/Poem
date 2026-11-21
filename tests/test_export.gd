@@ -364,6 +364,12 @@ func run():
  app.debug_session.begin(app.game,"camp",true);app.options_return="camp";app.show_debug_tools("camp")
  app.ui.find_child("CommanderStudy",true,false).select(11);app.ui.find_child("ViewCommanderStudy",true,false).pressed.emit();await process_frame
  assert(app.preview_actor is Imported and app.preview_actor.get_meta("commander")=="vael","Packaged debug commander selector opens its own revised identity")
+ app.close_model_view();app.show_source_model_view("female","estoc",true);await process_frame
+ var export_choice=app.ui.find_child("PreviewAction",true,false);var export_actions=app.stage.get_node("PreviewActionPlayer");var export_keys=[]
+ for index in range(export_choice.item_count):export_keys.append(export_choice.get_item_metadata(index))
+ assert("critical_strike" in export_keys and "victory_flourish" in export_keys,"Packed studies expose generated special actions")
+ export_choice.select(export_keys.find("critical_strike"));export_choice.item_selected.emit(export_choice.selected);await export_actions.finished
+ assert(app.preview_actor.pose_name=="strike" and app.preview_actor.player.assigned_animation=="SwordCriticalAttack","Packed critical preview replays the actual preparation and strike")
  app.close_model_view();app.debug_session.end(app.game)
  await Shutdown.dispose(app);await process_frame
  print("PASS: exported catalog, all three act scores, chapter scenes, sixteen promotion patterns, all forty-eight revised promotion outfits, licenses and credits")

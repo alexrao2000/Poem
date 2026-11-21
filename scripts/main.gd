@@ -42,6 +42,7 @@ var chapter_card_active=false
 var chapter_card_skip=false
 const CriticalCutin=preload("res://scripts/critical_cutin.gd")
 const Fighters = preload("res://scripts/fighters.gd")
+const ImportedFighter=preload("res://scripts/imported_fighter.gd")
 var fighters: RefCounted
 const Scenery = preload("res://scripts/scenery.gd")
 var scenery: RefCounted
@@ -1489,11 +1490,13 @@ func show_model_view(unit,on_close=Callable(),model_spec: Dictionary={}):
 	var actions=[["Ready","idle"],["Attack preparation","windup"],["Critical preparation","critical_windup"],["Attack","strike"],["Recovery","recover"]]
 	if unit.weapon=="magic":actions=[["Ready","idle"],["Casting preparation","windup"],["Critical preparation","critical_windup"],["Cast","strike"],["Recovery","recover"]]
 	if unit.weapon=="staff":actions=[["Ready","idle"],["Healing preparation","cast_windup"],["Heal","cast"]]
+	if unit.weapon=="sword" and (not preview_actor is ImportedFighter or preview_actor.poses.has("critical_strike")):actions.insert(4,["Critical attack","critical_strike"])
 	if unit.weapon=="lance" and unit.get("item","")=="javelin":actions.append_array([["Throw preparation","throw_windup"],["Throw","throw"],["Throw recovery","throw_recover"]])
 	actions.insert(1,["Run / trot","advance"])
 	actions.append_array([["Guard","guard"],["Hit reaction","hit"],["Critical reaction","critical_hit"],["Defeated","down"],["Finishing flourish","victory_flourish"],["Finish","victory"]])
+	if preview_actor is ImportedFighter:actions=actions.filter(func(entry):return entry[1]!="victory_flourish" or preview_actor.poses.has(entry[1]))
 	if not model_spec.is_empty():
-		actions=actions.filter(func(entry):return model_spec.poses.has(entry[1]) or (model_spec.get("styled",false) and entry[1] in ["critical_windup","critical_hit"]))
+		actions=actions.filter(func(entry):return preview_actor.poses.has(entry[1]) or (model_spec.get("styled",false) and entry[1] in ["critical_windup","critical_hit"]))
 		actions.append(["Evasion","evade"])
 	var choice=OptionButton.new();choice.name="PreviewAction";choice.custom_minimum_size.y=42
 	for entry in actions:
@@ -1509,7 +1512,7 @@ func show_model_view(unit,on_close=Callable(),model_spec: Dictionary={}):
 		target_choice.item_selected.connect(func(index):
 			contact_target.choose(index)
 			var action=str(choice.get_item_metadata(choice.selected))
-			if not action.begins_with("throw"):action="strike"
+			if not action.begins_with("throw") and action!="critical_strike":action="strike"
 			for at in range(choice.item_count):
 				if choice.get_item_metadata(at)==action:choice.select(at);break
 			action_player.play(action))

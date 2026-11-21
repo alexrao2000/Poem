@@ -33,7 +33,8 @@ func configure(subject: Node3D,view: Camera3D,panel: Control,poses: Array):
  if actor is Actor:
   for key in poses:
    actor.pose("idle",1).custom_step(1)
-   var motion=actor.pose(key,1)
+   if key=="critical_strike":actor.pose("critical_windup",1).custom_step(1)
+   var motion=actor.pose("strike" if key=="critical_strike" else key,1)
    for step in range(4):
     motion.custom_step(.25);actor.apply_constraints();measure()
   if "advance" in poses:
@@ -45,14 +46,17 @@ func configure(subject: Node3D,view: Camera3D,panel: Control,poses: Array):
   actor.pose("idle",1).custom_step(1);actor.apply_constraints()
  elif actor is Imported:
   # Imported mesh AABBs describe the rest pose, not the animated silhouette.
-  var sampled={}
-  for mapping in actor.poses.values():
-   var key=str(mapping)
-   if sampled.has(key):continue
-   sampled[key]=true
-   actor.player.play(mapping.clip)
+  for key in actor.poses:
+   var mapping=actor.poses[key]
+   # Pose listeners enable fitted hands, throws and flourishes. Sampling only
+   # the clip would miss those silhouettes and expand the camera during replay.
+   if key=="critical_strike":actor.pose("critical_windup",.01)
+   var motion=actor.pose("strike" if key=="critical_strike" else key,.01);motion.kill()
+   actor.player.get_animation(mapping.clip).loop_mode=Animation.LOOP_NONE
+   actor.player.play(mapping.clip,0)
    for step in range(9):
     actor.player.seek(lerpf(mapping.from,mapping.to,float(step)/8),true,true)
+    actor.player.pause()
     actor.refresh_skeleton()
     measure()
   actor.pose("idle",.01)
