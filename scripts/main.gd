@@ -797,6 +797,8 @@ func _input(event):
 		get_viewport().set_input_as_handled()
 
 func _unhandled_input(event):
+	if screen=="music_room" and event is InputEventKey and event.pressed and not event.echo and event.keycode==KEY_ESCAPE:
+		interface_audio.cue("back");close_music_room();get_viewport().set_input_as_handled();return
 	if screen in ["debug_report","debug_experiments"] and event is InputEventKey and event.pressed and not event.echo and event.keycode==KEY_ESCAPE:
 		show_debug_tools(options_return);get_viewport().set_input_as_handled();return
 	if screen in ["triage","tile_units"] and event is InputEventKey and event.pressed and event.keycode==KEY_ESCAPE:
@@ -1853,6 +1855,7 @@ func show_options(return_to: String):
 		var slider=HSlider.new();slider.name=key.capitalize()+"Volume";slider.min_value=0;slider.max_value=100;slider.step=5;slider.value=preferences.values[key]*100
 		slider.size_flags_horizontal=Control.SIZE_EXPAND_FILL;slider.custom_minimum_size.y=48;row.add_child(slider);row.add_child(value_label);value_label.text="%d%%"%slider.value
 		slider.value_changed.connect(func(value):preferences.values[key]=value/100.0;value_label.text="%d%%"%value;apply_audio_preferences())
+	button_in(panel,"Listen to campaign music",show_music_room).name="OpenMusicRoom"
 	label_in(panel,"Dialogue text",21,GOLD)
 	var speed=OptionButton.new();speed.name="TextSpeed";speed.custom_minimum_size.y=42
 	for title in ["Standard","Fast","Instant"]:speed.add_item(title)
@@ -1862,6 +1865,45 @@ func show_options(return_to: String):
 	automatic.toggled.connect(func(value):preferences.values.auto_end=value)
 	button_in(frame,"Restore defaults",func():preferences.reset();apply_audio_preferences();show_options(options_return))
 	button_in(frame,"Apply and return",close_options)
+
+func show_music_room():
+	if screen!="options":return
+	screen="music_room";reset_ui()
+	if options_return=="title":title_backdrop()
+	var preview=preload("res://scripts/music_room.gd").new();ui.add_child(preview)
+	preview.configure(score_director,music_transition,game.chapter,preferences.volume_db("music"))
+	var frame=menu_panel(800);var panel=scrolling_column(frame)
+	label_in(panel,"POEM / MUSIC ROOM",17,GOLD)
+	label_in(panel,"Calm & Ablaze",44,GOLD)
+	label_in(panel,"Listen to the campaign’s paired arrangements. Switching Calm and Ablaze keeps the same point in the music. Returning resumes your campaign track.",20)
+	var themes=OptionButton.new();themes.name="MusicRoomTheme";themes.custom_minimum_size.y=42
+	for profile in preview.director.profiles:themes.add_item(profile.title)
+	themes.selected=preview.theme_index;panel.add_child(themes);themes.grab_focus()
+	var details=label_in(panel,"",18,GOLD);details.name="MusicRoomDetails"
+	var update_details=func():
+		var profile=preview.director.profiles[preview.theme_index]
+		details.text="Act %d · Chapters %02d–%02d · %d BPM"%[preview.theme_index+1,int(profile.first_chapter)+1,int(profile.first_chapter)+4,int(profile.bpm)]
+	update_details.call()
+	themes.item_selected.connect(func(index):preview.select_theme(index);update_details.call())
+	var choices=HBoxContainer.new();choices.add_theme_constant_override("separation",12);panel.add_child(choices)
+	var group=ButtonGroup.new()
+	for title in ["Calm","Ablaze"]:
+		var choice=button_in(choices,title,func():preview.select_arrangement(title=="Ablaze"))
+		choice.name="MusicRoom"+title;choice.toggle_mode=true;choice.button_group=group;choice.button_pressed=title=="Calm";choice.size_flags_horizontal=Control.SIZE_EXPAND_FILL
+	label_in(panel,"Music volume: %d%%. Change it in Options."%roundi(preferences.values.music*100),18)
+	label_in(panel,"Original Poem compositions · orchestral samples from VSCO 2 Community Edition (CC0).",16,Color("766e5e"))
+	button_in(frame,"Return to Options",close_music_room)
+
+func close_music_room():
+	if screen!="music_room":return
+	show_options(options_return)
+	var host=weakref(ui)
+	await get_tree().process_frame
+	await get_tree().process_frame
+	var current=host.get_ref()
+	if current==null or current.is_queued_for_deletion():return
+	var launch=current.find_child("OpenMusicRoom",true,false)
+	if launch!=null:launch.grab_focus()
 
 func close_options():
 	var saved=preferences.save_file(settings_path)

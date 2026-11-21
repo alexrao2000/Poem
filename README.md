@@ -147,6 +147,8 @@ Failed autosaves display a warning and a phase-status marker. Keep the game open
 
 **Options** is available from the title screen, war council, and battle sidebar. It controls combat presentation, music and effects volume, dialogue speed, and automatic phase ending. Preferences are stored on the device separately from campaign saves. Holding Shift speeds up combat animation without changing the music.
 
+Choose **Listen to campaign music** in Options to open the music room. Select any of the three act themes and switch between **Calm** and **Ablaze** without restarting the track. The room respects the music volume setting; returning resumes the campaign music where it was paused.
+
 ## Development
 
 Run commands below from the repository root. Python 3 is required for the test runner and packaging tools. Node.js runs the browser-storage unit checks; playing the game does not require it. NumPy supports optional audio/texture generation, and Pillow is also needed for texture generation.
