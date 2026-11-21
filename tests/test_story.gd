@@ -85,8 +85,75 @@ func run():
  assert(stage.active==oren_side and stage.portraits[1-oren_side].modulate.r<1,"Returning speaker reuses the same side")
  app.finish_dialogue();await process_frame
  assert(app.screen=="camp","Skipping during an entrance cleans up the stage")
+ await verify_keyboard(app)
  for player in app.sfx_players:player.stop()
  app.music.stop();await create_timer(.15).timeout
  await Shutdown.dispose(app);await process_frame
- print("PASS: ",lines," story lines, 24 transparent dialogue portraits, ",checked," story/support/trial layouts, speaker continuity, scene controls and persistence")
+ print("PASS: ",lines," story lines, 24 transparent dialogue portraits, ",checked," story/support/trial layouts, speaker continuity, one-action keyboard/pointer controls, held-key suppression, chained scenes and persistence")
  quit()
+
+func key_event(code,echo=false):
+ var event=InputEventKey.new();event.keycode=code;event.pressed=true;event.echo=echo;root.push_input(event,true)
+ var release=InputEventKey.new();release.keycode=code;release.pressed=false;root.push_input(release,true)
+
+func click_button(button):
+ var point=button.get_global_rect().get_center()
+ for pressed in [true,false]:
+  var event=InputEventMouseButton.new();event.button_index=MOUSE_BUTTON_LEFT;event.pressed=pressed;event.position=point;event.global_position=point;event.button_mask=MOUSE_BUTTON_MASK_LEFT if pressed else 0;root.push_input(event,true)
+
+func verify_keyboard(app):
+ var lines=[{"speaker":"lyra","text":"The first line must be revealed before the company moves to the next speaker."},{"speaker":"oren","text":"The second line remains here until another deliberate press."},{"speaker":"lyra","text":"The final line closes this conversation only once."}]
+ var snapshot=app.game.save_data("camp").duplicate(true)
+ for speed in [55,0]:
+  app.preferences.values.text_speed=speed
+  for focus in ["none","continue","skip"]:
+   for code in [KEY_ENTER,KEY_SPACE,KEY_ESCAPE]:
+    var calls={"finished":0}
+    app.show_dialogue(lines,func():calls.finished+=1;app.show_camp())
+    await process_frame;await process_frame
+    if root.gui_get_focus_owner()!=null:root.gui_get_focus_owner().release_focus()
+    if focus=="continue":app.dialogue_stage.next_button.grab_focus()
+    elif focus=="skip":app.dialogue_stage.skip_button.grab_focus()
+    if speed>0:app.dialogue_label.visible_characters=0;app.dialogue_reveal=0.0
+    var visible=app.dialogue_label.visible_characters
+    for repeat in range(3):key_event(code,true)
+    assert(app.screen=="dialogue" and app.dialogue_index==0 and app.dialogue_label.visible_characters==visible and calls.finished==0,"Held dialogue keys cannot reveal, advance or skip, even with a focused button")
+    key_event(code)
+    if code==KEY_ESCAPE or focus=="skip":
+     assert(app.screen=="camp" and app.dialogue_index==0 and calls.finished==1,"Fresh skip invokes exactly one callback without advancing a line first")
+    else:
+     assert(app.screen=="dialogue" and calls.finished==0)
+     assert(app.dialogue_index==(0 if speed>0 else 1),"One fresh press performs exactly one reveal or advance, including focused Continue")
+     if speed>0:assert(app.dialogue_label.visible_characters==lines[0].text.length())
+     var index=app.dialogue_index
+     key_event(code,true);assert(app.dialogue_index==index,"Repeat after a fresh press cannot advance a following line")
+     key_event(code);assert(app.dialogue_index==index+1,"A second deliberate press advances once")
+     app.finish_dialogue();assert(calls.finished==1)
+ # Closing a scene may synchronously open the next chapter's introduction.
+ app.preferences.values.text_speed=0
+ for code in [KEY_ENTER,KEY_SPACE,KEY_ESCAPE]:
+  var calls={"first":0,"second":0}
+  app.show_dialogue([lines[0]],func():
+   calls.first+=1
+   app.show_dialogue(lines,func():calls.second+=1;app.show_camp()))
+  await process_frame;await process_frame
+  app.dialogue_stage.next_button.grab_focus()
+  key_event(code)
+  assert(calls.first==1 and calls.second==0 and app.screen=="dialogue" and app.dialogue_index==0,"Key release does not advance the scene opened by the completion callback")
+  for repeat in range(3):key_event(code,true)
+  assert(calls.first==1 and calls.second==0 and app.dialogue_index==0,"A held key cannot dismiss a newly opened scene")
+  key_event(KEY_ENTER);assert(app.dialogue_index==1)
+  app.finish_dialogue();assert(calls.second==1)
+ # Pointer actions still follow the same reveal/advance and skip callbacks.
+ app.preferences.values.text_speed=55
+ var calls={"finished":0}
+ app.show_dialogue(lines,func():calls.finished+=1;app.show_camp())
+ await process_frame;await process_frame
+ app.skip_combat=false;key_event(KEY_TAB)
+ assert(not app.skip_combat and app.dialogue_index==0,"Dialogue focus navigation cannot arm combat skipping")
+ app.dialogue_label.visible_characters=0;app.dialogue_reveal=0.0
+ click_button(app.dialogue_stage.next_button)
+ assert(app.dialogue_index==0 and app.dialogue_label.visible_characters==lines[0].text.length())
+ click_button(app.dialogue_stage.next_button);assert(app.dialogue_index==1)
+ click_button(app.dialogue_stage.skip_button);assert(app.screen=="camp" and calls.finished==1)
+ assert(app.game.save_data("camp")==snapshot,"Dialogue input leaves campaign, roster and RNG unchanged")

@@ -9,6 +9,7 @@ var heading: Label
 var speech: Label
 var hint: Label
 var next_button: Button
+var skip_button: Button
 var ready_indicator: Control
 var ready_to_continue=false
 var ready_clock=0.0
@@ -55,6 +56,7 @@ func configure(next_line: Callable,skip_scene: Callable):
 		var button=Button.new();button.text=entry[0];button.custom_minimum_size.y=42
 		button.pressed.connect(entry[1]);controls.add_child(button)
 		if entry[0]=="Continue  >":next_button=button;button.custom_minimum_size.x=140
+		else:skip_button=button
 	resized.connect(arrange);arrange();refresh_prompt()
 
 func refresh_prompt():

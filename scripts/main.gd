@@ -768,6 +768,13 @@ func toggle_tracked_threat():
 	if tracked_threats.toggle(game,selected):highlight();update_side()
 
 func _input(event):
+	if screen=="dialogue" and event is InputEventKey and event.keycode in [KEY_SPACE,KEY_ENTER,KEY_ESCAPE]:
+		# Handle both edges before GUI buttons: their release must not advance twice.
+		get_viewport().set_input_as_handled()
+		if event.pressed and not event.echo:
+			if event.keycode==KEY_ESCAPE or dialogue_stage.skip_button.has_focus():finish_dialogue()
+			else:advance_dialogue()
+		return
 	if event is InputEventMouseButton and event.button_index==MOUSE_BUTTON_MIDDLE and not event.pressed:map_navigation.dragging=false
 	if screen=="battle_menu" and event is InputEventKey and event.pressed and not event.echo and event.keycode in [KEY_ESCAPE,KEY_M]:
 		interface_audio.cue("back");close_battle_menu();get_viewport().set_input_as_handled();return
@@ -814,10 +821,7 @@ func _unhandled_input(event):
 		if screen=="campaign_trials" and game.completed:show_ending()
 		else:show_camp()
 		get_viewport().set_input_as_handled();return
-	if screen=="dialogue" and event is InputEventKey and event.pressed:
-		if event.keycode in [KEY_SPACE,KEY_ENTER]:advance_dialogue();get_viewport().set_input_as_handled()
-		elif event.keycode==KEY_ESCAPE:finish_dialogue();get_viewport().set_input_as_handled()
-		return
+	if screen=="dialogue" and event is InputEventKey:return
 	if event is InputEventKey and event.pressed:
 		if event.keycode==KEY_TAB:skip_combat=true
 		if screen=="battle" and not busy and not event.echo:
