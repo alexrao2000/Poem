@@ -19,7 +19,7 @@ func run():
   var rig=actor.model.get_node("Rig/Armature/Skeleton3D");var hand=rig.get_node("WeaponHand");var bow=hand.get_node("Bow");var weapon=bow.get_node("Weapon");var arrow=weapon.get_node("NockedArrow");var hold=bow.arms;var fixed=bow.transform
   assert(hold.model==actor.model and hold.corners.size()==8 and hold.chain.size()==8 and actor.pose_constraints.has(hold))
   assert(actor.contact==null and actor.weapon_trail_points().is_empty() and bow.equipped==item)
-  assert(actor.player.get_animation_list().size()==15,"Four private bow clips accompany the eleven retained source clips")
+  assert(actor.player.get_animation_list().size()==16,"Five private bow clips accompany the eleven retained source clips")
   assert(is_equal_approx(actor.player.get_animation("BowIdle").length,actor.player.get_animation("Idle").length),"The ready loop retains the complete source breathing cycle")
   for height in [0.0,.65]:
    actor.position.y=height;actor.rotation.y=-PI/2 if height==0 else PI/2

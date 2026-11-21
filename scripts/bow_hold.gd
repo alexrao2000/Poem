@@ -49,6 +49,8 @@ func target_pose() -> Transform3D:
   return rig.get_bone_global_pose(left_chain[0]).interpolate_with(Transform3D(basis,nock-basis*bow.finger_pad),smoothstep(0,1,bow.lift))
  var shoulder=rig.get_bone_global_pose(right_chain[2]).origin
  var goal=shoulder+Vector3(.05,lerpf(-.30,-.03,bow.lift),lerpf(.18,.40,bow.lift))
+ var settle=smoothstep(0,1,bow.finish)
+ goal+=Vector3(-.03,.04,-.03)*settle
  var forward=Vector3.BACK;var basis=Basis.IDENTITY
  for step in range(3):
   var horizontal=Vector3.UP.cross(forward).normalized();var up=forward.cross(horizontal).normalized()
@@ -57,6 +59,7 @@ func target_pose() -> Transform3D:
   if has_aim:
    var direction=rig.to_local(aim_point)-(goal+basis*bow.position)
    if direction.length_squared()>.000001 and absf(direction.normalized().dot(Vector3.UP))<.995:forward=Vector3.BACK.slerp(direction.normalized(),smoothstep(0,1,bow.lift))
+ basis=Basis(forward,.25*settle)*basis
  return clear_floor(Transform3D(basis,goal))
 
 func bend_pole(desired: Transform3D,upper: Transform3D,elbow: Transform3D) -> Vector3:
@@ -65,6 +68,9 @@ func bend_pole(desired: Transform3D,upper: Transform3D,elbow: Transform3D) -> Ve
   # the drawing pole at any positive lift snaps the nearly idle left arm.
   var original=super(desired,upper,elbow).normalized()
   return original.slerp(desired.basis.z.normalized(),smoothstep(0,1,bow.lift))
+ # Keep the resting elbow plane while the finishing wrist rolls the bow.
+ # Driving the elbow from that rolled wrist twists the forearm unnecessarily.
+ if bow.holding and not solving_left and bow.finish>0:return Vector3.UP
  return desired.basis.z if bow.holding else super(desired,upper,elbow)
 
 func solve() -> Array[Quaternion]:

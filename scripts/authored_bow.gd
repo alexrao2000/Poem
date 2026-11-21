@@ -1,11 +1,12 @@
 extends Node3D
 # Original bow geometry and private source-hand poses. Source breathing/gait
-# remain; four private clips drive the fitted draw, release and recovery.
+# remain; private clips drive fitted draw, release, recovery and victory.
 @export var handle_radius=.014
 var equipped=""
 var finger_pad=Vector3(.015,.075,0)
 var hand_draw=0.0
 var lift=0.0
+var finish=0.0
 var draw=0.0:
  set(value):draw=value;update_string()
 var critical_prepared=false
@@ -77,18 +78,26 @@ func configure_animations(player: AnimationPlayer) -> String:
    animation.track_insert_key(track,1,left_rotations[name_value] if setup[0]=="BowDraw" else rest)
   if library.has_animation(setup[0]):library.remove_animation(setup[0])
   library.add_animation(setup[0],animation)
+ var finishing=player.get_animation("Idle").duplicate(true);finishing.length=.2
+ var finish_track=finishing.add_track(Animation.TYPE_VALUE);finishing.track_set_path(finish_track,NodePath("Armature/Skeleton3D/WeaponHand/Bow:finish"));finishing.track_set_interpolation_type(finish_track,Animation.INTERPOLATION_CUBIC)
+ for pair in [[0,0],[.06,.4],[.12,1],[.20,0]]:finishing.track_insert_key(finish_track,pair[0],float(pair[1]))
+ if library.has_animation("BowFinish"):library.remove_animation("BowFinish")
+ library.add_animation("BowFinish",finishing)
  return ""
 func additional_poses() -> Dictionary:
- return {"critical_windup":{"clip":"BowDraw","from":0.0,"to":1.0},"critical_strike":{"clip":"BowRelease","from":0.0,"to":1.0}}
+ return {"victory_flourish":{"clip":"BowFinish","from":0.0,"to":.2},"critical_windup":{"clip":"BowDraw","from":0.0,"to":1.0},"critical_strike":{"clip":"BowRelease","from":0.0,"to":1.0}}
 
 func animation_pose(key: String) -> String:return "critical_strike" if key=="strike" and critical_prepared else key
 
 func combat_pose(key: String):
  if key=="critical_windup":critical_prepared=true
  elif key not in ["strike","recover"]:critical_prepared=false
+ if key!="victory_flourish":finish=0
+ # A resolved finish keeps the released arrow hidden until the next ready pose.
+ if key in ["victory_flourish","victory"]:projectile_spent=true
  holding=key not in ["down","hit","critical_hit","evade"]
  if key not in ["windup","critical_windup","strike","recover"]:draw=0;lift=0;hand_draw=0
- if key in ["idle","advance","windup","critical_windup","victory"]:projectile_spent=false
+ if key in ["idle","advance","windup","critical_windup"]:projectile_spent=false
  get_node("Weapon/NockedArrow").visible=holding and not projectile_spent
 
 func aim_at(point: Vector3):

@@ -877,3 +877,9 @@ The new pose check covers all 24 recruits, class fallbacks, four facings and spe
 Revised Corsairs now make a restrained axe/hammer settle before the existing held victory pose. A private 200 ms animation is played over the shared 220 ms finishing beat: the fitted wrist rises about 10 cm while the head levels below the face. The native arm solver rotates fixed-length bones and retains the existing grip, source breathing, weapon dimensions and outfit attachments. Leaving the flourish clears its influence. Ordinary surviving exchanges do not flourish; enemy victories and both finish-phase skips use the existing cinematic ownership.
 
 The motion covers Mara, Dax and Hale, Stormbreaker and Trailguard, all four axe/hammer profiles and both headings. Dense fitting, finish-camera projection, actual exchanges, source/styled preview controls and packed-resource checks pass. An isolated untextured static study was inspected for geometry, and a slowed software motion study is available locally. Both omit painted faces, game shading, lighting, shadows and audio. Assembled rendered review remains outstanding. No new source artwork or third-party animation was added.
+
+## Ranger finishing gesture
+
+The optional revised Rangers settle their bows after a resolved win. A private 200 ms clip draws the carrying hand inward roughly 6 cm and rolls the bow 0.25 radians before returning to the held victory pose. The elbow retains its resting plane so the wrist movement does not twist the forearm. Released arrows stay hidden throughout the finish and return only for the next ready/advance/preparation pose. Source and styled viewers expose the gesture; ordinary shots retain their existing draw/release/recovery.
+
+Dense motion, three-size framing, actual promoted and enemy-counter victories, interruption and packed-resource checks pass. The local software study shows isolated untextured geometry; it is not a rendered-game review.

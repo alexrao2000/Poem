@@ -202,7 +202,7 @@ func run():
   app.show_source_model_view(pair[0],"longbow",true);await process_frame
   var ranger=app.preview_actor;assert(ranger is Imported and ranger.model.get_meta("character_identity")==pair[1])
   var rig=ranger.model.get_node("Rig/Armature/Skeleton3D");var bow=rig.get_node("WeaponHand/Bow");var arrow=bow.get_node("Weapon/NockedArrow")
-  assert(bow.equipped=="longbow" and bow.arms.model==ranger.model and bow.arms.chain.size()==8 and ranger.player.get_animation_list().size()==15,"Packaged Ranger retains both-arm fitting and four private bow clips")
+  assert(bow.equipped=="longbow" and bow.arms.model==ranger.model and bow.arms.chain.size()==8 and ["BowIdle","BowDraw","BowRelease","BowRecover","BowFinish"].all(func(clip):return ranger.player.has_animation(clip)),"Packaged Ranger retains both-arm fitting and draw, release, recovery and finishing clips")
   var point=ranger.to_global(Vector3(0,1.85,-4));ranger.aim_at(point);await ranger.pose("windup",.02).finished
   assert(rig.get_node("DrawingHand").to_global(bow.finger_pad).distance_to(bow.get_node("Weapon").to_global(Vector3(0,0,.52)))<.0001)
   assert((-arrow.global_basis.z.normalized()).dot((point-arrow.global_position).normalized())>.999999)
@@ -329,6 +329,13 @@ func run():
     var promotion_finish=actor.model.get_node("Rig/Armature/Skeleton3D/"+("AxeFinish" if unit.weapon=="axe" else "SwordFinish"))
     await actor.finish_flourish(.02).finished;assert(promotion_finish.active and is_zero_approx(promotion_finish.lift))
     await actor.pose("victory",.02).finished;assert(not promotion_finish.active)
+   if unit.weapon=="bow":
+    assert(actor.poses.has("victory_flourish"),"Packed Ranger adapter contributes its private finishing clip")
+    var finishing_bow=actor.model.get_node("Rig/Armature/Skeleton3D/WeaponHand/Bow")
+    await actor.finish_flourish(.02).finished
+    assert(is_zero_approx(finishing_bow.finish) and finishing_bow.projectile_spent and not finishing_bow.get_node("Weapon/NockedArrow").visible)
+    await actor.pose("victory",.02).finished;assert(finishing_bow.projectile_spent and not finishing_bow.get_node("Weapon/NockedArrow").visible)
+    await actor.pose("idle",.02).finished;assert(not finishing_bow.projectile_spent and finishing_bow.get_node("Weapon/NockedArrow").visible)
    var promotion_spacing=4.0 if unit.weapon=="bow" else actor.approach_spacing(unit.item)
    var target=Vector3(0,1.85,-promotion_spacing);actor.aim_at(target)
    var promotion_gaze_target=Marker3D.new();app.stage.add_child(promotion_gaze_target);promotion_gaze_target.position=Vector3(.5,2.4,-4)
