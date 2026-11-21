@@ -867,7 +867,7 @@ func click_tile(p: Vector2i,unit_id=""):
 			var bonds_before=game.supports.state.duplicate(true);var participant=selected.id
 			var old_hp=u.hp;var old_position=game.pos(u)
 			if game.heal(selected,u):
-				if not checkpoint_action():return
+				if not checkpoint_action("heal"):return
 				if game.pos(u)!=old_position:refresh_pieces()
 				busy=true;update_side();await staff_healing(selected,u,u.hp-old_hp,before);await show_progress(before,bonds_before,participant);busy=false;finish_action();return
 		if game.DeathDoor.can_rescue(game,selected,u):show_triage(u);return
@@ -879,7 +879,7 @@ func click_tile(p: Vector2i,unit_id=""):
 		origin=game.pos(selected)
 		var path=game.movement_path(selected,p)
 		if game.move_unit(selected,p):
-			if not checkpoint_action():return
+			if not checkpoint_action("move"):return
 			target=null;busy=true;highlight();update_side()
 			await animate_map_move(selected,path)
 			busy=false;refresh_pieces();highlight();update_side()
@@ -887,13 +887,13 @@ func click_tile(p: Vector2i,unit_id=""):
 
 func wait_action():
 	if busy or drop_mode or selected==null or not action_save_ready():return
-	if game.wait_unit(selected) and checkpoint_action():finish_action()
+	if game.wait_unit(selected) and checkpoint_action("wait"):finish_action()
 
 func tonic():
 	if busy or selected==null or not action_save_ready():return
 	var unit=selected;var old_hp=unit.hp
 	if game.use_tonic(unit):
-		if not checkpoint_action():return
+		if not checkpoint_action("tonic"):return
 		busy=true;play_sfx("heal");update_side();await map_heal_feedback(unit,unit,unit.hp-old_hp);busy=false;finish_action()
 
 func player_attack():
@@ -905,7 +905,7 @@ func player_attack():
 	var before=game.progress_snapshot()
 	var bonds_before=game.supports.state.duplicate(true)
 	var events=game.combat(a,b)
-	if not checkpoint_action():return
+	if not checkpoint_action("attack"):return
 	await cinematic(a,b,events,initial_hp)
 	await show_progress(before,bonds_before,a.id)
 	busy=false;finish_action()
@@ -925,7 +925,7 @@ func end_turn(resuming=false):
 		var had_downed=game.units.any(func(unit):return game.DeathDoor.downed(unit))
 		game.begin_enemy_phase()
 		if had_downed:refresh_pieces();highlight()
-		if not checkpoint_action():return
+		if not checkpoint_action("enemy_phase"):return
 		var losses=[]
 		for unit in game.units:
 			if unit.id in bleeding and not game.DeathDoor.downed(unit):losses.append({"target":unit.id,"remaining":0,"hit":true})
@@ -944,7 +944,7 @@ func end_turn(resuming=false):
 		var bonds_before=game.supports.state.duplicate(true)
 		var path=game.movement_path(e,choice.position)
 		var events=tactics.apply_plan(game,e,choice)
-		if not checkpoint_action():return
+		if not checkpoint_action("enemy_"+choice.action):return
 		# Keep the whole action durable before its first presentation await.
 		# Existing map figures retain pre-action health until feedback completes.
 		await animate_map_move(e,path)
@@ -960,7 +960,7 @@ func end_turn(resuming=false):
 		if game.result()!="":break
 	if await check_result():busy=false;return
 	game.next_player_turn();update_side();refresh_pieces();highlight()
-	if not checkpoint_action():return
+	if not checkpoint_action("player_phase"):return
 	if await check_result():busy=false;return
 	var allies=game.living("player")
 	if not allies.is_empty():await frame_map_action([allies[0]])
@@ -1618,7 +1618,7 @@ func show_save_transfer(return_screen: String):
 func import_pasted_save():
 	var saved=game.import_code(transfer_text.text)
 	if saved=="":show_notice("This code is incomplete or invalid. Your campaign has not changed.");return
-	var persisted=persist_campaign(saved,false)
+	var persisted=persist_campaign(saved,false,"import")
 	if not music.playing:music.play()
 	if saved=="ending":show_ending()
 	elif saved=="battle":await resume_saved_battle()
@@ -1864,32 +1864,32 @@ func show_debug_tools(return_to: String):
 	var seed_input=SpinBox.new();seed_input.name="DebugSeed";seed_input.min_value=0;seed_input.max_value=2147483647;seed_input.step=1;seed_input.value=debug_session.combat_seed;seed_input.custom_minimum_size.y=42;panel.add_child(seed_input)
 	button_in(sections,"Campaign experiments",func():seed_input.get_line_edit().grab_focus();panel.get_parent().scroll_vertical=0).size_flags_horizontal=Control.SIZE_EXPAND_FILL
 	button_in(panel,"Apply seed to next rolls",func():
-		if debug_session.set_combat_seed(game,seed_input.value):persist_campaign("battle" if options_return=="battle" else "camp");show_notice("Combat seed applied. Chapter loads and clean resets reuse it."))
+		if debug_session.set_combat_seed(game,seed_input.value):persist_campaign("battle" if options_return=="battle" else "camp",true,"set_seed");show_notice("Combat seed applied. Chapter loads and clean resets reuse it."))
 	label_in(panel,"The same seed, rules and actions reproduce the same rolls. Clean resets reuse this seed; penalty retreats follow the campaign’s restart rules.",16)
 	button_in(panel,"View experiment report",show_debug_report)
 	var chapters=OptionButton.new();chapters.name="DebugChapter";chapters.custom_minimum_size.y=42
 	for index in range(game.content.chapters.size()):chapters.add_item("%02d · %s"%[index+1,game.content.chapters[index].title])
 	chapters.selected=game.chapter;panel.add_child(chapters)
 	button_in(panel,"Load chapter with fresh roster",func():
-		debug_session.load_chapter(game,chapters.selected);make_map();show_battle();persist_campaign("battle"))
-	button_in(panel,"Reset current battle",func():debug_session.reset_battle(game);make_map();show_battle();persist_campaign("battle"))
+		debug_session.load_chapter(game,chapters.selected);make_map();show_battle();persist_campaign("battle",true,"load_chapter"))
+	button_in(panel,"Reset current battle",func():debug_session.reset_battle(game);make_map();show_battle();persist_campaign("battle",true,"reset_battle"))
 	label_in(panel,"Enemy reset preparation",23,GOLD)
 	var pressure_input=SpinBox.new();pressure_input.name="DebugPressure";pressure_input.min_value=0;pressure_input.max_value=10;pressure_input.step=1;pressure_input.value=game.trials.pressure;pressure_input.custom_minimum_size.y=42;panel.add_child(pressure_input)
 	label_in(panel,"Enable enemy preparation at the chosen pressure and rebuild this battle with the current seed. Other trial switches and recorded losses remain.",16)
 	button_in(panel,"Test pressure and reset battle",func():
-		if debug_session.test_pressure(game,pressure_input.value):make_map();show_battle();persist_campaign("battle"))
+		if debug_session.test_pressure(game,pressure_input.value):make_map();show_battle();persist_campaign("battle",true,"test_pressure"))
 	label_in(panel,"Company training level",23,GOLD)
 	var company_levels=game.available().map(func(unit):return int(unit.level))
 	var suggested_level=maxi(game.chapter+1,company_levels.min() if not company_levels.is_empty() else 1)
 	var level_input=SpinBox.new();level_input.name="DebugLevel";level_input.min_value=1;level_input.max_value=game.MAX_LEVEL;level_input.step=1;level_input.value=mini(game.MAX_LEVEL,suggested_level);level_input.custom_minimum_size.y=42;panel.add_child(level_input)
 	label_in(panel,"Raise available recruits using normal level growth, then reset this battle. Higher levels, promotions and permanent losses remain. The original section checkpoint is unchanged.",16)
 	button_in(panel,"Raise company and reset battle",func():
-		if debug_session.train_company(game,level_input.value):make_map();show_battle();persist_campaign("battle"))
+		if debug_session.train_company(game,level_input.value):make_map();show_battle();persist_campaign("battle",true,"train_company"))
 	label_in(panel,"Use a fresh-roster chapter load to try lower levels. Return to preparation to choose promotions at level 10.",16)
 	button_in(panel,"Heal deployed allies",func():
-		debug_session.heal(game);persist_campaign("battle" if options_return=="battle" else "camp");show_notice("Living allies restored to full health."))
+		debug_session.heal(game);persist_campaign("battle" if options_return=="battle" else "camp",true,"debug_heal");show_notice("Living allies restored to full health."))
 	button_in(panel,"Revive company and reset battle",func():
-		debug_session.revive(game);make_map();show_battle();persist_campaign("battle"))
+		debug_session.revive(game);make_map();show_battle();persist_campaign("battle",true,"revive"))
 	button_in(panel,"Test reset / section retreat",func():restart_campaign_attempt())
 	var allies=OptionButton.new();allies.name="DebugCasualty";allies.custom_minimum_size.y=42
 	for unit in game.living("player"):
@@ -1898,7 +1898,7 @@ func show_debug_tools(return_to: String):
 	label_in(panel,"Test a lethal hit on a standing ally. Downed, carried and already-fallen allies are excluded.",16)
 	button_in(panel,"Test selected ally falling",func():
 		if allies.selected<0 or not debug_session.fall_unit(game,allies.get_item_metadata(allies.selected)):return
-		make_map();show_battle();persist_campaign("battle");check_result()
+		make_map();show_battle();persist_campaign("battle",true,"debug_fall");check_result()
 	,allies.item_count==0)
 	var patients=OptionButton.new();patients.name="DebugPatient";patients.custom_minimum_size.y=42
 	for unit in game.units:
@@ -1909,9 +1909,9 @@ func show_debug_tools(return_to: String):
 	label_in(panel,"Set a downed ally’s remaining player-phase endings. One tests the last rescue opportunity without advancing the turn. Carried allies are paused and excluded.",16)
 	button_in(panel,"Set rescue countdown",func():
 		if patients.selected<0 or not debug_session.set_bleed_turns(game,patients.get_item_metadata(patients.selected),countdown.value):return
-		make_map();show_battle();persist_campaign("battle")
+		make_map();show_battle();persist_campaign("battle",true,"debug_bleed")
 	,patients.item_count==0)
-	button_in(panel,"Return to preparation",func():game.units.clear();game.phase="player";show_camp();persist_campaign("camp"))
+	button_in(panel,"Return to preparation",func():game.units.clear();game.phase="player";show_camp();persist_campaign("camp",true,"return_to_camp"))
 	var model_heading=label_in(panel,"CHARACTER MODEL STUDIES",17,GOLD);model_heading.name="DebugModelHeading"
 	var vanguard=CheckButton.new();vanguard.name="DebugVanguardModel";vanguard.text="Revised Vanguard models";vanguard.button_pressed=debug_session.revised_vanguard;panel.add_child(vanguard)
 	button_in(sections,"Character studies",func():vanguard.grab_focus();panel.get_parent().scroll_vertical=roundi(model_heading.position.y)).size_flags_horizontal=Control.SIZE_EXPAND_FILL
@@ -1952,7 +1952,7 @@ func show_debug_report():
 	screen="debug_report";reset_ui()
 	var panel=menu_panel(1040)
 	label_in(panel,"EXPERIMENT REPORT",18,GOLD);label_in(panel,"A reproducible battle record",36,GOLD)
-	label_in(panel,"Copy the rules, seed, casualties and unit states for comparison. The included save code can restore this exact position in another debug session.",19)
+	label_in(panel,"Copy rules, casualties and the last 64 action changes, including RNG and save results. History lasts only for this Debug session; the restore code carries the current position.",19)
 	var report=TextEdit.new();report.name="DebugReport";report.editable=false;report.wrap_mode=TextEdit.LINE_WRAPPING_BOUNDARY
 	report.custom_minimum_size.y=160;report.size_flags_vertical=Control.SIZE_EXPAND_FILL;report.add_theme_font_size_override("font_size",14)
 	var record=debug_session.report(game,"battle" if options_return=="battle" else "camp")
@@ -1967,8 +1967,10 @@ func show_debug_report():
 func action_save_ready() -> bool:
 	return not game.action_saves or not save_failed or persist_campaign("battle")
 
-func checkpoint_action() -> bool:
-	if not game.action_saves or persist_campaign("battle"):return true
+func checkpoint_action(reason="action") -> bool:
+	if not game.action_saves:
+		debug_session.observe(game,"battle",reason,"not_requested");return true
+	if persist_campaign("battle",true,reason):return true
 	busy=false;drop_mode=false;selected=null;target=null;origin=null;refresh_pieces();highlight();update_side()
 	return false
 
@@ -1991,7 +1993,7 @@ func restart_summary() -> String:
 
 func restart_campaign_attempt():
 	if not action_save_ready():return
-	if game.trials.restart(game):persist_campaign("camp")
+	if game.trials.restart(game):persist_campaign("camp",true,"retreat")
 	show_camp()
 
 func show_campaign_trials():
@@ -2063,7 +2065,7 @@ func cancel_drop():
 func rescue_ally(patient: Dictionary):
 	if busy or selected==null or not action_save_ready():return
 	var carrier=selected;var departure=patient.duplicate(true)
-	if not game.DeathDoor.rescue(game,carrier,patient) or not checkpoint_action():return
+	if not game.DeathDoor.rescue(game,carrier,patient) or not checkpoint_action("rescue"):return
 	busy=true;skip_combat=false;show_battle()
 	await map_rescue_feedback(carrier,patient,departure,true)
 	busy=false;finish_action()
@@ -2073,7 +2075,7 @@ func drop_ally(tile: Vector2i):
 	var carrier=selected;var patient=game.DeathDoor.passenger(game,carrier)
 	if game.DeathDoor.drop(game,selected,tile):
 		drop_mode=false
-		if not checkpoint_action():return
+		if not checkpoint_action("drop"):return
 		busy=true;skip_combat=false;show_battle();refresh_pieces()
 		await map_rescue_feedback(carrier,patient,patient,false)
 		busy=false;finish_action()
@@ -2105,7 +2107,7 @@ func heal_carried_ally(patient: Dictionary):
 	if busy or selected==null or not action_save_ready():return
 	var healer=selected;var before=game.progress_snapshot();var old_hp=patient.hp
 	var bonds_before=game.supports.state.duplicate(true)
-	if not game.heal(healer,patient) or not checkpoint_action():return
+	if not game.heal(healer,patient) or not checkpoint_action("heal_carried"):return
 	busy=true;show_battle();refresh_pieces();update_side()
 	await staff_healing(healer,patient,int(patient.hp-old_hp),before);await show_progress(before,bonds_before,healer.id)
 	busy=false;finish_action()
@@ -2223,8 +2225,9 @@ func critical_cutin(unit: Dictionary):
 	await cutin.play(func():return skip_combat,unit.team=="enemy")
 	cutin.queue_free()
 
-func persist_campaign(stage_name: String,notify_failure=true) -> bool:
+func persist_campaign(stage_name: String,notify_failure=true,reason="save") -> bool:
 	var saved=game.save_game(campaign_save_path(),stage_name)
+	debug_session.observe(game,stage_name,reason,"written" if saved else "failed")
 	save_failed=not saved
 	if screen=="battle" and is_instance_valid(status):
 		status.text="TURN %d  /  %s"%[game.turn,game.phase.to_upper()]+(" · DEBUG" if debug_session.active else "")+("\nSAVE FAILED" if save_failed else "")
