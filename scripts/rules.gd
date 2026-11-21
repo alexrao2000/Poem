@@ -258,7 +258,9 @@ func can_heal(a: Dictionary,b: Dictionary) -> bool:
 
 func heal(a: Dictionary,b: Dictionary) -> bool:
 	if not can_heal(a,b):return false
-	b.hp=mini(b.max_hp,b.hp+healing_power(a));DeathDoor.recover(self,b);a.acted=true;award_xp(a,30);supports.earn(self,a)
+	b.hp=mini(b.max_hp,b.hp+healing_power(a));DeathDoor.recover(self,b);a.acted=true
+	if a.team=="player":award_xp(a,30)
+	supports.earn(self,a)
 	return true
 
 func use_tonic(u: Dictionary) -> bool:

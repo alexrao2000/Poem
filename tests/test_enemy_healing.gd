@@ -32,12 +32,15 @@ func run():
  medic.hp=1;medic.held_tonics=1;assert(ai.plan(app.game,medic).action=="tonic","Critical self-preservation retains enemy held-tonic priority")
  for mode in ["current","revised","map","player","skip"]:
   units=setup();medic=units[0];patient=units[1]
+  medic.xp=90
+  var medic_level=medic.level;var medic_max_hp=medic.max_hp
   app.preferences.values.character_models="revised" if mode=="revised" else "current"
   app.preferences.values.combat=mode if mode in ["map","player"] else "all"
   app.make_map();app.show_battle();assert(app.persist_campaign("battle"))
   var rng=app.game.rng.state;var old_hp=patient.hp
   app.end_turn(true)
   assert(app.busy and medic.acted and patient.hp>old_hp,"Real enemy turn commits healing before its walk")
+  assert(medic.xp==90 and medic.level==medic_level and medic.max_hp==medic_max_hp,"Enemy healing follows combat's player-only experience rule")
   var expected=Rules.new();assert(expected.load_game(app.save_path)=="battle");expected.next_player_turn()
   var saw_revised=false;var saw_arena=false;var saw_light=false;var saw_cue=false;var saw_hp_start=false;var saw_hp_end=false;var skipped=false
   while app.busy:
