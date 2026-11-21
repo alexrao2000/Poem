@@ -66,7 +66,8 @@
         "hand_r",
         "lowerarm_r",
         "upperarm_r"
-      ]
+      ],
+      "torso": "spine_03"
     },
     "study_id": "female",
     "equipment": "Rig/Armature/Skeleton3D/WeaponHand/Grip",
@@ -167,7 +168,8 @@
         "hand_r",
         "lowerarm_r",
         "upperarm_r"
-      ]
+      ],
+      "torso": "spine_03"
     },
     "study_id": "male",
     "equipment": "Rig/Armature/Skeleton3D/WeaponHand/Grip",
@@ -424,7 +426,8 @@
         "hand_r",
         "lowerarm_r",
         "upperarm_r"
-      ]
+      ],
+      "torso": "spine_03"
     },
     "study_id": "vanguard",
     "equipment": "Rig/Armature/Skeleton3D/WeaponHand/Grip",
@@ -456,7 +459,11 @@
       "lyra",
       "rhea"
     ],
-    "aim_targets": true
+    "aim_targets": true,
+    "supported_promotions": [
+      "standard_bearer",
+      "dawnblade"
+    ]
   },
   "vanguard_male": {
     "scene": "res://assets/models/quaternius/study_vanguard_male.tscn",
@@ -525,7 +532,8 @@
         "hand_r",
         "lowerarm_r",
         "upperarm_r"
-      ]
+      ],
+      "torso": "spine_03"
     },
     "study_id": "vanguard_male",
     "equipment": "Rig/Armature/Skeleton3D/WeaponHand/Grip",
@@ -553,7 +561,11 @@
     "study_character": "cassian",
     "study_label": "male vanguard",
     "study_title": "Vanguard \u00b7 Cassian",
-    "aim_targets": true
+    "aim_targets": true,
+    "supported_promotions": [
+      "standard_bearer",
+      "dawnblade"
+    ]
   },
   "warden": {
     "scene": "res://assets/models/quaternius/study_warden_male.tscn",
@@ -1525,7 +1537,8 @@
         "hand_r",
         "lowerarm_r",
         "upperarm_r"
-      ]
+      ],
+      "torso": "spine_03"
     },
     "study_id": "enemy_duelist",
     "equipment": "Rig/Armature/Skeleton3D/WeaponHand/Grip",
@@ -1623,7 +1636,8 @@
         "hand_r",
         "lowerarm_r",
         "upperarm_r"
-      ]
+      ],
+      "torso": "spine_03"
     },
     "study_id": "enemy_vanguard",
     "equipment": "Rig/Armature/Skeleton3D/WeaponHand/Grip",

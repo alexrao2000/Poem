@@ -58,7 +58,7 @@ func run():
   assert(grip.transform==original_grip)
   world.remove_child(actor);actor.queue_free();await process_frame
  assert(game.save_data("battle")==saved and game.rng.state==rng)
- for invalid in [{"skeleton":"Missing","bones":["hand_r","lowerarm_r","upperarm_r"]},{"skeleton":"Rig/Armature/Skeleton3D","bones":["Head","lowerarm_r","upperarm_r"]},{"skeleton":"Rig/Armature/Skeleton3D","bones":[17]}]:
+ for invalid in [{"skeleton":"Rig/Armature/Skeleton3D","bones":["hand_r","lowerarm_r","upperarm_r"],"torso":7},{"skeleton":"Rig/Armature/Skeleton3D","bones":["hand_r","lowerarm_r","upperarm_r"],"torso":"Head"},{"skeleton":"Missing","bones":["hand_r","lowerarm_r","upperarm_r"]},{"skeleton":"Rig/Armature/Skeleton3D","bones":["Head","lowerarm_r","upperarm_r"]},{"skeleton":"Rig/Armature/Skeleton3D","bones":[17]}]:
   var bad=studies.female.duplicate(true);bad.contact=invalid
   var library=Models.new("");library.catalog={"characters":{"lyra":bad}}
   var before=world.get_child_count()

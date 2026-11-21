@@ -3,6 +3,7 @@ var study_ids=["female","male"]
 var character_ids=["nell","silas","yuna"]
 var equipped_items=["tempered_sword"]
 var unit_team="player"
+var promotion_id=""
 func create_models():return load("res://scripts/debug_source_models.gd").new(study_ids)
 func _initialize():call_deferred("run")
 func run():
@@ -12,7 +13,7 @@ func run():
  var framing=director.new();world.add_child(framing)
  for id in character_ids:
   for item in equipped_items:
-   var unit=game.roster.filter(func(value):return value.id==id)[0].duplicate(true);unit.team=unit_team;unit.item=item
+   var unit=game.roster.filter(func(value):return value.id==id)[0].duplicate(true);unit.team=unit_team;unit.item=item;unit.promotion=promotion_id
    var spacing=load("res://scripts/fighter_actor.gd").melee_spacing(unit.weapon)
    var actor=models.build(world,unit,Vector3(35,0,0));await process_frame;actor.set_process(false);actor.player.pause()
    framing.configure(camera,[actor])
@@ -24,6 +25,9 @@ func run():
    pieces.append_array(actor.model.get_node("Rig/Armature/Skeleton3D/WeaponHand/Grip/Weapon").find_children("*","MeshInstance3D",true,false))
    var mantle=actor.model.get_node("Identity").mantle
    if mantle!=null:pieces.append_array(mantle.garment.find_children("*","MeshInstance3D",true,false))
+   var costume=actor.model.get_node("Identity").promotion
+   if costume!=null:
+    for anchor in costume.anchors:pieces.append_array(anchor.find_children("*","MeshInstance3D",true,false))
    for side in [-1,1]:
     actor.rotation.y=-side*PI/2
     for sample in [["idle","wide",3.2],["windup","windup",spacing],["strike","impact",spacing],["evade","impact",spacing],["victory","finish",spacing]]:
@@ -41,10 +45,10 @@ func run():
         var low=Vector2(INF,INF);var high=Vector2(-INF,-INF)
         var visible_pieces=pieces.duplicate()
         if sample[1] in ["wide","finish"]:visible_pieces.append(actor.model.get_node("Identity").cloak.cloth)
+        if costume!=null and sample[1] in ["wide","finish"]:visible_pieces.append_array(costume.panels)
         for mesh in visible_pieces:
-         for surface in range(mesh.mesh.get_surface_count()):
-          for vertex in mesh.mesh.surface_get_arrays(surface)[Mesh.ARRAY_VERTEX]:
-           var point=camera.unproject_position(mesh.to_global(vertex));low=low.min(point);high=high.max(point)
+         for vertex in world_vertices(mesh):
+          var point=camera.unproject_position(vertex);low=low.min(point);high=high.max(point)
         if low.x<24 or high.x>size_value.x-24 or low.y<88 or high.y>size_value.y-160:
          failures.append([id,side,sample[0],mounted,step,str(size_value),str(low),str(high)])
         count+=1
@@ -60,3 +64,21 @@ func run():
  assert(framing.frame_for(Vector3.ZERO,Vector3(1.4,0,0),"windup",false)==ordinary,"Ordinary fighters retain their existing shot")
  print("PASS: ",count," authored camera layouts across both directions, foot/mounted opponents, windup/contact/dodge/finish poses and three viewport sizes, actual shot tweens, unchanged baseline and invalid framing fallback")
  world.queue_free();viewport.queue_free();await process_frame;quit()
+
+func world_vertices(mesh: MeshInstance3D) -> PackedVector3Array:
+ var result=PackedVector3Array();var transforms=[];var rig: Skeleton3D
+ if mesh.skin!=null:
+  rig=mesh.get_node(mesh.skeleton)
+  for index in range(mesh.skin.get_bind_count()):transforms.append(rig.get_bone_global_pose(rig.find_bone(mesh.skin.get_bind_name(index)))*mesh.skin.get_bind_pose(index))
+ for surface in range(mesh.mesh.get_surface_count()):
+  var arrays=mesh.mesh.surface_get_arrays(surface);var vertices=arrays[Mesh.ARRAY_VERTEX]
+  for index in range(vertices.size()):
+   var point=vertices[index]
+   if not transforms.is_empty():
+    point=Vector3.ZERO
+    for influence in range(4):
+     var at=index*4+influence;point+=(transforms[arrays[Mesh.ARRAY_BONES][at]]*vertices[index])*arrays[Mesh.ARRAY_WEIGHTS][at]
+    point=rig.to_global(point)
+   else:point=mesh.to_global(point)
+   result.append(point)
+ return result

@@ -74,6 +74,7 @@ func build(parent: Node3D,unit: Dictionary,position: Vector3) -> Node3D:
   if not error.is_empty():report(spec.scene+": "+error);actor.free();continue
   if scene.has_meta("commander"):
    actor.set_meta("commander",scene.get_meta("commander"));actor.set_meta("costume_colors",scene.get_meta("costume_colors"))
+  if scene.has_meta("promotion_look"):actor.set_meta("promotion_look",scene.get_meta("promotion_look"))
   parent.add_child(actor);actor.position=position;actor.kind=unit.weapon
   error=actor.prepare_contact(spec)
   if not error.is_empty():report(spec.scene+": "+error);actor.free();continue

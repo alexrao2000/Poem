@@ -306,3 +306,14 @@ Optional `configure_unit_identity(unit)` and `configure_unit_mount(unit)` hooks 
 Debug tools includes a twelve-name **View commander rig** selector. It constructs a separate chapter fixture, uses that commander's actual equipment, and returns to Debug tools without changing campaign data, the enemy toggle or RNG state. It shares the source viewer's rotation, zoom, target and replay controls.
 
 Checks cover all twelve palettes, painted faces, armor, crests/jewels and mounted colors; 1,548 full-outfit fall samples and fall recovery; three preview sizes; twelve ordinary critical/counter exchanges using the individual calls and portraits; six fitted melee contacts and six ranged impacts. Isolated untextured software geometry was inspected separately from the outstanding assembled GPU review.
+
+
+## Revised Vanguard promotions
+
+The revised preference and independent Vanguard debug comparison now cover Standard Bearer and Dawnblade on Lyra, Cassian and Rhea. The ordinary **Advanced training → Preview outfit** action shows the selected costume without committing training. Other class promotions keep their original builders. Explicit `supported_promotions` entries gate these two fitted patterns; unsupported paths still fall back.
+
+`authored_promotion.gd` fits the existing costume designs to the source skeleton. Chest and arm pieces use separate bone anchors; subdivided tabards and split sashes have private pelvis/thigh/calf skins. Personal palettes, faces, hair, company cloaks, equipment and original bone lengths remain. The promoted mantle replaces the base Vanguard mantle. Cloth and its trim share floor correction and private outline/fade materials. This is a fitted skin, not a cloth simulation.
+
+The slash contact adapter accepts an optional ancestor torso bone with a 0.2-radian limit. It first attempts the ordinary arm correction, then uses the chest only for residual reach to elevated mounted targets. Manual queries restore every corrected input rotation; native playback uses the same solve. Estoc thrusts retain their separate fitted controller.
+
+Acceptance includes all six costumes and their fall/standing/travel poses, normal training previews, four sword choices, actual mounted/guard/critical exchanges, and camera bounds at three viewport sizes. Software geometry projections are a limited fit check; assembled GPU appearance, cloth/body intersections in every pose, frame rate and browser review remain outstanding.

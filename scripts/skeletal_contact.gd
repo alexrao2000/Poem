@@ -9,9 +9,9 @@ var tip_endpoint=Vector3.ZERO
 var target=Vector3.ZERO
 var has_target=false
 var attachments=[]
-const LIMITS=[1.35,1.65,1.15]
+const LIMITS=[1.35,1.65,1.15,.2]
 
-func configure(skeleton: Skeleton3D,names: Array,inner: Node3D,tip: Node3D) -> String:
+func configure(skeleton: Skeleton3D,names: Array,inner: Node3D,tip: Node3D,torso: String="") -> String:
  rig=skeleton
  for name_value in names:
   var index=rig.find_bone(name_value)
@@ -19,6 +19,11 @@ func configure(skeleton: Skeleton3D,names: Array,inner: Node3D,tip: Node3D) -> S
   chain.append(index)
  if chain.size()!=3:return "Contact correction needs wrist, elbow and upper arm"
  if rig.get_bone_parent(chain[0])!=chain[1] or rig.get_bone_parent(chain[1])!=chain[2]:return "Contact bones must form a direct arm chain"
+ if not torso.is_empty():
+  var chest=rig.find_bone(torso);var ancestor=rig.get_bone_parent(chain[2])
+  while ancestor>=0 and ancestor!=chest:ancestor=rig.get_bone_parent(ancestor)
+  if chest<0 or ancestor!=chest:return "Contact torso must be an ancestor of the arm"
+  chain.append(chest)
  for socket in [inner,tip]:
   var attachment=socket.get_parent()
   while attachment!=null and not attachment is BoneAttachment3D:attachment=attachment.get_parent()
@@ -45,10 +50,13 @@ func solve() -> Array[Quaternion]:
  var edge=tip_endpoint-inner_endpoint
  endpoint=inner_endpoint+edge*clampf((hand_target-inner_endpoint).dot(edge)/edge.length_squared(),0,1)
  seed_arm(destination,originals)
- for iteration in range(100):
+ for iteration in range(320 if chain.size()==4 else 100):
   var tip=rig.get_bone_global_pose(chain[0])*endpoint
   if tip.distance_squared_to(destination)<.000001:break
   for joint in range(chain.size()):
+   # Let the arm converge first; the optional chest supplies only the small
+   # remaining reach to high mounted targets, bounded to 0.2 radians.
+   if joint==3 and iteration<30:continue
    var bone=chain[joint];var pose=rig.get_bone_global_pose(bone)
    tip=rig.get_bone_global_pose(chain[0])*endpoint
    var toward_tip=tip-pose.origin;var toward_target=destination-pose.origin

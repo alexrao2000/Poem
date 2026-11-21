@@ -24,11 +24,17 @@ var head: Node3D
 var gaze: Node
 var cloak: Node
 var outline: Node
+var promotion: Node
+var promotion_unit={}
 static var reference_cache={}
 
 func configure_unit_identity(unit: Dictionary) -> String:
+ if not identity.is_empty():return "Identity is already configured"
  var commander=preload("res://scripts/commanders.gd").profile(unit)
  if not commander.is_empty() and commander.job!=enemy_job:return "Commander appearance needs its matching enemy class"
+ if not str(unit.get("promotion","")).is_empty():
+  if unit.get("team","")!="player" or unit.get("job","")!="Vanguard" or unit.promotion not in ["standard_bearer","dawnblade"]:return "Unsupported fitted promotion"
+  promotion_unit=unit.duplicate(true)
  return configure_identity(str(unit.id),commander)
 
 func configure_identity(id: String,commander: Dictionary={}) -> String:
@@ -103,12 +109,14 @@ func configure_identity(id: String,commander: Dictionary={}) -> String:
  neck_material.set_shader_parameter("reference_luma",reference_luma(neck_mesh,0,source_skin.albedo_texture,3))
  neck_material.set_meta("identity",id);neck_material.set_meta("dye_mode",3);neck.material_override=neck_material;painted_materials.append(neck_material)
  cloak=preload("res://scripts/authored_cloak.gd").new();cloak.name="CloakDriver";add_child(cloak);cloak.configure(model,rig,painter,appearance,cloak_cut,enemy_job.is_empty())
- if mantle_enabled:
+ if mantle_enabled and promotion_unit.is_empty():
   mantle=preload("res://scripts/authored_mantle.gd").new();mantle.name="MantleDriver";add_child(mantle);mantle.configure(model,rig,painter,appearance,mantle_depth)
  if robe_enabled:
   robe=preload("res://scripts/authored_robe.gd").new();robe.name="RobeDriver";add_child(robe);robe.configure(model,rig,painter,appearance)
  if armor_enabled:
   armor=preload("res://scripts/authored_armor.gd").new();armor.name="ArmorDriver";add_child(armor);armor.configure(model,rig,painter,appearance,light_armor)
+ if not promotion_unit.is_empty():
+  promotion=preload("res://scripts/authored_promotion.gd").new();promotion.name="PromotionDriver";add_child(promotion);promotion.configure(model,rig,painter,promotion_unit,appearance)
  gaze=preload("res://scripts/authored_gaze.gd").new();gaze.name="GazeDriver";add_child(gaze);gaze.configure(model,rig)
  outline=preload("res://scripts/authored_outline.gd").new();outline.name="OutlineDriver";add_child(outline)
  var copies=outline.configure(model)

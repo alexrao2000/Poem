@@ -142,13 +142,14 @@ func prepare_contact(spec: Dictionary) -> String:
  var setup=spec.contact
  if not setup is Dictionary or not setup.get("skeleton") is String or not setup.get("bones") is Array:return "Invalid contact configuration"
  if setup.bones.size()!=3 or not setup.bones.all(func(value):return value is String):return "Contact configuration needs three bone names"
+ if not setup.get("torso","") is String:return "Contact torso must be a bone name"
  if not sockets.has("trail_tip") or not sockets.has("trail_inner"):return "Contact correction needs blade-edge sockets"
  var rig=model.get_node_or_null(NodePath(setup.skeleton)) as Skeleton3D
  if rig==null:return "Contact skeleton is missing"
  var equipment=model.get_node_or_null(NodePath(spec.get("equipment","")))
  if equipment!=null and equipment.has_method("handles_contact") and equipment.handles_contact():return ""
  contact=preload("res://scripts/skeletal_contact.gd").new();rig.add_child(contact);pose_constraints.append(contact)
- return contact.configure(rig,setup.bones,sockets.trail_inner,sockets.trail_tip)
+ return contact.configure(rig,setup.bones,sockets.trail_inner,sockets.trail_tip,setup.get("torso",""))
 
 func aim_at(point: Vector3):
  for listener in pose_listeners:
