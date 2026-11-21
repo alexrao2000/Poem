@@ -22,7 +22,9 @@ func rules():
     assert(g.trials.restart(g) and g.chapter==preview.chapter and g.trials.pressure==preview.pressure,"The actual retreat uses the previewed chapter and capped pressure")
     assert(g.trials.enemy_modifiers(g.chapter)==preview.enemies,"Retreat preview includes hard bonuses from the destination chapter")
  for chapter in range(12):
-  var unmodified=Rules.new();unmodified.chapter=chapter;unmodified.start_battle()
+  var unmodified=Rules.new();unmodified.chapter=chapter
+  unmodified.info().enemies.append_array(unmodified.info().get("hard_enemies",[]).duplicate(true))
+  unmodified.start_battle()
   for pressure in [0,1,2,10]:
    var prepared=Rules.new();prepared.chapter=chapter;prepared.trials.pressure=pressure
    prepared.trials.flags.hard_campaign=true;prepared.trials.flags.reset_pressure=true;prepared.start_battle()

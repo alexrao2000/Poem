@@ -454,6 +454,8 @@ func show_camp():
 		label_in(briefing,"Section %d / 3 · Reset pressure %d / 10"%[int(game.chapter/4)+1,game.trials.pressure],18,GOLD)
 		button_in(briefing,"Campaign experiments & legacy supplies",show_campaign_trials)
 	label_in(briefing,game.info().get("tactical_brief",""),18,Color("6f6c5e"))
+	if game.trials.flags.hard_campaign and not game.info().get("hard_brief","").is_empty():
+		label_in(briefing,game.info().hard_brief,17,GOLD).name="HardFormationBrief"
 	label_in(briefing,"Select up to six allies. Open a portrait to inspect equipment and support conversations. Wardens heal within staff range; field tonics restore 12 HP. Cards show starting health and supplies.",16,Color("766e5e"))
 	label_in(left,"OBJECTIVE  /  "+objective_text(),18,GOLD)
 	label_in(left,"%s  ·  Available %d  ·  Deployed %d / 6"%["Permadeath ON" if game.permadeath else "Permadeath OFF",game.available().size(),game.deployed.size()],18)
@@ -600,14 +602,15 @@ func update_side():
 		var ratio=float(selected.hp)/meter.maximum
 		meter.accent=Color("96bd82") if ratio>.5 else Color("e0b366") if ratio>.25 else Color("d47d6e")
 		health_row.add_child(meter);meter.change_to(selected.hp,true)
-		var attack_text=label_in(health_row,"ATK %d"%game.attack_power(selected),16);attack_text.autowrap_mode=TextServer.AUTOWRAP_OFF
+		var attack_text=label_in(health_row,"HEAL %d"%game.healing_power(selected) if selected.weapon=="staff" else "ATK %d"%game.attack_power(selected),16);attack_text.autowrap_mode=TextServer.AUTOWRAP_OFF
 		label_in(side,"DEF %d · RES %d · SPD %d"%[selected.defense,game.resistance_for(selected),game.attack_speed(selected)],17)
 		weapon_label(side,selected.weapon,game.item_for(selected).name+" · "+game.range_text(selected)+" tiles",15)
 		if selected.team=="enemy":
 			var behavior={"guard":"Holds position","sentry":"Waits until approached","pursue":"Advances toward the company"}
-			label_in(side,behavior.get(selected.get("ai","pursue"),"Advances"),17,GOLD)
+			var intent=("Heals nearby allies" if selected.get("ai","")=="guard" else "Moves to heal wounded allies") if selected.weapon=="staff" else behavior.get(selected.get("ai","pursue"),"Advances")
+			label_in(side,intent,17,GOLD)
 			if selected.has("held_tonics"):label_in(side,"Held tonics: %d%s"%[selected.held_tonics," · Raider" if selected.get("raider",false) else ""],16,GOLD)
-			label_in(side,"Red: possible attacks after moving. Other units can block the route.",16)
+			label_in(side,"Staff support: cannot attack. Red and purple overlays show attack reach." if selected.weapon=="staff" else "Red: possible attacks after moving. Other units can block the route.",16)
 			var ranges=HBoxContainer.new();ranges.add_theme_constant_override("separation",6);side.add_child(ranges)
 			var all_ranges=button_in(ranges,"All [R]: "+("on" if show_danger else "off"),toggle_danger,busy)
 			all_ranges.size_flags_horizontal=Control.SIZE_EXPAND_FILL;all_ranges.tooltip_text="Show every enemy’s attack reach in red. Tracked enemies stay purple."
@@ -1860,7 +1863,7 @@ func show_options(return_to: String):
 		var toggle=CheckButton.new();toggle.name=setting.key;toggle.text=setting.name;toggle.button_pressed=game.get(setting.key);panel.add_child(toggle)
 		toggle.toggled.connect(func(value):game.set(setting.key,value))
 		label_in(panel,setting.text,16)
-	for setting in [{"key":"section_restarts","name":"Restart the current section","text":"With permadeath: retries return to the start of the four-chapter section. Deaths and legacy supplies remain. Relief recruits arrive at section breaks."},{"key":"reset_pressure","name":"Enemies prepare after resets","text":"Retries and lord defeat increase enemy stats, spend held tonics and advance raiders. Applies with permadeath on or off."},{"key":"hard_campaign","name":"Harder enemy forces","text":"On the next deployment: enemies gain health, attack, speed and later defense. Bonuses grow each section."},{"key":"death_legacies","name":"Death events & legacy supplies","text":"With permadeath: each death commits a loss, grants one supply credit and may bring a volunteer ahead of schedule."},{"key":"sacrifice_cost","name":"Sacrifice costs & openings","text":"Returning allies start attempts through the next chapter 4 HP down, with one tonic. The first fall per recruit in a chapter gives survivors +2 attack through the next player turn."}]:
+	for setting in [{"key":"section_restarts","name":"Restart the current section","text":"With permadeath: retries return to the start of the four-chapter section. Deaths and legacy supplies remain. Relief recruits arrive at section breaks."},{"key":"reset_pressure","name":"Enemies prepare after resets","text":"Retries and lord defeat increase enemy stats, spend held tonics and advance raiders. Applies with permadeath on or off."},{"key":"hard_campaign","name":"Harder enemy forces","text":"On the next deployment: enemies gain health, attack, speed and later defense. Later garrisons also field healers."},{"key":"death_legacies","name":"Death events & legacy supplies","text":"With permadeath: each death commits a loss, grants one supply credit and may bring a volunteer ahead of schedule."},{"key":"sacrifice_cost","name":"Sacrifice costs & openings","text":"Returning allies start attempts through the next chapter 4 HP down, with one tonic. The first fall per recruit in a chapter gives survivors +2 attack through the next player turn."}]:
 		var toggle=CheckButton.new();toggle.name=setting.key;toggle.text=setting.name;toggle.button_pressed=game.trials.flags[setting.key];panel.add_child(toggle)
 		toggle.toggled.connect(func(value):game.trials.flags[setting.key]=value)
 		label_in(panel,setting.text,16)

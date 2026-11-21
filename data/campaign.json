@@ -1089,7 +1089,20 @@
             7
           ]
         }
-      ]
+      ],
+      "hard_enemies": [
+        {
+          "position": [
+            12,
+            5
+          ],
+          "job": "Warden",
+          "ai": "pursue",
+          "item": "field_staff",
+          "name": "Field Warden"
+        }
+      ],
+      "hard_brief": "A field Warden supports the garrison behind the standard. Wounded guards can recover if the healer reaches them."
     },
     {
       "id": 5,
@@ -1664,7 +1677,20 @@
             3
           ]
         }
-      ]
+      ],
+      "hard_enemies": [
+        {
+          "position": [
+            12,
+            1
+          ],
+          "job": "Warden",
+          "ai": "pursue",
+          "item": "field_staff",
+          "name": "Field Warden"
+        }
+      ],
+      "hard_brief": "The observatory has assigned a field Warden to its guard. Expect wounded defenders to receive staff healing."
     },
     {
       "id": 9,
@@ -2138,7 +2164,20 @@
             4.5
           ]
         }
-      ]
+      ],
+      "hard_enemies": [
+        {
+          "position": [
+            12,
+            5
+          ],
+          "job": "Warden",
+          "ai": "pursue",
+          "item": "field_staff",
+          "name": "Field Warden"
+        }
+      ],
+      "hard_brief": "A field Warden tends the engine guard. A wounded defender may return to the line after receiving staff healing."
     }
   ],
   "classes": {

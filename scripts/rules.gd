@@ -94,6 +94,12 @@ func ensure_leader():
 	if not (trials.flags.reset_pressure or (trials.flags.section_restarts and permadeath)):return
 	deployed.erase("lyra");deployed.push_front("lyra");deployed=deployed.slice(0,6)
 
+func enemy_formation() -> Array:
+	# Optional support joins fresh deployments; saved battles retain their exact units.
+	var formation=info().enemies.duplicate(true)
+	if trials.flags.hard_campaign:formation.append_array(info().get("hard_enemies",[]).duplicate(true))
+	return formation
+
 func start_battle():
 	ensure_leader()
 	trials.capture_section(self)
@@ -115,12 +121,13 @@ func start_battle():
 		v.potions = 2
 		units.append(v)
 		index += 1
-	for i in range(info().enemies.size()):
-		var entry=info().enemies[i]
+	var formation=enemy_formation()
+	for i in range(formation.size()):
+		var entry=formation[i]
 		var job=entry.job
 		var e=content.classes[job].duplicate(true)
 		e.id="enemy_"+str(i)
-		e.name=info().boss if i==0 else ["Ash guard","Crown scout","Sun sworn","Black pennant"][i%4]
+		e.name=info().boss if i==0 else entry.get("name",["Ash guard","Crown scout","Sun sworn","Black pennant"][i%4])
 		e.job=job;e.color="#ce7771";e.level=1+chapter;e.xp=0
 		e.hp+=chapter*2;e.pow+=chapter;e.defense+=chapter/2;e.resistance+=chapter/2;e.max_hp=e.hp
 		e.team="enemy";e.acted=false;e.moved=false;e.boss=i==0

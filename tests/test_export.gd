@@ -9,6 +9,15 @@ func _initialize():call_deferred("run")
 
 func run():
  assert(FileAccess.get_file_as_string("res://scripts/browser_journal.js").contains("poemSaveJournal"),"Export includes browser checkpoint recovery")
+ var formation_rules=load("res://scripts/rules.gd").new()
+ for chapter in [4,8,11]:
+  formation_rules.chapter=chapter;formation_rules.trials.flags.hard_campaign=true;formation_rules.start_battle()
+  var count=formation_rules.info().enemies.size()
+  assert(formation_rules.living("enemy").size()==count+1 and formation_rules.living("enemy")[-1].job=="Warden","Packed late Hard garrisons include their authored field Warden")
+  var restored_formation=load("res://scripts/rules.gd").new()
+  assert(restored_formation.restore_save(formation_rules.save_data("battle"))=="battle" and restored_formation.living("enemy").size()==count+1)
+  formation_rules.trials.flags.hard_campaign=false;formation_rules.start_battle()
+  assert(formation_rules.living("enemy").size()==count,"Packed ordinary garrisons retain their original size")
  assert(load("res://scripts/casualty_card.gd").lines.size()==24,"Export includes all recruit casualty dialogue")
  for path in ["res://assets/fonts/OFL.txt","res://assets/audio/VSCO-LICENSE.txt","res://assets/audio/VSCO-CREDITS.txt"]:
   assert(FileAccess.file_exists(path) and FileAccess.get_file_as_string(path).length()>100,"Export includes font and instrument credits/licenses")
