@@ -24,6 +24,12 @@ func run():
  assert("CC0" in metadata.samples and metadata.frames==1568000,"Export uses the current orchestral arrangement")
  var app=load("res://main.tscn").instantiate();app.settings_path="";app.save_path="/private/tmp/poem-export-test.json";root.add_child(app);await process_frame
  assert(app.ui.get_node("TitleBackdrop").ART.get_width()==1536,"Release includes the original dawn title illustration")
+ var cutin_host=Control.new();root.add_child(cutin_host);cutin_host.size=Vector2(1440,900)
+ var packed_cutin=load("res://scripts/critical_cutin.gd").new()
+ packed_cutin.configure(cutin_host,{"name":"Lyra","team":"player"},null,"For everyone behind me!")
+ cutin_host.size=Vector2(1024,640);await process_frame
+ assert(is_equal_approx(packed_cutin.size.x,cutin_host.size.x) and packed_cutin.get_node("Quote").get_rect().end.x<cutin_host.size.x,"Packed critical accent reflows after the viewport shrinks")
+ cutin_host.queue_free();await process_frame
  var packed_story=JSON.parse_string(FileAccess.get_file_as_string("res://data/story.json"))
  var survivor_dialogue=load("res://scripts/story_survivors.gd")
  var survivor_closing=survivor_dialogue.resolve(packed_story.chapters[0].closing,["oren"])

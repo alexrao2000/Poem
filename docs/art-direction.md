@@ -883,3 +883,7 @@ The motion covers Mara, Dax and Hale, Stormbreaker and Trailguard, all four axe/
 The optional revised Rangers settle their bows after a resolved win. A private 200 ms clip draws the carrying hand inward roughly 6 cm and rolls the bow 0.25 radians before returning to the held victory pose. The elbow retains its resting plane so the wrist movement does not twist the forearm. Released arrows stay hidden throughout the finish and return only for the next ready/advance/preparation pose. Source and styled viewers expose the gesture; ordinary shots retain their existing draw/release/recovery.
 
 Dense motion, three-size framing, actual promoted and enemy-counter victories, interruption and packed-resource checks pass. The local software study shows isolated untextured geometry; it is not a rendered-game review.
+
+## Resizing a critical portrait strip
+
+The critical strip follows live viewport changes instead of retaining its starting width. Portrait crop masking, quote width and streaks reflow together. Entrance and exit use normalized travel, preserving the running animation rather than replaying the accent. The supported 1024×640, 1280×720 and 1440×900 layouts retain the readable hold, inward-facing portraits and combat-HP clearance. Actual cinematic resize, skip, map restoration, commander and packaged-resource checks pass; these are runtime layout checks, not rendered browser review.
