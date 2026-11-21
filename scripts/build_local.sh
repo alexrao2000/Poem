@@ -1,12 +1,24 @@
 #!/usr/bin/env bash
 set -euo pipefail
 cd "$(dirname "$0")/.."
+if [[ "${1:-}" == "--help" || "${1:-}" == "-h" ]]; then
+    cat <<'HELP'
+Usage: scripts/build_local.sh [suite ...]
+
+With no arguments, run every default suite before exporting Web and macOS.
+Named suites run focused checks instead. Exported-resource smoke still runs.
+Example: GODOT_BIN=/path/to/godot scripts/build_local.sh iris_palette face_blink
+
+A focused build is not evidence that the full suite passed.
+HELP
+    exit 0
+fi
 GODOT_BIN="${GODOT_BIN:-godot}"
 mkdir -p build/web build/native build/logs
 touch build/.gdignore
 "$GODOT_BIN" --headless --log-file "$PWD/build/logs/import.log" --path "$PWD" --editor --import
 "$GODOT_BIN" --headless --log-file "$PWD/build/logs/model-catalog.log" --path "$PWD" --script scripts/check_combat_models.gd
-GODOT_BIN="$GODOT_BIN" python3 scripts/test_local.py
+GODOT_BIN="$GODOT_BIN" python3 scripts/test_local.py "$@"
 "$GODOT_BIN" --headless --log-file "$PWD/build/logs/web.log" --path "$PWD" --export-release Web
 python3 scripts/pack_web.py
 GODOT_BIN="$GODOT_BIN" python3 scripts/test_local.py export

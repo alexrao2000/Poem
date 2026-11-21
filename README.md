@@ -100,7 +100,7 @@ Read support ranks grant +5 Hit/Avoid per rank while the partner is nearby. Rank
 
 Open **View character** from a dossier to rotate a recruit's 3D preview and choose attack, reaction, defeat, or finishing poses. Staff users can preview healing. **Run / trot** loops the combat gait in place while you rotate or zoom the outfit. **Play again** restarts the selected action; **Escape** returns to the record or training choice.
 
-Choose **Critical attack**, **Critical shot** for archers, **Critical cast** for Arcanists, or **Critical throw** with a javelin to replay the complete preparation and strike. Revised sword fighters also offer a **Finishing flourish**. In Debug source studies, melee fighters and Rangers can aim at standing or mounted targets; Wardens can choose standing or mounted allies. Styled characters look toward the selected target, and changing it preserves the selected critical action or healing preparation. Choose Target: none to clear both aim and gaze.
+Choose **Critical attack**, **Critical shot** for archers, **Critical cast** for Arcanists, or **Critical throw** with a javelin to replay the complete preparation and strike. Revised sword, axe, bow, spear and spell users also offer a **Finishing flourish**. In Debug source studies, melee fighters and Rangers can aim at standing or mounted targets; Wardens can choose standing or mounted allies. Styled characters look toward the selected target, and changing it preserves the selected critical action or healing preparation. Choose Target: none to clear both aim and gaze.
 
 In **Options → Character models**, choose **Revised models · preview** to use the fitted skeletal models for all 24 recruits, their promotion paths and ordinary enemies. This is a local appearance preference; it does not change campaign records. Debug tools also offer independent class switches and source studies for all eight anonymous enemy classes, with equipment and original faction styling. The revised sword fighters include a fitted point-first estoc thrust. All twelve named commanders retain their individual colors and insignia on the revised bodies. Unknown promotion paths, commanders and equipment retain the original models.
 
@@ -232,6 +232,14 @@ GODOT_BIN=/path/to/godot scripts/build_local.sh
 ```
 
 The [build script](scripts/build_local.sh) imports assets, validates the model catalog, runs all default suites, exports and postprocesses the browser build, tests its packed resources, and packages macOS.
+
+For a focused development build, pass the affected suite names explicitly:
+
+```sh
+GODOT_BIN=/path/to/godot scripts/build_local.sh iris_palette face_blink authored_identity
+```
+
+This replaces the full test run with those suites; packed-resource smoke still runs before native packaging. Record the selected suites when reporting a focused build. Omit suite names for the complete regression, or use `--help` for command usage.
 
 | Output | Purpose |
 | --- | --- |
