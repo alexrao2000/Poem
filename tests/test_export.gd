@@ -323,7 +323,14 @@ func run():
     assert(actor.socket_position("projectile").distance_to(promotion_staff.get_node("Weapon").to_global(Vector3(0,.78,0)))<.001)
    elif unit.weapon=="magic":
     assert(actor.to_local(actor.socket_position("projectile")).z<-.5,"Promoted caster extends the free casting palm")
-    assert(actor.model.get_node("Rig/Armature/Skeleton3D/BookHand/Folio").equipped=="thunder")
+    var promotion_folio=actor.model.get_node("Rig/Armature/Skeleton3D/BookHand/Folio")
+    assert(promotion_folio.equipped=="thunder")
+    var ordinary_palm=actor.socket_position("projectile")
+    await actor.pose("critical_windup",.02).finished
+    assert(promotion_folio.critical_prepared and actor.socket_position("projectile").y>ordinary_palm.y+.06)
+    await actor.pose("strike",.02).finished
+    assert(actor.player.assigned_animation=="CriticalSpellRelease" and actor.socket_position("projectile").distance_to(ordinary_palm)<.00001,"Packed critical cast returns to the ordinary launch point")
+    await actor.pose("recover",.02).finished;assert(not promotion_folio.critical_prepared)
    elif unit.weapon in ["sword","lance"]:assert(actor.sockets.trail_tip.global_position.distance_to(target)<.006)
    else:
     var promotion_edge=actor.weapon_trail_points();assert(Geometry3D.get_closest_point_to_segment(target,promotion_edge[0],promotion_edge[1]).distance_to(target)<.006)
@@ -394,6 +401,13 @@ func run():
  ranger_target.select(2);ranger_target.item_selected.emit(2);await ranger_actions.finished
  var ranger_bow=app.preview_actor.model.get_node("Rig/Armature/Skeleton3D/WeaponHand/Bow")
  assert(ranger_bow.critical_prepared and ranger_bow.projectile_spent and ranger_bow.arms.has_aim,"Packaged Ranger study preserves critical selection and aims at the mounted target")
+ app.close_model_view();app.show_source_model_view("caster_female","thunder",true);await process_frame
+ var cast_choice=app.ui.find_child("PreviewAction",true,false);var cast_actions=app.stage.get_node("PreviewActionPlayer")
+ for index in range(cast_choice.item_count):
+  if cast_choice.get_item_metadata(index)=="critical_strike":cast_choice.select(index);break
+ assert(cast_choice.get_item_metadata(cast_choice.selected)=="critical_strike")
+ cast_choice.item_selected.emit(cast_choice.selected);await cast_actions.finished
+ assert(app.preview_actor.player.assigned_animation=="CriticalSpellRelease" and app.preview_actor.model.get_node("Rig/Armature/Skeleton3D/BookHand/Folio").critical_prepared)
  app.close_model_view();app.debug_session.end(app.game)
  await Shutdown.dispose(app);await process_frame
  print("PASS: exported catalog, all three act scores, chapter scenes, sixteen promotion patterns, all forty-eight revised promotion outfits, licenses and credits")

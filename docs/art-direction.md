@@ -851,3 +851,10 @@ The isolated pose comparison covers promoted Petra and Bram with a light lance a
 Critical bow shots now hold a slightly deeper draw and a more turned upper body before release. The drawing hand stays back as the string returns. The gesture keeps the fitted archery stance.
 
 The finer motion samples also exposed two ordinary-shot discontinuities: the drawing arm’s elbow plane changed at the first positive lift, and elevated-target aiming switched on abruptly. Both now blend through the draw. The isolated promoted Sera/Ari comparison shows full-draw geometry; assembled motion and rendering still need review.
+
+
+### Revised Arcanist critical gathering
+
+Critical casts raise the free palm during the gathering effect, then lower it into the original forward release. The supporting folio stays in place. This gives the charge a distinct held gesture before the existing portrait cut-in while keeping spell departure consistent with the ordinary cast.
+
+The isolated Vela/Tarin comparison covers both promoted costumes and two folios. It shows the higher gathering hand and unchanged book support. Camera and attachment checks pass; assembled lighting, effects and timing still need visual review.
