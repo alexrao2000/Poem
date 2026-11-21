@@ -163,6 +163,12 @@ func run():
  assert(app.side.get_node("EndPlayerPhase").text=="End phase · 1 will fall","Countdown experiments update the live tactical warning")
  assert(loaded.load_game(app.save_path+".debug")=="battle" and loaded.units.filter(func(unit):return unit.id=="oren")[0].bleed_turns==1 and FileAccess.get_file_as_string(app.save_path)==disk,"The exact countdown persists only in the debug slot")
  app.show_debug_tools("battle");press(app,"Return to preparation");assert(app.screen=="camp" and app.game.units.is_empty())
+ var back_state=app.game.save_data("camp").duplicate(true)
+ app.show_debug_tools("camp");escape_key(true);assert(app.screen=="debug_tools")
+ escape_key();assert(app.screen=="options" and app.debug_session.active)
+ escape_key(true);assert(app.screen=="options","Held back key cannot leave the next menu")
+ escape_key();assert(app.screen=="camp" and app.debug_session.active and app.game.save_data("camp")==back_state)
+ assert(FileAccess.get_file_as_string(app.save_path)==disk,"Keyboard back-navigation keeps Debug isolated from the normal campaign")
  app.show_options("camp");app.ui.find_child("DebugMode",true,false).button_pressed=false
  assert(not app.debug_session.active and app.game.save_data("camp")==live,"Disabling debug restores the exact unsaved campaign, original rule and RNG")
  app.close_options();assert(app.screen=="camp" and app.campaign_save_path()==app.save_path)
@@ -172,3 +178,7 @@ func run():
  await Shutdown.dispose(app);await process_frame
  print("PASS: opt-in debug controls, twelve-chapter chooser, heal/revive/reset, separate save slot, unsaved checkpoint restoration, guarded actions, three layouts and live permadeath toggle persistence")
  quit()
+
+func escape_key(echo=false):
+ var event=InputEventKey.new();event.keycode=KEY_ESCAPE;event.pressed=true;event.echo=echo;root.push_input(event,true)
+ var release=InputEventKey.new();release.keycode=KEY_ESCAPE;root.push_input(release,true)

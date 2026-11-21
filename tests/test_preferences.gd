@@ -36,7 +36,9 @@ func run():
  var music=app.ui.find_child("MusicVolume",true,false);music.value=0
  assert(app.preferences.values.combat=="map" and app.music.volume_db==-80,"Menu updates playback and audio")
  var text=app.ui.find_child("TextSpeed",true,false);text.selected=2;text.item_selected.emit(2)
- app.close_options();await process_frame
+ press_escape(true);assert(app.screen=="options","Held Escape does not leave Options")
+ press_escape();await process_frame
+ assert(app.screen=="title","Fresh Escape applies Options and returns to its title origin")
  assert(restored.load_file(app.settings_path) and restored.values.text_speed==0)
  app.show_dialogue([{"speaker":"lyra","text":"Instant text."},{"speaker":"oren","text":"Second line."}],func():app.show_title())
  assert(app.dialogue_label.visible_characters==-1 and app.dialogue_stage.ready_indicator.visible and app.dialogue_stage.next_button.text=="Continue  >");app.advance_dialogue()
@@ -65,7 +67,8 @@ func run():
  var scroller=app.ui.find_children("*","ScrollContainer",true,false)[0]
  scroller.ensure_control_visible(app.ui.find_child("AutoEnd",true,false));await process_frame;await process_frame
  assert(scroller.get_global_rect().encloses(app.ui.find_child("AutoEnd",true,false).get_global_rect()),"Scrolled Options can reach the final setting")
- app.close_options();assert(app.screen=="battle","Options return to tactical play")
+ press_escape(true);assert(app.screen=="options")
+ press_escape();assert(app.screen=="battle","Escape applies Options and returns to tactical play")
  assert(app.camera.transform==map_view and app.camera.size==15.25 and app.camera.h_offset==1.5,"Options preserve the tactical camera view")
  app.show_title();await process_frame;await process_frame
  for control in app.ui.find_children("*","Button",true,false):assert(control.get_global_rect().end.y<=app.ui.size.y,"Title controls fit viewport")
@@ -73,6 +76,14 @@ func run():
  for control in app.ui.find_children("*","Label",true,false):assert(control.get_global_rect().end.y<=app.ui.size.y,"Credits fit the viewport")
  var escape=InputEventKey.new();escape.pressed=true;escape.keycode=KEY_ESCAPE;app._unhandled_input(escape)
  assert(app.screen=="title","Credits return to title through the normal back action")
+ app.show_camp();app.show_options("camp");var campaign_before=app.game.save_data("camp").duplicate(true)
+ press_escape();assert(app.screen=="camp" and app.game.save_data("camp")==campaign_before,"Options Escape preserves the campaign at its camp origin")
+ app.show_dossier(app.game.roster[0]);press_escape(true);assert(app.screen=="dossier","Held back key cannot dismiss a dossier")
+ app.show_model_view(app.game.roster[0]);await process_frame
+ press_escape(true);assert(app.screen=="model","Held back key cannot dismiss a model preview")
+ press_escape();assert(app.screen=="dossier")
+ press_escape(true);assert(app.screen=="dossier","Held Escape after preview return cannot dismiss the next menu")
+ press_escape();assert(app.screen=="camp" and app.game.save_data("camp")==campaign_before)
  for chapter in range(12):
   app.game.chapter=chapter;app.game.story_seen.append("opening_"+str(chapter));app.show_camp();await process_frame;await process_frame
   for control in app.ui.find_children("*","Button",true,false):
@@ -80,3 +91,7 @@ func run():
  await Shutdown.dispose(app);await process_frame
  print("PASS: local preferences, fixed section navigation/focus at three sizes, volume, cinematic modes, instant dialogue, persistence and unchanged combat simulation")
  quit()
+
+func press_escape(echo=false):
+ var event=InputEventKey.new();event.keycode=KEY_ESCAPE;event.pressed=true;event.echo=echo;root.push_input(event,true)
+ var release=InputEventKey.new();release.keycode=KEY_ESCAPE;root.push_input(release,true)

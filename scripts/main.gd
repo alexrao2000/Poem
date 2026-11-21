@@ -809,19 +809,24 @@ func _input(event):
 		get_viewport().set_input_as_handled()
 
 func _unhandled_input(event):
+	if screen in ["options","save_transfer"] and event is InputEventKey and event.pressed and not event.echo and event.keycode==KEY_ESCAPE:
+		interface_audio.cue("back")
+		if screen=="options":close_options()
+		else:close_save_transfer()
+		get_viewport().set_input_as_handled();return
 	if screen=="music_room" and event is InputEventKey and event.pressed and not event.echo and event.keycode==KEY_ESCAPE:
 		interface_audio.cue("back");close_music_room();get_viewport().set_input_as_handled();return
 	if screen in ["debug_report","debug_experiments"] and event is InputEventKey and event.pressed and not event.echo and event.keycode==KEY_ESCAPE:
 		show_debug_tools(options_return);get_viewport().set_input_as_handled();return
-	if screen in ["triage","tile_units"] and event is InputEventKey and event.pressed and event.keycode==KEY_ESCAPE:
+	if screen in ["triage","tile_units"] and event is InputEventKey and event.pressed and not event.echo and event.keycode==KEY_ESCAPE:
 		show_battle();get_viewport().set_input_as_handled();return
-	if screen=="debug_tools" and event is InputEventKey and event.pressed and event.keycode==KEY_ESCAPE:
+	if screen=="debug_tools" and event is InputEventKey and event.pressed and not event.echo and event.keycode==KEY_ESCAPE:
 		show_options(options_return);get_viewport().set_input_as_handled();return
-	if screen in ["credits","campaign_rules"] and event is InputEventKey and event.pressed and event.keycode==KEY_ESCAPE:
+	if screen in ["credits","campaign_rules"] and event is InputEventKey and event.pressed and not event.echo and event.keycode==KEY_ESCAPE:
 		interface_audio.cue("back");show_title();get_viewport().set_input_as_handled();return
-	if screen=="model" and event is InputEventKey and event.pressed and event.keycode==KEY_ESCAPE:
+	if screen=="model" and event is InputEventKey and event.pressed and not event.echo and event.keycode==KEY_ESCAPE:
 		interface_audio.cue("back");close_model_view();get_viewport().set_input_as_handled();return
-	if screen in ["dossier","campaign_route","campaign_trials"] and event is InputEventKey and event.pressed and event.keycode==KEY_ESCAPE:
+	if screen in ["dossier","campaign_route","campaign_trials"] and event is InputEventKey and event.pressed and not event.echo and event.keycode==KEY_ESCAPE:
 		interface_audio.cue("back")
 		if screen=="campaign_trials" and game.completed:show_ending()
 		else:show_camp()
@@ -1656,7 +1661,7 @@ func show_save_transfer(return_screen: String):
 	else:button_in(code_actions,"Select all text",func():transfer_text.grab_focus();transfer_text.select_all()).size_flags_horizontal=Control.SIZE_EXPAND_FILL
 	var actions=HBoxContainer.new();actions.add_theme_constant_override("separation",10);panel.add_child(actions)
 	button_in(actions,"Import pasted code",import_pasted_save).size_flags_horizontal=Control.SIZE_EXPAND_FILL
-	button_in(actions,"Return",close_save_transfer).size_flags_horizontal=Control.SIZE_EXPAND_FILL
+	button_in(actions,"Return [Esc]",close_save_transfer).size_flags_horizontal=Control.SIZE_EXPAND_FILL
 
 func import_pasted_save():
 	var saved=game.import_code(transfer_text.text)
@@ -1893,7 +1898,7 @@ func show_options(return_to: String):
 			panel.get_parent().scroll_vertical=roundi(section.heading.position.y))
 		jump.name="OptionsSection_"+section.title;jump.size_flags_horizontal=Control.SIZE_EXPAND_FILL
 	button_in(frame,"Restore defaults",func():preferences.reset();apply_audio_preferences();show_options(options_return))
-	button_in(frame,"Apply and return",close_options)
+	button_in(frame,"Apply and return [Esc]",close_options)
 
 func show_music_room():
 	if screen!="options":return

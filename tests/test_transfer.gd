@@ -35,6 +35,11 @@ func run():
  var app=load("res://main.tscn").instantiate();app.settings_path="";app.save_path="/private/tmp/poem-transfer-ui-save.json";root.add_child(app);await process_frame
  app.show_save_transfer("title");await process_frame
  assert(app.screen=="save_transfer" and is_instance_valid(app.transfer_text))
+ var title_chapter=app.game.chapter;var disk_before_return=FileAccess.get_file_as_string(app.save_path) if FileAccess.file_exists(app.save_path) else ""
+ app.transfer_text.text=code;app.transfer_text.grab_focus();press_escape()
+ assert(app.screen=="title" and app.game.chapter==title_chapter,"Title transfer Escape does not import the pasted campaign")
+ assert((FileAccess.get_file_as_string(app.save_path) if FileAccess.file_exists(app.save_path) else "")==disk_before_return)
+ app.show_save_transfer("title");await process_frame
  app.transfer_text.text=code;await app.import_pasted_save();await process_frame
  assert(app.screen=="battle" and app.game.chapter==4,"Paste/import flow restores the battle")
  var restored=Rules.new();assert(restored.load_game(app.save_path)=="battle" and restored.chapter==4,"Imported state is persisted")
@@ -48,7 +53,10 @@ func run():
  var live_rng=app.game.rng.state
  app.show_save_transfer("battle");await process_frame
  var live_copy=Rules.new();assert(live_copy.import_code(app.transfer_text.text)=="battle" and live_copy.turn==7,"Transfer exports current unsaved battle, not the older file")
- app.close_save_transfer();assert(app.screen=="battle" and app.game.turn==7 and app.game.rng.state==live_rng,"Returning preserves live battle")
+ app.transfer_text.text="POEM1:unimported-buffer";app.transfer_text.grab_focus()
+ press_escape(true);assert(app.screen=="save_transfer","Held Escape cannot dismiss transfer")
+ press_escape();assert(app.screen=="battle" and app.game.turn==7 and app.game.rng.state==live_rng,"Escape returns from focused transfer without importing its text or changing the live battle")
+ assert(FileAccess.get_file_as_string(working_path)==previous_file,"Returning from transfer does not replace the campaign file")
  app.busy=true;app.show_save_transfer("battle");assert(app.screen=="battle","Busy battle cannot enter transfer")
  app.busy=false;app.save_path=working_path
  assert(app.persist_campaign("battle") and not app.save_failed and not "SAVE FAILED" in app.status.text,"Successful retry clears failure status")
@@ -67,7 +75,7 @@ func run():
  var transfer=app.ui.find_children("*","Button",true,false).filter(func(button):return button.text=="Transfer code")[0]
  transfer.pressed.emit();await process_frame
  assert(app.screen=="save_transfer" and live_copy.import_code(app.transfer_text.text)=="battle" and live_copy.result()=="defeat" and live_copy.phase=="enemy","Result transfer exports the live terminal state even during enemy phase")
- app.close_save_transfer();await process_frame
+ press_escape();await process_frame
  assert(app.screen=="result" and JSON.stringify(app.game.save_data("battle"))==terminal)
  for dimensions in [Vector2(1024,640),Vector2(1280,720),Vector2(1440,900)]:
   app.ui.set_anchors_and_offsets_preset(Control.PRESET_TOP_LEFT);app.ui.size=dimensions
@@ -100,3 +108,7 @@ func run():
  await Shutdown.dispose(app);await process_frame
  print("PASS: local transfer, equipment/RNG continuity, bounded validation, legacy migration, failed autosave recovery and live battle export")
  quit()
+
+func press_escape(echo=false):
+ var event=InputEventKey.new();event.keycode=KEY_ESCAPE;event.pressed=true;event.echo=echo;root.push_input(event,true)
+ var release=InputEventKey.new();release.keycode=KEY_ESCAPE;root.push_input(release,true)
