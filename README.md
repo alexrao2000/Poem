@@ -52,6 +52,7 @@ These controls apply to campaign battles; menus and the visual workshop have the
 | Place a carried ally | Rescue & triage → Choose drop tile, then click a gold tile or press Enter |
 | End the player phase | Space |
 | Toggle enemy threat ranges | R |
+| Keep the selected enemy’s reach visible | T, or **Track** in its sidebar |
 | Open or close the battle menu | M; Escape also closes it |
 | Zoom the tactical map | Mouse wheel / + / − |
 | Pan the tactical map | Middle-button drag |
@@ -61,7 +62,7 @@ These controls apply to campaign battles; menus and the visual workshop have the
 | Advance dialogue | Space / Enter |
 | Skip the current dialogue sequence | Escape |
 
-Click an enemy to inspect its stats and reach. The terrain card follows the pointer or keyboard cursor and shows movement costs and bonuses. Keyboard cursor movement keeps distant tiles in view; map zoom and pan are preserved when returning from combat. Chapter and casualty cards also accept a click to skip. Full combat scenes have **Fast ×2** and **Skip** buttons between the health panels; speed toggles last only for that exchange and clear when the app loses focus.
+Click an enemy to inspect its stats and reach. **Track [T]** keeps that enemy’s range visible in purple while you choose allies; it updates with movement and clears when the enemy falls or a new attempt begins. You can track several foes independently of the all-enemy **R** overlay. These map annotations are temporary and excluded from saves. The terrain card follows the pointer or keyboard cursor and shows movement costs and bonuses. Keyboard cursor movement keeps distant tiles in view; map zoom and pan are preserved when returning from combat. Chapter and casualty cards also accept a click to skip. Full combat scenes have **Fast ×2** and **Skip** buttons between the health panels; speed toggles last only for that exchange and clear when the app loses focus.
 
 ## Campaign guide
 

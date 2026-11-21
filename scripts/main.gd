@@ -92,6 +92,7 @@ var cursor_visible=false
 var clock = 0.0
 var skip_combat = false
 var show_danger = false
+var tracked_threats=preload("res://scripts/tracked_threats.gd").new()
 var drop_mode=false
 var preview_actor: Node3D
 var preview_unit: Dictionary
@@ -575,6 +576,7 @@ func show_battle():
 	update_side();highlight()
 
 func update_side():
+	tracked_threats.prune(game)
 	if is_instance_valid(forecast_panel):ui.remove_child(forecast_panel);forecast_panel.queue_free()
 	forecast_panel=null
 	for n in side.get_children():side.remove_child(n);n.queue_free()
@@ -585,7 +587,9 @@ func update_side():
 		if portrait.texture==null:portrait.texture=unit_portrait(selected)
 		portrait.stretch_mode=TextureRect.STRETCH_KEEP_ASPECT_CENTERED;portrait.custom_minimum_size=Vector2(90,100);identity.add_child(portrait)
 		var details=VBoxContainer.new();details.size_flags_horizontal=Control.SIZE_EXPAND_FILL;identity.add_child(details)
-		label_in(details,selected.name,27,GOLD)
+		var unit_name=label_in(details,selected.name,27,GOLD)
+		unit_name.max_lines_visible=2;unit_name.text_overrun_behavior=TextServer.OVERRUN_TRIM_WORD_ELLIPSIS
+		unit_name.tooltip_text=selected.name;unit_name.mouse_filter=Control.MOUSE_FILTER_PASS
 		label_in(details,game.class_name_for(selected)+(" · Commander" if selected.get("boss",false) and selected.team=="enemy" else ""),16)
 		var bond_rank=game.supports.nearby_rank(game,selected)
 		label_in(details,("Lv %d / MAX"%selected.level if selected.level>=game.MAX_LEVEL else "Lv %d / XP %d"%[selected.level,selected.xp])+(" · Bond "+game.supports.RANKS[bond_rank] if bond_rank>0 else ""),15)
@@ -603,8 +607,13 @@ func update_side():
 			var behavior={"guard":"Holds position","sentry":"Waits until approached","pursue":"Advances toward the company"}
 			label_in(side,behavior.get(selected.get("ai","pursue"),"Advances"),17,GOLD)
 			if selected.has("held_tonics"):label_in(side,"Held tonics: %d%s"%[selected.held_tonics," · Raider" if selected.get("raider",false) else ""],16,GOLD)
-			label_in(side,"Red tiles show this unit’s possible attacks, including movement. Other units may block its route.",16)
-			button_in(side,"All enemy ranges [R]: "+("on" if show_danger else "off"),toggle_danger,busy)
+			label_in(side,"Red: possible attacks after moving. Other units can block the route.",16)
+			var ranges=HBoxContainer.new();ranges.add_theme_constant_override("separation",6);side.add_child(ranges)
+			var all_ranges=button_in(ranges,"All [R]: "+("on" if show_danger else "off"),toggle_danger,busy)
+			all_ranges.size_flags_horizontal=Control.SIZE_EXPAND_FILL;all_ranges.tooltip_text="Show every enemy’s attack reach in red. Tracked enemies stay purple."
+			var track=button_in(ranges,"Track [T]: "+("on" if tracked_threats.contains(selected) else "off"),toggle_tracked_threat,busy)
+			track.size_flags_horizontal=Control.SIZE_EXPAND_FILL
+			track.name="TrackEnemyRange";track.tooltip_text="Keep this enemy’s reach visible in purple while choosing allies. Updates with movement and disappears when the enemy falls or a new attempt starts."
 		if target!=null:
 			var f=game.forecast(selected,target)
 			var versus=label_in(side,("Effective vs " if f.effective else "VS  ")+target.name,19,GOLD)
@@ -651,7 +660,7 @@ func update_side():
 	else:
 		label_in(side,"THE COMPANY",15,GOLD)
 		label_in(side,"%d allies  ·  %d enemies"%[game.living("player").size(),game.living("enemy").size()],18)
-		label_in(side,"Choose an ally to move or inspect a foe.",17,Color("6f6c5e"))
+		label_in(side,"Purple: %d tracked %s."%[tracked_threats.units.size(),"foe" if tracked_threats.units.size()==1 else "foes"] if not tracked_threats.units.is_empty() else "Choose an ally to move or inspect a foe.",17,Color("6f6c5e"))
 		button_in(side,"Enemy ranges [R]: "+("on" if show_danger else "off"),toggle_danger,busy)
 	if save_failed and game.action_saves:button_in(side,"Retry autosave",retry_action_save,busy)
 	var expiring=game.units.filter(func(unit):return game.DeathDoor.downed(unit) and unit.bleed_turns==1 and unit.get("carried_by","").is_empty()) if game.phase=="player" else []
@@ -664,7 +673,7 @@ func update_side():
 		battle_hint.text="Arrows: cursor · Enter: select · Q/E: allies · M: menu"
 		if selected!=null:
 			battle_hint.text="Blue: move · Orange: reach · Enter: act · Esc: undo"
-			if selected.team=="enemy":battle_hint.text="Red tiles: enemy reach · R: all ranges · Esc: close"
+			if selected.team=="enemy":battle_hint.text="Red: foe reach · Purple: tracked · T: track · R: all"
 			elif selected.weapon=="staff":battle_hint.text="Blue: move · Green: heal · Enter: act · Esc: undo"
 			elif game.units.any(func(unit):return game.DeathDoor.can_rescue(game,selected,unit)):battle_hint.text="Blue: move · Gold: rescue · Enter: act · Esc: undo"
 			if game.DeathDoor.downed(selected):battle_hint.text="Needs help: select a nearby ally for Rescue & triage, or heal with a staff."
@@ -703,7 +712,9 @@ func show_battle_menu():
 	button_in(commands,"Options / audio",func():close_battle_menu();show_options("battle"))
 	var retreat=label_in(commands,restart_summary(),15,GOLD);retreat.name="RestartPreview"
 	button_in(commands,("War council (restart section)" if game.trials.flags.section_restarts and game.permadeath else "War council (restart map)"),func():close_battle_menu();restart_campaign_attempt())
-	label_in(commands,"Arrows / Enter: select · Q/E: allies · W: wait\nR: danger · Space: end phase · Esc: undo\nWheel / + −: zoom · Middle drag: pan · Home: reset\nTab: skip animation · M / Esc: close menu",14,Color("777163"))
+	var control_guide="Arrows / Enter: select · Q/E: allies · W: wait\nR: ranges · T: track · Space: end · Esc: undo\nWheel / + −: zoom · Middle drag: pan · Home: reset\nTab: skip animation · M / Esc: close menu"
+	if game.action_saves:control_guide=control_guide.replace("Esc: undo","Esc: deselect")
+	label_in(commands,control_guide,14,Color("777163"))
 	var buttons=commands.find_children("*","Button",true,false)
 	for i in range(buttons.size()):
 		var button=buttons[i]
@@ -724,7 +735,10 @@ func highlight():
 	if show_danger:
 		for enemy in game.living("enemy"):danger.merge(tactics.threatened_tiles(game,enemy))
 	if selected!=null and selected.team=="enemy":danger.merge(tactics.threatened_tiles(game,selected))
+	var tracked=tracked_threats.tiles(game,tactics)
+	for point in tracked:danger.erase(point)
 	MapOverlay.tiles(markers,danger.keys(),Color(.69,.21,.31,.24),.025,"DangerRange",map_height)
+	MapOverlay.tiles(markers,tracked.keys(),Color(.58,.32,.76,.28),.028,"TrackedRange",map_height)
 	if cursor_visible:draw_map_cursor()
 	if selected==null or selected.team!="player" or selected.acted:return
 	if drop_mode:
@@ -749,6 +763,10 @@ func toggle_danger():
 	if busy or screen!="battle":return
 	show_danger=not show_danger;highlight();update_side()
 
+func toggle_tracked_threat():
+	if busy or screen!="battle" or game.phase!="player":return
+	if tracked_threats.toggle(game,selected):highlight();update_side()
+
 func _input(event):
 	if event is InputEventMouseButton and event.button_index==MOUSE_BUTTON_MIDDLE and not event.pressed:map_navigation.dragging=false
 	if screen=="battle_menu" and event is InputEventKey and event.pressed and not event.echo and event.keycode in [KEY_ESCAPE,KEY_M]:
@@ -764,6 +782,8 @@ func _input(event):
 			move_map_cursor(steps[event.keycode]);get_viewport().set_input_as_handled();return
 		if event.keycode in [KEY_Q,KEY_E] and not event.echo:
 			cycle_ready_ally(-1 if event.keycode==KEY_Q else 1);get_viewport().set_input_as_handled();return
+		if event.keycode==KEY_T and not event.echo:
+			toggle_tracked_threat();get_viewport().set_input_as_handled();return
 	if is_instance_valid(reward_panel) and event is InputEventKey and event.pressed and event.keycode in [KEY_SPACE,KEY_ENTER,KEY_TAB]:
 		if not event.echo:reward_panel.request_continue();reward_skip=true
 		get_viewport().set_input_as_handled();return
