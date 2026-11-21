@@ -62,6 +62,7 @@ func configure_animations(player: AnimationPlayer) -> String:
  var curves=JSON.parse_string(FileAccess.get_file_as_string("res://data/knight_fall_fit.json"))
  var gender="male" if rig.get_bone_global_rest(rig.find_bone("upperarm_l")).origin.x>.17 else "female"
  for pair in curves[gender]:death.track_insert_key(track,pair[0],Vector3(0,pair[1],0))
+ preload("res://scripts/authored_fall_fit.gd").reset_other_clips(player)
  return ""
 func combat_pose(key: String):
  fall=0

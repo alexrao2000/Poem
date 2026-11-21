@@ -20,10 +20,16 @@ func run():
    actor.position.y=height;actor.rotation.y=.8 if height>0 else -PI/2;mantle._process(0)
    for material in mantle.surfaces:assert(material.get_shader_parameter("cloth_floor_enabled") and is_equal_approx(material.get_shader_parameter("cloth_floor_y"),height+.018))
    for key in ["idle","advance","windup","strike","recover","hit","evade","down","victory"]:
+    for listener in actor.pose_listeners:listener.combat_pose(key)
     var mapping=actor.poses[key]
     for step in range(17):
      actor.player.stop();actor.player.play(mapping.clip,0);actor.player.seek(lerpf(mapping.from,mapping.to,float(step)/16),true,true);actor.player.pause();actor.refresh_skeleton()
-     assert(mantle.anchor.transform.is_equal_approx(rig.get_bone_global_pose(rig.find_bone("spine_03"))) and mantle.garment.transform==local,"Mantle fitting follows the chest without drifting through its source poses")
+     var originals=[]
+     for modifier in actor.pose_constraints:originals.append(modifier.solve())
+     assert(mantle.anchor.transform.is_equal_approx(rig.get_bone_global_pose(rig.find_bone("spine_03"))) and mantle.garment.transform==local,"Mantle fitting follows the fitted chest without drifting")
+     for at in range(actor.pose_constraints.size()-1,-1,-1):
+      var modifier=actor.pose_constraints[at]
+      for index in range(modifier.chain.size()):rig.set_bone_pose_rotation(modifier.chain[index],originals[at][index])
      for mesh in meshes:
       for surface in range(mesh.mesh.get_surface_count()):
        for vertex in mesh.mesh.surface_get_arrays(surface)[Mesh.ARRAY_VERTEX]:
@@ -46,7 +52,7 @@ func run():
  assert(app.preview_unit.id==character_id and app.preview_actor.model.get_node("Identity").mantle==null)
  app.ui.find_child("StudyStyle",true,false).button_pressed=true;await process_frame;await process_frame
  assert(app.preview_actor.model.get_node("Identity").mantle!=null)
- for index in range(3):
+ for index in range(spec.supported_items.size()):
   var choice=app.ui.find_child("StudyEquipment",true,false);choice.select(index);choice.item_selected.emit(index);await process_frame;await process_frame
   assert(app.preview_unit.item==spec.supported_items[index] and app.preview_actor.model.get_meta("character_identity")==character_id)
   var target=app.ui.find_child("StudyTarget",true,false);target.select(2);target.item_selected.emit(2);await app.stage.get_node("PreviewActionPlayer").finished
@@ -55,5 +61,5 @@ func run():
  app.close_model_view();await process_frame
  assert(app.game.save_data("camp")==saved and app.game.rng.state==rng)
  await Shutdown.dispose(app);await process_frame
- print("PASS: ",count," mantle/chest poses across three swords and relocated floor planes, two material batches, original identity/hair/cape, private fading materials, real study/style/equipment/mounted contact, unchanged campaign; minimum raw cloth height ",lowest)
+ print("PASS: ",count," mantle/chest poses across four swords and relocated floor planes, two material batches, original identity/hair/cape, private fading materials, real study/style/equipment/mounted contact, unchanged campaign; minimum raw cloth height ",lowest)
  quit()

@@ -4,6 +4,7 @@ extends Node3D
 @export var handle_radius=.014
 var equipped=""
 var grip_rotations={}
+var thrust_arm: SkeletonModifier3D
 func equipment_kind() -> String:return "sword"
 func _init():configure_equipment(equipment_kind(),"")
 
@@ -26,6 +27,8 @@ func configure_equipment(kind: String,item: String) -> String:
 func fit_handle():
  if not has_node("Weapon/WeaponGrip"):return
  get_node("Weapon/WeaponGrip").scale=Vector3(handle_radius/.027,1,handle_radius/.027)
+ if equipped=="estoc" and get_parent() is BoneAttachment3D and thrust_arm==null:
+  thrust_arm=preload("res://scripts/estoc_hold.gd").new();thrust_arm.name="EstocArm";get_parent().get_parent().add_child(thrust_arm);thrust_arm.setup(get_parent().get_parent(),self)
 
 func configure_animations(player: AnimationPlayer) -> String:
  fit_handle()
@@ -33,6 +36,11 @@ func configure_animations(player: AnimationPlayer) -> String:
  var rig=anchor.get_parent() as Skeleton3D if anchor!=null else null
  var result=preload("res://scripts/authored_hand_pose.gd").configure(player,rig,.2,.1,grip_rotations)
  if result.error.is_empty():grip_rotations=result.rotations
+ if result.error.is_empty() and thrust_arm!=null:thrust_arm.configure_animations(player)
  return result.error
+
+func handles_contact() -> bool:return thrust_arm!=null
+
+func point_trail_width() -> float:return .032 if equipped=="estoc" else 0.0
 
 static func finger_names() -> Array[String]:return preload("res://scripts/authored_hand_pose.gd").names()

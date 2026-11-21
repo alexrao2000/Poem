@@ -73,7 +73,8 @@
     "supported_items": [
       "iron_sword",
       "dueling_sword",
-      "tempered_sword"
+      "tempered_sword",
+      "estoc"
     ],
     "stride": {
       "length": 5.4124,
@@ -96,7 +97,8 @@
     "campaign_characters": [
       "nell",
       "yuna"
-    ]
+    ],
+    "aim_targets": true
   },
   "male": {
     "scene": "res://assets/models/quaternius/study_male.tscn",
@@ -172,7 +174,8 @@
     "supported_items": [
       "iron_sword",
       "dueling_sword",
-      "tempered_sword"
+      "tempered_sword",
+      "estoc"
     ],
     "stride": {
       "length": 5.6643,
@@ -191,7 +194,8 @@
     },
     "study_character": "silas",
     "study_label": "male duelist",
-    "study_title": "Duelist \u00b7 Male"
+    "study_title": "Duelist \u00b7 Male",
+    "aim_targets": true
   },
   "caster": {
     "scene": "res://assets/models/quaternius/study_caster_male.tscn",
@@ -427,7 +431,8 @@
     "supported_items": [
       "iron_sword",
       "dueling_sword",
-      "tempered_sword"
+      "tempered_sword",
+      "estoc"
     ],
     "stride": {
       "length": 5.4124,
@@ -450,7 +455,8 @@
     "campaign_characters": [
       "lyra",
       "rhea"
-    ]
+    ],
+    "aim_targets": true
   },
   "vanguard_male": {
     "scene": "res://assets/models/quaternius/study_vanguard_male.tscn",
@@ -526,7 +532,8 @@
     "supported_items": [
       "iron_sword",
       "dueling_sword",
-      "tempered_sword"
+      "tempered_sword",
+      "estoc"
     ],
     "stride": {
       "length": 5.6643,
@@ -545,7 +552,8 @@
     },
     "study_character": "cassian",
     "study_label": "male vanguard",
-    "study_title": "Vanguard \u00b7 Cassian"
+    "study_title": "Vanguard \u00b7 Cassian",
+    "aim_targets": true
   },
   "warden": {
     "scene": "res://assets/models/quaternius/study_warden_male.tscn",
@@ -1524,7 +1532,8 @@
     "supported_items": [
       "iron_sword",
       "dueling_sword",
-      "tempered_sword"
+      "tempered_sword",
+      "estoc"
     ],
     "stride": {
       "length": 5.6643,
@@ -1544,7 +1553,8 @@
     "study_character": "silas",
     "study_label": "enemy Duelist",
     "study_title": "Enemy Duelist",
-    "study_enemy_class": "Duelist"
+    "study_enemy_class": "Duelist",
+    "aim_targets": true
   },
   "enemy_vanguard": {
     "scene": "res://assets/models/quaternius/study_enemy_vanguard.tscn",
@@ -1620,7 +1630,8 @@
     "supported_items": [
       "iron_sword",
       "dueling_sword",
-      "tempered_sword"
+      "tempered_sword",
+      "estoc"
     ],
     "stride": {
       "length": 5.6643,
@@ -1640,7 +1651,8 @@
     "study_character": "cassian",
     "study_label": "enemy Vanguard",
     "study_title": "Enemy Vanguard",
-    "study_enemy_class": "Vanguard"
+    "study_enemy_class": "Vanguard",
+    "aim_targets": true
   },
   "enemy_knight": {
     "scene": "res://assets/models/quaternius/study_enemy_knight.tscn",

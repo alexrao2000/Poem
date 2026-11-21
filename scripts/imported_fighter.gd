@@ -23,6 +23,7 @@ var contact_index=0
 var travel_previous=Vector3.ZERO
 var travel_direction=Vector3.ZERO
 var camera_padding={}
+var point_trail_width=0.0
 
 func configure(scene: Node3D,spec: Dictionary) -> String:
  model=scene;add_child(model)
@@ -42,6 +43,7 @@ func configure(scene: Node3D,spec: Dictionary) -> String:
   player.remove_animation_library(library_name);player.add_animation_library(library_name,library)
  if spec.has("equipment"):
   var equipment=model.get_node(NodePath(spec.equipment))
+  if equipment.has_method("point_trail_width"):point_trail_width=equipment.point_trail_width()
   if equipment.has_method("configure_animations"):
    var error=equipment.configure_animations(player)
    if not error.is_empty():return error
@@ -143,6 +145,8 @@ func prepare_contact(spec: Dictionary) -> String:
  if not sockets.has("trail_tip") or not sockets.has("trail_inner"):return "Contact correction needs blade-edge sockets"
  var rig=model.get_node_or_null(NodePath(setup.skeleton)) as Skeleton3D
  if rig==null:return "Contact skeleton is missing"
+ var equipment=model.get_node_or_null(NodePath(spec.get("equipment","")))
+ if equipment!=null and equipment.has_method("handles_contact") and equipment.handles_contact():return ""
  contact=preload("res://scripts/skeletal_contact.gd").new();rig.add_child(contact);pose_constraints.append(contact)
  return contact.configure(rig,setup.bones,sockets.trail_inner,sockets.trail_tip)
 
@@ -230,4 +234,10 @@ func release_projectile():
 
 func weapon_trail_points() -> PackedVector3Array:
  if not sockets.has("trail_inner") or not sockets.has("trail_tip"):return PackedVector3Array()
+ if point_trail_width>0:
+  var tip=sockets.trail_tip.global_position;var forward=(tip-sockets.trail_inner.global_position).normalized()
+  var side=Vector3.UP-forward*Vector3.UP.dot(forward)
+  if side.length_squared()<.001:side=global_basis.x-forward*global_basis.x.dot(forward)
+  side=side.normalized()*point_trail_width*.5
+  return PackedVector3Array([tip-side,tip+side])
  return PackedVector3Array([sockets.trail_inner.global_position,sockets.trail_tip.global_position])

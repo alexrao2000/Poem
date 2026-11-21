@@ -1,4 +1,6 @@
 extends SceneTree
+# Slash equipment keeps every non-finger source track. The separately authored
+# estoc motion and its fingertip fit are covered by test_authored_estoc.gd.
 const Models=preload("res://scripts/combat_models.gd")
 const Rules=preload("res://scripts/rules.gd")
 const Sword=preload("res://scripts/authored_sword.gd")
@@ -14,7 +16,7 @@ func run():
   var original=baseline_library.build(world,unit,Vector3.ZERO);await process_frame
   var source_rig=original.model.get_node("Rig/Armature/Skeleton3D");var fingers=Sword.finger_names();var original_death=original.player.get_animation("Death01")
   var source_tracks=original_death.get_track_count()
-  for item in spec.supported_items:
+  for item in spec.supported_items.filter(func(item):return item!="estoc"):
    unit.item=item;var library=Models.new("");library.catalog={"characters":{unit.id:spec}}
    var actor=library.build(world,unit,Vector3.ZERO);assert(actor!=null and library.issues.is_empty());await process_frame
    var rig=actor.model.get_node("Rig/Armature/Skeleton3D");var weapon=actor.model.get_node(spec.equipment).get_node("Weapon")

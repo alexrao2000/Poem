@@ -1,6 +1,8 @@
 extends RefCounted
 # Measured full-outfit support is baked into each actor's private fall clip.
-# Gameplay never scans meshes; source resources and other poses stay intact.
+# Gameplay never scans meshes. Other private clips without root motion get a
+# rest-position key so fall support cannot leak into a later standing pose.
+# Source resources and existing authored root tracks stay intact.
 static var curves=JSON.parse_string(FileAccess.get_file_as_string("res://data/authored_fall_fit.json"))
 const ROOT_PATH=NodePath("Armature/Skeleton3D:root")
 static func apply(player: AnimationPlayer,key: String) -> String:
@@ -17,4 +19,13 @@ static func apply(player: AnimationPlayer,key: String) -> String:
  if track>=0:animation.remove_track(track)
  track=animation.add_track(Animation.TYPE_POSITION_3D);animation.track_set_path(track,ROOT_PATH)
  for row in rows:animation.track_insert_key(track,float(row[0]),Vector3(0,float(row[1]),0))
+ reset_other_clips(player)
  return ""
+
+static func reset_other_clips(player: AnimationPlayer):
+ var rig=player.get_node(player.root_node).get_node("Armature/Skeleton3D") as Skeleton3D
+ var rest=rig.get_bone_rest(rig.find_bone("root")).origin
+ for key in player.get_animation_list():
+  var animation=player.get_animation(key)
+  if key=="Death01" or animation.find_track(ROOT_PATH,Animation.TYPE_POSITION_3D)>=0:continue
+  var track=animation.add_track(Animation.TYPE_POSITION_3D);animation.track_set_path(track,ROOT_PATH);animation.track_insert_key(track,0,rest)

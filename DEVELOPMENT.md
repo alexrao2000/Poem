@@ -1,16 +1,14 @@
 # Poem development
 
-Working title: **Poem** (user direction, 2026-10-29). The repository, local project folder, application identifier, save folder and new transfer codes all use Poem. Earlier transfer codes remain importable. Local checkout: `/Users/alexr/Poem`.
+Working title: **Poem**. The repository, application identifier, save folder and new transfer codes use Poem. Earlier transfer codes remain importable.
 
-Current status: **paused at the user’s request on 2026-11-05**. Resume only on “go” or another explicit request. Their standing direction when resumed is to keep developing in this chat until they stop work or usage is exhausted. **Do not schedule anything.** The user clarified that the earlier heartbeat was unwanted; it has been deleted. They authorize model switching if one model is exhausted and another is available, but the current tool surface has no direct self-model switch and usage currently reports a shared Codex pool. The previous geometric prototype was rejected visually; resemblance to Awakening/Fates presentation is the priority, alongside the existing full roster and campaign. Keep local builds; the authorized remote destination is the public GitHub repository https://github.com/alexrao2000/Poem. Never publish to Sites. No purchases.
+Current status: **active after the user resumed development**. Keep building in this chat until asked to stop. Do not schedule work. Awakening/Fates-like presentation remains the priority alongside the existing full roster, campaign and independent experiments. Keep local builds; the authorized public remote is [alexrao2000/Poem](https://github.com/alexrao2000/Poem). No hosting deployment is requested.
 
-## Current checkpoint · paused 2026-11-05
+## Current checkpoint · 2026-11-21
 
-Read the current progress report at the top of [RESUME.md](RESUME.md) before the historical notes below. Revised models now cover all 24 unpromoted recruits and eight anonymous enemy families through the normal appearance option. An independent enemy debug switch inherits/resets/reports with the recruit switches. All twelve commanders, promoted outfits and three campaign estoc users preserve their original models.
+Read [RESUME.md](RESUME.md) for current validation and delivery status. Revised models cover all 24 unpromoted recruits and eight anonymous enemy families. The new estoc adapter adds point-first combat to both sword bodies and enemy sword classes, bringing coverage to all 77 ordinary campaign enemy loadouts and 31 enemy equipment bindings. Commanders and promotions retain their existing identities.
 
-All enemy studies retain faction styling and 29 equipment bindings. Mounted rigs have fitted stirrups/reins and measured horse support. Private full-outfit root tracks fix infantry fall clipping; a root-relative axe clearance plane retains smooth wrist motion. Focused geometry, camera, actual combat/healing/skip, ordinary campaign selection and save/RNG isolation checks pass. Browser/macOS packages and exported-resource smoke/ZIP integrity pass. The default runner has 175 suites, but no new full-default pass is claimed. Assembled GPU/browser/audio review remains outstanding.
-
-Next possible task after resumption: fit the intentionally unsupported estoc thrust, or extend revised identities to commanders/promotions. No further work or scheduled job is running for this pause. Source checkpoints and local packages are synchronized to the primary project and authorized public repository; the last commit contains this report.
+Combat hit effects stay at their captured contact point during defender recoil. Private living animations clear fall-support offsets, with 34 outfits and 344 transitions checked. Existing grip, weapon dimensions, bone lengths and shared source animations remain intact. The default runner registers 182 suites; verification is focused, not a newly completed full-default run. Assembled GPU/browser/audio review remains outstanding.
 
 ## Earlier checkpoints
 

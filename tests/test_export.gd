@@ -274,6 +274,21 @@ func run():
   actor.queue_free();await process_frame
   enemy.boss=true;actor=app.make_fighter(enemy,Vector3.ZERO);assert(not actor is Imported,"Packaged preference preserves boss appearances")
   actor.queue_free();await process_frame
+ for identity in ["nell","silas","lyra","cassian","enemy_Vanguard","enemy_Duelist"]:
+  var enemy=identity.begins_with("enemy_")
+  var unit=app.game.roster.filter(func(value):return value.id==("lyra" if enemy else identity))[0].duplicate(true)
+  unit.item="estoc";unit.team="enemy" if enemy else "player"
+  if enemy:unit.id="packaged_estoc";unit.job=identity.trim_prefix("enemy_")
+  var actor=app.make_fighter(unit,Vector3.ZERO)
+  assert(actor is Imported and actor.contact==null and actor.point_trail_width==.032,"Export selects the fitted estoc on both bodies and enemy sword classes")
+  var target=Vector3(0,1.1,-1.4);actor.aim_at(target)
+  await actor.pose("windup",.02).finished;await actor.pose("strike",.02).finished
+  assert(actor.sockets.trail_tip.global_position.distance_to(target)<.006,"Packaged estoc meets its exact aim target")
+  var edge=actor.weapon_trail_points();assert(is_equal_approx(edge[0].distance_to(edge[1]),.032))
+  await actor.pose("down",.02).finished;await actor.pose("idle",.18).finished
+  var rig=actor.model.get_node("Rig/Armature/Skeleton3D")
+  assert(rig.get_bone_pose_position(rig.find_bone("root")).is_equal_approx(Vector3.ZERO),"Packaged standing pose clears fitted fall support")
+  actor.queue_free();await process_frame
  await Shutdown.dispose(app);await process_frame
  print("PASS: exported catalog, all three act scores, chapter scenes, sixteen promotion costumes, licenses and credits")
  quit()

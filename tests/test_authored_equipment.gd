@@ -18,17 +18,18 @@ func run():
    assert(blade.mesh.surface_get_arrays(0)[Mesh.ARRAY_VERTEX]==Fighters.EquipmentVisuals.blade(item).surface_get_arrays(0)[Mesh.ARRAY_VERTEX],"Original equipment shape and width are preserved")
    assert(blade.material_override.get_shader_parameter("tint")==Color(Fighters.EquipmentVisuals.profiles[item].steel),"The selected sword keeps its own steel palette")
    var expected=Fighters.EquipmentVisuals.trail_edge("sword",item);var edge=actor.weapon_trail_points()
-   assert(edge[0].is_equal_approx(weapon.to_global(expected[0])) and edge[1].is_equal_approx(weapon.to_global(expected[1])),"Blade sockets are rebuilt with equipment")
+   if item=="estoc":assert(((edge[0]+edge[1])*.5).distance_to(weapon.to_global(expected[1]))<.00001 and is_equal_approx(edge[0].distance_to(edge[1]),.032),"Thrust trail is centered on the actual tip")
+   else:assert(edge[0].is_equal_approx(weapon.to_global(expected[0])) and edge[1].is_equal_approx(weapon.to_global(expected[1])),"Blade sockets are rebuilt with equipment")
    var target=Vector3(0,1.1,-1.4);actor.aim_at(target)
    await actor.pose("windup",.02).finished;await actor.pose("strike",.04).finished
    edge=actor.weapon_trail_points()
    assert(Geometry3D.get_closest_point_to_segment(target,edge[0],edge[1]).distance_to(target)<.006,"Every supported sword retains fitted contact")
    actor.queue_free();await process_frame;count+=1
-  unit.item="estoc"
-  assert(library.build(world,unit,Vector3.ZERO)==null and library.issues.is_empty(),"Unsupported thrust equipment deliberately uses the existing fallback")
+  unit.item="unsupported_sword"
+  assert(library.build(world,unit,Vector3.ZERO)==null and library.issues.is_empty(),"Unsupported equipment uses the existing fallback")
   var painter=Fighters.new();painter.models=library
   var fallback=painter.build(world,unit,Vector3.ZERO)
-  assert(fallback is Fighters.Actor and fallback.attack_style=="thrust","Estoc preserves its point-first combat animation")
+  assert(fallback is Fighters.Actor,"Unsupported items retain the original builder")
   fallback.queue_free();await process_frame
  for change in [{"supported_items":[]},{"supported_items":[7]},{"equipment":false},{"equipment":"Missing"}]:
   var spec=studies.female.duplicate(true);spec.merge(change,true);var library=Models.new("");library.catalog={"characters":{unit.id:spec}};unit.item="iron_sword"
@@ -51,5 +52,5 @@ func run():
   app.close_model_view();await process_frame
  assert(app.game.save_data("camp")==snapshot and app.game.rng.state==rng,"Equipment study never equips a campaign unit or changes randomness")
  await Shutdown.dispose(app);await process_frame
- print("PASS: ",count," authored equipment bindings, original shapes/materials/trails, fitted contacts, explicit estoc thrust fallback, invalid specifications and real compact viewer switching without campaign changes")
+ print("PASS: ",count," authored equipment bindings, original shapes/materials/trails, fitted contacts, fitted estoc tip trails and unsupported-item fallback, invalid specifications and real compact viewer switching without campaign changes")
  quit()

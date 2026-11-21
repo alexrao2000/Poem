@@ -23,7 +23,7 @@ func run():
    actor.queue_free();await process_frame;count+=1
   for patch in [{"team":"player"},{"boss":true},{"promotion":"test_promotion"},{"weapon":"staff" if enemy.weapon!="staff" else "sword"},{"item":"unknown_item"},{"job":"unknown_job"}]:
    var changed=enemy.duplicate(true);changed.merge(patch,true);assert(app.revised_enemies.build(app.stage,changed,Vector3.ZERO)==null)
- assert(count==29 and app.game.save_data("camp")==before and app.game.rng.state==rng)
+ assert(count==31 and app.game.save_data("camp")==before and app.game.rng.state==rng)
  app.preferences.values.character_models="current";app.show_options("camp");app.ui.find_child("DebugMode",true,false).button_pressed=true
  assert(not app.debug_session.revised_enemies and not app.debug_session.revised_vanguard)
  for size_value in [Vector2i(1024,640),Vector2i(1280,720),Vector2i(1440,900)]:
@@ -48,5 +48,5 @@ func run():
  assert(app.debug_session.revised_enemies);app.debug_session.end(app.game);assert(not app.debug_session.revised_enemies)
  assert(FileAccess.get_file_as_string(app.save_path)==disk and app.fighters.models.catalog==catalog)
  await Shutdown.dispose(app);await process_frame
- print("PASS: 29 ordinary enemy equipment bindings, boss/promotion/team/class/weapon/item fallback, reachable three-size independent enemy debug switch, inheritance/reset/report and exact campaign/save/RNG isolation")
+ print("PASS: 31 ordinary enemy equipment bindings, boss/promotion/team/class/weapon/item fallback, reachable three-size independent enemy debug switch, inheritance/reset/report and exact campaign/save/RNG isolation")
  quit()

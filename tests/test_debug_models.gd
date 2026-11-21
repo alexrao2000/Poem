@@ -50,7 +50,7 @@ func run():
       for point in mesh.mesh.surface_get_arrays(surface)[Mesh.ARRAY_VERTEX]:assert(mesh.to_global(point).y>.04,"Standing dodge keeps the actual held blade and guard above the floor")
    model.queue_free();await process_frame
   unit.item="estoc"
-  var thrust=app.make_fighter(unit,Vector3.ZERO);assert(thrust is Actor and thrust.attack_style=="thrust","The experiment retains the estoc's point-first motion");thrust.queue_free();await process_frame
+  var thrust=app.make_fighter(unit,Vector3.ZERO);assert(thrust is Imported and thrust.model.get_node("Rig/Armature/Skeleton3D/WeaponHand/Grip").handles_contact(),"The experiment retains the estoc's point-first motion");thrust.queue_free();await process_frame
   unit.item="iron_sword";unit.promotion=app.game.promotions.filter(func(value):return value.base==unit.job)[0].id
   var promoted=app.make_fighter(unit,Vector3.ZERO);assert(promoted is Actor and promoted.get_meta("promotion_look")==unit.promotion,"Promotion costumes remain visible in the experiment");promoted.queue_free();await process_frame
   unit.promotion="";unit.team="enemy"
@@ -95,5 +95,5 @@ func run():
  assert(FileAccess.get_file_as_string(app.save_path)==disk and app.fighters.models.catalog==catalog,"Leaving the model experiment restores the campaign and leaves its disk save intact")
  app.debug_session.begin(app.game,"camp");assert(not app.debug_session.get(setting_name));app.debug_session.end(app.game)
  await Shutdown.dispose(app);await process_frame
- print("PASS: reversible debug model toggle, ",character_ids.size()*3," styled sword bindings, estoc/promotion/enemy/roster fallback, real outfit preview, critical/missed exchanges, victory/defeat playback, floor-safe standing dodges, report visibility, fresh-session reset and exact campaign/save/RNG isolation")
+ print("PASS: reversible debug model toggle, ",character_ids.size()*3," styled sword bindings, fitted estoc and promotion/enemy/roster fallback, real outfit preview, critical/missed exchanges, victory/defeat playback, floor-safe standing dodges, report visibility, fresh-session reset and exact campaign/save/RNG isolation")
  quit()

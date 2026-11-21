@@ -29,7 +29,9 @@ func run():
     for sample in [["idle","wide",3.2],["windup","windup",spacing],["strike","impact",spacing],["evade","impact",spacing],["victory","finish",spacing]]:
      var mapping=actor.poses[sample[0]];var other=actor.position+Vector3(side*sample[2],0,0)
      for mounted in [false,true]:
-      actor.aim_at(other+Vector3.UP*(1.85 if mounted else 1.1));actor.contact.influence=1 if sample[0]=="strike" else 0
+      actor.aim_at(other+Vector3.UP*(1.85 if mounted else 1.1))
+      if actor.contact!=null:actor.contact.influence=1 if sample[0]=="strike" else 0
+      for listener in actor.pose_listeners:listener.combat_pose(sample[0])
       for step in range(9):
        actor.player.stop();actor.player.play(mapping.clip,0);actor.player.seek(lerpf(mapping.from,mapping.to,float(step)/8),true,true);actor.player.pause();actor.refresh_skeleton()
        for size_value in [Vector2i(1024,640),Vector2i(1280,720),Vector2i(1440,900)]:

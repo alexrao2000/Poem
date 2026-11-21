@@ -1,46 +1,35 @@
 # Poem — development handoff
 
-## Paused progress report · 2026-11-05
+## Active checkpoint · 2026-11-21
 
-**Paused at the user's request. Do not resume development until the user says “go” or otherwise asks to continue.** No overnight job, schedule or background development was created. This section supersedes older “continue” instructions and stale checkpoint descriptions below.
+Development resumed on “go”. Continue in this chat until the user asks to stop; no scheduled work is requested. This checkpoint supersedes the older paused status below.
 
-### What is ready
+### Current presentation
 
-- The existing game has 24 recruits and a 12-chapter campaign, with the previously implemented independent permadeath, action-save, rescue, section-restart, reset-pressure, difficulty, death-legacy and sacrifice experiments. This batch changes presentation, not those rules or balance.
-- **Options → Character models → Revised models · preview** now selects fitted skeletal models for all 24 unpromoted recruits and eight anonymous enemy classes. Current models remain the default. The revised option is a device-local preference, absent from campaign saves/transfers.
-- All eight enemy source viewers are available under Debug tools, with original faction faces, uniforms, headgear, imperial cloaks and 29 equipment bindings. The Vanguard wears light armor, the Knight has a closed helmet, and the Rider retains the enemy horse/tack colors. Enemy appearance can be toggled independently of recruit classes in Debug mode; it inherits the normal preference, appears in reports and resets on exit.
-- Mounted recruits/enemies have seated legs fitted to actual stirrups, a rein hand fitted to the bridle, distance-driven horse travel and fitted melee/javelin actions. Revised infantry have measured private fall corrections for all 21 recruits and seven enemy outfits, fixing floor clipping without changing shared source clips. The correction also preserves smooth axe-wrist motion.
-- All twelve named commanders and promoted outfits retain their original models. Three campaign Vanguard estoc users also retain the original thrust animation; revised source bodies do not yet support that weapon. The chapter formations contain seven enemy combat classes. Warden healing is supported and tested but this visual change does not add enemy healers to the campaign.
+- The game has 24 recruits and twelve chapters, with independent permadeath, action-save, rescue, section-restart, reset-pressure, difficulty, death-legacy and sacrifice experiments.
+- **Options → Character models → Revised models · preview** selects the fitted skeletal bodies for all 24 unpromoted recruits and eight anonymous enemy families. Current models remain the default. This local preference is excluded from campaign transfers.
+- Revised Duelists and Vanguards now support a point-first estoc thrust on both bodies, with a fitted grip, upper-body preparation, recovery and narrow tip trail. Both enemy sword families support it too. This removes the last three ordinary campaign loadout fallbacks: all 77 nonboss enemies across twelve chapters have revised models. There are 31 enemy study equipment bindings.
+- Hit effects retain the captured contact point when the defender begins recoil. Private living clips reset fitted fall height, preventing a defeated preview from returning to idle above the ground. Existing authored root tracks and source resources remain intact.
+- Twelve named commanders and promoted outfits still retain their original models. Seven enemy classes occur in chapter formations; Warden remains supported in studies and the model selector without adding new chapter units.
 
 ### Verification and delivery
 
-Source checkpoint `c5943a4` (all enemy source studies plus infantry fall corrections) is pushed to `main` and `codex/combat-presentation`, and its browser/macOS packages were copied to the primary checkout. The follow-up enemy-option integration is complete: focused tests, the exported browser-pack smoke test, both local exports and both ZIP integrity checks pass. This report is part of the final pause checkpoint. Both branches and the primary checkout receive this commit and the refreshed local packages; use `git log -1` for its hash.
+The estoc study and actual combat checks pass: six viewers, twelve foot/mounted targets, three supported UI sizes, eight player/enemy/critical/counter/shield contacts, four phase skips and unchanged campaign/RNG state. Dense fitting checks cover both bodies and facings at five heights, with maximum sampled joint step 0.047854 radians and tip gap below 0.000004 m. Four framing suites cover 4,320 layouts. Fall recovery checks cover 34 outfits and 344 down-to-living transitions.
 
-Focused evidence:
-- 14,364 full-outfit fall samples; dense weapon grip/contact/floor/continuity and mounted gait/fade checks.
-- 29 enemy equipment bindings; all eight source/style viewers; three supported window sizes; private faction materials and expressions.
-- Nine enemy camera suites and fifteen affected recruit/Corsair camera suites.
-- Actual melee, arrow, spell, javelin and healing playback, critical/counter attacks, miss/guard/defeat, skipping and map restoration.
-- Normal campaign selection: **74 revised anonymous enemy loadouts across twelve chapters**, **three estoc fallbacks**, **twelve original commanders**, plus actual mixed revised exchanges for all eight model families. All 24 recruit previews/exchanges still pass.
-- Independent debug inheritance/reset/reporting and exact campaign, save-file, profile and RNG isolation.
-- The runner registers **175 suites**. This is a focused verification result; no new full-default-suite pass is claimed.
+The default runner registers 182 suites. This batch uses focused regressions; a new full-default pass is not claimed. Both local Web/macOS exports and ZIP integrity checks pass. The external exported-resource smoke test includes both estoc bodies, both enemy sword families, exact tip contact, narrow trails and fall-to-idle resets. Affected regression suites also pass: axe/lance/Rider fitting, original sword grips, authored and original contacts, continuous exchanges, accelerated playback and nine phase skips, all enemy melee/ranged/support exchanges, both Vanguard mantles, debug toggles, study controls and ordinary campaign selection. This checkpoint is delivered to both branches with refreshed local packages; use `git log -1` for its hash.
 
-The two initial integration test assumptions were corrected to match existing content: not every enemy weapon is supported (three estocs), and chapters contain seven enemy classes (Warden is study/test-only). Runtime fallback behavior was already correct. Relevant final logs are `/private/tmp/poem-enemy-preference-regressions.log`, `/private/tmp/poem-enemy-campaign-tests.log` (enemy preferences pass; later initial loadout assertion fails), `/private/tmp/poem-enemy-integration-final.log` (four passing suites), and `/private/tmp/poem-enemy-integration-export.log`.
+**Visual limits:** an isolated untextured software projection of eight actual estoc poses was inspected. This is not a gameplay capture. Assembled GPU rendering, browser reload behavior, frame rate and audio review remain outstanding. Preserve the existing browser/GPU permission boundary.
 
-**Visual limits:** isolated production geometry/material studies were inspected. They are not GPU gameplay captures. Assembled rendering, browser reload behavior, frame rate and audio review remain unverified. Preserve the established managed browser/GPU permission boundary; do not bypass it through another browser, CDP, native/headless GPU screenshots or alternate hosts.
+### Continue from here
 
-### Where to resume
-
-- Primary checkout: `/Users/alexr/Poem` (`main`). Active worktree: `/Users/alexr/.codex/worktrees/combat-presentation/fe-clone` (`codex/combat-presentation`). Remote: `https://github.com/alexrao2000/Poem`. Public visibility and nondestructive pushes are authorized.
-- Start with the required Marble sync and three memory indexes, then check Git status and the latest commit in both checkouts. Preserve the existing primary stash `Preserve shared workshop edits before combined presentation integration`.
-- Read `docs/combat-models.md` for the fitted rigs, animation adapters, source provenance and calibration commands. The latest selectors are `scripts/revised_enemy_models.gd`, `main.gd:make_fighter`, and `debug_session.gd`.
-- Next bounded art task: fit a revised estoc thrust (currently intentional fallback), or progress commander/promotion appearances. Keep the larger goal on complete Awakening/Fates-like scenes and transitions; do not treat isolated geometry checks as visual approval.
-- Do not restart campaign mechanics or redo passed tests without a relevant change/failure. The anonymous enemy integration is complete; begin a new bounded task only after the user resumes work.
-- Local exports: `build/web/`, `build/Poem-Web.zip`, `build/native/Poem.zip` in both checkouts. Use Godot `/private/tmp/ashen-godot/Godot.app/Contents/MacOS/Godot`. Focused tests: `GODOT_BIN=/private/tmp/ashen-godot/Godot.app/Contents/MacOS/Godot python3 scripts/test_local.py <suite...>`. Existing verified export pipeline: `/private/tmp/poem-export-verified.sh` (imports, catalog, Web, external packed-resource smoke, macOS and archives).
+- Source branch: `codex/combat-presentation`; primary branch: `main`; authorized public remote: [alexrao2000/Poem](https://github.com/alexrao2000/Poem). Check both working trees before integrating and preserve unrelated changes/stashes.
+- Use Godot 4.5.1. Set `GODOT_BIN` to its executable, then run `python3 scripts/test_local.py <suite...>` for focused checks. `scripts/build_local.sh` is the complete import/test/export pipeline. Local packages are `build/Poem-Web.zip` and `build/native/Poem.zip`; no hosting deployment is requested.
+- Read [the model integration guide](docs/combat-models.md) for rig fitting and source provenance. New entry points are `scripts/estoc_hold.gd`, `authored_sword.gd`, and `authored_fall_fit.gd`.
+- After this verified batch is delivered, improve commander or promotion identities while keeping the broader aim on complete scenes and animation. Do not treat isolated geometry checks as visual approval.
 
 ## Earlier development history
 
-The notes below are historical checkpoints. Prefer the paused report above when an older status or suite count differs.
+The notes below are historical checkpoints. Prefer the active checkpoint above when an older status or suite count differs.
 
 Resumed at the user's request on 2026-11-04. Continue development in this chat until the user asks to stop. No scheduled work is requested.
 

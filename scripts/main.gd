@@ -1162,7 +1162,7 @@ func cinematic(a,b,events,initial_hp={}):
 			if not blocked:whom.pose("critical_hit" if event.crit else "hit",.12)
 		displayed_hp[event.target]=maxi(0,displayed_hp[event.target]-event.damage)
 		banner.set_health(event.target,int(displayed_hp[event.target]))
-		show_impact(whom.socket_position(contact_socket),event,spell,whom.global_position)
+		show_impact(contact_point,event,spell,whom.global_position)
 		if event.hit and event.damage>0:director.impact(event.crit,whom.position.x-who.position.x)
 		var hold=CombatHitStop.duration_for(event)
 		if hold>0:
