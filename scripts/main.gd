@@ -1,5 +1,6 @@
 extends Node3D
 const Rules = preload("res://scripts/rules.gd")
+const CampaignSettings=preload("res://scripts/campaign_settings.gd")
 const Portraits = preload("res://scripts/portraits.gd")
 const WeaponIcons=preload("res://scripts/weapon_icons.gd")
 const MapUnit=preload("res://scripts/campaign_map_unit.gd")
@@ -383,17 +384,27 @@ func show_title():
 	button_in(extras,"Options",func():show_options("title")).size_flags_horizontal=Control.SIZE_EXPAND_FILL
 	button_in(extras,"Credits",show_credits).size_flags_horizontal=Control.SIZE_EXPAND_FILL
 	button_in(v,"Character & map workshop",show_visual_workshop)
-	label_in(v,"Toggle permadeath when you begin.\nYour chronicle, your company.",14,Color("827b6c"))
+	label_in(v,"Choose campaign rules when you begin.\nYour chronicle, your company.",14,Color("827b6c"))
 
 func show_campaign_rules():
 	screen="campaign_rules";reset_ui();title_backdrop()
+	var draft=CampaignSettings.snapshot(game)
 	var frame=menu_panel(720);var panel=scrolling_column(frame)
 	label_in(panel,"A NEW CHRONICLE",17,GOLD)
 	label_in(panel,"Campaign options",38)
-	var permanent=CheckButton.new();permanent.name="Permadeath";permanent.text="Permadeath";permanent.button_pressed=game.permadeath;panel.add_child(permanent)
-	label_in(panel,"On: fallen allies stay lost after a chapter victory. If Lyra or the whole company falls, retry from preparation. Off: fallen allies recover for the next chapter.",20)
-	label_in(panel,"You can change this toggle in Options while experimenting. Turning it off does not revive earlier losses; Debug mode has a revival control.",18)
-	button_in(frame,"Begin the chronicle",func():game.new_campaign(permanent.button_pressed);music.play();show_camp())
+	var permanent=CheckButton.new();permanent.name="Permadeath";permanent.text="Permadeath";permanent.button_pressed=draft.permadeath;panel.add_child(permanent)
+	permanent.toggled.connect(func(value):draft.permadeath=value)
+	label_in(panel,"On: fallen allies stay lost after victory, and Lyra’s loss ends the attempt. Off: fallen allies recover for the next chapter. Additional experiments below can change these consequences.",20)
+	label_in(panel,"These choices apply when you begin. You can change them later in Options. Turning permadeath off keeps earlier losses; Debug mode has a revival control.",18)
+	label_in(panel,"Campaign experiments",24,GOLD)
+	for setting in CampaignSettings.SWITCHES:
+		var toggle=CheckButton.new();toggle.name=setting.key;toggle.text=setting.name;toggle.button_pressed=draft[setting.key];panel.add_child(toggle)
+		toggle.toggled.connect(func(value):draft[setting.key]=value)
+		label_in(panel,setting.text,16)
+	button_in(frame,"Begin the chronicle",func():
+		game.new_campaign(draft.permadeath)
+		for setting in CampaignSettings.SWITCHES:CampaignSettings.set_enabled(game,setting.key,draft[setting.key])
+		music.play();show_camp())
 	button_in(frame,"Return to title",show_title)
 
 func show_credits():
@@ -1881,13 +1892,9 @@ func show_options(return_to: String):
 		show_options(options_return))
 	label_in(panel,"Debug mode keeps a separate save. Turning it off restores your campaign to where you enabled it.",16)
 	if debug_session.active:button_in(panel,"Open debug tools",func():show_debug_tools(options_return))
-	for setting in [{"key":"action_saves","name":"Save every action","text":"Commit movement and combat before animation. No movement undo. With permadeath, deaths survive retries."},{"key":"death_door","name":"Death’s door & rescue","text":"Downed allies have two player turns for rescue or staff healing. Carrying pauses the countdown and costs 2 movement."}]:
-		var toggle=CheckButton.new();toggle.name=setting.key;toggle.text=setting.name;toggle.button_pressed=game.get(setting.key);panel.add_child(toggle)
-		toggle.toggled.connect(func(value):game.set(setting.key,value))
-		label_in(panel,setting.text,16)
-	for setting in [{"key":"section_restarts","name":"Restart the current section","text":"With permadeath: retries return to the start of the four-chapter section. Deaths and legacy supplies remain. Relief recruits arrive at section breaks."},{"key":"reset_pressure","name":"Enemies prepare after resets","text":"Enemies start with two tonics. Retries add stats, use up tonics and advance raiders. Lyra must deploy; her fall ends the attempt. Works with permadeath on or off."},{"key":"hard_campaign","name":"Harder enemy forces","text":"On the next deployment: enemies gain health, attack, speed and later defense. Later garrisons also field healers."},{"key":"death_legacies","name":"Death events & legacy supplies","text":"With permadeath: each death commits a loss, grants one supply credit and may bring a volunteer ahead of schedule."},{"key":"sacrifice_cost","name":"Sacrifice costs & openings","text":"Returning allies start attempts through the next chapter 4 HP down, with one tonic. The first fall per recruit in a chapter gives survivors +2 attack through the next player turn."}]:
-		var toggle=CheckButton.new();toggle.name=setting.key;toggle.text=setting.name;toggle.button_pressed=game.trials.flags[setting.key];panel.add_child(toggle)
-		toggle.toggled.connect(func(value):game.trials.flags[setting.key]=value)
+	for setting in CampaignSettings.SWITCHES:
+		var toggle=CheckButton.new();toggle.name=setting.key;toggle.text=setting.name;toggle.button_pressed=CampaignSettings.enabled(game,setting.key);panel.add_child(toggle)
+		toggle.toggled.connect(func(value):CampaignSettings.set_enabled(game,setting.key,value))
 		label_in(panel,setting.text,16)
 	var presentation_heading=label_in(panel,"Battle presentation",21,GOLD)
 	var mode=OptionButton.new();mode.name="CombatMode";mode.custom_minimum_size.y=42

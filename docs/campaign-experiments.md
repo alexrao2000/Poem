@@ -1,6 +1,8 @@
 # Campaign experiments
 
-These are independent switches in Options, all off for an existing campaign unless its save already enabled them. Permadeath remains a separate toggle. Debug mode creates a temporary sandbox with a different save slot; disabling it restores the original live campaign. Use **Open debug tools** to load a chapter, make a selected ally fall, heal/revive units, or test the real retreat path.
+These are independent switches on the new-campaign screen and in Options. Fresh settings start off; existing saves retain their chosen switches. Permadeath remains a separate toggle. Debug mode creates a temporary sandbox with a different save slot; disabling it restores the original live campaign. Use **Open debug tools** to load a chapter, make a selected ally fall, heal/revive units, or test the real retreat path.
+
+Before **Begin the chronicle**, choose any combination of the seven experiment switches and permadeath. The screen starts with the current rule choices, including selections made in title Options. Editing this screen is a draft: cancelling changes no chosen rules or save file. Beginning creates a fresh company with those switches, clearing earlier casualties, credits, pressure and other consequences. The first deployment saves the selected configuration. Starting inside Debug still uses only its separate slot.
 
 Debug opens with campaign controls first. The fixed **Campaign experiments** and **Character studies** buttons jump between sections and move keyboard focus to the first control. Model comparisons and rig previews remain available below the campaign tools.
 

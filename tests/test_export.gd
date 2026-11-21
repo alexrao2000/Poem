@@ -584,6 +584,16 @@ func run():
   var stock_button=app.ui.find_child("LegacyStock_"+stock.id,true,false)
   assert(stock_button.disabled and stock_button.text.begins_with("Available in arsenal · "),"Packed shop does not sell normally unlocked equipment for legacy credits")
  assert(app.game.trials.credits==3)
+ app.show_campaign_rules();app.ui.find_child("Permadeath",true,false).button_pressed=true
+ var campaign_settings=load("res://scripts/campaign_settings.gd")
+ for setting in campaign_settings.SWITCHES:app.ui.find_child(setting.key,true,false).button_pressed=true
+ app.ui.find_children("*","Button",true,false).filter(func(button):return button.text=="Begin the chronicle")[0].pressed.emit()
+ assert(campaign_settings.snapshot(app.game).values().all(func(value):return value) and app.game.trials.pressure==0 and app.game.trials.credits==0,"Packed campaign creation applies all chosen rules to fresh consequences")
+ app.finish_dialogue();app.deploy_company()
+ while app.busy:
+  var key=InputEventKey.new();key.keycode=KEY_TAB;key.pressed=true;app._unhandled_input(key);await process_frame
+ var creation_save=load("res://scripts/rules.gd").new()
+ assert(creation_save.load_game(app.save_path+".debug")=="battle" and campaign_settings.snapshot(creation_save).values().all(func(value):return value),"Packed first-deployment checkpoint keeps every selected campaign rule")
  await Shutdown.dispose(app);await process_frame
  print("PASS: exported catalog, all three act scores, chapter scenes, sixteen promotion patterns, all forty-eight revised promotion outfits, licenses and credits")
  quit()
