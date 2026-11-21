@@ -818,7 +818,7 @@ func _unhandled_input(event):
 		return
 	if event is InputEventKey and event.pressed:
 		if event.keycode==KEY_TAB:skip_combat=true
-		if screen=="battle" and not busy:
+		if screen=="battle" and not busy and not event.echo:
 			if event.keycode==KEY_ESCAPE:
 				if selected!=null:interface_audio.cue("back")
 				if drop_mode:cancel_drop()

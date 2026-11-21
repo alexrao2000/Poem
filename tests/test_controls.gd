@@ -10,6 +10,14 @@ func place_duel(app,unit,enemy):
 func run():
  var app=load("res://main.tscn").instantiate();app.settings_path="";app.save_path="/private/tmp/poem-controls.json";root.add_child(app);await process_frame
  app.game.start_battle();app.make_map();app.show_battle();app.preferences.values.auto_end=false;app.preferences.values.combat="map"
+ var repeated=InputEventKey.new();repeated.pressed=true;repeated.echo=true
+ var untouched=app.game.save_data("battle").duplicate(true);var inspection=app.game.units[0];app.selected=inspection
+ for command in [KEY_R,KEY_SPACE,KEY_ESCAPE]:
+  repeated.keycode=command;app._unhandled_input(repeated)
+  assert(not app.busy and not app.show_danger and app.selected==inspection and app.game.save_data("battle")==untouched,"Held battle commands do not toggle ranges, end a phase or discard a selection")
+ repeated.echo=false;repeated.keycode=KEY_R;app._unhandled_input(repeated);assert(app.show_danger)
+ app._unhandled_input(repeated);assert(not app.show_danger,"Fresh range presses still toggle normally")
+ app.selected=null
  app.cycle_ready_ally(1);assert(app.selected.id=="lyra" and app.cursor_visible,"Cycle begins with first ready ally")
  app.cycle_ready_ally(1);assert(app.selected.id=="oren")
  app.selected.acted=true;app.cycle_ready_ally(1);assert(app.selected.id=="lyra","Cycle excludes allies that have acted")
