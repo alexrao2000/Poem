@@ -24,6 +24,26 @@ func inspect(app):
     parent=parent.get_parent()
    if not clipped:assert(Rect2(Vector2.ZERO,dimensions).grow(1).encloses(node.get_global_rect()),"Debug fixed controls remain visible: "+app.screen)
 
+func verify_navigation(app):
+ var before=app.game.save_data("camp").duplicate(true);var rng=app.game.rng.state
+ for dimensions in [Vector2(1024,640),Vector2(1280,720),Vector2(1440,900)]:
+  app.ui.set_anchors_and_offsets_preset(Control.PRESET_TOP_LEFT);app.ui.size=dimensions
+  await process_frame;await process_frame
+  var heading=app.ui.find_child("DebugModelHeading",true,false)
+  var sections=app.ui.find_child("DebugSections",true,false)
+  var scroll=heading.get_parent().get_parent()
+  for name in ["DebugChapter","DebugPressure","DebugLevel","DebugCasualty","DebugPatient"]:
+   assert(app.ui.find_child(name,true,false).get_index()<heading.get_index(),"Campaign experiment controls precede character studies")
+  var fixed=sections.get_global_rect();press(app,"Character studies");await process_frame;await process_frame
+  assert(absf(heading.global_position.y-scroll.global_position.y)<2,"Character jump aligns the study heading at the top of the scrolling area")
+  assert(scroll.get_global_rect().grow(1).encloses(app.ui.find_child("DebugVanguardModel",true,false).get_global_rect()),"The first model comparison is immediately visible after jumping")
+  assert(app.ui.find_child("DebugVanguardModel",true,false).has_focus(),"Keyboard navigation continues from the first model toggle after a section jump")
+  assert(sections.get_global_rect()==fixed and Rect2(Vector2.ZERO,dimensions).encloses(fixed),"Section navigation stays visible and stationary while content scrolls")
+  press(app,"Campaign experiments");await process_frame;await process_frame
+  assert(app.ui.find_child("DebugSeed",true,false).get_line_edit().has_focus(),"Campaign jump places keyboard focus in the seed control")
+  assert(scroll.scroll_vertical==0 and sections.get_global_rect()==fixed,"Campaign jump returns to the seed and chapter controls without rebuilding the menu")
+ assert(app.game.save_data("camp")==before and app.game.rng.state==rng,"Section navigation changes no experiment, campaign or random state")
+
 func verify_debug_casualties():
  var g=Rules.new();g.new_campaign(true);g.action_saves=true;g.start_battle();var session=Session.new()
  var before=g.save_data("battle").duplicate(true)
@@ -94,7 +114,7 @@ func run():
  await inspect(app)
  app.ui.find_child("Permadeath",true,false).button_pressed=false
  assert(not app.game.permadeath,"Experimental rule toggle applies immediately")
- press(app,"Open debug tools");await inspect(app)
+ press(app,"Open debug tools");await inspect(app);await verify_navigation(app)
  app.ui.find_child("DebugSeed",true,false).value=309;press(app,"Apply seed to next rolls")
  assert(app.debug_session.combat_seed==309)
  press(app,"View experiment report");await inspect(app)

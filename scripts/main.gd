@@ -1831,48 +1831,19 @@ func close_options():
 func show_debug_tools(return_to: String):
 	if not debug_session.active:return
 	options_return=return_to;screen="debug_tools";reset_ui()
-	var frame=menu_panel(840);var panel=scrolling_column(frame)
+	var frame=menu_panel(840)
+	var sections=HBoxContainer.new();sections.name="DebugSections";sections.add_theme_constant_override("separation",12);frame.add_child(sections)
+	var panel=scrolling_column(frame)
 	label_in(panel,"DEBUG / TEMPORARY SANDBOX",17,GOLD)
 	label_in(panel,"Experiment with the company",36,GOLD)
 	label_in(panel,"Changes save only to the debug slot. Turn Debug mode off in Options to restore the original campaign.",19)
 	label_in(panel,"Reproduce a run",23,GOLD)
 	var seed_input=SpinBox.new();seed_input.name="DebugSeed";seed_input.min_value=0;seed_input.max_value=2147483647;seed_input.step=1;seed_input.value=debug_session.combat_seed;seed_input.custom_minimum_size.y=42;panel.add_child(seed_input)
+	button_in(sections,"Campaign experiments",func():seed_input.get_line_edit().grab_focus();panel.get_parent().scroll_vertical=0).size_flags_horizontal=Control.SIZE_EXPAND_FILL
 	button_in(panel,"Apply seed to next rolls",func():
 		if debug_session.set_combat_seed(game,seed_input.value):persist_campaign("battle" if options_return=="battle" else "camp");show_notice("Combat seed applied. Chapter loads and clean resets reuse it."))
 	label_in(panel,"The same seed, rules and actions reproduce the same rolls. Clean resets reuse this seed; penalty retreats follow the campaign’s restart rules.",16)
 	button_in(panel,"View experiment report",show_debug_report)
-	label_in(panel,"CHARACTER MODEL STUDIES",17,GOLD)
-	var vanguard=CheckButton.new();vanguard.name="DebugVanguardModel";vanguard.text="Revised Vanguard models";vanguard.button_pressed=debug_session.revised_vanguard;panel.add_child(vanguard)
-	vanguard.toggled.connect(func(value):debug_session.set_revised_vanguard(value))
-	label_in(panel,"Try Lyra, Cassian and Rhea with all four swords, including Standard Bearer and Dawnblade outfits. The comparison resets when Debug mode ends.",16)
-	var revised=CheckButton.new();revised.name="DebugDuelistModels";revised.text="Revised duelist models";revised.button_pressed=debug_session.revised_duelists;panel.add_child(revised)
-	revised.toggled.connect(func(value):debug_session.set_revised_duelists(value))
-	label_in(panel,"Try Nell, Silas and Yuna with all four swords, including Sword Dancer and Oathkeeper outfits. Resets when Debug mode ends.",16)
-	var caster=CheckButton.new();caster.name="DebugCasterModel";caster.text="Revised casting models";caster.button_pressed=debug_session.revised_caster;panel.add_child(caster)
-	caster.toggled.connect(func(value):debug_session.set_revised_caster(value))
-	label_in(panel,"Try Tarin, Vela and Noor with Ember, Gale or Thunder, including Star Sage and Spellwarden outfits. Resets when Debug mode ends.",16)
-	var warden=CheckButton.new();warden.name="DebugWardenModel";warden.text="Revised Warden models";warden.button_pressed=debug_session.revised_warden;panel.add_child(warden)
-	warden.toggled.connect(func(value):debug_session.set_revised_warden(value))
-	label_in(panel,"Try Ivo, Esme and Galen with Field, Mend or Beacon staves, including Luminary and Wayfarer outfits. Resets when Debug mode ends.",16)
-	var corsair=CheckButton.new();corsair.name="DebugCorsairModel";corsair.text="Revised Corsair models";corsair.button_pressed=debug_session.revised_corsair;panel.add_child(corsair)
-	corsair.toggled.connect(func(value):debug_session.set_revised_corsair(value))
-	label_in(panel,"Try Mara, Dax and Hale with axes and hammers, including Stormbreaker and Trailguard outfits. Resets when Debug mode ends.",16)
-	var studies=JSON.parse_string(FileAccess.get_file_as_string("res://data/model_studies.json"))
-	var ranger=CheckButton.new();ranger.name="DebugRangerModel";ranger.text="Revised Ranger models";ranger.button_pressed=debug_session.revised_ranger;panel.add_child(ranger)
-	ranger.toggled.connect(func(value):debug_session.set_revised_ranger(value))
-	var knight=CheckButton.new();knight.name="DebugKnightModel";knight.text="Revised Knight models";knight.button_pressed=debug_session.revised_knight;panel.add_child(knight)
-	knight.toggled.connect(func(value):debug_session.set_revised_knight(value))
-	var rider=CheckButton.new();rider.name="DebugRiderModel";rider.text="Revised Rider models";rider.button_pressed=debug_session.revised_rider;panel.add_child(rider)
-	rider.toggled.connect(func(value):debug_session.set_revised_rider(value))
-	var enemy_models=CheckButton.new();enemy_models.name="DebugEnemyModels";enemy_models.text="Revised enemy models";enemy_models.button_pressed=debug_session.revised_enemies;panel.add_child(enemy_models)
-	enemy_models.toggled.connect(func(value):debug_session.set_revised_enemies(value))
-	label_in(panel,"Compare recruit classes and enemies independently. Revised commanders retain their own colors and insignia. These switches reset when Debug mode ends.",16)
-	for gender in studies:
-		var study=button_in(panel,"View "+studies[gender].study_label+" rig",func():show_source_model_view(gender));study.name="ModelStudy_"+gender
-	var commander_choice=OptionButton.new();commander_choice.name="CommanderStudy";commander_choice.custom_minimum_size.y=42
-	for chapter in game.content.chapters:commander_choice.add_item(chapter.boss)
-	commander_choice.selected=game.chapter;panel.add_child(commander_choice)
-	button_in(panel,"View commander rig",func():show_commander_model_view(commander_choice.selected)).name="ViewCommanderStudy"
 	var chapters=OptionButton.new();chapters.name="DebugChapter";chapters.custom_minimum_size.y=42
 	for index in range(game.content.chapters.size()):chapters.add_item("%02d · %s"%[index+1,game.content.chapters[index].title])
 	chapters.selected=game.chapter;panel.add_child(chapters)
@@ -1918,6 +1889,39 @@ func show_debug_tools(return_to: String):
 		make_map();show_battle();persist_campaign("battle")
 	,patients.item_count==0)
 	button_in(panel,"Return to preparation",func():game.units.clear();game.phase="player";show_camp();persist_campaign("camp"))
+	var model_heading=label_in(panel,"CHARACTER MODEL STUDIES",17,GOLD);model_heading.name="DebugModelHeading"
+	var vanguard=CheckButton.new();vanguard.name="DebugVanguardModel";vanguard.text="Revised Vanguard models";vanguard.button_pressed=debug_session.revised_vanguard;panel.add_child(vanguard)
+	button_in(sections,"Character studies",func():vanguard.grab_focus();panel.get_parent().scroll_vertical=roundi(model_heading.position.y)).size_flags_horizontal=Control.SIZE_EXPAND_FILL
+	vanguard.toggled.connect(func(value):debug_session.set_revised_vanguard(value))
+	label_in(panel,"Try Lyra, Cassian and Rhea with all four swords, including Standard Bearer and Dawnblade outfits. The comparison resets when Debug mode ends.",16)
+	var revised=CheckButton.new();revised.name="DebugDuelistModels";revised.text="Revised duelist models";revised.button_pressed=debug_session.revised_duelists;panel.add_child(revised)
+	revised.toggled.connect(func(value):debug_session.set_revised_duelists(value))
+	label_in(panel,"Try Nell, Silas and Yuna with all four swords, including Sword Dancer and Oathkeeper outfits. Resets when Debug mode ends.",16)
+	var caster=CheckButton.new();caster.name="DebugCasterModel";caster.text="Revised casting models";caster.button_pressed=debug_session.revised_caster;panel.add_child(caster)
+	caster.toggled.connect(func(value):debug_session.set_revised_caster(value))
+	label_in(panel,"Try Tarin, Vela and Noor with Ember, Gale or Thunder, including Star Sage and Spellwarden outfits. Resets when Debug mode ends.",16)
+	var warden=CheckButton.new();warden.name="DebugWardenModel";warden.text="Revised Warden models";warden.button_pressed=debug_session.revised_warden;panel.add_child(warden)
+	warden.toggled.connect(func(value):debug_session.set_revised_warden(value))
+	label_in(panel,"Try Ivo, Esme and Galen with Field, Mend or Beacon staves, including Luminary and Wayfarer outfits. Resets when Debug mode ends.",16)
+	var corsair=CheckButton.new();corsair.name="DebugCorsairModel";corsair.text="Revised Corsair models";corsair.button_pressed=debug_session.revised_corsair;panel.add_child(corsair)
+	corsair.toggled.connect(func(value):debug_session.set_revised_corsair(value))
+	label_in(panel,"Try Mara, Dax and Hale with axes and hammers, including Stormbreaker and Trailguard outfits. Resets when Debug mode ends.",16)
+	var studies=JSON.parse_string(FileAccess.get_file_as_string("res://data/model_studies.json"))
+	var ranger=CheckButton.new();ranger.name="DebugRangerModel";ranger.text="Revised Ranger models";ranger.button_pressed=debug_session.revised_ranger;panel.add_child(ranger)
+	ranger.toggled.connect(func(value):debug_session.set_revised_ranger(value))
+	var knight=CheckButton.new();knight.name="DebugKnightModel";knight.text="Revised Knight models";knight.button_pressed=debug_session.revised_knight;panel.add_child(knight)
+	knight.toggled.connect(func(value):debug_session.set_revised_knight(value))
+	var rider=CheckButton.new();rider.name="DebugRiderModel";rider.text="Revised Rider models";rider.button_pressed=debug_session.revised_rider;panel.add_child(rider)
+	rider.toggled.connect(func(value):debug_session.set_revised_rider(value))
+	var enemy_models=CheckButton.new();enemy_models.name="DebugEnemyModels";enemy_models.text="Revised enemy models";enemy_models.button_pressed=debug_session.revised_enemies;panel.add_child(enemy_models)
+	enemy_models.toggled.connect(func(value):debug_session.set_revised_enemies(value))
+	label_in(panel,"Compare recruit classes and enemies independently. Revised commanders retain their own colors and insignia. These switches reset when Debug mode ends.",16)
+	for gender in studies:
+		var study=button_in(panel,"View "+studies[gender].study_label+" rig",func():show_source_model_view(gender));study.name="ModelStudy_"+gender
+	var commander_choice=OptionButton.new();commander_choice.name="CommanderStudy";commander_choice.custom_minimum_size.y=42
+	for chapter in game.content.chapters:commander_choice.add_item(chapter.boss)
+	commander_choice.selected=game.chapter;panel.add_child(commander_choice)
+	button_in(panel,"View commander rig",func():show_commander_model_view(commander_choice.selected)).name="ViewCommanderStudy"
 	button_in(frame,"Return to Options",func():show_options(options_return))
 
 func show_debug_report():

@@ -2,6 +2,8 @@
 
 These are independent switches in Options, all off for an existing campaign unless its save already enabled them. Permadeath remains a separate toggle. Debug mode creates a temporary sandbox with a different save slot; disabling it restores the original live campaign. Use **Open debug tools** to load a chapter, make a selected ally fall, heal/revive units, or test the real retreat path.
 
+Debug opens with campaign controls first. The fixed **Campaign experiments** and **Character studies** buttons jump between sections and move keyboard focus to the first control. Model comparisons and rig previews remain available below the campaign tools.
+
 The debug seed control accepts whole numbers from 0 through 2147483647. **Apply seed to next rolls** changes the sandbox’s random stream immediately. Loading a chapter, clean-resetting a battle or reviving/resetting the company reuses that seed; ordinary penalty retreats follow the campaign’s restart rules. The same seed, settings and sequence of actions reproduce the same results.
 
 **Test pressure and reset battle** accepts pressure 0–10, enables enemy preparation and rebuilds the current chapter using the selected seed. It keeps other trial switches and the consequence ledger. Load the chapter first, then choose pressure; a fresh-roster chapter load clears earlier consequences. The company experiment panel and debug report show the stat bonuses, held tonics and raider advance that will apply on the next deployment.
