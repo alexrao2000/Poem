@@ -330,3 +330,9 @@ Luminary and Wayfarer retain each Warden’s original staff, crown socket, face,
 
 
 Outrider and Iron Lancer fit all three mounted recruits. Their original horses, tack, rein hand, stirrup support and lance geometry remain. The existing cloth skins follow the seated hips and legs, while armor follows the solved arm bones. Checks include 7,740 seated poses with promoted cloth/plate clearance against the horse torso and neck, 4,626 gait samples, private defeat materials and 7,776 camera layouts. Whole-outfit floor checks include planted hooves at ground level; they do not apply the infantry body-clearance margin to those hooves. This completes fitting for 48 recruit/path combinations across all sixteen campaign promotions.
+
+## Reusing loaded model scenes
+
+Each model builder retains a successfully loaded `PackedScene` for subsequent encounters and previews. It still instantiates fresh actors, clones their animation libraries and creates private identity, cloth and defeat materials. Supported-item validation and fallback run on every build. The cache dies with the builder; source resources remain resident for that lifetime. No live actor is pooled or carried between battles.
+
+A headless measurement through the running application compared seven builds each of Lyra, Tarin, Ivo and Bram, both unpromoted and with one promotion. Excluding the first sample, median actor construction fell from 135.69–186.13 ms to 8.29–19.39 ms. First-use loading still costs time. These CPU timings are local measurements, not browser FPS or rendered-transition approval.

@@ -35,8 +35,10 @@ func run():
  var world=Node3D.new();root.add_child(world)
  var models=Models.new("");var spec=specification();var g=Rules.new();g.start_battle();var unit=g.units[0]
  models.catalog={"characters":{"lyra":spec},"classes":{"Vanguard":spec},"enemy_classes":{"Vanguard":spec}}
+ assert(models.scene_cache.is_empty())
  var rng=g.rng.state;var saved=g.save_data("battle").duplicate(true)
  var actor=models.build(world,unit,Vector3(3,0,0));assert(actor!=null and actor.kind=="sword")
+ assert(models.scene_cache.size()==1 and models.scene_cache[PATH]==packed,"Successful model builds retain their immutable source scene")
  assert(actor.model.scale==Vector3.ONE*2 and is_equal_approx(actor.model.rotation.y,PI/2))
  assert(actor.socket_position("impact").is_equal_approx(Vector3(3,2.1,0)),"Model transform applies to effect sockets")
  assert(actor.socket_position("guard")==actor.socket_position("impact"),"Authored models without a guard socket preserve their actual impact attachment")
@@ -153,6 +155,9 @@ func run():
  for effect_player in app.sfx_players:effect_player.stop()
  app.music.stop();await create_timer(.15).timeout
  await Shutdown.dispose(app);world.queue_free();await process_frame
- packed=null
- print("PASS: authored model selection, animation sections, skeletal tracks, sockets, instance isolation and procedural fallback")
+ var retained=weakref(packed);packed=null
+ assert(retained.get_ref()!=null and models.scene_cache.size()==1,"Source scene survives actor teardown for the next encounter")
+ models=null
+ assert(retained.get_ref()==null,"The scene cache releases with its owning model builder")
+ print("PASS: authored model selection, animation sections, skeletal tracks, sockets, retained scene lifetime, instance isolation and procedural fallback")
  quit()

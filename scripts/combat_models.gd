@@ -2,6 +2,9 @@ extends RefCounted
 # Optional authored assets selected independently of campaign rules and save files.
 const ImportedFighter=preload("res://scripts/imported_fighter.gd")
 const ImportedRider=preload("res://scripts/imported_rider.gd")
+# Keep source scenes alive between encounters; actors still own their mutable
+# animation libraries, materials and nodes. Releasing this builder frees its cache.
+var scene_cache: Dictionary={}
 var catalog: Dictionary={}
 var issues: PackedStringArray=[]
 
@@ -50,8 +53,11 @@ func build(parent: Node3D,unit: Dictionary,position: Vector3) -> Node3D:
   var error=specification_error(spec)
   if not error.is_empty():report(error);continue
   if spec.has("supported_items") and unit.get("item","") not in spec.supported_items:continue
-  var packed=load(spec.scene) as PackedScene
-  if packed==null:report("Not a model scene: "+spec.scene);continue
+  var packed=scene_cache.get(spec.scene) as PackedScene
+  if packed==null:
+   packed=load(spec.scene) as PackedScene
+   if packed==null:report("Not a model scene: "+spec.scene);continue
+   scene_cache[spec.scene]=packed
   var scene=packed.instantiate()
   if not scene is Node3D:report("Model root must be Node3D: "+spec.scene);scene.free();continue
   if spec.has("equipment"):
