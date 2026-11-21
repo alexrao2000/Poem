@@ -6,6 +6,8 @@ Current status: **active after the user resumed development**. Keep building in 
 
 ## Current checkpoint · 2026-11-21
 
+Sera’s optional revised model now uses a private muted-green iris palette to match her portrait. A measured lower-iris mask handles brown cell 1 without tinting its similarly colored upper lid. Ordinary/focused CPU checks preserve protected pixels and luminance; no raster artwork changes. Thirty base/promoted faces, all five expressions, Vela/Yuna’s shared-texture isolation, 24 default fallbacks and three actual critical-to-victory scenes pass, along with blink/hit-flinch and identity regressions. Both local exports, all 48 packed promotion palette checks and archive integrity pass. The registry remains 347; GPU appearance remains unreviewed.
+
 Reward Continue now gives hover/focus and confirmation feedback through the existing interface voice. Pointer, Space, Enter and Tab share a one-shot action; mute and duplicate suppression pass. The existing progress suite exercises actual input, all 144 layouts, unchanged resolved rewards/RNG/score and resumable victory; interface-audio, healing and map-return regressions pass. Both local exports, packed-resource checks and archive integrity pass. The registry remains at 347 suites. These are headless sound-routing checks, not audible review.
 
 An actual-preview lifetime probe at `682d477` completed three passes through all 24 recruits. All 72 actors and UI roots released. Warmed object/resource/node counts remained constant with zero orphans; tracked CPU memory varied by under 0.1 MiB between the later passes. Campaign/RNG remained unchanged. Browser RSS and GPU memory were not measured, and no further caching change was warranted.

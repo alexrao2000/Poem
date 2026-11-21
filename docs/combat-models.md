@@ -399,7 +399,7 @@ Revised Knights and Riders keep a separate critical throwing flag. Their existin
 
 ## Optional iris palettes
 
-The revised identity adapter passes an optional `appearance.iris_color` hexadecimal color to its private face-expression material. Only the measured cool iris source cells 0 and 6 support this mask. Missing/invalid values and other source cells retain the original painting. Lyra and Tarin are the initial bindings; promotions inherit the same identity field. The default procedural builder does not request the override. This adds no image resource or save field. The color-space and mask rationale is in [art direction](art-direction.md#portrait-matched-iris-palettes); assembled GPU review remains outstanding.
+The revised identity adapter passes an optional `appearance.iris_color` hexadecimal color to its private face-expression material. Measured cool iris source cells 0 and 6 support the original hue mask; brown cell 1 uses a narrower lower-iris mask that excludes its similarly colored upper lid. Missing/invalid values and other source cells retain the original painting. Lyra, Tarin and Sera use these bindings; promotions inherit the same identity field. Shared-atlas neighbors remain unchanged. The default procedural builder does not request the override. This adds no image resource or save field. The color-space and mask rationale is in [art direction](art-direction.md#portrait-matched-iris-palettes); assembled GPU review remains outstanding.
 
 ## Revised lance finishing gesture
 

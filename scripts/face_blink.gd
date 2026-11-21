@@ -28,10 +28,12 @@ func bind(face: MeshInstance3D,open_atlas: Texture2D,identity: String,iris_hex: 
  surface.set_shader_parameter("serious",false)
  surface.set_shader_parameter("focused",false)
  surface.set_shader_parameter("eyes_closed",false)
- # Only the measured blue/green source cells use this hue mask. Other cells
- # retain their original paint, including the brown eyelid/iris variants.
- var personalize=Color.html_is_valid(iris_hex) and int(face.get_parent().get_meta("face_variant",-1)) in [0,6]
+ # Only measured source cells support a private palette. Brown cell 1 needs
+ # a narrower mask to preserve the similarly colored upper eyelid.
+ var variant=int(face.get_parent().get_meta("face_variant",-1))
+ var personalize=Color.html_is_valid(iris_hex) and variant in [0,1,6]
  surface.set_shader_parameter("personal_iris",personalize)
+ surface.set_shader_parameter("warm_iris",personalize and variant==1)
  surface.set_shader_parameter("iris_tint",Color(iris_hex) if personalize else Color.WHITE)
  face.material_override=surface
  var seed_value=absi(identity.hash())

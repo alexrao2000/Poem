@@ -48,7 +48,8 @@
       "cloth": "405c49",
       "cape": "4a6345",
       "hair_fringe": "swept",
-      "face_shape": "soft"
+      "face_shape": "soft",
+      "iris_color": "7f8d62"
     },
     "critical_quote": "I see the way through.",
     "finish_quote": "The road is clear.",

@@ -5,6 +5,7 @@ uniform sampler2D closed_face : source_color, filter_linear;
 uniform sampler2D focused_face : source_color, filter_linear;
 uniform sampler2D serious_face : source_color, filter_linear;
 uniform bool personal_iris = false;
+uniform bool warm_iris = false;
 uniform vec4 iris_tint : source_color = vec4(1.0);
 uniform bool serious = false;
 uniform bool eyes_closed = false;
@@ -20,13 +21,19 @@ vec3 iris_srgb(vec3 color) {
             step(vec3(0.0031308), color));
 }
 
-// The supported cool iris cells are separated from their warm eyelid ink.
 // Keep pupils, white glints, brows, nose and mouth on the original painting.
 float iris_coverage(vec2 local_uv, vec3 ink) {
  vec2 radii = vec2(0.068, 0.077);
  float radius = min(length((local_uv - vec2(0.273, 0.433)) / radii),
                     length((local_uv - vec2(0.733, 0.433)) / radii));
  float value = max(ink.r, max(ink.g, ink.b));
+ if (warm_iris) {
+  // Brown irises share the lid's hue. Limit tint to the brighter lower iris.
+  float warm = (ink.r - ink.b) / max(value, 0.0001);
+  return (1.0 - smoothstep(0.85, 1.0, radius)) * smoothstep(0.2, 0.6, warm)
+         * smoothstep(0.035, 0.075, value) * (1.0 - smoothstep(0.65, 0.85, value))
+         * smoothstep(0.404, 0.426, local_uv.y);
+ }
  float cool = (max(ink.g, ink.b) - ink.r) / max(value, 0.0001);
  return (1.0 - smoothstep(0.85, 1.0, radius)) * smoothstep(0.025, 0.15, cool)
         * smoothstep(0.008, 0.04, value) * (1.0 - smoothstep(0.65, 0.85, value));
