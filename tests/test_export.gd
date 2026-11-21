@@ -329,6 +329,9 @@ func run():
    var unit=promotion_recruit.duplicate(true);unit.team="player";unit.promotion=promotion;unit.item="longbow" if unit.weapon=="bow" else "war_hammer" if unit.weapon=="axe" else "javelin" if unit.weapon=="lance" else "thunder" if unit.weapon=="magic" else "beacon_staff" if unit.weapon=="staff" else "estoc"
    var actor=app.make_fighter(unit,Vector3.ZERO)
    assert(actor is Imported and actor.get_meta("promotion_look")==promotion,"Packaged fitted promotions retain their costumes")
+   var packed_face=actor.model.get_node("Identity").blink.surface
+   assert(packed_face.get_shader_parameter("personal_iris")== (id in ["lyra","tarin"]),"Packed revised palettes remain private to the two corrected recruits")
+   if id in ["lyra","tarin"]:assert(packed_face.get_shader_parameter("iris_tint").is_equal_approx(Color(app.fighters.profiles[id].appearance.iris_color)))
    var outfit=actor.model.get_node("Identity").promotion
    var look=load("res://scripts/promotion_costume.gd").looks[promotion]
    assert(outfit.panels.size()==((2 if look.has("tabard") else 0)+(4 if look.has("sash") else 0)+(6 if look.has("stole") else 0)))

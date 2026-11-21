@@ -11,7 +11,8 @@
       "cloth": "354c77",
       "cape": "e5dfce",
       "hair_fringe": "parted",
-      "face_shape": "soft"
+      "face_shape": "soft",
+      "iris_color": "795239"
     },
     "critical_quote": "For everyone behind me!",
     "finish_quote": "Stay together.",
@@ -101,7 +102,8 @@
       "cloth": "354c77",
       "cape": "354c77",
       "hair_fringe": "parted",
-      "face_shape": "tapered"
+      "face_shape": "tapered",
+      "iris_color": "6a91b2"
     },
     "critical_quote": "I checked the numbers.",
     "finish_quote": "One less uncertainty.",

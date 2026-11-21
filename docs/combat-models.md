@@ -392,3 +392,7 @@ Repeated construction through the running headless app measured median 9.89 ms f
 ## Critical javelin preparation
 
 Revised Knights and Riders keep a separate critical throwing flag. Their existing overhead raise adds a 0.20-radian torso turn; an extra 8 cm draw enters only after the initial shoulder sweep to retain wrist continuity. Both offsets vanish at release, preserving the normal fitted weapon transform, snapshot projectile, grip opening and empty-hand recovery. Ordinary actions clear the flag. Source and styled studies expose Critical throw preparation and a complete Critical throw replay; standing/mounted targets retain ranged spacing and selected action. Dense outfit, horse-clearance, camera and actual-flight checks cover all six recruits and their twelve promoted outfits. The software geometry study is an isolated untextured projection, not assembled GPU review.
+
+## Optional iris palettes
+
+The revised identity adapter passes an optional `appearance.iris_color` hexadecimal color to its private face-expression material. Only the measured cool iris source cells 0 and 6 support this mask. Missing/invalid values and other source cells retain the original painting. Lyra and Tarin are the initial bindings; promotions inherit the same identity field. The default procedural builder does not request the override. This adds no image resource or save field. The color-space and mask rationale is in [art direction](art-direction.md#portrait-matched-iris-palettes); assembled GPU review remains outstanding.

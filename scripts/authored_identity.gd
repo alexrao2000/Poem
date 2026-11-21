@@ -95,7 +95,7 @@ func configure_identity(id: String,commander: Dictionary={}) -> String:
  var face=painter.face_surface(head,face_index,shape)
  if enemy_job=="Knight":face.hide()
  face.set_meta("dynamic",true)
- blink.bind(face,painter.face_atlas,"authored:"+id)
+ blink.bind(face,painter.face_atlas,"authored:"+id,str(appearance.get("iris_color","")))
  painter.geo.batcher.combine(head,false)
  hair_motion.bind_root(head.get_node_or_null("HairFall"),id)
  if source_head==null:return "Source neck mesh is missing"
