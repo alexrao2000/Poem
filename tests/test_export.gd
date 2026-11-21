@@ -29,6 +29,9 @@ func run():
  packed_cutin.configure(cutin_host,{"name":"Lyra","team":"player"},null,"For everyone behind me!")
  cutin_host.size=Vector2(1024,640);await process_frame
  assert(is_equal_approx(packed_cutin.size.x,cutin_host.size.x) and packed_cutin.get_node("Quote").get_rect().end.x<cutin_host.size.x,"Packed critical accent reflows after the viewport shrinks")
+ var packed_phase=load("res://scripts/phase_banner.gd").new();packed_phase.configure(cutin_host,"enemy",7)
+ cutin_host.size=Vector2(1280,720);await process_frame
+ assert(is_equal_approx(packed_phase.size.x,cutin_host.size.x) and packed_phase.heading.get_rect().end.x<cutin_host.size.x and packed_phase.detail.text=="TURN 07","Packed phase ribbon follows its resized host without changing the announced turn")
  cutin_host.queue_free();await process_frame
  var packed_story=JSON.parse_string(FileAccess.get_file_as_string("res://data/story.json"))
  var survivor_dialogue=load("res://scripts/story_survivors.gd")

@@ -887,3 +887,5 @@ Dense motion, three-size framing, actual promoted and enemy-counter victories, i
 ## Resizing a critical portrait strip
 
 The critical strip follows live viewport changes instead of retaining its starting width. Portrait crop masking, quote width and streaks reflow together. Entrance and exit use normalized travel, preserving the running animation rather than replaying the accent. The supported 1024×640, 1280×720 and 1440×900 layouts retain the readable hold, inward-facing portraits and combat-HP clearance. Actual cinematic resize, skip, map restoration, commander and packaged-resource checks pass; these are runtime layout checks, not rendered browser review.
+
+The player/enemy phase ribbon now reflows during viewport changes too. Its existing 140 ms entrance, 360 ms hold and 140 ms exit retain their progress and direction while labels follow the new width and center height. Live turn transitions, terminal enemy results, skip isolation and saved-state reload pass the expanded phase suite. Chapter and casualty cards already subscribe to size changes.

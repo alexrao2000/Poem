@@ -6,18 +6,28 @@ var motion: Tween
 var heading: Label
 var detail: Label
 var resting=Vector2.ZERO
+var slide_offset=0.0:
+ set(value):slide_offset=value;place()
 
 func configure(parent: Control,side: String,turn: int):
  name="PhaseBanner";mouse_filter=Control.MOUSE_FILTER_IGNORE;z_index=25;enemy=side=="enemy"
- parent.add_child(self);size=Vector2(parent.size.x,144);resting=Vector2(0,parent.size.y*.42-72);position=resting
+ parent.add_child(self)
  heading=Label.new();heading.text="ENEMY PHASE" if enemy else "PLAYER PHASE"
  heading.add_theme_font_override("font",FONT);heading.add_theme_font_size_override("font_size",50)
  heading.add_theme_color_override("font_color",Color("fff2d4"));heading.horizontal_alignment=HORIZONTAL_ALIGNMENT_CENTER
- heading.position=Vector2(80,22);heading.size=Vector2(size.x-160,65);heading.mouse_filter=Control.MOUSE_FILTER_IGNORE;add_child(heading)
+ heading.mouse_filter=Control.MOUSE_FILTER_IGNORE;add_child(heading)
  detail=Label.new();detail.text="TURN %02d"%turn;detail.add_theme_font_size_override("font_size",18)
  detail.add_theme_color_override("font_color",Color("d9c795"));detail.horizontal_alignment=HORIZONTAL_ALIGNMENT_CENTER
- detail.position=Vector2(80,94);detail.size=Vector2(size.x-160,25);detail.mouse_filter=Control.MOUSE_FILTER_IGNORE;add_child(detail)
- queue_redraw()
+ detail.mouse_filter=Control.MOUSE_FILTER_IGNORE;add_child(detail)
+ parent.resized.connect(arrange);arrange()
+
+func arrange():
+ size=Vector2(get_parent().size.x,144);resting=Vector2(0,get_parent().size.y*.42-72)
+ heading.position=Vector2(80,22);heading.size=Vector2(size.x-160,65)
+ detail.position=Vector2(80,94);detail.size=Vector2(size.x-160,25)
+ place();queue_redraw()
+
+func place():position=resting+Vector2(slide_offset*size.x,0)
 
 func _draw():
  var w=size.x;var h=size.y
@@ -31,11 +41,11 @@ func _draw():
 
 func play(cancelled: Callable):
  var direction=-1.0 if not enemy else 1.0
- position.x=direction*size.x
+ slide_offset=direction
  motion=create_tween()
- motion.tween_property(self,"position:x",0.0,.14).set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_OUT)
+ motion.tween_property(self,"slide_offset",0.0,.14).set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_OUT)
  motion.tween_interval(.36)
- motion.tween_property(self,"position:x",-direction*size.x,.14).set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_IN)
+ motion.tween_property(self,"slide_offset",-direction,.14).set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_IN)
  while motion.is_running():
   if cancelled.call():motion.kill();break
   await get_tree().process_frame

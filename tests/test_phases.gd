@@ -3,11 +3,21 @@ const Shutdown=preload("helpers/game_shutdown.gd")
 const Banner=preload("res://scripts/phase_banner.gd")
 var observed: Array=[]
 var app
+var actual_resizes=0
 
 func _initialize():call_deferred("run")
 
 func watch(node):
- if node.name=="PhaseBanner":observed.append(app.game.phase)
+ if node.name!="PhaseBanner":return
+ observed.append(app.game.phase)
+ await process_frame
+ for dimensions in [Vector2i(1440,900),Vector2i(1024,640)]:
+  root.size=dimensions;app.ui.size=Vector2(dimensions);await process_frame
+  assert(is_equal_approx(node.size.x,app.ui.size.x),"Actual phase ribbon follows window resizing")
+  actual_resizes+=1
+
+func animate(banner,done):
+ await banner.play(func():return false);done[0]=true
 
 func run():
  var host=Control.new();root.add_child(host)
@@ -20,9 +30,30 @@ func run():
    for label in [banner.heading,banner.detail]:
     assert(label.position.x>=0 and label.get_rect().end.x<=banner.size.x and label.get_rect().end.y<=banner.size.y,"Phase text fits the ribbon")
    assert(banner.heading.text==(side.to_upper()+" PHASE") and banner.detail.text=="TURN 99")
+   for next_size in [Vector2(1440,900),Vector2(1024,640),Vector2(1280,720)]:
+    host.size=next_size;await process_frame
+    assert(is_equal_approx(banner.size.x,host.size.x) and is_equal_approx(banner.position.y,host.size.y*.42-72),"Existing ribbon reflows after both shrinking and growing")
+    for label in [banner.heading,banner.detail]:assert(Rect2(Vector2.ZERO,banner.size).encloses(label.get_rect()),"Resized phase labels remain inside the ribbon")
    await banner.play(func():return true)
    assert(not banner.visible and not banner.motion.is_running(),"Skip stops and hides the ribbon")
    banner.queue_free();await process_frame
+ var resized_phases=0
+ for side in ["player","enemy"]:
+  host.size=Vector2(1280,720);var banner=Banner.new();banner.configure(host,side,99)
+  var done=[false];var seen=[false,false,false];var previous=1.0;var direction=1 if side=="enemy" else -1
+  animate(banner,done);var active=banner.motion
+  while not done[0]:
+   await process_frame
+   var elapsed=active.get_total_elapsed_time();var phase=0 if elapsed<.14 else 1 if elapsed<.5 else 2
+   if not seen[phase] and banner.visible:
+    seen[phase]=true;resized_phases+=1
+    var offset=banner.slide_offset;host.size=[Vector2(1440,900),Vector2(1024,640),Vector2(1280,720)][phase]
+    assert(banner.motion==active and banner.slide_offset==offset,"Resize preserves the existing phase animation and exact progress")
+   assert(is_equal_approx(banner.position.x,banner.slide_offset*host.size.x))
+   var current=banner.slide_offset*direction;assert(current<=previous+.001,"Resized entrance and exit keep their direction");previous=current
+  assert(seen.all(func(value):return value) and not banner.visible and not active.is_running())
+  banner.queue_free();await process_frame
+ assert(resized_phases==6)
  host.queue_free()
  app=load("res://main.tscn").instantiate();app.settings_path="";app.save_path="/private/tmp/poem-phases.json";root.add_child(app);await process_frame
  app.deploy_company();await process_frame
@@ -62,7 +93,8 @@ func run():
   await app.load_campaign()
   assert(app.screen=="result" and app.game.turn==1 and app.game.phase=="enemy" and app.game.rng.state==state,"Terminal checkpoint resumes exactly without rerolling or advancing turns")
   for index in range(health.size()):assert(app.game.units[index].hp==health[index],"Reload cannot add terrain healing after the terminal action")
+ assert(actual_resizes==8,"Live enemy/player ribbons and both terminal enemy phases reflow during their actual turn sequence")
  for player in app.sfx_players:player.stop()
  app.music.stop();await create_timer(.15).timeout;await Shutdown.dispose(app);await process_frame
- print("PASS: phase ribbon layouts, deployment/turn ordering, input locks, skip isolation and cleanup")
+ print("PASS: phase ribbon layouts, 18 live size changes, six entrance/hold/exit resizes, eight actual turn resizes, deployment/terminal turn ordering, input locks, skip isolation and cleanup")
  quit()
