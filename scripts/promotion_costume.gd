@@ -27,9 +27,9 @@ static func build(painter,actor,unit,torso,cloth_color,cape_color,steel,gold,lea
  if look.has("stole"):
   for side in [-1,1]:
    var a=side*.055;var b=side*.13;var bottom=-float(look.stole)
-   painter.cloth(group,[Vector3(a,.37,-.19),Vector3(b,.37,-.19),Vector3(b,0,-.245),Vector3(a,0,-.245)],cape_color)
-   painter.cloth(group,[Vector3(a,0,-.245),Vector3(b,0,-.245),Vector3(b*1.3,bottom,-.29),Vector3(a*1.3,bottom,-.29)],cape_color)
-   painter.cloth(group,[Vector3(a*1.3,bottom+.035,-.292),Vector3(b*1.3,bottom+.035,-.292),Vector3(b*1.3,bottom,-.292),Vector3(a*1.3,bottom,-.292)],gold)
+   painter.cloth(group,[Vector3(a,.37,-.19),Vector3(b,.37,-.19),Vector3(b,0,-.245),Vector3(a,0,-.245)],cape_color).set_meta("promotion_stole",true)
+   painter.cloth(group,[Vector3(a,0,-.245),Vector3(b,0,-.245),Vector3(b*1.3,bottom,-.29),Vector3(a*1.3,bottom,-.29)],cape_color).set_meta("promotion_stole",true)
+   painter.cloth(group,[Vector3(a*1.3,bottom+.035,-.292),Vector3(b*1.3,bottom+.035,-.292),Vector3(b*1.3,bottom,-.292),Vector3(a*1.3,bottom,-.292)],gold).set_meta("promotion_stole",true)
  for side in [-1,1]:
   var arm=actor.bone("LeftArm" if side<0 else "Arm");var elbow=actor.bone("LeftElbow" if side<0 else "Elbow")
   if look.has("plates") and (side<0 or not look.get("one_shoulder",false)):

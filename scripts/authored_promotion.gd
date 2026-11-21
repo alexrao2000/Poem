@@ -52,7 +52,8 @@ func configure(body: Node3D,rig: Skeleton3D,painter,unit: Dictionary,appearance:
     material.set_shader_parameter("cloth_amount",0.0);material.set_shader_parameter("cloth_floor_enabled",cloth_part);material.set_shader_parameter("cloth_floor_y",.018)
     converted[key]=material;surfaces.append(material)
    mesh.material_override=converted[key]
-   if lower:skin_panel(mesh,rig,group)
+   if mesh.get_meta("promotion_stole",false):panels.append(preload("res://scripts/authored_stole.gd").fit(mesh,rig,group))
+   elif lower:skin_panel(mesh,rig,group)
  for anchor in anchors:painter.geo.batcher.combine(anchor.get_child(0),false)
  body.set_meta("promotion_look",id)
 func skin_panel(mesh: MeshInstance3D,rig: Skeleton3D,group: Node3D):

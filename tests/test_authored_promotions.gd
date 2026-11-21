@@ -24,7 +24,7 @@ func run():
    var identity=actor.model.get_node("Identity");var costume=identity.promotion;var rig=actor.model.get_node("Rig/Armature/Skeleton3D")
    assert(identity.identity==unit.id and identity.mantle==null and costume.id==promotion_id and actor.model.get_meta("promotion_look")==promotion_id)
    var look=load("res://scripts/promotion_costume.gd").looks[promotion_id]
-   assert(costume.anchors.size()==(6 if look.get("satchel",false) else 5) and costume.panels.size()==((2 if look.has("tabard") else 0)+(4 if look.has("sash") else 0)))
+   assert(costume.anchors.size()==(6 if look.get("satchel",false) else 5) and costume.panels.size()==((2 if look.has("tabard") else 0)+(4 if look.has("sash") else 0)+(6 if look.has("stole") else 0)))
    assert(costume.anchors[0].get_node("Pattern/PromotionCostume").get_meta("components")==look.keys())
    if look.get("satchel",false):
     var belt=rig.get_node("PromotionHip");assert(belt.bone_name=="pelvis")
@@ -37,11 +37,11 @@ func run():
     assert(not trim.material_override.get_shader_parameter("cloth_floor_enabled"))
     assert(rig.get_node("KnightShield").bone_name=="lowerarm_l")
    for panel in costume.panels:
-    var arrays=panel.mesh.surface_get_arrays(0);assert(arrays[Mesh.ARRAY_VERTEX].size()>50 and panel.skin.get_bind_count()==5 and panel.get_node(panel.skeleton)==rig)
+    var arrays=panel.mesh.surface_get_arrays(0);assert(arrays[Mesh.ARRAY_VERTEX].size()>50 and panel.skin.get_bind_count()==(6 if panel.get_meta("promotion_stole",false) else 5) and panel.get_node(panel.skeleton)==rig)
     for vertex in range(arrays[Mesh.ARRAY_VERTEX].size()):
      var mass=0.0
      for influence in range(4):
-      var at=vertex*4+influence;assert(arrays[Mesh.ARRAY_BONES][at]>=0 and arrays[Mesh.ARRAY_BONES][at]<5);mass+=arrays[Mesh.ARRAY_WEIGHTS][at]
+      var at=vertex*4+influence;assert(arrays[Mesh.ARRAY_BONES][at]>=0 and arrays[Mesh.ARRAY_BONES][at]<panel.skin.get_bind_count());mass+=arrays[Mesh.ARRAY_WEIGHTS][at]
      assert(absf(mass-1)<4.0/65535+.000001,"Committed skin weights remain normalized within their stored precision")
    for material in costume.surfaces:
     assert(material.next_pass!=null,"Promotion materials receive the same private outline treatment")

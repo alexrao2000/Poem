@@ -291,22 +291,25 @@ func run():
   assert(rig.get_bone_pose_position(rig.find_bone("root")).is_equal_approx(Vector3.ZERO),"Packaged standing pose clears fitted fall support")
   actor.queue_free();await process_frame
  app.stage.show() # Geometry sampling skips meshes hidden by the preceding debug report.
- var fitted_promotions={"Vanguard":["standard_bearer","dawnblade"],"Duelist":["sword_dancer","oathkeeper"],"Ranger":["sharpshooter","pathfinder"],"Corsair":["stormbreaker","trailguard"],"Knight":["bastion","sentinel"]}
- for id in ["lyra","cassian","rhea","nell","silas","yuna","sera","ari","faye","mara","dax","hale","petra","oren","rook"]:
+ var fitted_promotions={"Vanguard":["standard_bearer","dawnblade"],"Duelist":["sword_dancer","oathkeeper"],"Ranger":["sharpshooter","pathfinder"],"Corsair":["stormbreaker","trailguard"],"Knight":["bastion","sentinel"],"Arcanist":["star_sage","spellwarden"]}
+ for id in ["lyra","cassian","rhea","nell","silas","yuna","sera","ari","faye","mara","dax","hale","petra","oren","rook","tarin","vela","noor"]:
   var promotion_recruit=app.game.roster.filter(func(value):return value.id==id)[0]
   for promotion in fitted_promotions[promotion_recruit.job]:
-   var unit=promotion_recruit.duplicate(true);unit.team="player";unit.promotion=promotion;unit.item="longbow" if unit.weapon=="bow" else "war_hammer" if unit.weapon=="axe" else "javelin" if unit.weapon=="lance" else "estoc"
+   var unit=promotion_recruit.duplicate(true);unit.team="player";unit.promotion=promotion;unit.item="longbow" if unit.weapon=="bow" else "war_hammer" if unit.weapon=="axe" else "javelin" if unit.weapon=="lance" else "thunder" if unit.weapon=="magic" else "estoc"
    var actor=app.make_fighter(unit,Vector3.ZERO)
    assert(actor is Imported and actor.get_meta("promotion_look")==promotion,"Packaged fitted promotions retain their costumes")
    var outfit=actor.model.get_node("Identity").promotion
    var look=load("res://scripts/promotion_costume.gd").looks[promotion]
-   assert(outfit.panels.size()==((2 if look.has("tabard") else 0)+(4 if look.has("sash") else 0)))
-   for panel in outfit.panels:assert(panel.skin.get_bind_count()==5 and panel.material_override.next_pass!=null)
+   assert(outfit.panels.size()==((2 if look.has("tabard") else 0)+(4 if look.has("sash") else 0)+(6 if look.has("stole") else 0)))
+   for panel in outfit.panels:assert(panel.skin.get_bind_count()==(6 if panel.get_meta("promotion_stole",false) else 5) and panel.material_override.next_pass!=null)
    var promotion_spacing=4.0 if unit.weapon=="bow" else actor.approach_spacing(unit.item)
    var target=Vector3(0,1.85,-promotion_spacing);actor.aim_at(target)
    await actor.pose("windup",.02).finished;await actor.pose("strike",.02).finished
    if unit.weapon=="bow":
     var bow=actor.model.get_node("Rig/Armature/Skeleton3D/WeaponHand/Bow");assert(bow.projectile_spent and not bow.get_node("Weapon/NockedArrow").visible)
+   elif unit.weapon=="magic":
+    assert(actor.to_local(actor.socket_position("projectile")).z<-.5,"Promoted caster extends the free casting palm")
+    assert(actor.model.get_node("Rig/Armature/Skeleton3D/BookHand/Folio").equipped=="thunder")
    elif unit.weapon in ["sword","lance"]:assert(actor.sockets.trail_tip.global_position.distance_to(target)<.006)
    else:
     var promotion_edge=actor.weapon_trail_points();assert(Geometry3D.get_closest_point_to_segment(target,promotion_edge[0],promotion_edge[1]).distance_to(target)<.006)
@@ -319,7 +322,7 @@ func run():
     await actor.pose("throw_windup",.02).finished;await actor.pose("throw",.02).finished
     assert(not actor.projectile_source().visible,"Packed promoted javelin leaves the fitted hand")
     await actor.pose("idle").finished
-   if unit.weapon in ["axe","lance"]:
+   if unit.weapon in ["axe","lance","magic"]:
     var promotion_identity=actor.model.get_node("Identity")
     actor.clear_aim();await actor.pose("down",.02).finished
     promotion_identity.hair_motion.update(0,"down",2)
@@ -350,5 +353,5 @@ func run():
  assert(app.preview_actor is Imported and app.preview_actor.get_meta("commander")=="vael","Packaged debug commander selector opens its own revised identity")
  app.close_model_view();app.debug_session.end(app.game)
  await Shutdown.dispose(app);await process_frame
- print("PASS: exported catalog, all three act scores, chapter scenes, sixteen promotion patterns, thirty revised promotion outfits, licenses and credits")
+ print("PASS: exported catalog, all three act scores, chapter scenes, sixteen promotion patterns, thirty-six revised promotion outfits, licenses and credits")
  quit()

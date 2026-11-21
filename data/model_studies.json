@@ -283,7 +283,11 @@
     },
     "study_character": "tarin",
     "study_label": "male casting",
-    "study_title": "Caster \u00b7 Male"
+    "study_title": "Caster \u00b7 Male",
+    "supported_promotions": [
+      "star_sage",
+      "spellwarden"
+    ]
   },
   "caster_female": {
     "scene": "res://assets/models/quaternius/study_caster_female.tscn",
@@ -365,6 +369,10 @@
     "campaign_characters": [
       "vela",
       "noor"
+    ],
+    "supported_promotions": [
+      "star_sage",
+      "spellwarden"
     ]
   },
   "vanguard": {
