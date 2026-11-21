@@ -20,12 +20,17 @@ var transition: Tween
 var configured=false
 func register_bone(key: String,node: Node3D):
  bones[key]=node;rest[key]={"rotation":node.rotation,"position":node.position}
-func configure_mount(id: String) -> String:
+func configure_unit_mount(unit: Dictionary) -> String:
+ var commander=preload("res://scripts/commanders.gd").profile(unit)
+ return configure_mount(str(unit.id),commander.get("appearance",{}) if enemy_colors else {})
+
+func configure_mount(id: String,overrides: Dictionary={}) -> String:
  if configured:return "Mount is already configured"
  var model=get_parent();source_rig=model.get_node_or_null("Rig");skeleton=model.get_node_or_null("Rig/Armature/Skeleton3D") as Skeleton3D;rein_grip=model.get_node_or_null("Rig/Armature/Skeleton3D/ReinHand/Grip")
  if source_rig==null or skeleton==null or rein_grip==null:return "Mounted model needs its source rig and rein grip"
  base_lift=source_rig.position.y
  var painter=load("res://scripts/fighters.gd").new();var look=painter.enemy_looks.Rider if enemy_colors else painter.profiles.get(id,{}).get("appearance",{})
+ if not overrides.is_empty():look=look.duplicate(true);look.merge(overrides,true)
  Mount.build(painter,self,"enemy_rider" if enemy_colors else id,Color(look.get("cloth","3d566d")),Color(look.get("metal","bca26b")),Color("554337"))
  for bone in bones.values():bone.set_meta("dynamic",true)
  for name_value in ["LeftStirrup","RightStirrup"]:bones.Horse.get_node(name_value).set_meta("dynamic",true)

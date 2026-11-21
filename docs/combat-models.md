@@ -281,7 +281,7 @@ The offline tool samples 257 complete poses per outfit, excludes separately shad
 The eight enemy outfits were inspected as isolated software geometry/material studies. These are not assembled gameplay captures, and do not establish GPU appearance, frame rate or audio quality.
 
 
-`revised_enemy_models.gd` selects only matching enemy class/weapon pairs with supported equipment. Boss flags, promotions, other teams and unknown equipment fall back to the original builder. All twelve named commanders retain their original palette and identity. The current campaign has seven enemy combat classes; Warden recovery is supported by the model selector and source study, but enemy healers are not added to chapter formations by this visual change. All 77 ordinary campaign enemy loadouts now select revised bodies, including the three Vanguard estoc users.
+`revised_enemy_models.gd` selects only matching enemy class/weapon pairs with supported equipment. Unknown or mismatched bosses, promotions, other teams and unknown equipment fall back to the original builder. All twelve known chapter commanders retain their original palette and identity on the fitted enemy bodies. The current campaign has seven enemy combat classes; Warden recovery is supported by the model selector and source study, but enemy healers are not added to chapter formations by this visual change. All 77 ordinary campaign enemy loadouts now select revised bodies, including the three Vanguard estoc users.
 
 The preference and debug switch change presentation only. Character classes, enemy loadouts, difficulty, campaign records and RNG are unchanged. The global authored-model catalog remains empty, and the current models remain the initial preference.
 
@@ -295,3 +295,14 @@ The estoc trail is a narrow 0.032 m ribbon centered on its tip rather than the f
 Private clips without authored root translation receive a rest-position key after fall support is fitted. This clears the fall's vertical offset when the source viewer or playback returns to a standing pose; existing authored root tracks and shared source resources are preserved. The same reset applies to unstyled Knight studies.
 
 Focused verification covers both bodies/facings and five target heights, dense preparation/thrust/recovery continuity, fixed grip/bone lengths, floor clearance, native/direct attachment agreement, eight ordinary player/enemy thrust exchanges, source viewers and skips. Four camera suites cover 4,320 estoc layouts. Fall recovery checks cover 34 outfits and 344 down-to-living pose transitions. Isolated software geometry studies supplement these checks; assembled rendering remains a separate review.
+
+
+## Revised commanders
+
+The revised enemy selector recognizes commanders only through the existing team, boss flag, name and class match. Their appearance merges into a private class palette before constructing the fitted head, hair, armor, cloak and mounted saddle cloth. Ordinary soldiers keep the unmodified class palette. Unknown or mismatched commanders and promoted records continue through the original builder. The normal revised appearance preference and existing independent enemy debug switch control this selection.
+
+Optional `configure_unit_identity(unit)` and `configure_unit_mount(unit)` hooks allow adapters to inspect the read-only presentation record; adapters exposing only the original ID-based methods remain compatible. Commander metadata is attached before the actor enters the scene tree, so previews and combat observers see the same identity.
+
+Debug tools includes a twelve-name **View commander rig** selector. It constructs a separate chapter fixture, uses that commander's actual equipment, and returns to Debug tools without changing campaign data, the enemy toggle or RNG state. It shares the source viewer's rotation, zoom, target and replay controls.
+
+Checks cover all twelve palettes, painted faces, armor, crests/jewels and mounted colors; 1,548 full-outfit fall samples and fall recovery; three preview sizes; twelve ordinary critical/counter exchanges using the individual calls and portraits; six fitted melee contacts and six ranged impacts. Isolated untextured software geometry was inspected separately from the outstanding assembled GPU review.

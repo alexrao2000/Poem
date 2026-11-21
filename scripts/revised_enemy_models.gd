@@ -1,6 +1,8 @@
 extends RefCounted
-# Anonymous enemy appearance is opt-in and independent of company selection.
-# Named/boss and promoted records keep their existing presentation identities.
+# Enemy appearance is opt-in and independent of company selection. Known
+# commanders retain their individual palettes; unknown bosses and promotions
+# keep the original builder instead of silently acquiring an anonymous look.
+const Commanders=preload("res://scripts/commanders.gd")
 var models=preload("res://scripts/combat_models.gd").new("")
 var weapons={}
 func _init():
@@ -16,7 +18,9 @@ func _init():
   weapons[entry.study_enemy_class]=source[0].weapon
   models.catalog.enemy_classes[entry.study_enemy_class]=spec
 func build(parent: Node3D,unit: Dictionary,position: Vector3) -> Node3D:
- if unit.get("team","")!="enemy" or unit.get("boss",false) or not str(unit.get("promotion","")).is_empty():return null
+ if unit.get("team","")!="enemy" or not str(unit.get("promotion","")).is_empty():return null
+ var commander=Commanders.profile(unit)
+ if unit.get("boss",false) and commander.is_empty():return null
  var job=unit.get("job","")
  if not weapons.has(job) or weapons[job]!=unit.get("weapon",""):return null
  return models.build(parent,unit,position)

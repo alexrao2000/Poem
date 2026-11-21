@@ -13,7 +13,7 @@ func run():
   rules.chapter=chapter;rules.start_battle();var saved=rules.save_data("battle").duplicate(true);var rng=rules.rng.state
   for enemy in rules.living("enemy"):
    var actor=app.make_fighter(enemy,Vector3.ZERO)
-   if enemy.get("boss",false):assert(actor is Actor and actor.get_meta("commander")==Commanders.profile(enemy).id);bosses+=1
+   if enemy.get("boss",false):assert(actor is Imported and actor.get_meta("commander")==Commanders.profile(enemy).id);bosses+=1
    else:
     assert(actor is Imported and actor.model.get_meta("enemy_appearance")==enemy.job,"Every authored campaign loadout selects its revised anonymous class")
     if enemy.job not in all_classes:all_classes.append(enemy.job)
@@ -37,5 +37,5 @@ func run():
   assert(seen.slice(start)==[enemy.job,"Vanguard" if enemy.weapon=="staff" else ally.id],"Normal cinematic builder selects both revised actors")
   assert(app.game.save_data("battle")==before and app.game.rng.state==rng and app.world.visible and app.pieces.visible and not app.stage.visible)
  app.busy=false;await Shutdown.dispose(app);await process_frame
- print("PASS: ",count," revised anonymous campaign enemy loadouts across twelve chapters, twelve original commanders, eight real mixed revised enemy exchanges including critical/healing, normal map restoration and exact campaign/RNG isolation")
+ print("PASS: ",count," revised anonymous campaign enemy loadouts across twelve chapters, twelve revised commanders, eight real mixed revised enemy exchanges including critical/healing, normal map restoration and exact campaign/RNG isolation")
  quit()

@@ -1459,6 +1459,7 @@ func show_model_view(unit,on_close=Callable(),model_spec: Dictionary={}):
 	if not model_spec.is_empty():
 		portrait.hide()
 		var identity_hint="Original enemy face, class headgear, colors and imperial cloak." if model_spec.has("study_enemy_class") else "Imported body with the recruit’s original face, hair, expressions and colors."
+		if model_spec.has("study_commander"):identity_hint="Commander study: original face, armor colors and insignia."
 		label_in(panel,identity_hint if model_spec.get("styled",false) else "Quaternius source rig with Poem equipment. Campaign characters are unchanged.",17)
 	if model_spec.has("supported_items") and model_spec.has("study_id"):
 		var equipment_choice=OptionButton.new();equipment_choice.name="StudyEquipment";equipment_choice.custom_minimum_size.y=42
@@ -1532,6 +1533,15 @@ func show_source_model_view(gender: String,item="",styled=false):
 	if styled:studies[gender].appearance="Identity"
 	var return_to=options_return
 	show_model_view(unit,func():show_debug_tools(return_to),studies[gender])
+
+func show_commander_model_view(chapter: int):
+	if not debug_session.active or chapter<0 or chapter>=game.content.chapters.size():return
+	var study_rules=Rules.new();study_rules.chapter=chapter;study_rules.start_battle()
+	var unit=study_rules.living("enemy").filter(func(value):return value.get("boss",false))[0].duplicate(true)
+	var spec=revised_enemies.models.catalog.enemy_classes[unit.job].duplicate(true)
+	spec.erase("study_id");spec.styled=true;spec.study_commander=chapter
+	var return_to=options_return
+	show_model_view(unit,func():show_debug_tools(return_to),spec)
 
 func close_model_view():
 	var return_action=preview_return;preview_return=Callable()
@@ -1848,9 +1858,13 @@ func show_debug_tools(return_to: String):
 	rider.toggled.connect(func(value):debug_session.set_revised_rider(value))
 	var enemy_models=CheckButton.new();enemy_models.name="DebugEnemyModels";enemy_models.text="Revised enemy models";enemy_models.button_pressed=debug_session.revised_enemies;panel.add_child(enemy_models)
 	enemy_models.toggled.connect(func(value):debug_session.set_revised_enemies(value))
-	label_in(panel,"Compare recruit classes and ordinary enemies independently. Commanders keep their own models. These switches reset when Debug mode ends.",16)
+	label_in(panel,"Compare recruit classes and enemies independently. Revised commanders retain their own colors and insignia. These switches reset when Debug mode ends.",16)
 	for gender in studies:
 		var study=button_in(panel,"View "+studies[gender].study_label+" rig",func():show_source_model_view(gender));study.name="ModelStudy_"+gender
+	var commander_choice=OptionButton.new();commander_choice.name="CommanderStudy";commander_choice.custom_minimum_size.y=42
+	for chapter in game.content.chapters:commander_choice.add_item(chapter.boss)
+	commander_choice.selected=game.chapter;panel.add_child(commander_choice)
+	button_in(panel,"View commander rig",func():show_commander_model_view(commander_choice.selected)).name="ViewCommanderStudy"
 	var chapters=OptionButton.new();chapters.name="DebugChapter";chapters.custom_minimum_size.y=42
 	for index in range(game.content.chapters.size()):chapters.add_item("%02d · %s"%[index+1,game.content.chapters[index].title])
 	chapters.selected=game.chapter;panel.add_child(chapters)

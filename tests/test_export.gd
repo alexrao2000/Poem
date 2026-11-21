@@ -289,6 +289,21 @@ func run():
   var rig=actor.model.get_node("Rig/Armature/Skeleton3D")
   assert(rig.get_bone_pose_position(rig.find_bone("root")).is_equal_approx(Vector3.ZERO),"Packaged standing pose clears fitted fall support")
   actor.queue_free();await process_frame
+ var commander_rules=load("res://scripts/rules.gd").new()
+ for chapter in range(12):
+  commander_rules.chapter=chapter;commander_rules.start_battle()
+  var unit=commander_rules.living("enemy").filter(func(value):return value.get("boss",false))[0]
+  var profile=load("res://scripts/commanders.gd").profile(unit);var actor=app.make_fighter(unit,Vector3.ZERO)
+  assert(actor is Imported and actor.get_meta("commander")==profile.id,"Release selects all twelve revised commanders")
+  assert(actor.get_meta("costume_colors").cloth==Color(profile.appearance.cloth) and actor.get_meta("costume_colors").cape==Color(profile.appearance.cape))
+  if profile.appearance.has("circlet"):
+   var color=Color(profile.appearance.circlet)
+   assert(actor.model.get_node("Identity").head.find_children("*","MeshInstance3D",true,false).any(func(mesh):return mesh.material_override is StandardMaterial3D and mesh.material_override.albedo_color==color),"Packaged commander retains its individual jewel")
+  actor.queue_free();await process_frame
+ app.debug_session.begin(app.game,"camp",true);app.options_return="camp";app.show_debug_tools("camp")
+ app.ui.find_child("CommanderStudy",true,false).select(11);app.ui.find_child("ViewCommanderStudy",true,false).pressed.emit();await process_frame
+ assert(app.preview_actor is Imported and app.preview_actor.get_meta("commander")=="vael","Packaged debug commander selector opens its own revised identity")
+ app.close_model_view();app.debug_session.end(app.game)
  await Shutdown.dispose(app);await process_frame
  print("PASS: exported catalog, all three act scores, chapter scenes, sixteen promotion costumes, licenses and credits")
  quit()

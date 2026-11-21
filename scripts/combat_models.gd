@@ -62,16 +62,18 @@ func build(parent: Node3D,unit: Dictionary,position: Vector3) -> Node3D:
   if spec.has("mount"):
    var mount=scene.get_node_or_null(NodePath(spec.mount))
    if mount==null or not mount.has_method("configure_mount"):report(spec.scene+": Missing mount adapter");scene.free();continue
-   error=mount.configure_mount(str(unit.id))
+   error=mount.configure_unit_mount(unit) if mount.has_method("configure_unit_mount") else mount.configure_mount(str(unit.id))
    if not error.is_empty():report(spec.scene+": "+error);scene.free();continue
   if spec.has("appearance"):
    var appearance=scene.get_node_or_null(NodePath(spec.appearance))
    if appearance==null or not appearance.has_method("configure_identity"):report(spec.scene+": Missing appearance adapter");scene.free();continue
-   error=appearance.configure_identity(str(unit.id))
+   error=appearance.configure_unit_identity(unit) if appearance.has_method("configure_unit_identity") else appearance.configure_identity(str(unit.id))
    if not error.is_empty():report(spec.scene+": "+error);scene.free();continue
   var actor=ImportedRider.new() if spec.has("mount") else ImportedFighter.new()
   error=actor.configure(scene,spec)
   if not error.is_empty():report(spec.scene+": "+error);actor.free();continue
+  if scene.has_meta("commander"):
+   actor.set_meta("commander",scene.get_meta("commander"));actor.set_meta("costume_colors",scene.get_meta("costume_colors"))
   parent.add_child(actor);actor.position=position;actor.kind=unit.weapon
   error=actor.prepare_contact(spec)
   if not error.is_empty():report(spec.scene+": "+error);actor.free();continue

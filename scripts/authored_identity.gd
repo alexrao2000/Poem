@@ -1,5 +1,5 @@
 extends Node3D
-# Original recruit identity layered over the licensed body. Source resources and
+# Original recruit or commander identity layered over the licensed body. Source resources and
 # the campaign record stay untouched; all expression/material state is private.
 const DYED=preload("res://assets/shaders/authored-cloth.gdshader")
 const FaceBlink=preload("res://scripts/face_blink.gd")
@@ -26,7 +26,12 @@ var cloak: Node
 var outline: Node
 static var reference_cache={}
 
-func configure_identity(id: String) -> String:
+func configure_unit_identity(unit: Dictionary) -> String:
+ var commander=preload("res://scripts/commanders.gd").profile(unit)
+ if not commander.is_empty() and commander.job!=enemy_job:return "Commander appearance needs its matching enemy class"
+ return configure_identity(str(unit.id),commander)
+
+func configure_identity(id: String,commander: Dictionary={}) -> String:
  if not identity.is_empty():return "Identity is already configured"
  var painter=load("res://scripts/fighters.gd").new()
  if enemy_job.is_empty() and not painter.profiles.has(id):return "Unknown character identity: "+id
@@ -35,8 +40,11 @@ func configure_identity(id: String) -> String:
  var face_anchor=model.get_node_or_null("Rig/Armature/Skeleton3D/Face") as BoneAttachment3D
  if rig==null or face_anchor==null:return "The source identity needs its head attachment"
  var appearance=painter.profiles[id].appearance if enemy_job.is_empty() else painter.enemy_looks[enemy_job]
+ if not commander.is_empty():
+  appearance=appearance.duplicate(true);appearance.merge(commander.appearance,true);model.set_meta("commander",commander.id)
  var skin=Color(appearance.skin);var cloth=Color(appearance.cloth)
  identity=id;model.set_meta("character_identity",id)
+ model.set_meta("costume_colors",{"cloth":cloth,"cape":Color(appearance.cape)})
  if not enemy_job.is_empty():model.set_meta("enemy_appearance",enemy_job)
  var source_head: MeshInstance3D
  for mesh in rig.find_children("*","MeshInstance3D",true,false):

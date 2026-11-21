@@ -6,9 +6,9 @@ Current status: **active after the user resumed development**. Keep building in 
 
 ## Current checkpoint · 2026-11-21
 
-Read [RESUME.md](RESUME.md) for current validation and delivery status. Revised models cover all 24 unpromoted recruits and eight anonymous enemy families. The new estoc adapter adds point-first combat to both sword bodies and enemy sword classes, bringing coverage to all 77 ordinary campaign enemy loadouts and 31 enemy equipment bindings. Commanders and promotions retain their existing identities.
+Read [RESUME.md](RESUME.md) for current validation and delivery status. Revised models cover all 24 unpromoted recruits and eight anonymous enemy families. The new estoc adapter adds point-first combat to both sword bodies and enemy sword classes, bringing coverage to all 77 ordinary campaign enemy loadouts and 31 enemy equipment bindings. The twelve chapter commanders now use revised bodies with their individual colors, faces and insignia; unknown commanders and promotions retain their original models. Debug tools provides an isolated commander selector.
 
-Combat hit effects stay at their captured contact point during defender recoil. Private living animations clear fall-support offsets, with 34 outfits and 344 transitions checked. Existing grip, weapon dimensions, bone lengths and shared source animations remain intact. The default runner registers 182 suites; verification is focused, not a newly completed full-default run. Assembled GPU/browser/audio review remains outstanding.
+Combat hit effects stay at their captured contact point during defender recoil. Private living animations clear fall-support offsets, with 34 outfits and 344 transitions checked. Existing grip, weapon dimensions, bone lengths and shared source animations remain intact. The default runner registers 184 suites; verification is focused, not a newly completed full-default run. Assembled GPU/browser/audio review remains outstanding.
 
 ## Earlier checkpoints
 
