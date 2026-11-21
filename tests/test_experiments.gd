@@ -226,6 +226,7 @@ func run():
  app.refresh_pieces();app.selected=ally;app.update_side();await process_frame
  assert(app.unit_nodes.has(patient.id) and app.unit_nodes[patient.id].downed,"Downed units remain visible on the tactical map")
  var downed_actor=app.unit_nodes[patient.id];var badge=downed_actor.rescue_marker
+ assert(downed_actor.player.state=="hurt" and downed_actor.player.complete and downed_actor.sprite.modulate.a==1,"The actual casualty holds its visible wounded pose instead of breathing in idle")
  assert(badge.get_meta("turns")==2 and badge.texture.get_size()==Vector2(64,36),"The tactical rescue badge shows the actual remaining phase endings")
  var point=app.camera.unproject_position(badge.global_position)
  assert(downed_actor.screen_bounds(app.camera).has_point(point) and app.pick_map_unit(point)==patient,"Clicking the rescue badge inspects its downed ally")
@@ -243,6 +244,7 @@ func run():
  assert(app.unit_nodes[patient.id].rescue_marker.get_meta("turns")==1,"The rescue badge updates before the enemy-phase announcement")
  while app.busy:await process_frame
  assert(app.unit_nodes[patient.id].rescue_marker.texture.resource_path.ends_with("rescue-one.svg"),"The last opportunity uses the urgent one-turn badge")
+ assert(app.unit_nodes[patient.id].player.state=="hurt" and app.unit_nodes[patient.id].player.complete,"Refreshing the rescue countdown retains the wounded pose")
  app.selected=ally;app.update_side()
  app.show_triage()
  var rescue=app.ui.find_children("*","Button",true,false).filter(func(b):return b.text=="Rescue "+patient.name)
@@ -275,6 +277,7 @@ func run():
  assert(app.busy and app.screen=="battle" and patient.hp>0,"Carried-ally treatment routes into real healing feedback after resolving health")
  while app.busy:await process_frame
  assert(medic.acted and patient.acted and app.unit_nodes.has(patient.id) and not app.unit_nodes[patient.id].downed and app.unit_nodes[patient.id].rescue_marker==null,"Healing returns both units to the tactical map with spent actions")
+ assert(app.unit_nodes[patient.id].player.state=="idle" and not app.unit_nodes[patient.id].player.complete,"A healed ally resumes the ordinary idle animation")
  root.size=Vector2i(1024,640);await process_frame
  await verify_rescue_selection(app)
  root.size=Vector2i(1440,900);await process_frame

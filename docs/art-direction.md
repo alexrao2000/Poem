@@ -862,3 +862,12 @@ The isolated Vela/Tarin comparison covers both promoted costumes and two folios.
 ## Shared map and arena ground
 
 Close-up grass and earth use the tactical map’s existing edge-matched terrain atlas, shared derivative-controlled mip sampling and physical texture scale. Standalone surfaces select their own grass/earth bank without a tactical weight texture. Stone and wood retain their existing paintings. Arena floor selection now follows the same terrain/chapter rules as the map, including cobblestone in abbey, aqueduct and castle scenes and earth on engine hills. This reuses original assets and adds no geometry; material bindings, atlas seams and batching are checked, while rendered appearance remains pending.
+
+
+## Held wounded map poses
+
+Allies at death’s door hold the final frame of their existing `hurt` clip, with its original foot pivot, full opacity, warm tint and rescue countdown. Facing changes and movement cleanup preserve that pose; a healed unit resumes normal idle. Mounted recruits retain their own wounded rider artwork. No new raster art or rotation-based bounds are introduced.
+
+The previous code continued idle and set a Sprite3D node roll. Source inspection shows that [Godot 4.5.1’s ordinary billboard material](https://github.com/godotengine/godot/blob/4.5.1-stable/scene/resources/material.cpp#L1180-L1201) replaces model orientation with camera axes, retaining only axis lengths when scale preservation is enabled. The fix selects authored pixels instead of relying on that discarded rotation. This source finding is not a rendered comparison.
+
+The new pose check covers all 24 recruits, class fallbacks, four facings and spent states (384 combinations), plus 2,304 projected quad/countdown bounds at three sizes and two zooms. Real casualty, countdown refresh, rescue/carry/drop, revival and checkpoint flows verify that wounded presentation persists until recovery without changing simulation or shared artwork.

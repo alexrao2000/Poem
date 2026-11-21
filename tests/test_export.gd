@@ -32,6 +32,12 @@ func run():
  for job in app.CLASSES:assert(app.map_catalog.assets.has("unit."+job.to_lower()),"Release initializes every fallback class without relying on assertions")
  assert(app.map_catalog.recruit_errors.is_empty(),"Packaged recruit artwork validates")
  assert(app.map_catalog.enemy_errors.is_empty(),"Packaged enemy artwork validates")
+ for recruit in app.game.roster:
+  var wounded=recruit.duplicate(true);wounded.team="player";wounded.acted=true;wounded.hp=0;wounded.downed=true;wounded.bleed_turns=1
+  var wounded_actor=load("res://scripts/campaign_map_unit.gd").new();app.pieces.add_child(wounded_actor);wounded_actor.configure(app.map_catalog,wounded);wounded_actor._process(.8)
+  assert(wounded_actor.player.state=="hurt" and wounded_actor.player.complete and wounded_actor.sprite.modulate.a==1 and wounded_actor.rescue_marker.get_meta("turns")==1,"Packaged downed recruits hold their visible wounded artwork and countdown")
+  wounded_actor.face_toward(Vector2i.LEFT,Vector2i.ZERO);assert(wounded_actor.player.state=="hurt" and wounded_actor.player.complete)
+  wounded_actor.queue_free();await process_frame
  assert(app.fighters.enemy_looks.size()==8 and app.fighters.face_atlas.resource_path.ends_with("face-features-v2.png"),"Release includes the matching enemy profiles and current painted facial features")
  assert(app.fighters.EquipmentVisuals.profiles.size()==22 and app.fighters.EquipmentVisuals.profiles.war_hammer.shape=="hammer","Release includes every equipped item appearance")
  for tile in [0,2]:

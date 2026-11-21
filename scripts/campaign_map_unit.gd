@@ -35,7 +35,7 @@ func configure(source: RefCounted,unit: Dictionary,facing="south",carried_name="
  ring.mesh=selection_mesh();ring.material_override=selection_material();ring.position.y=.072
  ring.cast_shadow=GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
  marker.cast_shadow=GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
- player.play("idle",facing);update_frame()
+ rest_pose(facing)
  if downed:
   rescue_marker=Sprite3D.new();rescue_marker.name="RescueCountdown"
   rescue_marker.texture=preload("res://assets/ui/rescue-one.svg") if unit.get("bleed_turns",2)==1 else preload("res://assets/ui/rescue-two.svg")
@@ -110,7 +110,7 @@ func _process(dt):
  var breath=1.0+sin(clock*4)*.045
  ring.scale=Vector3(breath,1,breath)
  if team=="enemy" and not spent and not visual_id.begins_with("enemy."):sprite.modulate*=Color(1,.72,.68)
- if downed:sprite.modulate=Color("d8a178");sprite.rotation.z=PI*.35
+ if downed:sprite.modulate=Color("d8a178")
  if departing:set_defeat_opacity(defeat_opacity);ring.hide()
  if transferring:apply_opacity(rescue_opacity);ring.hide()
 
@@ -129,7 +129,14 @@ func face_step(step: Vector2i):
  player.play("move",Player.facing_for_step(step));update_frame()
 
 func face_toward(point: Vector2i,origin: Vector2i):
- player.play("idle",Player.facing_for_step(point-origin));update_frame()
+ rest_pose(Player.facing_for_step(point-origin))
+
+func rest_pose(facing=""):
+ # Billboard rendering replaces node rotation. Hold the authored wounded
+ # frame instead, retaining its foot pivot and ordinary pointer bounds.
+ player.play("hurt" if downed else "idle",facing)
+ if downed:player.skip()
+ update_frame()
 
 func settle_reaction():
  if reaction_motion and reaction_motion.is_valid():
@@ -155,7 +162,7 @@ func recoil_from(point: Vector2i,origin: Vector2i,critical=false) -> Tween:
 
 func finish_move():
  settle_reaction()
- player.play("idle");update_frame()
+ rest_pose()
 
 func act_toward(point: Vector2i,origin: Vector2i):
  player.play("act",Player.facing_for_step(point-origin),true);update_frame()
