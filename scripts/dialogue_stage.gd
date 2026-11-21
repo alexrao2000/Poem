@@ -10,6 +10,8 @@ var speech: Label
 var hint: Label
 var next_button: Button
 var skip_button: Button
+var history_button: Button
+var history: Control
 var ready_indicator: Control
 var ready_to_continue=false
 var ready_clock=0.0
@@ -23,7 +25,7 @@ class ReadyIndicator extends Control:
 		draw_line(center+Vector2(1,0),center+Vector2(-3,2),Color("fff1cc"),1.3,true)
 
 
-func configure(next_line: Callable,skip_scene: Callable):
+func configure(next_line: Callable,skip_scene: Callable,show_history=Callable()):
 	set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	var shade=ColorRect.new();shade.color=Color(.08,.10,.13,.20)
 	shade.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT);add_child(shade)
@@ -52,11 +54,14 @@ func configure(next_line: Callable,skip_scene: Callable):
 	var controls=HBoxContainer.new();controls.add_theme_constant_override("separation",12);column.add_child(controls)
 	hint=Label.new();hint.text="Space / Enter: continue   ·   Escape: skip"
 	hint.add_theme_font_size_override("font_size",15);hint.size_flags_horizontal=Control.SIZE_EXPAND_FILL;controls.add_child(hint)
-	for entry in [["Skip scene",skip_scene],["Continue  >",next_line]]:
+	for entry in [["Skip scene",skip_scene],["History [H]",show_history],["Continue  >",next_line]]:
 		var button=Button.new();button.text=entry[0];button.custom_minimum_size.y=42
-		button.pressed.connect(entry[1]);controls.add_child(button)
+		if entry[1].is_valid():button.pressed.connect(entry[1])
+		else:button.disabled=true
+		controls.add_child(button)
 		if entry[0]=="Continue  >":next_button=button;button.custom_minimum_size.x=140
-		else:skip_button=button
+		elif entry[0]=="Skip scene":skip_button=button
+		else:history_button=button
 	resized.connect(arrange);arrange();refresh_prompt()
 
 func refresh_prompt():
@@ -69,7 +74,7 @@ func refresh_prompt():
 	if not ready_to_continue:ready_clock=0;ready_indicator.modulate.a=1
 
 func _process(delta):
-	if not is_visible_in_tree():return
+	if not is_visible_in_tree() or history!=null:return
 	refresh_prompt()
 	if ready_to_continue:
 		ready_clock+=delta;ready_indicator.modulate.a=.65+sin(ready_clock*4)*.25
@@ -104,3 +109,14 @@ func show_speaker(id: String,display_name: String,texture: Texture2D) -> Texture
 		entrances[index]=create_tween()
 		entrances[index].tween_property(portraits[index],"position",destination,.16).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
 	return portraits[index]
+
+func open_history(lines: Array):
+	if history!=null:return
+	panel.hide()
+	history=preload("res://scripts/dialogue_history.gd").new();add_child(history)
+	history.configure(lines);history.closed.connect(close_history)
+
+func close_history():
+	if history==null:return
+	var previous=history;history=null;remove_child(previous);previous.queue_free()
+	panel.show();refresh_prompt();next_button.grab_focus()

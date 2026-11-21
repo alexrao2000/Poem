@@ -85,6 +85,14 @@ func run():
   for actor in app.unit_nodes.values():assert(actor.sprite.texture!=null and actor.player.asset.clips.has("move"),"Packaged actors have atlas frames and animations")
  app.game.story_seen.append("opening_"+str(app.game.chapter));app.show_camp();await process_frame
  assert(app.ui.find_child("CompanyCards",true,false).get_child_count()==24 and app.ui.has_node("CouncilBackdrop"),"Release includes the complete portrait preparation roster and covered-scene suspension")
+ var history_state=app.game.save_data("camp").duplicate(true);var history_speed=app.preferences.values.text_speed
+ app.preferences.values.text_speed=55
+ app.show_dialogue([{"speaker":"lyra","text":"Only the revealed prefix belongs in history."},{"speaker":"oren","text":"This future line remains hidden."}],app.show_camp)
+ app.dialogue_label.visible_characters=4;app.dialogue_reveal=4.0;app.show_dialogue_history()
+ assert(app.dialogue_stage.history.entries==[{"speaker":"Lyra","text":"Only"}],"Packaged conversation history loads its UI and excludes unrevealed text")
+ app._process(.5);assert(app.dialogue_reveal==4.0 and app.dialogue_index==0,"Packaged history pauses the real dialogue clock")
+ app.dialogue_stage.close_history();app.finish_dialogue();app.preferences.values.text_speed=history_speed
+ assert(app.game.save_data("camp")==history_state,"Packaged history returns without changing campaign data or RNG")
  app.show_credits();await process_frame;assert(app.screen=="credits")
  app.show_campaign_route();await process_frame
  var route=app.ui.find_child("CampaignRoute",true,false)

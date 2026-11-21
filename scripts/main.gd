@@ -206,7 +206,7 @@ func music_mix(battle: bool):
 
 func _process(dt):
 	clock+=dt
-	if screen=="dialogue" and is_instance_valid(dialogue_label):
+	if screen=="dialogue" and is_instance_valid(dialogue_label) and dialogue_stage.history==null:
 		dialogue_reveal+=dt*float(preferences.values.text_speed)
 		dialogue_label.visible_characters=-1 if preferences.values.text_speed==0 else int(dialogue_reveal)
 
@@ -768,11 +768,16 @@ func toggle_tracked_threat():
 	if tracked_threats.toggle(game,selected):highlight();update_side()
 
 func _input(event):
-	if screen=="dialogue" and event is InputEventKey and event.keycode in [KEY_SPACE,KEY_ENTER,KEY_ESCAPE]:
+	if screen=="dialogue" and event is InputEventKey and dialogue_stage.history!=null and event.keycode in [KEY_UP,KEY_DOWN,KEY_PAGEUP,KEY_PAGEDOWN,KEY_HOME,KEY_END]:
+		if event.pressed:dialogue_stage.history.navigate(event.keycode)
+		get_viewport().set_input_as_handled();return
+	if screen=="dialogue" and event is InputEventKey and event.keycode in [KEY_SPACE,KEY_ENTER,KEY_ESCAPE,KEY_H]:
 		# Handle both edges before GUI buttons: their release must not advance twice.
 		get_viewport().set_input_as_handled()
 		if event.pressed and not event.echo:
-			if event.keycode==KEY_ESCAPE or dialogue_stage.skip_button.has_focus():finish_dialogue()
+			if dialogue_stage.history!=null:dialogue_stage.close_history()
+			elif event.keycode==KEY_H or (dialogue_stage.history_button.has_focus() and event.keycode!=KEY_ESCAPE):show_dialogue_history()
+			elif event.keycode==KEY_ESCAPE or dialogue_stage.skip_button.has_focus():finish_dialogue()
 			else:advance_dialogue()
 		return
 	if event is InputEventMouseButton and event.button_index==MOUSE_BUTTON_MIDDLE and not event.pressed:map_navigation.dragging=false
@@ -1383,18 +1388,30 @@ func show_dialogue(lines: Array,on_complete: Callable,kind="opening"):
 	dialogue_lines=lines if kind=="support" else preload("res://scripts/story_survivors.gd").resolve(lines,losses)
 	dialogue_index=0;dialogue_callback=on_complete
 	dialogue_stage=preload("res://scripts/dialogue_stage.gd").new();ui.add_child(dialogue_stage)
-	dialogue_stage.configure(advance_dialogue,finish_dialogue)
+	dialogue_stage.configure(advance_dialogue,finish_dialogue,show_dialogue_history)
 	dialogue_name=dialogue_stage.heading;dialogue_label=dialogue_stage.speech
 	refresh_dialogue()
 
 func refresh_dialogue():
 	if dialogue_index>=dialogue_lines.size():finish_dialogue();return
 	var line=dialogue_lines[dialogue_index]
-	var speaker=game.roster.filter(func(u):return u.id==line.speaker)
-	var display_name=speaker[0].name if not speaker.is_empty() else line.speaker.capitalize()
+	var display_name=dialogue_speaker_name(line.speaker)
 	dialogue_portrait=dialogue_stage.show_speaker(line.speaker,display_name,portraits.get_dialogue_portrait(line.speaker))
 	dialogue_label.text=line.text;dialogue_label.visible_characters=-1 if preferences.values.text_speed==0 else 0;dialogue_reveal=0.0
 	dialogue_stage.refresh_prompt()
+
+func dialogue_speaker_name(id: String) -> String:
+	var speaker=game.roster.filter(func(u):return u.id==id)
+	return speaker[0].name if not speaker.is_empty() else id.capitalize()
+
+func show_dialogue_history():
+	if screen!="dialogue" or dialogue_stage.history!=null:return
+	var revealed=[]
+	for index in range(mini(dialogue_index+1,dialogue_lines.size())):
+		var line=dialogue_lines[index];var text=line.text
+		if index==dialogue_index and dialogue_label.visible_characters>=0:text=text.left(dialogue_label.visible_characters)
+		if not text.is_empty():revealed.append({"speaker":dialogue_speaker_name(line.speaker),"text":text})
+	dialogue_stage.open_history(revealed)
 
 func advance_dialogue():
 	if screen!="dialogue":return

@@ -60,9 +60,10 @@ These controls apply to campaign battles; menus and the visual workshop have the
 | Skip a chapter card, phase announcement, combat scene, or casualty card | Tab |
 | Play combat animation at double speed | Hold Shift, or click **Fast ×2** to toggle |
 | Reveal or advance dialogue | Fresh Space / Enter |
+| Read revealed lines in the current conversation | H or **History**; H / Escape returns |
 | Skip the current dialogue sequence | Fresh Escape |
 
-Dialogue keys act once per fresh press; held keys do not dismiss following lines. Enter or Space activates **Skip scene** when that button has keyboard focus.
+History pauses text reveal while you reread the current conversation and returns to the same position. Arrow keys, Page Up/Down and Home/End scroll the transcript. Dialogue keys act once per fresh press; held keys do not dismiss following lines. Enter or Space activates **Skip scene** when that button has keyboard focus.
 
 Click an enemy to inspect its stats and reach. **Track [T]** keeps that enemy’s range visible in purple while you choose allies; it updates with movement and clears when the enemy falls or a new attempt begins. You can track several foes independently of the all-enemy **R** overlay. These map annotations are temporary and excluded from saves. The terrain card follows the pointer or keyboard cursor and shows movement costs and bonuses. Keyboard cursor movement keeps distant tiles in view; map zoom and pan are preserved when returning from combat. Chapter and casualty cards also accept a click to skip. Full combat scenes have **Fast ×2** and **Skip** buttons between the health panels; speed toggles last only for that exchange and clear when the app loses focus.
 

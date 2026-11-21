@@ -86,10 +86,11 @@ func run():
  app.finish_dialogue();await process_frame
  assert(app.screen=="camp","Skipping during an entrance cleans up the stage")
  await verify_keyboard(app)
+ await verify_history(app)
  for player in app.sfx_players:player.stop()
  app.music.stop();await create_timer(.15).timeout
  await Shutdown.dispose(app);await process_frame
- print("PASS: ",lines," story lines, 24 transparent dialogue portraits, ",checked," story/support/trial layouts, speaker continuity, one-action keyboard/pointer controls, held-key suppression, chained scenes and persistence")
+ print("PASS: ",lines," story lines, 24 transparent dialogue portraits, ",checked," story/support/trial layouts, speaker continuity, one-action keyboard/pointer controls, held-key suppression, chained scenes, revealed-only history/pause/scroll/teardown and persistence")
  quit()
 
 func key_event(code,echo=false):
@@ -157,3 +158,67 @@ func verify_keyboard(app):
  click_button(app.dialogue_stage.next_button);assert(app.dialogue_index==1)
  click_button(app.dialogue_stage.skip_button);assert(app.screen=="camp" and calls.finished==1)
  assert(app.game.save_data("camp")==snapshot,"Dialogue input leaves campaign, roster and RNG unchanged")
+
+func verify_history(app):
+ var lines=[]
+ for index in range(32):lines.append({"speaker":"lyra" if index%2==0 else "oren","text":"Line %02d begins here, then continues with the private remainder secret_%02d."%[index,index]})
+ var calls={"finished":0};app.preferences.values.text_speed=0
+ app.show_dialogue(lines,func():calls.finished+=1;app.show_camp())
+ for index in range(21):app.advance_dialogue()
+ app.preferences.values.text_speed=55;app.refresh_dialogue()
+ var snapshot=app.game.save_data("camp").duplicate(true);var count=0
+ for dimensions in [Vector2(1024,640),Vector2(1280,720),Vector2(1440,900)]:
+  app.ui.set_anchors_and_offsets_preset(Control.PRESET_TOP_LEFT);app.ui.size=dimensions
+  for closing in [KEY_ESCAPE,KEY_H,KEY_ENTER,KEY_SPACE,0]:
+   await process_frame;await process_frame
+   app.dialogue_label.visible_characters=17;app.dialogue_reveal=17.0
+   if count%3==0:key_event(KEY_H)
+   elif count%3==1:click_button(app.dialogue_stage.history_button)
+   else:app.dialogue_stage.history_button.grab_focus();key_event(KEY_ENTER)
+   var history=app.dialogue_stage.history;assert(history!=null)
+   var retained=weakref(history)
+   assert(not app.dialogue_stage.panel.visible and history.entries.size()==22,"History hides underlying actions and includes only already visited lines")
+   for index in range(21):
+    assert(history.entries[index].text==lines[index].text and history.entries[index].speaker==("Lyra" if index%2==0 else "Oren"))
+   assert(history.entries[-1].text==lines[21].text.left(17),"The current line contributes only its revealed prefix")
+   for label in history.find_children("*","Label",true,false):
+    assert(not "secret_21" in label.text and not "secret_22" in label.text,"Actual transcript labels cannot expose unrevealed or future lines")
+   var clock=app.dialogue_reveal;app._process(1.0)
+   for frame in range(4):await process_frame
+   assert(app.dialogue_reveal==clock and app.dialogue_label.visible_characters==17 and app.dialogue_index==21 and calls.finished==0,"Reading history pauses typewriter progression and scene callbacks")
+   var bounds=history.frame.get_global_rect()
+   if not Rect2(Vector2.ZERO,dimensions).encloses(bounds):print("History bounds ",bounds," host ",history.size," stage ",app.dialogue_stage.size," minimum ",history.frame.get_combined_minimum_size()," expected ",dimensions)
+   assert(Rect2(Vector2.ZERO,dimensions).encloses(bounds))
+   assert(bounds.grow(1).encloses(history.scroll.get_global_rect()) and bounds.grow(1).encloses(history.return_button.get_global_rect()),"History scrolling and return control fit all supported sizes")
+   assert(history.return_button.has_focus() and history.scroll.scroll_vertical>0,"Long history opens at its newest line with a visible return focus")
+   for label in history.find_children("*","Label",true,false):
+    assert(label.get_global_rect().position.x>=bounds.position.x and label.get_global_rect().end.x<=bounds.end.x)
+    assert(label.get_line_count()<=label.get_visible_line_count(),"Transcript lines wrap fully inside the scroll column")
+   for code in [KEY_H,KEY_ESCAPE,KEY_ENTER,KEY_SPACE]:
+    key_event(code,true);assert(app.dialogue_stage.history==history,"Held keys cannot close history or advance the underlying story")
+   key_event(KEY_HOME);assert(history.scroll.scroll_vertical==0)
+   key_event(KEY_END);var bottom=history.scroll.scroll_vertical;assert(bottom>0)
+   key_event(KEY_UP,true);assert(history.scroll.scroll_vertical<bottom,"Scrolling retains held-arrow repetition")
+   key_event(KEY_HOME);key_event(KEY_PAGEDOWN);assert(history.scroll.scroll_vertical>0)
+   key_event(KEY_PAGEUP);assert(history.scroll.scroll_vertical==0)
+   if closing==0:click_button(history.return_button)
+   else:key_event(closing)
+   assert(app.dialogue_stage.history==null and app.dialogue_stage.panel.visible and app.dialogue_stage.next_button.has_focus())
+   assert(app.dialogue_index==21 and app.dialogue_label.visible_characters==17 and calls.finished==0,"Returning from history neither reveals nor advances a line")
+   app._process(.1);assert(app.dialogue_reveal>clock and app.dialogue_index==21,"Typewriter resumes from its retained position")
+   await process_frame;await process_frame
+   assert(retained.get_ref()==null,"Closed transcript nodes are released")
+   assert(app.game.save_data("camp")==snapshot,"History navigation never changes campaign data or RNG")
+   count+=1
+ # Empty histories and immediate scene replacement must not retain deferred focus.
+ app.show_dialogue(lines,func():calls.finished+=1;app.show_camp())
+ app.dialogue_label.visible_characters=0;app.dialogue_reveal=0.0
+ key_event(KEY_H);var empty=weakref(app.dialogue_stage.history)
+ assert(app.dialogue_stage.history.entries.is_empty())
+ app.show_dialogue([lines[31]],func():calls.finished+=1;app.show_camp())
+ for frame in range(4):await process_frame
+ assert(empty.get_ref()==null and app.dialogue_stage.history==null and app.dialogue_index==0,"A new scene starts with no retained transcript or deferred focus")
+ key_event(KEY_H);key_event(KEY_ESCAPE)
+ key_event(KEY_ESCAPE,true);assert(app.screen=="dialogue" and calls.finished==0,"Held history-close Escape cannot skip the resumed conversation")
+ key_event(KEY_ESCAPE);assert(app.screen=="camp" and calls.finished==1)
+ assert(app.game.save_data("camp")==snapshot)
