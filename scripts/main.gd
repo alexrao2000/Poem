@@ -97,6 +97,7 @@ var drop_mode=false
 var preview_actor: Node3D
 var preview_unit: Dictionary
 var preview_return=Callable()
+var encounter_return="debug_tools"
 var reward_panel: PanelContainer
 var reward_skip=false
 var transfer_text: TextEdit
@@ -712,7 +713,11 @@ func show_battle_menu():
 	button_in(commands,"Return to battle",close_battle_menu).grab_focus()
 	button_in(commands,"Save",func():close_battle_menu();save_with_feedback("battle"))
 	button_in(commands,"Transfer code",func():close_battle_menu();show_save_transfer("battle"))
-	button_in(commands,"Options / audio",func():close_battle_menu();show_options("battle"))
+	var option_row=HBoxContainer.new();option_row.add_theme_constant_override("separation",8);commands.add_child(option_row)
+	var option_button=button_in(option_row,"Options / audio",func():close_battle_menu();show_options("battle"));option_button.size_flags_horizontal=Control.SIZE_EXPAND_FILL
+	var encounter_button: Button
+	if debug_session.active:
+		encounter_button=button_in(option_row,"Combat encounters",func():close_battle_menu();show_debug_encounters("battle_menu"));encounter_button.size_flags_horizontal=Control.SIZE_EXPAND_FILL
 	var retreat=label_in(commands,restart_summary(),15,GOLD);retreat.name="RestartPreview"
 	button_in(commands,("War council (restart section)" if game.trials.flags.section_restarts and game.permadeath else "War council (restart map)"),func():close_battle_menu();restart_campaign_attempt())
 	var control_guide="Arrows / Enter: select · Q/E: allies · W: wait\nR: ranges · T: track · Space: end · Esc: undo\nWheel / + −: zoom · Middle drag: pan · Home: reset\nTab: skip animation · M / Esc: close menu"
@@ -724,6 +729,9 @@ func show_battle_menu():
 		button.focus_next=button.get_path_to(buttons[(i+1)%buttons.size()]);button.focus_neighbor_bottom=button.focus_next
 		button.focus_previous=button.get_path_to(buttons[(i-1+buttons.size())%buttons.size()]);button.focus_neighbor_top=button.focus_previous
 		button.focus_neighbor_left=NodePath(".");button.focus_neighbor_right=NodePath(".")
+	if encounter_button!=null:
+		option_button.focus_neighbor_right=option_button.get_path_to(encounter_button)
+		encounter_button.focus_neighbor_left=encounter_button.get_path_to(option_button)
 
 func close_battle_menu():
 	if not is_instance_valid(battle_menu):return
@@ -819,7 +827,9 @@ func _unhandled_input(event):
 		get_viewport().set_input_as_handled();return
 	if screen=="music_room" and event is InputEventKey and event.pressed and not event.echo and event.keycode==KEY_ESCAPE:
 		interface_audio.cue("back");close_music_room();get_viewport().set_input_as_handled();return
-	if screen in ["debug_report","debug_experiments","debug_encounters"] and event is InputEventKey and event.pressed and not event.echo and event.keycode==KEY_ESCAPE:
+	if screen=="debug_encounters" and event is InputEventKey and event.pressed and not event.echo and event.keycode==KEY_ESCAPE:
+		close_debug_encounters();get_viewport().set_input_as_handled();return
+	if screen in ["debug_report","debug_experiments"] and event is InputEventKey and event.pressed and not event.echo and event.keycode==KEY_ESCAPE:
 		show_debug_tools(options_return);get_viewport().set_input_as_handled();return
 	if screen in ["triage","tile_units"] and event is InputEventKey and event.pressed and not event.echo and event.keycode==KEY_ESCAPE:
 		show_battle();get_viewport().set_input_as_handled();return
@@ -2121,8 +2131,9 @@ func show_debug_experiments():
 		).name="StartExperiment_"+setup.id
 	button_in(frame,"Return to debug tools",func():show_debug_tools(options_return))
 
-func show_debug_encounters():
+func show_debug_encounters(return_to="debug_tools"):
 	if not debug_session.active:return
+	encounter_return=return_to
 	screen="debug_encounters";reset_ui()
 	var frame=menu_panel(840);var panel=scrolling_column(frame)
 	label_in(panel,"DEBUG / COMBAT ENCOUNTERS",17,GOLD)
@@ -2140,7 +2151,11 @@ func show_debug_encounters():
 			cursor_tile=game.pos(recipient);cursor_visible=true
 			show_battle();persist_campaign("battle",true,"encounter:"+scene.id)
 		).name="StageEncounter_"+scene.id
-	button_in(frame,"Return to debug tools [Esc]",func():show_debug_tools(options_return))
+	button_in(frame,"Return to battle menu [Esc]" if encounter_return=="battle_menu" else "Return to debug tools [Esc]",close_debug_encounters)
+
+func close_debug_encounters():
+	if encounter_return=="battle_menu":show_battle();show_battle_menu()
+	else:show_debug_tools(options_return)
 
 func show_campaign_trials():
 	screen="campaign_trials";reset_ui()

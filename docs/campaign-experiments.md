@@ -20,6 +20,8 @@ In Debug tools, choose **Stage a combat encounter**. Eight starters cover sword,
 
 Each starter replaces the temporary Debug campaign. It uses fresh recruits, ordinary growth to at least level 3 or the chapter’s one-based number, standard equipment and the selected combat seed. Permadeath and the campaign experiments are off; action saves are on in the separate Debug slot. Repeating a starter reproduces the same position and random stream. Hits, criticals and victories are not forced. The original campaign is restored when Debug is disabled.
 
+While in a Debug battle, **M → Combat encounters** opens the same list directly. Escape or its Return button goes back to the battle menu without changing the current position. The shortcut shares a row with Options and is absent from ordinary campaigns.
+
 Model switches and combat-display preferences remain unchanged. Use the Debug character switches for revised models and **Options → Presentation → All 3D battles** for the full scene. Quick map mode stays available for comparison. The starters exercise the map zoom, chapter scenery, combat camera, health display, soundtrack transition and return through normal gameplay.
 
 ## Current rules

@@ -87,9 +87,31 @@ func verify_controls():
   if scene.id=="healing":assert(recipient.hp>hp)
   assert(loaded.load_game(app.save_path+".debug")=="battle" and canonical(loaded.save_data("battle"))==canonical(app.game.save_data("battle")))
   assert(FileAccess.get_file_as_string(app.save_path)==disk and app.preferences.values==preferences)
+ await verify_battle_shortcut(app)
  app.show_options("battle");app.ui.find_child("DebugMode",true,false).button_pressed=false
  assert(app.game.save_data("camp")==live and FileAccess.get_file_as_string(app.save_path)==disk and app.preferences.values==preferences)
+ app.game.start_battle();app.make_map();app.selected=null;app.target=null;app.show_battle();app.show_battle_menu()
+ assert(not app.ui.find_children("*","Button",true,false).any(func(button):return button.text=="Combat encounters"),"Normal campaigns do not expose the temporary encounter shortcut")
  await Shutdown.dispose(app);await process_frame
+
+func verify_battle_shortcut(app):
+ app.show_battle();app.selected=app.game.units[0];app.update_side()
+ var snapshot=app.game.save_data("battle").duplicate(true);var camera=app.map_navigation.capture_view();var selected=app.selected
+ var trace=app.debug_session.trace.report();var disk=FileAccess.get_file_as_string(app.save_path+".debug")
+ for dimensions in [Vector2(1024,640),Vector2(1280,720),Vector2(1440,900)]:
+  app.ui.set_anchors_and_offsets_preset(Control.PRESET_TOP_LEFT);app.ui.size=dimensions;app.show_battle_menu();await process_frame;await process_frame
+  var button=app.ui.find_children("*","Button",true,false).filter(func(item):return item.text=="Combat encounters")[0]
+  var options=app.ui.find_children("*","Button",true,false).filter(func(item):return item.text=="Options / audio")[0]
+  assert(Rect2(Vector2.ZERO,dimensions).grow(1).encloses(app.battle_menu.get_node("MenuFrame").get_global_rect()))
+  assert(not button.get_global_rect().intersects(options.get_global_rect()) and button.size.x>=button.get_minimum_size().x and options.size.x>=options.get_minimum_size().x)
+  options.grab_focus();press_key(KEY_RIGHT);assert(button.has_focus(),"The Debug shortcut is reachable horizontally from Options")
+  press_key(KEY_ENTER);assert(app.screen=="debug_encounters" and app.encounter_return=="battle_menu")
+  press_key(KEY_ESCAPE,true);assert(app.screen=="debug_encounters")
+  press_key(KEY_ESCAPE);assert(app.screen=="battle_menu" and app.selected==selected)
+  assert(app.game.save_data("battle")==snapshot and app.map_navigation.capture_view()==camera and app.debug_session.trace.report()==trace and FileAccess.get_file_as_string(app.save_path+".debug")==disk,"Browsing scenes and returning preserves the current position, RNG, selection, trace and written checkpoint")
+  app.ui.find_children("*","Button",true,false).filter(func(item):return item.text=="Combat encounters")[0].pressed.emit()
+  app.ui.find_children("*","Button",true,false).filter(func(item):return item.text=="Return to battle menu [Esc]")[0].pressed.emit()
+  assert(app.screen=="battle_menu");app.close_battle_menu()
 
 func verify_target_visibility():
  var viewport=SubViewport.new();viewport.size=Vector2i(1440,900);viewport.render_target_update_mode=SubViewport.UPDATE_DISABLED;root.add_child(viewport)
