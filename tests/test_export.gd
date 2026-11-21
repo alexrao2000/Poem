@@ -43,6 +43,12 @@ func run():
   app.game.chapter=chapter;app.game.start_battle();app.make_map();app.show_battle();await process_frame
   assert(app.score_director.current_id==["standard","road","dawnless"][chapter/4],"Export includes every act-specific score pair")
   assert(app.unit_nodes.size()==app.game.units.size(),"Packaged maps instantiate every living actor")
+  for y in range(app.game.board_size().y):
+   for x in range(app.game.board_size().x):
+    var cell=Vector2i(x,y)
+    if app.map_height(cell)==0:continue
+    for offset in [Vector3(-.49,0,0),Vector3(0,0,-.49)]:
+     assert(app.map_tile_at(app.camera.unproject_position(app.map_position(cell)+offset))==cell,"Packaged pointer picking follows raised bridge and sanctuary edges")
   var commander=app.game.units.filter(func(unit):return unit.get("boss",false))[0]
   assert(app.unit_nodes[commander.id].has_node("CommanderInsignia") and app.portraits.get_unit_portrait(commander).atlas.get_width()==1254,"Release includes commander crowns and their separate portrait atlas")
   for actor in app.unit_nodes.values():assert(actor.sprite.texture!=null and actor.player.asset.clips.has("move"),"Packaged actors have atlas frames and animations")

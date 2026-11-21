@@ -805,9 +805,8 @@ func _unhandled_input(event):
 	if screen!="battle" or busy or game.phase!="player":return
 	if event is InputEventMouseMotion:
 		if map_navigation.dragging:map_navigation.drag(event.position);return
-		var ray_start=camera.project_ray_origin(event.position);var ray_direction=camera.project_ray_normal(event.position)
-		var ground=Plane(Vector3.UP,0).intersects_ray(ray_start,ray_direction)
-		if ground!=null:preview_route(Vector2i(roundi(ground.x),roundi(ground.z)))
+		var tile=map_tile_at(event.position)
+		preview_route(tile if tile!=null else Vector2i(-1,-1))
 	if event is InputEventMouseButton and event.pressed:
 		if event.button_index in [MOUSE_BUTTON_WHEEL_UP,MOUSE_BUTTON_WHEEL_DOWN]:
 			map_navigation.zoom(1 if event.button_index==MOUSE_BUTTON_WHEEL_UP else -1,event.position);return
@@ -820,10 +819,11 @@ func _unhandled_input(event):
 		cursor_visible=false;highlight()
 		var picked=pick_map_unit(event.position)
 		if picked!=null:click_tile(game.pos(picked));return
-		var start=camera.project_ray_origin(event.position)
-		var dir=camera.project_ray_normal(event.position)
-		var hit=Plane(Vector3.UP,0).intersects_ray(start,dir)
-		if hit!=null:click_tile(Vector2i(roundi(hit.x),roundi(hit.z)))
+		var tile=map_tile_at(event.position)
+		if tile!=null:click_tile(tile)
+
+func map_tile_at(point: Vector2):
+	return MapSurface.tile_at_ray(camera.project_ray_origin(point),camera.project_ray_normal(point),game.board_size(),map_height)
 
 func pick_map_unit(point: Vector2):
 	var picked=null;var front=-INF
