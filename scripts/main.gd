@@ -1040,12 +1040,13 @@ func make_fighter(u,position) -> Node3D:
 	return fighters.build(stage,u,position)
 
 func staff_healing(healer,recipient,amount: int,before: Dictionary={}):
+	var revived=amount>0 and recipient.hp==amount
 	if not preferences.show_cinematic(healer.team):
-		play_sfx("heal");await map_heal_feedback(healer,recipient,amount);return
+		play_sfx("heal");await map_heal_feedback(healer,recipient,amount,revived);return
 	var old_max=before.get(healer.id,{}).get("max_hp",healer.max_hp)
 	var old_hp=healer.hp-(healer.max_hp-old_max)
 	var limits={healer.id:old_max,recipient.id:recipient.max_hp}
-	await cinematic(healer,recipient,[{"actor":healer.id,"target":recipient.id,"healing":amount,"health_limits":limits}],{healer.id:old_hp,recipient.id:recipient.hp-amount})
+	await cinematic(healer,recipient,[{"actor":healer.id,"target":recipient.id,"healing":amount,"health_limits":limits,"revived":revived}],{healer.id:old_hp,recipient.id:recipient.hp-amount})
 
 func cinematic(a,b,events,initial_hp={}):
 	if events.is_empty():return
@@ -1130,6 +1131,7 @@ func cinematic(a,b,events,initial_hp={}):
 		var whom=defender if who==actor else actor
 		var unit=a if who==actor else b
 		if event.has("healing"):
+			caption.hide()
 			banner.mark_actor(unit.id)
 			director.shot(who.position,whom.position,"windup",true,mounted,.28)
 			await combat_wait(who.pose("cast_windup",.36))
@@ -1143,6 +1145,7 @@ func cinematic(a,b,events,initial_hp={}):
 			var recipient=b if who==actor else a
 			play_sfx("heal");displayed_hp[event.target]=mini(recipient.max_hp,displayed_hp[event.target]+event.healing)
 			banner.set_health(event.target,int(displayed_hp[event.target]))
+			if event.get("revived",false):caption.text="REVIVED · ACTION SPENT";caption.show()
 			director.shot(who.position,whom.position,"impact",true,mounted,.24)
 			if not await combat_wait(healing_motion):
 				if is_instance_valid(recovery):recovery.queue_free()
@@ -2380,8 +2383,8 @@ func map_combat_feedback(events: Array):
 		if victim!=null and event.remaining>0:victim.finish_move()
 	refresh_pieces()
 
-func map_heal_feedback(healer,recipient,amount: int):
-	var cue_text="+"+str(amount)
+func map_heal_feedback(healer,recipient,amount: int,revived=false):
+	var cue_text=("Revived · +" if revived else "+")+str(amount)
 	await frame_map_action([healer,recipient],map_cue_padding(cue_text))
 	var actor=unit_nodes.get(healer.id);var patient=unit_nodes.get(recipient.id)
 	if actor!=null:
@@ -2392,7 +2395,7 @@ func map_heal_feedback(healer,recipient,amount: int):
 	var glow=Node3D.new();pieces.add_child(glow);glow.position=map_position(game.pos(recipient))+Vector3.UP*.08
 	var ring=MeshInstance3D.new();var shape=TorusMesh.new();shape.inner_radius=.28;shape.outer_radius=.32;ring.mesh=shape;glow.add_child(ring)
 	var material=mat(Color(.55,.95,.76,.8));material.shading_mode=BaseMaterial3D.SHADING_MODE_UNSHADED;ring.material_override=material
-	var text_label=Label.new();ui.add_child(text_label);text_label.text=cue_text
+	var text_label=Label.new();text_label.name="MapRecoveryCue";ui.add_child(text_label);text_label.text=cue_text
 	text_label.add_theme_font_size_override("font_size",28);text_label.add_theme_color_override("font_color",Color("b4efd1"));text_label.add_theme_color_override("font_outline_color",Color("263e36"));text_label.add_theme_constant_override("outline_size",5);text_label.mouse_filter=Control.MOUSE_FILTER_IGNORE
 	text_label.position=camera.unproject_position(map_position(game.pos(recipient))+Vector3.UP*1.1)-Vector2(text_label.get_minimum_size().x*.5,20)
 	if patient!=null:patient.hp_ratio=float(recipient.hp)/maxf(1,recipient.max_hp);patient.refresh_health()

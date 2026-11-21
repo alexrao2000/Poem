@@ -565,6 +565,15 @@ func run():
   if equipment_choice.get_item_metadata(index)=="beacon_staff":equipment_choice.select(index);equipment_choice.item_selected.emit(index);break
  app.ui.find_child("StageRecruitEncounter",true,false).pressed.emit();await process_frame;await process_frame
  assert(app.screen=="battle" and app.selected.id=="galen" and app.selected.promotion=="wayfarer" and app.game.can_heal(app.selected,app.game.at(app.cursor_tile)) and app.selected.item=="beacon_staff" and app.game.distance(app.selected,app.game.at(app.cursor_tile))==2,"Packed custom selector enters an actual promoted ranged healing encounter")
+ app.game.death_door=true;app.preferences.values.combat="map";app.preferences.values.auto_end=false
+ var packed_patient=app.game.at(app.cursor_tile);packed_patient.hp=0;app.game.DeathDoor.fall(app.game,packed_patient);app.refresh_pieces()
+ app.click_tile(app.game.pos(packed_patient));assert(app.busy and packed_patient.hp>0 and packed_patient.acted)
+ var saw_revival=false
+ while app.busy:
+  await process_frame
+  var cue=app.ui.get_node_or_null("MapRecoveryCue")
+  if cue!=null:saw_revival=true;assert(cue.text.begins_with("Revived · +"))
+ assert(saw_revival and not app.game.DeathDoor.downed(packed_patient),"Packed actual ranged healing identifies a successful spent revival")
  app.game.permadeath=true;app.game.trials.flags.death_legacies=true
  for unit in app.game.units:
   if unit.id in ["oren","sera","ivo"]:unit.hp=0
