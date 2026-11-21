@@ -1019,8 +1019,8 @@ func cinematic(a,b,events,initial_hp={}):
 	await push.finished
 	if veil.motion.is_running():await veil.motion.finished
 	var close_map_view=map_navigation.capture_view()
-	for n in stage.get_children():n.queue_free()
-	stage.visible=true
+	for n in stage.get_children():stage.remove_child(n);n.queue_free()
+	stage.process_mode=Node.PROCESS_MODE_INHERIT;stage.visible=true
 	var old_lighting=battle_lighting(game.info().get("environment","village"))
 	var arena_context=scenery.combat_context(game,a,b)
 	scenery.battle_landscape(stage,Vector3(35,0,0),arena_context)
@@ -1202,6 +1202,11 @@ func cinematic(a,b,events,initial_hp={}):
 	banner.queue_free();caption.queue_free()
 	director.stop();director.queue_free()
 	stage.visible=false
+	# Release transient effects before suspending their clocks, including trails
+	# interrupted by Skip. The next encounter rebuilds its scenery regardless.
+	for child in stage.get_children():
+		if child not in [actor,defender]:stage.remove_child(child);child.queue_free()
+	stage.process_mode=Node.PROCESS_MODE_DISABLED
 	refresh_pieces()
 	restore_lighting(old_lighting)
 	world.show();pieces.show();markers.show()
@@ -1439,7 +1444,7 @@ func show_equipment(unit):
 func show_model_view(unit,on_close=Callable(),model_spec: Dictionary={}):
 	screen="model";preview_unit=unit;preview_return=on_close;reset_ui()
 	for child in stage.get_children():stage.remove_child(child);child.queue_free()
-	world.hide();pieces.hide();markers.hide();stage.show()
+	world.hide();pieces.hide();markers.hide();stage.process_mode=Node.PROCESS_MODE_INHERIT;stage.show()
 	var theme=game.info().get("environment","village");battle_lighting(theme)
 	scenery.battle_landscape(stage,Vector3(35,0,0),{"environment":theme})
 	var actor_data=unit.duplicate(true);actor_data.team="enemy" if model_spec.has("study_enemy_class") else "player"

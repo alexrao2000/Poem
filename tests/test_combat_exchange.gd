@@ -172,7 +172,7 @@ func run():
    assert(sound_cues==["release_"+a.weapon,"hit","release_sword","hit","release_"+a.weapon,"hit"],"Every strike and counter uses its weapon cue before contact")
   assert(app.game.save_data("battle")==saved and app.game.rng.state==rng,"Animation never changes campaign outcomes")
   assert(app.world.visible and not app.stage.visible and app.camera.projection==Camera3D.PROJECTION_ORTHOGONAL,"Every exchange returns to the map")
-  for live in app.stage.get_children().filter(func(node):return node is Actor):assert(live.can_process(),"Skipping during contact never leaves a frozen actor")
+  for live in app.stage.get_children().filter(func(node):return node is Actor):assert(live.process_mode==Node.PROCESS_MODE_INHERIT and not live.can_process(),"Skipping releases actor-local hit stop while the hidden stage stays suspended")
   assert(not app.stage.has_node("CombatHitStop"),"Contact hold cleans up before the map returns")
  skip_on_hold=false;skip_on_recovery=false
  var confirmed_holds=holds

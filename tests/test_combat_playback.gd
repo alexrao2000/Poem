@@ -68,7 +68,7 @@ func verify_phase_skips(app,a,b):
   assert(not app.stage.visible and app.world.visible and app.camera.transform.is_equal_approx(camera),"Every cancelled phase returns to the original map camera")
   assert(app.game.save_data("battle")==saved and app.game.rng.state==rng and app.score==score and Engine.time_scale==1.0,"Presentation cancellation preserves resolved state, score ownership and clock")
   for name in ["CombatProjectile","CombatHeal","CombatHitStop","CombatCharge","CombatTrail"]:assert(not app.stage.has_node(name),"Cancelled transient is released: "+name)
-  for actor in app.stage.get_children().filter(func(node):return node is Actor):assert(actor.can_process(),"Cancellation cannot strand a frozen fighter")
+  for actor in app.stage.get_children().filter(func(node):return node is Actor):assert(actor.process_mode==Node.PROCESS_MODE_INHERIT and not actor.can_process(),"Cancellation releases actor-local hit stop while the hidden stage stays suspended")
   if phase in ["windup","strike","projectile","evade"]:assert(impact_count[0]==initial_impacts,"No delayed impact may appear after the user skips before contact")
  app.stage.child_entered_tree.disconnect(count_impact)
 

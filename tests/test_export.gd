@@ -419,6 +419,14 @@ func run():
  cast_choice.item_selected.emit(cast_choice.selected);await cast_actions.finished
  assert(app.preview_actor.player.assigned_animation=="CriticalSpellRelease" and app.preview_actor.model.get_node("Rig/Armature/Skeleton3D/BookHand/Folio").critical_prepared)
  app.close_model_view();app.debug_session.end(app.game)
+ app.preferences.values.character_models="revised";app.game.chapter=0;app.game.start_battle();app.make_map();app.show_battle()
+ var stage_a=app.game.living("player")[0];var stage_b=app.game.living("enemy")[0];stage_a.x=8;stage_a.y=4;stage_b.x=9;stage_b.y=4
+ await app.cinematic(stage_a,stage_b,[{"actor":stage_a.id,"target":stage_b.id,"damage":1,"remaining":19,"hit":true,"crit":false}],{stage_a.id:20,stage_b.id:20})
+ assert(not app.stage.visible and app.stage.process_mode==Node.PROCESS_MODE_DISABLED,"Packaged combat suspends its hidden arena after returning to the map")
+ var hidden_actors=app.stage.get_children().filter(func(node):return node is Imported)
+ assert(hidden_actors.size()==2 and hidden_actors.all(func(actor):return not actor.player.can_process()),"Packaged hidden animations inherit the stage suspension")
+ app.show_model_view(stage_a);await app.preview_actor.pose("windup",.02).finished
+ assert(app.preview_actor.player.can_process(),"Packaged outfit preview resumes animation after a suspended battle")
  await Shutdown.dispose(app);await process_frame
  print("PASS: exported catalog, all three act scores, chapter scenes, sixteen promotion patterns, all forty-eight revised promotion outfits, licenses and credits")
  quit()

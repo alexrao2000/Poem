@@ -87,7 +87,7 @@ func run():
   assert(report.get("requested",false) and app.skip_combat)
   assert(not app.stage.visible and app.world.visible and app.camera.transform.is_equal_approx(camera))
   for name in ["CombatProjectile","CombatCharge","CombatHitStop","CombatTrail"]:assert(not app.stage.has_node(name))
-  for actor in app.stage.get_children().filter(func(node):return node is Imported):assert(actor.can_process())
+  for actor in app.stage.get_children().filter(func(node):return node is Imported):assert(actor.process_mode==Node.PROCESS_MODE_INHERIT and not actor.can_process(),"Skipped casters release hit stop and inherit hidden-stage suspension")
  assert(app.game.save_data("battle")==saved and app.game.rng.state==rng and app.score==score and Engine.time_scale==1.0)
  app.busy=false;app.show_debug_tools("battle");app.ui.find_child("DebugCasterModel",true,false).button_pressed=false
  plain=app.make_fighter(unit,Vector3.ZERO);assert(plain is Actor);plain.queue_free();await process_frame
