@@ -919,3 +919,9 @@ Dense motion, source preservation, camera bounds, actual victories/skips and pre
 Full combat scenes now place two compact controls in the gap between the health panels: **Fast ×2** toggles the presentation clock, and **Skip** requests the existing return transition once. Their 112×44 targets remain separate from both health panels and the bottom keyboard hint at all three supported sizes. Shift and Tab remain available. Pointer and keyboard speed ownership are separate: releasing Shift does not clear a latched pointer toggle, and application focus loss clears both. Completion and teardown restore the exact prior clock scale.
 
 Headless GUI input tests click the actual controls, including during melee and healing scenes, and check layout, mixed input, repeated skipping, focus loss, unchanged resolved campaign/RNG and exact map restoration. The existing faster-playback and nine phase-specific keyboard skips pass. Audio stream ownership and pitch remain unchanged. Browser interaction and rendered appearance remain unreviewed.
+
+## Skipping the opening zoom
+
+Tab or Skip during the tactical push finishes the existing concealment and returns directly to the map. It no longer builds and briefly reveals an unwanted arena. This keeps the transition continuous while avoiding scenery, fighter, HUD and effect construction for a scene the player has already dismissed. Normal completion and opening cancellation share exact map framing, lighting, control visibility and presentation-clock restoration. The resolved combat outcome and save checkpoint remain unchanged.
+
+Headless checks cover early and late pointer/keyboard requests, both model sets, melee and healing, plus ordinary cinematic regression and packed cancellation. This does not establish rendered transition quality or browser frame rate.

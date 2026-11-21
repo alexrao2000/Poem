@@ -1063,6 +1063,9 @@ func cinematic(a,b,events,initial_hp={}):
 	await push.finished
 	if veil.motion.is_running():await veil.motion.finished
 	var close_map_view=map_navigation.capture_view()
+	if skip_combat:
+		await return_to_tactical_map(veil,playback,close_map_view,tactical_view,tactical_controls)
+		return
 	for n in stage.get_children():stage.remove_child(n);n.queue_free()
 	stage.process_mode=Node.PROCESS_MODE_INHERIT;stage.visible=true
 	var old_lighting=battle_lighting(game.info().get("environment","village"))
@@ -1251,8 +1254,12 @@ func cinematic(a,b,events,initial_hp={}):
 	for child in stage.get_children():
 		if child not in [actor,defender]:stage.remove_child(child);child.queue_free()
 	stage.process_mode=Node.PROCESS_MODE_DISABLED
-	refresh_pieces()
 	restore_lighting(old_lighting)
+	await return_to_tactical_map(veil,playback,close_map_view,tactical_view,tactical_controls)
+	await present_casualties(events)
+
+func return_to_tactical_map(veil,playback,close_map_view: Dictionary,tactical_view: Dictionary,tactical_controls: Dictionary):
+	refresh_pieces()
 	world.show();pieces.show();markers.show()
 	var pull=map_navigation.return_from_combat(close_map_view,tactical_view,.25)
 	veil.reveal(.25)
@@ -1262,7 +1269,6 @@ func cinematic(a,b,events,initial_hp={}):
 	for control in tactical_controls:
 		if is_instance_valid(control):control.visible=tactical_controls[control]
 	music_mix(false)
-	await present_casualties(events)
 
 func present_casualties(events: Array):
 	if skip_combat:return

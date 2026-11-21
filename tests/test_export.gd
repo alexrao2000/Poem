@@ -7,6 +7,11 @@ const Vertices=preload("helpers/authored_vertices.gd")
 # directory, so resource and text checks cannot silently use the source tree.
 func _initialize():call_deferred("run")
 
+func skip_packed_opening(app):
+ while app.ui.get_node_or_null("CombatPlayback")==null:await process_frame
+ await process_frame
+ app.ui.get_node("CombatPlayback").request_skip()
+
 func run():
  assert(FileAccess.get_file_as_string("res://scripts/browser_journal.js").contains("poemSaveJournal"),"Export includes browser checkpoint recovery")
  var formation_rules=load("res://scripts/rules.gd").new()
@@ -513,6 +518,13 @@ func run():
  app.preferences.values.character_models="revised";app.game.chapter=0;app.game.start_battle();app.make_map();app.show_battle()
  assert(app.debug_vanguard.models.scene_cache.size()>0 and app.debug_knight.models.scene_cache.size()>0 and app.revised_enemies.models.scene_cache.size()>0,"Packaged battle setup retains chapter model sources before combat")
  var stage_a=app.game.living("player")[0];var stage_b=app.game.living("enemy")[0];stage_a.x=8;stage_a.y=4;stage_b.x=9;stage_b.y=4
+ var entry_nodes=[0];var count_entry=func(_node):entry_nodes[0]+=1
+ app.stage.child_entered_tree.connect(count_entry)
+ var entry_state=app.game.save_data("battle").duplicate(true);var entry_camera=app.map_navigation.capture_view()
+ skip_packed_opening(app)
+ await app.cinematic(stage_a,stage_b,[{"actor":stage_a.id,"target":stage_b.id,"damage":1,"remaining":19,"hit":true,"crit":false}],{stage_a.id:20,stage_b.id:20})
+ await process_frame;await process_frame;app.stage.child_entered_tree.disconnect(count_entry)
+ assert(entry_nodes[0]==0 and app.game.save_data("battle")==entry_state and app.map_navigation.capture_view()==entry_camera,"Packaged opening Skip returns without constructing an arena or changing resolved state")
  await app.cinematic(stage_a,stage_b,[{"actor":stage_a.id,"target":stage_b.id,"damage":1,"remaining":19,"hit":true,"crit":false}],{stage_a.id:20,stage_b.id:20})
  assert(not app.stage.visible and app.stage.process_mode==Node.PROCESS_MODE_DISABLED,"Packaged combat suspends its hidden arena after returning to the map")
  var hidden_actors=app.stage.get_children().filter(func(node):return node is Imported)
