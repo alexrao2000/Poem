@@ -769,7 +769,10 @@ func _input(event):
 	if screen=="battle" and busy and event is InputEventKey and event.pressed and event.keycode==KEY_TAB:
 		if chapter_card_active:chapter_card_skip=true
 		elif phase_banner_active:phase_skip=true
-		else:skip_combat=true
+		else:
+			var playback=ui.get_node_or_null("CombatPlayback")
+			if playback!=null:playback.request_skip()
+			else:skip_combat=true
 		get_viewport().set_input_as_handled()
 
 func _unhandled_input(event):
@@ -1003,7 +1006,10 @@ func cinematic(a,b,events,initial_hp={}):
 	var tactical_controls={}
 	for control in ui.get_children():tactical_controls[control]=control.visible;control.hide()
 	var playback=preload("res://scripts/combat_playback.gd").new();playback.configure(ui)
-	playback.skip_requested.connect(func():skip_combat=true)
+	interface_audio.watch(playback.fast_button)
+	interface_audio.watch_navigation(playback.skip_button)
+	# Skip disables its button first, so acknowledge the one-shot request itself.
+	playback.skip_requested.connect(func():interface_audio.cue("back");skip_combat=true)
 	var veil=CombatTransition.new();veil.configure(ui,func():return camera.unproject_position(focus))
 	veil.conceal()
 	var push=map_navigation.approach_combat(focus)

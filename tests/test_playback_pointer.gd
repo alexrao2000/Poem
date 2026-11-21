@@ -21,10 +21,22 @@ func watch(node):
  while not app.stage.visible:await process_frame
  while not app.stage.get_children().any(func(actor):return actor.get("pose_name")==("cast_windup" if active_case=="healing" else "windup")):await process_frame
  click(node.fast_button);assert(node.accelerated and Engine.time_scale==2.0,"Actual GUI click accelerates the active cinematic")
+ var audio=app.interface_audio
+ if active_case=="healing":assert(not audio.player.playing,"Muted combat controls stay silent")
+ else:assert(audio.player.playing and audio.player.stream==audio.streams.confirm,"Pointer fast-forward uses the existing confirmation voice")
  if active_case=="focus":
   node.notification(Node.NOTIFICATION_APPLICATION_FOCUS_OUT)
   assert(not node.accelerated and Engine.time_scale==1.0)
- click(node.skip_button);assert(app.skip_combat and node.skip_sent,"Actual GUI skip reaches the cinematic owner")
+ await create_timer(.08).timeout
+ audio.player.stop()
+ if active_case=="keyboard":
+  var event=InputEventKey.new();event.keycode=KEY_TAB;event.pressed=true;root.push_input(event,true)
+  event=InputEventKey.new();event.keycode=KEY_TAB;event.pressed=false;root.push_input(event,true)
+ else:click(node.skip_button)
+ assert(app.skip_combat and node.skip_sent,"Pointer and keyboard skips share the one-shot cinematic request")
+ if active_case=="healing":assert(not audio.player.playing)
+ else:assert(audio.player.playing and audio.player.stream==audio.streams.back,"Accepted skips use the existing return cue")
+ var last_press=audio.last_press;node.request_skip();assert(audio.last_press==last_press,"Repeated requests do not replay confirmation")
  requested+=1
 func run():
  var original_scale=Engine.time_scale;var audio_scale=AudioServer.playback_speed_scale
@@ -54,8 +66,9 @@ func run():
  app=load("res://main.tscn").instantiate();app.settings_path="";app.save_path="/private/tmp/poem-playback-pointer.json";root.add_child(app);await process_frame
  app.game.start_battle();app.make_map();app.show_battle();app.busy=true;app.ui.child_entered_tree.connect(watch)
  var a=app.game.units[0];var b=app.game.living("enemy")[0];a.x=8;a.y=4;b.x=9;b.y=4
- for mode in ["melee","focus","healing"]:
+ for mode in ["melee","focus","healing","keyboard"]:
   active_case=mode
+  app.preferences.values.effects=0.0 if mode=="healing" else 1.0;app.apply_audio_preferences()
   a.job="Warden" if mode=="healing" else "Vanguard";a.weapon="staff" if mode=="healing" else "sword";a.item="field_staff" if mode=="healing" else "iron_sword"
   b.team="player" if mode=="healing" else "enemy"
   var event={"actor":a.id,"target":b.id,"healing":3,"remaining":20} if mode=="healing" else {"actor":a.id,"target":b.id,"damage":1,"remaining":19,"hit":true,"crit":false}
@@ -64,7 +77,7 @@ func run():
   assert(not app.stage.visible and app.world.visible and not app.ui.has_node("CombatPlayback") and Engine.time_scale==original_scale)
   assert(app.game.save_data("battle")==saved and app.game.rng.state==rng and app.map_navigation.capture_view()==camera,"Pointer controls preserve resolved state and exact map framing")
   assert(app.score==score and app.music.pitch_scale==1.0 and AudioServer.playback_speed_scale==audio_scale,"Speed controls leave the score and audio pitch untouched")
- assert(requested==3)
+ assert(requested==4)
  await Shutdown.dispose(app);await process_frame
- print("PASS: actual GUI fast/skip clicks, three sizes without HUD overlap, mixed keyboard/pointer ownership, focus loss, one-shot cancellation, three real combat/healing skips and exact state/RNG/camera/audio-clock restoration")
+ print("PASS: actual GUI fast/skip clicks, three sizes without HUD overlap, mixed keyboard/pointer ownership, focus loss, one-shot pointer/keyboard cancellation, muted/confirmed interface feedback, four real combat/healing skips and exact state/RNG/camera/audio-clock restoration")
  quit()

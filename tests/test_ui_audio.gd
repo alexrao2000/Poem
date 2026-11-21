@@ -15,6 +15,13 @@ func run():
  voice.player.volume_db=-80;voice.player.stop()
  assert(not voice.cue("confirm",1500) and not voice.player.playing,"Effects mute prevents interface playback")
  voice.queue_free();await process_frame
+ voice=InterfaceAudio.new();root.add_child(voice);voice.configure(-12)
+ var navigation=Button.new();root.add_child(navigation);voice.watch_navigation(navigation)
+ navigation.mouse_entered.emit();assert(voice.player.playing and voice.player.stream==voice.streams.move)
+ voice.player.stop();navigation.pressed.emit();assert(not voice.player.playing,"Navigation-only watching leaves activation feedback to the action owner")
+ navigation.disabled=true;navigation.focus_entered.emit();assert(not voice.player.playing)
+ navigation.queue_free()
+ voice.queue_free();await process_frame
  var app=load("res://main.tscn").instantiate();app.settings_path="";app.save_path="/private/tmp/poem-ui-audio-test.json";root.add_child(app);await process_frame
  var audio=app.interface_audio;var game_state=app.game.export_code("camp");var music=app.music.stream
  var holder=VBoxContainer.new();app.ui.add_child(holder)

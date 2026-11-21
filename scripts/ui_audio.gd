@@ -23,11 +23,14 @@ func cue(kind: String,now=-1) -> bool:
   last_press=now;quiet_until=now+120
  player.stop();player.stream=streams[kind];player.play();return true
 
-func watch(button: BaseButton,kind="confirm"):
+func watch_navigation(button: BaseButton):
  button.mouse_entered.connect(func():
   if not button.disabled:cue("move"))
  button.focus_entered.connect(func():
   if not button.disabled:cue("move"))
+
+func watch(button: BaseButton,kind="confirm"):
+ watch_navigation(button)
  button.pressed.connect(func():
   if not button.disabled:cue(kind))
 
