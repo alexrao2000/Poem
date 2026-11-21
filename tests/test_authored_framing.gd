@@ -6,6 +6,7 @@ var unit_team="player"
 var promotion_id=""
 var promotion_index=-1
 var finish_only=false
+var critical_only=false
 func create_models():return load("res://scripts/debug_source_models.gd").new(study_ids)
 func _initialize():call_deferred("run")
 func run():
@@ -34,8 +35,9 @@ func run():
    for side in [-1,1]:
     actor.rotation.y=-side*PI/2
     var samples=[["victory_flourish","finish",spacing]] if finish_only else [["idle","wide",3.2],["windup","windup",spacing],["strike","impact",spacing],["evade","impact",spacing],["victory","finish",spacing]]
+    if critical_only:samples=[["critical_windup","windup",spacing],["strike","impact",spacing,"critical_strike"]]
     for sample in samples:
-     var mapping=actor.poses[sample[0]];var other=actor.position+Vector3(side*sample[2],0,0)
+     var mapping=actor.poses[sample[3] if sample.size()>3 else sample[0]];var other=actor.position+Vector3(side*sample[2],0,0)
      for mounted in [false,true]:
       actor.aim_at(other+Vector3.UP*(1.85 if mounted else 1.1))
       if actor.contact!=null:actor.contact.influence=1 if sample[0]=="strike" else 0

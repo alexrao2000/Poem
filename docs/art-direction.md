@@ -824,3 +824,9 @@ The expanded actual-exchange test first reproduced the old raised-focus failure.
 The revised sword models now lift the blade briefly after a confirmed victory, then settle into their existing quiet hold. This adds a small finishing gesture to the source-body animation instead of cutting directly to a still pose. The existing personal line, survivor framing and defeated actor’s fade remain in place; Tab can interrupt either part.
 
 The private arm solve preserves the grip and source body motion. Dense pose, actual combat/skip and camera checks cover base and promoted sword outfits. The isolated software study shows the blade lift and final hold on both body rigs with a sword and estoc. It does not establish rendered animation quality.
+
+### Revised critical sword preparation
+
+Critical sword attacks now wind the upper torso a further fifteen degrees during preparation, then unwind into the exact normal contact pose. This distinguishes the body motion before the existing portrait cut-in without changing the point of impact or source foot support. Ordinary preparation, reactions and finishing clear the critical variant.
+
+The first nine-degree study was too subtle in an isolated geometry comparison; the fifteen-degree version retains weapon/torso camera clearance. Dense pose/contact checks and actual normal/critical/skipped exchanges cover all sword families and base/promoted outfits. The comparison is an untextured software study, not an in-game animation review.

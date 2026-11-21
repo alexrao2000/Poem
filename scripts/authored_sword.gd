@@ -6,6 +6,7 @@ var equipped=""
 var grip_rotations={}
 var thrust_arm: SkeletonModifier3D
 var finish_arm: SkeletonModifier3D
+var critical_prepared=false
 func equipment_kind() -> String:return "sword"
 func _init():configure_equipment(equipment_kind(),"")
 
@@ -37,14 +38,23 @@ func configure_animations(player: AnimationPlayer) -> String:
  fit_handle()
  var anchor=get_parent() as BoneAttachment3D
  var rig=anchor.get_parent() as Skeleton3D if anchor!=null else null
+ if equipment_kind()=="sword" and (not player.has_animation("Idle") or not player.has_animation("Sword_Attack")):return "The sword rig needs its idle and attack clips"
  var result=preload("res://scripts/authored_hand_pose.gd").configure(player,rig,.2,.1,grip_rotations)
  if result.error.is_empty():grip_rotations=result.rotations
  if result.error.is_empty() and thrust_arm!=null:thrust_arm.configure_animations(player)
  if result.error.is_empty() and finish_arm!=null:finish_arm.configure_animations(player)
+ if result.error.is_empty() and equipment_kind()=="sword":result.error=preload("res://scripts/sword_anticipation.gd").configure(player,rig)
  return result.error
 
 func additional_poses() -> Dictionary:
- return {"victory_flourish":{"clip":"SwordFinishFlourish","from":0.0,"to":.2}} if finish_arm!=null else {}
+ return {"victory_flourish":{"clip":"SwordFinishFlourish","from":0.0,"to":.2},"critical_windup":{"clip":"SwordCriticalAttack","from":0.0,"to":.36},"critical_strike":{"clip":"SwordCriticalAttack","from":.36,"to":.433}} if finish_arm!=null else {}
+
+func combat_pose(key: String):
+ if key=="critical_windup":critical_prepared=true
+ elif key not in ["strike","recover"]:critical_prepared=false
+
+func animation_pose(key: String) -> String:
+ return "critical_strike" if equipment_kind()=="sword" and key=="strike" and critical_prepared else key
 
 func handles_contact() -> bool:return thrust_arm!=null
 
