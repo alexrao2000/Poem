@@ -23,17 +23,17 @@ func _initialize():call_deferred("run")
 func run():
  var world=Node3D.new();root.add_child(world);var painter=Fighters.new();var rules=load("res://scripts/rules.gd").new()
  var before=rules.save_data("camp").duplicate(true);var rng=rules.rng.state;var profiles=painter.profiles.duplicate(true)
- var models=Models.new(["vanguard","vanguard_male","caster","caster_female","ranger_female","ranger_male","female","male"]);var materials=[];var count=0
- for id in ["lyra","rhea","cassian","tarin","vela","noor","sera","ari","faye","yuna"]:
+ var models=Models.new(["vanguard","vanguard_male","caster","caster_female","ranger_female","ranger_male","female","male","rider_female","rider_male"]);var materials=[];var count=0
+ for id in ["lyra","rhea","cassian","tarin","vela","noor","sera","ari","faye","yuna","una","silas","elian"]:
   var source=rules.roster.filter(func(unit):return unit.id==id)[0]
   var promotions=[""];promotions.append_array(rules.promotions.filter(func(value):return value.base==source.job).map(func(value):return value.id))
   for promotion in promotions:
    var unit=source.duplicate(true);unit.team="player";unit.promotion=promotion
    var actor=models.build(world,unit,Vector3.ZERO);assert(actor!=null and models.models.issues.is_empty());await process_frame
-   var face=actor.model.get_node("Identity").blink.surface;var expected=id in ["lyra","tarin","sera"]
+   var face=actor.model.get_node("Identity").blink.surface;var expected=id in ["lyra","tarin","sera","una","vela","silas","elian"]
    assert(face!=null and not face in materials,"Every revised actor owns its face palette independently");materials.append(face)
-   assert(face.get_shader_parameter("personal_iris")==expected,"Only the three authored portrait corrections enable iris tinting")
-   assert(face.get_shader_parameter("warm_iris")== (id=="sera"),"Only the brown source cell selects the measured lower-iris mask")
+   assert(face.get_shader_parameter("personal_iris")==expected,"Only explicitly corrected portrait palettes enable iris tinting")
+   assert(face.get_shader_parameter("warm_iris")== (id in ["sera","vela"]),"Only the brown source cell selects the measured lower-iris mask")
    if expected:assert(face.get_shader_parameter("iris_tint").is_equal_approx(Color(profiles[id].appearance.iris_color)))
    assert(face.get_shader_parameter("open_face")==painter.face_atlas and face.get_shader_parameter("focused_face")==Blink.FOCUSED,"Personal colors reuse the existing expression artwork")
    for pose in ["critical_windup","strike","hit","down","idle"]:
@@ -56,7 +56,7 @@ func run():
  app.preferences.values.character_models="revised";app.preferences.values.combat="all";app.game.start_battle();app.make_map();app.show_battle()
  app.ui.child_entered_tree.connect(observe);app.stage.child_entered_tree.connect(observe)
  var source_foe=app.game.living("enemy")[0].duplicate(true)
- for id in ["lyra","tarin","sera"]:
+ for id in ["lyra","tarin","sera","una","vela","silas","elian"]:
   expected_id=id;expected_color=Color(profiles[id].appearance.iris_color)
   var a=app.game.roster.filter(func(unit):return unit.id==id)[0].duplicate(true);a.team="player";a.acted=false;a.moved=false;a.x=8;a.y=4;a.hp=2
   var b=source_foe.duplicate(true);b.x=10 if a.weapon in ["magic","bow"] else 9;b.y=4;b.hp=0
@@ -65,7 +65,7 @@ func run():
   await app.cinematic(a,b,[{"actor":a.id,"target":b.id,"hit":true,"crit":true,"damage":2,"remaining":0}],{a.id:2,b.id:2})
   assert(app.game.save_data("battle")==battle and app.game.rng.state==seed and app.world.visible and not app.stage.visible)
   app.busy=false
- assert(cutins==3 and finishes==3)
+ assert(cutins==7 and finishes==7)
  await Shutdown.dispose(app);await process_frame
- print("PASS: ",count," revised base/promoted faces, three portrait palettes through five expressions, shared-atlas neighbors unchanged, 24 current-model fallbacks, private materials, invalid/unsupported palette fallback and three actual critical-to-victory exchanges")
+ print("PASS: ",count," revised base/promoted faces, seven portrait palettes through five expressions, shared-atlas neighbors unchanged, 24 current-model fallbacks, private materials, invalid/unsupported palette fallback and seven actual critical-to-victory exchanges")
  quit()

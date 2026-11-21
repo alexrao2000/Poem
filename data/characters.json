@@ -230,7 +230,8 @@
       "cloth": "2f686a",
       "cape": "2f686a",
       "hair_fringe": "swept",
-      "face_shape": "tapered"
+      "face_shape": "tapered",
+      "iris_color": "4f8d99"
     },
     "critical_quote": "There is still a light.",
     "finish_quote": "The light is still burning.",
@@ -266,7 +267,8 @@
       "cloth": "d6cbb6",
       "cape": "a76d76",
       "hair_fringe": "parted",
-      "face_shape": "soft"
+      "face_shape": "soft",
+      "iris_color": "7c6444"
     },
     "critical_quote": "Here are my terms.",
     "finish_quote": "Let that be the last.",
@@ -284,7 +286,8 @@
       "cloth": "3b4355",
       "cape": "355377",
       "hair_fringe": "swept",
-      "face_shape": "angular"
+      "face_shape": "angular",
+      "iris_color": "82949c"
     },
     "critical_quote": "No more cover stories.",
     "finish_quote": "That\u2019s the truth of it.",
@@ -410,7 +413,8 @@
       "cloth": "63798a",
       "cape": "3f5879",
       "hair_fringe": "parted",
-      "face_shape": "angular"
+      "face_shape": "angular",
+      "iris_color": "70604b"
     },
     "critical_quote": "This oath is mine.",
     "finish_quote": "My people come first.",

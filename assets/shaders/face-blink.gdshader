@@ -59,8 +59,17 @@ void fragment() {
   if (coverage > 0.0) {
    vec3 tint = OUTPUT_IS_SRGB ? iris_linear(iris_tint.rgb) : iris_tint.rgb;
    vec3 luma_weights = vec3(0.2126, 0.7152, 0.0722);
-   vec3 tinted = clamp(tint * dot(sampled, luma_weights)
-                      / max(dot(tint, luma_weights), 0.0001), vec3(0.0), vec3(1.0));
+   float luminance = dot(sampled, luma_weights);
+   float tint_luminance = dot(tint, luma_weights);
+   vec3 tinted = tint_luminance > 0.000001
+                 ? tint * luminance / tint_luminance : vec3(luminance);
+   // Reduce saturation toward the same-luminance gray when a channel exceeds
+   // the display range. Clipping channels directly would darken bright pigment.
+   float peak = max(tinted.r, max(tinted.g, tinted.b));
+   if (peak > 1.0) {
+    float saturation = clamp((1.0 - luminance) / max(peak - luminance, 0.000001), 0.0, 1.0);
+    tinted = mix(vec3(luminance), tinted, saturation);
+   }
    vec3 mixed_iris = mix(sampled, tinted, coverage);
    ALBEDO = OUTPUT_IS_SRGB ? iris_srgb(mixed_iris) : mixed_iris;
   }
