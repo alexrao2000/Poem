@@ -34,6 +34,10 @@ func run():
    unit.item=item;actor=app.make_fighter(unit,Vector3.ZERO)
    assert(actor is Imported and actor.model.get_meta("character_identity")==id and actor.model.get_node("Rig/Armature/Skeleton3D/WeaponHand/Bow").equipped==item)
    actor.queue_free();await process_frame
+  for promotion in ["sharpshooter","pathfinder"]:
+   var promoted=unit.duplicate(true);promoted.promotion=promotion;actor=app.make_fighter(promoted,Vector3.ZERO)
+   assert(actor is Imported and actor.get_meta("promotion_look")==promotion,"The class comparison retains both fitted promotion outfits")
+   actor.queue_free();await process_frame
   for patch in [{"team":"enemy"},{"id":"lyra"},{"job":"Arcanist"},{"weapon":"magic","item":"ember"},{"item":"unknown_bow"},{"promotion":"test_promotion"}]:
    var changed=unit.duplicate(true);changed.merge(patch,true);assert(app.debug_ranger.build(app.stage,changed,Vector3.ZERO)==null)
   app.show_model_view(unit);await process_frame;assert(app.preview_actor is Imported and app.preview_actor.model.get_meta("character_identity")==id);app.close_model_view();await process_frame

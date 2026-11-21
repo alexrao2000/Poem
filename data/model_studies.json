@@ -1028,6 +1028,10 @@
     "campaign_characters": [
       "sera",
       "faye"
+    ],
+    "supported_promotions": [
+      "sharpshooter",
+      "pathfinder"
     ]
   },
   "ranger_male": {
@@ -1104,7 +1108,11 @@
     },
     "study_character": "ari",
     "study_label": "male Ranger",
-    "study_title": "Ranger \u00b7 Ari"
+    "study_title": "Ranger \u00b7 Ari",
+    "supported_promotions": [
+      "sharpshooter",
+      "pathfinder"
+    ]
   },
   "knight_female": {
     "scene": "res://assets/models/quaternius/study_knight_female.tscn",

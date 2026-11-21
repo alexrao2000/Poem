@@ -2,15 +2,26 @@ extends SceneTree
 # Ordinary training preview and resolved combat, without committing training.
 const Imported=preload("res://scripts/imported_fighter.gd")
 const Impact=preload("res://scripts/combat_impact.gd")
+const Projectile=preload("res://scripts/combat_projectile.gd")
 const Shutdown=preload("helpers/game_shutdown.gd")
 var character_ids=["lyra","rhea"]
 var promotion_ids=["standard_bearer","dawnblade"]
+var item_ids=["iron_sword","dueling_sword","tempered_sword","estoc"]
 var contacts=0
+var flights=0
 func _initialize():call_deferred("run")
 func watch(node):
+ if node is Projectile:
+  await process_frame
+  var archers=node.get_parent().get_children().filter(func(child):return child is Imported and child.has_meta("promotion_look") and child.kind=="bow" and child.pose_name=="strike")
+  assert(archers.size()==1)
+  var bow=archers[0].model.get_node("Rig/Armature/Skeleton3D/WeaponHand/Bow");var arrow=bow.get_node("Weapon/NockedArrow")
+  assert(node.kind=="bow" and bow.projectile_spent and not arrow.visible)
+  assert(node.origin.distance_to(arrow.to_global(Vector3(0,0,-Projectile.ARROW_LENGTH*.5-.075)))<.001,"Promoted bow launches from its actual arrow tip")
+  flights+=1;return
  if not node is Impact:return
  await process_frame
- var actors=node.get_parent().get_children().filter(func(child):return child is Imported and child.has_meta("promotion_look") and child.pose_name=="strike")
+ var actors=node.get_parent().get_children().filter(func(child):return child is Imported and child.has_meta("promotion_look") and child.kind=="sword" and child.pose_name=="strike")
  if actors.is_empty():return
  var actor=actors[0];var edge=actor.weapon_trail_points()
  var gap=actor.sockets.trail_tip.global_position.distance_to(node.global_position) if actor.point_trail_width>0 else Geometry3D.get_closest_point_to_segment(node.global_position,edge[0],edge[1]).distance_to(node.global_position)
@@ -38,15 +49,15 @@ func run():
  before=app.game.save_data("battle").duplicate(true);rng=app.game.rng.state
  var enemy=app.game.living("enemy").filter(func(unit):return not unit.get("boss",false))[0].duplicate(true);enemy.x=9;enemy.y=4;enemy.weapon="lance";enemy.item="iron_lance"
  for id in character_ids:
-  var unit=app.game.roster.filter(func(value):return value.id==id)[0].duplicate(true);unit.team="player";unit.x=8;unit.y=4
+  var unit=app.game.roster.filter(func(value):return value.id==id)[0].duplicate(true);unit.team="player";unit.x=7 if unit.weapon=="bow" else 8;unit.y=4
   for promotion in promotion_ids:
    unit.promotion=promotion;enemy.job="Knight" if promotion==promotion_ids[0] else "Rider"
-   for item in ["iron_sword","dueling_sword","tempered_sword","estoc"]:
+   for item in item_ids:
     unit.item=item
-    await app.cinematic(unit,enemy,[{"actor":unit.id,"target":enemy.id,"damage":0 if item=="iron_sword" else 2,"remaining":20 if item=="iron_sword" else 18,"hit":true,"crit":item in ["tempered_sword","estoc"]}],{unit.id:unit.hp,enemy.id:20})
+    await app.cinematic(unit,enemy,[{"actor":unit.id,"target":enemy.id,"damage":0 if item==item_ids[0] else 2,"remaining":20 if item==item_ids[0] else 18,"hit":true,"crit":item in item_ids.slice(2)}],{unit.id:unit.hp,enemy.id:20})
     assert(app.world.visible and app.pieces.visible and not app.stage.visible)
- assert(contacts==character_ids.size()*8,str([contacts,character_ids]))
+ assert(contacts+flights==character_ids.size()*promotion_ids.size()*item_ids.size(),str([contacts,flights,character_ids]))
  assert(app.game.save_data("battle")==before and app.game.rng.state==rng)
  app.busy=false;await Shutdown.dispose(app);await process_frame
- print("PASS: ",character_ids," ordinary promotion previews, three-size controls, cancel without training, eight critical/guard/mounted blade contacts per recruit and exact campaign/RNG isolation")
+ print("PASS: ",character_ids," ordinary promotion previews, three-size controls, cancel without training, ",contacts," critical/guard/mounted blade contacts, ",flights," exact arrow launches and campaign/RNG isolation")
  quit()

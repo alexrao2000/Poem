@@ -23,8 +23,11 @@ func run():
    var identity=actor.model.get_node("Identity");var costume=identity.promotion;var rig=actor.model.get_node("Rig/Armature/Skeleton3D")
    assert(identity.identity==unit.id and identity.mantle==null and costume.id==promotion_id and actor.model.get_meta("promotion_look")==promotion_id)
    var look=load("res://scripts/promotion_costume.gd").looks[promotion_id]
-   assert(costume.anchors.size()==5 and costume.panels.size()==(2 if look.has("tabard") else 4))
+   assert(costume.anchors.size()==(6 if look.get("satchel",false) else 5) and costume.panels.size()==((2 if look.has("tabard") else 0)+(4 if look.has("sash") else 0)))
    assert(costume.anchors[0].get_node("Pattern/PromotionCostume").get_meta("components")==look.keys())
+   if look.get("satchel",false):
+    var belt=rig.get_node("PromotionHip");assert(belt.bone_name=="pelvis")
+    for mesh in belt.find_children("*","MeshInstance3D",true,false):assert(not mesh.material_override.get_shader_parameter("cloth_floor_enabled"),"Rigid belt accessories must not flatten through cloth floor correction")
    for panel in costume.panels:
     var arrays=panel.mesh.surface_get_arrays(0);assert(arrays[Mesh.ARRAY_VERTEX].size()>50 and panel.skin.get_bind_count()==5 and panel.get_node(panel.skeleton)==rig)
     for vertex in range(arrays[Mesh.ARRAY_VERTEX].size()):
@@ -47,8 +50,14 @@ func run():
      sample(actor,key,step/16.0)
      assert(rig.get_bone_pose_position(rig.find_bone("root")).is_equal_approx(resting))
      var points=Vertices.prepare(actor).filter(func(entry):return entry[0] in costume.panels)
-     assert(is_finite(Vertices.minimum(actor,points)))
+     if not points.is_empty():assert(is_finite(Vertices.minimum(actor,points)))
+     var originals=[]
+     for modifier in actor.pose_constraints:originals.append(modifier.solve())
      for anchor in costume.anchors:assert(anchor.transform.is_equal_approx(rig.get_bone_global_pose(rig.find_bone(anchor.bone_name))),"Promotion plates follow the actual source joint")
+     for at in range(actor.pose_constraints.size()-1,-1,-1):
+      var modifier=actor.pose_constraints[at]
+      for index in range(modifier.chain.size()):rig.set_bone_pose_rotation(modifier.chain[index],originals[at][index])
+     rig.force_update_all_bone_transforms()
      count+=1
    actor.position.y=1.1;costume._process(0)
    for material in costume.surfaces:assert(is_equal_approx(material.get_shader_parameter("cloth_floor_y"),1.118))

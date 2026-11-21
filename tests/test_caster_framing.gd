@@ -6,6 +6,7 @@ var combat_spacing=4.0
 var ranged=true
 var mounted_subject=false
 var unit_team="player"
+var promotion_ids=[""]
 func create_models():return load("res://scripts/debug_source_models.gd").new([study_key])
 var extra_paths=[]
 var pose_keys={}
@@ -16,8 +17,9 @@ func run():
  var models=create_models();var game=load("res://scripts/rules.gd").new();var director=load("res://scripts/combat_camera.gd")
  var failures=[];var count=0
  var framing=director.new();world.add_child(framing)
- for id in [character_id]:
-  var unit=game.roster.filter(func(value):return value.id==id)[0].duplicate(true);unit.team=unit_team;unit.item=equipped_item
+ for promotion in promotion_ids:
+  var id=character_id
+  var unit=game.roster.filter(func(value):return value.id==id)[0].duplicate(true);unit.team=unit_team;unit.item=equipped_item;unit.promotion=promotion
   var actor=models.build(world,unit,Vector3(35,0,0));await process_frame;actor.set_process(false);actor.player.pause()
   framing.configure(camera,[actor])
   var expected=framing.frame_for(actor.position,actor.position+Vector3(1.4,0,0),"windup",false)
@@ -27,6 +29,9 @@ func run():
   var pieces=head.find_children("*","MeshInstance3D",true,false)
   pieces.append_array(actor.model.get_node(NodePath(prop_path)).find_children("*","MeshInstance3D",true,false))
   for path in extra_paths:pieces.append_array(actor.model.get_node(NodePath(path)).find_children("*","MeshInstance3D",true,false))
+  var costume=actor.model.get_node("Identity").promotion
+  if costume!=null:
+   for anchor in costume.anchors:pieces.append_array(anchor.find_children("*","MeshInstance3D",true,false))
   for side in [-1,1]:
    actor.rotation.y=-side*PI/2
    for sample in [["idle","wide",combat_spacing],["windup","windup",combat_spacing],["strike","impact",combat_spacing],["recover","impact",combat_spacing],["evade","impact",combat_spacing],["victory","finish",combat_spacing]]:
@@ -52,6 +57,10 @@ func run():
           var point=camera.unproject_position(mesh.to_global(vertex));low=low.min(point);high=high.max(point)
        if sample[1] in ["wide","finish"] and actor.model.get_node("Identity").robe!=null:
         for mesh in actor.model.get_node("Identity").robe.pieces:
+         for vertex in garment_points(mesh):
+          var point=camera.unproject_position(vertex);low=low.min(point);high=high.max(point)
+       if costume!=null and sample[1] in ["wide","finish"]:
+        for mesh in costume.panels:
          for vertex in garment_points(mesh):
           var point=camera.unproject_position(vertex);low=low.min(point);high=high.max(point)
        if low.x<24 or high.x>size_value.x-24 or low.y<88 or high.y>size_value.y-160:

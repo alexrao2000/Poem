@@ -289,17 +289,22 @@ func run():
   var rig=actor.model.get_node("Rig/Armature/Skeleton3D")
   assert(rig.get_bone_pose_position(rig.find_bone("root")).is_equal_approx(Vector3.ZERO),"Packaged standing pose clears fitted fall support")
   actor.queue_free();await process_frame
- for id in ["lyra","cassian","rhea","nell","silas","yuna"]:
-  for promotion in (["standard_bearer","dawnblade"] if id in ["lyra","cassian","rhea"] else ["sword_dancer","oathkeeper"]):
-   var unit=app.game.roster.filter(func(value):return value.id==id)[0].duplicate(true);unit.team="player";unit.promotion=promotion;unit.item="estoc"
+ var fitted_promotions={"Vanguard":["standard_bearer","dawnblade"],"Duelist":["sword_dancer","oathkeeper"],"Ranger":["sharpshooter","pathfinder"]}
+ for id in ["lyra","cassian","rhea","nell","silas","yuna","sera","ari","faye"]:
+  var promotion_recruit=app.game.roster.filter(func(value):return value.id==id)[0]
+  for promotion in fitted_promotions[promotion_recruit.job]:
+   var unit=promotion_recruit.duplicate(true);unit.team="player";unit.promotion=promotion;unit.item="longbow" if unit.weapon=="bow" else "estoc"
    var actor=app.make_fighter(unit,Vector3.ZERO)
-   assert(actor is Imported and actor.get_meta("promotion_look")==promotion,"Packaged revised sword-class promotions retain their costumes")
+   assert(actor is Imported and actor.get_meta("promotion_look")==promotion,"Packaged fitted promotions retain their costumes")
    var outfit=actor.model.get_node("Identity").promotion
-   assert(outfit.panels.size()==(2 if promotion in ["standard_bearer","oathkeeper"] else 4))
+   var look=load("res://scripts/promotion_costume.gd").looks[promotion]
+   assert(outfit.panels.size()==((2 if look.has("tabard") else 0)+(4 if look.has("sash") else 0)))
    for panel in outfit.panels:assert(panel.skin.get_bind_count()==5 and panel.material_override.next_pass!=null)
-   var target=Vector3(0,1.85,-1.4);actor.aim_at(target)
+   var target=Vector3(0,1.85,-4 if unit.weapon=="bow" else -1.4);actor.aim_at(target)
    await actor.pose("windup",.02).finished;await actor.pose("strike",.02).finished
-   assert(actor.sockets.trail_tip.global_position.distance_to(target)<.006)
+   if unit.weapon=="bow":
+    var bow=actor.model.get_node("Rig/Armature/Skeleton3D/WeaponHand/Bow");assert(bow.projectile_spent and not bow.get_node("Weapon/NockedArrow").visible)
+   else:assert(actor.sockets.trail_tip.global_position.distance_to(target)<.006)
    actor.queue_free();await process_frame
  var commander_rules=load("res://scripts/rules.gd").new()
  for chapter in range(12):

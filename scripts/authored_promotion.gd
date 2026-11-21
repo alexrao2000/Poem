@@ -1,5 +1,5 @@
 extends Node
-# Fit the existing sword-class promotion patterns to source-body rest joints.
+# Fit the existing promotion patterns to source-body rest joints.
 # Lower panels use a private subdivided skin so tabards and sashes follow the
 # hips and legs. Upper cloth and segmented plates keep separate bone anchors.
 const Costume=preload("res://scripts/promotion_costume.gd")
@@ -21,7 +21,8 @@ func configure(body: Node3D,rig: Skeleton3D,painter,unit: Dictionary,appearance:
  var neck=rig.get_bone_global_rest(rig.find_bone("neck_01")).origin
  var shoulder=rig.get_bone_global_rest(rig.find_bone("upperarm_l")).origin
  var width=(absf(shoulder.x)+.04)/.28;var depth=1.2 if shoulder.x>.17 else 1.0
- var torso=attachment(rig,"spine_03","PromotionChest",Transform3D(Basis(Vector3.UP,PI).scaled(Vector3(width,1,depth)),neck+Vector3(0,-.47,0)))
+ var torso_rest=Transform3D(Basis(Vector3.UP,PI).scaled(Vector3(width,1,depth)),neck+Vector3(0,-.47,0))
+ var torso=attachment(rig,"spine_03","PromotionChest",torso_rest)
  var proxy=PatternBones.new()
  for side in [-1,1]:
   var suffix="l" if side<0 else "r"
@@ -31,11 +32,17 @@ func configure(body: Node3D,rig: Skeleton3D,painter,unit: Dictionary,appearance:
  var cloth=Color(appearance.cloth);var cape=Color(appearance.cape);var steel=Color(appearance.get("steel","a8b3bb"));var gold=Color(appearance.get("metal","bca26b"))
  Costume.build(painter,proxy,unit,torso,cloth,cape,steel,gold,Color("554337"))
  var group=torso.get_node("PromotionCostume");var converted={}
+ if Costume.looks[id].get("satchel",false):
+  var belt_rest=torso_rest;belt_rest.origin.y+=.025
+  var hip=attachment(rig,"pelvis","PromotionHip",belt_rest)
+  # A belt pouch follows the pelvis during a forward fall; it stays rigid.
+  for mesh in group.find_children("*","MeshInstance3D",true,false):
+   if mesh.mesh is PrimitiveMesh and mesh.position.y<0:mesh.reparent(hip,false)
  for anchor in anchors:anchor.on_skeleton_update()
  for anchor in anchors:
   for mesh in anchor.find_children("*","MeshInstance3D",true,false):
    var raw=mesh.get_active_material(0);var color=raw.albedo_color;var lower=group.is_ancestor_of(mesh) and mesh.mesh.get_aabb().end.y<-.07
-   var cloth_part=group.is_ancestor_of(mesh)
+   var cloth_part=group.is_ancestor_of(mesh) and mesh.mesh is ArrayMesh
    var key=str(color)+":"+str(cloth_part)
    if not converted.has(key):
     var metal=color.is_equal_approx(steel) or color.is_equal_approx(gold)
