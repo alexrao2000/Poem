@@ -12,7 +12,11 @@ func press_key(key,echo=false):
 func run():
  var game=Rules.new();game.start_battle();var session=Session.new();var original=game.save_data("battle").duplicate(true)
  assert(session.start_encounter(game,"sword").is_empty() and game.save_data("battle")==original)
+ assert(not session.set_revised_models(true) and session.model_choice()=="current")
  session.begin(game,"battle",true)
+ assert(session.model_choice()=="revised" and session.set_revised_models(false) and session.model_choice()=="current")
+ assert(session.set_revised_warden(true) and session.model_choice()=="mixed")
+ assert(session.set_revised_models(true) and session.MODEL_FLAGS.all(func(field):return session.get(field)))
  assert(session.start_encounter(game,"unknown").is_empty() and game.save_data("battle")==original)
  for seed_value in [472019,17,309]:
   session.set_combat_seed(game,seed_value)
@@ -48,8 +52,23 @@ func verify_controls():
  app.show_debug_tools("camp")
  app.ui.find_children("*","Button",true,false).filter(func(button):return button.text=="Stage a combat encounter")[0].pressed.emit()
  var before=app.game.save_data("camp").duplicate(true)
+ var before_models_trace=app.debug_session.trace.report();var before_models_exists=FileAccess.file_exists(app.save_path+".debug");var before_models_file=FileAccess.get_file_as_string(app.save_path+".debug")
+ assert(app.ui.find_child("EncounterModels_revised",true,false).button_pressed)
+ app.debug_session.set_revised_rider(false);app.show_debug_encounters()
+ assert(app.ui.find_child("EncounterModelStatus",true,false).text=="Models: mixed class choices")
+ assert(not app.ui.find_child("EncounterModels_current",true,false).button_pressed and not app.ui.find_child("EncounterModels_revised",true,false).button_pressed)
+ for choice in ["current","revised","revised"]:
+  app.ui.find_child("EncounterModels_"+choice,true,false).pressed.emit()
+  assert(app.debug_session.model_choice()==choice and app.ui.find_child("EncounterModels_"+choice,true,false).button_pressed)
+  assert(app.selected_model_builders().is_empty()==(choice=="current"),"The scene chooser changes the actual builder selection for every ally and enemy class")
+  assert(app.game.save_data("camp")==before and app.preferences.values==preferences and app.debug_session.trace.report()==before_models_trace and FileAccess.get_file_as_string(app.save_path+".debug")==before_models_file and FileAccess.get_file_as_string(app.save_path)==disk,"Model comparison changes no campaign, RNG, device preference, trace or save file")
+  assert(FileAccess.file_exists(app.save_path+".debug")==before_models_exists)
  for dimensions in [Vector2(1024,640),Vector2(1280,720),Vector2(1440,900)]:
   app.ui.set_anchors_and_offsets_preset(Control.PRESET_TOP_LEFT);app.ui.size=dimensions;await process_frame;await process_frame
+  var current=app.ui.find_child("EncounterModels_current",true,false);var revised=app.ui.find_child("EncounterModels_revised",true,false)
+  var model_scroll=current.get_parent().get_parent().get_parent();model_scroll.ensure_control_visible(current);await process_frame;await process_frame
+  for button in [current,revised]:assert(model_scroll.get_global_rect().grow(1).encloses(button.get_global_rect()) and button.size.x>=button.get_minimum_size().x and button.size.y>=36)
+  assert(not current.get_global_rect().intersects(revised.get_global_rect()))
   for scene in Encounters.SCENES:
    var button=app.ui.find_child("StageEncounter_"+scene.id,true,false);var scroll=button.get_parent().get_parent()
    scroll.ensure_control_visible(button);await process_frame;await process_frame

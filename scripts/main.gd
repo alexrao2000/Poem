@@ -2141,6 +2141,18 @@ func show_debug_encounters(return_to="debug_tools"):
 	label_in(panel,"Each starter replaces the temporary debug campaign with a fresh company and a ready attack or healing action. Your original campaign stays preserved. Allies use normal level growth and the selected seed: %d."%debug_session.combat_seed,19)
 	label_in(panel,"For attacks, press Enter to preview the matchup, then Enter again to confirm. Healing takes one Enter press. Combat outcomes follow the ordinary rules; no hits or criticals are forced. Model and combat-display settings stay as you chose them.",17)
 	if preferences.values.combat=="map":label_in(panel,"Quick map battles is active. Choose All 3D battles in Options → Presentation to see the full scene.",17,GOLD).name="EncounterMapMode"
+	var model_status=label_in(panel,"",19,GOLD);model_status.name="EncounterModelStatus"
+	label_in(panel,"Choose a whole model set for this Debug sandbox. Individual class switches remain in Debug tools; your campaign preference stays unchanged.",16)
+	var model_row=HBoxContainer.new();model_row.add_theme_constant_override("separation",12);panel.add_child(model_row)
+	var model_buttons={}
+	var refresh_models=func():
+		var choice=debug_session.model_choice()
+		model_status.text={"current":"Models: current roster","revised":"Models: revised preview","mixed":"Models: mixed class choices"}[choice]
+		for key in model_buttons:model_buttons[key].set_pressed_no_signal(key==choice)
+	for choice in ["current","revised"]:
+		var pick=button_in(model_row,"Current roster" if choice=="current" else "Revised models · preview",func():debug_session.set_revised_models(choice=="revised");refresh_models.call())
+		pick.name="EncounterModels_"+choice;pick.toggle_mode=true;pick.size_flags_horizontal=Control.SIZE_EXPAND_FILL;model_buttons[choice]=pick
+	refresh_models.call()
 	for scene in preload("res://scripts/debug_encounters.gd").SCENES:
 		button_in(panel,"Stage · "+scene.title,func():
 			var setup=debug_session.start_encounter(game,scene.id)

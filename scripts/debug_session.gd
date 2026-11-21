@@ -1,6 +1,7 @@
 extends RefCounted
 # Debug experiments use a separate save slot. Leaving restores the exact live
 # campaign snapshot, including unsaved progress, rule toggles and RNG state.
+const MODEL_FLAGS=["revised_vanguard","revised_duelists","revised_caster","revised_warden","revised_corsair","revised_ranger","revised_knight","revised_rider","revised_enemies"]
 
 var combat_seed=472019
 var active=false
@@ -19,7 +20,8 @@ var trace=preload("res://scripts/debug_trace.gd").new()
 
 func begin(game,screen: String,revised_models=false):
  if active:return
- return_screen=screen;combat_seed=472019;revised_duelists=revised_models;revised_caster=revised_models;revised_vanguard=revised_models;revised_warden=revised_models;revised_corsair=revised_models;revised_ranger=revised_models;revised_knight=revised_models;revised_rider=revised_models;revised_enemies=revised_models
+ return_screen=screen;combat_seed=472019
+ for field in MODEL_FLAGS:set(field,revised_models)
  checkpoint=game.save_data("battle" if screen=="battle" else "camp").duplicate(true)
  active=true
  trace.begin(game,"battle" if screen=="battle" else "camp")
@@ -28,12 +30,22 @@ func end(game) -> String:
  if not active:return return_screen
  if game.restore_save(checkpoint).is_empty():return return_screen
  game.roster=checkpoint.roster.duplicate(true);game.units=checkpoint.units.duplicate(true)
- active=false;revised_duelists=false;revised_caster=false;revised_vanguard=false;revised_warden=false;revised_corsair=false;revised_ranger=false;revised_knight=false;revised_rider=false;revised_enemies=false;checkpoint.clear()
+ active=false;checkpoint.clear()
+ for field in MODEL_FLAGS:set(field,false)
  trace.clear()
  return return_screen
 
 func observe(game,stage: String,reason: String,persistence: String):
  if active:trace.observe(game,stage,reason,persistence)
+
+func model_choice() -> String:
+ var enabled=MODEL_FLAGS.filter(func(field):return get(field)).size()
+ return "current" if enabled==0 else "revised" if enabled==MODEL_FLAGS.size() else "mixed"
+
+func set_revised_models(enabled: bool) -> bool:
+ if not active:return false
+ for field in MODEL_FLAGS:set(field,enabled)
+ return true
 
 func set_revised_duelists(enabled: bool) -> bool:
  if not active:return false

@@ -479,7 +479,13 @@ func run():
    var color=Color(profile.appearance.circlet)
    assert(actor.model.get_node("Identity").head.find_children("*","MeshInstance3D",true,false).any(func(mesh):return mesh.material_override is StandardMaterial3D and mesh.material_override.albedo_color==color),"Packaged commander retains its individual jewel")
   actor.queue_free();await process_frame
- app.debug_session.begin(app.game,"camp",true);app.options_return="camp";app.show_debug_tools("camp")
+ app.debug_session.begin(app.game,"camp",true);app.options_return="camp";app.show_debug_encounters()
+ var model_choice_state=app.game.save_data("camp").duplicate(true)
+ app.ui.find_child("EncounterModels_current",true,false).pressed.emit()
+ assert(app.debug_session.model_choice()=="current" and app.selected_model_builders().is_empty())
+ app.ui.find_child("EncounterModels_revised",true,false).pressed.emit()
+ assert(app.debug_session.model_choice()=="revised" and app.selected_model_builders().size()==9 and app.game.save_data("camp")==model_choice_state,"Packed encounter model choices affect all nine Debug presentation groups without changing the campaign")
+ app.show_debug_tools("camp")
  app.ui.find_child("CommanderStudy",true,false).select(11);app.ui.find_child("ViewCommanderStudy",true,false).pressed.emit();await process_frame
  assert(app.preview_actor is Imported and app.preview_actor.get_meta("commander")=="vael","Packaged debug commander selector opens its own revised identity")
  app.close_model_view();app.show_source_model_view("female","estoc",true);await process_frame

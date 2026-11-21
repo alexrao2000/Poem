@@ -22,7 +22,7 @@ Each starter replaces the temporary Debug campaign. It uses fresh recruits, ordi
 
 While in a Debug battle, **M → Combat encounters** opens the same list directly. Escape or its Return button goes back to the battle menu without changing the current position. The shortcut shares a row with Options and is absent from ordinary campaigns.
 
-Model switches and combat-display preferences remain unchanged. Use the Debug character switches for revised models and **Options → Presentation → All 3D battles** for the full scene. Quick map mode stays available for comparison. The starters exercise the map zoom, chapter scenery, combat camera, health display, soundtrack transition and return through normal gameplay.
+The encounter list offers **Current roster** and **Revised models · preview** buttons for all ally and enemy classes in this Debug sandbox. Its status distinguishes current, revised and mixed class choices; individual switches remain in Debug tools. These choices do not write saves, alter campaign/RNG state or change the ordinary campaign’s device preference. Use **Options → Presentation → All 3D battles** for the full scene. Quick map mode stays available for comparison. The starters exercise the map zoom, chapter scenery, combat camera, health display, soundtrack transition and return through normal gameplay.
 
 ## Current rules
 
