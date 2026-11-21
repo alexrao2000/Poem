@@ -901,3 +901,11 @@ The palette works in linear light and branches on Godot’s documented [OUTPUT_I
 Revised spear users briefly draw their weapon upward and back, turning it closer to vertical before the existing victory hold. The same hand target applies to foot and mounted bodies; the rider retains its rein hand and seated legs. Melee and thrown-spear victories use the gesture. After a throw, the held spear becomes visible at the beginning of this finishing action, while ordinary throw recovery still keeps it hidden.
 
 The private 240 ms source interval is played by the existing 220 ms flourish. Its peak moves the wrist roughly 7.4 cm; a 0.14-radian turn keeps the gesture restrained. Dense motion, promotion, camera, actual victory/skip, preview and packaged-resource checks pass. The isolated software comparison shows the pose change without game textures, lighting, shadows or audio. Assembled rendering and timing remain unreviewed.
+
+## Arcanist finishing gesture
+
+Revised Arcanists briefly move the free casting arm outward and turn the wrist before returning to the held victory. The folio stays on its original support, and the body retains its idle motion. Tarin, Vela and Noor use the same gesture in both advanced outfits, including enemy Arcanist counter-victories. Staff users retain their existing recovery presentation.
+
+The private animation changes only the free upper-arm and wrist rotation tracks. Its 240 ms interval is played by the existing 220 ms flourish. Keeping the copied clip’s full source duration preserves untouched interpolation exactly; the selected interval controls the short playback. Godot documents the relationship between animation endpoints, key placement and interpolation in [Animation.length](https://docs.godotengine.org/en/4.5/classes/class_animation.html#class-animation-property-length).
+
+Dense motion, source preservation, camera bounds, actual victories/skips and preview replay pass. The isolated eight-pose software comparison was inspected without game materials, lighting, shadows or audio. Rendered appearance and timing remain unreviewed.

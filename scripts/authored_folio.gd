@@ -29,11 +29,13 @@ func configure_animations(player: AnimationPlayer) -> String:
  if result.error.is_empty():
   grip_rotations=result.rotations
   result.error=preload("res://scripts/spell_anticipation.gd").configure(player,rig)
-  if result.error.is_empty():preparation_length=player.get_animation("CriticalSpellEnter").length
+  if result.error.is_empty():
+   preparation_length=player.get_animation("CriticalSpellEnter").length
+   result.error=preload("res://scripts/spell_finish.gd").configure(player,rig)
  return result.error
 
 func additional_poses() -> Dictionary:
- return {"critical_windup":{"clip":"CriticalSpellEnter","from":0.0,"to":preparation_length},"critical_strike":{"clip":"CriticalSpellRelease","from":0.0,"to":.2}}
+ return {"victory_flourish":{"clip":"SpellFinish","from":0.0,"to":.24},"critical_windup":{"clip":"CriticalSpellEnter","from":0.0,"to":preparation_length},"critical_strike":{"clip":"CriticalSpellRelease","from":0.0,"to":.2}}
 
 func combat_pose(key: String):
  if key=="critical_windup":critical_prepared=true

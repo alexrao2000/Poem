@@ -375,6 +375,11 @@ func run():
     await actor.pose("strike",.02).finished
     assert(actor.player.assigned_animation=="CriticalSpellRelease" and actor.socket_position("projectile").distance_to(ordinary_palm)<.00001,"Packed critical cast returns to the ordinary launch point")
     await actor.pose("recover",.02).finished;assert(not promotion_folio.critical_prepared)
+    assert(actor.poses.has("victory_flourish") and actor.player.get_animation("SpellFinish").length==actor.player.get_animation("Idle").length)
+    await actor.finish_flourish(.02).finished
+    assert(actor.player.assigned_animation=="SpellFinish" and not promotion_folio.critical_prepared,"Packed promoted Arcanists retain their private free-hand finish")
+    await actor.pose("victory",.02).finished
+    assert(actor.player.assigned_animation=="Idle" and not promotion_folio.critical_prepared)
    elif unit.weapon in ["sword","lance"]:assert(actor.sockets.trail_tip.global_position.distance_to(target)<.006)
    else:
     var promotion_edge=actor.weapon_trail_points();assert(Geometry3D.get_closest_point_to_segment(target,promotion_edge[0],promotion_edge[1]).distance_to(target)<.006)
