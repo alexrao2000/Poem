@@ -18,15 +18,15 @@ func run():
    for item in (["ember","thunder"] if caster else ["recurve","longbow"] if ranger else ["light_lance","riders_bane"] if lance else ["hatchet","war_hammer"] if axe else ["iron_sword","estoc"]):
     app.show_source_model_view(study,item,styled);await process_frame;await process_frame
     var actor=app.preview_actor;var choice=app.ui.find_child("PreviewAction",true,false);var actions=app.stage.get_node("PreviewActionPlayer");var framing=app.stage.get_node("PreviewCamera")
-    assert(actor is Imported and index_for(choice,"critical_strike")>=0 and (index_for(choice,"victory_flourish")>=0)==(not lance and not caster),"Source and styled studies expose generated critical and finishing actions")
+    assert(actor is Imported and index_for(choice,"critical_strike")>=0 and (index_for(choice,"victory_flourish")>=0)==(not caster),"Source and styled studies expose generated critical and finishing actions")
     for size_value in [Vector2i(1024,640),Vector2i(1280,720),Vector2i(1440,900)]:
      root.size=size_value;app.ui.size=size_value;await process_frame;framing.reframe()
      for button in app.ui.find_children("*","Button",true,false):
       if button.is_visible_in_tree():assert(Rect2(Vector2.ZERO,Vector2(size_value)).grow(.1).encloses(button.get_global_rect()),"Expanded action list keeps its controls inside the viewport")
     var before=Vector3(framing.radius,framing.low,framing.high)
-    if not lance and not caster:
+    if not caster:
      choice.select(index_for(choice,"victory_flourish"));choice.item_selected.emit(choice.selected);await actions.finished
-     assert(actor.pose_name=="victory_flourish" and actor.player.assigned_animation==("BowFinish" if ranger else "AxeFinishFlourish" if axe else "SwordFinishFlourish"))
+     assert(actor.pose_name=="victory_flourish" and actor.player.assigned_animation==("LanceFinish" if lance else "BowFinish" if ranger else "AxeFinishFlourish" if axe else "SwordFinishFlourish"))
     assert(Vector3(framing.radius,framing.low,framing.high).is_equal_approx(before),"Flourish replay uses the premeasured silhouette without pumping the frame")
     choice.select(index_for(choice,"critical_strike"));choice.item_selected.emit(choice.selected);await actions.finished
     assert(actor.pose_name=="strike" and actor.player.assigned_animation==clip,"Critical attack preview plays preparation and the real contact clip")
@@ -61,10 +61,10 @@ func run():
  assert(app.preview_actor.pose_name=="strike" and ordinary_actions.pending.is_empty(),"Current roster replays its critical preparation and strike too")
  app.close_model_view();await process_frame
  app.preferences.values.character_models="revised"
- for id in ["lyra","mara","dax","hale","ivo","tarin","sera"]:
+ for id in ["lyra","mara","dax","hale","ivo","tarin","sera","petra","una"]:
   var unit=app.game.roster.filter(func(value):return value.id==id)[0];app.show_model_view(unit);await process_frame
   var choice=app.ui.find_child("PreviewAction",true,false)
-  assert((index_for(choice,"victory_flourish")>=0)==(id in ["lyra","mara","dax","hale","sera"]),"Ordinary previews omit finishing gestures unsupported by their actual actor")
+  assert((index_for(choice,"victory_flourish")>=0)==(id in ["lyra","mara","dax","hale","sera","petra","una"]),"Ordinary previews omit finishing gestures unsupported by their actual actor")
   app.close_model_view();await process_frame
  assert(not FileAccess.file_exists(app.save_path) and not FileAccess.file_exists(app.save_path+".debug"))
  await Shutdown.dispose(app);await process_frame

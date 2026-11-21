@@ -34,6 +34,11 @@ func target_pose() -> Transform3D:
  var shoulder=rig.get_bone_global_pose(chain[2]).origin
  var carry=shoulder+Vector3(-.02,-.28,.18)
  var up=Vector3(0,.72,.69).normalized();var carry_basis=Basis(Vector3.RIGHT,up.cross(Vector3.RIGHT),up)
+ # Bring the spear slightly upright, then settle it back into the carry.
+ # The mounted subclass retains its independent rein hand and seated legs.
+ var finishing=smoothstep(0,1,lance.finish)
+ carry+=Vector3(0,.06,-.04)*finishing
+ carry_basis=Basis(Vector3.RIGHT,-.14*finishing)*carry_basis
  var destination=rig.to_local(aim_point) if has_aim else Vector3(0,1.1,2.1)
  var forward=(destination-(shoulder+Vector3(-.03,-.09,.34))).normalized()
  if absf(forward.dot(Vector3.UP))>.995:forward=Vector3.BACK

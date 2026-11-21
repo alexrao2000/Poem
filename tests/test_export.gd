@@ -406,6 +406,12 @@ func run():
     await actor.pose("throw",.02).finished
     assert(not actor.projectile_source().visible and actor.projectile_source().global_transform.is_equal_approx(ordinary_launch),"Packed critical javelin returns to the ordinary release transform")
     assert(actor.model.get_node("Identity").gaze.modifier.active,"Packed critical throwing keeps its opponent gaze")
+    assert(actor.poses.has("victory_flourish"))
+    await actor.finish_flourish(.02).finished
+    var finish_grip=actor.model.get_node("Rig/Armature/Skeleton3D/WeaponHand/Grip")
+    assert(actor.player.assigned_animation=="LanceFinish" and actor.projectile_source().visible and not finish_grip.throwing and is_zero_approx(finish_grip.finish),"Packed promoted knights and riders settle the spear after its recovery")
+    await actor.pose("victory",.02).finished
+    assert(is_zero_approx(finish_grip.finish) and actor.projectile_source().visible)
     await actor.pose("idle").finished
     assert(not actor.model.get_node("Rig/Armature/Skeleton3D/WeaponHand/Grip").critical_throw_prepared)
    if unit.weapon in ["axe","lance","magic","staff"]:

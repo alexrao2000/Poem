@@ -13,7 +13,7 @@ func run():
   unit.item=item;var actor=models.build(world,unit,Vector3(35,.65,0));assert(actor!=null and models.models.issues.is_empty());await process_frame;actor.set_process(false)
   var rig=actor.model.get_node("Rig/Armature/Skeleton3D");var hand=rig.get_node("WeaponHand");var grip=hand.get_node("Grip");var weapon=grip.get_node("Weapon");var arms=grip.arms;var fixed=grip.transform
   assert(arms.model==actor.model and arms.chain.size()==5 and actor.contact==null and grip.equipped==item)
-  assert(actor.player.get_animation_list().size()==18 and is_equal_approx(actor.player.get_animation("LanceIdle").length,2.5))
+  assert(actor.player.get_animation_list().size()==19 and is_equal_approx(actor.player.get_animation("LanceIdle").length,2.5))
   for key in ["idle","advance","windup","strike","recover","hit","evade","down","victory"]:
    var steps=513 if key=="down" else 17;var previous=[]
    for step in range(steps):

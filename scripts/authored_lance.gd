@@ -9,6 +9,7 @@ var recovering=false
 var throw_raise=0.0
 var throw_push=0.0
 var critical_throw_prepared=false
+var finish=0.0
 func equipment_kind() -> String:return "lance"
 func arm_driver() -> Script:return preload("res://scripts/lance_hold.gd")
 func fit_handle():
@@ -32,6 +33,13 @@ func configure_animations(player: AnimationPlayer) -> String:
    var track=animation.add_track(Animation.TYPE_VALUE);animation.track_set_path(track,NodePath("Armature/Skeleton3D/WeaponHand/Grip:"+pair[0]));animation.track_insert_key(track,0,float(pair[1]));animation.track_insert_key(track,1,float(pair[2]))
   if library.has_animation(setup[0]):library.remove_animation(setup[0])
   library.add_animation(setup[0],animation)
+ var finish_clip=player.get_animation("Idle").duplicate(true);finish_clip.length=.24
+ var finish_track=finish_clip.add_track(Animation.TYPE_VALUE)
+ finish_clip.track_set_path(finish_track,NodePath("Armature/Skeleton3D/WeaponHand/Grip:finish"))
+ finish_clip.track_set_interpolation_type(finish_track,Animation.INTERPOLATION_CUBIC)
+ for pair in [[0,0],[.05,.25],[.11,1],[.24,0]]:finish_clip.track_insert_key(finish_track,pair[0],float(pair[1]))
+ if library.has_animation("LanceFinish"):library.remove_animation("LanceFinish")
+ library.add_animation("LanceFinish",finish_clip)
  for setup in [["LanceThrowWindup",0,1,0,0],["LanceThrow",1,1,0,1],["LanceThrowRecover",1,0,1,0]]:
   var animation=player.get_animation("Idle").duplicate(true);animation.length=1
   for pair in [["throw_raise",setup[1],setup[2]],["throw_push",setup[3],setup[4]]]:
@@ -66,9 +74,10 @@ func configure_animations(player: AnimationPlayer) -> String:
  preload("res://scripts/authored_fall_fit.gd").reset_other_clips(player)
  return ""
 func additional_poses() -> Dictionary:
- return {"critical_windup":{"clip":"LanceWindup","from":0.0,"to":1.0},"critical_strike":{"clip":"LanceStrike","from":0.0,"to":1.0},"critical_throw_windup":{"clip":"LanceThrowWindup","from":0.0,"to":1.0},"critical_throw":{"clip":"LanceThrow","from":0.0,"to":1.0}}
+ return {"victory_flourish":{"clip":"LanceFinish","from":0.0,"to":.24},"critical_windup":{"clip":"LanceWindup","from":0.0,"to":1.0},"critical_strike":{"clip":"LanceStrike","from":0.0,"to":1.0},"critical_throw_windup":{"clip":"LanceThrowWindup","from":0.0,"to":1.0},"critical_throw":{"clip":"LanceThrow","from":0.0,"to":1.0}}
 
 func combat_pose(key: String):
+ if key!="victory_flourish":finish=0
  if key=="critical_throw":critical_throw_prepared=true;key="throw"
  if key=="critical_throw_windup":critical_throw_prepared=true
  elif key!="throw":critical_throw_prepared=false
@@ -80,7 +89,7 @@ func combat_pose(key: String):
  if key in ["throw_windup","critical_throw_windup"]:throw_raise=0;throw_push=0;get_node("Weapon").show()
  holding=key not in ["down","hit","critical_hit","evade"]
  if key not in ["windup","critical_windup","strike","recover"]:lift=0;thrust=0
- if key in ["idle","advance","windup","critical_windup","victory"]:get_node("Weapon").show()
+ if key in ["idle","advance","windup","critical_windup","victory_flourish","victory"]:get_node("Weapon").show()
 func aim_at(point: Vector3):
  if arms!=null and point.is_finite():arms.aim_point=point;arms.has_aim=true
 func release_projectile():get_node("Weapon").hide()

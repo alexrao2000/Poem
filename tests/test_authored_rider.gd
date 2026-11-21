@@ -21,7 +21,7 @@ func run():
  var models=load("res://scripts/debug_source_models.gd").new(["rider_"+gender]);var actor=models.build(world,unit,Vector3(35,.65,0));assert(actor!=null and models.models.issues.is_empty());await process_frame;actor.set_process(false)
  var rig=actor.model.get_node("Rig/Armature/Skeleton3D");var grip=rig.get_node("WeaponHand/Grip");var arms=grip.arms;var mount=actor.mount;mount.set_process(false)
  assert(actor.model.get_node("Identity").armor.anchors.size()==5 and not rig.has_node("KnightShield"))
- assert(actor.player.get_animation_list().size()==19 and arms.chain.size()==14)
+ assert(actor.player.get_animation_list().size()==20 and arms.chain.size()==14)
  var worst=0.0;var collisions={};var lowest=INF;var count=0;var all_geometry=Vertices.prepare(actor)
  var promotion_meshes=[];var costume=actor.model.get_node("Identity").promotion
  if not promotion_id.is_empty():

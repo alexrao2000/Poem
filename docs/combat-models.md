@@ -396,3 +396,9 @@ Revised Knights and Riders keep a separate critical throwing flag. Their existin
 ## Optional iris palettes
 
 The revised identity adapter passes an optional `appearance.iris_color` hexadecimal color to its private face-expression material. Only the measured cool iris source cells 0 and 6 support this mask. Missing/invalid values and other source cells retain the original painting. Lyra and Tarin are the initial bindings; promotions inherit the same identity field. The default procedural builder does not request the override. This adds no image resource or save field. The color-space and mask rationale is in [art direction](art-direction.md#portrait-matched-iris-palettes); assembled GPU review remains outstanding.
+
+## Revised lance finishing gesture
+
+`authored_lance.gd` supplies a private `LanceFinish` clip through `additional_poses()`. Its bounded `finish` channel changes only the fitted carry target in `lance_hold.gd`; attacks, reactions and travel reset the channel. The mounted subclass inherits the hand target while retaining its separate rein and leg constraints. The source/styled action viewers expose this clip automatically.
+
+All six lance recruits and their twelve promoted outfits share the gesture. Actual exchanges cover melee, critical throws, enemy counters, survival without a finish and cancellation in four phases. Dense fitting covers three spear shapes, both headings and all eighteen outfits, with 7,020 samples and a maximum sampled joint step of 0.0368 radians. Six framing suites include 1,944 finishing layouts across three sizes. Packed checks cover every promoted knight/rider. These checks and the isolated geometry study do not establish GPU rendering quality.
