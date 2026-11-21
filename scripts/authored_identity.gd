@@ -33,7 +33,7 @@ func configure_unit_identity(unit: Dictionary) -> String:
  var commander=preload("res://scripts/commanders.gd").profile(unit)
  if not commander.is_empty() and commander.job!=enemy_job:return "Commander appearance needs its matching enemy class"
  if not str(unit.get("promotion","")).is_empty():
-  var supported={"Vanguard":["standard_bearer","dawnblade"],"Duelist":["sword_dancer","oathkeeper"],"Ranger":["sharpshooter","pathfinder"]}
+  var supported={"Vanguard":["standard_bearer","dawnblade"],"Duelist":["sword_dancer","oathkeeper"],"Ranger":["sharpshooter","pathfinder"],"Corsair":["stormbreaker","trailguard"]}
   if unit.get("team","")!="player" or unit.promotion not in supported.get(unit.get("job",""),[]):return "Unsupported fitted promotion"
   promotion_unit=unit.duplicate(true)
  return configure_identity(str(unit.id),commander)
@@ -127,7 +127,12 @@ func configure_identity(id: String,commander: Dictionary={}) -> String:
 
 func configure_animations(player: AnimationPlayer) -> String:
  if get_parent().has_node("Mount"):return ""
- return preload("res://scripts/authored_fall_fit.gd").apply(player,"recruit:"+identity if enemy_job.is_empty() else "enemy:"+enemy_job)
+ var fitting=preload("res://scripts/authored_fall_fit.gd")
+ var key="recruit:"+identity if enemy_job.is_empty() else "enemy:"+enemy_job
+ if not promotion_unit.is_empty():
+  var promoted="promotion:"+identity+":"+str(promotion_unit.promotion)
+  if fitting.curves.has(promoted):key=promoted
+ return fitting.apply(player,key)
 
 static func reference_luma(mesh: Mesh,surface: int,texture: Texture2D,mode: int) -> float:
  var key=(mesh.resource_path if not mesh.resource_path.is_empty() else str(mesh.get_instance_id()))+":"+str(surface)+":"+texture.resource_path+":"+str(mode)

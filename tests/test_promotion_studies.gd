@@ -21,7 +21,7 @@ func watch(node):
   flights+=1;return
  if not node is Impact:return
  await process_frame
- var actors=node.get_parent().get_children().filter(func(child):return child is Imported and child.has_meta("promotion_look") and child.kind=="sword" and child.pose_name=="strike")
+ var actors=node.get_parent().get_children().filter(func(child):return child is Imported and child.has_meta("promotion_look") and child.kind in ["sword","axe"] and child.pose_name=="strike")
  if actors.is_empty():return
  var actor=actors[0];var edge=actor.weapon_trail_points()
  var gap=actor.sockets.trail_tip.global_position.distance_to(node.global_position) if actor.point_trail_width>0 else Geometry3D.get_closest_point_to_segment(node.global_position,edge[0],edge[1]).distance_to(node.global_position)

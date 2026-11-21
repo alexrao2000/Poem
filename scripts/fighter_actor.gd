@@ -245,6 +245,11 @@ func update_bow():
 func aim_at(point: Vector3):
  aim_target=point;has_aim_target=true
 
+func approach_spacing(item: String="") -> float:
+ # Leave room for the rigid hammer head at the closest shield contact.
+ if kind=="axe" and item=="war_hammer":return 1.33
+ return melee_spacing(kind)
+
 static func melee_spacing(weapon: String) -> float:
  return {"sword":1.4,"axe":1.3,"lance":2.1}.get(weapon,1.4)
 

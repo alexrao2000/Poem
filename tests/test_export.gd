@@ -125,7 +125,8 @@ func run():
  assert(Geometry3D.get_closest_point_to_segment(enemy_point,enemy_edge[0],enemy_edge[1]).distance_to(enemy_point)<.006)
  app.close_model_view();await process_frame
  var support_curves=JSON.parse_string(FileAccess.get_file_as_string("res://data/authored_fall_fit.json"))
- assert(support_curves.size()==28,"Packaged full-outfit support includes 21 recruits and seven infantry enemies")
+ assert(support_curves.size()==31,"Packaged full-outfit support includes 21 recruits, seven infantry enemies and three promoted outfits")
+ for support_key in ["promotion:dax:stormbreaker","promotion:dax:trailguard","promotion:hale:stormbreaker"]:assert(support_curves.has(support_key))
  var enemy_metadata=JSON.parse_string(FileAccess.get_file_as_string("res://data/model_studies.json"))
  for job in ["Vanguard","Knight","Corsair","Ranger","Arcanist","Warden","Rider"]:
   var key="enemy_"+job.to_lower();app.show_source_model_view(key,enemy_metadata[key].supported_items[0],true);await process_frame
@@ -289,22 +290,40 @@ func run():
   var rig=actor.model.get_node("Rig/Armature/Skeleton3D")
   assert(rig.get_bone_pose_position(rig.find_bone("root")).is_equal_approx(Vector3.ZERO),"Packaged standing pose clears fitted fall support")
   actor.queue_free();await process_frame
- var fitted_promotions={"Vanguard":["standard_bearer","dawnblade"],"Duelist":["sword_dancer","oathkeeper"],"Ranger":["sharpshooter","pathfinder"]}
- for id in ["lyra","cassian","rhea","nell","silas","yuna","sera","ari","faye"]:
+ app.stage.show() # Geometry sampling skips meshes hidden by the preceding debug report.
+ var fitted_promotions={"Vanguard":["standard_bearer","dawnblade"],"Duelist":["sword_dancer","oathkeeper"],"Ranger":["sharpshooter","pathfinder"],"Corsair":["stormbreaker","trailguard"]}
+ for id in ["lyra","cassian","rhea","nell","silas","yuna","sera","ari","faye","mara","dax","hale"]:
   var promotion_recruit=app.game.roster.filter(func(value):return value.id==id)[0]
   for promotion in fitted_promotions[promotion_recruit.job]:
-   var unit=promotion_recruit.duplicate(true);unit.team="player";unit.promotion=promotion;unit.item="longbow" if unit.weapon=="bow" else "estoc"
+   var unit=promotion_recruit.duplicate(true);unit.team="player";unit.promotion=promotion;unit.item="longbow" if unit.weapon=="bow" else "war_hammer" if unit.weapon=="axe" else "estoc"
    var actor=app.make_fighter(unit,Vector3.ZERO)
    assert(actor is Imported and actor.get_meta("promotion_look")==promotion,"Packaged fitted promotions retain their costumes")
    var outfit=actor.model.get_node("Identity").promotion
    var look=load("res://scripts/promotion_costume.gd").looks[promotion]
    assert(outfit.panels.size()==((2 if look.has("tabard") else 0)+(4 if look.has("sash") else 0)))
    for panel in outfit.panels:assert(panel.skin.get_bind_count()==5 and panel.material_override.next_pass!=null)
-   var target=Vector3(0,1.85,-4 if unit.weapon=="bow" else -1.4);actor.aim_at(target)
+   var promotion_spacing=4.0 if unit.weapon=="bow" else actor.approach_spacing(unit.item)
+   var target=Vector3(0,1.85,-promotion_spacing);actor.aim_at(target)
    await actor.pose("windup",.02).finished;await actor.pose("strike",.02).finished
    if unit.weapon=="bow":
     var bow=actor.model.get_node("Rig/Armature/Skeleton3D/WeaponHand/Bow");assert(bow.projectile_spent and not bow.get_node("Weapon/NockedArrow").visible)
-   else:assert(actor.sockets.trail_tip.global_position.distance_to(target)<.006)
+   elif unit.weapon=="sword":assert(actor.sockets.trail_tip.global_position.distance_to(target)<.006)
+   else:
+    var promotion_edge=actor.weapon_trail_points();assert(Geometry3D.get_closest_point_to_segment(target,promotion_edge[0],promotion_edge[1]).distance_to(target)<.006)
+   if unit.weapon=="axe":
+    var promotion_identity=actor.model.get_node("Identity")
+    actor.clear_aim();await actor.pose("down",.02).finished
+    promotion_identity.hair_motion.update(0,"down",2)
+    var promotion_cache=Vertices.prepare(actor).filter(func(entry):
+     var material=entry[0].get_active_material(0)
+     return not (material is ShaderMaterial and material.shader.resource_path.ends_with("character.gdshader") and material.get_shader_parameter("cloth_floor_enabled")))
+    assert(not promotion_cache.is_empty(),"Packed geometry fixture is visible to the CPU sampler")
+    var promotion_mapping=actor.poses.down
+    for fraction in [0.0,.39,.46,.52,.75,1.0]:
+     actor.player.stop();actor.player.play(promotion_mapping.clip,0);actor.player.seek(lerpf(promotion_mapping.from,promotion_mapping.to,fraction),true,true);actor.player.pause();actor.refresh_skeleton()
+     assert(Vertices.minimum(actor,promotion_cache)-actor.global_position.y>.01,"Packaged rigid Corsair plates retain their promotion-specific floor support")
+    await actor.pose("idle").finished
+    var promotion_rig=actor.model.get_node("Rig/Armature/Skeleton3D");assert(promotion_rig.get_bone_pose_position(promotion_rig.find_bone("root")).is_equal_approx(Vector3.ZERO))
    actor.queue_free();await process_frame
  var commander_rules=load("res://scripts/rules.gd").new()
  for chapter in range(12):
@@ -322,5 +341,5 @@ func run():
  assert(app.preview_actor is Imported and app.preview_actor.get_meta("commander")=="vael","Packaged debug commander selector opens its own revised identity")
  app.close_model_view();app.debug_session.end(app.game)
  await Shutdown.dispose(app);await process_frame
- print("PASS: exported catalog, all three act scores, chapter scenes, sixteen promotion costumes, licenses and credits")
+ print("PASS: exported catalog, all three act scores, chapter scenes, sixteen promotion patterns, twenty-four revised promotion outfits, licenses and credits")
  quit()

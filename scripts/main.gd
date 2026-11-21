@@ -1097,7 +1097,7 @@ func cinematic(a,b,events,initial_hp={}):
 		var direction=1.0 if who==actor else -1.0
 		var is_ranged=unit.weapon in ["bow","magic"] or (unit.weapon=="lance" and game.distance(a,b)>1)
 		if not is_ranged:
-			var distance_to_close=absf(whom.position.x-who.position.x)-Fighters.Actor.melee_spacing(unit.weapon)
+			var distance_to_close=absf(whom.position.x-who.position.x)-who.approach_spacing(unit.get("item",""))
 			if absf(distance_to_close)>.08:
 				who.pose("advance",.2)
 				var travel_duration=Fighters.Actor.approach_duration(distance_to_close)
@@ -1502,7 +1502,7 @@ func show_model_view(unit,on_close=Callable(),model_spec: Dictionary={}):
 	var action_player=preload("res://scripts/preview_action.gd").new();action_player.name="PreviewActionPlayer";stage.add_child(action_player);action_player.configure(preview_actor)
 	choice.item_selected.connect(func(index):action_player.play(str(choice.get_item_metadata(index))))
 	if not model_spec.is_empty() and (preview_actor.contact!=null or model_spec.get("aim_targets",false)):
-		var contact_target=preload("res://scripts/model_contact_target.gd").new();preview_actor.add_child(contact_target);contact_target.configure(preview_actor)
+		var contact_target=preload("res://scripts/model_contact_target.gd").new();preview_actor.add_child(contact_target);contact_target.configure(preview_actor,preview_unit.get("item",""))
 		var target_choice=OptionButton.new();target_choice.name="StudyTarget";target_choice.custom_minimum_size.y=42
 		for label in ["Target: none","Target: standing foe","Target: mounted foe"]:target_choice.add_item(label)
 		panel.add_child(target_choice)
@@ -1793,7 +1793,7 @@ func show_options(return_to: String):
 	for title in ["Current roster","Revised models · preview"]:model_mode.add_item(title)
 	model_mode.selected=["current","revised"].find(preferences.values.character_models);model_mode.disabled=debug_session.active;panel.add_child(model_mode)
 	model_mode.item_selected.connect(func(index):preferences.values.character_models=["current","revised"][index])
-	label_in(panel,"Revised models cover all 24 recruits, ordinary enemies, chapter commanders and sword and bow class promotions. Other promoted outfits and unknown equipment keep their current models. You can switch back at any time.",16)
+	label_in(panel,"Revised models cover all 24 recruits, ordinary enemies, chapter commanders and sword, axe and bow class promotions. Other promoted outfits and unknown equipment keep their current models. You can switch back at any time.",16)
 	if debug_session.active:label_in(panel,"Debug tools has separate model switches for this sandbox. Leave Debug mode to change campaign presentation.",16)
 	for key in ["music","effects"]:
 		var row=HBoxContainer.new();row.add_theme_constant_override("separation",20);panel.add_child(row)
@@ -1848,7 +1848,7 @@ func show_debug_tools(return_to: String):
 	label_in(panel,"Try Ivo, Esme and Galen’s revised models before promotion with Field, Mend or Beacon staves. Resets when Debug mode ends.",16)
 	var corsair=CheckButton.new();corsair.name="DebugCorsairModel";corsair.text="Revised Corsair models";corsair.button_pressed=debug_session.revised_corsair;panel.add_child(corsair)
 	corsair.toggled.connect(func(value):debug_session.set_revised_corsair(value))
-	label_in(panel,"Try Mara, Dax and Hale’s revised models before promotion with axes and hammers. Resets when Debug mode ends.",16)
+	label_in(panel,"Try Mara, Dax and Hale with axes and hammers, including Stormbreaker and Trailguard outfits. Resets when Debug mode ends.",16)
 	var studies=JSON.parse_string(FileAccess.get_file_as_string("res://data/model_studies.json"))
 	var ranger=CheckButton.new();ranger.name="DebugRangerModel";ranger.text="Revised Ranger models";ranger.button_pressed=debug_session.revised_ranger;panel.add_child(ranger)
 	ranger.toggled.connect(func(value):debug_session.set_revised_ranger(value))

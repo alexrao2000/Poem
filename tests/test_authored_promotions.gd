@@ -7,6 +7,7 @@ const Models=preload("res://scripts/combat_models.gd")
 const Rules=preload("res://scripts/rules.gd")
 var pairs=[["lyra","vanguard"],["cassian","vanguard_male"],["rhea","vanguard"]]
 var promotion_ids=["standard_bearer","dawnblade"]
+var fall_steps=129
 func _initialize():call_deferred("run")
 func sample(actor,key: String,fraction: float):
  for listener in actor.pose_listeners:listener.combat_pose(key)
@@ -41,9 +42,9 @@ func run():
     var material=entry[0].get_active_material(0)
     return not (material is ShaderMaterial and material.shader.resource_path.ends_with("character.gdshader") and material.get_shader_parameter("cloth_floor_enabled")))
    identity.set_process(false);identity.hair_motion.update(0,"down",2)
-   for step in range(129):
-    sample(actor,"down",step/128.0);var floor=Vertices.minimum(actor,cache)-actor.global_position.y;lowest=minf(lowest,floor)
-    assert(floor>.010,"Complete promoted outfit clears the floor without changing the existing source fall: %s %s %s"%[unit.id,promotion_id,floor]);falls+=1
+   for step in range(fall_steps):
+    sample(actor,"down",float(step)/(fall_steps-1));var floor=Vertices.minimum(actor,cache)-actor.global_position.y;lowest=minf(lowest,floor)
+    assert(floor>.010,"Complete promoted outfit clears the floor with its private support curve: %s %s %s"%[unit.id,promotion_id,floor]);falls+=1
    var resting=rig.get_bone_rest(rig.find_bone("root")).origin
    for key in ["idle","advance","windup","strike","recover","hit","evade","victory"]:
     for step in range(17):

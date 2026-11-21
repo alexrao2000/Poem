@@ -818,7 +818,9 @@
         "hand_r",
         "lowerarm_r",
         "upperarm_r"
-      ]
+      ],
+      "torso": "spine_03",
+      "follow_edge": true
     },
     "study_id": "corsair_female",
     "equipment": "Rig/Armature/Skeleton3D/WeaponHand/Grip",
@@ -848,6 +850,10 @@
     "study_title": "Corsair \u00b7 Mara",
     "campaign_characters": [
       "mara"
+    ],
+    "supported_promotions": [
+      "stormbreaker",
+      "trailguard"
     ]
   },
   "corsair_male": {
@@ -917,7 +923,9 @@
         "hand_r",
         "lowerarm_r",
         "upperarm_r"
-      ]
+      ],
+      "torso": "spine_03",
+      "follow_edge": true
     },
     "study_id": "corsair_male",
     "equipment": "Rig/Armature/Skeleton3D/WeaponHand/Grip",
@@ -948,6 +956,10 @@
     "campaign_characters": [
       "dax",
       "hale"
+    ],
+    "supported_promotions": [
+      "stormbreaker",
+      "trailguard"
     ]
   },
   "ranger_female": {
@@ -2178,7 +2190,9 @@
         "hand_r",
         "lowerarm_r",
         "upperarm_r"
-      ]
+      ],
+      "torso": "spine_03",
+      "follow_edge": true
     },
     "study_id": "enemy_corsair",
     "equipment": "Rig/Armature/Skeleton3D/WeaponHand/Grip",

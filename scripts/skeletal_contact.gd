@@ -8,6 +8,7 @@ var inner_endpoint=Vector3.ZERO
 var tip_endpoint=Vector3.ZERO
 var target=Vector3.ZERO
 var has_target=false
+var follow_edge=false
 var attachments=[]
 const LIMITS=[1.35,1.65,1.15,.2]
 
@@ -51,6 +52,11 @@ func solve() -> Array[Quaternion]:
  endpoint=inner_endpoint+edge*clampf((hand_target-inner_endpoint).dot(edge)/edge.length_squared(),0,1)
  seed_arm(destination,originals)
  for iteration in range(320 if chain.size()==4 else 100):
+  # Contact may move along the fixed cutting edge as the arm turns. Keeping
+  # the initial point can leave broad axe heads short of a reachable target.
+  if follow_edge:
+   hand_target=rig.get_bone_global_pose(chain[0]).affine_inverse()*destination
+   endpoint=inner_endpoint+edge*clampf((hand_target-inner_endpoint).dot(edge)/edge.length_squared(),0,1)
   var tip=rig.get_bone_global_pose(chain[0])*endpoint
   if tip.distance_squared_to(destination)<.000001:break
   for joint in range(chain.size()):

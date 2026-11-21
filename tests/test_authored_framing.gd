@@ -14,8 +14,8 @@ func run():
  for id in character_ids:
   for item in equipped_items:
    var unit=game.roster.filter(func(value):return value.id==id)[0].duplicate(true);unit.team=unit_team;unit.item=item;unit.promotion=promotion_id
-   var spacing=load("res://scripts/fighter_actor.gd").melee_spacing(unit.weapon)
    var actor=models.build(world,unit,Vector3(35,0,0));await process_frame;actor.set_process(false);actor.player.pause()
+   var spacing=actor.approach_spacing(unit.item)
    framing.configure(camera,[actor])
    var expected=framing.frame_for(actor.position,actor.position+Vector3(spacing,0,0),"windup",false)
    await framing.shot(actor.position,actor.position+Vector3(spacing,0,0),"windup",false,false,.01).finished

@@ -4,6 +4,7 @@ var actor: Node3D
 var parts=[]
 var selected=0
 var action="strike"
+var item=""
 
 func _init():
  name="StudyContactTarget"
@@ -14,14 +15,14 @@ func _init():
   var cross=MeshInstance3D.new();var box=BoxMesh.new();box.size=dimensions;cross.mesh=box;add_child(cross);parts.append(cross)
  for part in parts:part.material_override=material;part.cast_shadow=GeometryInstance3D.SHADOW_CASTING_SETTING_OFF;part.visible=false
 
-func configure(subject: Node3D):actor=subject
+func configure(subject: Node3D,equipped_item: String=""):actor=subject;item=equipped_item
 
 func set_action(key: String):
  action=key;choose(selected)
 
 func choose(index: int):
  selected=clampi(index,0,2)
- var distance=4.0 if action.begins_with("throw") else preload("res://scripts/fighter_actor.gd").melee_spacing(actor.kind)
+ var distance=4.0 if action.begins_with("throw") else actor.approach_spacing(item)
  position=Vector3(0,1.1 if selected==1 else 1.85,-distance)
  for part in parts:part.visible=selected>0
  if selected>0:actor.aim_at(global_position)

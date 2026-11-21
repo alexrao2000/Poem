@@ -12,7 +12,7 @@ func watch_contact(node):
  var attackers=node.get_parent().get_children().filter(func(child):return child is Fighters.Actor and child.pose_name=="strike")
  assert(attackers.size()==1,"Actual contact has one striking actor")
  var actor=attackers[0]
- assert(contact_on_weapon(actor,actor.aim_target),"Real slash meets the resolved target with its tip or the solid blade at close guard range")
+ assert(contact_on_weapon(actor,actor.aim_target),str(["Real slash meets target",contacts,actor.aim_target,actor.bones.Weapon.to_global(actor.trail_edge[1]),actor.position]))
  assert(contact_on_weapon(actor,node.global_position),"Contact effect remains on actual weapon geometry instead of a detached flash")
  contacts+=1
 
@@ -44,7 +44,7 @@ func run():
    for direction in [-1,1]:
     actor.rotation.y=-direction*PI/2
     for height in [1.1,1.85]:
-     var target=actor.position+Vector3(direction*Fighters.Actor.melee_spacing(unit.weapon),height,0);actor.aim_at(target)
+     var target=actor.position+Vector3(direction*actor.approach_spacing(item.id),height,0);actor.aim_at(target)
      for preparation in ["windup","critical_windup"]:
       actor.pose(preparation,1).custom_step(1)
       assert(actor.slash_weight==0,"Preparation retains its equipment-specific pose")
@@ -78,14 +78,14 @@ func run():
  app.game.start_battle();app.make_map();app.show_battle();app.busy=true
  app.stage.child_entered_tree.connect(watch_contact)
  var a=app.game.units[0];var b=app.game.living("enemy")[0];a.x=8;a.y=4;b.x=9;b.y=4
- for item in ["iron_sword","estoc","iron_axe"]:
-  a.weapon="axe" if item=="iron_axe" else "sword";a.item=item
+ for item in ["iron_sword","estoc","iron_axe","hatchet","war_hammer"]:
+  a.weapon="axe" if item in ["iron_axe","hatchet","war_hammer"] else "sword";a.item=item
   for blocked in [false,true]:
    b.job="Knight" if blocked else "Rider";b.weapon="lance"
    var saved=app.game.save_data("battle").duplicate(true);var rng=app.game.rng.state
    await app.cinematic(a,b,[{"actor":a.id,"target":b.id,"damage":0 if blocked else 1,"remaining":20 if blocked else 19,"hit":true,"crit":false}],{a.id:20,b.id:20})
    assert(app.game.save_data("battle")==saved and app.game.rng.state==rng,"Presentation preserves resolved HP, saves and RNG")
- assert(contacts==6,"Real sword, estoc and axe contacts cover mounted bodies and prepared shields")
+ assert(contacts==10,"Real swords, hatchets, axes and hammers cover mounted bodies and prepared shields at their actual approach distances")
  await Shutdown.dispose(app);await process_frame
- print("PASS: ",samples," equipped slash contacts against infantry/riders, both sides and preparations; non-stretched rig, stable constraints, grounded blades, recovery equipment-specific estoc thrusts and six real shield/mounted exchanges")
+ print("PASS: ",samples," equipped slash contacts against infantry/riders, both sides and preparations; non-stretched rig, stable constraints, grounded blades, recovery equipment-specific estoc thrusts and ten real shield/mounted exchanges")
  quit()
