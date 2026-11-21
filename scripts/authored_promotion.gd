@@ -1,5 +1,5 @@
 extends Node
-# Fit the existing Vanguard promotion patterns to source-body rest joints.
+# Fit the existing sword-class promotion patterns to source-body rest joints.
 # Lower panels use a private subdivided skin so tabards and sashes follow the
 # hips and legs. Upper cloth and segmented plates keep separate bone anchors.
 const Costume=preload("res://scripts/promotion_costume.gd")

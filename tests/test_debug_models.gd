@@ -52,7 +52,7 @@ func run():
   unit.item="estoc"
   var thrust=app.make_fighter(unit,Vector3.ZERO);assert(thrust is Imported and thrust.model.get_node("Rig/Armature/Skeleton3D/WeaponHand/Grip").handles_contact(),"The experiment retains the estoc's point-first motion");thrust.queue_free();await process_frame
   unit.item="iron_sword";unit.promotion=app.game.promotions.filter(func(value):return value.base==unit.job)[0].id
-  var promoted=app.make_fighter(unit,Vector3.ZERO);assert((promoted is Imported if unit.job=="Vanguard" else promoted is Actor) and promoted.get_meta("promotion_look")==unit.promotion,"Promotion costumes remain visible in the experiment");promoted.queue_free();await process_frame
+  var promoted=app.make_fighter(unit,Vector3.ZERO);assert((promoted is Imported if unit.job in ["Vanguard","Duelist"] else promoted is Actor) and promoted.get_meta("promotion_look")==unit.promotion,"Promotion costumes remain visible in the experiment");promoted.queue_free();await process_frame
   unit.promotion="";unit.team="enemy"
   var enemy=app.make_fighter(unit,Vector3.ZERO);assert(enemy is Actor,"Enemies cannot inherit a recruit's experimental identity");enemy.queue_free();await process_frame
  var other=app.game.roster.filter(func(value):return value.id not in character_ids)[0].duplicate(true);other.team="player"

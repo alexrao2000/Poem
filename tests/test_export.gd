@@ -289,13 +289,13 @@ func run():
   var rig=actor.model.get_node("Rig/Armature/Skeleton3D")
   assert(rig.get_bone_pose_position(rig.find_bone("root")).is_equal_approx(Vector3.ZERO),"Packaged standing pose clears fitted fall support")
   actor.queue_free();await process_frame
- for id in ["lyra","cassian","rhea"]:
-  for promotion in ["standard_bearer","dawnblade"]:
+ for id in ["lyra","cassian","rhea","nell","silas","yuna"]:
+  for promotion in (["standard_bearer","dawnblade"] if id in ["lyra","cassian","rhea"] else ["sword_dancer","oathkeeper"]):
    var unit=app.game.roster.filter(func(value):return value.id==id)[0].duplicate(true);unit.team="player";unit.promotion=promotion;unit.item="estoc"
    var actor=app.make_fighter(unit,Vector3.ZERO)
-   assert(actor is Imported and actor.get_meta("promotion_look")==promotion,"Packaged revised Vanguard promotions retain their costumes")
+   assert(actor is Imported and actor.get_meta("promotion_look")==promotion,"Packaged revised sword-class promotions retain their costumes")
    var outfit=actor.model.get_node("Identity").promotion
-   assert(outfit.panels.size()==(2 if promotion=="standard_bearer" else 4))
+   assert(outfit.panels.size()==(2 if promotion in ["standard_bearer","oathkeeper"] else 4))
    for panel in outfit.panels:assert(panel.skin.get_bind_count()==5 and panel.material_override.next_pass!=null)
    var target=Vector3(0,1.85,-1.4);actor.aim_at(target)
    await actor.pose("windup",.02).finished;await actor.pose("strike",.02).finished

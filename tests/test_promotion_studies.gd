@@ -4,6 +4,7 @@ const Imported=preload("res://scripts/imported_fighter.gd")
 const Impact=preload("res://scripts/combat_impact.gd")
 const Shutdown=preload("helpers/game_shutdown.gd")
 var character_ids=["lyra","rhea"]
+var promotion_ids=["standard_bearer","dawnblade"]
 var contacts=0
 func _initialize():call_deferred("run")
 func watch(node):
@@ -38,8 +39,8 @@ func run():
  var enemy=app.game.living("enemy").filter(func(unit):return not unit.get("boss",false))[0].duplicate(true);enemy.x=9;enemy.y=4;enemy.weapon="lance";enemy.item="iron_lance"
  for id in character_ids:
   var unit=app.game.roster.filter(func(value):return value.id==id)[0].duplicate(true);unit.team="player";unit.x=8;unit.y=4
-  for promotion in ["standard_bearer","dawnblade"]:
-   unit.promotion=promotion;enemy.job="Knight" if promotion=="standard_bearer" else "Rider"
+  for promotion in promotion_ids:
+   unit.promotion=promotion;enemy.job="Knight" if promotion==promotion_ids[0] else "Rider"
    for item in ["iron_sword","dueling_sword","tempered_sword","estoc"]:
     unit.item=item
     await app.cinematic(unit,enemy,[{"actor":unit.id,"target":enemy.id,"damage":0 if item=="iron_sword" else 2,"remaining":20 if item=="iron_sword" else 18,"hit":true,"crit":item in ["tempered_sword","estoc"]}],{unit.id:unit.hp,enemy.id:20})

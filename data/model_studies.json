@@ -99,7 +99,11 @@
       "nell",
       "yuna"
     ],
-    "aim_targets": true
+    "aim_targets": true,
+    "supported_promotions": [
+      "sword_dancer",
+      "oathkeeper"
+    ]
   },
   "male": {
     "scene": "res://assets/models/quaternius/study_male.tscn",
@@ -197,7 +201,11 @@
     "study_character": "silas",
     "study_label": "male duelist",
     "study_title": "Duelist \u00b7 Male",
-    "aim_targets": true
+    "aim_targets": true,
+    "supported_promotions": [
+      "sword_dancer",
+      "oathkeeper"
+    ]
   },
   "caster": {
     "scene": "res://assets/models/quaternius/study_caster_male.tscn",

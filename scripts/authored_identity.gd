@@ -33,7 +33,8 @@ func configure_unit_identity(unit: Dictionary) -> String:
  var commander=preload("res://scripts/commanders.gd").profile(unit)
  if not commander.is_empty() and commander.job!=enemy_job:return "Commander appearance needs its matching enemy class"
  if not str(unit.get("promotion","")).is_empty():
-  if unit.get("team","")!="player" or unit.get("job","")!="Vanguard" or unit.promotion not in ["standard_bearer","dawnblade"]:return "Unsupported fitted promotion"
+  var supported={"Vanguard":["standard_bearer","dawnblade"],"Duelist":["sword_dancer","oathkeeper"]}
+  if unit.get("team","")!="player" or unit.promotion not in supported.get(unit.get("job",""),[]):return "Unsupported fitted promotion"
   promotion_unit=unit.duplicate(true)
  return configure_identity(str(unit.id),commander)
 

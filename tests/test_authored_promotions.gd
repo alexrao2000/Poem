@@ -1,10 +1,12 @@
 extends SceneTree
-# Verify the fitted Vanguard patterns independently before campaign selection.
+# Verify fitted patterns independently before campaign selection.
 # Godot stores each skin weight as a truncated uint16; allow four quantization
 # steps after mesh commit (4.5.1 servers/rendering_server.cpp, ARRAY_WEIGHTS).
 const Vertices=preload("helpers/authored_vertices.gd")
 const Models=preload("res://scripts/combat_models.gd")
 const Rules=preload("res://scripts/rules.gd")
+var pairs=[["lyra","vanguard"],["cassian","vanguard_male"],["rhea","vanguard"]]
+var promotion_ids=["standard_bearer","dawnblade"]
 func _initialize():call_deferred("run")
 func sample(actor,key: String,fraction: float):
  for listener in actor.pose_listeners:listener.combat_pose(key)
@@ -13,15 +15,16 @@ func sample(actor,key: String,fraction: float):
 func run():
  var world=Node3D.new();root.add_child(world);var rules=Rules.new();var studies=JSON.parse_string(FileAccess.get_file_as_string("res://data/model_studies.json"))
  var count=0;var falls=0;var lowest=INF;var saved=rules.save_data("camp").duplicate(true);var rng=rules.rng.state
- for pair in [["lyra","vanguard"],["cassian","vanguard_male"],["rhea","vanguard"]]:
-  for promotion_id in ["standard_bearer","dawnblade"]:
+ for pair in pairs:
+  for promotion_id in promotion_ids:
    var unit=rules.roster.filter(func(value):return value.id==pair[0])[0].duplicate(true);unit.team="player";unit.promotion=promotion_id
    var spec=studies[pair[1]].duplicate(true);spec.appearance="Identity";var models=Models.new("");models.catalog={"characters":{unit.id:spec}}
    var actor=models.build(world,unit,Vector3(35,.65,0));assert(actor!=null and models.issues.is_empty());await process_frame;actor.set_process(false)
    var identity=actor.model.get_node("Identity");var costume=identity.promotion;var rig=actor.model.get_node("Rig/Armature/Skeleton3D")
    assert(identity.identity==unit.id and identity.mantle==null and costume.id==promotion_id and actor.model.get_meta("promotion_look")==promotion_id)
-   assert(costume.anchors.size()==5 and costume.panels.size()==(2 if promotion_id=="standard_bearer" else 4))
-   assert(costume.anchors[0].get_node("Pattern/PromotionCostume").get_meta("components").has("mantle"))
+   var look=load("res://scripts/promotion_costume.gd").looks[promotion_id]
+   assert(costume.anchors.size()==5 and costume.panels.size()==(2 if look.has("tabard") else 4))
+   assert(costume.anchors[0].get_node("Pattern/PromotionCostume").get_meta("components")==look.keys())
    for panel in costume.panels:
     var arrays=panel.mesh.surface_get_arrays(0);assert(arrays[Mesh.ARRAY_VERTEX].size()>50 and panel.skin.get_bind_count()==5 and panel.get_node(panel.skeleton)==rig)
     for vertex in range(arrays[Mesh.ARRAY_VERTEX].size()):
@@ -55,5 +58,5 @@ func run():
    defeat.queue_free();actor.queue_free();await process_frame
  assert(rules.save_data("camp")==saved and rules.rng.state==rng)
  world.queue_free();await process_frame
- print("PASS: six fitted Vanguard promotion outfits, subdivided normalized panel skins, ",falls," complete falling poses with floor ",lowest," m, ",count," standing/travel/action joint samples, reset root, relocated cloth floor, private outlines/fades and campaign/RNG isolation")
+ print("PASS: six fitted ",promotion_ids," outfits, subdivided normalized panel skins, ",falls," complete falling poses with floor ",lowest," m, ",count," standing/travel/action joint samples, reset root, relocated cloth floor, private outlines/fades and campaign/RNG isolation")
  quit()
