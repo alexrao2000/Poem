@@ -655,14 +655,19 @@ func run():
  var creation_save=load("res://scripts/rules.gd").new()
  assert(creation_save.load_game(app.save_path+".debug")=="battle" and campaign_settings.snapshot(creation_save).values().all(func(value):return value),"Packed first-deployment checkpoint keeps every selected campaign rule")
  var fallen_patient=app.game.units.filter(func(unit):return unit.id=="oren")[0];var falling_figure=app.unit_nodes[fallen_patient.id]
- fallen_patient.hp=0;app.game.DeathDoor.fall(app.game,fallen_patient);var wounded_seen=[false]
+ fallen_patient.hp=0;app.game.DeathDoor.fall(app.game,fallen_patient);var wounded_seen=[false];var map_contact_seen=[false]
  var watch_fall=func():
+  var contact=app.pieces.get_node_or_null("MapImpact")
+  if contact!=null:
+   assert(contact.burst!=null and contact.find_children("*","Label3D",true,false).is_empty())
+   assert(contact.find_children("*","MeshInstance3D",true,false).all(func(mesh):return mesh.cast_shadow==GeometryInstance3D.SHADOW_CASTING_SETTING_OFF and mesh.material_override.no_depth_test and mesh.material_override.render_priority==3))
+   map_contact_seen[0]=true
   if is_instance_valid(falling_figure) and not falling_figure.is_queued_for_deletion() and falling_figure.hp_ratio==0:
    assert(not falling_figure.departing and falling_figure.visible and falling_figure.downed and falling_figure.rescue_marker.get_meta("turns")==2,"Packed map contact retains the rescuable patient and countdown instead of fading")
    wounded_seen[0]=true
  process_frame.connect(watch_fall)
  await app.map_combat_feedback([{"actor":app.game.living("enemy")[0].id,"target":fallen_patient.id,"hit":true,"crit":false,"damage":1,"remaining":0}])
- process_frame.disconnect(watch_fall);assert(wounded_seen[0])
+ process_frame.disconnect(watch_fall);assert(wounded_seen[0] and map_contact_seen[0] and app.pieces.get_node_or_null("MapImpact")==null)
  var map_miss=load("res://scripts/map_projectile.gd").new();app.pieces.add_child(map_miss)
  var map_flight=map_miss.fly(Vector3.ZERO,Vector3(2,0,0),"bow","",{},true)
  assert(is_equal_approx(map_miss.body.scale.x,.55),"Packed map arrows retain the sprite scale")

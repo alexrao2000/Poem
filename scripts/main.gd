@@ -2409,6 +2409,10 @@ func map_combat_feedback(events: Array):
 		if flight!=null:await flight.finished
 		else:await get_tree().create_timer(.12).timeout
 		var wounded=event.hit and event.damage>0 and event.remaining<=0 and game.DeathDoor.downed(unit)
+		if victim!=null and event.hit:
+			var contact=preload("res://scripts/map_impact.gd").new();pieces.add_child(contact)
+			var spell=game.item_for(attackers[0]).id if not attackers.is_empty() and attackers[0].weapon=="magic" else ""
+			contact.contact(map_contact_point(victim),camera,event,spell)
 		if victim!=null:
 			if wounded:victim.fall_wounded(unit.bleed_turns)
 			else:victim.react(event.hit and event.damage>0,int(event.remaining))
