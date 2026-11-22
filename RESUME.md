@@ -6,6 +6,8 @@ Development resumed on “go”. Continue in this chat until the user asks to st
 
 ### Latest state
 
+Debug encounters now offer an explicit battlefield chooser across all twelve chapters. Recruit/equipment unlocks disable unavailable choices; incompatible loadout changes return to Suggested battlefield. The selected chapter uses its actual map, enemies, scenery and lighting, with the ordinary displayed growth level. Four affected suites pass, including 668 legal recruit/equipment/battlefield setups, three-size controls and twelve real current/revised attack/heal/Skip flows with exact original campaign/file restoration. Both local exports, packed battlefield controls, loader checks and ZIP integrity pass. Registry 368; the complete 361 baseline remains separate. Rendered appearance and actual browser behavior remain unreviewed.
+
 Held critical recoil now covers revised Knights and Riders as well, completing the model-study catalog. Their two 60-variant samplers pass 3,120 samples. Full lance/Skip/mounted-freeze checks and fitting regressions pass; both local exports, every packed promoted/commander reaction interval, loader checks and ZIP integrity pass. Registry 367; revised models remain optional.
 
 Held critical recoil now extends to revised Arcanists and Wardens. All 70 book/staff variants and 1,820 source samples pass. Actual staff damage, spell encounter/Skip and healing regression pass; both local exports, packaged intervals, loader checks and ZIP integrity pass. Registry 365; revised models remain optional.

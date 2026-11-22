@@ -30,6 +30,8 @@ func run():
   var staged_rules=load("res://scripts/rules.gd").new()
   assert(not encounters.start(staged_rules,scene.id,309).is_empty() and staged_rules.valid_save(staged_rules.save_data("battle")),"Packed encounter starters build complete valid playable positions")
  var roster_rules=load("res://scripts/rules.gd").new()
+ for chapter in 12:
+  assert(not encounters.start_recruit(roster_rules,"lyra","",309,"",chapter).is_empty() and roster_rules.chapter==chapter and roster_rules.valid_save(roster_rules.save_data("battle")),"Packed battlefield choices retain all twelve legal campaign maps")
  for recruit in roster_rules.content.roster:
   for training in [""]+roster_rules.promotion_options(recruit).map(func(path):return path.id):
    assert(not encounters.start_recruit(roster_rules,recruit.id,training,309).is_empty() and roster_rules.valid_save(roster_rules.save_data("battle")),"Packed full-roster encounters retain all 72 base and promoted positions")
@@ -579,7 +581,11 @@ func run():
  for index in equipment_choice.item_count:
   if equipment_choice.get_item_metadata(index)=="beacon_staff":equipment_choice.select(index);equipment_choice.item_selected.emit(index);break
  assert(equipment_choice.icon==app.WeaponIcons.get_item_icon("beacon_staff") and equipment_choice.get_popup().get_item_icon(equipment_choice.selected)==equipment_choice.icon,"Packed equipment picker retains matching selected and popup artwork")
+ var battlefield_choice=app.ui.find_child("EncounterBattlefield",true,false)
+ assert(battlefield_choice.item_count==13 and battlefield_choice.is_item_disabled(1) and not battlefield_choice.is_item_disabled(10))
+ battlefield_choice.select(10);battlefield_choice.item_selected.emit(10)
  app.ui.find_child("StageRecruitEncounter",true,false).pressed.emit();await process_frame;await process_frame
+ assert(app.game.chapter==9,"Packed battlefield selection reaches its chosen chapter through the actual setup control")
  assert(app.screen=="battle" and app.selected.id=="galen" and app.selected.promotion=="wayfarer" and app.game.can_heal(app.selected,app.game.at(app.cursor_tile)) and app.selected.item=="beacon_staff" and app.game.distance(app.selected,app.game.at(app.cursor_tile))==2,"Packed custom selector enters an actual promoted ranged healing encounter")
  app.game.death_door=true;app.preferences.values.combat="map";app.preferences.values.auto_end=false
  var packed_patient=app.game.at(app.cursor_tile);packed_patient.hp=0;app.game.DeathDoor.fall(app.game,packed_patient);app.refresh_pieces()

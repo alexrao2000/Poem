@@ -103,6 +103,7 @@ var encounter_return="debug_tools"
 var encounter_recruit="lyra"
 var encounter_training=""
 var encounter_item=""
+var encounter_chapter=-1
 var reward_panel: PanelContainer
 var reward_skip=false
 var transfer_text: TextEdit
@@ -2193,17 +2194,24 @@ func show_debug_encounters(return_to="debug_tools"):
 	var training_choice=OptionButton.new();training_choice.name="EncounterTraining";training_choice.custom_minimum_size.y=42;panel.add_child(training_choice)
 	var equipment_choice=OptionButton.new();equipment_choice.name="EncounterEquipment";equipment_choice.custom_minimum_size.y=42;panel.add_child(equipment_choice)
 	equipment_choice.add_theme_constant_override("icon_max_width",24);equipment_choice.get_popup().add_theme_constant_override("icon_max_width",24)
+	var battlefield_choice=OptionButton.new();battlefield_choice.name="EncounterBattlefield";battlefield_choice.custom_minimum_size.y=42;panel.add_child(battlefield_choice)
+	battlefield_choice.add_item("Suggested battlefield");battlefield_choice.set_item_metadata(0,-1)
+	for index in game.content.chapters.size():
+		battlefield_choice.add_item("Chapter %02d · %s"%[index+1,game.content.chapters[index].place]);battlefield_choice.set_item_metadata(index+1,index)
 	var encounter_detail=label_in(panel,"",17);encounter_detail.name="EncounterDetail"
 	var update_detail=func():
 		var recruit=game.content.roster.filter(func(unit):return unit.id==encounter_recruit)[0]
 		var scene=preload("res://scripts/debug_encounters.gd").scene_for_recruit(game.content.roster,encounter_recruit)
-		var chapter=maxi(scene.chapter,int(recruit.join))
+		var available=preload("res://scripts/debug_encounters.gd").available_chapters(game,encounter_recruit,encounter_item)
+		if encounter_chapter not in available:encounter_chapter=-1
+		battlefield_choice.select(encounter_chapter+1)
+		for index in game.content.chapters.size():battlefield_choice.set_item_disabled(index+1,index not in available)
+		var chapter=maxi(scene.chapter,available[0]) if encounter_chapter==-1 else encounter_chapter
 		var equipment_text="Uses the recruit’s normal equipment and growth."
 		if not encounter_item.is_empty():
 			var item=game.equipment.filter(func(entry):return entry.id==encounter_item)[0]
-			chapter=maxi(chapter,int(item.unlock))
-			equipment_text="%s · target %d tile%s away. Uses a chapter where this equipment is available, with normal growth."%[item.name,int(item.max_range),"" if item.max_range==1 else "s"]
-		encounter_detail.text="Chapter %02d · %s. %s Advanced paths train to at least level 10 before promotion."%[chapter+1,game.content.chapters[chapter].place,equipment_text]
+			equipment_text="%s · target %d tile%s away."%[item.name,int(item.max_range),"" if item.max_range==1 else "s"]
+		encounter_detail.text="Chapter %02d · %s. %s Allies train to at least level %d; advanced paths train to at least level 10 before promotion. Earlier battlefields are unavailable when the recruit or equipment has not arrived."%[chapter+1,game.content.chapters[chapter].place,equipment_text,maxi(3,chapter+1)]
 	var update_recruit=func():
 		var recruit=game.content.roster.filter(func(unit):return unit.id==encounter_recruit)[0]
 		training_choice.clear();training_choice.add_item("Base class · "+recruit.job);training_choice.set_item_metadata(0,"")
@@ -2220,9 +2228,10 @@ func show_debug_encounters(return_to="debug_tools"):
 	recruit_choice.item_selected.connect(func(index):encounter_recruit=recruit_choice.get_item_metadata(index);encounter_training="";encounter_item="";update_recruit.call())
 	training_choice.item_selected.connect(func(index):encounter_training=training_choice.get_item_metadata(index))
 	equipment_choice.item_selected.connect(func(index):encounter_item=equipment_choice.get_item_metadata(index);update_detail.call())
+	battlefield_choice.item_selected.connect(func(index):encounter_chapter=battlefield_choice.get_item_metadata(index);update_detail.call())
 	update_recruit.call()
 	button_in(panel,"Stage chosen recruit",func():
-		open_debug_encounter(debug_session.start_recruit_encounter(game,encounter_recruit,encounter_training,encounter_item),"encounter:recruit:"+encounter_recruit+":"+(encounter_training if not encounter_training.is_empty() else "base")+(":"+encounter_item if not encounter_item.is_empty() else ""))
+		open_debug_encounter(debug_session.start_recruit_encounter(game,encounter_recruit,encounter_training,encounter_item,encounter_chapter),"encounter:recruit:"+encounter_recruit+":"+(encounter_training if not encounter_training.is_empty() else "base")+(":"+encounter_item if not encounter_item.is_empty() else "")+(":chapter:"+str(encounter_chapter+1) if encounter_chapter>=0 else ""))
 	).name="StageRecruitEncounter"
 	label_in(panel,"Quick starters",24,GOLD)
 	for scene in preload("res://scripts/debug_encounters.gd").SCENES:

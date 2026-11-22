@@ -21,12 +21,22 @@ static func scene_for_recruit(roster: Array,recruit_id: String) -> Dictionary:
   if not template.is_empty() and template[0].job==recruits[0].job:return scene
  return {}
 
-static func start_recruit(game,recruit_id: String,promotion_id: String,seed_value: int,item_id="") -> Dictionary:
+static func available_chapters(game,recruit_id: String,item_id="") -> Array:
+ var recruits=game.content.roster.filter(func(unit):return unit.id==recruit_id)
+ if recruits.is_empty():return []
+ var first=int(recruits[0].join)
+ if not item_id.is_empty():
+  var items=game.equipment.filter(func(item):return item.id==item_id and item.kind==recruits[0].weapon)
+  if items.is_empty():return []
+  first=maxi(first,int(items[0].unlock))
+ return range(first,game.content.chapters.size())
+
+static func start_recruit(game,recruit_id: String,promotion_id: String,seed_value: int,item_id="",chapter=-1) -> Dictionary:
  var scene=scene_for_recruit(game.content.roster,recruit_id)
  if scene.is_empty():return {}
- return start(game,scene.id,seed_value,recruit_id,promotion_id,item_id)
+ return start(game,scene.id,seed_value,recruit_id,promotion_id,item_id,chapter)
 
-static func start(game,id: String,seed_value: int,recruit_id="",promotion_id="",item_id="") -> Dictionary:
+static func start(game,id: String,seed_value: int,recruit_id="",promotion_id="",item_id="",chapter=-1) -> Dictionary:
  var matches=SCENES.filter(func(scene):return scene.id==id)
  if matches.is_empty():return {}
  var scene=matches[0];var staged=Rules.new()
@@ -35,11 +45,9 @@ static func start(game,id: String,seed_value: int,recruit_id="",promotion_id="",
  if actors.is_empty() or scene_for_recruit(staged.roster,recruit_id).get("id","")!=scene.id:return {}
  var recruit=actors[0]
  if not promotion_id.is_empty() and not staged.promotion_options(recruit).any(func(path):return path.id==promotion_id):return {}
- staged.chapter=maxi(scene.chapter,int(recruit.join))
- if not item_id.is_empty():
-  var items=staged.equipment.filter(func(item):return item.id==item_id and item.kind==recruit.weapon)
-  if items.is_empty():return {}
-  staged.chapter=maxi(staged.chapter,int(items[0].unlock))
+ var chapters=available_chapters(staged,recruit_id,item_id)
+ if chapters.is_empty() or chapter<-1 or (chapter!=-1 and chapter not in chapters):return {}
+ staged.chapter=maxi(scene.chapter,chapters[0]) if chapter==-1 else chapter
  staged.action_saves=true;staged.story_seen=["opening_"+str(staged.chapter)]
  staged.rng.seed=seed_value
  for unit in staged.available():

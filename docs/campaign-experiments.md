@@ -30,6 +30,8 @@ The encounter list offers **Current roster** and **Revised models · preview** b
 
 The full-company chooser also offers equipment choices for every compatible item, alongside normal equipment. Explicit choices place the target at the item’s maximum range: throwing spears at two tiles, Watchtower bows at three, and Beacon staves at two. The starter uses a chapter where both recruit and equipment are available, then equips the item through the ordinary rules. Its detail text shows the resulting chapter and distance before starting. Recruitment, promotion and equipment choices remain selected when returning to the chooser; changing recruit resets training and equipment. The original eight quick starters retain their normal equipment and placement.
 
+Choose a battlefield to use that chapter’s tactical map, enemies, lighting and close-up scenery. All twelve chapters are listed; those before the recruit or equipment unlock are disabled. **Suggested battlefield** uses the original starter location, adjusted for unlocks. A selected chapter stays selected across model comparisons and compatible loadout changes. An incompatible recruit or item returns it to Suggested battlefield. The details show the training level before staging: chapter changes can alter stats and combat odds, so use the same chapter and seed when comparing models. Browsing the selector does not write a save or change the campaign; staging records the chosen chapter in Debug’s action history.
+
 ## Current rules
 
 | Switch | Behavior |
