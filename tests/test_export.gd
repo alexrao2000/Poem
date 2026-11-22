@@ -563,6 +563,7 @@ func run():
  await app.cinematic(stage_a,stage_b,[{"actor":stage_a.id,"target":stage_b.id,"damage":1,"remaining":19,"hit":true,"crit":false}],{stage_a.id:20,stage_b.id:20})
  assert(not app.stage.visible and app.stage.process_mode==Node.PROCESS_MODE_DISABLED,"Packaged combat suspends its hidden arena after returning to the map")
  var hidden_actors=app.stage.get_children().filter(func(node):return node is Imported)
+ assert(hidden_actors[0].poses.critical_hit.to==.1 and hidden_actors[0].poses.hit.to>.3,"Packaged revised swords retain distinct held-critical and ordinary reaction intervals")
  assert(hidden_actors.size()==2 and hidden_actors.all(func(actor):return not actor.player.can_process()),"Packaged hidden animations inherit the stage suspension")
  app.show_model_view(stage_a);await app.preview_actor.pose("windup",.02).finished
  assert(app.preview_actor.player.can_process(),"Packaged outfit preview resumes animation after a suspended battle")

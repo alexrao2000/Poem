@@ -51,6 +51,11 @@
         "clip": "Idle",
         "from": 0,
         "to": 0.2
+      },
+      "critical_hit": {
+        "clip": "Hit_Chest",
+        "from": 0.0,
+        "to": 0.1
       }
     },
     "sockets": {
@@ -157,6 +162,11 @@
         "clip": "Idle",
         "from": 0,
         "to": 0.2
+      },
+      "critical_hit": {
+        "clip": "Hit_Chest",
+        "from": 0.0,
+        "to": 0.1
       }
     },
     "sockets": {
@@ -427,6 +437,11 @@
         "clip": "Idle",
         "from": 0,
         "to": 0.2
+      },
+      "critical_hit": {
+        "clip": "Hit_Chest",
+        "from": 0.0,
+        "to": 0.1
       }
     },
     "sockets": {
@@ -533,6 +548,11 @@
         "clip": "Idle",
         "from": 0,
         "to": 0.2
+      },
+      "critical_hit": {
+        "clip": "Hit_Chest",
+        "from": 0.0,
+        "to": 0.1
       }
     },
     "sockets": {
@@ -1592,6 +1612,11 @@
         "clip": "Idle",
         "from": 0,
         "to": 0.2
+      },
+      "critical_hit": {
+        "clip": "Hit_Chest",
+        "from": 0.0,
+        "to": 0.1
       }
     },
     "sockets": {
@@ -1691,6 +1716,11 @@
         "clip": "Idle",
         "from": 0,
         "to": 0.2
+      },
+      "critical_hit": {
+        "clip": "Hit_Chest",
+        "from": 0.0,
+        "to": 0.1
       }
     },
     "sockets": {
