@@ -25,6 +25,12 @@ func run():
   formation_rules.trials.flags.hard_campaign=false;formation_rules.start_battle()
   assert(formation_rules.living("enemy").size()==count,"Packed ordinary garrisons retain their original size")
  var encounters=load("res://scripts/debug_encounters.gd")
+ var mechanism=load("res://scripts/clockwork_orbit.gd").new();root.add_child(mechanism);mechanism.configure("engine",1.875,1.2);mechanism.set_process(false);await process_frame
+ assert(mechanism.find_children("*","MeshInstance3D",true,false).size()==4,"Packed mechanisms retain their four locally batched meshes")
+ var initial_ring=mechanism.outer.transform;mechanism._process(.5)
+ assert(mechanism.outer.transform!=initial_ring and mechanism.core.scale.x>1,"Packed ring motion and restrained core pulse advance")
+ mechanism.hide();var held_clock=mechanism.elapsed;mechanism._process(1);assert(mechanism.elapsed==held_clock)
+ mechanism.queue_free();await process_frame
  assert(encounters.SCENES.size()==8)
  for scene in encounters.SCENES:
   var staged_rules=load("res://scripts/rules.gd").new()

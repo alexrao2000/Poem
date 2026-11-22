@@ -260,12 +260,7 @@ func landmark(parent,p,kind,roof_variant=-1):
   cylinder(parent,p+Vector3(1,.06,0),.1,.3,Color("6a5c4b"))
  elif kind in ["engine","observatory"]:
   cylinder(parent,p+Vector3(0,.2,0),.4,1.3,stone)
-  var ring=TorusMesh.new();ring.inner_radius=1.05;ring.outer_radius=1.15
-  var orbit=mesh(parent,ring,p+Vector3(0,1.5,0),Vector3.ONE,material(gold));orbit.rotation.x=PI/2;orbit.rotation.y=.3
-  var globe=SphereMesh.new();globe.radius=.55;globe.height=1.1
-  var core=material(Color("f8cd7e") if kind=="engine" else Color("5b859c")).duplicate()
-  if kind=="engine":core.shading_mode=BaseMaterial3D.SHADING_MODE_UNSHADED
-  mesh(parent,globe,p+Vector3(0,1.5,0),Vector3.ONE,core)
+  var orbit=preload("res://scripts/clockwork_orbit.gd").new();parent.add_child(orbit);orbit.position=p+Vector3(0,1.5,0);orbit.configure(kind)
  elif kind=="furnace":
   cylinder(parent,p+Vector3(0,1,0),2,.65,Color("595b5b"))
   for y in [.5,1.3]:cylinder(parent,p+Vector3(0,y,0),.12,.72,gold)
@@ -337,9 +332,7 @@ func battle_landscape(parent,center,context={}):
   if theme=="castle":
    Fortification.build_castle_wall(self,parent,center+Vector3(0,0,-9))
   elif theme=="observatory":
-   var ring=TorusMesh.new();ring.inner_radius=1.5;ring.outer_radius=1.58
-   var orbit=mesh(parent,ring,center+Vector3(0,2.6,-10),Vector3.ONE,material(Color("b9a46f")))
-   orbit.rotation.z=.7
+   var orbit=preload("res://scripts/clockwork_orbit.gd").new();parent.add_child(orbit);orbit.position=center+Vector3(0,2.6,-10);orbit.configure(theme,1.54,.55)
  if theme in ["mountain","road","forest","river","village"]:
   preload("res://scripts/arena_ridges.gd").build(parent,center,theme=="mountain")
   if theme=="mountain":
@@ -352,12 +345,7 @@ func battle_landscape(parent,center,context={}):
    var core=SphereMesh.new();core.radius=.24;core.height=.48
    mesh(parent,core,center+Vector3(x,2.5,-6.6),Vector3.ONE,core_material)
   if theme=="engine":
-   var ring=TorusMesh.new();ring.inner_radius=1.75;ring.outer_radius=2
-   var outer=mesh(parent,ring,center+Vector3(0,4,-12),Vector3.ONE,material(Color("c6ad71")))
-   outer.rotation.x=PI/2
-   var shape=SphereMesh.new();shape.radius=1.2;shape.height=2.4
-   var glow=material(Color("ffe3a0")).duplicate();glow.shading_mode=BaseMaterial3D.SHADING_MODE_UNSHADED
-   mesh(parent,shape,center+Vector3(0,4,-12),Vector3.ONE,glow)
+   var orbit=preload("res://scripts/clockwork_orbit.gd").new();parent.add_child(orbit);orbit.position=center+Vector3(0,4,-12);orbit.configure(theme,1.875,1.2)
  ground_cover.add_arena(parent,center,context)
  if batching_enabled:batcher.combine(parent)
  var atmosphere=AmbientDrift.new();parent.add_child(atmosphere);atmosphere.position=center+Vector3(0,0,-3)
