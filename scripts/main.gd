@@ -478,7 +478,9 @@ func show_camp():
 	label_in(briefing,"Select up to six allies. Open a portrait to inspect equipment and support conversations. Wardens heal within staff range; field tonics restore 12 HP. Cards show starting health and supplies.",16,Color("766e5e"))
 	label_in(left,"OBJECTIVE  /  "+objective_text(),18,GOLD)
 	label_in(left,"%s  ·  Available %d  ·  Deployed %d / 6"%["Permadeath ON" if game.permadeath else "Permadeath OFF",game.available().size(),game.deployed.size()],18)
-	button_in(left,"Deploy company  >",deploy_company,game.deployed.is_empty())
+	var deployment_row=HBoxContainer.new();deployment_row.add_theme_constant_override("separation",8);left.add_child(deployment_row)
+	button_in(deployment_row,"Deploy company  >",deploy_company,game.deployed.is_empty()).size_flags_horizontal=Control.SIZE_EXPAND_FILL
+	button_in(deployment_row,"Positions",show_formation,game.deployed.is_empty()).name="OpenFormation"
 	var tools_row=HBoxContainer.new();tools_row.add_theme_constant_override("separation",8);left.add_child(tools_row)
 	button_in(tools_row,"Save campaign",func():save_with_feedback("camp")).size_flags_horizontal=Control.SIZE_EXPAND_FILL
 	button_in(tools_row,"Options",func():show_options("camp")).size_flags_horizontal=Control.SIZE_EXPAND_FILL
@@ -517,6 +519,34 @@ func show_camp():
 				var next_card=current.find_child("Company_"+u.id,true,false)
 				if next_card!=null:next_card.deploy_button.grab_focus()).call_deferred())
 	MenuLayout.configure(ui)
+
+func show_formation():
+	screen="formation";reset_ui()
+	var frame=menu_panel(1240)
+	label_in(frame,"STARTING POSITIONS",30,GOLD)
+	label_in(frame,"Select two numbered starting tiles to swap their allies. Empty tiles can be used too.",17)
+	var row=HBoxContainer.new();row.add_theme_constant_override("separation",20);row.size_flags_vertical=Control.SIZE_EXPAND_FILL;frame.add_child(row)
+	var board=preload("res://scripts/formation_board.gd").new();row.add_child(board);board.configure(game,portraits)
+	for slot in board.slots:interface_audio.watch(slot)
+	var details=VBoxContainer.new();details.custom_minimum_size.x=240;row.add_child(details)
+	label_in(details,"%02d / %s"%[game.chapter+1,game.info().title],23,GOLD)
+	var list=scrolling_column(details);var choices=[]
+	for index in range(board.draft.size()):
+		var choice=button_in(list,"",func():board.choose(index));choice.name="FormationChoice"+str(index+1);choices.append(choice)
+	var hint=label_in(details,"",16);hint.name="FormationHint"
+	button_in(details,"Restore default positions",board.restore_defaults).name="DefaultFormation"
+	var refresh=func():
+		for index in range(choices.size()):
+			var unit=board.units.get(board.draft[index],{})
+			choices[index].text="%d / %s"%[index+1,unit.get("name","Empty")]
+			choices[index].tooltip_text=game.class_name_for(unit) if not unit.is_empty() else "An ally can start here."
+		hint.text="Choose another slot to swap." if board.selected>=0 else "Your draft is applied only when you choose Apply formation."
+	board.changed.connect(refresh);refresh.call()
+	label_in(frame,"Blue: starting tiles · Red: enemies after preparation · Gold: seize objective",15,Color("766e5e"))
+	var actions=HBoxContainer.new();actions.add_theme_constant_override("separation",12);frame.add_child(actions)
+	button_in(actions,"Apply formation",func():
+		if game.set_formation_order(board.draft):show_camp();persist_campaign("camp",true,"formation")).name="ApplyFormation"
+	button_in(actions,"Cancel",show_camp).name="CancelFormation"
 
 func show_campaign_route():
 	screen="campaign_route";reset_ui()
@@ -868,7 +898,7 @@ func _unhandled_input(event):
 		interface_audio.cue("back");show_title();get_viewport().set_input_as_handled();return
 	if screen=="model" and event is InputEventKey and event.pressed and not event.echo and event.keycode==KEY_ESCAPE:
 		interface_audio.cue("back");close_model_view();get_viewport().set_input_as_handled();return
-	if screen in ["dossier","campaign_route","campaign_trials"] and event is InputEventKey and event.pressed and not event.echo and event.keycode==KEY_ESCAPE:
+	if screen in ["dossier","campaign_route","campaign_trials","formation"] and event is InputEventKey and event.pressed and not event.echo and event.keycode==KEY_ESCAPE:
 		interface_audio.cue("back")
 		if screen=="campaign_trials" and game.completed:show_ending()
 		else:show_camp()

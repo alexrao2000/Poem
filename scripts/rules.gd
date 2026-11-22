@@ -25,6 +25,7 @@ var phase: String = "player"
 var roster: Array = []
 var units: Array = []
 var deployed: Array = []
+var formation_order: Array = []
 var rng := RandomNumberGenerator.new()
 var completed: bool = false
 const DeathDoor=preload("res://scripts/death_door.gd")
@@ -65,6 +66,7 @@ func new_campaign(permadeath_enabled=false):
 		u.max_hp = u.hp
 		normalize_equipment(u)
 	deployed = ["lyra", "oren", "sera", "ivo"]
+	formation_order.clear()
 
 func available() -> Array:
 	return roster.filter(func(u): return trials.joined(self,u) and not u.get("fallen",false))
@@ -94,6 +96,39 @@ func ensure_leader():
 	if not (trials.flags.reset_pressure or (trials.flags.section_restarts and permadeath)):return
 	deployed.erase("lyra");deployed.push_front("lyra");deployed=deployed.slice(0,6)
 
+func deployment_slots(use_formation=true) -> Array:
+	var chosen=deployed.duplicate()
+	if trials.flags.reset_pressure or (trials.flags.section_restarts and permadeath):
+		chosen.erase("lyra");chosen.push_front("lyra");chosen=chosen.slice(0,6)
+	var ready=available().filter(func(unit):return unit.id in chosen).slice(0,int(info().deployment)).map(func(unit):return unit.id)
+	var slots=[];slots.resize(int(info().deployment));slots.fill("")
+	if use_formation:
+		for index in range(mini(slots.size(),formation_order.size())):
+			if formation_order[index] in ready:slots[index]=formation_order[index]
+	for id in ready:
+		if id not in slots:slots[slots.find("")]=id
+	return slots
+
+func deployment_units() -> Array:
+	var ready=available();var result=[]
+	for id in deployment_slots():
+		for unit in ready:
+			if unit.id==id:result.append(unit)
+	return result
+
+func set_formation_order(order: Array) -> bool:
+	var expected=deployment_slots(false).filter(func(id):return not id.is_empty())
+	if order.size()!=int(info().deployment):return false
+	var seen=[]
+	for id in order:
+		if not id is String:return false
+		if id.is_empty():continue
+		if id not in expected or id in seen:return false
+		seen.append(id)
+	if seen.size()!=expected.size():return false
+	formation_order=order.duplicate()
+	return true
+
 func enemy_formation() -> Array:
 	# Optional support joins fresh deployments; saved battles retain their exact units.
 	var formation=info().enemies.duplicate(true)
@@ -108,9 +143,9 @@ func start_battle():
 	turn = 1
 	phase = "player"
 	var spots = info().get("deployment_positions",[[1,3],[1,4],[1,5],[2,3],[2,4],[2,5]])
-	var index = 0
-	for u in available():
-		if u.id not in deployed or index >= int(info().deployment): continue
+	var placement=deployment_slots()
+	for u in deployment_units():
+		var index=placement.find(u.id)
 		var v = u.duplicate(true)
 		v.x = spots[index][0]
 		v.y = spots[index][1]
@@ -120,7 +155,6 @@ func start_battle():
 		v.moved = false
 		v.potions = 2
 		units.append(v)
-		index += 1
 	var formation=enemy_formation()
 	for i in range(formation.size()):
 		var entry=formation[i]
@@ -406,7 +440,7 @@ func layout_signature() -> String:
 	return JSON.stringify([info().map,info().deployment_positions,placement,info().objective_position]).sha256_text()
 
 func save_data(stage: String) -> Dictionary:
-	return {"version":SAVE_VERSION,"trials":trials.to_data(),"death_door":death_door,"action_saves":action_saves,"permadeath":permadeath,"battle_supports":battle_supports,"layout_signature":layout_signature(),"story_seen":story_seen,"supports":supports.state,"chapter":chapter,"turn":turn,"phase":phase,"roster":roster,"units":units,"deployed":deployed,"completed":completed,"rng":str(rng.state),"stage":stage}
+	return {"version":SAVE_VERSION,"trials":trials.to_data(),"death_door":death_door,"action_saves":action_saves,"permadeath":permadeath,"battle_supports":battle_supports,"layout_signature":layout_signature(),"story_seen":story_seen,"supports":supports.state,"chapter":chapter,"turn":turn,"phase":phase,"roster":roster,"units":units,"deployed":deployed,"formation_order":formation_order,"completed":completed,"rng":str(rng.state),"stage":stage}
 
 func save_game(path: String,stage: String) -> bool:
 	var previous=read_saved_data(path)
@@ -475,6 +509,14 @@ func valid_save(data) -> bool:
 		if ids[id].get("fallen",false):return false
 		deployment_ids[id]=true
 	if data.deployed.size()>int(content.chapters[int(data.chapter)].deployment):return false
+	var placement=data.get("formation_order",[])
+	if not placement is Array or placement.size()>6:return false
+	var placement_ids={}
+	for id in placement:
+		if not id is String:return false
+		if id.is_empty():continue
+		if not ids.has(id) or placement_ids.has(id):return false
+		placement_ids[id]=true
 	var combat_ids={}
 	for unit in data.units:
 		if not valid_unit(unit,true) or combat_ids.has(unit.id):return false
@@ -547,6 +589,7 @@ func restore_save(data) -> String:
 	supports.state=data.get("supports",{})
 	battle_supports=data.get("battle_supports",{}).duplicate(true)
 	chapter=int(data.chapter);turn=int(data.turn);phase=data.phase;roster=data.roster;units=data.units;deployed=data.deployed;completed=data.completed;rng.state=int(data.rng)
+	formation_order=data.get("formation_order",[])
 	for unit in roster:
 		normalize_equipment(unit);unit.resistance=resistance_for(unit)
 		unit.fallen=unit.get("fallen",false);unit.fallen_chapter=int(unit.get("fallen_chapter",-1))

@@ -20,6 +20,12 @@ The debug seed control accepts whole numbers from 0 through 2147483647. **Apply 
 
 In Quick map battles, a lethal hit that leaves an ally at death’s door keeps their figure visible in the wounded pose and shows the countdown immediately. A fallen carrier’s carrying badge clears when the passenger is released. Ordinary defeated units still fade away.
 
+## Starting positions
+
+At the war council, choose **Positions** to arrange the selected company before deployment. Select two numbered tiles or list entries to swap them; empty starting tiles can be used too. The preview includes Hard reinforcements and any raider advance from reset pressure. Preparing the draft does not advance the live campaign, countdowns or random stream. **Restore default positions** resets the draft; **Cancel** or Escape discards it; **Apply formation** keeps the positions and saves the camp.
+
+Position choices carry forward to the next chapter’s numbered starting tiles. Removing or losing an ally leaves the surviving placements intact, and new selections fill free slots. Experiments that require Lyra still require her deployment, but she can use any starting tile. Old saves without a formation keep their previous placement; loading an active battle preserves its existing unit positions.
+
 ## Complete combat scene starters
 
 In Debug tools, choose **Stage a combat encounter**. Eight starters cover sword, lance, bow, staff healing, axe, magic, duelist and mounted combat across village, river, abbey, harbor, mountain, observatory and furnace settings. The selected ally and marked target are already in range; press **Enter** to preview an attack and **Enter** again to confirm. Healing takes one Enter press. The initial tactical view stays clear of forecast portraits.
