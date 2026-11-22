@@ -933,3 +933,9 @@ Each of the 24 catalog items has original vector artwork using the shapes and co
 The [inventory art script](../scripts/generate_inventory_icons.py) generates the SVGs using only the Python standard library: `python3 scripts/generate_inventory_icons.py`. Optional `--review --output build/review/inventory-icons` uses Pillow to make a source-art contact sheet. This is not a gameplay capture.
 
 All 24 imported item resources, actual arsenal/company/forecast/HUD bindings, category fallback and existing menu bounds passed five affected suites. Both local exports, packaged item resources and the equipped Vigil staff summary passed, followed by ZIP integrity. Source artwork was inspected at 28px and 20px on light and dark backgrounds; all stroke bounds fit the 48px canvas. Assembled game appearance remains unreviewed.
+
+## Browser loading presentation
+
+The [loading panel](../web/loading-panel.html) uses the existing title painting behind an opaque parchment card, a serif title, a labeled native progress bar and a scrollable error region. [Its styles](../web/loading.css) constrain the card to the viewport and shorten it on low-height screens. No new images, fonts or network dependencies are added. Source text/background contrast ratios are 7.55 for body text, 4.85 for the subtitle and 6.90 for error text.
+
+The [packer adapter](../scripts/web_loading.py) preserves Godot's startup code apart from a presentation-mode attribute; successful startup still removes the entire overlay. The [exported-loader check](../tests/test_web_loading.cjs) covers progress and startup/failure ownership with DOM/engine doubles. Repeated packing and the archived HTML pass; runtime assets and the native archive are unchanged. These checks do not establish rendered browser appearance or screen-reader behavior.

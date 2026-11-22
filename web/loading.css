@@ -1,0 +1,88 @@
+/* Presentation only: Godot still owns progress, failures and canvas startup. */
+#status::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  background: linear-gradient(180deg, #101b2770, #101b27b8);
+}
+
+#status-splash, #status-splash.fullsize--true {
+  object-fit: cover;
+  opacity: .72;
+}
+
+#poem-loading-card {
+  position: relative;
+  z-index: 2;
+  box-sizing: border-box;
+  width: min(28rem, calc(100% - 3rem));
+  max-height: calc(100% - 3rem);
+  overflow: auto;
+  padding: 2rem;
+  border: 4px double #b89a61;
+  background: linear-gradient(135deg, #f6efdc, #e5d7b8);
+  box-shadow: 0 18px 70px #07101b80, inset 0 0 0 5px #f7f0df;
+  color: #2b4050;
+  text-align: center;
+  font: 1rem/1.5 system-ui, sans-serif;
+}
+
+#poem-loading-card h1 {
+  margin: 0;
+  font: normal clamp(3rem, 10vw, 4.5rem)/1.1 Georgia, serif;
+  letter-spacing: .045em;
+}
+
+.poem-loading-subtitle {
+  margin: .75rem 0 1.5rem;
+  color: #67583d;
+  font-size: .875rem;
+}
+
+#poem-loading-label {
+  display: block;
+  margin-bottom: .75rem;
+  font-size: .875rem;
+}
+
+#status-progress {
+  position: relative;
+  inset: auto;
+  box-sizing: border-box;
+  width: 100%;
+  height: .625rem;
+  margin: 0;
+  border: 1px solid #52606a;
+  border-radius: 0;
+  appearance: none;
+  accent-color: #b18b43;
+  background: #243744;
+}
+
+#status-progress::-webkit-progress-bar { background: #243744; }
+#status-progress::-webkit-progress-value { background: #c7a25d; }
+#status-progress::-moz-progress-bar { background: #c7a25d; }
+
+#status-notice {
+  position: relative;
+  margin: 0;
+  padding: .875rem;
+  max-height: 35vh;
+  overflow: auto;
+  overflow-wrap: anywhere;
+  border: 1px solid #9d6c63;
+  border-radius: 0;
+  background: #eee1d4;
+  color: #693f39;
+  font: .875rem/1.5 system-ui, sans-serif;
+  text-align: left;
+}
+
+#status[data-poem-mode="notice"] #poem-loading-label { display: none; }
+
+@media (max-height: 420px) {
+  #poem-loading-card { padding: 1rem; }
+  #poem-loading-card h1 { font-size: 2.5rem; }
+  .poem-loading-subtitle { margin: .5rem 0 1rem; }
+}

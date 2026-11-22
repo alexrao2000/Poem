@@ -4,6 +4,7 @@ Run after every Godot Web export. No server rewrite or custom headers required.
 """
 from pathlib import Path
 import gzip
+from web_loading import decorate_loader
 root=Path(__file__).resolve().parents[1]/'build/web'
 wasm=root/'index.wasm'
 if wasm.exists():
@@ -27,4 +28,4 @@ window.fetch = async function(input, init) {
 };
 </script>'''
 if 'const originalFetch' not in s:s=s.replace('<script src="index.js"></script>',shim+'\n<script src="index.js"></script>')
-html.write_text(s)
+html.write_text(decorate_loader(s))

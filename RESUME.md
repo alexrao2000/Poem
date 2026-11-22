@@ -12,6 +12,8 @@ All 361 registered suites passed with application files unchanged from `43e5edb`
 
 All 24 original inventory icons are integrated into the arsenal, company cards, selected-unit panel, forecasts and combat HUD. Five affected suites passed actual item bindings, category fallback and existing layout/state checks; both local exports, packaged resources and ZIP integrity passed. The portable generator uses only the Python standard library for SVGs, with optional Pillow source-art previews. Artwork was inspected at 20px and 28px. This is focused follow-up coverage, not a new complete regression.
 
+The browser archive now includes a parchment loading panel over the existing title painting, with a labeled progress bar and bounded startup errors. Actual exported/archived loader-script tests use DOM/engine doubles and preserve Godot's startup/focus/canvas behavior. Repacking, missing template anchors and ZIP integrity passed. Only `index.html` changed; the game runtime and macOS archive remain at `dddf107`. Browser rendering is still unreviewed.
+
 Continue improving complete-scene presentation and campaign playability from the current local packages. Revised character models remain optional. Rendered gameplay, audible quality, actual browser persistence/performance and human campaign balance remain unreviewed.
 
 The paragraphs below retain earlier checkpoints. Prefer this section and [the development notes](DEVELOPMENT.md) when their counts or package revisions differ.

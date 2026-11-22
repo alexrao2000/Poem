@@ -24,6 +24,8 @@ python3 -m http.server 8060 --bind 127.0.0.1 --directory build/web
 
 Open [localhost:8060](http://localhost:8060) in a desktop-size browser. Music starts after **Begin** or **Continue**. Keep the exported files together and serve them over HTTP.
 
+The browser loading screen shows campaign artwork, a labeled progress bar, and readable startup errors. It gives way to the title screen once the game has started.
+
 For macOS, extract `build/native/Poem.zip` and launch the application inside it.
 
 Exports are generated locally and ignored by Git. If `build/web/index.html` or the native archive is missing, follow [Builds](#builds) first. You can also play directly in the editor without export templates.
@@ -161,7 +163,7 @@ Choose **Listen to campaign music** in Options to open the music room. Select an
 
 ## Development
 
-Run commands below from the repository root. Python 3 is required for the test runner and packaging tools. Node.js runs the browser-storage unit checks; playing the game does not require it. NumPy supports optional audio/texture generation, and Pillow is also needed for texture generation.
+Run commands below from the repository root. Python 3 is required for the test runner and packaging tools. Node.js runs browser-storage and exported-loader checks; playing the game does not require it. NumPy supports optional audio/texture generation, and Pillow is also needed for texture generation.
 
 The [project configuration](project.godot) selects the Compatibility renderer for browser parity and a 1440 × 900 logical viewport. Keep gameplay rules independent of presentation.
 
@@ -208,6 +210,8 @@ GODOT_BIN=/path/to/godot python3 scripts/test_local.py rules saves controls
 ```
 
 The [runner](scripts/test_local.py) writes logs to `build/logs/`, stops promptly on script errors, and gives each suite a 90-second deadline. Default suites cover rules, movement, persistence, campaign progression, controls, menus, audio, and presentation. The [campaign suite](tests/test_campaign.gd) checks 72 chapter victories across three seeds, both promotion branches, and a complete permadeath campaign with saved casualties.
+
+After exporting and packing the Web build, `node tests/test_web_loading.cjs` checks its actual startup script with DOM/engine doubles: progress, successful dismissal, retained canvas and safe failure notices. The full build command runs this automatically. It does not open a browser or verify rendered appearance.
 
 The Python score-render check is separate from the default runner. It requires NumPy and the cached instrument bank:
 
@@ -272,7 +276,7 @@ python3 scripts/pack_web.py
 godot --headless --log-file "$PWD/build/logs/native.log" --path . --export-release macOS
 ```
 
-Run [pack_web.py](scripts/pack_web.py) after every Web export. It compresses the WASM engine and adds browser-side decompression through `DecompressionStream`, so static hosting does not need special response headers. Use a browser that supports that API. Individual exports do not run the test suites or create `build/Poem-Web.zip`.
+Run [pack_web.py](scripts/pack_web.py) after every Web export. It compresses the WASM engine and adds browser-side decompression through `DecompressionStream`, so static hosting does not need special response headers. It also adds the loading panel from [its markup](web/loading-panel.html) and [styles](web/loading.css), retaining Godot's startup callbacks. Use a browser that supports that API. Individual exports do not run the test suites or create `build/Poem-Web.zip`.
 
 ## Assets and credits
 

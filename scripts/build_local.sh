@@ -21,6 +21,7 @@ touch build/.gdignore
 GODOT_BIN="$GODOT_BIN" python3 scripts/test_local.py "$@"
 "$GODOT_BIN" --headless --log-file "$PWD/build/logs/web.log" --path "$PWD" --export-release Web
 python3 scripts/pack_web.py
+node tests/test_web_loading.cjs
 GODOT_BIN="$GODOT_BIN" python3 scripts/test_local.py export
 # Export to a new temporary path so Godot never needs to use the system Trash.
 BUILD_STAGE="$(mktemp -d "${TMPDIR:-/tmp}/poem-build.XXXXXX")"
