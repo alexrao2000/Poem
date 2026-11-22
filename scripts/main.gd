@@ -555,7 +555,10 @@ func show_formation():
 		hint.text="Choose a blue tile to return to position swaps." if inspecting else "Choose another slot to swap." if board.selected>=0 else "Select a red marker to inspect. Apply formation keeps your draft."
 		list.get_parent().scroll_vertical=0
 	board.changed.connect(refresh);refresh.call()
-	label_in(frame,"Blue: starting tiles · Red: enemies and selected attack reach · Gold: seize objective",15,Color("766e5e"))
+	var legend_row=HBoxContainer.new();legend_row.add_theme_constant_override("separation",12);frame.add_child(legend_row)
+	var legend=label_in(legend_row,"!: threatened start · Gold: objective · Red: inspected / pale red: all foes",15,Color("766e5e"));legend.size_flags_horizontal=Control.SIZE_EXPAND_FILL
+	var all_reach=CheckButton.new();all_reach.name="FormationAllReach";all_reach.text="All enemy reach [R]";legend_row.add_child(all_reach)
+	all_reach.toggled.connect(board.set_all_reach);interface_audio.watch(all_reach)
 	var actions=HBoxContainer.new();actions.add_theme_constant_override("separation",12);frame.add_child(actions)
 	button_in(actions,"Apply formation",func():
 		if game.set_formation_order(board.draft):show_camp();persist_campaign("camp",true,"formation")).name="ApplyFormation"
@@ -892,6 +895,10 @@ func _input(event):
 		get_viewport().set_input_as_handled()
 
 func _unhandled_input(event):
+	if screen=="formation" and event is InputEventKey and event.pressed and event.keycode==KEY_R:
+		if not event.echo:
+			var toggle=ui.find_child("FormationAllReach",true,false);toggle.button_pressed=not toggle.button_pressed;interface_audio.cue("select")
+		get_viewport().set_input_as_handled();return
 	if screen in ["options","save_transfer"] and event is InputEventKey and event.pressed and not event.echo and event.keycode==KEY_ESCAPE:
 		interface_audio.cue("back")
 		if screen=="options":close_options()

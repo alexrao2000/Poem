@@ -16,6 +16,8 @@ var enemy_markers=[]
 var foes: Array[Button]=[]
 var inspected_id=""
 var danger={}
+var show_all_reach=false
+var all_danger={}
 var tactics=preload("res://scripts/tactics.gd").new()
 var slots: Array[Button]=[]
 var selected=-1
@@ -40,6 +42,7 @@ func configure(game,art):
   var sprite=TextureRect.new();sprite.name="AllySprite";sprite.mouse_filter=Control.MOUSE_FILTER_IGNORE;sprite.expand_mode=TextureRect.EXPAND_IGNORE_SIZE;sprite.stretch_mode=TextureRect.STRETCH_KEEP_ASPECT_CENTERED
   button.add_child(sprite);sprite.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT);sprite.offset_left=5;sprite.offset_right=-2;sprite.offset_top=2;sprite.offset_bottom=-2
   var number=Label.new();number.text=str(index+1);number.mouse_filter=Control.MOUSE_FILTER_IGNORE;number.position=Vector2(2,0);number.add_theme_font_size_override("font_size",12);number.add_theme_color_override("font_color",Color("fff0c4"));number.add_theme_color_override("font_outline_color",Color("233643"));number.add_theme_constant_override("outline_size",3);button.add_child(number)
+  var warning=Label.new();warning.name="ThreatBadge";warning.text="!";warning.mouse_filter=Control.MOUSE_FILTER_IGNORE;warning.add_theme_font_size_override("font_size",16);warning.add_theme_color_override("font_color",Color("fff0c4"));warning.add_theme_color_override("font_outline_color",Color("8c263b"));warning.add_theme_constant_override("outline_size",4);button.add_child(warning)
   button.pressed.connect(func():choose(index));add_child(button);slots.append(button)
  resized.connect(arrange);refresh();arrange()
 
@@ -64,6 +67,9 @@ func inspect_enemy(id: String):
  inspected_id=id;selected=-1
  refresh();changed.emit()
 
+func set_all_reach(enabled: bool):
+ show_all_reach=enabled;all_danger.clear();refresh();changed.emit()
+
 func prepare_enemy_buttons():
  if not foes.is_empty():return
  for unit in preview_rules.living("enemy"):
@@ -73,7 +79,8 @@ func prepare_enemy_buttons():
   button.pressed.connect(func():inspect_enemy(id));add_child(button);foes.append(button)
 
 func refresh():
- if draft!=preview_order:
+ var positions_changed=draft!=preview_order
+ if positions_changed:
   if not preview_rules.set_formation_order(draft):return
   preview_rules.start_battle();preview_order=draft.duplicate()
   enemy_markers=preview_rules.living("enemy").map(func(unit):return {"position":[unit.x,unit.y],"name":unit.name,"job":unit.job})
@@ -81,12 +88,18 @@ func refresh():
  var enemies=preview_rules.living("enemy")
  for index in range(foes.size()):
   foes[index].tooltip_text=enemies[index].name+" · "+preview_rules.class_name_for(enemies[index]);foes[index].set_pressed_no_signal(enemies[index].id==inspected_id)
+ if not show_all_reach:all_danger.clear()
+ elif positions_changed or all_danger.is_empty():
+  all_danger.clear()
+  for enemy in enemies:all_danger.merge(tactics.threatened_tiles(preview_rules,enemy))
  var inspected=inspected_unit()
  danger=tactics.threatened_tiles(preview_rules,inspected) if not inspected.is_empty() else {}
  for index in range(slots.size()):
   var unit=units.get(draft[index],{})
   slots[index].set_pressed_no_signal(index==selected)
-  slots[index].tooltip_text="Slot %d · %s"%[index+1,unit.get("name","Empty")]
+  var tile=chapter.deployment_positions[index];var threatened=danger.has(Vector2i(tile[0],tile[1])) or all_danger.has(Vector2i(tile[0],tile[1]))
+  slots[index].get_node("ThreatBadge").visible=threatened
+  slots[index].tooltip_text="Slot %d · %s"%[index+1,unit.get("name","Empty")]+("\nInside possible enemy attack reach" if threatened else "")
   slots[index].get_node("AllySprite").texture=portraits.get_map_sprite(unit.id) if not unit.is_empty() else null
  arrange()
 
@@ -99,6 +112,7 @@ func arrange():
   var point=chapter.deployment_positions[index]
   slots[index].position=map_rect.position+Vector2(point[0],point[1])*cell_size+Vector2.ONE
   slots[index].size=Vector2.ONE*(cell_size-2)
+  var warning=slots[index].get_node("ThreatBadge");warning.position=Vector2(maxf(0,slots[index].size.x-warning.get_minimum_size().x-2),0)
  for index in range(foes.size()):
   var point=enemy_markers[index].position
   foes[index].position=map_rect.position+Vector2(point[0],point[1])*cell_size+Vector2.ONE
@@ -113,6 +127,8 @@ func _draw():
    var symbol=chapter.map[y][x];var rect=Rect2(map_rect.position+Vector2(x,y)*cell_size,Vector2.ONE*cell_size)
    draw_rect(rect,Color(COLORS.get(symbol,"aeb58f")));draw_rect(rect,Color(1,1,.9,.10),false,1)
    if symbol not in [".","p"]:draw_texture_rect(Icons.get_icon(symbol),rect.grow(-cell_size*.14),false,Color(1,1,1,.6))
+ for point in all_danger:
+  if not danger.has(point):draw_rect(Rect2(map_rect.position+Vector2(point)*cell_size,Vector2.ONE*cell_size).grow(-1),Color(.65,.12,.19,.18))
  for point in danger:
   draw_rect(Rect2(map_rect.position+Vector2(point)*cell_size,Vector2.ONE*cell_size).grow(-1),Color(.65,.12,.19,.34))
  for enemy in enemy_markers:

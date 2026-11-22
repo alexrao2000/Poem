@@ -32,7 +32,7 @@ Exports are generated locally and ignored by Git. If `build/web/index.html` or t
 
 ### Your first battle
 
-1. At the war council, choose your deployment and open recruit portraits to inspect equipment and abilities. **Positions** lets you swap allies between starting tiles, including empty tiles; choose **Apply formation** to keep the draft. Red markers show enemy details and possible attack reach.
+1. At the war council, choose your deployment and open recruit portraits to inspect equipment and abilities. **Positions** lets you swap allies between starting tiles, including empty tiles; choose **Apply formation** to keep the draft. Red markers show enemy details and possible attack reach; **R** shows all enemy reach, with **!** marking threatened starting tiles.
 2. Select an ally, then hover a reachable tile to preview the route. Click the tile to move.
 3. Select an enemy, review the forecast, and confirm the attack. A staff user can instead select an injured ally within range to heal.
 4. Use **Wait** to commit movement without attacking. Right-click or press **Escape** to undo an uncommitted move.
