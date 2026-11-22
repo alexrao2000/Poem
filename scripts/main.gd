@@ -2381,6 +2381,10 @@ func heal_carried_ally(patient: Dictionary):
 func campaign_save_path() -> String:
 	return save_path+".debug" if debug_session.active else save_path
 
+func map_contact_point(visual) -> Vector3:
+	var height=(visual.sprite.texture.get_height()+visual.sprite.offset.y)*visual.sprite.pixel_size*visual.sprite.scale.y
+	return visual.sprite.global_position+camera.global_basis.y*height*.55
+
 func map_combat_feedback(events: Array):
 	for event in events:
 		var targets=game.units.filter(func(unit):return unit.id==event.target)
@@ -2396,7 +2400,14 @@ func map_combat_feedback(events: Array):
 			if not event.hit:reaction=victim.evade_from(game.pos(attackers[0]),game.pos(unit))
 		if actor!=null and not attackers.is_empty():
 			actor.act_toward(game.pos(unit),game.pos(attackers[0]));map_facings[event.actor]=actor.player.facing
-		await get_tree().create_timer(.12).timeout
+		var flight: Tween
+		if actor!=null and victim!=null and not attackers.is_empty():
+			var attacker=attackers[0]
+			if attacker.weapon in ["bow","magic"] or (attacker.weapon=="lance" and game.distance(attacker,unit)>1):
+				var shot=preload("res://scripts/map_projectile.gd").new();pieces.add_child(shot)
+				flight=shot.fly(map_contact_point(actor),map_contact_point(victim),attacker.weapon,game.item_for(attacker).id if attacker.weapon=="magic" else "",fighters.EquipmentVisuals.profiles.get(attacker.get("item",""),{}),not event.hit)
+		if flight!=null:await flight.finished
+		else:await get_tree().create_timer(.12).timeout
 		var wounded=event.hit and event.damage>0 and event.remaining<=0 and game.DeathDoor.downed(unit)
 		if victim!=null:
 			if wounded:victim.fall_wounded(unit.bleed_turns)

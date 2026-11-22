@@ -19,12 +19,14 @@ var wake: MeshInstance3D
 var wake_color=Color.WHITE
 var motion: Tween
 var launch_up=Vector3.UP
+var visual_scale=1.0
 
-func launch(from: Vector3,to: Vector3,weapon: String,duration=.23,spell_id="",appearance={},miss=false,source: Node3D=null) -> Tween:
+func launch(from: Vector3,to: Vector3,weapon: String,duration=.23,spell_id="",appearance={},miss=false,source: Node3D=null,size=1.0) -> Tween:
  name="CombatProjectile";origin=from;destination=to;kind=weapon;spell=spell_id
+ visual_scale=maxf(.01,size)
  global_basis=Basis.IDENTITY
- arc=.14 if kind=="bow" else .08 if kind=="lance" else .04
- body=Node3D.new();body.name="FlightBody";add_child(body)
+ arc=(.14 if kind=="bow" else .08 if kind=="lance" else .04)*visual_scale
+ body=Node3D.new();body.name="FlightBody";body.scale=Vector3.ONE*visual_scale;add_child(body)
  if kind=="lance" and is_instance_valid(source) and source.has_node("TrailTip"):
   # Snapshot the fitted held weapon before its actor is recovered or removed.
   # The tip is the flight origin; geometry, materials and roll survive release.
@@ -35,7 +37,7 @@ func launch(from: Vector3,to: Vector3,weapon: String,duration=.23,spell_id="",ap
  elif kind in ["bow","lance"]:
   var reach=physical_geometry(body,kind,appearance)
   for part in body.get_children():part.position.z+=reach
-  origin=from+from.direction_to(to)*minf(reach,from.distance_to(to)*.5)
+  origin=from+from.direction_to(to)*minf(reach*visual_scale,from.distance_to(to)*.5)
  else:
   var colors=Spell.palette(spell)
   var orb=SphereMesh.new();orb.radius=.14;orb.height=.28;orb.radial_segments=12;orb.rings=6
@@ -106,7 +108,7 @@ func update_wake(direction: Vector3):
  for step in range(8):
   var t0=step/8.0;var t1=(step+1)/8.0
   var a=point_at(progress-span*t0);var b=point_at(progress-span*t1)
-  var width0=.11*(1-t0);var width1=.11*(1-t1)
+  var width0=.11*visual_scale*(1-t0);var width1=.11*visual_scale*(1-t1)
   for axis in axes:
    for side in [-1,1]:
     var points=[to_local(a),to_local(a+axis*width0*side),to_local(b+axis*width1*side),to_local(b)]

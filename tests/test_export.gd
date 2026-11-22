@@ -663,6 +663,17 @@ func run():
  process_frame.connect(watch_fall)
  await app.map_combat_feedback([{"actor":app.game.living("enemy")[0].id,"target":fallen_patient.id,"hit":true,"crit":false,"damage":1,"remaining":0}])
  process_frame.disconnect(watch_fall);assert(wounded_seen[0])
+ var map_miss=load("res://scripts/map_projectile.gd").new();app.pieces.add_child(map_miss)
+ var map_flight=map_miss.fly(Vector3.ZERO,Vector3(2,0,0),"bow","",{},true)
+ assert(is_equal_approx(map_miss.body.scale.x,.55),"Packed map arrows retain the sprite scale")
+ for flight_mesh in map_miss.find_children("*","MeshInstance3D",true,false):
+  assert(flight_mesh.material_override.no_depth_test and flight_mesh.material_override.render_priority==3,"Packed tactical projectiles follow the map overlay depth")
+ var packed_flight_ref=weakref(map_miss)
+ map_flight.pause();assert(map_flight.custom_step(.11) and not map_miss.is_queued_for_deletion(),"Packed misses remain in flight before contact")
+ map_flight.custom_step(.02)
+ assert(map_miss.is_queued_for_deletion(),"Packed missed-shot follow-through fits the pre-contact interval")
+ await process_frame
+ assert(packed_flight_ref.get_ref()==null,"Packed tactical flight releases after the pre-contact interval")
  await Shutdown.dispose(app);await process_frame
  print("PASS: exported catalog, all three act scores, chapter scenes, sixteen promotion patterns, all forty-eight revised promotion outfits, licenses and credits")
  quit()
