@@ -13,6 +13,10 @@ var portraits
 var preview_rules
 var preview_order=[]
 var enemy_markers=[]
+var foes: Array[Button]=[]
+var inspected_id=""
+var danger={}
+var tactics=preload("res://scripts/tactics.gd").new()
 var slots: Array[Button]=[]
 var selected=-1
 var map_rect=Rect2()
@@ -28,7 +32,7 @@ func configure(game,art):
  mouse_filter=Control.MOUSE_FILTER_IGNORE;size_flags_horizontal=Control.SIZE_EXPAND_FILL;size_flags_vertical=Control.SIZE_EXPAND_FILL
  custom_minimum_size=Vector2(420,300)
  for index in range(draft.size()):
-  var button=Button.new();button.name="StartingSlot"+str(index+1);button.toggle_mode=true;button.mouse_default_cursor_shape=Control.CURSOR_POINTING_HAND
+  var button=Button.new();button.name="StartingSlot"+str(index+1);button.z_index=1;button.toggle_mode=true;button.mouse_default_cursor_shape=Control.CURSOR_POINTING_HAND
   for state in ["normal","hover","pressed","focus"]:
    var style=StyleBoxFlat.new();style.bg_color=Color("284b61");style.bg_color.a=.84 if state=="normal" else .96
    style.border_color=Color("f0ce7c") if state in ["pressed","focus"] else Color("a7d0dc");style.set_border_width_all(2);style.set_corner_radius_all(3)
@@ -41,6 +45,7 @@ func configure(game,art):
 
 func choose(index: int):
  if index<0 or index>=draft.size():return
+ inspected_id="";danger.clear()
  if selected<0:selected=index
  elif selected==index:selected=-1
  else:
@@ -48,19 +53,42 @@ func choose(index: int):
  refresh();changed.emit()
 
 func restore_defaults():
- draft=defaults.duplicate();selected=-1;refresh();changed.emit()
+ draft=defaults.duplicate();selected=-1;inspected_id="";danger.clear();refresh();changed.emit()
+
+func inspected_unit() -> Dictionary:
+ for unit in preview_rules.living("enemy"):
+  if unit.id==inspected_id:return unit
+ return {}
+
+func inspect_enemy(id: String):
+ inspected_id=id;selected=-1
+ refresh();changed.emit()
+
+func prepare_enemy_buttons():
+ if not foes.is_empty():return
+ for unit in preview_rules.living("enemy"):
+  var id=unit.id;var button=Button.new();button.name="PlanEnemy_"+id;button.toggle_mode=true;button.mouse_default_cursor_shape=Control.CURSOR_POINTING_HAND
+  for state in ["normal","hover","pressed","focus"]:
+   var style=StyleBoxFlat.new();style.bg_color=Color(0,0,0,0);style.border_color=Color("f5d386") if state in ["pressed","focus"] else Color("ca8580");style.set_border_width_all(0 if state=="normal" else 2);style.set_corner_radius_all(3);button.add_theme_stylebox_override(state,style)
+  button.pressed.connect(func():inspect_enemy(id));add_child(button);foes.append(button)
 
 func refresh():
  if draft!=preview_order:
   if not preview_rules.set_formation_order(draft):return
   preview_rules.start_battle();preview_order=draft.duplicate()
   enemy_markers=preview_rules.living("enemy").map(func(unit):return {"position":[unit.x,unit.y],"name":unit.name,"job":unit.job})
+ prepare_enemy_buttons()
+ var enemies=preview_rules.living("enemy")
+ for index in range(foes.size()):
+  foes[index].tooltip_text=enemies[index].name+" · "+preview_rules.class_name_for(enemies[index]);foes[index].set_pressed_no_signal(enemies[index].id==inspected_id)
+ var inspected=inspected_unit()
+ danger=tactics.threatened_tiles(preview_rules,inspected) if not inspected.is_empty() else {}
  for index in range(slots.size()):
   var unit=units.get(draft[index],{})
   slots[index].set_pressed_no_signal(index==selected)
   slots[index].tooltip_text="Slot %d · %s"%[index+1,unit.get("name","Empty")]
   slots[index].get_node("AllySprite").texture=portraits.get_map_sprite(unit.id) if not unit.is_empty() else null
- queue_redraw()
+ arrange()
 
 func arrange():
  if chapter.is_empty():return
@@ -71,6 +99,10 @@ func arrange():
   var point=chapter.deployment_positions[index]
   slots[index].position=map_rect.position+Vector2(point[0],point[1])*cell_size+Vector2.ONE
   slots[index].size=Vector2.ONE*(cell_size-2)
+ for index in range(foes.size()):
+  var point=enemy_markers[index].position
+  foes[index].position=map_rect.position+Vector2(point[0],point[1])*cell_size+Vector2.ONE
+  foes[index].size=Vector2.ONE*(cell_size-2)
  queue_redraw()
 
 func _draw():
@@ -81,6 +113,8 @@ func _draw():
    var symbol=chapter.map[y][x];var rect=Rect2(map_rect.position+Vector2(x,y)*cell_size,Vector2.ONE*cell_size)
    draw_rect(rect,Color(COLORS.get(symbol,"aeb58f")));draw_rect(rect,Color(1,1,.9,.10),false,1)
    if symbol not in [".","p"]:draw_texture_rect(Icons.get_icon(symbol),rect.grow(-cell_size*.14),false,Color(1,1,1,.6))
+ for point in danger:
+  draw_rect(Rect2(map_rect.position+Vector2(point)*cell_size,Vector2.ONE*cell_size).grow(-1),Color(.65,.12,.19,.34))
  for enemy in enemy_markers:
   var point=map_rect.position+(Vector2(enemy.position[0],enemy.position[1])+Vector2.ONE*.5)*cell_size
   draw_circle(point,cell_size*.15,Color("8c3c3e"));draw_arc(point,cell_size*.15,0,TAU,16,Color("f2c9a4"),1,true)

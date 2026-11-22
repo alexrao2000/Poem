@@ -528,21 +528,34 @@ func show_formation():
 	var row=HBoxContainer.new();row.add_theme_constant_override("separation",20);row.size_flags_vertical=Control.SIZE_EXPAND_FILL;frame.add_child(row)
 	var board=preload("res://scripts/formation_board.gd").new();row.add_child(board);board.configure(game,portraits)
 	for slot in board.slots:interface_audio.watch(slot)
+	for foe in board.foes:interface_audio.watch(foe)
 	var details=VBoxContainer.new();details.custom_minimum_size.x=240;row.add_child(details)
 	label_in(details,"%02d / %s"%[game.chapter+1,game.info().title],23,GOLD)
+	var enemy_choice=OptionButton.new();enemy_choice.name="FormationEnemyChoice";enemy_choice.clip_text=true;enemy_choice.add_item("Inspect an enemy…");enemy_choice.set_item_metadata(0,"");details.add_child(enemy_choice)
+	for enemy in board.preview_rules.living("enemy"):
+		enemy_choice.add_item(enemy.name+" / "+game.class_name_for(enemy));enemy_choice.set_item_metadata(enemy_choice.item_count-1,enemy.id)
+	interface_audio.watch(enemy_choice);enemy_choice.item_selected.connect(func(index):board.inspect_enemy(enemy_choice.get_item_metadata(index)))
 	var list=scrolling_column(details);var choices=[]
+	var inspector=preload("res://scripts/formation_inspector.gd").new();list.add_child(inspector);inspector.configure(portraits)
+	var slot_list=VBoxContainer.new();list.add_child(slot_list)
 	for index in range(board.draft.size()):
-		var choice=button_in(list,"",func():board.choose(index));choice.name="FormationChoice"+str(index+1);choices.append(choice)
+		var choice=button_in(slot_list,"",func():board.choose(index));choice.name="FormationChoice"+str(index+1);choices.append(choice)
 	var hint=label_in(details,"",16);hint.name="FormationHint"
 	button_in(details,"Restore default positions",board.restore_defaults).name="DefaultFormation"
 	var refresh=func():
+		var enemy=board.inspected_unit();var inspecting=not enemy.is_empty()
+		inspector.visible=inspecting;slot_list.visible=not inspecting
+		if inspecting:inspector.inspect(board.preview_rules,enemy)
+		for index in range(enemy_choice.item_count):
+			if enemy_choice.get_item_metadata(index)==board.inspected_id:enemy_choice.select(index)
 		for index in range(choices.size()):
 			var unit=board.units.get(board.draft[index],{})
 			choices[index].text="%d / %s"%[index+1,unit.get("name","Empty")]
 			choices[index].tooltip_text=game.class_name_for(unit) if not unit.is_empty() else "An ally can start here."
-		hint.text="Choose another slot to swap." if board.selected>=0 else "Your draft is applied only when you choose Apply formation."
+		hint.text="Choose a blue tile to return to position swaps." if inspecting else "Choose another slot to swap." if board.selected>=0 else "Select a red marker to inspect. Apply formation keeps your draft."
+		list.get_parent().scroll_vertical=0
 	board.changed.connect(refresh);refresh.call()
-	label_in(frame,"Blue: starting tiles · Red: enemies after preparation · Gold: seize objective",15,Color("766e5e"))
+	label_in(frame,"Blue: starting tiles · Red: enemies and selected attack reach · Gold: seize objective",15,Color("766e5e"))
 	var actions=HBoxContainer.new();actions.add_theme_constant_override("separation",12);frame.add_child(actions)
 	button_in(actions,"Apply formation",func():
 		if game.set_formation_order(board.draft):show_camp();persist_campaign("camp",true,"formation")).name="ApplyFormation"
