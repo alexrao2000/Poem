@@ -21,7 +21,7 @@ func stop():
 
 func approach_combat(focus: Vector3,duration=.42) -> Tween:
  stop()
- motion=camera.create_tween().set_parallel(true).set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_IN)
+ motion=camera.create_tween().set_parallel(true).set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_IN_OUT)
  motion.tween_property(camera,"size",5.0,duration)
  motion.tween_property(camera,"h_offset",0.0,duration)
  motion.tween_property(camera,"v_offset",0.0,duration)

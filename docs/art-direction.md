@@ -941,3 +941,11 @@ Legacy supply buttons and the Debug equipment chooser also use these icons. The 
 The [loading panel](../web/loading-panel.html) uses the existing title painting behind an opaque parchment card, a serif title, a labeled native progress bar and a scrollable error region. [Its styles](../web/loading.css) constrain the card to the viewport and shorten it on low-height screens. No new images, fonts or network dependencies are added. Source text/background contrast ratios are 7.55 for body text, 4.85 for the subtitle and 6.90 for error text.
 
 The [packer adapter](../scripts/web_loading.py) preserves Godot's startup code apart from a presentation-mode attribute; successful startup still removes the entire overlay. The [exported-loader check](../tests/test_web_loading.cjs) covers progress and startup/failure ownership with DOM/engine doubles. Repeated packing and the archived HTML pass; runtime assets and the native archive are unchanged. These checks do not establish rendered browser appearance or screen-reader behavior.
+
+## Visible sprite enlargement before combat
+
+The [tactical camera](../scripts/tactical_camera.gd) now uses cubic easing into and out of the combat push. Previously, most of its enlargement happened while the covering fade was already nearly opaque. The new timing retains the 0.42-second duration, final camera size, 38-degree pitch, complete concealment before arena construction and exact return to the player's view.
+
+Headless comparison used 54 matched setups: three actual viewport sizes, three melee/ranged encounters, three starting zoom levels and panned/unpanned views. At half opacity, standard-view sprite height grew 1.43× with the previous curve and 2.85× with the revised curve. Both combatants stayed inside the viewport at that measured handoff in every revised case. This is a projection measurement, not a gameplay capture.
+
+The expanded [camera check](../tests/test_map_camera.gd) verifies useful enlargement while the map is still visible, exact endpoints and restoration, and unchanged campaign/RNG/files. Opening skips and accelerated playback still pass. Four affected suites, both exports, packaged growth and cancellation checks, exported-loader verification and archive integrity passed. Rendered transition quality remains unreviewed.

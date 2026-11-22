@@ -1,9 +1,45 @@
 extends SceneTree
 const Shutdown=preload("helpers/game_shutdown.gd")
+const Transition=preload("res://scripts/combat_transition.gd")
 # Measure projected ground anchors rather than relying on screenshots. Exercise
 # bounded drag, interrupted zoom, cursor tracking and the real cinematic handoff.
 func _initialize():call_deferred("run")
+func visible_combat_zoom():
+ var viewport=SubViewport.new();viewport.size=Vector2i(1440,900);viewport.render_target_update_mode=SubViewport.UPDATE_DISABLED;root.add_child(viewport)
+ var app=load("res://main.tscn").instantiate();app.settings_path="";app.save_path="/private/tmp/poem-visible-zoom-%d.json"%Time.get_ticks_usec();viewport.add_child(app);await process_frame
+ app.debug_session.begin(app.game,"camp");var count=0
+ for dimensions in [Vector2i(1024,640),Vector2i(1280,720),Vector2i(1440,900)]:
+  viewport.size=dimensions;await process_frame
+  for sample in [["lyra","iron_sword"],["oren","javelin"],["sera","longbow"]]:
+   var setup=app.debug_session.start_recruit_encounter(app.game,sample[0],"",sample[1]);app.make_map();app.show_battle();await process_frame
+   var a=app.game.units.filter(func(unit):return unit.id==setup.actor)[0];var b=app.game.units.filter(func(unit):return unit.id==setup.target)[0]
+   for pair in [[a,b],[b,a]]:app.unit_nodes[pair[0].id].face_toward(app.game.pos(pair[1]),app.game.pos(pair[0]))
+   var focus=(app.map_position(app.game.pos(a))+app.map_position(app.game.pos(b)))*.5
+   var saved=app.game.save_data("battle").duplicate(true);var random=app.game.rng.state
+   for zoom in [8.0,16.0,24.0]:
+    for panned in [false,true]:
+     app.map_camera();app.camera.size=zoom
+     if panned:app.camera.position+=Vector3(1.5,0,-1)
+     var original=app.map_navigation.capture_view();var initial=app.unit_nodes[a.id].screen_bounds(app.camera).size.y
+     var approach=app.map_navigation.approach_combat(focus);approach.pause()
+     var veil=Transition.new();veil.configure(app.ui);var fade=veil.conceal();fade.pause()
+     approach.custom_step(.42*.5);fade.custom_step(.42*.5)
+     assert(veil.cover_alpha()==0 and app.unit_nodes[a.id].screen_bounds(app.camera).size.y>=initial*(1.15 if zoom==8 else 1.45),"The sprite zoom becomes visible before the covering fade starts")
+     approach.custom_step(.42*.26);fade.custom_step(.42*.26)
+     assert(is_equal_approx(veil.cover_alpha(),.5))
+     var minimum=1.4 if zoom==8 else 2.5 if zoom==16 else 3.5
+     assert(app.unit_nodes[a.id].screen_bounds(app.camera).size.y>=initial*minimum,"Useful sprite enlargement must happen while the map is still visible")
+     for unit in [a,b]:assert(Rect2(Vector2.ZERO,Vector2(dimensions)).encloses(app.unit_nodes[unit.id].screen_bounds(app.camera)),"Both combatants remain inside the actual viewport during the enlarged handoff")
+     approach.custom_step(.42*.24+.001);fade.custom_step(.42*.24+.001)
+     assert(is_equal_approx(app.camera.size,5.0) and veil.cover_alpha()==1,"The existing fully covered endpoint is retained")
+     var returning=app.map_navigation.return_from_combat(app.map_navigation.capture_view(),original);returning.pause();returning.custom_step(.251)
+     assert(app.map_navigation.capture_view()==original);app.map_navigation.stop();veil.free();count+=1
+   assert(app.game.save_data("battle")==saved and app.game.rng.state==random)
+ assert(count==54 and not FileAccess.file_exists(app.save_path) and not FileAccess.file_exists(app.save_path+".debug"))
+ await Shutdown.dispose(app);viewport.queue_free();await process_frame
+
 func run():
+ await visible_combat_zoom()
  var app=load("res://main.tscn").instantiate();app.settings_path="";app.save_path="/private/tmp/poem-map-camera.json"
  root.add_child(app);await process_frame
  app.game.start_battle();app.make_map();app.show_battle()
@@ -94,5 +130,5 @@ func run():
  for player in app.sfx_players:player.stop()
  app.music.stop();await create_timer(.15).timeout
  await Shutdown.dispose(app);await process_frame
- print("PASS: pointer-anchored zoom, bounded drag, reset, cursor tracking, continuous pair-centered return, exact view/zoom restoration, cancellation, busy-input lock and cinematic ownership")
+ print("PASS: 54 actual-viewport melee/ranged sprite zooms visible before concealment, unchanged endpoints/state/files, pointer-anchored zoom, bounded drag, reset, cursor tracking, continuous pair-centered return, exact view/zoom restoration, cancellation, busy-input lock and cinematic ownership")
  quit()

@@ -6,6 +6,8 @@ Development resumed on “go”. Continue in this chat until the user asks to st
 
 ### Latest state
 
+The opening combat zoom now enlarges map sprites before the covering fade becomes opaque. At standard zoom, measured sprite height reaches 2.85× at half coverage, up from 1.43×, with the same duration and endpoints. Four affected suites, 54 actual-viewport projection cases, both local exports, packaged growth/skip checks and ZIP integrity pass. Exact camera restoration, gameplay state and RNG remain unchanged; this is numerical verification, not rendered appearance approval.
+
 The campaign contains 24 recruits, 12 chapters and 24 equipment choices. Recent additions include independent rule switches at campaign creation, full-roster Debug encounters, actual stat comparisons in the arsenal, later lance/staff legacy supplies, and a fifth experiment starter for rescuing a patient before their final countdown ends. The original rescue tutorial remains available.
 
 All 361 registered suites passed with application files unchanged from `43e5edb`. After the first 63 passes, `9e2ebf7` corrected a stale enemy-model binding count in one test; those earlier test sources are unchanged at the corrected revision. The remaining 298 suites passed, and every ordered log hash was checked. The initial failure and previous 354-suite baseline remain archived. This was not an uninterrupted single-Git-revision run. This baseline precedes the inventory artwork below.

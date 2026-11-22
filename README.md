@@ -99,7 +99,7 @@ Combat includes weighted terrain movement, occupancy, the weapon triangle, two-r
 
 **Seamfinder** and **War hammer** triple weapon might against armored Knights; **Rider-stop pike** does so against mounted Riders. Forecasts show effective attacks and counters. Pale cross and golden objective tiles restore 6 HP at the start of a player turn.
 
-Presentation includes weapon-specific projectiles, distinct Ember/Gale/Thunder spells, continuous counters and follow-ups, critical portrait accents, animated health meters, and terrain-matched arenas. Options let you choose full 3D, player-only, or quick-map battles.
+Presentation includes weapon-specific projectiles, distinct Ember/Gale/Thunder spells, continuous counters and follow-ups, critical portrait accents, animated health meters, and terrain-matched arenas. Full 3D battles begin by enlarging the engaged map sprites before the transition covers the battlefield. Options let you choose full 3D, player-only, or quick-map battles.
 
 ### Promotions and supports
 

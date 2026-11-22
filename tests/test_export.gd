@@ -547,6 +547,13 @@ func run():
  var entry_nodes=[0];var count_entry=func(_node):entry_nodes[0]+=1
  app.stage.child_entered_tree.connect(count_entry)
  var entry_state=app.game.save_data("battle").duplicate(true);var entry_camera=app.map_navigation.capture_view()
+ var zoom_figure=app.unit_nodes[stage_a.id];var initial_sprite_height=zoom_figure.screen_bounds(app.camera).size.y
+ var packed_push=app.map_navigation.approach_combat(zoom_figure.position);packed_push.pause()
+ var zoom_veil=load("res://scripts/combat_transition.gd").new();zoom_veil.configure(app.ui);var packed_fade=zoom_veil.conceal();packed_fade.pause()
+ packed_push.custom_step(.42*.76);packed_fade.custom_step(.42*.76)
+ assert(is_equal_approx(zoom_veil.cover_alpha(),.5) and zoom_figure.screen_bounds(app.camera).size.y>=initial_sprite_height*2.5,"Packed map sprites enlarge before the covering veil hides the combat transition")
+ var packed_return=app.map_navigation.return_from_combat(app.map_navigation.capture_view(),entry_camera);packed_return.pause();packed_return.custom_step(.251);app.map_navigation.stop();zoom_veil.free()
+ assert(app.map_navigation.capture_view()==entry_camera and app.game.save_data("battle")==entry_state)
  skip_packed_opening(app)
  await app.cinematic(stage_a,stage_b,[{"actor":stage_a.id,"target":stage_b.id,"damage":1,"remaining":19,"hit":true,"crit":false}],{stage_a.id:20,stage_b.id:20})
  await process_frame;await process_frame;app.stage.child_entered_tree.disconnect(count_entry)
