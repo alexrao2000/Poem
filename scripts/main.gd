@@ -71,6 +71,7 @@ var forecast_panel: Control
 var battle_menu: Control
 var battle_hint: Label
 var status: Label
+var objective_label: Label
 var selected = null
 var target = null
 var origin = null
@@ -227,6 +228,7 @@ func box(color: Color) -> StyleBoxFlat:
 	return b
 
 func reset_ui():
+	objective_label=null
 	dialogue_label=null
 	dialogue_stage=null
 	terrain_card=null
@@ -532,6 +534,7 @@ func show_campaign_route():
 	var place=label_in(details,"",17,GOLD)
 	var section_label=label_in(details,"",15,GOLD);section_label.name="RouteSection";section_label.visible=sectioned
 	var reading=scrolling_column(details)
+	var objective=label_in(reading,"",17,GOLD);objective.name="RouteObjective"
 	var briefing=label_in(reading,"",20)
 	var tactics_text=label_in(reading,"",17,Color("766e5e"))
 	var refresh=func(index):
@@ -541,6 +544,7 @@ func show_campaign_route():
 		var start=game.trials.section_start(index)
 		section_label.text="SECTION %d · CHAPTERS %02d–%02d"%[int(index/4)+1,start+1,mini(start+4,game.content.chapters.size())]
 		briefing.text=chapter.intro;tactics_text.text=chapter.get("tactical_brief","")
+		objective.text="OBJECTIVE / "+objective_text(chapter)
 		reading.get_parent().scroll_vertical=0
 	route.chapter_selected.connect(refresh);refresh.call(game.chapter)
 	var route_hint="Numbered seals mark the road traveled. The standard marks your company’s current chapter."
@@ -548,12 +552,19 @@ func show_campaign_route():
 	var legend=label_in(frame,route_hint,15,Color("766e5e"));legend.name="RouteLegend"
 	button_in(frame,"Return to war council",show_camp)
 
-func objective_text() -> String:
-	match game.info().objective:
+func objective_text(chapter: Dictionary={}) -> String:
+	if chapter.is_empty():chapter=game.info()
+	match chapter.objective:
 		"rout":return "Defeat every enemy"
-		"seize":return "Occupy the golden standard at the eastern gate"
-		"survive":return "Survive six enemy phases"
-		_:return "Defeat "+game.info().boss
+		"seize":return "Occupy the golden standard with any standing ally"
+		"survive":return "Survive %d enemy phases or defeat every enemy"%chapter.turn_limit
+		_:return "Defeat "+chapter.boss
+
+func battle_objective_text() -> String:
+	match game.info().objective:
+		"rout":return "Defeat every enemy · %d remaining"%game.living("enemy").size()
+		"survive":return "Survive · %d/%d enemy phases · or defeat every enemy"%[clampi(game.turn-1,0,game.info().turn_limit),game.info().turn_limit]
+		_:return objective_text()
 
 func deploy_company():
 	game.start_battle();make_map();show_battle();busy=true;update_side();persist_campaign("battle")
@@ -580,7 +591,8 @@ func show_battle():
 	var row=HBoxContainer.new();top.add_child(row)
 	var titles=VBoxContainer.new();titles.size_flags_horizontal=Control.SIZE_EXPAND_FILL;row.add_child(titles)
 	label_in(titles,"%02d  /  %s"%[game.chapter+1,game.info().title.to_upper()],24,GOLD)
-	label_in(titles,objective_text(),16)
+	objective_label=label_in(titles,battle_objective_text(),16);objective_label.name="BattleObjective"
+	objective_label.tooltip_text=objective_text();objective_label.mouse_filter=Control.MOUSE_FILTER_PASS
 	status=label_in(row,"TURN %d  /  %s"%[game.turn,game.phase.to_upper()],20)
 	status.custom_minimum_size.x=300
 	status.autowrap_mode=TextServer.AUTOWRAP_OFF
@@ -595,6 +607,7 @@ func show_battle():
 	update_side();highlight()
 
 func update_side():
+	if is_instance_valid(objective_label):objective_label.text=battle_objective_text()
 	tracked_threats.prune(game)
 	if is_instance_valid(forecast_panel):ui.remove_child(forecast_panel);forecast_panel.queue_free()
 	forecast_panel=null

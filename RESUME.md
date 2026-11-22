@@ -1,10 +1,12 @@
 # Poem — development handoff
 
-## Active checkpoint · 2026-11-21
+## Active checkpoint · 2026-11-22
 
 Development resumed on “go”. Continue in this chat until the user asks to stop; no scheduled work is requested. This checkpoint supersedes the older paused status below.
 
 ### Latest state
+
+Chapter objectives now describe the actual victory rules: any standing ally may occupy a golden standard, and survival also permits an early victory by defeating every enemy. The battle header counts remaining foes or completed enemy phases; route briefings show the selected historical objective. Four affected suites pass across unchanged runtime: 36 battle-header layouts, 36 route layouts, configured limits, read-only counters, actual attack contact ordering, both survival endings, 525 rules assertions and twelve presentation regressions. Both local exports, all four objective kinds in the exported game, loader and ZIP integrity checks pass. Registry 376; the complete 361 baseline stays separate. Rendered appearance remains unreviewed.
 
 Phase-end bleed-out now focuses each expired patient and fades their wounded map figure before the existing casualty dialogue. The loss is saved before presentation, while carried allies and those with another phase remaining keep their existing behavior. Four affected suites pass: eight actual phase endings at three sizes, permanent/recoverable/lord/multiple outcomes, Skip, exact interrupted continuation, failed-save retry and existing rescue/enemy/phase regressions. A same-frame resize crash after removing a phase ribbon is also fixed and covered. Both local exports, two actual exported permanent/lord phase endings, loader and ZIP integrity checks pass. Registry 375; the complete 361 baseline stays separate. Rendered appearance remains unreviewed.
 

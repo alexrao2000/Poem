@@ -36,6 +36,7 @@ func run():
     assert(marker.disabled==(index>chapter),"Future chapters remain unavailable")
     var prior=route.selected;route.select_chapter(index)
     assert(route.selected==(prior if index>chapter else index),"Locked chapter cannot reveal its briefing even through programmatic selection")
+    assert(app.ui.find_child("RouteObjective",true,false).text=="OBJECTIVE / "+app.objective_text(app.game.content.chapters[route.selected]),"Historical objective follows the selected briefing without changing the current chapter")
     if index>chapter:assert(marker.tooltip_text=="Unreached destination")
     elif index%4==0:
      assert("Section %d start"%(int(index/4)+1) in marker.tooltip_text)
