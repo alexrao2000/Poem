@@ -79,7 +79,7 @@ Click an enemy to inspect its stats and reach. **Track [T]** keeps that enemy’
 
 ### Equipment and combat
 
-Open a recruit's portrait at the war council, then **Equipment**, to choose from 22 weapons and staves. Supplies unlock by chapter, and equipment is freely shared. Enemy equipment appears in models, inspection panels, and forecasts.
+Open a recruit's portrait at the war council, then **Equipment**, to choose from 24 weapons and staves. Supplies unlock by chapter, and equipment is freely shared. Enemy equipment appears in models, inspection panels, and forecasts.
 
 **Permadeath** is a toggle on the new-campaign screen and in **Options**. Ordinary permadeath commits casualties after a chapter victory. With **Save every action**, deaths commit during battle and survive a retry; movement cannot be undone. Memorial records and read support scenes remain available. Turning permadeath off preserves earlier losses.
 

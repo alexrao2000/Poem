@@ -36,7 +36,7 @@ func legacy_stock():
 
 func legacy_stock_ui(app):
  var original=app.game.save_data("battle").duplicate(true);var disk=FileAccess.get_file_as_string(app.save_path)
- var fixture=legacy_fixture(5);assert(app.game.restore_save(fixture.save_data("battle"))=="battle")
+ var fixture=legacy_fixture(11);assert(app.game.restore_save(fixture.save_data("battle"))=="battle")
  app.show_campaign_trials();await inspect(app)
  var before=app.game.save_data("battle").duplicate(true)
  for stock in app.game.trials.LEGACY_STOCK:

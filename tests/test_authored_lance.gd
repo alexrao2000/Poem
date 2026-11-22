@@ -9,7 +9,7 @@ func sample(actor,key: String,fraction: float):
 func run():
  var models=load("res://scripts/debug_source_models.gd").new([study_key]);var game=load("res://scripts/rules.gd").new();var unit=game.roster.filter(func(value):return value.id==character_id)[0].duplicate(true);unit.team="player"
  var world=Node3D.new();root.add_child(world);var count=0;var lowest=INF;var worst_gap=0.0;var worst_step=0.0;var grip_gap=0.0
- for item in ["iron_lance","light_lance","pike","riders_bane"]:
+ for item in ["iron_lance","light_lance","pike","riders_bane","rally_lance"]:
   unit.item=item;var actor=models.build(world,unit,Vector3(35,.65,0));assert(actor!=null and models.models.issues.is_empty());await process_frame;actor.set_process(false)
   var rig=actor.model.get_node("Rig/Armature/Skeleton3D");var hand=rig.get_node("WeaponHand");var grip=hand.get_node("Grip");var weapon=grip.get_node("Weapon");var arms=grip.arms;var fixed=grip.transform
   assert(arms.model==actor.model and arms.chain.size()==5 and actor.contact==null and grip.equipped==item)
@@ -51,5 +51,5 @@ func run():
   for key in clips:assert(actor.player.get_animation(key).get_track_count()==clips[key],"Private clip setup is repeatable without accumulating tracks")
   actor.queue_free();await process_frame
  world.queue_free();await process_frame
- print("PASS: ",count," four-lance grip/floor poses, floor minimum ",lowest," m, finger gap ",grip_gap," m, maximum fall joint step ",worst_step," rad, eight two-sided foot/mounted/shield targets per item with tip error ",worst_gap," m, input restoration, private repeatable clips and private animation isolation")
+ print("PASS: ",count," five-lance grip/floor poses, floor minimum ",lowest," m, finger gap ",grip_gap," m, maximum fall joint step ",worst_step," rad, eight two-sided foot/mounted/shield targets per item with tip error ",worst_gap," m, input restoration, private repeatable clips and private animation isolation")
  quit()

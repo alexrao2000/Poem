@@ -38,7 +38,7 @@ func run():
    var setup=encounters.start_recruit(roster_rules,recruit.id,"",309,item.id)
    assert(not setup.is_empty())
    var actor=roster_rules.units.filter(func(u):return u.id==setup.actor)[0];var recipient=roster_rules.units.filter(func(u):return u.id==setup.target)[0]
-   assert(actor.item==item.id and roster_rules.distance(actor,recipient)==int(item.max_range) and roster_rules.valid_save(roster_rules.save_data("battle")),"Packed equipment starters retain all93 legal item/recruit pairs")
+   assert(actor.item==item.id and roster_rules.distance(actor,recipient)==int(item.max_range) and roster_rules.valid_save(roster_rules.save_data("battle")),"Packed equipment starters retain all catalogued legal item/recruit pairs")
  assert(load("res://scripts/casualty_card.gd").lines.size()==24,"Export includes all recruit casualty dialogue")
  for path in ["res://assets/fonts/OFL.txt","res://assets/audio/VSCO-LICENSE.txt","res://assets/audio/VSCO-CREDITS.txt"]:
   assert(FileAccess.file_exists(path) and FileAccess.get_file_as_string(path).length()>100,"Export includes font and instrument credits/licenses")
@@ -90,7 +90,7 @@ func run():
   wounded_actor.face_toward(Vector2i.LEFT,Vector2i.ZERO);assert(wounded_actor.player.state=="hurt" and wounded_actor.player.complete)
   wounded_actor.queue_free();await process_frame
  assert(app.fighters.enemy_looks.size()==8 and app.fighters.face_atlas.resource_path.ends_with("face-features-v2.png"),"Release includes the matching enemy profiles and current painted facial features")
- assert(app.fighters.EquipmentVisuals.profiles.size()==22 and app.fighters.EquipmentVisuals.profiles.war_hammer.shape=="hammer","Release includes every equipped item appearance")
+ assert(app.fighters.EquipmentVisuals.profiles.size()==app.game.equipment.size() and app.fighters.EquipmentVisuals.profiles.war_hammer.shape=="hammer","Release includes every equipped item appearance")
  for tile in [0,2]:
   var terrain=app.scenery.ground_material(tile)
   assert(terrain.get_shader_parameter("wang_enabled")==true and terrain.get_shader_parameter("natural_surface")== (0 if tile==0 else 1),"Packaged combat uses the same varied grass and dirt as the tactical map")
@@ -580,10 +580,20 @@ func run():
  app.game.commit_casualties();assert(app.game.trials.credits==3)
  app.show_campaign_trials()
  for stock in app.game.trials.LEGACY_STOCK:
-  assert(not app.game.trials.can_buy(app.game,stock.id) and not app.game.trials.buy(app.game,stock.id))
+  var item=app.game.equipment.filter(func(entry):return entry.id==stock.id)[0]
   var stock_button=app.ui.find_child("LegacyStock_"+stock.id,true,false)
-  assert(stock_button.disabled and stock_button.text.begins_with("Available in arsenal · "),"Packed shop does not sell normally unlocked equipment for legacy credits")
+  if int(item.unlock)<=app.game.chapter:
+   assert(not app.game.trials.can_buy(app.game,stock.id) and not app.game.trials.buy(app.game,stock.id))
+   assert(stock_button.disabled and stock_button.text.begins_with("Available in arsenal · "),"Packed shop does not sell normally unlocked equipment for legacy credits")
+  else:assert(app.game.trials.can_buy(app.game,stock.id) and not stock_button.disabled,"Packed late legacy gear remains available before its ordinary unlock")
  assert(app.game.trials.credits==3)
+ app.ui.find_child("LegacyStock_vigil_staff",true,false).pressed.emit();await process_frame;await process_frame
+ var late_healer=app.game.roster.filter(func(unit):return unit.id=="galen")[0]
+ assert(app.game.trials.credits==1 and "vigil_staff" in app.game.trials.purchases and app.game.equip(late_healer,"vigil_staff"),"Packed late stock purchases and equips before its ordinary chapter unlock")
+ var late_actor_unit=late_healer.duplicate(true);late_actor_unit.team="player"
+ var late_actor=app.make_fighter(late_actor_unit,Vector3.ZERO)
+ assert(late_actor is Imported and late_actor.model.get_meta("character_identity")=="galen" and late_actor.find_children("*","Node3D",true,false).any(func(node):return node.get_meta("equipment","")=="vigil_staff"),"Packed revised healer retains the new fitted staff without fallback")
+ late_actor.queue_free();await process_frame
  app.show_campaign_rules();app.ui.find_child("Permadeath",true,false).button_pressed=true
  var campaign_settings=load("res://scripts/campaign_settings.gd")
  for setting in campaign_settings.SWITCHES:app.ui.find_child(setting.key,true,false).button_pressed=true

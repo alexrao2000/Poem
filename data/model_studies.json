@@ -652,7 +652,8 @@
     "supported_items": [
       "field_staff",
       "mend_staff",
-      "beacon_staff"
+      "beacon_staff",
+      "vigil_staff"
     ],
     "stride": {
       "length": 5.6643,
@@ -747,7 +748,8 @@
     "supported_items": [
       "field_staff",
       "mend_staff",
-      "beacon_staff"
+      "beacon_staff",
+      "vigil_staff"
     ],
     "stride": {
       "length": 5.4124,
@@ -1218,7 +1220,8 @@
       "light_lance",
       "pike",
       "riders_bane",
-      "javelin"
+      "javelin",
+      "rally_lance"
     ],
     "stride": {
       "length": 5.4124,
@@ -1318,7 +1321,8 @@
       "light_lance",
       "pike",
       "riders_bane",
-      "javelin"
+      "javelin",
+      "rally_lance"
     ],
     "stride": {
       "length": 5.6643,
@@ -1422,7 +1426,8 @@
       "light_lance",
       "pike",
       "riders_bane",
-      "javelin"
+      "javelin",
+      "rally_lance"
     ],
     "study_character": "una",
     "study_label": "female Rider",
@@ -1512,7 +1517,8 @@
       "light_lance",
       "pike",
       "riders_bane",
-      "javelin"
+      "javelin",
+      "rally_lance"
     ],
     "study_character": "bram",
     "study_label": "male Rider",
@@ -1804,7 +1810,8 @@
       "light_lance",
       "pike",
       "riders_bane",
-      "javelin"
+      "javelin",
+      "rally_lance"
     ],
     "stride": {
       "length": 5.6643,
@@ -2054,7 +2061,8 @@
     "supported_items": [
       "field_staff",
       "mend_staff",
-      "beacon_staff"
+      "beacon_staff",
+      "vigil_staff"
     ],
     "stride": {
       "length": 5.4124,
@@ -2145,7 +2153,8 @@
       "light_lance",
       "pike",
       "riders_bane",
-      "javelin"
+      "javelin",
+      "rally_lance"
     ],
     "study_character": "bram",
     "study_label": "enemy Rider",

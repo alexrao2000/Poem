@@ -88,7 +88,7 @@ func run():
  var look=Looks.profiles.javelin;Projectile.physical_geometry(thrown,"lance",look)
  assert(is_equal_approx(thrown.get_node("Tip").mesh.get_aabb().size.x,Looks.blade("javelin").get_aabb().size.x),"Held and thrown javelins share head width")
  assert(thrown.get_node("Shaft").material_override.albedo_color==Color(look.grip) and thrown.get_node("Tip").material_override.albedo_color==Color(look.steel),"Thrown spear retains the equipped material colors")
- assert(signatures.size()==22)
+ assert(signatures.size()==rules.equipment.size())
  stage.queue_free();await process_frame
  var app=load("res://main.tscn").instantiate();app.settings_path="";app.save_path="/private/tmp/poem-equipment-visuals-test.json";root.add_child(app);await process_frame
  app.game.start_battle();app.make_map();app.show_battle();app.stage.child_entered_tree.connect(watch_flight)
@@ -99,7 +99,7 @@ func run():
  assert(flights.size()==1 and is_equal_approx(flights[0],Looks.blade("javelin").get_aabb().size.x),"Actual thrown attack uses its equipped javelin head")
  assert(app.game.save_data("battle")==saved and app.game.rng.state==rng,"Item art never changes combat outcome or random state")
  await Shutdown.dispose(app);await process_frame
- print("PASS: 22 distinct actual weapon appearances, closed cached blade/head geometry, retained reach, %d grounded pose samples, closed ridged breastplates / mirrored capped pauldrons / fitted trim, bowed shields, open quivers/feather clearance, bowstring endpoints, enemy equipment and thrown spear continuity"%samples)
+ print("PASS: all catalogued weapon appearances are distinct, closed cached blade/head geometry, retained reach, %d grounded pose samples, closed ridged breastplates / mirrored capped pauldrons / fitted trim, bowed shields, open quivers/feather clearance, bowstring endpoints, enemy equipment and thrown spear continuity"%samples)
  quit()
 
 func shield_intersection(mesh: Mesh,xy: Vector2) -> Variant:

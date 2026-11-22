@@ -174,5 +174,20 @@
     "steel": "d5dce1",
     "grip": "45475e",
     "accent": "d0b879"
+  },
+  "rally_lance": {
+    "kind": "lance",
+    "width": 0.075,
+    "steel": "d8dfdf",
+    "grip": "354c5c",
+    "accent": "d3b67a"
+  },
+  "vigil_staff": {
+    "kind": "staff",
+    "core": "c4b4df",
+    "rings": 2,
+    "steel": "d6d9e3",
+    "grip": "49455b",
+    "accent": "d4c18e"
   }
 }

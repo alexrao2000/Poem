@@ -93,7 +93,7 @@ func run():
   if item=="beacon_staff":patient.job="Rider";patient.weapon="lance"
   await app.cinematic(unit,patient,[{"actor":unit.id,"target":patient.id,"healing":6}],{unit.id:unit.hp,patient.id:patient.hp-6})
   assert(app.game.save_data("battle")==before and app.game.rng.state==rng)
- assert(recoveries==3,"All three staves complete their authored healing flow, including a mounted patient")
+ assert(recoveries==spec.supported_items.size(),"Every supported staff completes its authored healing flow, including a mounted patient")
  app.fighters.models.catalog=catalog;app.busy=false;await Shutdown.dispose(app);await process_frame
- print("PASS: ",count," actual staff/hand poses with dense falls, relocated floors, bounded reach ",worst," m, shaft grip ",grip_gap," m, minimum height ",lowest," m, native/direct influence, unchanged bones, fading, three-size study controls and three real healing exchanges")
+ print("PASS: ",count," actual staff/hand poses with dense falls, relocated floors, bounded reach ",worst," m, shaft grip ",grip_gap," m, minimum height ",lowest," m, native/direct influence, unchanged bones, fading, three-size study controls and all supported healing exchanges")
  quit()

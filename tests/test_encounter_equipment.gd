@@ -18,7 +18,8 @@ func run():
  session.begin(game,"battle",true)
  for invalid in [["oren","unknown"],["oren","thunder"],["lyra","beacon_staff"]]:
   assert(session.start_recruit_encounter(game,invalid[0],"",invalid[1]).is_empty() and game.save_data("battle")==original)
- var count=0
+ var count=0;var expected_count=0
+ for recruit in game.content.roster:expected_count+=game.equipment.filter(func(item):return item.kind==recruit.weapon).size()*(1+game.promotion_options(recruit).size())*2
  for seed_value in [17,309]:
   session.set_combat_seed(game,seed_value)
   for recruit in game.content.roster:
@@ -40,10 +41,10 @@ func run():
      var copy=Rules.new();assert(copy.restore_save(game.save_data("battle"))=="battle" and canonical(copy.save_data("battle"))==canonical(game.save_data("battle")))
      assert(not session.start_recruit_encounter(game,recruit.id,path,item.id).is_empty() and canonical(game.save_data("battle"))==snapshot)
      count+=1
- assert(count==558 and session.end(game)=="battle" and game.save_data("battle")==original)
+ assert(count==expected_count and session.end(game)=="battle" and game.save_data("battle")==original)
  await controls()
  await visibility()
- print("PASS: 558 equipped base/promoted encounters, all 22 items, max-range legal actions, ordinary unlock/growth/equip rules, exact seeded replay/save roundtrips, invalid/inactive isolation, three-size selectors eight real current/revised scenes and 72 actual viewport target bounds")
+ print("PASS: all catalogued equipped base/promoted encounters, max-range legal actions, ordinary unlock/growth/equip rules, exact seeded replay/save roundtrips, invalid/inactive isolation, three-size selectors twelve real current/revised scenes and 72 actual viewport target bounds")
  quit()
 func controls():
  root.size=Vector2i(1440,900)
@@ -69,7 +70,7 @@ func controls():
    assert(scroll.get_global_rect().grow(1).encloses(control.get_global_rect()) and control.size.x>=control.get_minimum_size().x)
  assert(app.game.save_data("camp")==before and app.debug_session.trace.report()==trace and app.preferences.values==preferences and FileAccess.get_file_as_string(app.save_path)==disk and FileAccess.get_file_as_string(app.save_path+".debug")==debug_disk)
  for model in ["current","revised"]:
-  for sample in [["oren","sentinel","javelin"],["ari","pathfinder","longbow"],["vela","spellwarden","thunder"],["galen","wayfarer","beacon_staff"]]:
+  for sample in [["oren","sentinel","javelin"],["ari","pathfinder","longbow"],["vela","spellwarden","thunder"],["galen","wayfarer","beacon_staff"],["oren","sentinel","rally_lance"],["galen","wayfarer","vigil_staff"]]:
    app.show_debug_encounters();await process_frame;await process_frame
    app.ui.find_child("EncounterModels_"+model,true,false).pressed.emit()
    choose(app.ui.find_child("EncounterRecruit",true,false),sample[0]);choose(app.ui.find_child("EncounterTraining",true,false),sample[1]);choose(app.ui.find_child("EncounterEquipment",true,false),sample[2])

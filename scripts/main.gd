@@ -1510,7 +1510,7 @@ func show_equipment(unit):
 	var portrait=TextureRect.new();portrait.texture=portraits.get_portrait(unit.id);portrait.custom_minimum_size=Vector2(230,200)
 	portrait.expand_mode=TextureRect.EXPAND_IGNORE_SIZE;portrait.stretch_mode=TextureRect.STRETCH_KEEP_ASPECT_CENTERED;summary.add_child(portrait)
 	label_in(summary,"EQUIPPED",16,GOLD);weapon_label(summary,unit.weapon,game.item_for(unit).name,25)
-	label_in(summary,"Attack %d   Speed %d\nRange %s"%[game.attack_power(unit),game.attack_speed(unit),game.range_text(unit)],21)
+	label_in(summary,"%s %d   Speed %d\nRange %s"%["Healing" if unit.weapon=="staff" else "Attack",game.healing_power(unit) if unit.weapon=="staff" else game.attack_power(unit),game.attack_speed(unit),game.range_text(unit)],21)
 	label_in(summary,"Weight reduces speed. A 4-point speed lead grants a follow-up attack.",17)
 	var scroll=ScrollContainer.new();scroll.size_flags_horizontal=Control.SIZE_EXPAND_FILL;scroll.size_flags_vertical=Control.SIZE_EXPAND_FILL;row.add_child(scroll)
 	var list=VBoxContainer.new();list.size_flags_horizontal=Control.SIZE_EXPAND_FILL;list.add_theme_constant_override("separation",12);scroll.add_child(list)
