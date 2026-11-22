@@ -20,6 +20,7 @@ var defeat_opacity=1.0
 var defeat_motion: Tween
 var transferring=false
 var rescue_opacity=1.0
+var tactical_details_visible=true
 
 func configure(source: RefCounted,unit: Dictionary,facing="south",carried_name="",shared_count=0):
  unit_id=unit.id;team=unit.team;spent=unit.acted;downed=unit.get("downed",false)
@@ -100,7 +101,14 @@ func refresh_health():
  image.fill_rect(Rect2i(1,1,22,2),Color("172b30"))
  var fill=Color("acd86b") if hp_ratio>.5 else Color("f2c45e") if hp_ratio>.25 else Color("e87c63")
  image.fill_rect(Rect2i(1,1,maxi(0,roundi(22*clampf(hp_ratio,0,1))),2),fill)
- health.texture=ImageTexture.create_from_image(image);health.visible=true
+ health.texture=ImageTexture.create_from_image(image);health.visible=tactical_details_visible
+
+func set_tactical_details_visible(value: bool):
+ tactical_details_visible=value
+ health.visible=value
+ ring.visible=value and selected and not departing and not transferring
+ for icon in [commander_insignia,rescue_marker,carry_marker,shared_marker]:
+  if is_instance_valid(icon):icon.visible=value
 
 func _process(dt):
  if not is_visible_in_tree():return
@@ -109,6 +117,7 @@ func _process(dt):
  if spent:sprite.modulate=Color(.78,.78,.78,sprite.modulate.a)
  var breath=1.0+sin(clock*4)*.045
  ring.scale=Vector3(breath,1,breath)
+ ring.visible=ring.visible and tactical_details_visible
  if team=="enemy" and not spent and not visual_id.begins_with("enemy."):sprite.modulate*=Color(1,.72,.68)
  if downed:sprite.modulate=Color("d8a178")
  if departing:set_defeat_opacity(defeat_opacity);ring.hide()

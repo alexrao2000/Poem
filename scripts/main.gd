@@ -1076,6 +1076,7 @@ func cinematic(a,b,events,initial_hp={}):
 	var tactical_view=map_navigation.capture_view()
 	var focus=(map_position(game.pos(a))+map_position(game.pos(b)))*.5
 	markers.hide()
+	for visual in unit_nodes.values():visual.set_tactical_details_visible(false)
 	var tactical_controls={}
 	for control in ui.get_children():tactical_controls[control]=control.visible;control.hide()
 	var playback=preload("res://scripts/combat_playback.gd").new();playback.configure(ui)
@@ -1288,12 +1289,15 @@ func cinematic(a,b,events,initial_hp={}):
 
 func return_to_tactical_map(veil,playback,close_map_view: Dictionary,tactical_view: Dictionary,tactical_controls: Dictionary):
 	refresh_pieces()
-	world.show();pieces.show();markers.show()
+	for visual in unit_nodes.values():visual.set_tactical_details_visible(false)
+	world.show();pieces.show()
 	var pull=map_navigation.return_from_combat(close_map_view,tactical_view,.25)
 	veil.reveal(.25)
 	await pull.finished
 	if veil.motion.is_running():await veil.motion.finished
 	veil.queue_free();playback.stop();playback.queue_free()
+	for visual in unit_nodes.values():visual.set_tactical_details_visible(true)
+	markers.show()
 	for control in tactical_controls:
 		if is_instance_valid(control):control.visible=tactical_controls[control]
 	music_mix(false)

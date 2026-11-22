@@ -43,6 +43,7 @@ func skip_opening(report: Dictionary,pointer: bool,threshold: float):
  var veil=app.ui.get_node("CombatTransition")
  while veil.progress<threshold:await process_frame
  assert(not app.stage.visible,"The request is sent during the real tactical zoom, before arena construction")
+ assert(not app.markers.visible and app.unit_nodes.values().all(func(actor):return not actor.health.visible and not actor.ring.visible),"Opening cancellation starts with the tactical overlays hidden")
  var playback=app.ui.get_node("CombatPlayback")
  if pointer:click(playback.fast_button);click(playback.skip_button)
  else:
@@ -71,6 +72,7 @@ func verify_opening_skips():
    assert(report.get("requested",false) and additions[0]==previous,"Early Tab and late pointer skips construct no arena, fighters, HUD or effects")
    assert(app.game.save_data("battle")==saved and app.map_navigation.capture_view()==camera and app.lighting_state()==lighting,"Opening cancellation preserves resolved state/RNG, exact camera and map lighting")
    assert(app.score==score and Engine.time_scale==scale and app.world.visible and app.pieces.visible and app.markers.visible)
+   assert(app.unit_nodes.values().all(func(actor):return actor.tactical_details_visible and actor.health.visible),"Early and late skips restore the refreshed map indicators")
    assert(not app.ui.has_node("CombatTransition") and not app.ui.has_node("CombatPlayback"))
    for control in controls:assert(control.visible==controls[control],"Restore only the controls visible before entry")
  app.stage.child_entered_tree.disconnect(count_child);hidden.queue_free();await process_frame

@@ -4,6 +4,14 @@ const Transition=preload("res://scripts/combat_transition.gd")
 # Measure projected ground anchors rather than relying on screenshots. Exercise
 # bounded drag, interrupted zoom, cursor tracking and the real cinematic handoff.
 func _initialize():call_deferred("run")
+func check_details(app,visible: bool):
+ assert(app.markers.visible==visible,"Tactical tile overlays follow map control ownership")
+ for actor in app.unit_nodes.values():
+  assert(actor.tactical_details_visible==visible and actor.health.visible==visible)
+  assert(actor.sprite.visible and actor.marker.visible,"Cinematic approaches keep character sprites and contact shadows")
+  assert(actor.ring.visible==(visible and actor.selected))
+  for icon in [actor.commander_insignia,actor.rescue_marker,actor.carry_marker,actor.shared_marker]:
+   if is_instance_valid(icon):assert(icon.visible==visible,"Every applicable status badge follows tactical ownership")
 func visible_combat_zoom():
  var viewport=SubViewport.new();viewport.size=Vector2i(1440,900);viewport.render_target_update_mode=SubViewport.UPDATE_DISABLED;root.add_child(viewport)
  var app=load("res://main.tscn").instantiate();app.settings_path="";app.save_path="/private/tmp/poem-visible-zoom-%d.json"%Time.get_ticks_usec();viewport.add_child(app);await process_frame
@@ -115,6 +123,7 @@ func run():
  var prior=camera.transform;var size=camera.size;var rng=app.game.rng.state
  var handoff=[false];var restored=[false]
  var observe_return=func():
+  if app.ui.get_node_or_null("CombatPlayback")!=null:check_details(app,false)
   if app.stage.visible:handoff[0]=true
   elif handoff[0] and not restored[0]:
    restored[0]=true
@@ -124,6 +133,7 @@ func run():
  var a=app.game.units[0];var b=app.game.living("enemy")[0];a.x=8;a.y=4;b.x=9;b.y=4
  await app.cinematic(a,b,[{"actor":a.id,"target":b.id,"damage":1,"remaining":19,"hit":true,"crit":false}],{a.id:20,b.id:20})
  process_frame.disconnect(observe_return);assert(restored[0],"Real cinematic exercised the close map handoff")
+ check_details(app,true)
  await create_timer(.2).timeout
  assert(camera.transform.is_equal_approx(prior) and is_equal_approx(camera.size,size),"Interrupted map zoom cannot overwrite arena or restored view")
  assert(app.game.rng.state==rng,"Camera gestures never consume gameplay randomness")

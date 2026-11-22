@@ -6,6 +6,8 @@ Development resumed on “go”. Continue in this chat until the user asks to st
 
 ### Latest state
 
+Tactical health bars, selection marks and status badges now stay hidden throughout the enlarged combat approach and return, with character sprites and contact shadows retained. Four affected suites passed exact restoration after normal and skipped combat/healing, wounded/carrier/shared/commander details, and map-only exchanges. Both local exports, packaged indicator/Skip checks, the exported-loader check and ZIP integrity passed.
+
 The opening combat zoom now enlarges map sprites before the covering fade becomes opaque. At standard zoom, measured sprite height reaches 2.85× at half coverage, up from 1.43×, with the same duration and endpoints. Four affected suites, 54 actual-viewport projection cases, both local exports, packaged growth/skip checks and ZIP integrity pass. Exact camera restoration, gameplay state and RNG remain unchanged; this is numerical verification, not rendered appearance approval.
 
 The campaign contains 24 recruits, 12 chapters and 24 equipment choices. Recent additions include independent rule switches at campaign creation, full-roster Debug encounters, actual stat comparisons in the arsenal, later lance/staff legacy supplies, and a fifth experiment starter for rescuing a patient before their final countdown ends. The original rescue tutorial remains available.

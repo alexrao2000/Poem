@@ -10,6 +10,7 @@ func _initialize():call_deferred("run")
 func skip_packed_opening(app):
  while app.ui.get_node_or_null("CombatPlayback")==null:await process_frame
  await process_frame
+ assert(not app.markers.visible and app.unit_nodes.values().all(func(actor):return not actor.tactical_details_visible and not actor.health.visible and not actor.ring.visible),"Packaged opening zoom hides tactical indicators while retaining map sprites")
  app.ui.get_node("CombatPlayback").request_skip()
 
 func run():
@@ -558,6 +559,7 @@ func run():
  await app.cinematic(stage_a,stage_b,[{"actor":stage_a.id,"target":stage_b.id,"damage":1,"remaining":19,"hit":true,"crit":false}],{stage_a.id:20,stage_b.id:20})
  await process_frame;await process_frame;app.stage.child_entered_tree.disconnect(count_entry)
  assert(entry_nodes[0]==0 and app.game.save_data("battle")==entry_state and app.map_navigation.capture_view()==entry_camera,"Packaged opening Skip returns without constructing an arena or changing resolved state")
+ assert(app.markers.visible and app.unit_nodes.values().all(func(actor):return actor.tactical_details_visible and actor.health.visible),"Packaged Skip restores tactical details with map control")
  await app.cinematic(stage_a,stage_b,[{"actor":stage_a.id,"target":stage_b.id,"damage":1,"remaining":19,"hit":true,"crit":false}],{stage_a.id:20,stage_b.id:20})
  assert(not app.stage.visible and app.stage.process_mode==Node.PROCESS_MODE_DISABLED,"Packaged combat suspends its hidden arena after returning to the map")
  var hidden_actors=app.stage.get_children().filter(func(node):return node is Imported)

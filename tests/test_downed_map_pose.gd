@@ -28,6 +28,11 @@ func run():
      actor.face_toward(Vector2i.LEFT,Vector2i.ZERO);actor.finish_move();actor._process(.1)
      assert(actor.player.state=="hurt" and actor.player.complete and actor.player.facing=="west","Facing and movement cleanup retain the held wounded state")
      assert(original.get_image().get_data()==original_data,"Presentation leaves shared artwork intact")
+     actor.selected=true;actor.set_tactical_details_visible(false);actor.refresh_health();actor._process(.2)
+     assert(not actor.health.visible and not actor.ring.visible and not actor.rescue_marker.visible,"Enlarged cinematic handoffs suppress refreshed health, selection and rescue badges")
+     assert(actor.sprite.visible and actor.marker.visible and actor.player.state=="hurt" and actor.rescue_marker.get_meta("turns")==unit.bleed_turns,"Hidden tactical details retain wounded artwork, shadow and countdown data")
+     actor.set_tactical_details_visible(true);actor._process(0)
+     assert(actor.health.visible and actor.ring.visible and actor.rescue_marker.visible,"Map control restores the same selection and patient countdown")
      actor.rest_pose(facing);actor._process(0)
      actors.append(actor);poses+=1
    catalog.assets[identity]=saved
@@ -46,5 +51,13 @@ func run():
       assert(rect.grow(.01).has_point(camera.unproject_position(point)),"Pointer bounds contain the complete held wounded quad")
     assert(rect.has_point(camera.unproject_position(actor.rescue_marker.global_position)),"The countdown badge stays in the same clickable unit bounds")
     bounds+=1
+ for team in ["player","enemy"]:
+  var unit=rules.roster[0].duplicate(true);unit.team=team;unit.acted=false;unit.boss=team=="enemy"
+  var actor=Unit.new();world.add_child(actor);actor.configure(catalog,unit,"south","Oren",2);actor.set_process(false);actor.selected=true
+  for visible in [false,true,false,true]:
+   actor.set_tactical_details_visible(visible);actor._process(.1)
+   assert(actor.health.visible==visible and actor.ring.visible==visible and actor.carry_marker.visible==visible and actor.shared_marker.visible==visible)
+   if team=="enemy":assert(actor.commander_insignia.visible==visible)
+   assert(actor.sprite.visible and actor.marker.visible and actor.carry_marker.get_meta("passenger")=="Oren" and actor.shared_marker.get_meta("count")==2,"Repeated handoffs preserve carrier, shared-tile and commander details")
  world.queue_free();await process_frame
  print("PASS: ",poses," wounded roster/class-fallback/facing/spent poses hold through time and facing cleanup; ",bounds," three-size/two-zoom quad and countdown bounds; full visibility, fixed foot anchors and unchanged shared art");quit()
