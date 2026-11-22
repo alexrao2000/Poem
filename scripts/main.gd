@@ -1,6 +1,7 @@
 extends Node3D
 const Rules = preload("res://scripts/rules.gd")
 const CampaignSettings=preload("res://scripts/campaign_settings.gd")
+const EquipmentComparison=preload("res://scripts/equipment_comparison.gd")
 const Portraits = preload("res://scripts/portraits.gd")
 const WeaponIcons=preload("res://scripts/weapon_icons.gd")
 const MapUnit=preload("res://scripts/campaign_map_unit.gd")
@@ -1524,6 +1525,9 @@ func show_equipment(unit):
 		if item.kind=="staff":label_in(details,"Heal %d   Weight %d   Range %s"%[int(item.heal)+game.promotion_bonus(unit,"heal"),item.weight,reach],18)
 		else:label_in(details,"Might %d   Hit %+d   Crit +%d   Weight %d   Range %s"%[item.might,item.hit,item.crit,item.weight,reach],18)
 		var locked=int(item.unlock)>game.chapter and item.id not in game.trials.purchases;var equipped=unit.item==item.id
+		if not equipped:
+			var comparison=label_in(details,EquipmentComparison.preview(game,unit,item).text,18)
+			comparison.name="EquipmentComparison_"+item.id
 		button_in(details,"Available in chapter %d"%(int(item.unlock)+1) if locked else ("Equipped" if equipped else "Equip"),func():
 			if game.equip(unit,item.id):show_equipment(unit);persist_campaign("camp")
 		,locked or equipped)

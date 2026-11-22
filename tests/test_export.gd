@@ -594,6 +594,11 @@ func run():
  var late_actor=app.make_fighter(late_actor_unit,Vector3.ZERO)
  assert(late_actor is Imported and late_actor.model.get_meta("character_identity")=="galen" and late_actor.find_children("*","Node3D",true,false).any(func(node):return node.get_meta("equipment","")=="vigil_staff"),"Packed revised healer retains the new fitted staff without fallback")
  late_actor.queue_free();await process_frame
+ var arsenal_state=app.game.save_data("battle").duplicate(true)
+ app.show_equipment(late_healer);await process_frame;await process_frame
+ var beacon_comparison=app.ui.find_child("EquipmentComparison_beacon_staff",true,false)
+ assert(beacon_comparison.text.contains("Healing %d (-6)"%(10+app.game.promotion_bonus(late_healer,"heal"))) and beacon_comparison.text.contains("Speed %d (+3)"%late_healer.speed),"Packed arsenal compares promoted healing and effective speed against the equipped staff")
+ assert(app.game.save_data("battle")==arsenal_state,"Inspecting the packaged arsenal keeps the loadout and campaign untouched")
  app.show_campaign_rules();app.ui.find_child("Permadeath",true,false).button_pressed=true
  var campaign_settings=load("res://scripts/campaign_settings.gd")
  for setting in campaign_settings.SWITCHES:app.ui.find_child(setting.key,true,false).button_pressed=true
