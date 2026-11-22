@@ -36,6 +36,7 @@ func run():
    assert(forecast.records[1].stats[0].value.text==(str(reverse.damage) if expected.counter else "—"))
    for i in range(2):
     var marker=forecast.records[i].matchup;var result=expected if i==0 else reverse
+    assert(forecast.records[i].card.find_child("WeaponIcon",true,false).texture.resource_path=="res://assets/ui/items/"+game.item_for(unit if i==0 else foe).id+".svg","Both forecast icons resolve the same equipment as their names and rules")
     var damage=forecast.records[i].stats[0]
     assert(damage.repeat.visible==((i==0 or expected.counter) and result.double),"Follow-up badge follows the same rules result and is absent without a counter")
     if damage.repeat.visible:

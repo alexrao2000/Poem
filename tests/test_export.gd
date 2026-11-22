@@ -91,6 +91,9 @@ func run():
   wounded_actor.queue_free();await process_frame
  assert(app.fighters.enemy_looks.size()==8 and app.fighters.face_atlas.resource_path.ends_with("face-features-v2.png"),"Release includes the matching enemy profiles and current painted facial features")
  assert(app.fighters.EquipmentVisuals.profiles.size()==app.game.equipment.size() and app.fighters.EquipmentVisuals.profiles.war_hammer.shape=="hammer","Release includes every equipped item appearance")
+ for item in app.game.equipment:
+  var item_icon=app.WeaponIcons.get_item_icon(item.id,item.kind)
+  assert(item_icon!=null and item_icon.get_size()==Vector2(48,48) and item_icon.resource_path=="res://assets/ui/items/"+item.id+".svg","Packed resource catalog retains every individual inventory icon")
  for tile in [0,2]:
   var terrain=app.scenery.ground_material(tile)
   assert(terrain.get_shader_parameter("wang_enabled")==true and terrain.get_shader_parameter("natural_surface")== (0 if tile==0 else 1),"Packaged combat uses the same varied grass and dirt as the tactical map")
@@ -596,6 +599,7 @@ func run():
  late_actor.queue_free();await process_frame
  var arsenal_state=app.game.save_data("battle").duplicate(true)
  app.show_equipment(late_healer);await process_frame;await process_frame
+ assert(app.ui.find_child("WeaponIcon",true,false).texture==app.WeaponIcons.get_item_icon("vigil_staff"),"Packed arsenal summary uses the equipped legacy staff art")
  var beacon_comparison=app.ui.find_child("EquipmentComparison_beacon_staff",true,false)
  assert(beacon_comparison.text.contains("Healing %d (-6)"%(10+app.game.promotion_bonus(late_healer,"heal"))) and beacon_comparison.text.contains("Speed %d (+3)"%late_healer.speed),"Packed arsenal compares promoted healing and effective speed against the equipped staff")
  assert(app.game.save_data("battle")==arsenal_state,"Inspecting the packaged arsenal keeps the loadout and campaign untouched")

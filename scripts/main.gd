@@ -265,9 +265,9 @@ func button_in(parent,text_value,action,disabled=false) -> Button:
 	interface_audio.watch(b,interface_audio.button_tone(text_value))
 	b.pressed.connect(action);parent.add_child(b);return b
 
-func weapon_label(parent,kind: String,text_value: String,font_size=18) -> Label:
+func weapon_label(parent,kind: String,text_value: String,font_size=18,item_id: String="") -> Label:
 	var row=HBoxContainer.new();row.add_theme_constant_override("separation",7);parent.add_child(row)
-	var icon=TextureRect.new();icon.texture=WeaponIcons.get_icon(kind);icon.custom_minimum_size=Vector2(28,28)
+	var icon=TextureRect.new();icon.name="WeaponIcon";icon.texture=WeaponIcons.get_item_icon(item_id,kind);icon.custom_minimum_size=Vector2(28,28)
 	icon.expand_mode=TextureRect.EXPAND_IGNORE_SIZE;icon.stretch_mode=TextureRect.STRETCH_KEEP_ASPECT_CENTERED;row.add_child(icon)
 	var label=label_in(row,text_value,font_size,GOLD);label.size_flags_horizontal=Control.SIZE_EXPAND_FILL
 	label.text_overrun_behavior=TextServer.OVERRUN_TRIM_ELLIPSIS;label.autowrap_mode=TextServer.AUTOWRAP_OFF;label.tooltip_text=text_value
@@ -620,7 +620,7 @@ func update_side():
 		health_row.add_child(meter);meter.change_to(selected.hp,true)
 		var attack_text=label_in(health_row,"HEAL %d"%game.healing_power(selected) if selected.weapon=="staff" else "ATK %d"%game.attack_power(selected),16);attack_text.autowrap_mode=TextServer.AUTOWRAP_OFF
 		label_in(side,"DEF %d · RES %d · SPD %d"%[selected.defense,game.resistance_for(selected),game.attack_speed(selected)],17)
-		weapon_label(side,selected.weapon,game.item_for(selected).name+" · "+game.range_text(selected)+" tiles",15)
+		weapon_label(side,selected.weapon,game.item_for(selected).name+" · "+game.range_text(selected)+" tiles",15,game.item_for(selected).id)
 		if selected.team=="enemy":
 			var behavior={"guard":"Holds position","sentry":"Waits until approached","pursue":"Advances toward the company"}
 			var intent=("Heals nearby allies" if selected.get("ai","")=="guard" else "Moves to heal wounded allies") if selected.weapon=="staff" else behavior.get(selected.get("ai","pursue"),"Advances")
@@ -1128,7 +1128,7 @@ func cinematic(a,b,events,initial_hp={}):
 		var opponent=b if unit.id==a.id else a
 		var snapshot=events[0].get("exchange_forecast",{}).get(unit.id,{})
 		var triangle=0 if events[0].has("healing") else snapshot.triangle if not snapshot.is_empty() else game.forecast(unit,opponent).triangle
-		entries.append({"unit":unit,"hp":displayed_hp[unit.id],"portrait":portraits.get_unit_portrait(unit),"class_name":game.class_name_for(unit),"weapon":game.item_for(unit).name,"triangle":triangle,"forecast":snapshot,"health_max":events[0].get("health_limits",{}).get(unit.id,snapshot.get("max_hp",unit.max_hp))})
+		entries.append({"unit":unit,"hp":displayed_hp[unit.id],"portrait":portraits.get_unit_portrait(unit),"class_name":game.class_name_for(unit),"weapon":game.item_for(unit).name,"weapon_id":game.item_for(unit).id,"triangle":triangle,"forecast":snapshot,"health_max":events[0].get("health_limits",{}).get(unit.id,snapshot.get("max_hp",unit.max_hp))})
 	var banner=CombatHUD.new();banner.configure(ui,entries);banner.reveal()
 	var caption=Label.new();caption.name="CombatCaption";caption.set_anchors_and_offsets_preset(Control.PRESET_TOP_WIDE);caption.offset_top=36;caption.horizontal_alignment=HORIZONTAL_ALIGNMENT_CENTER
 	caption.add_theme_font_size_override("font_size",30);caption.add_theme_color_override("font_color",Color("f7edce"));caption.add_theme_color_override("font_outline_color",Color("373d42"));caption.add_theme_constant_override("outline_size",7)
@@ -1510,7 +1510,7 @@ func show_equipment(unit):
 	var summary=scrolling_column(row,250);summary.get_parent().size_flags_horizontal=Control.SIZE_FILL
 	var portrait=TextureRect.new();portrait.texture=portraits.get_portrait(unit.id);portrait.custom_minimum_size=Vector2(230,200)
 	portrait.expand_mode=TextureRect.EXPAND_IGNORE_SIZE;portrait.stretch_mode=TextureRect.STRETCH_KEEP_ASPECT_CENTERED;summary.add_child(portrait)
-	label_in(summary,"EQUIPPED",16,GOLD);weapon_label(summary,unit.weapon,game.item_for(unit).name,25)
+	label_in(summary,"EQUIPPED",16,GOLD);weapon_label(summary,unit.weapon,game.item_for(unit).name,25,game.item_for(unit).id)
 	label_in(summary,"%s %d   Speed %d\nRange %s"%["Healing" if unit.weapon=="staff" else "Attack",game.healing_power(unit) if unit.weapon=="staff" else game.attack_power(unit),game.attack_speed(unit),game.range_text(unit)],21)
 	label_in(summary,"Weight reduces speed. A 4-point speed lead grants a follow-up attack.",17)
 	var scroll=ScrollContainer.new();scroll.size_flags_horizontal=Control.SIZE_EXPAND_FILL;scroll.size_flags_vertical=Control.SIZE_EXPAND_FILL;row.add_child(scroll)
@@ -1519,7 +1519,7 @@ func show_equipment(unit):
 		if item.kind!=unit.weapon:continue
 		var card=PanelContainer.new();list.add_child(card)
 		var details=VBoxContainer.new();details.add_theme_constant_override("separation",5);card.add_child(details)
-		weapon_label(details,item.kind,item.name,26);label_in(details,item.description,17)
+		weapon_label(details,item.kind,item.name,26,item.id);label_in(details,item.description,17)
 		if item.has("effective_against"):label_in(details,"Triple weapon might against "+", ".join(item.effective_against)+" foes.",17,GOLD)
 		var reach=str(int(item.min_range)) if item.min_range==item.max_range else "%d–%d"%[item.min_range,item.max_range]
 		if item.kind=="staff":label_in(details,"Heal %d   Weight %d   Range %s"%[int(item.heal)+game.promotion_bonus(unit,"heal"),item.weight,reach],18)

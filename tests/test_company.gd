@@ -20,6 +20,7 @@ func run():
   for unit in app.game.roster:
    var entry=card(app,unit.id);var available=unit.join<=chapter
    assert(entry.portrait_button.disabled==not available,"Future recruits stay unavailable")
+   assert(entry.find_child("WeaponIcon",true,false).texture.resource_path=="res://assets/ui/items/"+app.game.item_for(unit).id+".svg","Company card art matches its actual equipped item")
    var supplies=entry.find_child("DeploymentSupplies",true,false)
    if available:assert(supplies!=null and supplies.text=="2 field tonics","Available recruits preview their ordinary starting supplies")
    else:assert(supplies==null,"Locked recruits do not advertise usable supplies")

@@ -2,10 +2,15 @@ extends SceneTree
 const Shutdown=preload("helpers/game_shutdown.gd")
 const Rules=preload("res://scripts/rules.gd")
 const Tactics=preload("res://scripts/tactics.gd")
+const Icons=preload("res://scripts/weapon_icons.gd")
 const Comparison=preload("res://scripts/equipment_comparison.gd")
 func _initialize():call_deferred("run")
 func compare_catalog():
  var catalog=Rules.new();var count=0
+ for item in catalog.equipment:
+  var texture=Icons.get_item_icon(item.id,item.kind)
+  assert(texture!=null and texture.get_size()==Vector2(48,48) and texture.resource_path=="res://assets/ui/items/"+item.id+".svg","Every catalog item resolves to its own imported inventory art")
+ assert(Icons.get_item_icon("unknown","lance")==Icons.get_icon("lance") and Icons.get_item_icon("unknown")==null,"Unknown or category-only callers retain the family fallback")
  for recruit in catalog.roster:
   for path in [""]+catalog.promotion_options(recruit).map(func(entry):return entry.id):
    var game=Rules.new();game.chapter=11
@@ -61,8 +66,12 @@ func run():
  for id in ["lyra","oren","ivo"]:
   var unit=app.game.roster.filter(func(entry):return entry.id==id)[0]
   app.show_equipment(unit);await process_frame;await process_frame
+  var visible_icons=app.ui.find_children("WeaponIcon","TextureRect",true,false)
+  assert(visible_icons[0].texture==Icons.get_item_icon(app.game.item_for(unit).id),"Equipped summary shows the actual item")
+  assert(visible_icons.size()==1+app.game.equipment.filter(func(entry):return entry.kind==unit.weapon).size())
   for item in app.game.equipment:
    if item.kind!=unit.weapon:continue
+   assert(visible_icons.any(func(icon):return icon.texture==Icons.get_item_icon(item.id)),"Locked and available alternatives each retain their own artwork")
    var label=app.ui.find_child("EquipmentComparison_"+item.id,true,false)
    if item.id==unit.item:assert(label==null)
    else:

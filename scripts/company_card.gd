@@ -38,7 +38,7 @@ func configure(unit: Dictionary,class_title: String,portrait: Texture2D,weapon: 
  var health="%d/%d"%[condition.hp,unit.max_hp] if condition.get("recovering",false) and available else str(int(unit.max_hp))
  label_in(info,"Lv %d   ·   HP %s"%[unit.level,health],13,Color("645e51")).name="DeploymentHealth"
  var gear=HBoxContainer.new();gear.add_theme_constant_override("separation",5);info.add_child(gear)
- var icon=TextureRect.new();icon.texture=preload("res://scripts/weapon_icons.gd").get_icon(weapon.kind)
+ var icon=TextureRect.new();icon.name="WeaponIcon";icon.texture=preload("res://scripts/weapon_icons.gd").get_item_icon(weapon.get("id",""),weapon.kind)
  icon.expand_mode=TextureRect.EXPAND_IGNORE_SIZE;icon.stretch_mode=TextureRect.STRETCH_KEEP_ASPECT_CENTERED
  icon.custom_minimum_size=Vector2(20,20);gear.add_child(icon)
  var item=label_in(gear,weapon.name,12,Color("806537"));item.size_flags_horizontal=Control.SIZE_EXPAND_FILL

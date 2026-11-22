@@ -116,7 +116,7 @@ func configure(parent: Control,entries: Array):
   if stats.visible:stats.configure(forecast)
   var weapon=make_label(plate,entry.weapon,17,Color("e6d7b5"))
   weapon.tooltip_text=entry.weapon
-  var icon=TextureRect.new();icon.name="WeaponIcon";icon.texture=Icons.get_icon(unit.get("weapon",""))
+  var icon=TextureRect.new();icon.name="WeaponIcon";icon.texture=Icons.get_item_icon(entry.get("weapon_id",unit.get("item","")),unit.get("weapon",""))
   icon.expand_mode=TextureRect.EXPAND_IGNORE_SIZE;icon.stretch_mode=TextureRect.STRETCH_KEEP_ASPECT_CENTERED;icon.mouse_filter=Control.MOUSE_FILTER_IGNORE;plate.add_child(icon)
   var matchup=MatchupMarker.new();matchup.name="WeaponMatchup";matchup.advantage=int(entry.get("triangle",0));matchup.visible=matchup.advantage!=0
   matchup.tooltip_text="Weapon advantage" if matchup.advantage>0 else "Weapon disadvantage";plate.add_child(matchup)

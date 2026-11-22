@@ -59,7 +59,7 @@ func configure(parent: Control,rules,a: Dictionary,b: Dictionary,faces: Array):
   var card=Card.new();card.enemy=unit.team=="enemy";card.mouse_filter=Control.MOUSE_FILTER_STOP;add_child(card)
   var heading=label(card,unit.name,26,Color("fff2d3"));heading.add_theme_font_override("font",FONT)
   var weapon=label(card,rules.item_for(unit).name,16)
-  var icon=TextureRect.new();icon.texture=Icons.get_icon(unit.weapon);icon.expand_mode=TextureRect.EXPAND_IGNORE_SIZE;icon.stretch_mode=TextureRect.STRETCH_KEEP_ASPECT_CENTERED;icon.mouse_filter=Control.MOUSE_FILTER_IGNORE;card.add_child(icon)
+  var icon=TextureRect.new();icon.name="WeaponIcon";icon.texture=Icons.get_item_icon(rules.item_for(unit).id,unit.weapon);icon.expand_mode=TextureRect.EXPAND_IGNORE_SIZE;icon.stretch_mode=TextureRect.STRETCH_KEEP_ASPECT_CENTERED;icon.mouse_filter=Control.MOUSE_FILTER_IGNORE;card.add_child(icon)
   var matchup=MatchupMarker.new();matchup.advantage=result.triangle;matchup.visible=available and result.triangle!=0
   matchup.tooltip_text="Weapon advantage" if result.triangle>0 else "Weapon disadvantage";card.add_child(matchup)
   var portrait=TextureRect.new();portrait.texture=faces[index];portrait.expand_mode=TextureRect.EXPAND_IGNORE_SIZE;portrait.stretch_mode=TextureRect.STRETCH_KEEP_ASPECT_CENTERED;portrait.mouse_filter=Control.MOUSE_FILTER_IGNORE;add_child(portrait);move_child(portrait,0)

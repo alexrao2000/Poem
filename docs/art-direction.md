@@ -925,3 +925,11 @@ Headless GUI input tests click the actual controls, including during melee and h
 Tab or Skip during the tactical push finishes the existing concealment and returns directly to the map. It no longer builds and briefly reveals an unwanted arena. This keeps the transition continuous while avoiding scenery, fighter, HUD and effect construction for a scene the player has already dismissed. Normal completion and opening cancellation share exact map framing, lighting, control visibility and presentation-clock restoration. The resolved combat outcome and save checkpoint remain unchanged.
 
 Headless checks cover early and late pointer/keyboard requests, both model sets, melee and healing, plus ordinary cinematic regression and packed cancellation. This does not establish rendered transition quality or browser frame rate.
+
+## Individual inventory artwork
+
+Each of the 24 catalog items has original vector artwork using the shapes and colors of its equipment appearance. Swords differ in blade and guard, polearms in spearhead and lugs, and axes include the hammer silhouette. Bows, spellbooks and staves retain their own outlines and accents. The arsenal, company cards, selected-unit panel, forecasts and combat HUD use the resolved item; category-only records retain the existing family icon. Existing control sizes are unchanged.
+
+The [inventory art script](../scripts/generate_inventory_icons.py) generates the SVGs using only the Python standard library: `python3 scripts/generate_inventory_icons.py`. Optional `--review --output build/review/inventory-icons` uses Pillow to make a source-art contact sheet. This is not a gameplay capture.
+
+All 24 imported item resources, actual arsenal/company/forecast/HUD bindings, category fallback and existing menu bounds passed five affected suites. Both local exports, packaged item resources and the equipped Vigil staff summary passed, followed by ZIP integrity. Source artwork was inspected at 28px and 20px on light and dark backgrounds; all stroke bounds fit the 48px canvas. Assembled game appearance remains unreviewed.

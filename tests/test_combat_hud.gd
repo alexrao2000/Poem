@@ -42,7 +42,8 @@ func run():
      var stat_font=column.value.get_theme_font("font");var stat_size=column.value.get_theme_font_size("font_size")
      assert(stat_font.get_string_size(column.value.text,HORIZONTAL_ALIGNMENT_LEFT,-1,stat_size).x<=column.value.size.x,"Full three-digit doubled damage and percentages remain readable at every supported width")
     assert(r.stats.columns[0].value.text==("999×2" if id==unit.id else "—"),"Doubled damage and unavailable counters have explicit values")
-    assert(r.icon.texture!=null,"Every weapon family has a readable icon")
+    var icon_path="res://assets/ui/items/"+game.item_for(unit).id+".svg" if id==unit.id else "res://assets/ui/weapons/lance.svg"
+    assert(r.icon.texture!=null and r.icon.texture.resource_path==icon_path,"Actual item records use individual art; category-only synthetic records retain a family icon")
     assert(bounds.position.x>=0 and bounds.end.x<=host.size.x and bounds.end.y<=host.size.y,"Nameplates fit desktop viewport")
     for child in r.plate.get_children():
      assert(child.position.x>=0 and child.position.y>=0 and child.get_rect().end.x<=r.plate.size.x+.1 and child.get_rect().end.y<=r.plate.size.y,"Portrait, labels and health fit nameplate")
