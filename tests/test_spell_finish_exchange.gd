@@ -3,6 +3,8 @@ const Projectile=preload("res://scripts/combat_projectile.gd")
 const Finish=preload("res://scripts/combat_finish.gd")
 const Imported=preload("res://scripts/imported_fighter.gd")
 const Shutdown=preload("res://tests/helpers/game_shutdown.gd")
+const ReactionHold=preload("helpers/reaction_hold.gd")
+const HitStop=preload("res://scripts/combat_hit_stop.gd")
 var app
 var mode=""
 var seen=0
@@ -10,8 +12,16 @@ var peak=0.0
 var completed=0
 var expected_critical=false
 var attacks=0
+var reactions=0
+var critical_reactions=0
 func _initialize():call_deferred("run")
 func observe(node):
+ if node is HitStop:
+  await ReactionHold.verify(node,expected_critical)
+  reactions+=1
+  if expected_critical:critical_reactions+=1
+  if mode=="skip_recoil":app.skip_combat=true
+  return
  if node is Imported and mode=="skip_windup" and node.model.get_meta("character_identity","")=="tarin":
   while is_instance_valid(node) and node.pose_name!="critical_windup":await process_frame
   assert(is_instance_valid(node));app.skip_combat=true;return
@@ -41,9 +51,9 @@ func run():
  app=load("res://main.tscn").instantiate();app.settings_path="";app.save_path="/private/tmp/poem-spell-finish-exchange.json";root.add_child(app);await process_frame
  app.preferences.values.character_models="revised";app.preferences.values.combat="all";app.game.start_battle();app.make_map();app.show_battle();app.stage.child_entered_tree.connect(observe)
  var foe=app.game.living("enemy")[0].duplicate(true);foe.job="Arcanist";foe.weapon="magic";foe.item="thunder";foe.boss=false
- var cases=["tarin","vela","noor","tarin","vela","noor","counter","survive","skip_flourish","skip_hold","skip_windup","skip_strike"]
+ var cases=["tarin","vela","noor","tarin","vela","noor","counter","survive","skip_flourish","skip_hold","skip_windup","skip_strike","skip_recoil"]
  for index in range(cases.size()):
-  mode=cases[index];seen=0;expected_critical=index%2==1 or mode in ["skip_windup","skip_strike"]
+  mode=cases[index];seen=0;expected_critical=index%2==1 or mode in ["skip_windup","skip_strike","counter","skip_recoil"]
   var id=mode if index<6 else "tarin";var a=app.game.roster.filter(func(value):return value.id==id)[0].duplicate(true);a.team="player";a.acted=false;a.moved=false;a.item="thunder" if index%2 else "ember";a.hp=2;a.x=8;a.y=4
   if index<6:a.promotion=app.game.promotions.filter(func(value):return value.base==a.job)[index%2].id
   var b=foe.duplicate(true);b.x=10;b.y=4;b.hp=2;app.game.units=[a,b];app.refresh_pieces();app.busy=true
@@ -51,11 +61,11 @@ func run():
   var saved=app.game.save_data("battle").duplicate(true);var rng=app.game.rng.state;var view=app.map_navigation.capture_view()
   var event={"actor":winner.id,"target":loser.id,"damage":2-loser.hp,"remaining":loser.hp,"hit":true,"crit":expected_critical}
   await app.cinematic(a,b,[event],{a.id:2,b.id:2});await process_frame
-  assert(seen==(0 if mode in ["survive","skip_windup","skip_strike"] else 1),"Finishing requires an actual resolved defeat")
+  assert(seen==(0 if mode in ["survive","skip_windup","skip_strike","skip_recoil"] else 1),"Finishing requires an actual resolved defeat")
   assert(app.game.save_data("battle")==saved and app.game.rng.state==rng and app.map_navigation.capture_view()==view,"Finishing/skip preserves resolved state, RNG and the exact map view")
   assert(app.world.visible and not app.stage.visible and not app.stage.has_node("CombatFinish") and not app.stage.has_node("CombatDefeat"),"Every exit cleans up transient finish effects")
   app.busy=false
- assert(attacks==11)
+ assert(attacks==12 and reactions==11 and critical_reactions==7)
  assert(peak>.1 and completed==7,"Normal player and enemy finishes traverse the weapon settle and held victory")
  await Shutdown.dispose(app);await process_frame
  print("PASS: six promoted revised spell victories, enemy counter victory, no finish on survival, critical preparation/strike and flourish/hold skipping, actual release clips, weapon settle, steady folio support and exact campaign/RNG/map restoration")
