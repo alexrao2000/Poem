@@ -6,6 +6,8 @@ Development resumed on “go”. Continue in this chat until the user asks to st
 
 ### Latest state
 
+Held critical recoil now covers revised Knights and Riders as well, completing the model-study catalog. Their two 60-variant samplers pass 3,120 samples. Full lance/Skip/mounted-freeze checks and fitting regressions pass; both local exports, every packed promoted/commander reaction interval, loader checks and ZIP integrity pass. Registry 367; revised models remain optional.
+
 Held critical recoil now extends to revised Arcanists and Wardens. All 70 book/staff variants and 1,820 source samples pass. Actual staff damage, spell encounter/Skip and healing regression pass; both local exports, packaged intervals, loader checks and ZIP integrity pass. Registry 365; revised models remain optional.
 
 The same critical-recoil selection now extends to revised axe and bow users. Seventy new variants/1,820 samples pass; the shared sampler still passes all 80 sword variants. Actual axe/bow/sword scenes pass 33 frozen contacts, including 21 criticals and recoil Skip. Both local exports, packed promoted/commander intervals, exported-loader checks and ZIP integrity pass. Registry 363; revised models remain optional.

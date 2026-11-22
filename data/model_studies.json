@@ -1263,6 +1263,11 @@
       },
       "throw_recover": {
         "clip": "LanceThrowRecover"
+      },
+      "critical_hit": {
+        "clip": "Hit_Chest",
+        "from": 0.0,
+        "to": 0.1
       }
     },
     "sockets": {
@@ -1364,6 +1369,11 @@
       },
       "throw_recover": {
         "clip": "LanceThrowRecover"
+      },
+      "critical_hit": {
+        "clip": "Hit_Chest",
+        "from": 0.0,
+        "to": 0.1
       }
     },
     "sockets": {
@@ -1469,6 +1479,11 @@
       },
       "throw_recover": {
         "clip": "LanceThrowRecover"
+      },
+      "critical_hit": {
+        "clip": "Hit_Chest",
+        "from": 0.0,
+        "to": 0.1
       }
     },
     "sockets": {
@@ -1560,6 +1575,11 @@
       },
       "throw_recover": {
         "clip": "LanceThrowRecover"
+      },
+      "critical_hit": {
+        "clip": "Hit_Chest",
+        "from": 0.0,
+        "to": 0.1
       }
     },
     "sockets": {
@@ -1863,6 +1883,11 @@
       },
       "throw_recover": {
         "clip": "LanceThrowRecover"
+      },
+      "critical_hit": {
+        "clip": "Hit_Chest",
+        "from": 0.0,
+        "to": 0.1
       }
     },
     "sockets": {
@@ -2221,6 +2246,11 @@
       },
       "throw_recover": {
         "clip": "LanceThrowRecover"
+      },
+      "critical_hit": {
+        "clip": "Hit_Chest",
+        "from": 0.0,
+        "to": 0.1
       }
     },
     "sockets": {
