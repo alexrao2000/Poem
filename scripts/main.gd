@@ -1836,6 +1836,12 @@ func frame_map_action(units: Array,padding=Vector2(18,18)):
 func track_map_actor(actor: Node3D):
 	map_navigation.follow_action([actor.position,actor.position+Vector3.UP*1.1],action_occlusion())
 
+func map_step_feedback(unit,point: Vector2i,direction: Vector2i,index: int):
+	var terrain=game.terrain(point);var theme=game.info().get("environment","village")
+	travel_audio.step(terrain,unit.job,index,theme)
+	var dust=preload("res://scripts/combat_dust.gd").spawn(pieces,map_position(point),Vector3(direction.x,0,direction.y),unit.job=="Rider",travel_audio.surface_for(terrain,theme),index)
+	if dust!=null:dust.name="MapFootstep";dust.scale=Vector3.ONE*.55
+
 func animate_map_move(unit,path: Array):
 	if path.size()<2 or not unit_nodes.has(unit.id):return
 	var visual=unit_nodes[unit.id]
@@ -1855,7 +1861,7 @@ func animate_map_move(unit,path: Array):
 		motion.parallel().tween_method(func(_progress):track_map_actor(visual),0.0,1.0,.0525)
 		if i%2==1 or i==path.size()-1:
 			var stride=i/2+1
-			motion.tween_callback(func():travel_audio.step(game.terrain(point),unit.job,stride,game.info().get("environment","village")))
+			motion.tween_callback(func():map_step_feedback(unit,point,step,stride))
 	await motion.finished
 	visual.finish_move()
 	moving_id=""

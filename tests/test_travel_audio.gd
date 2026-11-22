@@ -6,6 +6,14 @@ const Shutdown=preload("helpers/game_shutdown.gd")
 var contacts=[]
 var followed: Node3D
 var dust_contacts=[]
+var map_contacts=[]
+
+func watch_map_dust(node):
+ if not node is Dust:return
+ await process_frame
+ assert(node.scale.is_equal_approx(Vector3.ONE*.55))
+ assert(node.puffs.all(func(puff):return puff.node.global_basis.get_scale().x<.16),"Map contacts stay smaller than combat accents")
+ map_contacts.append({"point":node.global_position,"count":node.puffs.size(),"reference":weakref(node)})
 
 func watch_dust(node):
  if not node is Dust:return
@@ -68,6 +76,7 @@ func run():
  app.game.start_battle();app.make_map();app.show_battle();app.busy=true
  var unit=app.game.living("player")[0];followed=app.unit_nodes[unit.id]
  sound.step_played.connect(record_contact)
+ app.pieces.child_entered_tree.connect(watch_map_dust)
  var path: Array=[]
  for destination in app.game.reachable(unit):
   var candidate=app.game.movement_path(unit,destination)
@@ -75,12 +84,16 @@ func run():
  assert(path.size()==5,"Fixture has a legal four-tile route")
  var saved=app.game.save_data("battle").duplicate(true);var rng=app.game.rng.state;var score=app.score
  app.preview_route(path[-1]);assert(contacts.is_empty(),"Hovering a route never emits footsteps")
- await app.animate_map_move(unit,path)
+ await app.animate_map_move(unit,path);await process_frame
  assert(contacts.size()==3,"Four tile movements produce two walking contacts and a final planted step")
  for i in range(3):
   var point=path[[1,3,4][i]]
   assert(contacts[i].position==app.map_position(point),"Travel cue coincides with reaching the actual tile")
   assert(contacts[i].family=="foot_"+Audio.surface_for(app.game.terrain(point),app.game.info().environment))
+ var expected_points=[]
+ for index in [1,3,4]:
+  if app.game.terrain(path[index])!="=":expected_points.append(app.map_position(path[index]))
+ assert(map_contacts.map(func(contact):return contact.point)==expected_points and map_contacts.all(func(contact):return contact.count==2),"Actual infantry dust follows the same planted contacts as audio and stays on the tile surface")
  assert(followed.player.state=="idle" and app.moving_id=="")
  assert(sound.voices[0].pitch_scale!=sound.voices[1].pitch_scale,"Alternating feet use restrained pitch variation")
  var count=contacts.size()
@@ -91,6 +104,18 @@ func run():
   assert(contacts[-1].family=="hoof_"+Audio.surface_for(surface),"Mounted units use paired hoof contacts")
  app.preferences.values.effects=0;app.apply_audio_preferences()
  assert(sound.voices.all(func(voice):return voice.volume_db==-80) and not sound.step("=","Rider",2),"Effects mute also silences travel")
+ var silent_count=contacts.size();map_contacts.clear()
+ var rider=unit.duplicate(true);rider.job="Rider"
+ await app.animate_map_move(rider,path);await process_frame
+ assert(contacts.size()==silent_count and map_contacts.map(func(contact):return contact.point)==expected_points and map_contacts.all(func(contact):return contact.count==3),"Muted mounted movement retains its visible hoof contacts without audio or extra game actions")
+ var dust_count=map_contacts.size()
+ for y in app.game.board_size().y:
+  for x in app.game.board_size().x:
+   if app.game.terrain(Vector2i(x,y))=="=":app.map_step_feedback(rider,Vector2i(x,y),Vector2i.RIGHT,1)
+ await process_frame;assert(map_contacts.size()==dust_count,"Wooden bridge contacts emit no earth dust")
+ await create_timer(Dust.LIFETIME+.05).timeout
+ assert(map_contacts.all(func(contact):return contact.reference.get_ref()==null),"Map contact accents release after their short fade")
+ app.pieces.child_entered_tree.disconnect(watch_map_dust)
  app.preferences.values.effects=.5;app.apply_audio_preferences()
  assert(is_equal_approx(sound.volume,app.preferences.volume_db("effects")-7),"Travel stays seven dB below the effects setting")
  assert(app.game.save_data("battle")==saved and app.game.rng.state==rng and app.score==score,"Travel never changes campaign, RNG or synchronized score ownership")

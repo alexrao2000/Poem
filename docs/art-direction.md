@@ -975,3 +975,7 @@ Five affected suites pass: 120 knight/rider variants, 3,120 source samples, elev
 ## Moving observatory and engine landmarks
 
 The [shared mechanism](../scripts/clockwork_orbit.gd) gives the observatory and engine two independently moving rings in both map landmarks and close-up backdrops. The outer engine ring has eight visible markings; its core breathes by two percent with a small warm color shift. Each mechanism uses four mesh batches without extra lights or shadows. Its bounded clock pauses while hidden, and normal scene teardown releases it after combat or Skip. Large arena mechanisms remain behind the fighting lane. Source-geometry inspection and state/bounds tests do not substitute for an assembled rendering review.
+
+## Tactical ground contacts
+
+Walking sprites use the existing terrain contact timing for small dust accents, scaled to 55 percent of the close-up combat effect. Infantry produces two puffs and mounted movement three, with quieter stone color and no dust on wooden bridges. Effects drift behind the step, stay above the contact plane and fade within 0.3 seconds. They remain visible when sound is muted and are removed when their map is hidden or rebuilt. The cue uses no campaign randomness and changes no movement or save timing.
