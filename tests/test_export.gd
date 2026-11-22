@@ -674,6 +674,22 @@ func run():
  assert(map_miss.is_queued_for_deletion(),"Packed missed-shot follow-through fits the pre-contact interval")
  await process_frame
  assert(packed_flight_ref.get_ref()==null,"Packed tactical flight releases after the pre-contact interval")
+ var packed_healer=app.game.units.filter(func(unit):return unit.id=="ivo")[0]
+ fallen_patient.hp=8;fallen_patient.downed=false;fallen_patient.acted=true
+ var packed_recovery_seen=[false,false]
+ var watch_recovery=func():
+  var light=app.pieces.get_node_or_null("MapHeal")
+  var figure=app.unit_nodes[fallen_patient.id]
+  if light!=null and not light.has_arrived:
+   assert(figure.hp_ratio==0 and app.ui.get_node_or_null("MapRecoveryCue")==null)
+   packed_recovery_seen[0]=true
+  if app.ui.get_node_or_null("MapRecoveryCue")!=null:
+   assert(not figure.downed and figure.rescue_marker==null and is_equal_approx(figure.hp_ratio,8.0/fallen_patient.max_hp))
+   packed_recovery_seen[1]=true
+ process_frame.connect(watch_recovery)
+ await app.map_heal_feedback(packed_healer,fallen_patient,8,true)
+ process_frame.disconnect(watch_recovery);await process_frame
+ assert(packed_recovery_seen.all(func(seen):return seen) and app.pieces.get_node_or_null("MapHeal")==null,"Packed map revival waits for staff light, clears wounded indicators and releases its effect")
  await Shutdown.dispose(app);await process_frame
  print("PASS: exported catalog, all three act scores, chapter scenes, sixteen promotion patterns, all forty-eight revised promotion outfits, licenses and credits")
  quit()

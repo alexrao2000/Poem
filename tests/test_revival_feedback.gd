@@ -48,7 +48,7 @@ func run():
   if sample[0]=="surrounded":assert(patient.get("carried_by","")==carrier.id)
   var resolved=canonical(app.game.save_data("battle"));var saved=Rules.new()
   assert(saved.load_game(app.save_path)=="battle" and canonical(saved.save_data("battle"))==resolved,"Recovery commits before its presentation")
-  var saw_caption=false;var saw_map=false;var skipped=false;var arrived=false;var saw_zero=false;var deadline=Time.get_ticks_msec()+15000
+  var saw_caption=false;var saw_map=false;var skipped=false;var arrived=false;var saw_zero=false;var saw_map_flight=false;var deadline=Time.get_ticks_msec()+15000
   while app.busy and Time.get_ticks_msec()<deadline:
    await process_frame
    var caption=app.ui.get_node_or_null("CombatCaption");var effect=app.stage.get_node_or_null("CombatHeal")
@@ -61,8 +61,17 @@ func run():
     assert(caption.size.x>=caption.get_minimum_size().x)
     if hud!=null:assert(not caption.get_global_rect().intersects(hud.records[patient.id].plate.get_global_rect()))
     saw_caption=true
+   var map_effect=app.pieces.get_node_or_null("MapHeal")
+   if map_effect!=null and not map_effect.has_arrived:
+    saw_map_flight=true
+    assert(not map_effect.rings[0].visible and app.ui.get_node_or_null("MapRecoveryCue")==null,"Map recovery waits for staff light to arrive")
+    if app.unit_nodes.has(patient.id) and sample[0]!="normal":assert(app.unit_nodes[patient.id].hp_ratio==0)
    var cue=app.ui.get_node_or_null("MapRecoveryCue")
    if cue!=null:
+    if map_effect!=null:assert(map_effect.has_arrived)
+    if app.unit_nodes.has(patient.id):
+     var recovered=app.unit_nodes[patient.id]
+     assert(is_equal_approx(recovered.hp_ratio,float(patient.hp)/patient.max_hp) and not recovered.downed and recovered.rescue_marker==null,"Map revival clears the wounded pose/countdown and restores health at contact")
     assert(cue.text.begins_with("+" if sample[0]=="normal" else "Revived · +"))
     var bounds=cue.get_global_rect();assert(Rect2(Vector2.ZERO,Vector2(sample[3])).encloses(bounds))
     if is_instance_valid(app.terrain_card):assert(not bounds.intersects(app.terrain_card.get_global_rect()))
@@ -73,7 +82,7 @@ func run():
     elif sample[0]=="skip_arrival" and saw_caption:playback.request_skip();skipped=true
    if is_instance_valid(app.reward_panel):app.reward_panel.request_continue()
   assert(not app.busy and canonical(app.game.save_data("battle"))==resolved and app.game.rng.state==rng)
-  if sample[2]=="map":assert(saw_map and not saw_caption)
+  if sample[2]=="map":assert(saw_map and saw_map_flight and not saw_caption and app.pieces.get_node_or_null("MapHeal")==null)
   elif sample[0]=="skip_windup":assert(skipped and not saw_caption)
   else:assert(saw_caption and saw_zero)
   if sample[0]=="skip_arrival":assert(skipped)

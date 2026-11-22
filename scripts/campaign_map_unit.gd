@@ -69,6 +69,15 @@ func show_rescue_countdown(turns: int):
  rescue_marker.set_meta("turns",turns);rescue_marker.visible=tactical_details_visible
  rescue_marker.position.y=(sprite.texture.get_height()+sprite.offset.y)*sprite.pixel_size*sprite.scale.y+.29
 
+func recover_health(ratio: float,revived: bool):
+ hp_ratio=clampf(ratio,0,1)
+ if revived:
+  downed=false;spent=true
+  if is_instance_valid(rescue_marker):
+   remove_child(rescue_marker);rescue_marker.queue_free();rescue_marker=null
+  rest_pose()
+ refresh_health()
+
 func fall_wounded(turns: int):
  downed=true;spent=true;hp_ratio=0
  if is_instance_valid(carry_marker):

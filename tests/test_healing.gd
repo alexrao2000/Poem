@@ -1,6 +1,7 @@
 extends SceneTree
 const Shutdown=preload("helpers/game_shutdown.gd")
 const Heal=preload("res://scripts/combat_heal.gd")
+const MapHeal=preload("res://scripts/map_heal.gd")
 const Actor=preload("res://scripts/fighter_actor.gd")
 const Fighters=preload("res://scripts/fighters.gd")
 const Rules=preload("res://scripts/rules.gd")
@@ -54,6 +55,17 @@ func run():
   assert(effect.glow.global_position.distance_to(to)<.0001,"Bloom follows recipient height under transformed parents")
   await motion.finished;await process_frame
   assert(reference.get_ref()==null,"Completed recovery releases all temporary geometry")
+ for connected in [true,false]:
+  var effect=MapHeal.new();world.add_child(effect)
+  var from=Vector3(3,.65,4);var to=Vector3(5,1.1,5)
+  var flight=effect.cast(from,to,Vector3(5,.4,5),connected);flight.pause()
+  assert(effect.trails.size()==(12 if connected else 0) and not effect.rings[0].visible)
+  assert(effect.find_children("*","MeshInstance3D",true,false).all(func(mesh):return mesh.cast_shadow==GeometryInstance3D.SHADOW_CASTING_SETTING_OFF and mesh.material_override.no_depth_test and mesh.material_override.depth_draw_mode==BaseMaterial3D.DEPTH_DRAW_DISABLED))
+  flight.custom_step(.11);assert(not effect.has_arrived and not effect.glow.visible)
+  flight.custom_step(.02);assert(effect.has_arrived and effect.rings[0].visible and effect.trails.all(func(entry):return not entry.node.visible))
+  assert(effect.rings[0].global_position.distance_to(Vector3(5,.48,5))<.0001 and effect.glow.global_position.distance_to(to)<.0001)
+  var reference=weakref(effect);flight.custom_step(.36);await process_frame
+  assert(reference.get_ref()==null,"Map staff and self-use effects release at the end of the existing recovery interval")
  world.queue_free();await process_frame
  var app=load("res://main.tscn").instantiate();app.settings_path="";app.save_path="/private/tmp/poem-healing-"+healer_id+"-"+promotion_id+"-test.json";root.add_child(app);await process_frame
  app.preferences.values.auto_end=false;app.preferences.values.character_models="revised" if revised_models else "current"

@@ -2431,24 +2431,27 @@ func map_combat_feedback(events: Array):
 
 func map_heal_feedback(healer,recipient,amount: int,revived=false):
 	var cue_text=("Revived · +" if revived else "+")+str(amount)
-	await frame_map_action([healer,recipient],map_cue_padding(cue_text))
 	var actor=unit_nodes.get(healer.id);var patient=unit_nodes.get(recipient.id)
+	if patient!=null:
+		patient.hp_ratio=clampf(float(recipient.hp-amount)/maxf(1,recipient.max_hp),0,1);patient.refresh_health()
+	await frame_map_action([healer,recipient],map_cue_padding(cue_text))
 	if actor!=null:
 		if healer.id!=recipient.id:actor.act_toward(game.pos(recipient),game.pos(healer))
 		else:actor.player.play("act","",true)
 		map_facings[healer.id]=actor.player.facing
-	await get_tree().create_timer(.12).timeout
-	var glow=Node3D.new();pieces.add_child(glow);glow.position=map_position(game.pos(recipient))+Vector3.UP*.08
-	var ring=MeshInstance3D.new();var shape=TorusMesh.new();shape.inner_radius=.28;shape.outer_radius=.32;ring.mesh=shape;glow.add_child(ring)
-	var material=mat(Color(.55,.95,.76,.8));material.shading_mode=BaseMaterial3D.SHADING_MODE_UNSHADED;ring.material_override=material
+	var contact=patient if patient!=null else unit_nodes.get(recipient.get("carried_by",""))
+	var recipient_point=map_contact_point(contact) if contact!=null else map_position(game.pos(recipient))+camera.global_basis.y*.55
+	var healer_point=map_contact_point(actor) if actor!=null else map_position(game.pos(healer))+camera.global_basis.y*.55
+	var recovery=preload("res://scripts/map_heal.gd").new();pieces.add_child(recovery)
+	recovery.cast(healer_point,recipient_point,map_position(game.pos(recipient)),healer.id!=recipient.id)
+	await recovery.arrived
 	var text_label=Label.new();text_label.name="MapRecoveryCue";ui.add_child(text_label);text_label.text=cue_text
 	text_label.add_theme_font_size_override("font_size",28);text_label.add_theme_color_override("font_color",Color("b4efd1"));text_label.add_theme_color_override("font_outline_color",Color("263e36"));text_label.add_theme_constant_override("outline_size",5);text_label.mouse_filter=Control.MOUSE_FILTER_IGNORE
 	text_label.position=camera.unproject_position(map_position(game.pos(recipient))+Vector3.UP*1.1)-Vector2(text_label.get_minimum_size().x*.5,20)
-	if patient!=null:patient.hp_ratio=float(recipient.hp)/maxf(1,recipient.max_hp);patient.refresh_health()
+	if patient!=null:patient.recover_health(float(recipient.hp)/maxf(1,recipient.max_hp),revived)
 	var bloom=create_tween().set_parallel(true)
-	bloom.tween_property(glow,"scale",Vector3.ONE*1.7,.35);bloom.tween_property(material,"albedo_color:a",0.0,.35)
 	bloom.tween_property(text_label,"position:y",text_label.position.y-22,.35);bloom.tween_property(text_label,"modulate:a",0.0,.35)
-	await bloom.finished;glow.queue_free();text_label.queue_free()
+	await bloom.finished;text_label.queue_free()
 	if actor!=null:actor.finish_move()
 
 func initialize_map_cursor():
