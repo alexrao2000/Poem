@@ -4,7 +4,17 @@
 
 Development resumed on “go”. Continue in this chat until the user asks to stop; no scheduled work is requested. This checkpoint supersedes the older paused status below.
 
-### Current presentation
+### Latest state
+
+The campaign contains 24 recruits, 12 chapters and 24 equipment choices. Recent additions include independent rule switches at campaign creation, full-roster Debug encounters, actual stat comparisons in the arsenal, later lance/staff legacy supplies, and a fifth experiment starter for rescuing a patient before their final countdown ends. The original rescue tutorial remains available.
+
+All 361 registered suites passed with application files unchanged from `43e5edb`. After the first 63 passes, `9e2ebf7` corrected a stale enemy-model binding count in one test; those earlier test sources are unchanged at the corrected revision. The remaining 298 suites passed, and every ordered log hash was checked. The initial failure and previous 354-suite baseline remain archived. This was not an uninterrupted single-Git-revision run. Local Web/macOS packages remain at `43e5edb`; the test correction requires no new export.
+
+Next: integrate the prepared 24 original inventory icons into the arsenal, company cards, selected-unit panel, forecasts and combat HUD; check the affected interactions and packaged resources; refresh both local exports. The icon artwork has been reviewed as source art at 20px and 28px, but is not yet integrated. Revised character models remain optional. Rendered gameplay, audible quality, actual browser persistence/performance and human campaign balance remain unreviewed.
+
+The paragraphs below retain earlier checkpoints. Prefer this section and [the development notes](DEVELOPMENT.md) when their counts or package revisions differ.
+
+### Presentation checkpoints
 
 The encounter list now offers Current roster and Revised models · preview buttons for all nine Debug presentation groups, with an explicit mixed-choice status. Individual class switches remain available. Switching models changes no campaign/RNG, device preference, Debug trace or save file. Shared group initialization and teardown retain existing per-class overrides. Four affected suites, three-size control bounds, actual packed button/builder checks, both exports and ZIP integrity pass. Registry remains 356; full 354-suite baseline is f43d8ac.
 
