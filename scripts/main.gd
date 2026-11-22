@@ -2397,10 +2397,13 @@ func map_combat_feedback(events: Array):
 		if actor!=null and not attackers.is_empty():
 			actor.act_toward(game.pos(unit),game.pos(attackers[0]));map_facings[event.actor]=actor.player.facing
 		await get_tree().create_timer(.12).timeout
+		var wounded=event.hit and event.damage>0 and event.remaining<=0 and game.DeathDoor.downed(unit)
 		if victim!=null:
-			victim.react(event.hit and event.damage>0,int(event.remaining));victim.hp_ratio=clampf(float(event.remaining)/maxf(1,unit.max_hp),0,1);victim.refresh_health()
+			if wounded:victim.fall_wounded(unit.bleed_turns)
+			else:victim.react(event.hit and event.damage>0,int(event.remaining))
+			victim.hp_ratio=clampf(float(event.remaining)/maxf(1,unit.max_hp),0,1);victim.refresh_health()
 			if event.hit and event.damage>0 and not attackers.is_empty():reaction=victim.recoil_from(game.pos(attackers[0]),game.pos(unit),event.crit)
-			if event.hit and event.damage>0 and event.remaining<=0:victim.fade_defeat()
+			if event.hit and event.damage>0 and event.remaining<=0 and not wounded:victim.fade_defeat()
 		var text_label=Label.new();ui.add_child(text_label)
 		text_label.text=cue_text
 		text_label.add_theme_font_size_override("font_size",28);text_label.add_theme_color_override("font_color",Color("ffe5a1"));text_label.add_theme_color_override("font_outline_color",Color("30353a"));text_label.add_theme_constant_override("outline_size",5)
@@ -2412,7 +2415,7 @@ func map_combat_feedback(events: Array):
 		if reaction and reaction.is_valid() and reaction.is_running():await reaction.finished
 		text_label.queue_free()
 		if actor!=null:actor.finish_move()
-		if victim!=null and event.remaining>0:victim.finish_move()
+		if victim!=null and (event.remaining>0 or wounded):victim.finish_move()
 	refresh_pieces()
 
 func map_heal_feedback(healer,recipient,amount: int,revived=false):

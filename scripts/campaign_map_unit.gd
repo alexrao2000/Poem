@@ -37,14 +37,7 @@ func configure(source: RefCounted,unit: Dictionary,facing="south",carried_name="
  ring.cast_shadow=GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
  marker.cast_shadow=GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
  rest_pose(facing)
- if downed:
-  rescue_marker=Sprite3D.new();rescue_marker.name="RescueCountdown"
-  rescue_marker.texture=preload("res://assets/ui/rescue-one.svg") if unit.get("bleed_turns",2)==1 else preload("res://assets/ui/rescue-two.svg")
-  rescue_marker.set_meta("turns",unit.get("bleed_turns",2))
-  rescue_marker.billboard=BaseMaterial3D.BILLBOARD_ENABLED;rescue_marker.texture_filter=BaseMaterial3D.TEXTURE_FILTER_LINEAR
-  rescue_marker.pixel_size=1.0/80;rescue_marker.position.y=(sprite.texture.get_height()+sprite.offset.y)*sprite.pixel_size*sprite.scale.y+.29
-  rescue_marker.no_depth_test=true;rescue_marker.render_priority=4;rescue_marker.cast_shadow=GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
-  add_child(rescue_marker)
+ if downed:show_rescue_countdown(unit.get("bleed_turns",2))
  elif not carried_name.is_empty():
   carry_marker=Sprite3D.new();carry_marker.name="CarriedAlly";carry_marker.texture=preload("res://assets/ui/carrying.svg")
   carry_marker.set_meta("passenger",carried_name)
@@ -65,6 +58,22 @@ func configure(source: RefCounted,unit: Dictionary,facing="south",carried_name="
   insignia.pixel_size=1.0/100;insignia.position=Vector3(.30,.93,0);insignia.no_depth_test=true;insignia.render_priority=3
   insignia.cast_shadow=GeometryInstance3D.SHADOW_CASTING_SETTING_OFF;add_child(insignia)
   commander_insignia=insignia
+
+func show_rescue_countdown(turns: int):
+ if not is_instance_valid(rescue_marker):
+  rescue_marker=Sprite3D.new();rescue_marker.name="RescueCountdown"
+  rescue_marker.billboard=BaseMaterial3D.BILLBOARD_ENABLED;rescue_marker.texture_filter=BaseMaterial3D.TEXTURE_FILTER_LINEAR
+  rescue_marker.pixel_size=1.0/80;rescue_marker.no_depth_test=true;rescue_marker.render_priority=4
+  rescue_marker.cast_shadow=GeometryInstance3D.SHADOW_CASTING_SETTING_OFF;add_child(rescue_marker)
+ rescue_marker.texture=preload("res://assets/ui/rescue-one.svg") if turns==1 else preload("res://assets/ui/rescue-two.svg")
+ rescue_marker.set_meta("turns",turns);rescue_marker.visible=tactical_details_visible
+ rescue_marker.position.y=(sprite.texture.get_height()+sprite.offset.y)*sprite.pixel_size*sprite.scale.y+.29
+
+func fall_wounded(turns: int):
+ downed=true;spent=true;hp_ratio=0
+ if is_instance_valid(carry_marker):
+  remove_child(carry_marker);carry_marker.queue_free();carry_marker=null
+ rest_pose();show_rescue_countdown(turns);refresh_health()
 
 static func selection_mesh() -> ArrayMesh:
  if selected_mesh!=null:return selected_mesh

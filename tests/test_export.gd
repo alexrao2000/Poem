@@ -654,6 +654,15 @@ func run():
   var key=InputEventKey.new();key.keycode=KEY_TAB;key.pressed=true;app._unhandled_input(key);await process_frame
  var creation_save=load("res://scripts/rules.gd").new()
  assert(creation_save.load_game(app.save_path+".debug")=="battle" and campaign_settings.snapshot(creation_save).values().all(func(value):return value),"Packed first-deployment checkpoint keeps every selected campaign rule")
+ var fallen_patient=app.game.units.filter(func(unit):return unit.id=="oren")[0];var falling_figure=app.unit_nodes[fallen_patient.id]
+ fallen_patient.hp=0;app.game.DeathDoor.fall(app.game,fallen_patient);var wounded_seen=[false]
+ var watch_fall=func():
+  if is_instance_valid(falling_figure) and not falling_figure.is_queued_for_deletion() and falling_figure.hp_ratio==0:
+   assert(not falling_figure.departing and falling_figure.visible and falling_figure.downed and falling_figure.rescue_marker.get_meta("turns")==2,"Packed map contact retains the rescuable patient and countdown instead of fading")
+   wounded_seen[0]=true
+ process_frame.connect(watch_fall)
+ await app.map_combat_feedback([{"actor":app.game.living("enemy")[0].id,"target":fallen_patient.id,"hit":true,"crit":false,"damage":1,"remaining":0}])
+ process_frame.disconnect(watch_fall);assert(wounded_seen[0])
  await Shutdown.dispose(app);await process_frame
  print("PASS: exported catalog, all three act scores, chapter scenes, sixteen promotion patterns, all forty-eight revised promotion outfits, licenses and credits")
  quit()

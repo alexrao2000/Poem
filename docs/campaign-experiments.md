@@ -18,6 +18,8 @@ The debug seed control accepts whole numbers from 0 through 2147483647. **Apply 
 
 **Choose an experiment setup → Last chance rescue** starts Oren downed with one player-phase ending left, Lyra beside him and Ivo already spent. Select Lyra, then Oren, and choose **Rescue Oren** before ending the phase. After the enemies act, move Lyra west beside Ivo, select Ivo and use **Rescue & triage → Heal carried Oren**. The countdown stays paused while carried; healing returns Oren with his action spent. Restart the setup and end the first phase without rescuing him to compare the committed permanent loss. Both branches use ordinary rules and the separate Debug save. The original rescue tutorial remains available with everyone ready.
 
+In Quick map battles, a lethal hit that leaves an ally at death’s door keeps their figure visible in the wounded pose and shows the countdown immediately. A fallen carrier’s carrying badge clears when the passenger is released. Ordinary defeated units still fade away.
+
 ## Complete combat scene starters
 
 In Debug tools, choose **Stage a combat encounter**. Eight starters cover sword, lance, bow, staff healing, axe, magic, duelist and mounted combat across village, river, abbey, harbor, mountain, observatory and furnace settings. The selected ally and marked target are already in range; press **Enter** to preview an attack and **Enter** again to confirm. Healing takes one Enter press. The initial tactical view stays clear of forecast portraits.
