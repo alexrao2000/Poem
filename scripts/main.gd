@@ -1261,13 +1261,17 @@ func cinematic(a,b,events,initial_hp={}):
 			await combat_wait(whom.pose("down",.3))
 			if skip_combat:break
 			finished_exchange=true
-			var departure=preload("res://scripts/combat_defeat.gd").new();stage.add_child(departure);departure.begin(whom)
+			var fallen=b if who==actor else a
+			var rescuable=game.DeathDoor.downed(fallen)
+			var departure
+			if not rescuable:
+				departure=preload("res://scripts/combat_defeat.gd").new();stage.add_child(departure);departure.begin(whom)
 			var finish=preload("res://scripts/combat_finish.gd").new();stage.add_child(finish)
 			var line=finish.quote_for(unit,fighters.profiles)
-			caption.text=unit.name+(" — "+line if not line.is_empty() else "");caption.show()
-			director.shot(who.position,whom.position,"finish",is_ranged,unit.job=="Rider",.28,unit.weapon)
+			caption.text=fallen.name+" · NEEDS RESCUE" if rescuable else unit.name+(" — "+line if not line.is_empty() else "");caption.show()
+			director.shot(who.position,whom.position,"wide" if rescuable else "finish",is_ranged,mounted if rescuable else unit.job=="Rider",.28,unit.weapon)
 			await finish.play(who,func():return skip_combat,.95 if not line.is_empty() else .60)
-			departure.finish();departure.queue_free()
+			if departure!=null:departure.finish();departure.queue_free()
 			finish.queue_free()
 			break
 		else:
