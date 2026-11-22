@@ -184,15 +184,16 @@ func pose(key: String,duration=.18) -> Tween:
  if pose_tween and pose_tween.is_valid():pose_tween.kill()
  pose_name=key
  if key=="advance":travel_previous=global_position;stride_phase=0.0
- for listener in pose_listeners:listener.combat_pose(key)
+ var source_pose="down" if key=="revive" else key
+ for listener in pose_listeners:listener.combat_pose(source_pose)
  if contact!=null and key!="recover":contact.influence=0.0
  var fallback="windup" if key in ["throw_windup","cast_windup","critical_windup","critical_throw_windup"] else "strike" if key in ["throw","cast"] else "idle"
  if key=="critical_hit":fallback="hit"
  if key=="critical_throw_windup" and poses.has("throw_windup"):fallback="throw_windup"
- var animation_key=key
+ var animation_key=source_pose
  for listener in pose_listeners:
   if listener.has_method("animation_pose"):
-   var candidate=listener.animation_pose(key)
+   var candidate=listener.animation_pose(source_pose)
    if candidate is String and poses.has(candidate):animation_key=candidate
  var mapping=poses.get(animation_key,poses[fallback])
  var animation=player.get_animation(mapping.clip)
@@ -200,8 +201,9 @@ func pose(key: String,duration=.18) -> Tween:
  animation.loop_mode=Animation.LOOP_LINEAR if looping else Animation.LOOP_NONE
  var seconds=maxf(float(duration),.001)
  var speed=1.0 if looping else (mapping.to-mapping.from)/seconds
- player.play_section(mapping.clip,mapping.from,mapping.to,minf(.06,seconds*.25),speed)
- player.seek(mapping.from,true,true)
+ var reversing=key=="revive"
+ player.play_section(mapping.clip,mapping.from,mapping.to,0.0 if reversing else minf(.06,seconds*.25),-speed if reversing else speed,reversing)
+ player.seek(mapping.to if reversing else mapping.from,true,true)
  if key=="advance" and stride_length>0:player.pause()
  refresh_skeleton()
  pose_tween=create_tween()
@@ -209,7 +211,7 @@ func pose(key: String,duration=.18) -> Tween:
   pose_tween.tween_property(contact,"influence",1.0 if key=="strike" and contact.has_target else 0.0,seconds)
  else:pose_tween.tween_interval(seconds)
  if not looping:pose_tween.tween_callback(func():
-  player.seek(mapping.to,true,true);player.pause();refresh_skeleton()
+  player.seek(mapping.from if reversing else mapping.to,true,true);player.pause();refresh_skeleton()
   for listener in pose_listeners:
    if listener.has_method("pose_finished"):listener.pose_finished(key))
  return pose_tween
@@ -222,6 +224,7 @@ func refresh_skeleton():
  for constraint in pose_constraints:constraint.sample_attachments()
 
 func socket_position(key: String) -> Vector3:
+ if key=="recovery":return socket_position("impact")
  if sockets.has(key):return sockets[key].global_position
  if key=="guard":return socket_position("impact")
  if key=="gaze":return socket_position("impact")+Vector3.UP*.55

@@ -13,6 +13,9 @@ var motes: Array=[]
 var amount: FloatingText
 var glow: MeshInstance3D
 var motion: Tween
+var recipient: WeakRef
+
+func follow_recipient(actor: Node3D):recipient=weakref(actor)
 
 func light(size_value: float,color: Color) -> MeshInstance3D:
  var mesh=MeshInstance3D.new();var quad=QuadMesh.new();quad.size=Vector2.ONE*size_value;mesh.mesh=quad
@@ -57,6 +60,9 @@ func travel(progress: float):
   entry.node.material_override.albedo_color.a=(1.0-entry.step*.10)*minf(1,progress*8+.2)
 
 func bloom(progress: float):
+ var actor=recipient.get_ref() if recipient!=null else null
+ if is_instance_valid(actor):
+  destination=actor.socket_position("recovery");glow.position=to_local(destination);amount.anchor=destination
  var envelope=sin(PI*minf(progress*1.6,1))
  for i in range(rings.size()):
   var ring=rings[i];ring.show();ring.scale=Vector3.ONE*(.7+progress*(.7 if i==0 else .4))

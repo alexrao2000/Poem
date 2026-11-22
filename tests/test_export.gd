@@ -695,6 +695,20 @@ func run():
  await app.map_heal_feedback(packed_healer,fallen_patient,8,true)
  process_frame.disconnect(watch_recovery);await process_frame
  assert(packed_recovery_seen.all(func(seen):return seen) and app.pieces.get_node_or_null("MapHeal")==null,"Packed map revival waits for staff light, clears wounded indicators and releases its effect")
+ app.preferences.values.combat="all";app.debug_session.revised_knight=true
+ var packed_rise_seen=[false,false];var packed_recovery_state=app.game.save_data("battle").duplicate(true)
+ var watch_rise=func():
+  var recipients=app.stage.get_children().filter(func(node):return node.has_method("socket_position") and node.position.x>35)
+  if not app.stage.visible or recipients.is_empty():return
+  var recipient_actor=recipients[0];assert(recipient_actor is Imported)
+  if recipient_actor.pose_name=="down":packed_rise_seen[0]=true
+  elif recipient_actor.pose_name=="revive":
+   var light=app.stage.get_node_or_null("CombatHeal")
+   if light!=null:assert(light.has_arrived and light.recipient.get_ref()==recipient_actor);packed_rise_seen[1]=true
+ process_frame.connect(watch_rise)
+ await app.staff_healing(packed_healer,fallen_patient,8)
+ process_frame.disconnect(watch_rise)
+ assert(packed_rise_seen.all(func(seen):return seen) and app.game.save_data("battle")==packed_recovery_state,"Packed revised revival begins wounded, rises at staff arrival and preserves resolved campaign state")
  await Shutdown.dispose(app);await process_frame
  print("PASS: exported catalog, all three act scores, chapter scenes, sixteen promotion patterns, all forty-eight revised promotion outfits, licenses and credits")
  quit()

@@ -15,6 +15,8 @@ func run():
   ["field","revised","all",Vector2i(1440,900)],
   ["carried","current","all",Vector2i(1280,720)],
   ["carried","revised","all",Vector2i(1024,640)],
+  ["mounted","current","all",Vector2i(1280,720)],
+  ["mounted","revised","all",Vector2i(1440,900)],
   ["field","current","map",Vector2i(1024,640)],
   ["carried","current","map",Vector2i(1280,720)],
   ["surrounded","current","map",Vector2i(1440,900)],
@@ -25,9 +27,12 @@ func run():
  for sample in cases:
   viewport.size=sample[3];await process_frame
   app.preferences.values.combat=sample[2];app.preferences.values.character_models=sample[1]
-  app.game.new_campaign(true);app.game.death_door=true;app.game.action_saves=true;app.game.start_battle()
-  var carrier=unit(app.game,"oren");var patient=unit(app.game,"sera");var healer=unit(app.game,"ivo")
+  app.game.new_campaign(true);app.game.death_door=true;app.game.action_saves=true
+  if sample[0]=="mounted":app.game.chapter=2;app.game.deployed.erase("sera");app.game.deployed.append("bram")
+  app.game.start_battle()
+  var carrier=unit(app.game,"oren");var patient=unit(app.game,"bram" if sample[0]=="mounted" else "sera");var healer=unit(app.game,"ivo")
   carrier.x=3;carrier.y=3;patient.x=2;patient.y=3;healer.x=2;healer.y=4
+  if sample[0]=="mounted":unit(app.game,"lyra").x=1;unit(app.game,"lyra").y=4
   patient.hp=patient.max_hp-6 if sample[0]=="normal" else 0
   if sample[0]!="normal":Door.fall(app.game,patient)
   var carried=sample[0] in ["carried","surrounded"]
@@ -48,12 +53,21 @@ func run():
   if sample[0]=="surrounded":assert(patient.get("carried_by","")==carrier.id)
   var resolved=canonical(app.game.save_data("battle"));var saved=Rules.new()
   assert(saved.load_game(app.save_path)=="battle" and canonical(saved.save_data("battle"))==resolved,"Recovery commits before its presentation")
-  var saw_caption=false;var saw_map=false;var skipped=false;var arrived=false;var saw_zero=false;var saw_map_flight=false;var deadline=Time.get_ticks_msec()+15000
+  var saw_caption=false;var saw_map=false;var skipped=false;var arrived=false;var saw_zero=false;var saw_map_flight=false;var saw_wounded=false;var saw_rise=false;var saw_follow=false;var deadline=Time.get_ticks_msec()+15000
   while app.busy and Time.get_ticks_msec()<deadline:
    await process_frame
    var caption=app.ui.get_node_or_null("CombatCaption");var effect=app.stage.get_node_or_null("CombatHeal")
    if effect!=null and effect.has_arrived:arrived=true
    var hud=app.ui.get_node_or_null("CombatHUD")
+   var recipients=app.stage.get_children().filter(func(node):return node.has_method("socket_position") and node.position.x>35)
+   if sample[0]!="normal" and sample[2]!="map" and not recipients.is_empty() and app.stage.visible:
+    var recovering=recipients[0]
+    if not arrived:
+     assert(recovering.pose_name=="down","The zero-health recipient stays wounded before staff light arrives");saw_wounded=true
+    elif recovering.pose_name=="revive":
+     saw_rise=true
+     if effect!=null:
+      assert(effect.recipient.get_ref()==recovering,"Recovery light follows the rising recipient");saw_follow=true
    if hud!=null and sample[0]!="normal" and is_zero_approx(hud.records[patient.id].meter.value):saw_zero=true
    if caption!=null and caption.visible:
     assert(arrived and caption.text=="REVIVED · ACTION SPENT","Revival is announced only after staff light arrives")
@@ -84,11 +98,11 @@ func run():
   assert(not app.busy and canonical(app.game.save_data("battle"))==resolved and app.game.rng.state==rng)
   if sample[2]=="map":assert(saw_map and saw_map_flight and not saw_caption and app.pieces.get_node_or_null("MapHeal")==null)
   elif sample[0]=="skip_windup":assert(skipped and not saw_caption)
-  else:assert(saw_caption and saw_zero)
+  else:assert(saw_caption and saw_zero and saw_wounded and saw_rise and saw_follow)
   if sample[0]=="skip_arrival":assert(skipped)
   if sample[2]!="map":assert(app.map_navigation.capture_view()==before_camera)
   assert(app.ui.get_node_or_null("CombatCaption")==null and app.ui.get_node_or_null("MapRecoveryCue")==null and app.stage.get_node_or_null("CombatHeal")==null)
   assert(saved.load_game(app.save_path)=="battle" and canonical(saved.save_data("battle"))==resolved)
  await Shutdown.dispose(app);viewport.queue_free();await process_frame
- print("PASS: ten real field/carried/surrounded/ordinary/skip healing flows, current/revised revival captions at contact, three-size actual viewport cue bounds, committed health/spent actions, unchanged RNG/checkpoints and cleanup")
+ print("PASS: twelve real field/carried/mounted/surrounded/ordinary/skip healing flows, current/revised wounded-to-rising recipients and followed light, captions at contact, three-size cue bounds, committed health/spent actions, unchanged RNG/checkpoints and cleanup")
  quit()

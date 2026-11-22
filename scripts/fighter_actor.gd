@@ -156,7 +156,7 @@ func ground_mount():
  support_height=mount_stance_height()
  for key in ["Horse","Body","LeftLeg","RightLeg"]:bones[key].position.y=rest[key].position.y+support_height
  if pose_name=="idle":bones.Body.position.y+=sin(elapsed*2.4)*.006
- elif pose_name=="down":
+ elif pose_name in ["down","revive"]:
   var axes=bones.Body.basis.scaled_local(PELVIS_RADII)
   var lowest=(bones.Body.basis*PELVIS_CENTER).y-Vector3(axes.x.y,axes.y.y,axes.z.y).length()
   bones.Body.position.y=bones.Horse.position.y+Mount.SADDLE_CENTER.y+Mount.SADDLE_RADII.y-lowest
@@ -454,6 +454,7 @@ func pose(key: String,duration=.18) -> Tween:
  return pose_tween
 
 func socket_position(key: String) -> Vector3:
+ if key=="recovery" and bones.has("Body"):return bones.Body.to_global(Vector3(0,.25,0))
  if key=="guard" and bones.has("Shield"):return bones.Shield.to_global(Vector3(0,0,-.05))
  if key=="gaze" and bones.has("Head"):return bones.Head.global_position
  if key=="projectile" and kind=="magic" and bones.has("RightHand"):return bones.RightHand.to_global(Vector3(0,0,-.10))

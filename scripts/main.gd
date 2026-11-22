@@ -1115,6 +1115,7 @@ func cinematic(a,b,events,initial_hp={}):
 					preload("res://scripts/combat_dust.gd").spawn(stage,combatant.ground_contact_position(),combatant.travel_direction,job=="Rider",travel_audio.surface_for(contact_terrain,arena_context.environment),index))
 	if actor.has_method("face_opponent"):actor.face_opponent(defender)
 	if defender.has_method("face_opponent"):defender.face_opponent(actor)
+	if events[0].get("revived",false):defender.pose("down",.01)
 	var director=CombatCamera.new();stage.add_child(director);director.configure(camera,[actor,defender])
 	var mounted=a.job=="Rider" or b.job=="Rider"
 	director.enter(actor.position,defender.position,ranged,mounted)
@@ -1153,17 +1154,21 @@ func cinematic(a,b,events,initial_hp={}):
 			await combat_wait(who.pose("cast",.18))
 			if skip_combat:break
 			var recovery=CombatHeal.new();stage.add_child(recovery)
-			var healing_motion=recovery.play(who.socket_position("projectile"),whom.socket_position("impact"),whom.global_position,event.healing)
+			var recovery_point=whom.socket_position("recovery" if event.get("revived",false) else "impact")
+			var healing_motion=recovery.play(who.socket_position("projectile"),recovery_point,whom.global_position,event.healing)
+			if event.get("revived",false):recovery.follow_recipient(whom)
 			while not recovery.has_arrived and not skip_combat:await get_tree().process_frame
 			if skip_combat:recovery.queue_free();break
 			var recipient=b if who==actor else a
 			play_sfx("heal");displayed_hp[event.target]=mini(recipient.max_hp,displayed_hp[event.target]+event.healing)
 			banner.set_health(event.target,int(displayed_hp[event.target]))
-			if event.get("revived",false):caption.text="REVIVED · ACTION SPENT";caption.show()
+			if event.get("revived",false):
+				whom.pose("revive",.45);caption.text="REVIVED · ACTION SPENT";caption.show()
 			director.shot(who.position,whom.position,"impact",true,mounted,.24)
 			if not await combat_wait(healing_motion):
 				if is_instance_valid(recovery):recovery.queue_free()
 				break
+			if event.get("revived",false):whom.pose("idle",.18)
 			if not await combat_wait(who.pose("idle",.18)):break
 			continue
 		var spell=game.item_for(unit).id if unit.weapon=="magic" else ""
