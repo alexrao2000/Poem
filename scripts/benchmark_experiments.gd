@@ -17,9 +17,21 @@ var report={"source":"unrecorded","source_dirty":true,"complete":false,"profiles
 # Use scripts/benchmark_experiments.py to capture revision, failures and deadlines.
 func _initialize():
  var args=OS.get_cmdline_user_args()
- if args.size()!=3:
-  push_error("Expected output path, source revision and clean/dirty marker");quit(2);return
+ if args.size() not in [3,4]:
+  push_error("Expected output path, source revision, clean/dirty marker and optional configuration JSON");quit(2);return
  output_path=args[0];report.source=args[1];report.source_dirty=args[2]!="clean"
+ report.requested_equipment=[]
+ if args.size()==4:
+  var configuration=JSON.parse_string(args[3]);assert(configuration is Dictionary)
+  report.profiles=[]
+  for id in configuration.profiles:
+   var matching=PROFILES.filter(func(profile):return profile.id==id);assert(matching.size()==1);report.profiles.append(matching[0])
+  report.seeds=[]
+  for seed_value in configuration.seeds:report.seeds.append(str(seed_value).to_int())
+  report.requested_equipment=configuration.equipment
+ if not report.requested_equipment.is_empty():
+  report.method=report.method.replace("Default equipment retained; eligible legacy purchases are recorded but not equipped by this heuristic.","Requested items replace compatible recruits' equipment during preparation only when ordinary equip rules allow them; unavailable items leave the current loadout in place. Eligible legacy purchases follow the existing fixed stock order. Loadout changes and every deployment's actual items are recorded. This is an explicit loadout experiment, not an optimal-equipment policy.")
+ report.method=report.method.replace("Five seeds do not establish human difficulty or statistical certainty.","This bounded seed sample does not establish human difficulty or statistical certainty.")
  call_deferred("run")
 func checkpoint():
  var file=FileAccess.open(output_path,FileAccess.WRITE);assert(file!=null,"Comparison output must be writable");file.store_string(JSON.stringify(report,"  "));file.close()
@@ -30,6 +42,10 @@ func prepare(game,record):
  for entry in game.supports.entries:
   while game.bond_available(entry) and game.supports.can_read(entry.id,game.chapter):assert(game.supports.complete_scene(entry.id,game.chapter));record.support_reads+=1
  for stock in game.trials.LEGACY_STOCK:game.trials.buy(game,stock.id)
+ for item_id in report.requested_equipment:
+  for recruit in game.available():
+   var previous=recruit.item
+   if previous!=item_id and game.equip(recruit,item_id):record.loadout_changes.append({"chapter":game.chapter+1,"unit":recruit.id,"from":previous,"to":item_id,"legacy_purchase":item_id in game.trials.purchases})
  var available=game.available();available.sort_custom(func(a,b):return a.level>b.level)
  game.deployed=[]
  if game.trials.flags.reset_pressure or (game.permadeath and game.trials.flags.section_restarts):game.deployed.append("lyra")
@@ -54,17 +70,19 @@ func action(game,unit,planner,battle):
 func run():
  var started=Time.get_ticks_msec()
  report.source_files={}
- for file in ["res://scripts/rules.gd","res://scripts/tactics.gd","res://scripts/campaign_trials.gd","res://scripts/death_door.gd","res://data/campaign.json"]:report.source_files[file]=FileAccess.get_file_as_string(file).sha256_text()
- for profile in PROFILES:
+ for file in ["res://scripts/rules.gd","res://scripts/tactics.gd","res://scripts/campaign_trials.gd","res://scripts/death_door.gd","res://data/campaign.json","res://data/equipment.json","res://data/promotions.json","res://scripts/benchmark_experiments.gd","res://scripts/benchmark_experiments.py"]:report.source_files[file]=FileAccess.get_file_as_string(file).sha256_text()
+ for profile in report.profiles:
   for seed_value in report.seeds:
    var game=Rules.new();game.new_campaign(profile.permadeath);game.action_saves=true;game.death_door=profile.door
    for flag in profile.flags:game.trials.flags[flag]=true
    game.rng.seed=seed_value;var planner=Tactics.new()
-   var record={"profile":profile.id,"seed":seed_value,"completed":false,"stop":"","retries":0,"promotions":0,"support_reads":0,"battles":[],"permanent_losses":[],"volunteers":[],"purchases":[],"credits":0}
+   var record={"profile":profile.id,"seed":seed_value,"completed":false,"stop":"","retries":0,"promotions":0,"support_reads":0,"loadout_changes":[],"battles":[],"permanent_losses":[],"volunteers":[],"purchases":[],"credits":0}
    report.runs.append(record)
    while not game.completed and record.battles.size()<18:
     prepare(game,record);game.start_battle()
     var battle={"chapter":game.chapter+1,"pressure":game.trials.pressure,"deployment":game.deployed.duplicate(),"turns":0,"outcome":"","actions":0,"incapacitations":0,"player_heals":0,"enemy_heals":0,"revivals":0,"recovering":game.living("player").filter(func(unit):return unit.get("recovering",false)).map(func(unit):return unit.id),"terminal_falls":[],"downed_at_result":[]}
+    battle.equipment={}
+    for ally in game.living("player"):battle.equipment[ally.id]=ally.item
     record.battles.append(battle)
     while game.result()=="" and game.turn<=50:
      var players=game.living("player");players.sort_custom(func(a,b):return a.weapon!="staff" and b.weapon=="staff")
@@ -90,4 +108,4 @@ func run():
    elif record.stop.is_empty():record.stop="battle_limit"
    print(profile.id," seed ",seed_value,": ",record.stop," / battles ",record.battles.size()," / permanent losses ",record.permanent_losses.size());checkpoint()
  report.complete=true;report.elapsed_seconds=(Time.get_ticks_msec()-started)/1000.0;checkpoint()
- print("PASS: 45 bounded matched-seed Rules campaigns recorded, including failures; no app, disk, rendering or human-balance claim");quit()
+ print("PASS: ",report.runs.size()," bounded matched-seed Rules campaigns recorded, including failures; no app, disk, rendering or human-balance claim");quit()

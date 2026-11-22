@@ -93,7 +93,18 @@ Run the bounded nine-configuration comparison with the project’s Godot binary:
 GODOT_BIN=godot python3 scripts/benchmark_experiments.py
 ```
 
-The driver records 45 runs (nine configurations × five matching seeds), including failed campaigns, in `build/review/matched-experiments.json`. Use `--output path/to/result.json` for a separate record. It captures the source revision, whether the checkout was dirty, rules-file hashes and engine output. Script failures stop the run; a campaign losing within its two-retry limit is retained as a valid result. No player saves are accessed.
+The default driver records 45 runs (nine configurations × five matching seeds), including failed campaigns, in `build/review/matched-experiments.json`. Use `--output path/to/result.json` for a separate record. It captures the source revision, whether the checkout was dirty, rules-file hashes and engine output. Script failures stop the run; a campaign losing within its two-retry limit is retained as a valid result. No player saves are accessed.
+
+Repeat `--profile` and `--seed` to select a smaller matched comparison. Add `--equip ITEM_ID` for up to one preferred item per weapon kind. During preparation, compatible recruits switch only once the item is normally unlocked or purchased through the existing legacy rules. Before then they retain their current equipment. The report records each actual change and every deployed recruit's item. This is an explicit loadout experiment, not an optimal-equipment strategy; legacy purchases still follow their fixed stock order, which can spend credits before a requested item is affordable.
+
+```sh
+GODOT_BIN=godot python3 scripts/benchmark_experiments.py \
+  --profile ordinary --profile hard_legacy --profile hard_committed \
+  --seed 309 --seed 17 --equip rally_lance --equip vigil_staff \
+  --output build/review/late-supply-comparison.json
+```
+
+For a matched baseline, run the same profiles and seeds without `--equip`, using a different output path. Invalid IDs, repeated profiles/seeds and conflicting items of the same weapon kind are rejected before starting the engine. Seeds from 0 through 2^63 − 1 retain their exact integer value. Existing completed comparison records are historical evidence; use separate output paths to preserve them.
 
 At source `338e125b4584d1198818eec8b66c5b26055f6bd3`, ordinary recovery, Hard recovery, Hard recovery with sacrifice costs and Hard permadeath with death’s door each completed all five seeds. Hard permadeath alone, with legacies, with section relief, with reset pressure, and with all three each completed four. Death’s door reduced the completed-campaign median permanent losses from 19.5 to 1, but one seed still ended with 23 losses. These small deterministic samples do not establish human win rates or fair difficulty.
 
