@@ -709,6 +709,20 @@ func run():
  await app.staff_healing(packed_healer,fallen_patient,8)
  process_frame.disconnect(watch_rise)
  assert(packed_rise_seen.all(func(seen):return seen) and app.game.save_data("battle")==packed_recovery_state,"Packed revised revival begins wounded, rises at staff arrival and preserves resolved campaign state")
+ app.show_source_model_view("rider_female","javelin",true);await process_frame;await process_frame
+ var revival_choice=app.ui.find_child("PreviewAction",true,false);var revival_index=-1
+ for index in revival_choice.item_count:
+  if revival_choice.get_item_metadata(index)=="revive":revival_index=index
+ assert(revival_index>=0)
+ var revival_preview=app.stage.get_node("PreviewActionPlayer");var preview_rise_seen=[false,false]
+ var watch_preview_rise=func():
+  if app.preview_actor.pose_name=="down" and revival_preview.pending.size()==2:preview_rise_seen[0]=true
+  if app.preview_actor.pose_name=="revive":preview_rise_seen[1]=true
+ process_frame.connect(watch_preview_rise)
+ revival_choice.select(revival_index);revival_choice.item_selected.emit(revival_index);await revival_preview.finished
+ process_frame.disconnect(watch_preview_rise)
+ assert(preview_rise_seen.all(func(seen):return seen) and app.preview_actor.pose_name=="idle" and app.game.save_data("battle")==packed_recovery_state,"Packed Revival selector replays the wounded hold and rise without changing the campaign")
+ app.close_model_view();await process_frame
  await Shutdown.dispose(app);await process_frame
  print("PASS: exported catalog, all three act scores, chapter scenes, sixteen promotion patterns, all forty-eight revised promotion outfits, licenses and credits")
  quit()

@@ -1601,10 +1601,10 @@ func show_model_view(unit,on_close=Callable(),model_spec: Dictionary={}):
 	if unit.weapon in ["sword","axe","lance","bow","magic"] and (not preview_actor is ImportedFighter or preview_actor.poses.has("critical_strike")):actions.insert(4,["Critical cast" if unit.weapon=="magic" else "Critical shot" if unit.weapon=="bow" else "Critical attack","critical_strike"])
 	if unit.weapon=="lance" and unit.get("item","")=="javelin":actions.append_array([["Throw preparation","throw_windup"],["Critical throw preparation","critical_throw_windup"],["Throw","throw"],["Critical throw","critical_throw"],["Throw recovery","throw_recover"]])
 	actions.insert(1,["Run / trot","advance"])
-	actions.append_array([["Guard","guard"],["Hit reaction","hit"],["Critical reaction","critical_hit"],["Defeated","down"],["Finishing flourish","victory_flourish"],["Finish","victory"]])
+	actions.append_array([["Guard","guard"],["Hit reaction","hit"],["Critical reaction","critical_hit"],["Defeated","down"],["Revival","revive"],["Finishing flourish","victory_flourish"],["Finish","victory"]])
 	if preview_actor is ImportedFighter:actions=actions.filter(func(entry):return entry[1]!="victory_flourish" or preview_actor.poses.has(entry[1]))
 	if not model_spec.is_empty():
-		actions=actions.filter(func(entry):return preview_actor.poses.has(entry[1]) or (model_spec.get("styled",false) and entry[1] in ["critical_windup","critical_hit"]))
+		actions=actions.filter(func(entry):return preview_actor.poses.has(entry[1]) or entry[1]=="revive" or (model_spec.get("styled",false) and entry[1] in ["critical_windup","critical_hit"]))
 		actions.append(["Evasion","evade"])
 	var choice=OptionButton.new();choice.name="PreviewAction";choice.custom_minimum_size.y=42
 	for entry in actions:

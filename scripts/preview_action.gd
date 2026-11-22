@@ -29,12 +29,15 @@ func play(key: String):
  elif key=="critical_throw":pending=[["idle",.16],["critical_throw_windup",.4],["throw",.16]]
  elif key=="throw_recover":pending=[["idle",.16],["throw_windup",.26],["throw",.16],["recover",.28]]
  elif key=="recover":pending=[["windup",.20],["strike",.14],["recover",.28]]
+ elif key=="revive":pending=[["idle",.16],["down",.28],["hold",.30],["revive",.45],["idle",.18]]
  else:pending=[["idle",.16],[key,.28]]
  playing=true;next_pose()
 
 func next_pose():
  if pending.is_empty():playing=false;finished.emit();return
- var step=pending.pop_front();current=actor.pose(step[0],step[1])
+ var step=pending.pop_front()
+ if step[0]=="hold":current=create_tween();current.tween_interval(step[1]);return
+ current=actor.pose(step[0],step[1])
  if step[0]=="throw" and actor is Actor:current.finished.connect(actor.release_projectile)
 
 func _process(dt):
