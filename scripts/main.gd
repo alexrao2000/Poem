@@ -989,12 +989,13 @@ func end_turn(resuming=false):
 		var bleeding=game.units.filter(func(unit):return game.DeathDoor.downed(unit)).map(func(unit):return unit.id)
 		var had_downed=game.units.any(func(unit):return game.DeathDoor.downed(unit))
 		game.begin_enemy_phase()
-		if had_downed:refresh_pieces();highlight()
 		if not checkpoint_action("enemy_phase"):return
 		var losses=[]
 		for unit in game.units:
 			if unit.id in bleeding and not game.DeathDoor.downed(unit):losses.append({"target":unit.id,"remaining":0,"hit":true})
-		skip_combat=false;await present_casualties(losses)
+		skip_combat=false;await map_bleedout_feedback(losses)
+		if had_downed:refresh_pieces();highlight()
+		await present_casualties(losses)
 		if await check_result():busy=false;return
 		update_side();await announce_phase("enemy")
 	for e in game.living("enemy"):
@@ -2393,6 +2394,16 @@ func campaign_save_path() -> String:
 func map_contact_point(visual) -> Vector3:
 	var height=(visual.sprite.texture.get_height()+visual.sprite.offset.y)*visual.sprite.pixel_size*visual.sprite.scale.y
 	return visual.sprite.global_position+camera.global_basis.y*height*.55
+
+func map_bleedout_feedback(losses: Array):
+	for loss in losses:
+		if skip_combat:return
+		var visual=unit_nodes.get(loss.target)
+		if visual==null:continue
+		var patients=game.units.filter(func(unit):return unit.id==loss.target)
+		await frame_map_action(patients)
+		if skip_combat:return
+		await combat_wait(visual.fade_defeat())
 
 func map_combat_feedback(events: Array):
 	for event in events:

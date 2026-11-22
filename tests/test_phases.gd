@@ -36,6 +36,8 @@ func run():
     for label in [banner.heading,banner.detail]:assert(Rect2(Vector2.ZERO,banner.size).encloses(label.get_rect()),"Resized phase labels remain inside the ribbon")
    await banner.play(func():return true)
    assert(not banner.visible and not banner.motion.is_running(),"Skip stops and hides the ribbon")
+   host.remove_child(banner);var retired_size=banner.size;host.size+=Vector2(1,1)
+   assert(banner.size==retired_size,"A removed ribbon ignores a same-frame host resize")
    banner.queue_free();await process_frame
  var resized_phases=0
  for side in ["player","enemy"]:

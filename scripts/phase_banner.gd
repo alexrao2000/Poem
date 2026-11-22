@@ -22,6 +22,7 @@ func configure(parent: Control,side: String,turn: int):
  parent.resized.connect(arrange);arrange()
 
 func arrange():
+ if get_parent()==null:return
  size=Vector2(get_parent().size.x,144);resting=Vector2(0,get_parent().size.y*.42-72)
  heading.position=Vector2(80,22);heading.size=Vector2(size.x-160,65)
  detail.position=Vector2(80,94);detail.size=Vector2(size.x-160,25)
