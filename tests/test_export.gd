@@ -566,6 +566,7 @@ func run():
  var equipment_choice=app.ui.find_child("EncounterEquipment",true,false)
  for index in equipment_choice.item_count:
   if equipment_choice.get_item_metadata(index)=="beacon_staff":equipment_choice.select(index);equipment_choice.item_selected.emit(index);break
+ assert(equipment_choice.icon==app.WeaponIcons.get_item_icon("beacon_staff") and equipment_choice.get_popup().get_item_icon(equipment_choice.selected)==equipment_choice.icon,"Packed equipment picker retains matching selected and popup artwork")
  app.ui.find_child("StageRecruitEncounter",true,false).pressed.emit();await process_frame;await process_frame
  assert(app.screen=="battle" and app.selected.id=="galen" and app.selected.promotion=="wayfarer" and app.game.can_heal(app.selected,app.game.at(app.cursor_tile)) and app.selected.item=="beacon_staff" and app.game.distance(app.selected,app.game.at(app.cursor_tile))==2,"Packed custom selector enters an actual promoted ranged healing encounter")
  app.game.death_door=true;app.preferences.values.combat="map";app.preferences.values.auto_end=false
@@ -585,6 +586,7 @@ func run():
  for stock in app.game.trials.LEGACY_STOCK:
   var item=app.game.equipment.filter(func(entry):return entry.id==stock.id)[0]
   var stock_button=app.ui.find_child("LegacyStock_"+stock.id,true,false)
+  assert(stock_button.icon==app.WeaponIcons.get_item_icon(stock.id),"Packed legacy stock uses the actual item artwork")
   if int(item.unlock)<=app.game.chapter:
    assert(not app.game.trials.can_buy(app.game,stock.id) and not app.game.trials.buy(app.game,stock.id))
    assert(stock_button.disabled and stock_button.text.begins_with("Available in arsenal · "),"Packed shop does not sell normally unlocked equipment for legacy credits")

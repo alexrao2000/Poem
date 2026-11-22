@@ -2188,6 +2188,7 @@ func show_debug_encounters(return_to="debug_tools"):
 		if recruit.id==encounter_recruit:recruit_choice.select(recruit_choice.item_count-1)
 	var training_choice=OptionButton.new();training_choice.name="EncounterTraining";training_choice.custom_minimum_size.y=42;panel.add_child(training_choice)
 	var equipment_choice=OptionButton.new();equipment_choice.name="EncounterEquipment";equipment_choice.custom_minimum_size.y=42;panel.add_child(equipment_choice)
+	equipment_choice.add_theme_constant_override("icon_max_width",24);equipment_choice.get_popup().add_theme_constant_override("icon_max_width",24)
 	var encounter_detail=label_in(panel,"",17);encounter_detail.name="EncounterDetail"
 	var update_detail=func():
 		var recruit=game.content.roster.filter(func(unit):return unit.id==encounter_recruit)[0]
@@ -2205,10 +2206,10 @@ func show_debug_encounters(return_to="debug_tools"):
 		for path in game.promotion_options(recruit):
 			training_choice.add_item(path.name);training_choice.set_item_metadata(training_choice.item_count-1,path.id)
 			if path.id==encounter_training:training_choice.select(training_choice.item_count-1)
-		equipment_choice.clear();equipment_choice.add_item("Normal equipment · "+game.item_for(recruit).name);equipment_choice.set_item_metadata(0,"")
+		equipment_choice.clear();equipment_choice.add_icon_item(WeaponIcons.get_item_icon(game.item_for(recruit).id,recruit.weapon),"Normal equipment · "+game.item_for(recruit).name);equipment_choice.set_item_metadata(0,"")
 		for item in game.equipment:
 			if item.kind!=recruit.weapon:continue
-			equipment_choice.add_item(item.name+" · range "+str(int(item.min_range))+("–"+str(int(item.max_range)) if item.min_range!=item.max_range else ""))
+			equipment_choice.add_icon_item(WeaponIcons.get_item_icon(item.id,item.kind),item.name+" · range "+str(int(item.min_range))+("–"+str(int(item.max_range)) if item.min_range!=item.max_range else ""))
 			equipment_choice.set_item_metadata(equipment_choice.item_count-1,item.id)
 			if item.id==encounter_item:equipment_choice.select(equipment_choice.item_count-1)
 		update_detail.call()
@@ -2254,9 +2255,10 @@ func show_campaign_trials():
 			var bought=stock.id in game.trials.purchases
 			var available=int(item.unlock)<=game.chapter
 			var title="Secured · "+item.name if bought else "Available in arsenal · "+item.name if available else "Secure · "+item.name+" · %d credit(s), %d loss(es)"%[stock.cost,stock.losses]
-			button_in(panel,title,func():
+			var stock_button=button_in(panel,title,func():
 				if game.trials.buy(game,stock.id):persist_campaign("camp");show_campaign_trials()
-			,not game.trials.can_buy(game,stock.id)).name="LegacyStock_"+stock.id
+			,not game.trials.can_buy(game,stock.id))
+			stock_button.name="LegacyStock_"+stock.id;stock_button.icon=WeaponIcons.get_item_icon(item.id,item.kind);stock_button.add_theme_constant_override("icon_max_width",24)
 	label_in(panel,"Company dispatches",24,GOLD)
 	if game.trials.events.is_empty():label_in(panel,"No experiment events yet. Change the rules in Options, or test them in Debug mode.",19)
 	for event in game.trials.events:label_in(panel,event,19)

@@ -40,6 +40,9 @@ func run():
   var disk=FileAccess.get_file_as_string(app.save_path);var before=canonical(app.game.save_data("camp"))
   for size in [Vector2(1024,640),Vector2(1280,720),Vector2(1440,900)]:
    app.ui.set_anchors_and_offsets_preset(Control.PRESET_TOP_LEFT);app.ui.size=size;await process_frame;await process_frame
+   for stock in app.game.trials.LEGACY_STOCK:
+    var entry=app.ui.find_child("LegacyStock_"+stock.id,true,false)
+    assert(entry.icon.resource_path=="res://assets/ui/items/"+stock.id+".svg" and entry.size.x>=entry.get_minimum_size().x,"Available and future stock retain their named item art without clipping the button")
    for id in NEW_STOCK:
     var button=app.ui.find_child("LegacyStock_"+id,true,false);assert(not button.disabled and button.text.begins_with("Secure · "))
     var scroll=button.get_parent().get_parent();scroll.ensure_control_visible(button);await process_frame;await process_frame
@@ -47,6 +50,7 @@ func run():
   assert(canonical(app.game.save_data("camp"))==before and FileAccess.get_file_as_string(app.save_path)==disk)
   app.ui.find_child("LegacyStock_"+item_id,true,false).pressed.emit();await process_frame;await process_frame
   var bought=app.ui.find_child("LegacyStock_"+item_id,true,false);assert(bought.disabled and bought.text.begins_with("Secured · ") and app.game.trials.credits==1)
+  assert(bought.icon.resource_path=="res://assets/ui/items/"+item_id+".svg","Secured stock retains its identity after the purchase rebuild")
   var saved=Rules.new();assert(saved.load_game(app.save_path)=="camp" and saved.trials.purchases==[item_id] and saved.trials.credits==1)
   var target=recruit(app.game,"oren" if item_id=="rally_lance" else "ivo");app.show_equipment(target);await process_frame;await process_frame
   var item=app.game.equipment.filter(func(entry):return entry.id==item_id)[0]

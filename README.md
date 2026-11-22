@@ -83,7 +83,7 @@ Click an enemy to inspect its stats and reach. **Track [T]** keeps that enemy’
 
 Open a recruit's portrait at the war council, then **Equipment**, to choose from 24 weapons and staves. Supplies unlock by chapter, and equipment is freely shared. Each alternative previews the recruit’s resulting attack or healing and effective speed, with changes from their equipped item. Enemy equipment appears in models, inspection panels, and forecasts.
 
-Every item has its own inventory artwork. The arsenal, company cards, selected-unit panel, forecasts and combat HUD show the icon for the actual equipped weapon, spellbook or staff.
+Every item has its own inventory artwork. The arsenal, company cards, selected-unit panel, forecasts and combat HUD show the icon for the actual equipped weapon, spellbook or staff. Legacy supplies and the Debug equipment chooser use the same icons.
 
 **Permadeath** is a toggle on the new-campaign screen and in **Options**. Ordinary permadeath commits casualties after a chapter victory. With **Save every action**, deaths commit during battle and survive a retry; movement cannot be undone. Memorial records and read support scenes remain available. Turning permadeath off preserves earlier losses.
 

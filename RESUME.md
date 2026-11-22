@@ -12,7 +12,9 @@ All 361 registered suites passed with application files unchanged from `43e5edb`
 
 All 24 original inventory icons are integrated into the arsenal, company cards, selected-unit panel, forecasts and combat HUD. Five affected suites passed actual item bindings, category fallback and existing layout/state checks; both local exports, packaged resources and ZIP integrity passed. The portable generator uses only the Python standard library for SVGs, with optional Pillow source-art previews. Artwork was inspected at 20px and 28px. This is focused follow-up coverage, not a new complete regression.
 
-The browser archive now includes a parchment loading panel over the existing title painting, with a labeled progress bar and bounded startup errors. Actual exported/archived loader-script tests use DOM/engine doubles and preserve Godot's startup/focus/canvas behavior. Repacking, missing template anchors and ZIP integrity passed. Only `index.html` changed; the game runtime and macOS archive remain at `dddf107`. Browser rendering is still unreviewed.
+Legacy supply buttons and the Debug equipment chooser now use the same item artwork, including the selected value, popup rows and purchased stock. Three affected suites passed actual choices, purchase/save behavior, all roster equipment combinations and three-size bounds. Both exports and packaged item bindings passed; no rules or new assets changed. The registry remains 361.
+
+The browser archive includes a parchment loading panel over the existing title painting, with a labeled progress bar and bounded startup errors. Actual exported/archived loader-script tests use DOM/engine doubles and preserve Godot's startup/focus/canvas behavior. Repacking, missing template anchors and ZIP integrity passed. The latest full build also ran the loader check after a fresh Web export. Browser rendering is still unreviewed.
 
 Continue improving complete-scene presentation and campaign playability from the current local packages. Revised character models remain optional. Rendered gameplay, audible quality, actual browser persistence/performance and human campaign balance remain unreviewed.
 

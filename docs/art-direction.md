@@ -934,6 +934,8 @@ The [inventory art script](../scripts/generate_inventory_icons.py) generates the
 
 All 24 imported item resources, actual arsenal/company/forecast/HUD bindings, category fallback and existing menu bounds passed five affected suites. Both local exports, packaged item resources and the equipped Vigil staff summary passed, followed by ZIP integrity. Source artwork was inspected at 28px and 20px on light and dark backgrounds; all stroke bounds fit the 48px canvas. Assembled game appearance remains unreviewed.
 
+Legacy supply buttons and the Debug equipment chooser also use these icons. The chooser's selected value and popup entries match; switching recruits restores the normal-equipment artwork, and purchased stock retains its identity. Standard [button](https://docs.godotengine.org/en/4.5/classes/class_button.html#class-button-theme-constant-icon-max-width) and [popup](https://docs.godotengine.org/en/4.5/classes/class_popupmenu.html#class-popupmenu-theme-constant-icon-max-width) icon limits cap both at 24px. Three affected suites, actual purchases and encounter staging, three-size bounds, both exports and packaged icon bindings passed. No new art or gameplay rules were introduced.
+
 ## Browser loading presentation
 
 The [loading panel](../web/loading-panel.html) uses the existing title painting behind an opaque parchment card, a serif title, a labeled native progress bar and a scrollable error region. [Its styles](../web/loading.css) constrain the card to the viewport and shorten it on low-height screens. No new images, fonts or network dependencies are added. Source text/background contrast ratios are 7.55 for body text, 4.85 for the subtitle and 6.90 for error text.

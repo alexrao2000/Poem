@@ -59,9 +59,11 @@ func controls():
   var recruits=app.ui.find_child("EncounterRecruit",true,false);var equipment=app.ui.find_child("EncounterEquipment",true,false)
   for recruit in app.game.content.roster:
    choose(recruits,recruit.id);assert(equipment.selected==0 and app.encounter_item.is_empty())
+   assert(equipment.icon.resource_path=="res://assets/ui/items/"+app.game.item_for(recruit).id+".svg","Changing recruits restores the matching normal-equipment icon")
    var items=app.game.equipment.filter(func(item):return item.kind==recruit.weapon);assert(equipment.item_count==items.size()+1)
    for item in items:
     choose(equipment,item.id);assert(app.encounter_item==item.id)
+    assert(equipment.icon.resource_path=="res://assets/ui/items/"+item.id+".svg" and equipment.get_popup().get_item_icon(equipment.selected)==equipment.icon,"The selected control and popup entry retain the same actual item artwork")
     var detail=app.ui.find_child("EncounterDetail",true,false)
     var chapter=maxi(maxi(Encounters.scene_for_recruit(app.game.content.roster,recruit.id).chapter,int(recruit.join)),int(item.unlock))
     assert(detail.text.contains(app.game.content.chapters[chapter].place) and detail.text.contains(item.name) and detail.text.contains("target %d tile"%int(item.max_range)))
