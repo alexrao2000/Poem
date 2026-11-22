@@ -97,6 +97,14 @@ At source `338e125b4584d1198818eec8b66c5b26055f6bd3`, ordinary recovery, Hard re
 
 All 48 chapter outcomes, turn counts and terminal-fall lists for the four matching seed-472019 runs agree with the separate actual app campaigns. The comparison itself runs only Rules and the existing tactical planner: default equipment, earned promotions/supports, no carrying strategy and no disk/UI verification. Eligible legacy purchases are recorded but not equipped. Reset pressure also changes the first deployment by supplying two enemy tonics and requiring Lyra, so its toggle is not an isolated stat-scaling comparison. No balance values changed in response to this survey.
 
+### Later-section app continuity
+
+At source `e653e32bdf3f4f71007db124c2d0f56c7a8c444d`, a targeted campaign started through the new rule controls with permadeath, action saving, Hard forces, section restarts, reset pressure and death legacies enabled. It used seed 309 because the earlier survey reached the ending with few losses, increasing the chance of reaching both later-section checks. This selection is not a representative balance sample.
+
+The actual battle-menu retreats from chapters 6 to 5 and 10 to 9 preserved the casualty/supply ledger and restored surviving roster records from their section-start checkpoints. A natural lord defeat during the replayed chapter 5 exercised an additional result-screen retry. Pressure reached 3. All eight rule values stayed intact through 996 exact save comparisons; 470 legal player actions completed 15 played attempts over 107 turns. The ending retained 17 permanent losses and seven available recruits. The two voluntary retreats happened before acting and are recorded separately from those played attempts.
+
+The first five chapter outcomes, turn counts and casualty lists matched the earlier no-retreat rules run. Later growth and outcomes changed after the actual rewinds and pressure increases. Twelve promotions and six support conversations are event counts, including possible repetition after rewinds. Dialogue and announcements were dismissed through their normal input paths. This is headless app integration, with no forced wins or losses, and does not establish rendered quality, physical input, browser behavior or human difficulty.
+
 ## Initial balance measurements
 
 The optional [automated probe](../scripts/benchmark_trials.gd) runs three seeds with permadeath off and on, hard forces, sacrifice costs, action saving and the first promotion branch. It uses legal tactical actions and no reset-pressure bonuses. On November 4, 2026, all six runs cleared twelve chapters:
