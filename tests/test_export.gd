@@ -383,6 +383,7 @@ func run():
    assert(packed_face.get_shader_parameter("warm_iris")== (id in ["sera","vela"]),"Packed Sera and Vela keep the measured brown-source mask private")
    if id in ["lyra","tarin","sera","una","vela","silas","elian"]:assert(packed_face.get_shader_parameter("iris_tint").is_equal_approx(Color(app.fighters.profiles[id].appearance.iris_color)))
    var outfit=actor.model.get_node("Identity").promotion
+   if unit.weapon in ["sword","axe","bow"]:assert(actor.poses.critical_hit.to==.1 and actor.poses.hit.to>.3,"Packed promoted sword/axe/bow fighters retain held critical recoil and unchanged ordinary reactions")
    var look=load("res://scripts/promotion_costume.gd").looks[promotion]
    assert(outfit.panels.size()==((2 if look.has("tabard") else 0)+(4 if look.has("sash") else 0)+(6 if look.has("stole") else 0)))
    for panel in outfit.panels:assert(panel.skin.get_bind_count()==(6 if panel.get_meta("promotion_stole",false) else 5) and panel.material_override.next_pass!=null)
@@ -490,6 +491,7 @@ func run():
   var unit=commander_rules.living("enemy").filter(func(value):return value.get("boss",false))[0]
   var profile=load("res://scripts/commanders.gd").profile(unit);var actor=app.make_fighter(unit,Vector3.ZERO)
   assert(actor is Imported and actor.get_meta("commander")==profile.id,"Release selects all twelve revised commanders")
+  if profile.job in ["Vanguard","Duelist","Corsair","Ranger"]:assert(actor.poses.critical_hit.to==.1,"Packed affected commanders retain the revised critical reaction")
   assert(actor.get_meta("costume_colors").cloth==Color(profile.appearance.cloth) and actor.get_meta("costume_colors").cape==Color(profile.appearance.cape))
   if profile.appearance.has("circlet"):
    var color=Color(profile.appearance.circlet)

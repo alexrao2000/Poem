@@ -3,6 +3,7 @@ const Trail=preload("res://scripts/combat_trail.gd")
 const Finish=preload("res://scripts/combat_finish.gd")
 const Imported=preload("res://scripts/imported_fighter.gd")
 const Shutdown=preload("helpers/game_shutdown.gd")
+const ReactionHold=preload("helpers/reaction_hold.gd")
 const HitStop=preload("res://scripts/combat_hit_stop.gd")
 var app
 var mode=""
@@ -16,18 +17,9 @@ var critical_reactions=0
 func _initialize():call_deferred("run")
 func observe(node):
  if node is HitStop:
-  await process_frame
-  node.motion.pause()
-  var targets=node.held.filter(func(entry):return entry.actor.pose_name in ["hit","critical_hit"])
-  assert(targets.size()==1 and targets[0].actor is Imported)
-  var target=targets[0].actor;var mapping=target.poses[target.pose_name]
-  assert(mapping.clip=="Hit_Chest" and (is_equal_approx(mapping.to,.1) if expected_critical else mapping.to==target.player.get_animation(mapping.clip).length),"Actual resolved contacts choose the critical recoil segment or unchanged ordinary interval")
-  var rig=target.model.get_node("Rig/Armature/Skeleton3D");var frozen=rig.get_bone_global_pose(rig.find_bone("spine_03"));var cursor=target.player.current_animation_position
-  for frame in range(2):await process_frame
-  assert(rig.get_bone_global_pose(rig.find_bone("spine_03"))==frozen and target.player.current_animation_position==cursor,"Actual revised reaction and source cursor remain frozen during local hit stop")
+  await ReactionHold.verify(node,expected_critical)
   reactions+=1
   if expected_critical:critical_reactions+=1
-  node.motion.play()
   if mode=="skip_recoil":app.skip_combat=true
   return
  if node is Imported and mode=="skip_windup" and node.model.get_meta("character_identity","")=="lyra":

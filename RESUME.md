@@ -6,6 +6,8 @@ Development resumed on “go”. Continue in this chat until the user asks to st
 
 ### Latest state
 
+The same critical-recoil selection now extends to revised axe and bow users. Seventy new variants/1,820 samples pass; the shared sampler still passes all 80 sword variants. Actual axe/bow/sword scenes pass 33 frozen contacts, including 21 criticals and recoil Skip. Both local exports, packed promoted/commander intervals, exported-loader checks and ZIP integrity pass. Registry 363; revised models remain optional.
+
 Revised sword fighters now hold the recoil segment for critical hits, while ordinary reactions keep their original interval. Six recruits, both promotions, both enemy sword classes and four swords pass 80 variants/2,080 source samples. Actual hit-stop, defeat, survival and Skip checks pass; both local exports, the packaged reaction intervals, exported-loader check and ZIP integrity pass. Registry 362, with the complete 361 baseline retained below. Revised models remain optional.
 
 Tactical health bars, selection marks and status badges now stay hidden throughout the enlarged combat approach and return, with character sprites and contact shadows retained. Four affected suites passed exact restoration after normal and skipped combat/healing, wounded/carrier/shared/commander details, and map-only exchanges. Both local exports, packaged indicator/Skip checks, the exported-loader check and ZIP integrity passed.
