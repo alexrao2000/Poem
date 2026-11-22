@@ -599,6 +599,16 @@ func run():
  var beacon_comparison=app.ui.find_child("EquipmentComparison_beacon_staff",true,false)
  assert(beacon_comparison.text.contains("Healing %d (-6)"%(10+app.game.promotion_bonus(late_healer,"heal"))) and beacon_comparison.text.contains("Speed %d (+3)"%late_healer.speed),"Packed arsenal compares promoted healing and effective speed against the equipped staff")
  assert(app.game.save_data("battle")==arsenal_state,"Inspecting the packaged arsenal keeps the loadout and campaign untouched")
+ app.show_debug_experiments();app.ui.find_child("StartExperiment_last_rescue",true,false).pressed.emit();await process_frame;await process_frame
+ var rescue_patient=app.game.units.filter(func(unit):return unit.id=="oren")[0]
+ var rescue_healer=app.game.units.filter(func(unit):return unit.id=="ivo")[0]
+ var rescue_save=load("res://scripts/rules.gd").new()
+ assert(app.screen=="battle" and app.game.DeathDoor.downed(rescue_patient) and rescue_patient.bleed_turns==1 and rescue_healer.acted and app.game.permadeath and app.game.action_saves,"Packed last-chance starter preserves its authored countdown and spent healer")
+ assert(rescue_save.load_game(app.save_path+".debug")=="battle")
+ var rescue_disk=JSON.parse_string(JSON.stringify(rescue_save.save_data("battle")));var rescue_live=JSON.parse_string(JSON.stringify(app.game.save_data("battle")))
+ for key in rescue_live:
+  if rescue_live[key]!=rescue_disk.get(key):print("RESCUE SAVE DIFF ",key," live=",rescue_live[key]," disk=",rescue_disk.get(key))
+ assert(rescue_disk==rescue_live,"Packed rescue starter writes the complete temporary battle")
  app.show_campaign_rules();app.ui.find_child("Permadeath",true,false).button_pressed=true
  var campaign_settings=load("res://scripts/campaign_settings.gd")
  for setting in campaign_settings.SWITCHES:app.ui.find_child(setting.key,true,false).button_pressed=true
