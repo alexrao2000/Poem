@@ -1,5 +1,7 @@
 # Poem development
 
+Stone Remembers has a masonry aqueduct in its close-up arena, with six spans on submerged footings, a continuous channel coping and a far walk for the chapter’s landmarks. A low stone parapet marks the edge of the dry fighting lane.
+
 Campaign sprites reuse health-bar textures by team, fill width and health color. Their contact shadows share one plane. Across 606 headless health-bar refreshes, distinct textures fell from 606 to 50 and shadow planes fell from six to one. Every health-bar pixel matched the earlier package.
 
 Green healing targets now include carried patients in healing range, and staff users can click a carrying badge to open that patient’s triage menu. When both allies are injured, the tile gets one green mark.

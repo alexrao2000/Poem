@@ -6,6 +6,8 @@ Development resumed on “go”. Continue in this chat until the user asks to st
 
 ### Latest state
 
+Stone Remembers now has six aqueduct spans in its close-up arena. The stone piers meet submerged footings and a continuous channel coping. Chapter landmarks stand on the far walk. The dry fighting lane has a stone parapet, and the timber variant keeps its deck railing. Seven focused suites passed, including six wide-shot projections, both floor variants and real encounters. Both local exports, packaged architecture and archive integrity passed. Rendered appearance remains unreviewed.
+
 The tactical map now reuses its health-bar textures and contact-shadow plane. A six-actor probe checked every whole-number HP percentage for both teams. It used 50 textures and one shadow plane across 606 refreshes, with identical health-bar pixels. Seven focused suites, the two packaged checks, both local exports and archive integrity passed.
 
 Staff users now see a green target when a carried patient is in range. Clicking the carrying badge opens that patient’s triage menu. Seven focused suites passed, including the marker click, Escape, actual healing, shared tiles, and a single tile mark when both allies can be healed. Both local exports, the packed Debug flow and archive integrity passed.

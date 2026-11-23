@@ -399,6 +399,25 @@ func arena_railing(parent: Node3D,center: Vector3,depth: float,width: float):
   block(parent,center+Vector3(x,.54,depth),Vector3(.13,1.1,.13),Color("72624f")).name="ArenaRailPost"
  block(parent,center+Vector3(0,.7,depth),Vector3(width,.12,.10),Color("8e7c60")).name="ArenaRailing"
 
+func aqueduct_gallery(parent: Node3D,center: Vector3):
+ var gallery=Node3D.new();gallery.name="AqueductGallery";gallery.position=center+Vector3(0,0,-8.4);parent.add_child(gallery)
+ var masonry=detail_material(3)
+ for x in range(-12,13,4):
+  block(gallery,Vector3(x,.055,0),Vector3(1.20,.27,1.15),masonry).name="GalleryFooting"
+  block(gallery,Vector3(x,1.13,0),Vector3(.68,2.05,.80),masonry).name="GalleryPier"
+  block(gallery,Vector3(x,2.105,0),Vector3(.93,.25,.93),Color("a6a698")).name="GalleryCapital"
+  if x<12:
+   arch_span(gallery,Vector3(x+2,2.10,0),1.65,.35,.86)
+   block(gallery,Vector3(x+2,4.18,0),Vector3(3.98,.28,.96),masonry).name="ChannelStone"
+ block(gallery,Vector3(0,4.36,0),Vector3(24.24,.12,1.12),Color("b7b9a8")).name="ChannelCoping"
+ var shelf=ground(parent,center+Vector3(0,0,-26),Vector2(32,32),3)
+ shelf.name="AqueductFarWalk"
+
+func aqueduct_parapet(parent: Node3D,center: Vector3):
+ var masonry=detail_material(3)
+ block(parent,center+Vector3(0,.19,-2.81),Vector3(23.6,.40,.33),masonry).name="AqueductParapet"
+ block(parent,center+Vector3(0,.425,-2.81),Vector3(23.7,.12,.44),Color("b7b9a8")).name="ArenaRailing"
+
 func battle_landscape(parent,center,context={}):
  var theme=context.get("environment","village")
  parent.set_meta("environment",theme)
@@ -418,7 +437,7 @@ func battle_landscape(parent,center,context={}):
   var water_depth=-12.0 if wooden_floor else -23.0 if river else -22.0
   var water_surface=mesh(parent,plane,center+Vector3(0,water_level,water_depth),Vector3.ONE,water);water_surface.name="ArenaWater"
   if wooden_floor:arena_deck(parent,center)
-  elif theme=="aqueduct":arena_railing(parent,center,-3,22)
+  elif theme=="aqueduct":aqueduct_parapet(parent,center)
  if river:
   var far_ground=ground(parent,center+Vector3(0,0,RiverBank.ARENA_FAR_START-14.5),Vector2(RiverBank.ARENA_WIDTH,29),0)
   far_ground.name="ArenaFarBankGround"
@@ -442,18 +461,20 @@ func battle_landscape(parent,center,context={}):
  parent.set_meta("backdrop_count",backdrop.size())
  for item in backdrop:
   var depth=RiverBank.ARENA_FAR_START-1.5+(item.z+7)*.7 if river else item.z
+  if theme=="aqueduct":depth=minf(depth,-11.0)
   var group=Node3D.new();group.name="ArenaLandmark";parent.add_child(group,true);group.position=center+Vector3(item.x,0,depth)
   group.scale=Vector3.ONE*(2.1 if item.kind in ["house","warehouse","tower","spire","arch","furnace"] else 1.4)
   landmark(group,Vector3.ZERO,item.kind,item.get("roof_variant",0))
  if theme in ["village","road"]:
   cart(parent,center+Vector3(-6,0,-3.8));fence(parent,center+Vector3(3,0,-4),5.0)
   for i in range(3):barrel(parent,center+Vector3(6+i*.4,0,-4.3),1.0)
- if theme in ["abbey","aqueduct","observatory","castle"]:
+ if theme=="aqueduct":aqueduct_gallery(parent,center)
+ if theme in ["abbey","observatory","castle"]:
   for x in ([] if theme=="castle" else range(-12,13,4)):
    cylinder(parent,center+Vector3(x,1.8,-5),3.6,.32,Color("9e9d8d"))
    cylinder(parent,center+Vector3(x,.12,-5),.24,.5,Color("7f8178"))
    cylinder(parent,center+Vector3(x,3.5,-5),.3,.48,Color("c2bea7"))
-   if theme in ["aqueduct","abbey"] and x<12:
+   if theme=="abbey" and x<12:
     arch_span(parent,center+Vector3(x+2,3.55,-5),1.65,.35,.8)
   if theme=="castle":
    Fortification.build_castle_wall(self,parent,center+Vector3(0,0,-9))

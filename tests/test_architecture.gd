@@ -4,6 +4,7 @@ const Roof=preload("res://scripts/architecture.gd")
 const Scenery=preload("res://scripts/scenery.gd")
 const Rules=preload("res://scripts/rules.gd")
 const HarborBoat=preload("res://scripts/harbor_boat.gd")
+const CombatCamera=preload("res://scripts/combat_camera.gd")
 func _initialize():call_deferred("run")
 func run():
  await verify_gate()
@@ -11,6 +12,7 @@ func run():
  await verify_fountain()
  await verify_harbor_boats()
  await verify_reddeep_furnaces()
+ await verify_aqueduct_gallery()
  await verify_cart()
  await verify_barrels()
  var colors=[]
@@ -66,6 +68,54 @@ func run():
  await verify_cloth()
  print("PASS: arched castle gate/portcullis, tiered fountain basins/jets, six shared fortified towers, battlement/deck rays, three cached roofs, 204 gable intersections, ",cases," house identities, 14 pinned cloth resources, bounded motion parameters and cleanup")
  quit()
+
+func verify_aqueduct_gallery():
+ var scenery=Scenery.new();scenery.batching_enabled=false
+ var game=Rules.new();game.chapter=7
+ var context=scenery.combat_context(game,{"x":5,"y":5},{"x":6,"y":5})
+ assert(context.environment=="aqueduct" and context.terrain=="p" and context.landmarks.size()==2)
+ var center=Vector3(35,0,0)
+ var viewport=SubViewport.new();viewport.render_target_update_mode=SubViewport.UPDATE_DISABLED;root.add_child(viewport)
+ var camera=Camera3D.new();viewport.add_child(camera);camera.current=true
+ var frame=CombatCamera.frame_pair(center+Vector3.LEFT*1.6,center+Vector3.RIGHT*1.6,"wide",false)
+ camera.position=frame.anchor;camera.fov=frame.lens;camera.look_at(frame.focus)
+ for terrain in ["p","="]:
+  context.terrain=terrain
+  var arena=Node3D.new();root.add_child(arena);scenery.battle_landscape(arena,center,context)
+  var gallery=arena.get_node("AqueductGallery")
+  var water=arena.get_node("ArenaWater")
+  var footings=gallery.find_children("GalleryFooting*","MeshInstance3D",false,false)
+  var piers=gallery.find_children("GalleryPier*","MeshInstance3D",false,false)
+  var capitals=gallery.find_children("GalleryCapital*","MeshInstance3D",false,false)
+  var arches=gallery.find_children("MasonryArch*","MeshInstance3D",false,false)
+  var channel=gallery.find_children("ChannelStone*","MeshInstance3D",false,false)
+  assert(footings.size()==7 and piers.size()==7 and capitals.size()==7 and arches.size()==6 and channel.size()==6)
+  for index in 7:
+   var footing=footings[index];var pier=piers[index];var capital=capitals[index]
+   var lower=footing.transform*footing.mesh.get_aabb()
+   var shaft=pier.transform*pier.mesh.get_aabb()
+   assert(lower.position.y+center.y<water.position.y and lower.end.y+center.y>water.position.y)
+   assert(shaft.intersects(lower) and shaft.intersects(capital.transform*capital.mesh.get_aabb()),"Each pier connects its submerged footing and capital")
+  var coping=gallery.get_node("ChannelCoping")
+  var coping_bounds=coping.transform*coping.mesh.get_aabb()
+  for index in 6:
+   var arch=arches[index];var span=arch.transform*arch.mesh.get_aabb()
+   var course=channel[index].transform*channel[index].mesh.get_aabb()
+   for capital in [capitals[index],capitals[index+1]]:
+    assert(span.intersects(capital.transform*capital.mesh.get_aabb()),"Each arch reaches both capitals")
+   assert(span.intersects(course) and course.intersects(coping_bounds),"The channel spans the arches with a continuous coping")
+  var shelf=arena.get_node("AqueductFarWalk")
+  for anchor in arena.find_children("ArenaLandmark*","Node3D",false,false):
+   assert(is_equal_approx(anchor.position.y,shelf.position.y) and anchor.position.z<shelf.position.z+shelf.mesh.size.y*.5-.65)
+  assert(arena.has_node("AqueductParapet")== (terrain=="p") and arena.has_node("ArenaDeck")== (terrain=="="))
+  for dimensions in [Vector2i(1024,640),Vector2i(1280,720),Vector2i(1440,900)]:
+   viewport.size=dimensions;await process_frame
+   var crown=gallery.to_global(Vector3(-2,coping_bounds.end.y,0))
+   var screen=camera.unproject_position(crown)
+   assert(not camera.is_position_behind(crown) and Rect2(Vector2.ZERO,Vector2(dimensions)).grow(-10).has_point(screen),"The middle span and channel crest fit the default wide shot")
+  arena.queue_free();await process_frame
+ viewport.queue_free();await process_frame
+ print("PASS: six planted aqueduct spans, connected channel coping, dry and deck foregrounds, grounded map landmarks and six projected wide shots")
 
 func verify_reddeep_furnaces():
  var scenery=Scenery.new();scenery.batching_enabled=false
