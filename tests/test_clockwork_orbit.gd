@@ -42,23 +42,70 @@ func run():
    assert(neighbor.core_material!=orbit.core_material and neighbor.elapsed==0,"Each instance owns its pulse material and clock")
    orbit.queue_free();neighbor.queue_free();await process_frame
  var game=Rules.new();var saved=game.save_data("camp").duplicate(true);var random=game.rng.state
- var scenery=Scenery.new()
+ var scenery=Scenery.new();scenery.batching_enabled=false
  for chapter in [8,11]:
   game.chapter=chapter
   var world=Node3D.new();host.add_child(world);scenery.landscape(world,game)
-  var arena=Node3D.new();host.add_child(arena);scenery.battle_landscape(arena,Vector3(35,0,0),{"environment":game.info().environment})
+  var row=1 if chapter==8 else 4
+  var context=scenery.combat_context(game,{"x":10,"y":row},{"x":11,"y":row})
+  assert(context.landmarks.size()==1 and context.landmarks[0].kind==context.environment)
+  var arena=Node3D.new();host.add_child(arena);scenery.battle_landscape(arena,Vector3(35,0,0),context)
   var landmarks=world.find_children("ClockworkOrbit*","Node3D",true,false);var backdrops=arena.find_children("ClockworkOrbit*","Node3D",true,false)
-  assert(not landmarks.is_empty() and backdrops.size()==1)
+  assert(landmarks.size()==1 and backdrops.size()==1,"A mapped clockwork landmark contributes one arena mechanism")
+  var anchor=backdrops[0].global_position
+  var expected=Vector3(35+clampf(context.landmarks[0].x,-3.8,3.8),2.6 if chapter==8 else 3.45,minf(context.landmarks[0].z,-10 if chapter==8 else -12))
+  assert(anchor.is_equal_approx(expected),"The mechanism stays behind the lane while retaining the landmark side")
+  if chapter==11:
+   verify_chamber(landmarks[0],-.07)
+   var basin=arena.get_node("EngineBasinWater")
+   assert(basin.material_override==scenery.water_material("engine"))
+   assert(basin.position.z+basin.mesh.size.y*.5<-6,"The water basin stays behind the fighting lane")
+   verify_chamber(backdrops[0],basin.position.y)
+   var rims=arena.find_children("EngineBasinRim*","MeshInstance3D",false,false)
+   assert(rims.size()==4)
+   for rim in rims:
+    var side=rim.transform*rim.mesh.get_aabb()
+    assert(side.position.y<basin.position.y and side.end.y>basin.position.y,"All four basin rims cross the waterline")
+   assert(landmarks[0].get_parent().scale.is_equal_approx(Vector3.ONE*.46) and backdrops[0].get_parent().scale==Vector3.ONE)
+   var map_shaft=landmarks[0].get_parent().get_node("EnginePylonShaft")
+   var arena_shaft=backdrops[0].get_parent().get_node("EnginePylonShaft")
+   assert(map_shaft.mesh==arena_shaft.mesh and map_shaft.material_override==arena_shaft.material_override,"Map and close-up chamber share structure and finish")
+  scenery.batcher.combine(world);scenery.batcher.combine(arena)
   for node in landmarks+backdrops:
    assert(node is Orbit and node.theme==game.info().environment)
    assert(node.outer.get_child_count()>=2 and node.inner.get_child_count()>=1,"Scenery batching retains independently moving ring groups")
-  assert(backdrops[0].position.z<=-10 and backdrops[0].position.x==35,"Large mechanisms stay behind the combat lane")
-  world.queue_free();arena.queue_free();await process_frame
+  var fallback=Node3D.new();host.add_child(fallback)
+  scenery.battle_landscape(fallback,Vector3(35,0,0),{"environment":context.environment})
+  var centered=fallback.find_children("ClockworkOrbit*","Node3D",true,false)
+  assert(centered.size()==1 and is_equal_approx(centered[0].global_position.x,35))
+  world.queue_free();arena.queue_free();fallback.queue_free();await process_frame
  game.chapter=saved.chapter;assert(game.save_data("camp")==saved and game.rng.state==random)
  host.queue_free();await process_frame
  await scenes()
- print("PASS: %d moving geometry samples, four bounded meshes per mechanism, private pulse materials, exact hidden-clock suspension, matching map/arena landmarks and actual normal/Skip cleanup"%samples)
+ print("PASS: %d moving geometry samples, one arena mechanism per landmark, four grounded Sun Engine pylons with ring clearance, hidden-clock suspension and actual normal/Skip cleanup"%samples)
  quit()
+
+func verify_chamber(orbit: Node3D,ground_height: float):
+ var chamber=orbit.get_parent()
+ var foundation=chamber.get_node("EngineFoundation")
+ var base=foundation.global_transform*foundation.mesh.get_aabb()
+ assert(base.position.y<ground_height and base.end.y>ground_height)
+ var feet=chamber.find_children("EnginePylonFoot*","MeshInstance3D",false,false)
+ var shafts=chamber.find_children("EnginePylonShaft*","MeshInstance3D",false,false)
+ var crowns=chamber.find_children("EnginePylonCrown*","MeshInstance3D",false,false)
+ var braces=chamber.find_children("EngineBrace*","MeshInstance3D",false,false)
+ assert(feet.size()==4 and shafts.size()==4 and crowns.size()==4 and braces.size()==2)
+ for index in 4:
+  var shaft=shafts[index].transform*shafts[index].mesh.get_aabb()
+  var foot=feet[index].transform*feet[index].mesh.get_aabb()
+  var crown=crowns[index].transform*crowns[index].mesh.get_aabb()
+  var ground=feet[index].global_transform*feet[index].mesh.get_aabb()
+  assert(shaft.intersects(foot) and shaft.intersects(crown) and ground.position.y<ground_height)
+ for part in chamber.get_children():
+  if not part is MeshInstance3D:continue
+  var bounds=part.transform*part.mesh.get_aabb()
+  var nearest=orbit.position.clamp(bounds.position,bounds.end)
+  assert(nearest.distance_to(orbit.position)>1.875*1.15,"Stationary containment stays outside the full swept ring volume")
 
 func scenes():
  var app=load("res://main.tscn").instantiate();app.settings_path="";app.save_path="/private/tmp/poem-clockwork-%d.json"%Time.get_ticks_usec();root.add_child(app);await process_frame
@@ -72,6 +119,7 @@ func scenes():
    if not app.stage.visible:return
    var orbits=app.stage.find_children("ClockworkOrbit*","Node3D",true,false)
    if orbits.is_empty():return
+   assert(orbits.size()==1)
    if refs.is_empty():
     for orbit in orbits:refs.append(weakref(orbit))
     observations.initial=orbits[0].elapsed

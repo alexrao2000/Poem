@@ -1,5 +1,7 @@
 # Poem development
 
+The Sun Engine now sits over a water basin within a four-pylon chamber. Its map landmark and close-up scene share the chamber design and an original eight-second mechanical pulse. The Sun Engine and observatory each use one animated mechanism in close-up, with placement derived from the corresponding map landmark.
+
 Masonry arches reuse a mesh for each set of dimensions. Two passes over all twelve tactical maps and close-up arenas retained 42 arch placements and every geometry hash while using five mesh resources.
 
 Tactical selection reuses the figures already on the map. A committed move now shows the unit’s action reach from its saved tile, without a second route preview. Undoing an uncommitted move still restores the figure and its position.

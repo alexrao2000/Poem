@@ -6,6 +6,10 @@ Development resumed on “go”. Continue in this chat until the user asks to st
 
 ### Latest state
 
+The Sun Engine’s new chamber appears on the map and in the arena, with a water basin beneath four bronze-trimmed pylons and an original eight-second mechanical pulse. Both the Sun Engine and observatory use one moving mechanism per arena. Ten focused suites passed, including ring clearance, the actual scene handoff, and audio across menus and combat. Both local exports, the two packed checks, six exact PCM hashes and archive integrity passed. Rendered and listening review remain outstanding.
+
+The ordinary campaign replay at `69a9528` reached the ending with all 24 recruits available. It matched the earlier twelve chapter results, 62 turns, 298 legal player actions, 652 exact save comparisons, ten promotions, nine support conversations and twelve commander captions.
+
 Repeated masonry arches now share geometry across the maps, aqueduct spans, Reddeep hearths and arenas. Two builds of all twelve maps and arenas retained all 42 placements and five exact geometry hashes. The number of arch mesh resources fell from 42 to five. Five focused suites, both exports, packaged architecture and resource checks, and archive integrity passed.
 
 Reselecting an ally after a committed move now shows action reach from the saved endpoint and removes the misleading extra route. Deselecting and cycling through ready allies reuse the same figures. Ten ready-ally cycles created zero figures in the exported build, down from 180 in the earlier probe. Eight focused suites, both local exports, two packaged checks and archive integrity passed.

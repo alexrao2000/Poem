@@ -335,7 +335,9 @@ func landmark(parent,p,kind,roof_variant=-1):
  elif kind=="camp":
   var tent=cylinder(parent,p+Vector3(0,.5,0),1,.8,Color("c7bba1"),0);tent.scale.z=1.5
   cylinder(parent,p+Vector3(1,.06,0),.1,.3,Color("6a5c4b"))
- elif kind in ["engine","observatory"]:
+ elif kind=="engine":
+  sun_engine(parent,p+Vector3.DOWN*.06,.46)
+ elif kind=="observatory":
   cylinder(parent,p+Vector3(0,.2,0),.4,1.3,stone)
   var orbit=preload("res://scripts/clockwork_orbit.gd").new();parent.add_child(orbit);orbit.position=p+Vector3(0,1.5,0);orbit.configure(kind)
  elif kind=="furnace":furnace(parent,p)
@@ -423,6 +425,33 @@ func aqueduct_parapet(parent: Node3D,center: Vector3):
  block(parent,center+Vector3(0,.19,-2.81),Vector3(23.6,.40,.33),masonry).name="AqueductParapet"
  block(parent,center+Vector3(0,.425,-2.81),Vector3(23.7,.12,.44),Color("b7b9a8")).name="ArenaRailing"
 
+func sun_engine(parent: Node3D,anchor: Vector3,scale_value=1.0):
+ var chamber=Node3D.new();chamber.name="SunEngineChamber";chamber.position=anchor
+ chamber.scale=Vector3.ONE*scale_value;parent.add_child(chamber)
+ var iron=material(Color("434e55"))
+ var bronze=material(Color("9e8155"))
+ var masonry=detail_material(3)
+ cylinder(chamber,Vector3(0,.11,0),.38,3.30,Color("565d58"),2.95).name="EngineFoundation"
+ cylinder(chamber,Vector3(0,.31,0),.16,1.46,Color("a48657"),1.32).name="EngineSocket"
+ for x in [-2.72,2.72]:
+  for z in [-.80,.80]:
+   block(chamber,Vector3(x,.13,z),Vector3(.96,.42,.96),masonry).name="EnginePylonFoot"
+   block(chamber,Vector3(x,1.56,z),Vector3(.61,2.67,.61),iron).name="EnginePylonShaft"
+   block(chamber,Vector3(x,2.94,z),Vector3(.75,.22,.75),bronze).name="EnginePylonCrown"
+   block(chamber,Vector3(x,1.64,z+.31),Vector3(.11,2.24,.07),bronze).name="PylonFace"
+  block(chamber,Vector3(x,2.83,0),Vector3(.14,.16,2.07),bronze).name="EngineBrace"
+ var orbit=preload("res://scripts/clockwork_orbit.gd").new();chamber.add_child(orbit)
+ orbit.position=Vector3.UP*3.45;orbit.configure("engine",1.875,1.2)
+
+func sun_engine_basin(parent: Node3D,anchor: Vector3):
+ var water=plane_shape(Vector2(11.5,7.5))
+ mesh(parent,water,anchor-Vector3.UP*.025,Vector3.ONE,water_material("engine")).name="EngineBasinWater"
+ var masonry=detail_material(3)
+ for x in [-5.75,5.75]:
+  block(parent,anchor+Vector3(x,.035,0),Vector3(.24,.20,7.72),masonry).name="EngineBasinRim"
+ for z in [-3.75,3.75]:
+  block(parent,anchor+Vector3(0,.035,z),Vector3(11.5,.20,.24),masonry).name="EngineBasinRim"
+
 func battle_landscape(parent,center,context={}):
  var theme=context.get("environment","village")
  parent.set_meta("environment",theme)
@@ -464,9 +493,14 @@ func battle_landscape(parent,center,context={}):
    for i in range(3):house(parent,center+Vector3(-12+i*11,0,-17),2.0+i*.2)
  var backdrop=context.get("landmarks",[])
  parent.set_meta("backdrop_count",backdrop.size())
+ var mechanism=center+Vector3(0,0,-12 if theme=="engine" else -10)
  for item in backdrop:
   var depth=RiverBank.ARENA_FAR_START-1.5+(item.z+7)*.7 if river else item.z
   if theme=="aqueduct":depth=minf(depth,-11.0)
+  if item.kind==theme and theme in ["engine","observatory"]:
+   mechanism.x=center.x+clampf(item.x,-3.8,3.8)
+   mechanism.z=minf(mechanism.z,center.z+depth)
+   continue
   var group=Node3D.new();group.name="ArenaLandmark";parent.add_child(group,true);group.position=center+Vector3(item.x,0,depth)
   group.scale=Vector3.ONE*(2.1 if item.kind in ["house","warehouse","tower","spire","arch","furnace"] else 1.4)
   landmark(group,Vector3.ZERO,item.kind,item.get("roof_variant",0))
@@ -484,7 +518,7 @@ func battle_landscape(parent,center,context={}):
   if theme=="castle":
    Fortification.build_castle_wall(self,parent,center+Vector3(0,0,-9))
   elif theme=="observatory":
-   var orbit=preload("res://scripts/clockwork_orbit.gd").new();parent.add_child(orbit);orbit.position=center+Vector3(0,2.6,-10);orbit.configure(theme,1.54,.55)
+   var orbit=preload("res://scripts/clockwork_orbit.gd").new();parent.add_child(orbit);orbit.position=mechanism+Vector3.UP*2.6;orbit.configure(theme,1.54,.55)
  if ArenaRidges.LANDSCAPES.has(theme):
   ArenaRidges.build(parent,center,theme)
   if theme=="mountain":
@@ -494,13 +528,8 @@ func battle_landscape(parent,center,context={}):
  if theme=="furnace" and backdrop.is_empty():
   for x in [-5,5]:furnace(parent,center+Vector3(x,0,-8),2.1)
  if theme=="engine":
-  for x in [-8,-4,0,4,8]:
-   cylinder(parent,center+Vector3(x,2,-7),4,.4,Color("494d51"))
-   cylinder(parent,center+Vector3(x,3.5,-7),.12,.6,Color("bb9a64"))
-   var core_material=material(Color("fbb56c")).duplicate();core_material.shading_mode=BaseMaterial3D.SHADING_MODE_UNSHADED
-   var core=SphereMesh.new();core.radius=.24;core.height=.48
-   mesh(parent,core,center+Vector3(x,2.5,-6.6),Vector3.ONE,core_material)
-  var orbit=preload("res://scripts/clockwork_orbit.gd").new();parent.add_child(orbit);orbit.position=center+Vector3(0,4,-12);orbit.configure(theme,1.875,1.2)
+  sun_engine_basin(parent,mechanism)
+  sun_engine(parent,mechanism)
  ground_cover.add_arena(parent,center,context)
  if batching_enabled:batcher.combine(parent)
  var atmosphere=AmbientDrift.new();parent.add_child(atmosphere);atmosphere.position=center+Vector3(0,0,-3)
