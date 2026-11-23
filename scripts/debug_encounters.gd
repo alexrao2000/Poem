@@ -31,12 +31,12 @@ static func available_chapters(game,recruit_id: String,item_id="") -> Array:
   first=maxi(first,int(items[0].unlock))
  return range(first,game.content.chapters.size())
 
-static func start_recruit(game,recruit_id: String,promotion_id: String,seed_value: int,item_id="",chapter=-1) -> Dictionary:
+static func start_recruit(game,recruit_id: String,promotion_id: String,seed_value: int,item_id="",chapter=-1,commander=false) -> Dictionary:
  var scene=scene_for_recruit(game.content.roster,recruit_id)
  if scene.is_empty():return {}
- return start(game,scene.id,seed_value,recruit_id,promotion_id,item_id,chapter)
+ return start(game,scene.id,seed_value,recruit_id,promotion_id,item_id,chapter,commander)
 
-static func start(game,id: String,seed_value: int,recruit_id="",promotion_id="",item_id="",chapter=-1) -> Dictionary:
+static func start(game,id: String,seed_value: int,recruit_id="",promotion_id="",item_id="",chapter=-1,commander=false) -> Dictionary:
  var matches=SCENES.filter(func(scene):return scene.id==id)
  if matches.is_empty():return {}
  var scene=matches[0];var staged=Rules.new()
@@ -44,6 +44,7 @@ static func start(game,id: String,seed_value: int,recruit_id="",promotion_id="",
  var actors=staged.roster.filter(func(unit):return unit.id==recruit_id)
  if actors.is_empty() or scene_for_recruit(staged.roster,recruit_id).get("id","")!=scene.id:return {}
  var recruit=actors[0]
+ if commander and recruit.weapon=="staff":return {}
  if not promotion_id.is_empty() and not staged.promotion_options(recruit).any(func(path):return path.id==promotion_id):return {}
  var chapters=available_chapters(staged,recruit_id,item_id)
  if chapters.is_empty() or chapter<-1 or (chapter!=-1 and chapter not in chapters):return {}
@@ -62,7 +63,7 @@ static func start(game,id: String,seed_value: int,recruit_id="",promotion_id="",
  staged.rng.seed=seed_value;staged.start_battle()
  var actor=staged.units.filter(func(unit):return unit.id==recruit_id)[0]
  var healing=actor.weapon=="staff"
- var recipient=staged.living("player").filter(func(unit):return unit.id!=actor.id)[0] if healing else staged.living("enemy")[1]
+ var recipient=staged.living("player").filter(func(unit):return unit.id!=actor.id)[0] if healing else staged.living("enemy")[0 if commander else 1]
  var tiles=[];var center=Vector2(staged.board_size())*.5
  for y in range(staged.board_size().y):
   for x in range(staged.board_size().x):

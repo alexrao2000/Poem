@@ -3,6 +3,7 @@ extends SceneTree
 ## chooser. Rendering is not measured by these headless state and bounds checks.
 const Rules=preload("res://scripts/rules.gd")
 const Encounters=preload("res://scripts/debug_encounters.gd")
+const Commanders=preload("res://scripts/commanders.gd")
 const Session=preload("res://scripts/debug_session.gd")
 const Shutdown=preload("helpers/game_shutdown.gd")
 
@@ -24,6 +25,15 @@ func run():
  var before=game.save_data("battle").duplicate(true)
  for invalid in [["lyra","",-2],["lyra","",12],["galen","",0],["oren","rally_lance",0],["lyra","thunder",11]]:
   assert(session.start_recruit_encounter(game,invalid[0],"",invalid[1],invalid[2]).is_empty() and game.save_data("battle")==before)
+ assert(session.start_recruit_encounter(game,"ivo","","",0,true).is_empty() and game.save_data("battle")==before)
+ for chapter in 12:
+  var named=session.start_recruit_encounter(game,"lyra","","",chapter,true)
+  assert(not named.is_empty())
+  var matching=game.living("enemy").filter(func(unit):return unit.id==named.target)
+  assert(matching.size()==1 and matching[0].name==game.info().boss and not Commanders.profile(matching[0]).is_empty())
+  assert(game.can_attack(game.living("player")[0],matching[0]))
+  var staged=canonical(game.save_data("battle"))
+  assert(session.start_recruit_encounter(game,"lyra","","",chapter,true)==named and canonical(game.save_data("battle"))==staged)
  var count=0;var chapters_seen={}
  for recruit in game.content.roster:
   for item in game.equipment:
@@ -60,10 +70,15 @@ func controls():
  for size in [Vector2(1024,640),Vector2(1280,720),Vector2(1440,900)]:
   app.ui.set_anchors_and_offsets_preset(Control.PRESET_TOP_LEFT);app.ui.size=size;await process_frame;await process_frame
   var recruits=app.ui.find_child("EncounterRecruit",true,false);var equipment=app.ui.find_child("EncounterEquipment",true,false);var field=app.ui.find_child("EncounterBattlefield",true,false)
+  var commander_choice=app.ui.find_child("EncounterCommander",true,false)
   assert(field.item_count==13)
-  choose(recruits,"lyra");choose(field,0);choose(recruits,"galen")
+  choose(recruits,"lyra");choose(field,0);commander_choice.button_pressed=true
+  assert(app.encounter_commander and app.ui.find_child("EncounterDetail",true,false).text.contains("Captain Voss"))
+  choose(recruits,"galen")
   assert(app.encounter_chapter==-1 and field.selected==0 and field.is_item_disabled(1))
+  assert(commander_choice.disabled and not app.encounter_commander and not commander_choice.button_pressed)
   choose(recruits,"oren");choose(field,0);choose(equipment,"rally_lance")
+  assert(not commander_choice.disabled and not commander_choice.button_pressed)
   assert(app.encounter_chapter==-1 and field.selected==0 and field.is_item_disabled(1))
   choose(field,11);choose(recruits,"lyra")
   assert(app.encounter_chapter==11 and field.selected==12)
@@ -71,40 +86,57 @@ func controls():
    choose(field,chapter)
    var detail=app.ui.find_child("EncounterDetail",true,false)
    assert(detail.text.contains(app.game.content.chapters[chapter].place) and detail.text.contains("at least level %d"%maxi(3,chapter+1)))
-  for name in ["EncounterBattlefield","EncounterDetail","StageRecruitEncounter"]:
+  for name in ["EncounterBattlefield","EncounterCommander","EncounterDetail","StageRecruitEncounter"]:
    var control=app.ui.find_child(name,true,false);var scroll=control.get_parent().get_parent();scroll.ensure_control_visible(control);await process_frame;await process_frame
    assert(scroll.get_global_rect().grow(1).encloses(control.get_global_rect()) and control.size.x>=control.get_minimum_size().x)
  assert(app.game.save_data("camp")==before and app.debug_session.trace.report()==trace and app.preferences.values==preferences and FileAccess.get_file_as_string(app.save_path)==disk and FileAccess.get_file_as_string(app.save_path+".debug")==debug_disk)
+ var challenge_captions=0
  for chapter in 12:
   app.show_debug_encounters();await process_frame;await process_frame
-  choose(app.ui.find_child("EncounterRecruit",true,false),"ivo" if chapter%3==1 else "lyra")
+  var face_commander=chapter%3!=1
+  choose(app.ui.find_child("EncounterRecruit",true,false),"lyra" if face_commander else "ivo")
   choose(app.ui.find_child("EncounterBattlefield",true,false),chapter)
+  app.ui.find_child("EncounterCommander",true,false).button_pressed=face_commander
   app.ui.find_child("EncounterModels_"+("current" if chapter%2==0 else "revised"),true,false).pressed.emit()
   app.ui.find_child("StageRecruitEncounter",true,false).pressed.emit();await process_frame;await process_frame
   assert(app.game.chapter==chapter and app.screen=="battle" and app.debug_session.trace.report().entries[-1].reason.ends_with(":chapter:"+str(chapter+1)))
-  var actor=app.selected;var target=app.game.at(app.cursor_tile);var expected=Rules.new();assert(expected.restore_save(app.game.save_data("battle"))=="battle")
+  assert(app.debug_session.trace.report().entries[-1].reason.contains(":commander:")==face_commander)
+  var actor=app.selected;var target=app.game.at(app.cursor_tile)
+  var named=Commanders.profile(target)
+  if face_commander:
+   assert(not named.is_empty() and target.name==app.game.info().boss)
+   target.max_hp=100;target.hp=100
+  var expected=Rules.new();assert(expected.restore_save(app.game.save_data("battle"))=="battle")
   var a=expected.units.filter(func(u):return u.id==actor.id)[0];var b=expected.units.filter(func(u):return u.id==target.id)[0]
   if actor.weapon=="staff":assert(expected.heal(a,b))
   else:assert(not expected.combat(a,b).is_empty());enter()
+  if face_commander:expected.story_seen.append("challenge_"+named.id)
   var lighting=app.lighting_state();enter();assert(app.busy)
-  var saw_stage=false;var deadline=Time.get_ticks_msec()+12000
+  var saw_stage=false;var saw_caption=false;var deadline=Time.get_ticks_msec()+12000
   while app.busy and Time.get_ticks_msec()<deadline:
    await process_frame
    var playback=app.ui.get_node_or_null("CombatPlayback")
    if playback!=null:playback.fast_button.button_pressed=true
+   var caption=app.ui.get_node_or_null("CommanderChallenge")
+   if caption!=null:
+    assert(face_commander and caption.find_child("ChallengeLine",true,false).text==named.challenge.opponents.get(actor.id,named.challenge.default))
+    saw_caption=true
    if app.stage.visible:
     saw_stage=true;assert(app.stage.get_meta("environment")==app.game.info().environment)
     if chapter==2:
      var weather=app.stage.get_node("AmbientDrift")
      assert(weather.kind=="rain" and weather.cloud.multimesh.instance_count==56,"Greywood uses rain in the actual combat arena")
-    if chapter%3==2 and playback!=null:playback.skip_button.pressed.emit()
+    if chapter%3==2 and playback!=null and saw_caption:playback.skip_button.pressed.emit()
    if is_instance_valid(app.reward_panel):app.reward_panel.request_continue()
-  assert(not app.busy and saw_stage and not app.stage.visible and app.lighting_state()==lighting)
+  assert(not app.busy and saw_stage and not app.stage.visible and app.lighting_state()==lighting and saw_caption==face_commander)
+  if saw_caption:challenge_captions+=1
   assert(canonical(app.game.save_data("battle"))==canonical(expected.save_data("battle")))
   var saved=Rules.new();assert(saved.load_game(app.save_path+".debug")=="battle" and canonical(saved.save_data("battle"))==canonical(expected.save_data("battle")))
   app.show_debug_encounters();await process_frame;await process_frame
   assert(app.ui.find_child("EncounterBattlefield",true,false).get_item_metadata(app.ui.find_child("EncounterBattlefield",true,false).selected)==chapter)
+  assert(app.ui.find_child("EncounterCommander",true,false).button_pressed==face_commander)
+ assert(challenge_captions==8)
  app.show_options("battle");app.ui.find_child("DebugMode",true,false).button_pressed=false
  assert(app.game.save_data("camp")==original and app.preferences.values==preferences and FileAccess.get_file_as_string(app.save_path)==disk)
  await Shutdown.dispose(app)
- print("PASS: three-size battlefield controls, unlock fallback, read-only browsing, twelve actual current/revised attack/heal/Skip scenes, lighting restoration and exact original campaign/file/preferences restoration")
+ print("PASS: three-size battlefield controls, twelve seeded commanders, eight real challenge captions, healing compatibility, twelve actual current/revised scenes, and exact original campaign/file/preferences restoration")

@@ -1,5 +1,7 @@
 # Poem development
 
+**Face the chapter commander** stages an ordinary weapon-range attack against the chapter’s named enemy in Debug. Choosing a staff user clears the switch and retains the healing setup. Staging happens through the same sandbox save path and records the selected opponent in the trace. All twelve commanders stage deterministically, and actual fights exercise eight of their captions in current and revised model sets.
+
 Each named commander now has two original first-encounter lines. The opponent selects the chapter-specific variant. The app records the chosen encounter before saving the action, then presents its portrait caption in 3D and Quick map. Direct model and animation studies remain independent of campaign flags. Eight focused suites passed, including 144 layouts, both exchange directions, Tab, and exact Debug save isolation.
 
 Reed Crossing’s combat arenas use two cached bank meshes. Dry fights meet the near bank at the back of the fighting lane, with fourteen reeds rooted just above water. Trees and towers sit on the far bank. The towers retain their map-relative horizontal order and spread in depth. Bridge fights keep the existing deck and rail.

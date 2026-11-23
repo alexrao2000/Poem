@@ -120,6 +120,7 @@ var encounter_recruit="lyra"
 var encounter_training=""
 var encounter_item=""
 var encounter_chapter=-1
+var encounter_commander=false
 var reward_panel: PanelContainer
 var reward_skip=false
 var transfer_text: TextEdit
@@ -2427,6 +2428,10 @@ func show_debug_encounters(return_to="debug_tools"):
 	battlefield_choice.add_item("Suggested battlefield");battlefield_choice.set_item_metadata(0,-1)
 	for index in game.content.chapters.size():
 		battlefield_choice.add_item("Chapter %02d · %s"%[index+1,game.content.chapters[index].place]);battlefield_choice.set_item_metadata(index+1,index)
+	var commander_choice=CheckButton.new()
+	commander_choice.name="EncounterCommander"
+	commander_choice.text="Face the chapter commander"
+	panel.add_child(commander_choice);interface_audio.watch(commander_choice)
 	var encounter_detail=label_in(panel,"",17);encounter_detail.name="EncounterDetail"
 	var update_detail=func():
 		var recruit=game.content.roster.filter(func(unit):return unit.id==encounter_recruit)[0]
@@ -2436,11 +2441,15 @@ func show_debug_encounters(return_to="debug_tools"):
 		battlefield_choice.select(encounter_chapter+1)
 		for index in game.content.chapters.size():battlefield_choice.set_item_disabled(index+1,index not in available)
 		var chapter=maxi(scene.chapter,available[0]) if encounter_chapter==-1 else encounter_chapter
+		commander_choice.disabled=recruit.weapon=="staff"
+		if commander_choice.disabled:encounter_commander=false
+		commander_choice.set_pressed_no_signal(encounter_commander)
 		var equipment_text="Uses the recruit’s normal equipment and growth."
 		if not encounter_item.is_empty():
 			var item=game.equipment.filter(func(entry):return entry.id==encounter_item)[0]
 			equipment_text="%s · target %d tile%s away."%[item.name,int(item.max_range),"" if item.max_range==1 else "s"]
 		encounter_detail.text="Chapter %02d · %s. %s Allies train to at least level %d; advanced paths train to at least level 10 before promotion. Earlier battlefields are unavailable when the recruit or equipment has not arrived."%[chapter+1,game.content.chapters[chapter].place,equipment_text,maxi(3,chapter+1)]
+		if encounter_commander:encounter_detail.text+=" Opponent · "+game.content.chapters[chapter].boss+"."
 	var update_recruit=func():
 		var recruit=game.content.roster.filter(func(unit):return unit.id==encounter_recruit)[0]
 		training_choice.clear();training_choice.add_item("Base class · "+recruit.job);training_choice.set_item_metadata(0,"")
@@ -2458,9 +2467,12 @@ func show_debug_encounters(return_to="debug_tools"):
 	training_choice.item_selected.connect(func(index):encounter_training=training_choice.get_item_metadata(index))
 	equipment_choice.item_selected.connect(func(index):encounter_item=equipment_choice.get_item_metadata(index);update_detail.call())
 	battlefield_choice.item_selected.connect(func(index):encounter_chapter=battlefield_choice.get_item_metadata(index);update_detail.call())
+	commander_choice.toggled.connect(func(value):encounter_commander=value;update_detail.call())
 	update_recruit.call()
 	button_in(panel,"Stage chosen recruit",func():
-		open_debug_encounter(debug_session.start_recruit_encounter(game,encounter_recruit,encounter_training,encounter_item,encounter_chapter),"encounter:recruit:"+encounter_recruit+":"+(encounter_training if not encounter_training.is_empty() else "base")+(":"+encounter_item if not encounter_item.is_empty() else "")+(":chapter:"+str(encounter_chapter+1) if encounter_chapter>=0 else ""))
+		var setup=debug_session.start_recruit_encounter(game,encounter_recruit,encounter_training,encounter_item,encounter_chapter,encounter_commander)
+		var opponent=":commander" if encounter_commander else ""
+		open_debug_encounter(setup,"encounter:recruit:"+encounter_recruit+":"+(encounter_training if not encounter_training.is_empty() else "base")+(":"+encounter_item if not encounter_item.is_empty() else "")+opponent+(":chapter:"+str(encounter_chapter+1) if encounter_chapter>=0 else ""))
 	).name="StageRecruitEncounter"
 	label_in(panel,"Quick starters",24,GOLD)
 	for scene in preload("res://scripts/debug_encounters.gd").SCENES:

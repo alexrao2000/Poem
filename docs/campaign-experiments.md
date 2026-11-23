@@ -40,6 +40,8 @@ The full-company chooser also offers equipment choices for every compatible item
 
 Choose a battlefield to use that chapter’s tactical map, enemies, lighting and close-up scenery. All twelve chapters are listed; those before the recruit or equipment unlock are disabled. **Suggested battlefield** uses the original starter location, adjusted for unlocks. A selected chapter stays selected across model comparisons and compatible loadout changes. An incompatible recruit or item returns it to Suggested battlefield. The details show the training level before staging: chapter changes can alter stats and combat odds, so use the same chapter and seed when comparing models. Browsing the selector does not write a save or change the campaign; staging records the chosen chapter in Debug’s action history.
 
+**Face the chapter commander** places an attacking recruit in weapon range of that battlefield’s named commander. The detail text names the opponent. Confirming the attack plays the normal first-encounter caption. Restaging starts a fresh sandbox encounter and plays the line again. The switch clears when selecting a staff user, so healing continues to target an injured ally.
+
 ## Current rules
 
 | Switch | Behavior |
