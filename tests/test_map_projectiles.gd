@@ -45,8 +45,11 @@ func run():
     var effect=Contact.new();host.add_child(effect)
     var point=Vector3(3,.8,-4);var clock=effect.contact(point,view,{"damage":damage,"crit":critical},spell);clock.pause()
     assert(effect.global_position.distance_to(point)<.0001 and effect.global_basis.z.normalized().dot(view.global_basis.z.normalized())>.9999)
-    assert((effect.burst!=null)==(damage>0),"Blocked hits use only the muted glow")
-    if damage==0:assert(effect.glow.material_override.albedo_color==Color("9caab5"))
+    assert((effect.burst!=null)==(damage>0),"Blocked hits omit damaging sparks")
+    assert((effect.guard!=null)==(damage==0),"Only blocked hits show guard rings, including critical and spell flags")
+    if damage==0:
+     assert(effect.glow.material_override.albedo_color==Color("9caab5"))
+     assert(effect.guard.mesh.surface_get_arrays(0)[Mesh.ARRAY_VERTEX].size()==240 and effect.guard.material_override.no_depth_test and effect.guard.material_override.render_priority==3)
     elif not spell.is_empty():assert(effect.glow.material_override.albedo_color==effect.Spell.palette(spell).accent)
     var ref=weakref(effect);clock.custom_step(.10);assert(effect.glow.material_override.albedo_color.a<.6)
     clock.custom_step(.11);await process_frame;assert(ref.get_ref()==null)

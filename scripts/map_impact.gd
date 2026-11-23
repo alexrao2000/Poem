@@ -5,6 +5,7 @@ const Impact=preload("res://scripts/combat_impact.gd")
 const Spell=preload("res://scripts/combat_spell.gd")
 var glow: MeshInstance3D
 var burst: MeshInstance3D
+var guard: MeshInstance3D
 var motion: Tween
 
 func contact(point: Vector3,view: Camera3D,event: Dictionary,spell="") -> Tween:
@@ -18,6 +19,11 @@ func contact(point: Vector3,view: Camera3D,event: Dictionary,spell="") -> Tween:
  motion=create_tween().set_parallel(true)
  motion.tween_property(glow,"scale",Vector3.ONE*1.3,.16).from(Vector3.ONE*.4)
  motion.tween_property(surface,"albedo_color:a",0.0,.20)
+ if blocked:
+  guard=MeshInstance3D.new();guard.name="GuardRings";add_child(guard)
+  guard.mesh=Impact.guard_mesh();guard.material_override=overlay();guard.cast_shadow=GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+  motion.tween_property(guard,"scale",Vector3.ONE*1.25,.20).from(Vector3.ONE*.65).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
+  motion.tween_property(guard.material_override,"albedo_color:a",0.0,.16).set_delay(.04)
  if not blocked:
   burst=MeshInstance3D.new();burst.name="CriticalForks" if event.crit else "Sparks";add_child(burst)
   burst.mesh=Impact.burst_mesh(event.crit,spell);burst.material_override=overlay();burst.cast_shadow=GeometryInstance3D.SHADOW_CASTING_SETTING_OFF

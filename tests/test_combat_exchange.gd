@@ -60,7 +60,7 @@ func watch_block(node):
  await process_frame
  var actors=node.get_parent().get_children().filter(func(child):return child is Actor and not child.is_queued_for_deletion())
  blocked_poses.append(actors.map(func(actor):return actor.pose_name))
- assert(node.amount.text=="NO DAMAGE" and node.burst==null,"Real blocked combat selects the restrained effect")
+ assert(node.amount.text=="NO DAMAGE" and node.burst==null and node.guard!=null,"Real blocked combat selects the restrained effect")
  var shields=actors.filter(func(actor):return actor.pose_name=="guard" and actor.bones.has("Shield"))
  if not shields.is_empty():
   var defender=shields[0]

@@ -1,6 +1,7 @@
 extends Node3D
 # Original local impact accents: additive glow, tapered sparks and angular
-# critical forks. Fixed geometry keeps presentation independent of game RNG.
+# critical forks. Split guard rings identify zero damage without damage sparks.
+# Fixed geometry keeps presentation independent of game RNG.
 const Spell=preload("res://scripts/combat_spell.gd")
 const SpellBurst=preload("res://scripts/combat_spell_burst.gd")
 const FloatingText=preload("res://scripts/combat_text.gd")
@@ -8,6 +9,7 @@ var camera: Camera3D
 var plane: Node3D
 var burst: MeshInstance3D
 var glow: MeshInstance3D
+var guard: MeshInstance3D
 var elemental: Node3D
 var amount: FloatingText
 var motion: Tween
@@ -32,6 +34,12 @@ func configure(point: Vector3,event: Dictionary,view: Camera3D,spell="",ground=n
   var material=accent_material();material.albedo_texture=radial_texture()
   material.albedo_color=Color("9caab5") if blocked else Color("ffca76") if spell.is_empty() else Spell.palette(spell).accent
   glow.material_override=material
+  if blocked:
+   guard=MeshInstance3D.new();guard.name="GuardRings";plane.add_child(guard)
+   guard.mesh=guard_mesh();guard.material_override=accent_material();guard.position.z=.01
+   guard.cast_shadow=GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+   motion.tween_property(guard,"scale",Vector3.ONE*1.25,.24).from(Vector3.ONE*.65).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
+   motion.tween_property(guard.material_override,"albedo_color:a",0.0,.18).set_delay(.06)
   if not blocked:
    burst=MeshInstance3D.new();burst.name="CriticalForks" if event.crit else "Sparks";plane.add_child(burst)
    burst.mesh=burst_mesh(event.crit,spell);burst.material_override=accent_material();burst.position.z=.01
@@ -66,6 +74,21 @@ static func ribbon(surface: SurfaceTool,start: Vector2,end: Vector2,width: float
  var normal=(end-start).orthogonal().normalized()*width
  var points=[start-normal,start+normal,end]
  for p in points:surface.set_color(color);surface.add_vertex(Vector3(p.x,p.y,0))
+
+static func guard_mesh() -> ArrayMesh:
+ var surface=SurfaceTool.new();surface.begin(Mesh.PRIMITIVE_TRIANGLES)
+ for ring in [[.34,.025,12,1.12],[.24,.014,8,.80]]:
+  for side in [-1,1]:
+   for index in range(ring[2]):
+    var a=lerpf(-ring[3],ring[3],float(index)/ring[2])
+    var b=lerpf(-ring[3],ring[3],float(index+1)/ring[2])
+    var inner_a=Vector2(cos(a)*side,sin(a))*(ring[0]-ring[1])
+    var outer_a=Vector2(cos(a)*side,sin(a))*ring[0]
+    var inner_b=Vector2(cos(b)*side,sin(b))*(ring[0]-ring[1])
+    var outer_b=Vector2(cos(b)*side,sin(b))*ring[0]
+    for point in [inner_a,outer_a,outer_b,inner_a,outer_b,inner_b]:
+     surface.set_color(Color("d9edf2") if ring[2]==12 else Color("91bdcc"));surface.add_vertex(Vector3(point.x,point.y,0))
+ return surface.commit()
 
 static func burst_mesh(critical: bool,spell="") -> ArrayMesh:
  var surface=SurfaceTool.new();surface.begin(Mesh.PRIMITIVE_TRIANGLES)

@@ -120,6 +120,7 @@ func run():
  for event in [{"damage":7,"crit":false,"hit":true},{"damage":21,"crit":true,"hit":true},{"damage":0,"crit":false,"hit":false}]:
   var effect=Impact.new();root.add_child(effect);effect.configure(Vector3(2,1,0),event,camera);impacts.append(weakref(effect))
   assert(effect.amount.text==(str(event.damage) if event.hit else "MISS"),"Impact numbers reflect the resolved event")
+  assert(effect.guard==null,"Damaging hits and misses never display a guard ring")
   if event.hit:
    var vertices=effect.burst.mesh.surface_get_arrays(0)[Mesh.ARRAY_VERTEX].size()
    if event.crit:assert(vertices>normal_vertices,"Critical adds angular forks to the spark burst")
@@ -137,6 +138,16 @@ func run():
  var blocked=Impact.new();root.add_child(blocked);blocked.configure(Vector3.ZERO,{"hit":true,"damage":0,"crit":false},camera)
  assert(blocked.amount.text=="NO DAMAGE" and blocked.burst==null,"Armor stopping a hit has a distinct label without damaging sparks")
  assert(blocked.glow.mesh.size.x==.5,"Blocked contact uses a restrained glint")
+ assert(blocked.guard!=null and blocked.guard.get_parent()==blocked.plane and blocked.elemental==null,"Zero damage uses camera-facing guard rings without damaging spell effects")
+ var guard_vertices=blocked.guard.mesh.surface_get_arrays(0)[Mesh.ARRAY_VERTEX]
+ assert(guard_vertices.size()==240)
+ for i in range(0,guard_vertices.size(),3):
+  assert((guard_vertices[i+1]-guard_vertices[i]).cross(guard_vertices[i+2]-guard_vertices[i]).length()>.000001,"Every guard band triangle has visible area")
+  for j in 3:assert(guard_vertices[i+j].length()<=.3401 and absf(guard_vertices[i+j].z)<.00001,"Guard bands stay inside their restrained contact footprint")
+ blocked.motion.pause();blocked.motion.custom_step(.12)
+ assert(blocked.guard.scale.x>.65 and blocked.guard.scale.x<1.25 and blocked.guard.material_override.albedo_color.a>0)
+ blocked.motion.custom_step(.13)
+ assert(is_zero_approx(blocked.guard.material_override.albedo_color.a) and blocked.amount.modulate.a>0,"Guard rings fade before the result text")
  blocked.queue_free()
  camera.queue_free()
  var fighters=load("res://scripts/fighters.gd").new();var rules=load("res://scripts/rules.gd").new()
