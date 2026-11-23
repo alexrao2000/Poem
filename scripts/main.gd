@@ -685,7 +685,12 @@ func update_side():
 		portrait.stretch_mode=TextureRect.STRETCH_KEEP_ASPECT_CENTERED;portrait.custom_minimum_size=Vector2(90,100);identity.add_child(portrait)
 		var details=VBoxContainer.new();details.size_flags_horizontal=Control.SIZE_EXPAND_FILL;identity.add_child(details)
 		var unit_name=label_in(details,selected.name,27,GOLD)
-		unit_name.max_lines_visible=2;unit_name.text_overrun_behavior=TextServer.OVERRUN_TRIM_WORD_ELLIPSIS
+		unit_name.name="SelectedUnitName";unit_name.add_theme_font_override("font",DISPLAY_FONT)
+		unit_name.autowrap_mode=TextServer.AUTOWRAP_OFF;unit_name.text_overrun_behavior=TextServer.OVERRUN_TRIM_WORD_ELLIPSIS
+		unit_name.resized.connect(func():
+			var font_size=27
+			while font_size>20 and DISPLAY_FONT.get_string_size(unit_name.text,HORIZONTAL_ALIGNMENT_LEFT,-1,font_size).x>unit_name.size.x:font_size-=1
+			if font_size!=unit_name.get_theme_font_size("font_size"):unit_name.add_theme_font_size_override("font_size",font_size))
 		unit_name.tooltip_text=selected.name;unit_name.mouse_filter=Control.MOUSE_FILTER_PASS
 		label_in(details,game.class_name_for(selected)+(" · Commander" if selected.get("boss",false) and selected.team=="enemy" else ""),16)
 		var bond_rank=game.supports.nearby_rank(game,selected)

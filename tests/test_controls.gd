@@ -57,6 +57,13 @@ func run():
    assert(frame.end.y<=dimensions.y-20,"Battle sidebar fits the shorter desktop window")
    assert(frame.size.y<=app.side.get_combined_minimum_size().y+32,"Action card fits its contents instead of covering an empty column")
    if state=="company":assert(frame.size.y<300,"Unselected map leaves most of the right edge visible")
+   else:
+    var identity=app.side.find_child("SelectedUnitName",true,false)
+    assert(identity.text==app.selected.name and identity.tooltip_text==app.selected.name)
+    var font=identity.get_theme_font("font");var font_size=identity.get_theme_font_size("font_size")
+    assert(identity.get_visible_line_count()==1 and identity.size.y>=font.get_height(font_size),
+     "The selected unit's name keeps one readable line above its class")
+    assert(font.get_string_size(identity.text,HORIZONTAL_ALIGNMENT_LEFT,-1,font_size).x<=identity.size.x)
    for child in app.side.get_children():assert(child.get_global_rect().end.y<=frame.end.y-10,"Every action remains inside its panel without scrolling")
    assert(app.battle_hint.get_line_count()==1,"Contextual map hint stays on one line")
   app.selected=unit;app.target=enemy;app.update_side()

@@ -6,6 +6,14 @@ Development resumed on “go”. Continue in this chat until the user asks to st
 
 ### Latest state
 
+Selected allies and enemies now show their names above their class in the tactical sidebar. The preceding package gave all 111 measured names a one-pixel label. All 111 exported layouts now fit a full line, including long commander names at all three tested sizes.
+
+The village arena now uses two roadside groves and a distant orchard. The split canopy leaves a view into the settlement. Eighteen opening camera projections cover mapped and fallback houses at three sizes with infantry and mounted framing. Eleven focused suites, both local exports, packed architecture and name checks, and archive integrity passed. Rendered appearance remains unreviewed.
+
+The local package at `f3c7e6e` reached the ending with seed 17 using the tested six-slot opening formation. The normal starting-position controls reproduced the twelve-turn opening victory without losses. The run then completed thirteen battles in 86 turns with 441 player actions, 907 exact disk checkpoints, fourteen promotions and ten support conversations. Its Chapter 6 retreat reached Chapter 5 with eight prepared enemies and two advanced raiders. Sera was the only permanent loss. See `build/review/chosen-formation.html`.
+
+All 381 registered suites and four offline checks passed at frozen source `d1c951d`. The result archive includes ordered test-source and output hashes and an isolated presentation recheck. Later revisions keep their separate focused package checks. The live registry has 383 suites. See `build/review/verification.html`.
+
 Four outdoor combat arenas now use continuous ground with irregular borders where stone or earth meets grass. The ground meets the combatants, plants and distant slopes at their tested footing heights. Eight focused suites, 72 arena floor configurations, both local exports, packaged terrain and ground cover, and archive integrity passed. Rendered appearance remains unreviewed.
 
 The tactical chapter title and objective now share a navy plate at the upper left, with a separate turn plate at the upper right. It changes color for the enemy phase and keeps Debug and Save failed messages. Thirty-six chapter layouts preserve exact objectives and keep the center of the battlefield exposed at the three supported sizes. Ten focused suites, both local exports, packaged objective and save recovery checks, and archive integrity passed. Rendered appearance remains unreviewed.

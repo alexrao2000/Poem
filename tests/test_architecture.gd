@@ -13,6 +13,7 @@ func run():
  await verify_harbor_boats()
  await verify_reddeep_furnaces()
  await verify_aqueduct_gallery()
+ await verify_village_groves()
  await verify_cart()
  await verify_barrels()
  var colors=[]
@@ -68,6 +69,50 @@ func run():
  await verify_cloth()
  print("PASS: arched castle gate/portcullis, tiered fountain basins/jets, six shared fortified towers, battlement/deck rays, three cached roofs, 204 gable intersections, ",cases," house identities, 14 pinned cloth resources, bounded motion parameters and cleanup")
  quit()
+
+func verify_village_groves():
+ var scenery=Scenery.new();scenery.batching_enabled=false
+ var game=Rules.new();var rng=game.rng.state
+ var center=Vector3(35,0,0)
+ var near={"x":4,"y":0};var far={"x":4,"y":1}
+ var normal=scenery.combat_context(game,near,far)
+ var mirrored=scenery.combat_context(game,near,far,-1.0)
+ assert(normal.environment=="village" and normal.landmarks.size()==2)
+ var viewport=SubViewport.new();viewport.render_target_update_mode=SubViewport.UPDATE_DISABLED;root.add_child(viewport)
+ var camera=Camera3D.new();viewport.add_child(camera);camera.current=true
+ for context in [normal,mirrored,{"environment":"village","terrain":"p"}]:
+  var stage=Node3D.new();root.add_child(stage);scenery.battle_landscape(stage,center,context)
+  var trees=stage.find_children("ArenaTree*","Node3D",false,false)
+  var houses=stage.find_children("House*","Node3D",true,false).filter(func(node):return node.has_node("PlasterWall"))
+  var landmarks=context.get("landmarks",[])
+  var house_count=3 if landmarks.is_empty() else landmarks.filter(func(item):return item.kind=="house").size()
+  assert(trees.size()>=9 and trees.size()<=15 and houses.size()==house_count,
+   "Expected %d houses, got %d alongside %d trees"%[house_count,houses.size(),trees.size()])
+  var silhouettes=[]
+  for tree in trees:
+   var offset=tree.position-center
+   assert(is_zero_approx(offset.y) and (offset.z<-20 or absf(offset.x)>11),"The near groves leave a central view down the lane")
+   for house in houses:
+    var distance=tree.global_position-house.global_position
+    assert(absf(distance.x)>=4.7 or distance.z<=-4.5,"A tree stays clear of every house frontage")
+   for mesh in tree.find_children("*","MeshInstance3D",true,false):
+    var bounds=mesh.global_transform*mesh.mesh.get_aabb()
+    if bounds.end.z>center.z-20:silhouettes.append(bounds)
+  for mounted in [false,true]:
+   var frame=CombatCamera.frame_pair(center+Vector3.LEFT*1.6,center+Vector3.RIGHT*1.6,"wide",false,mounted)
+   camera.position=frame.anchor;camera.fov=frame.lens;camera.look_at(frame.focus)
+   for dimensions in [Vector2i(1024,640),Vector2i(1280,720),Vector2i(1440,900)]:
+    viewport.size=dimensions;await process_frame
+    var visible=houses.any(func(house):
+     var facade=house.to_global(Vector3(0,.85,.67))
+     var screen_point=camera.unproject_position(facade)
+     var framed=Rect2(Vector2.ZERO,Vector2(dimensions)).grow(-18).has_point(screen_point)
+     return framed and not silhouettes.any(func(bounds):return bounds.intersects_segment(camera.global_position,facade)!=null))
+    assert(visible,"One visible house frontage remains clear of every near trunk and canopy")
+  stage.queue_free();await process_frame
+ viewport.queue_free();await process_frame
+ assert(game.rng.state==rng)
+ print("PASS: two village groves and distant orchard, clear mapped and fallback house frontage in 18 wide-shot projections")
 
 func verify_aqueduct_gallery():
  var scenery=Scenery.new();scenery.batching_enabled=false

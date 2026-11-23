@@ -15,6 +15,24 @@ const ArenaRidges=preload("res://scripts/arena_ridges.gd")
 const PassEscarpment=preload("res://scripts/pass_escarpment.gd")
 const SanctuaryPlinth=preload("res://scripts/sanctuary_plinth.gd")
 const MAX_CACHED_CYLINDERS=256
+# Left and right roadside groves lead into a lower, more distant orchard.
+const VILLAGE_TREES=[
+ {"position":Vector2(-15.7,-8.8),"scale":2.3},
+ {"position":Vector2(-17.4,-13.1),"scale":2.55},
+ {"position":Vector2(-12.0,-14.4),"scale":2.4},
+ {"position":Vector2(15.5,-9.1),"scale":2.37},
+ {"position":Vector2(18.6,-11.8),"scale":2.65},
+ {"position":Vector2(11.7,-15.1),"scale":2.4},
+ {"position":Vector2(-18.9,-22.3),"scale":2.95},
+ {"position":Vector2(-13.7,-24.8),"scale":2.7},
+ {"position":Vector2(-9.9,-22.6),"scale":2.45},
+ {"position":Vector2(-5.2,-24.3),"scale":2.68},
+ {"position":Vector2(.2,-25.0),"scale":2.55},
+ {"position":Vector2(5.5,-22.5),"scale":2.37},
+ {"position":Vector2(9.8,-25.1),"scale":2.55},
+ {"position":Vector2(14.8,-21.9),"scale":2.7},
+ {"position":Vector2(19.1,-24.1),"scale":2.9},
+]
 enum BuildingFinish { LIME_PLASTER, OCHRE_PLASTER, OAK, DECK_WOOD }
 const BUILDING_FINISHES=[
  {"color":Color("c5bca4"),"scale":.66,"weight":.66},
@@ -408,6 +426,13 @@ func battle_tree(parent,point,seed_value,scale_value,theme=""):
  var group=Node3D.new();group.name="ArenaTree";group.position=point;group.scale=Vector3.ONE*scale_value;parent.add_child(group,true)
  tree(group,Vector3.ZERO,seed_value,theme)
 
+func village_trees(parent: Node3D,center: Vector3,house_sites: Array):
+ for index in VILLAGE_TREES.size():
+  var tree_site=VILLAGE_TREES[index];var position=tree_site.position
+  if house_sites.any(func(site):return absf(position.x-site.x)<4.7 and position.y>site.y-4.5):
+   continue
+  battle_tree(parent,center+Vector3(position.x,0,position.y),index*83,tree_site.scale,"village")
+
 func arena_deck(parent: Node3D,center: Vector3):
  var deck=building_material(BuildingFinish.DECK_WOOD)
  for column in range(42):
@@ -507,14 +532,23 @@ func battle_landscape(parent,center,context={}):
     var position=center+RiverBank.arena_point(x,3.0/RiverBank.ARENA_ROWS,false)
     var reed=ground_cover.plant(parent,{"kind":2,"position":position,"height":.28+(index%3)*.045,"yaw":index*2.399})
     reed.name="ArenaBankReed"
+ var backdrop=context.get("landmarks",[])
  if theme in ["village","river","road","forest","harbor"]:
   var base=-.06 if theme=="forest" and not continuous_floor else 0.0
   var tree_line=RiverBank.ARENA_FAR_START-1 if river else -8.0
-  for i in range(28 if theme=="forest" or tile=="f" else 17):
-   battle_tree(parent,center+Vector3(-20+(i*11)%41,base,tree_line-(i%4)*3),i*83,2.6+(i%3)*.25,theme)
-  if theme!="forest" and context.get("landmarks",[]).is_empty():
-   for i in range(3):house(parent,center+Vector3(-12+i*11,0,-17),2.0+i*.2)
- var backdrop=context.get("landmarks",[])
+  var house_sites=[]
+  if theme!="forest" and backdrop.is_empty():
+   for i in range(3):
+    var site=Vector2(-12+i*11,-17)
+    house(parent,center+Vector3(site.x,0,site.y),2.0+i*.2)
+    house_sites.append(site)
+  if theme=="village":
+   for item in backdrop:
+    if item.kind in ["house","warehouse"]:house_sites.append(Vector2(item.x,item.z))
+   village_trees(parent,center,house_sites)
+  else:
+   for i in range(28 if theme=="forest" or tile=="f" else 17):
+    battle_tree(parent,center+Vector3(-20+(i*11)%41,base,tree_line-(i%4)*3),i*83,2.6+(i%3)*.25,theme)
  parent.set_meta("backdrop_count",backdrop.size())
  var mechanism=center+Vector3(0,0,-12 if theme=="engine" else -10)
  for item in backdrop:

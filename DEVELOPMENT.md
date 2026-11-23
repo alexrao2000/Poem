@@ -1,5 +1,9 @@
 # Poem development
 
+The tactical sidebar gives the selected unit’s name one visible line above their class. A long commander name can use smaller type to fit, and the tooltip keeps the full name. All 111 measured layouts fit across the tested window sizes.
+
+The village close-up frames the lane with two roadside groves and a distant orchard. Nearby trees leave space around mapped cottages and the fallback settlement. In eighteen projected opening shots, at least one house frontage remains in frame and clear of the near trees.
+
 Village, woodland, road and mountain close-ups use continuous ground at the fighters’ foot level. Cobblestone and earth blend into the surrounding grass along irregular edges. Both surface masks are shared across encounters and follow the arena location. Wooden decks, riverbanks and masonry floors keep their existing geometry.
 
 The tactical map places the chapter title and objective on a navy plate at the upper left. The turn indicator sits on a separate plate at the upper right and uses a warmer palette during the enemy phase. This leaves the middle of the map visible and keeps the exact objective, turn, Debug and autosave messages.
