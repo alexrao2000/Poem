@@ -9,6 +9,7 @@ const Scenery=preload("res://scripts/scenery.gd")
 const RiverBank=preload("res://scripts/river_bank.gd")
 const MapGround=preload("res://scripts/map_ground.gd")
 const SanctuaryPlinth=preload("res://scripts/sanctuary_plinth.gd")
+const PassEscarpment=preload("res://scripts/pass_escarpment.gd")
 func _initialize():call_deferred("run")
 func surface_geometry():
  var scenery=Scenery.new();var parent=Node3D.new();root.add_child(parent)
@@ -60,6 +61,7 @@ func run():
  verify_river_arena()
  verify_water_styles()
  verify_ridges()
+ await verify_pass_escarpment()
  verify_rocks()
  var game=Rules.new();var seen={}
  var scenery=Scenery.new();scenery.batching_enabled=false
@@ -261,6 +263,55 @@ func verify_ridges():
   assert(skylines.river[index]<skylines.road[index] and skylines.road[index]<skylines.village[index])
   assert(skylines.village[index]<skylines.forest[index] and skylines.forest[index]<skylines.mountain[index])
  print("PASS: five natural arena skylines with distinct heights and palettes, planted boundaries, shared meshes and independent campaign RNG")
+
+func verify_pass_escarpment():
+ var game=Rules.new();game.chapter=6
+ var snapshot=game.save_data("camp")
+ var scenery=Scenery.new();scenery.batching_enabled=false
+ var map=Node3D.new();root.add_child(map);scenery.landscape(map,game)
+ var map_slope=map.get_node("PassEscarpment")
+ var map_bounds=map_slope.transform*map_slope.mesh.get_aabb()
+ assert(map_bounds.end.z<-.5 and is_equal_approx(map_bounds.position.y,-.15),"Rock rises beyond the tactical cells and joins their extended ground")
+ var arrays=map_slope.mesh.surface_get_arrays(0)
+ var points=arrays[Mesh.ARRAY_VERTEX];var normals=arrays[Mesh.ARRAY_NORMAL]
+ assert(points.size()==1344 and map_slope.material_override.vertex_color_use_as_albedo)
+ var seams={};var paint={}
+ for i in range(0,points.size(),3):
+  var cross=(points[i+1]-points[i]).cross(points[i+2]-points[i])
+  assert(cross.y<-.7 and cross.normalized().dot(normals[i])<-.998,"All rock faces have outward winding and upward normals")
+  for index in range(i,i+3):
+   var point=points[index];var key=Vector2(point.x,point.z)
+   if seams.has(key):assert(seams[key]==point.y)
+   seams[key]=point.y;paint[arrays[Mesh.ARRAY_COLOR][index]]=true
+   if point.z in [0.0,-10.5] or absf(point.x)==22.0:assert(is_zero_approx(point.y))
+ assert(seams.size()==264 and paint.size()>40,"The rock courses join continuously and retain a varied stone palette")
+ var center=Vector3(35,0,0)
+ var context=scenery.combat_context(game,{"x":4,"y":5},{"x":5,"y":5})
+ assert(context.landmarks.size()==1)
+ var stage=Node3D.new();root.add_child(stage);scenery.battle_landscape(stage,center,context)
+ var slope=stage.get_node("PassEscarpment")
+ var bounds=slope.transform*slope.mesh.get_aabb()
+ assert(slope.mesh==map_slope.mesh and slope.material_override==map_slope.material_override)
+ assert(is_equal_approx(bounds.position.y,-.06) and bounds.end.z<-10 and bounds.position.z>-26)
+ for landmark in stage.find_children("ArenaLandmark*","Node3D",false,false):
+  for stone in landmark.find_children("*","MeshInstance3D"):
+   assert((stone.global_transform*stone.mesh.get_aabb()).position.z>bounds.end.z,"The old pass ruin stands in front of the escarpment")
+ scenery.batcher.combine(stage);scenery.batcher.combine(map)
+ assert(stage.get_node("PassEscarpment")==slope and map.get_node("PassEscarpment")==map_slope,"Scenery retains the same slope mesh after batching")
+ var viewport=SubViewport.new();viewport.render_target_update_mode=SubViewport.UPDATE_DISABLED;root.add_child(viewport)
+ var camera=Camera3D.new();viewport.add_child(camera);camera.current=true
+ var director=preload("res://scripts/combat_camera.gd")
+ for mounted in [false,true]:
+  var frame=director.frame_pair(center+Vector3.LEFT*1.6,center+Vector3.RIGHT*1.6,"wide",false,mounted)
+  camera.position=frame.anchor;camera.fov=frame.lens;camera.look_at(frame.focus)
+  for size in [Vector2i(1024,640),Vector2i(1280,720),Vector2i(1440,900)]:
+   viewport.size=size;await process_frame
+   var crest=slope.to_global(PassEscarpment.vertex(9,4))
+   var screen=camera.unproject_position(crest)
+   assert(Rect2(Vector2.ZERO,Vector2(size)).grow(-12).has_point(screen) and screen.y<size.y*.60,"Windscar's ridge appears behind the fighters in the default opening shot")
+ viewport.free();stage.free();map.free()
+ assert(game.save_data("camp")==snapshot,"The new scenery leaves the campaign snapshot and RNG unchanged")
+ print("PASS: continuous Windscar escarpment, 448 lit triangles, shared geometry, clear ruins and six wide-shot projections")
 
 func verify_rocks():
  var forms=preload("res://scripts/rock_forms.gd");var signatures=[]

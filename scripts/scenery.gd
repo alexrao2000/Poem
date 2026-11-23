@@ -12,6 +12,7 @@ const ConiferCrowns=preload("res://scripts/conifer_crowns.gd")
 const BarrelVisuals=preload("res://scripts/barrel_visuals.gd")
 const HarborBoat=preload("res://scripts/harbor_boat.gd")
 const ArenaRidges=preload("res://scripts/arena_ridges.gd")
+const PassEscarpment=preload("res://scripts/pass_escarpment.gd")
 const SanctuaryPlinth=preload("res://scripts/sanctuary_plinth.gd")
 const MAX_CACHED_CYLINDERS=256
 enum BuildingFinish { LIME_PLASTER, OCHRE_PLASTER, OAK, DECK_WOOD }
@@ -304,8 +305,12 @@ func landscape(parent,game):
   for i in range(22):tree(parent,Vector3(-4+(i*7)%23,base,-3-(i%3)*1.3),i*23,theme)
   for i in range(12):tree(parent,Vector3(-3+(i*13)%21,base,12+i%3),i*11,theme)
  elif theme=="mountain":
+  var slope=PassEscarpment.build(parent,Vector3((game.board_size().x-1)*.5,-.15,-2.1),Vector3(.72,.66,.77))
   for i in range(16):boulder(parent,Vector3(-3+(i*5)%22,.2,-3-i%3),2.5)
-  for i in range(7):tree(parent,Vector3(-3+(i*9)%22,-.15,-6-(i%3)),i*31,theme)
+  for i in range(7):
+   var position=Vector3(-3+(i*9)%22,0,-6-i%3)
+   position.y=PassEscarpment.height_at(slope,position)
+   tree(parent,position,i*31,theme)
  elif theme in ["harbor","aqueduct"]:
   var sea=plane_shape(Vector2(55,35))
   mesh(parent,sea,Vector3(7,-.12,26),Vector3.ONE,water_material(theme))
@@ -510,6 +515,7 @@ func battle_landscape(parent,center,context={}):
  for item in backdrop:
   var depth=RiverBank.ARENA_FAR_START-1.5+(item.z+7)*.7 if river else item.z
   if theme=="aqueduct":depth=minf(depth,-11.0)
+  if theme=="mountain":depth=maxf(depth,-9.6)
   if item.kind==theme and theme in ["engine","observatory"]:
    mechanism.x=center.x+clampf(item.x,-3.8,3.8)
    mechanism.z=minf(mechanism.z,center.z+depth)
@@ -535,9 +541,12 @@ func battle_landscape(parent,center,context={}):
  if ArenaRidges.LANDSCAPES.has(theme):
   ArenaRidges.build(parent,center,theme)
   if theme=="mountain":
+   var slope=PassEscarpment.build(parent,center+Vector3(0,-.06,-10.8),Vector3(1,1.24,1))
    for i in range(16):boulder(parent,center+Vector3(-12+(i*7)%25,.4,-4-i%3),1.0+i%3*.3)
    for i in range(8):
-    battle_tree(parent,center+Vector3(-17+(i*11)%35,-.06,-9-i%3*2),i*47,2.2+i%3*.2,theme)
+    var position=center+Vector3(-17+(i*11)%35,0,-12.8-i%3*2.25)
+    position.y=PassEscarpment.height_at(slope,position)
+    battle_tree(parent,position,i*47,2.2+i%3*.2,theme)
  if theme=="furnace" and backdrop.is_empty():
   for x in [-5,5]:furnace(parent,center+Vector3(x,0,-8),2.1)
  if theme=="engine":

@@ -1,5 +1,7 @@
 # Poem development
 
+Windscar Pass uses the same layered rock escarpment behind the tactical board and the close-up arena. The trees follow the actual rock faces, and the old pass ruin sits forward of the slope in combat. The 448 triangles stay in one reusable mesh.
+
 Scenery reuses cylinders of equal dimensions while building a scene. Repeated arenas in one environment keep up to 256 shapes, and changing scenes to another environment resets the cache. Eighteen repeated arena builds used 99 resources for 594 cylinder placements. Their geometry hashes matched the preceding package.
 
 The Sun Engine now sits over a water basin within a four-pylon chamber. Its map landmark and close-up scene share the chamber design and an original eight-second mechanical pulse. The Sun Engine and observatory each use one animated mechanism in close-up, with placement derived from the corresponding map landmark.

@@ -158,6 +158,7 @@ func verify_conifers(world: Node3D,theme: String,arena: bool):
   assert(crowns.is_empty(),"Conifers are limited to Greywood and Windscar Pass")
   return
  assert(crowns.size()>=(21 if theme=="forest" else 7))
+ var slope=world.get_node_or_null("PassEscarpment") as MeshInstance3D
  var variants={}
  for crown in crowns:
   var trunk=crown.get_parent().get_child(crown.get_index()-1)
@@ -167,10 +168,17 @@ func verify_conifers(world: Node3D,theme: String,arena: bool):
   assert(is_equal_approx(trunk.global_position.y-trunk.mesh.height*.5*trunk.global_basis.y.length(),crown.global_position.y),"Trunk and crown share the same planted base")
   assert(is_equal_approx(trunk.global_position.x,crown.global_position.x) and is_equal_approx(trunk.global_position.z,crown.global_position.z))
   assert(crown.extra_cull_margin>=.01,"Culling bounds include the crest's shader motion")
-  if arena:
+  if theme=="mountain":
+   assert(slope!=null and crown.global_position.z<=(-12.8 if arena else -6.0)+.0001)
+   var vertices=slope.mesh.surface_get_arrays(0)[Mesh.ARRAY_VERTEX]
+   var ray=crown.global_position+Vector3.UP*8
+   var hit_height=-INF
+   for i in range(0,vertices.size(),3):
+    var hit=Geometry3D.ray_intersects_triangle(ray,Vector3.DOWN,slope.to_global(vertices[i]),slope.to_global(vertices[i+1]),slope.to_global(vertices[i+2]))
+    if hit!=null:hit_height=maxf(hit_height,hit.y)
+   assert(absf(hit_height-crown.global_position.y)<.001,"Windscar fir roots meet the actual rock slope")
+  elif arena:
    assert(is_equal_approx(crown.global_position.y,-.06) and crown.global_position.z<=-8,"The fighting lane stays clear and the trunks start on the arena ground")
-  elif theme=="mountain":
-   assert(is_equal_approx(crown.global_position.y,-.15) and crown.global_position.z<=-6,"Pass firs grow behind the tactical ridge")
   else:
    assert(is_zero_approx(crown.global_position.y) or is_equal_approx(crown.global_position.y,-.15),"Woodland trees stand on the map or extended ground")
  assert(variants.size()==2 and variants.has(0 if theme=="forest" else 2) and variants.has(1 if theme=="forest" else 3))
