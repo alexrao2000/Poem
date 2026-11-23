@@ -1,5 +1,7 @@
 # Poem development
 
+Scenery shares one unit box and one plane per required size. Each placement still owns its transform and material. Across twelve tactical maps and twelve arenas, allocation checks compare the previous exported build with current source and keep all 2,718 box placements and 1,723 plane placements. Foliage quads are counted separately. Batching preserves geometry, UVs, and transforms through all twenty-four scene builds.
+
 Three original battlefield ambience loops add river water, rain and harbor swells. The Effects setting controls the one shared field voice. Map-to-arena transitions retain its decoder while the paired score crossfades as before. Eight affected suites, deterministic sample regeneration, exact exported PCM and both archive checks passed. The sampled loop boundaries stay below each track’s 99th-percentile adjacent-sample change.
 
 Glass Harbor’s boats now use a shared 140-triangle hull with a raised prow, squared stern and continuous deck. The mast and yardarm meet the existing sail. The architecture suite checks closed edges, outward faces, waterline intersection and actual map and arena attachments.

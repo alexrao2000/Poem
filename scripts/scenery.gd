@@ -18,6 +18,8 @@ var batching_enabled=true
 var batcher=preload("res://scripts/static_batch.gd").new()
 var ground_cover=GroundCover.new()
 var conifer_crowns=ConiferCrowns.new()
+var unit_block=BoxMesh.new()
+var planes: Dictionary={}
 var atlas: Texture2D
 var environment_atlas: Texture2D
 var foliage_atlas: Texture2D
@@ -72,11 +74,17 @@ func mesh(parent: Node3D,shape: Mesh,p: Vector3,scale_value: Vector3,m: Material
  var n=MeshInstance3D.new();n.mesh=shape;n.position=p;n.scale=scale_value;n.material_override=m;parent.add_child(n);return n
 
 func block(parent,p,size,color):
- return mesh(parent,BoxMesh.new(),p,size,material(color))
+ return mesh(parent,unit_block,p,size,material(color))
+
+func plane_shape(size: Vector2) -> PlaneMesh:
+ if not planes.has(size):
+  var shape=PlaneMesh.new()
+  shape.size=size
+  planes[size]=shape
+ return planes[size]
 
 func ground(parent,p,size,tile,blended: Material=null):
- var shape=PlaneMesh.new();shape.size=size
- return mesh(parent,shape,p,Vector3.ONE,blended if blended!=null else ground_material(tile))
+ return mesh(parent,plane_shape(size),p,Vector3.ONE,blended if blended!=null else ground_material(tile))
 
 func cylinder(parent,p,height,radius,color,top=-1.0):
  var shape=CylinderMesh.new();shape.height=height;shape.bottom_radius=radius;shape.top_radius=radius if top<0 else top;shape.radial_segments=8
@@ -202,15 +210,14 @@ func landscape(parent,game):
     for x in range(area[0],area[0]+area[2]):building_cells[Vector2i(x,y)]=true
  if theme in ["village","river"]:
   var water=water_material()
-  var river=PlaneMesh.new();river.size=Vector2(2 if theme=="river" else 1,64)
+  var river=plane_shape(Vector2(2 if theme=="river" else 1,64))
   mesh(parent,river,Vector3(5.5 if theme=="river" else 7,-.07,5),Vector3.ONE,water)
  for y in range(game.board_size().y):
   for x in range(game.board_size().x):
    var t=game.terrain(Vector2i(x,y));var p=Vector3(x,0,y)
    if t in ["~","="]:
     var water=water_material()
-    var plane=PlaneMesh.new();plane.size=Vector2.ONE
-    var water_cell=mesh(parent,plane,p-Vector3(0,.07,0),Vector3.ONE,water);water_cell.name="MapWater"
+    var water_cell=mesh(parent,plane_shape(Vector2.ONE),p-Vector3(0,.07,0),Vector3.ONE,water);water_cell.name="MapWater"
     if theme in MapGround.NATURAL and t=="~":
      var bank=RiverBank.build(game,Vector2i(x,y))
      if bank!=null:
@@ -246,7 +253,7 @@ func landscape(parent,game):
   for i in range(16):boulder(parent,Vector3(-3+(i*5)%22,.2,-3-i%3),2.5)
   for i in range(7):tree(parent,Vector3(-3+(i*9)%22,-.15,-6-(i%3)),i*31,theme)
  elif theme in ["harbor","aqueduct"]:
-  var sea=PlaneMesh.new();sea.size=Vector2(55,35)
+  var sea=plane_shape(Vector2(55,35))
   mesh(parent,sea,Vector3(7,-.12,26),Vector3.ONE,water_material())
 
  ground_cover.add_map(parent,game,building_cells)
@@ -326,7 +333,7 @@ func battle_landscape(parent,center,context={}):
  if not wooden_floor:ground(parent,center,Vector2(24,6),surface)
  if river or theme in ["harbor","aqueduct"] or tile=="=":
   var water=water_material()
-  var plane=PlaneMesh.new();plane.size=Vector2(RiverBank.ARENA_WIDTH,60 if wooden_floor else 40)
+  var plane=plane_shape(Vector2(RiverBank.ARENA_WIDTH,60 if wooden_floor else 40))
   var water_level=-.055 if wooden_floor else RiverBank.ARENA_WATER_LEVEL
   var water_depth=-12.0 if wooden_floor else -23.0 if river else -22.0
   var water_surface=mesh(parent,plane,center+Vector3(0,water_level,water_depth),Vector3.ONE,water);water_surface.name="ArenaWater"

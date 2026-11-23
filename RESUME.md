@@ -6,6 +6,8 @@ Development resumed on “go”. Continue in this chat until the user asks to st
 
 ### Latest state
 
+Scenery now shares one unit box and caches planes by size before batching. Across the twelve tactical maps, 2,121 box placements share one box resource and 1,696 plane placements share five. The twelve arenas use one box resource for 597 placements and five plane resources for 27. Eight focused suites passed, including geometry, UVs, terrain, camera transitions and map picking. Both local exports, packaged batching, and archive integrity passed.
+
 Reed Crossing, Greywood and Glass Harbor now use original eight-second stereo ambience loops. A single player keeps the field playhead through map and arena presentation. It fades between environments and follows the Effects volume. Eight focused suites passed, along with sample regeneration, both local exports, packaged PCM hashes and archive integrity. The first import used compressed audio. The final import preserves the original PCM. Listening review is pending. The registry now contains 383 suites.
 
 Both Glass Harbor boats now have shaped timber hulls and fitted yardarms. The new 140-triangle model sits across the waterline, with a raised prow and a mast that meets the deck. The same model appears in nearby combat scenery. Six focused suites, both local exports, packaged architecture and archive integrity passed. Rendered appearance still needs review.

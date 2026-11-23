@@ -57,6 +57,7 @@ func run():
  assert(batch.combine(world).sources==0 and is_instance_valid(dynamic) and dynamic.get_parent()==world,"Explicitly dynamic and already-batched meshes are left intact")
  world.queue_free();await process_frame
  var scenery=Scenery.new();scenery.batching_enabled=false;var game=Rules.new();var total_sources=0;var total_batches=0
+ verify_shared_primitives(scenery)
  world=Node3D.new();root.add_child(world)
  for dimensions in [[.5,.4,.6],[1.65,.35,.8]]:
   var arch=scenery.arch_span(world,Vector3.ZERO,dimensions[0],dimensions[1],dimensions[2])
@@ -92,6 +93,24 @@ func run():
  assert(total_batches<total_sources*.6,"Static mesh submissions reduced by at least forty percent")
  print("PASS: 12 maps and 12 arenas retain vertices, triangles, UVs and transforms; correct scaled normals, four conifer atlas regions and grounded woodland/pass trees; ",total_sources," meshes → ",total_batches," batches")
  quit()
+
+func verify_shared_primitives(scenery):
+ var host=Node3D.new();root.add_child(host)
+ var wall=scenery.block(host,Vector3(4,1,2),Vector3(2,2,.6),Color.WHITE)
+ var plank=scenery.block(host,Vector3(2,0,1),Vector3(.56,.09,2),Color.BROWN)
+ assert(wall.mesh==plank.mesh and wall.mesh.size==Vector3.ONE,"Different props share one unit box")
+ assert(wall.scale==Vector3(2,2,.6) and plank.scale==Vector3(.56,.09,2) and wall.material_override!=plank.material_override)
+ var land=scenery.ground(host,Vector3.ZERO,Vector2.ONE,0)
+ var water=scenery.mesh(host,scenery.plane_shape(Vector2.ONE),Vector3.DOWN*.07,Vector3.ONE,scenery.water_material())
+ var clearing=scenery.ground(host,Vector3.ONE,Vector2(24,6),1)
+ assert(land.mesh==water.mesh and land.material_override!=water.material_override,"Ground and water share geometry with independent paint, height and UVs")
+ assert(clearing.mesh!=land.mesh and clearing.mesh.size==Vector2(24,6) and land.mesh.size==Vector2.ONE)
+ assert(clearing.mesh==scenery.plane_shape(Vector2(24,6)),"The cache reuses geometry only at equal physical dimensions")
+ var before=signature(host);var stats=scenery.batcher.combine(host);var after=signature(host)
+ assert(before.triangles==after.triangles and before.vertices==after.vertices and before.sum.is_equal_approx(after.sum))
+ assert(before.uv_sum.is_equal_approx(after.uv_sum) and stats.sources==5 and stats.batches==5)
+ host.free()
+ print("PASS: shared scenery box and dimension-matched planes preserve transform, paint, geometry and UVs")
 
 func verify_conifer_atlas():
  var crowns=Crowns.new()
