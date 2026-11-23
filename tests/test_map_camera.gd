@@ -12,6 +12,23 @@ func check_details(app,visible: bool):
   assert(actor.ring.visible==(visible and actor.selected))
   for icon in [actor.commander_insignia,actor.rescue_marker,actor.carry_marker,actor.shared_marker]:
    if is_instance_valid(icon):assert(icon.visible==visible,"Every applicable status badge follows tactical ownership")
+func check_opening_aperture(app,veil,focus: Vector3,units: Array,dimensions: Vector2i):
+ var frame=Rect2(Vector2.ZERO,Vector2(dimensions))
+ var projected=app.camera.unproject_position(focus)
+ var mask=veil.aperture_rect(projected)
+ var center=mask.get_center()
+ assert(mask.encloses(frame) and center.is_equal_approx(projected-Vector2(0,frame.size.y*.08)),"Opening shade tracks the projected pair and covers the viewport")
+ var gradient=Transition.aperture_mask().gradient
+ var radius=mask.size.x*.5
+ for unit in units:
+  var box=app.unit_nodes[unit.id].screen_bounds(app.camera)
+  for point in [box.position,box.end,Vector2(box.position.x,box.end.y),Vector2(box.end.x,box.position.y)]:
+   assert(gradient.sample(center.distance_to(point)/radius).a<=.01,"The vignette leaves both enlarged sprites clear")
+ var edge_alpha=0.0
+ for point in [frame.position,frame.end,Vector2(0,frame.size.y),Vector2(frame.size.x,0)]:
+  edge_alpha=maxf(edge_alpha,gradient.sample(center.distance_to(point)/radius).a)
+ assert(edge_alpha>=.70,"At least one far corner shows a clear peripheral fade")
+
 func visible_combat_zoom():
  var viewport=SubViewport.new();viewport.size=Vector2i(1440,900);viewport.render_target_update_mode=SubViewport.UPDATE_DISABLED;root.add_child(viewport)
  var app=load("res://main.tscn").instantiate();app.settings_path="";app.save_path="/private/tmp/poem-visible-zoom-%d.json"%Time.get_ticks_usec();viewport.add_child(app);await process_frame
@@ -35,6 +52,7 @@ func visible_combat_zoom():
      assert(veil.cover_alpha()==0 and app.unit_nodes[a.id].screen_bounds(app.camera).size.y>=initial*(1.15 if zoom==8 else 1.45),"The sprite zoom becomes visible before the covering fade starts")
      approach.custom_step(.42*.26);fade.custom_step(.42*.26)
      assert(is_equal_approx(veil.cover_alpha(),.5))
+     check_opening_aperture(app,veil,focus,[a,b],dimensions)
      var minimum=1.4 if zoom==8 else 2.5 if zoom==16 else 3.5
      assert(app.unit_nodes[a.id].screen_bounds(app.camera).size.y>=initial*minimum,"Useful sprite enlargement must happen while the map is still visible")
      for unit in [a,b]:assert(Rect2(Vector2.ZERO,Vector2(dimensions)).encloses(app.unit_nodes[unit.id].screen_bounds(app.camera)),"Both combatants remain inside the actual viewport during the enlarged handoff")
