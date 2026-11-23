@@ -1,6 +1,8 @@
 extends Control
-# Brief original phase ribbon. The caller owns input locks and turn changes.
+# Brief original phase ribbon with feathered edges. The caller owns input
+# locks and turn changes; a shared alpha mask keeps the heading region opaque.
 const FONT=preload("res://assets/fonts/CormorantGaramond.ttf")
+static var edge_mask: GradientTexture2D
 var enemy=false
 var motion: Tween
 var heading: Label
@@ -30,11 +32,20 @@ func arrange():
 
 func place():position=resting+Vector2(slide_offset*size.x,0)
 
+static func ribbon_mask() -> GradientTexture2D:
+ if edge_mask!=null:return edge_mask
+ var gradient=Gradient.new();gradient.offsets=PackedFloat32Array([0,.18,.82,1])
+ gradient.colors=PackedColorArray([Color(1,1,1,0),Color.WHITE,Color.WHITE,Color(1,1,1,0)])
+ edge_mask=GradientTexture2D.new();edge_mask.width=512;edge_mask.height=1;edge_mask.gradient=gradient
+ edge_mask.fill_from=Vector2.ZERO;edge_mask.fill_to=Vector2.RIGHT
+ return edge_mask
+
 func _draw():
  var w=size.x;var h=size.y
- draw_colored_polygon(PackedVector2Array([Vector2(0,10),Vector2(w,0),Vector2(w,h-10),Vector2(0,h)]),Color(.28,.12,.17,.95) if enemy else Color(.07,.20,.30,.95))
- draw_line(Vector2(0,10),Vector2(w,0),Color("bea473"),2,true)
- draw_line(Vector2(0,h),Vector2(w,h-10),Color("bea473"),2,true)
+ var uv=PackedVector2Array([Vector2.ZERO,Vector2.RIGHT,Vector2.ONE,Vector2.DOWN])
+ draw_colored_polygon(PackedVector2Array([Vector2(0,10),Vector2(w,0),Vector2(w,h-10),Vector2(0,h)]),Color(.28,.12,.17,.95) if enemy else Color(.07,.20,.30,.95),uv,ribbon_mask())
+ draw_colored_polygon(PackedVector2Array([Vector2(0,10),Vector2(w,0),Vector2(w,2),Vector2(0,12)]),Color("bea473"),uv,ribbon_mask())
+ draw_colored_polygon(PackedVector2Array([Vector2(0,h-2),Vector2(w,h-12),Vector2(w,h-10),Vector2(0,h)]),Color("bea473"),uv,ribbon_mask())
  for side in [-1,1]:
   var x=w*.5+side*235
   draw_line(Vector2(x+side*26,69),Vector2(x+side*125,69),Color("a49b80"),1,true)
