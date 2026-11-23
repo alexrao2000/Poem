@@ -122,6 +122,21 @@ GODOT_BIN=godot python3 scripts/benchmark_experiments.py \
 
 For a matched baseline, run the same profiles and seeds without `--equip`, using a different output path. Invalid IDs, repeated profiles/seeds and conflicting items of the same weapon kind are rejected before starting the engine. Seeds from 0 through 2^63 − 1 retain their exact integer value. Existing completed comparison records are historical evidence; use separate output paths to preserve them.
 
+### Carrying patients
+
+Use `--carry-patients` to give the benchmark planners a rescue strategy in profiles with death’s door. An ally can spend their action picking up a patient who is about to bleed out when no ready healer can reach them. Carriers try to reach healing range while avoiding exposed tiles. Each battle records rescues, revivals, phase endings with a paused countdown, and bleed-outs, with the units involved and the turn of each event.
+
+```sh
+GODOT_BIN=godot python3 scripts/benchmark_experiments.py \
+  --profile hard_death_door --output build/review/death-door-baseline.json
+GODOT_BIN=godot python3 scripts/benchmark_experiments.py \
+  --profile hard_death_door --carry-patients --output build/review/death-door-carrying.json
+```
+
+Both strategies reached the ending on all five fixed seeds. The carrying strategy performed four rescues, three carried revivals, and held the countdown through three player-phase endings. Permanent losses fell by one on seeds 472019, 17, and 8675309. Seed 2026 finished with no losses and seed 309 with 23 in both runs. The sample measures the behavior of these two planners under the same seeds.
+
+### Earlier comparison
+
 At source `338e125b4584d1198818eec8b66c5b26055f6bd3`, ordinary recovery, Hard recovery, Hard recovery with sacrifice costs and Hard permadeath with death’s door each completed all five seeds. Hard permadeath alone, with legacies, with section relief, with reset pressure, and with all three each completed four. Death’s door reduced the completed-campaign median permanent losses from 19.5 to 1, but one seed still ended with 23 losses. These small deterministic samples do not establish human win rates or fair difficulty.
 
 All 48 chapter outcomes, turn counts and terminal-fall lists for the four matching seed-472019 runs agree with the separate actual app campaigns. The comparison itself runs only Rules and the existing tactical planner: default equipment, earned promotions/supports, no carrying strategy and no disk/UI verification. Eligible legacy purchases are recorded but not equipped. Reset pressure also changes the first deployment by supplying two enemy tonics and requiring Lyra, so its toggle is not an isolated stat-scaling comparison. No balance values changed in response to this survey.

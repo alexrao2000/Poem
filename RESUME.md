@@ -6,6 +6,10 @@ Development resumed on “go”. Continue in this chat until the user asks to st
 
 ### Latest state
 
+The campaign benchmark now supports `--carry-patients`. Ten matched Hard death’s-door trials completed. The carrying strategy performed four rescues, three carried revivals and three paused countdowns. Three seeds each lost one fewer recruit. The strategy is available in the benchmark driver for repeatable comparisons with the same profiles and seeds.
+
+The exported Hard death’s-door campaign at `8f5e453` cleared all twelve chapters in 73 turns. The run verified 371 player actions, 781 exact save comparisons, twelve commander cues saved before display and eight staff revivals. Tarin bled out in Chapter 10 and remained the only permanent loss. The battle, revival, support and roster records matched the earlier seed 472019 run.
+
 Sanctuary tiles across all twelve chapters now use one shared stone, brass and blue inlay model. The closed mesh sits at the existing 0.10-unit height. Six source suites passed, including 24 sanctuary placements, tactical picking, map zoom, sprite-to-fighter handoffs and terrain batching. Both local exports, packaged terrain and archive integrity passed. Rendered appearance remains unreviewed.
 
 Windscar Pass and Reddeep now have original wind and furnace ambience. Seven focused suites passed, including actual map-to-arena transitions in both locations, Effects mute, and continuous Calm/Ablaze playback. All five exported PCM hashes match the sources. Both local builds and archive integrity passed. Listening review remains outstanding.

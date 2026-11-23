@@ -29,6 +29,8 @@ def main():
     equipment = json.loads((ROOT / "data/equipment.json").read_text())
     parser.add_argument("--equip", action="append", choices=[item["id"] for item in equipment],
                         help="Equip this item when normally available or purchased; one per weapon kind.")
+    parser.add_argument("--carry-patients", action="store_true",
+                        help="Let allies rescue patients who are about to bleed out before a healer can reach them.")
     args = parser.parse_args()
     profiles = args.profile or list(PROFILE_IDS)
     seeds = args.seed or DEFAULT_SEEDS
@@ -44,7 +46,7 @@ def main():
     # Godot's JSON parser reads numbers as floats; decimal strings preserve all
     # 63 permitted seed bits instead of rounding large replay identifiers.
     configuration = {"profiles": profiles, "seeds": [str(seed) for seed in seeds],
-                     "equipment": requested_equipment}
+                     "equipment": requested_equipment, "carry_patients": args.carry_patients}
     output = args.output.resolve()
     output.parent.mkdir(parents=True, exist_ok=True)
     log = output.with_suffix(".log")
@@ -79,7 +81,8 @@ def main():
             or set(actual) != expected or report["source"] != source
             or report["source_dirty"] != dirty
             or [profile["id"] for profile in report["profiles"]] != profiles
-            or report["seeds"] != seeds or report["requested_equipment"] != requested_equipment):
+            or report["seeds"] != seeds or report["requested_equipment"] != requested_equipment
+            or report["carry_patients"] != args.carry_patients):
         raise SystemExit(f"FAIL: incomplete comparison record at {output}")
     print(f"Recorded {len(actual)} campaigns in {output}")
 

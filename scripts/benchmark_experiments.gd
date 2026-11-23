@@ -20,7 +20,7 @@ func _initialize():
  if args.size() not in [3,4]:
   push_error("Expected output path, source revision, clean/dirty marker and optional configuration JSON");quit(2);return
  output_path=args[0];report.source=args[1];report.source_dirty=args[2]!="clean"
- report.requested_equipment=[]
+ report.requested_equipment=[];report.carry_patients=false
  if args.size()==4:
   var configuration=JSON.parse_string(args[3]);assert(configuration is Dictionary)
   report.profiles=[]
@@ -29,8 +29,11 @@ func _initialize():
   report.seeds=[]
   for seed_value in configuration.seeds:report.seeds.append(str(seed_value).to_int())
   report.requested_equipment=configuration.equipment
+  report.carry_patients=configuration.get("carry_patients",false)
  if not report.requested_equipment.is_empty():
   report.method=report.method.replace("Default equipment retained; eligible legacy purchases are recorded but not equipped by this heuristic.","Requested items replace compatible recruits' equipment during preparation only when ordinary equip rules allow them; unavailable items leave the current loadout in place. Eligible legacy purchases follow the existing fixed stock order. Loadout changes and every deployment's actual items are recorded. This is an explicit loadout experiment, not an optimal-equipment policy.")
+ if report.carry_patients:
+  report.method=report.method.replace("No carrying strategy.","In death’s door profiles, standing allies can rescue patients on their last phase when no ready healer can reach them. Carriers seek healing range while accounting for enemy reach. The report counts rescues, carried revivals, paused phase endings and bleed-outs.")
  report.method=report.method.replace("Five seeds do not establish human difficulty or statistical certainty.","This bounded seed sample does not establish human difficulty or statistical certainty.")
  call_deferred("run")
 func checkpoint():
@@ -53,20 +56,98 @@ func prepare(game,record):
   if recruit.weapon=="staff":game.deployed.append(recruit.id);break
  for recruit in available:
   if recruit.weapon!="staff" and recruit.id not in game.deployed and game.deployed.size()<6:game.deployed.append(recruit.id)
+func free_moves(game,unit: Dictionary) -> Dictionary:
+ var here=game.pos(unit)
+ var moves={here:0} if unit.get("moved",false) else game.reachable(unit)
+ for tile in moves.keys():
+  if tile!=here and game.at(tile)!=null:moves.erase(tile)
+ return moves
+
+func can_reach_patient(game,patient: Dictionary,healers: Array) -> bool:
+ for healer in healers:
+  if not game.can_act(healer):continue
+  var probe=healer.duplicate()
+  for tile in free_moves(game,healer):
+   probe.x=tile.x;probe.y=tile.y
+   if game.can_heal(probe,patient):return true
+ return false
+
+func rescue_choice(game,unit: Dictionary,planner,ordinary: Dictionary) -> Dictionary:
+ var passenger=game.DeathDoor.passenger(game,unit)
+ if unit.weapon=="staff" or (game.info().objective=="seize" and ordinary.position==game.objective_position()):return ordinary
+ var healers=game.living("player").filter(func(ally):return ally.weapon=="staff")
+ if healers.is_empty():return ordinary
+ var patients=[]
+ if passenger!=null:
+  if not game.DeathDoor.downed(passenger):return ordinary
+  if can_reach_patient(game,passenger,healers):
+   return ordinary if ordinary.position==game.pos(unit) else {"position":game.pos(unit),"action":"wait","target":""}
+ else:
+  for patient in game.units:
+   if game.DeathDoor.downed(patient) and patient.bleed_turns==1 and patient.get("carried_by","").is_empty() and not can_reach_patient(game,patient,healers):patients.append(patient)
+  if patients.is_empty():return ordinary
+ var danger={}
+ for enemy in game.living("enemy"):
+  for tile in planner.threatened_tiles(game,enemy):danger[tile]=danger.get(tile,0)+1
+ var moves=free_moves(game,unit)
+ var choice=ordinary;var best=INF;var probe=unit.duplicate()
+ for tile in moves:
+  var nearest=INF
+  for healer in healers:nearest=minf(nearest,absi(tile.x-healer.x)+absi(tile.y-healer.y))
+  var score=nearest+danger.get(tile,0)*2+float(moves[tile])*.05
+  if score>=best:continue
+  if passenger!=null:
+   best=score;choice={"position":tile,"action":"wait","target":""}
+   continue
+  probe.x=tile.x;probe.y=tile.y
+  for patient in patients:
+   if game.DeathDoor.can_rescue(game,probe,patient):
+    best=score;choice={"position":tile,"action":"rescue","target":patient.id};break
+ return choice
+
 func action(game,unit,planner,battle):
  var choice=planner.plan(game,unit)
+ if report.carry_patients and game.death_door and unit.team=="player":choice=rescue_choice(game,unit,planner,choice)
  var patient=game.units.filter(func(other):return other.id==choice.target)
  var reviving=choice.action=="heal" and not patient.is_empty() and game.DeathDoor.downed(patient[0])
+ var carrier=patient[0].get("carried_by","") if reviving else ""
  var before=game.living("player").map(func(ally):return ally.id)
- planner.apply_plan(game,unit,choice)
+ if choice.action=="rescue":
+  var positioned=choice.position==game.pos(unit) or game.move_unit(unit,choice.position)
+  assert(positioned and patient.size()==1)
+  var rescued=game.DeathDoor.rescue(game,unit,patient[0])
+  assert(rescued)
+  battle.rescues+=1
+  battle.patient_events.append({"event":"rescue","turn":game.turn,"patient":patient[0].id,"carrier":unit.id})
+ else:planner.apply_plan(game,unit,choice)
  assert(unit.acted,"Every chosen action resolves legally")
  for ally in game.units:
   if ally.id in before and ally.hp<=0:battle.incapacitations+=1
  if choice.action=="heal":
   if unit.team=="enemy":battle.enemy_heals+=1
   else:battle.player_heals+=1
-  if reviving and patient[0].hp>0:battle.revivals+=1
+  if reviving and patient[0].hp>0:
+   battle.revivals+=1
+   if not carrier.is_empty():battle.carried_revivals+=1
+   battle.patient_events.append({"event":"revive","turn":game.turn,"patient":patient[0].id,"healer":unit.id,"carrier":carrier,"hp":patient[0].hp})
  battle.actions+=1
+
+func begin_enemy_phase(game,battle):
+ var carried={};var expiring=[]
+ for unit in game.units:
+  if not game.DeathDoor.downed(unit):continue
+  if not unit.get("carried_by","").is_empty():carried[unit.id]=unit.bleed_turns
+  elif unit.bleed_turns==1:expiring.append(unit.id)
+ game.begin_enemy_phase()
+ for unit in game.units:
+  if carried.has(unit.id):
+   assert(game.DeathDoor.downed(unit) and unit.bleed_turns==carried[unit.id])
+   battle.carried_phase_endings+=1
+   battle.patient_events.append({"event":"paused_countdown","turn":game.turn,"patient":unit.id,"carrier":unit.carried_by,"phases_left":unit.bleed_turns})
+  elif unit.id in expiring:
+   assert(not game.DeathDoor.downed(unit) and unit.hp==0)
+   battle.bleed_outs+=1
+   battle.patient_events.append({"event":"bleed_out","turn":game.turn,"patient":unit.id})
 func run():
  var started=Time.get_ticks_msec()
  report.source_files={}
@@ -80,7 +161,13 @@ func run():
    report.runs.append(record)
    while not game.completed and record.battles.size()<18:
     prepare(game,record);game.start_battle()
-    var battle={"chapter":game.chapter+1,"pressure":game.trials.pressure,"deployment":game.deployed.duplicate(),"turns":0,"outcome":"","actions":0,"incapacitations":0,"player_heals":0,"enemy_heals":0,"revivals":0,"recovering":game.living("player").filter(func(unit):return unit.get("recovering",false)).map(func(unit):return unit.id),"terminal_falls":[],"downed_at_result":[]}
+    var recovering=game.living("player").filter(func(unit):return unit.get("recovering",false)).map(func(unit):return unit.id)
+    var battle={
+     "chapter":game.chapter+1,"pressure":game.trials.pressure,"deployment":game.deployed.duplicate(),
+     "turns":0,"outcome":"","actions":0,"incapacitations":0,"player_heals":0,"enemy_heals":0,"revivals":0,
+     "rescues":0,"carried_revivals":0,"carried_phase_endings":0,"bleed_outs":0,
+     "recovering":recovering,"terminal_falls":[],"downed_at_result":[],"patient_events":[],
+    }
     battle.equipment={}
     for ally in game.living("player"):battle.equipment[ally.id]=ally.item
     record.battles.append(battle)
@@ -90,7 +177,7 @@ func run():
       if unit.hp>0 and not unit.acted:action(game,unit,planner,battle)
       if game.result()!="":break
      if game.result()!="":break
-     game.begin_enemy_phase()
+     begin_enemy_phase(game,battle)
      if game.result()!="":break
      for enemy in game.living("enemy"):
       if enemy.hp>0 and not enemy.acted:action(game,enemy,planner,battle)
