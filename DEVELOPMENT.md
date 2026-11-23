@@ -1,5 +1,9 @@
 # Poem development
 
+The ordinary campaign replay from the exported pack at `8976f6f` passed all twelve chapters, 298 legal player actions and 652 exact disk comparisons. The result matched the earlier seed 472019 campaign’s chapter records, progression and final roster. Twelve first-encounter captions were visible after their actions appeared in the save.
+
+Chapter water materials now share one world-space shader with settings for color, direction, scale, speed and crest strength. Across twelve maps, 250 water and bridge cells use the correct material. Eight actual arenas retain their chapter material after batching.
+
 Scenery shares one unit box and one plane per required size. Each placement still owns its transform and material. Across twelve tactical maps and twelve arenas, allocation checks compare the previous exported build with current source and keep all 2,718 box placements and 1,723 plane placements. Foliage quads are counted separately. Batching preserves geometry, UVs, and transforms through all twenty-four scene builds.
 
 Three original battlefield ambience loops add river water, rain and harbor swells. The Effects setting controls the one shared field voice. Map-to-arena transitions retain its decoder while the paired score crossfades as before. Eight affected suites, deterministic sample regeneration, exact exported PCM and both archive checks passed. The sampled loop boundaries stay below each track’s 99th-percentile adjacent-sample change.

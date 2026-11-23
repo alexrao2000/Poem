@@ -11,6 +11,14 @@ const GroundCover=preload("res://scripts/ground_cover.gd")
 const ConiferCrowns=preload("res://scripts/conifer_crowns.gd")
 const BarrelVisuals=preload("res://scripts/barrel_visuals.gd")
 const HarborBoat=preload("res://scripts/harbor_boat.gd")
+const WATER_STYLES={
+ "river":{"deep_color":Color("28453b"),"crest_color":Color("a4b593"),"flow_direction":Vector2(0,1),"wave_scale":Vector2(.94,1.08),"wave_speed":1.14,"crest_strength":.31},
+ "road":{"deep_color":Color("285054"),"crest_color":Color("a3b8a6"),"flow_direction":Vector2(1,0),"wave_scale":Vector2(.83,.92),"wave_speed":.86,"crest_strength":.30},
+ "harbor":{"deep_color":Color("263945"),"crest_color":Color("b4ad98"),"flow_direction":Vector2(.8,.6),"wave_scale":Vector2(.51,.62),"wave_speed":.54,"crest_strength":.43},
+ "aqueduct":{"deep_color":Color("425654"),"crest_color":Color("94a29b"),"flow_direction":Vector2(1,0),"wave_scale":Vector2(.82,1.4),"wave_speed":.42,"crest_strength":.24},
+ "furnace":{"deep_color":Color("404144"),"crest_color":Color("be9675"),"flow_direction":Vector2(0,1),"wave_scale":Vector2(.72,1.02),"wave_speed":.47,"crest_strength":.27},
+ "engine":{"deep_color":Color("354351"),"crest_color":Color("91a9b8"),"flow_direction":Vector2(.6,.8),"wave_scale":Vector2(.64,.76),"wave_speed":.34,"crest_strength":.29},
+}
 # Shared landscape construction for the tactical board and battle stage.
 # Masonry spans use closed wedge stones with small joints and an open underside.
 var materials: Dictionary = {}
@@ -45,9 +53,15 @@ func detail_material(tile: int) -> ShaderMaterial:
  m.set_shader_parameter("quadrant",Vector2((tile%2)*.5,(tile/2)*.5));materials[key]=m
  return m
 
-func water_material() -> ShaderMaterial:
- if materials.has("water"):return materials.water
- var m=ShaderMaterial.new();m.shader=load("res://assets/shaders/water.gdshader");materials.water=m;return m
+func water_material(theme="") -> ShaderMaterial:
+ var style=WATER_STYLES.get(theme,{})
+ var key="water" if style.is_empty() else "water_"+theme
+ if not materials.has(key):
+  var m=ShaderMaterial.new()
+  m.shader=preload("res://assets/shaders/water.gdshader")
+  for parameter in style:m.set_shader_parameter(parameter,style[parameter])
+  materials[key]=m
+ return materials[key]
 
 func material(color: Color) -> StandardMaterial3D:
  var key=color.to_html()
@@ -209,14 +223,14 @@ func landscape(parent,game):
    for y in range(area[1],area[1]+area[3]):
     for x in range(area[0],area[0]+area[2]):building_cells[Vector2i(x,y)]=true
  if theme in ["village","river"]:
-  var water=water_material()
+  var water=water_material(theme)
   var river=plane_shape(Vector2(2 if theme=="river" else 1,64))
   mesh(parent,river,Vector3(5.5 if theme=="river" else 7,-.07,5),Vector3.ONE,water)
  for y in range(game.board_size().y):
   for x in range(game.board_size().x):
    var t=game.terrain(Vector2i(x,y));var p=Vector3(x,0,y)
    if t in ["~","="]:
-    var water=water_material()
+    var water=water_material(theme)
     var water_cell=mesh(parent,plane_shape(Vector2.ONE),p-Vector3(0,.07,0),Vector3.ONE,water);water_cell.name="MapWater"
     if theme in MapGround.NATURAL and t=="~":
      var bank=RiverBank.build(game,Vector2i(x,y))
@@ -254,7 +268,7 @@ func landscape(parent,game):
   for i in range(7):tree(parent,Vector3(-3+(i*9)%22,-.15,-6-(i%3)),i*31,theme)
  elif theme in ["harbor","aqueduct"]:
   var sea=plane_shape(Vector2(55,35))
-  mesh(parent,sea,Vector3(7,-.12,26),Vector3.ONE,water_material())
+  mesh(parent,sea,Vector3(7,-.12,26),Vector3.ONE,water_material(theme))
 
  ground_cover.add_map(parent,game,building_cells)
  if batching_enabled:batcher.combine(parent)
@@ -332,7 +346,7 @@ func battle_landscape(parent,center,context={}):
  ground(parent,center-Vector3(0,.06,0),Vector2(70,70),3 if stone else 0)
  if not wooden_floor:ground(parent,center,Vector2(24,6),surface)
  if river or theme in ["harbor","aqueduct"] or tile=="=":
-  var water=water_material()
+  var water=water_material(theme)
   var plane=plane_shape(Vector2(RiverBank.ARENA_WIDTH,60 if wooden_floor else 40))
   var water_level=-.055 if wooden_floor else RiverBank.ARENA_WATER_LEVEL
   var water_depth=-12.0 if wooden_floor else -23.0 if river else -22.0

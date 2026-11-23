@@ -32,6 +32,7 @@ func run():
  surface_geometry()
  verify_arena_ground()
  verify_river_arena()
+ verify_water_styles()
  verify_ridges()
  verify_rocks()
  var game=Rules.new();var seen={}
@@ -342,3 +343,59 @@ func verify_river_arena():
   arena.free()
  assert(game.rng.state==before,"The river stage leaves the combat roll unchanged")
  print("PASS: two grounded Reed Crossing banks, 14 planted reeds, preserved bridge and water levels, and map-relative towers on dry ground")
+
+func verify_water_styles():
+ var scenery=Scenery.new()
+ scenery.batching_enabled=false
+ var game=Rules.new()
+ var baseline=scenery.water_material()
+ var colors={}
+ for theme in Scenery.WATER_STYLES:
+  var style=Scenery.WATER_STYLES[theme]
+  var paint=scenery.water_material(theme)
+  assert(paint!=baseline and paint.shader==baseline.shader and paint==scenery.water_material(theme))
+  for parameter in style:
+   assert(paint.get_shader_parameter(parameter)==style[parameter],"Each water material receives the chapter's authored parameters")
+  assert(is_equal_approx(style.flow_direction.length(),1.0) and style.wave_scale.x>0 and style.wave_scale.y>0)
+  assert(style.crest_strength>0 and style.crest_strength+.15<1 and style.wave_speed>0)
+  colors[style.deep_color]=true
+ assert(colors.size()==6 and scenery.water_material("village")==baseline)
+ assert(Scenery.WATER_STYLES.river.wave_speed>Scenery.WATER_STYLES.harbor.wave_speed and Scenery.WATER_STYLES.harbor.wave_speed>Scenery.WATER_STYLES.aqueduct.wave_speed)
+ assert(Scenery.WATER_STYLES.harbor.wave_scale.y<Scenery.WATER_STYLES.river.wave_scale.y,"Harbor swells are broader and slower than river ripples")
+ var sea=Scenery.WATER_STYLES.harbor
+ var current=Scenery.WATER_STYLES.river
+ assert(sea.wave_speed/sea.wave_scale.y<current.wave_speed/current.wave_scale.y)
+
+ var wet_cells=0
+ var arenas=0
+ var before=game.rng.state
+ for chapter in game.content.chapters.size():
+  game.chapter=chapter
+  var theme=game.info().environment
+  var expected=scenery.water_material(theme)
+  var map=Node3D.new();root.add_child(map);scenery.landscape(map,game)
+  var markers=map.find_children("MapWater*","MeshInstance3D",true,false)
+  var wet_map=0
+  var crossings=0
+  for row in game.info().map:
+   wet_map+=row.count("~")
+   crossings+=row.count("=")
+  assert(markers.size()==wet_map+crossings)
+  for node in markers:
+   assert(node.material_override==expected and is_equal_approx(node.position.y,-.07),"Map tiles share water material while retaining their physical level")
+  wet_cells+=markers.size()
+  map.free()
+  var samples=[]
+  if theme in ["river","harbor","aqueduct"]:samples.append(".")
+  if crossings>0:samples.append("=")
+  for tile in samples:
+   var arena=Node3D.new();root.add_child(arena)
+   scenery.battle_landscape(arena,Vector3(35,0,0),{"environment":theme,"terrain":tile})
+   var water=arena.get_node("ArenaWater")
+   assert(water.material_override==expected,"A combat cutaway uses its map's exact water resource")
+   scenery.batcher.combine(arena)
+   assert(arena.get_children().any(func(node):return node is MeshInstance3D and node.material_override==expected),"The material survives static batching")
+   arena.free()
+   arenas+=1
+ assert(game.rng.state==before and wet_cells==250 and arenas==8)
+ print("PASS: six chapter water palettes, ",wet_cells," tactical water cells, ",arenas," actual arena bindings and unchanged physical levels")

@@ -6,6 +6,10 @@ Development resumed on “go”. Continue in this chat until the user asks to st
 
 ### Latest state
 
+The exported build at `8976f6f` completed the full ordinary campaign in 62 turns. The headless run made 298 legal player actions and passed 652 exact save comparisons. It reached the ending with all 24 recruits available and verified twelve commander captions against their saved actions. The chapter records, promotions, supports and final roster matched the earlier run under seed 472019.
+
+Six wet battlefields now have distinct water colors and motion. Their map and combat materials use the same parameters. Terrain checks cover all 250 tactical water cells, eight actual arena bindings, and the bridge and bank levels. Eight focused suites, both local exports, packaged terrain and archive integrity passed. Rendered appearance still needs review.
+
 Scenery now shares one unit box and caches planes by size before batching. Across the twelve tactical maps, 2,121 box placements share one box resource and 1,696 plane placements share five. The twelve arenas use one box resource for 597 placements and five plane resources for 27. Eight focused suites passed, including geometry, UVs, terrain, camera transitions and map picking. Both local exports, packaged batching, and archive integrity passed.
 
 Reed Crossing, Greywood and Glass Harbor now use original eight-second stereo ambience loops. A single player keeps the field playhead through map and arena presentation. It fades between environments and follows the Effects volume. Eight focused suites passed, along with sample regeneration, both local exports, packaged PCM hashes and archive integrity. The first import used compressed audio. The final import preserves the original PCM. Listening review is pending. The registry now contains 383 suites.
