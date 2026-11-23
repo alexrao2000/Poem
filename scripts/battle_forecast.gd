@@ -6,6 +6,7 @@ const Icons=preload("res://scripts/weapon_icons.gd")
 const HUD=preload("res://scripts/combat_hud.gd")
 const FONT=preload("res://assets/fonts/CormorantGaramond.ttf")
 var records=[]
+var strike_order: OrderStrip
 var target_anchor: Callable
 var target_cue: Control
 var cue_clock=0.0
@@ -35,6 +36,52 @@ func _process(dt):
  for record in records:
   if bounds.intersects(record.card.get_rect()) or bounds.intersects(record.portrait.get_rect()):target_cue.hide()
 
+
+# This is a conditional plan, never a rolled outcome. A fallen combatant can
+# end the exchange before the later steps; misses still occupy their step.
+class OrderStrip extends Control:
+ var order: Array[String]=[]
+ var chips: Array[Label]=[]
+ var arrows: Array[Label]=[]
+ var caption: Label
+ var condition: Label
+ func text_node(text: String,color: Color) -> Label:
+  var node=Label.new();node.text=text;node.add_theme_font_size_override("font_size",13)
+  node.add_theme_color_override("font_color",color);node.mouse_filter=Control.MOUSE_FILTER_IGNORE
+  node.vertical_alignment=VERTICAL_ALIGNMENT_CENTER;add_child(node);return node
+ func configure(a: Dictionary,b: Dictionary,attack: Dictionary,counter: Dictionary):
+  name="StrikeOrder";mouse_filter=Control.MOUSE_FILTER_IGNORE
+  caption=text_node("ORDER",Color("685b43"))
+  var planned=[a]
+  if attack.counter:planned.append(b)
+  if attack.double:planned.append(a)
+  elif attack.counter and counter.double:planned.append(b)
+  condition=text_node("If both survive" if planned.size()>1 else "No counter",Color("685b43"))
+  for i in range(planned.size()):
+   var unit=planned[i];order.append(unit.id)
+   var chip=text_node("%d · %s"%[i+1,unit.name],Color("fff2d3"))
+   chip.horizontal_alignment=HORIZONTAL_ALIGNMENT_CENTER
+   chip.text_overrun_behavior=TextServer.OVERRUN_TRIM_ELLIPSIS
+   var style=StyleBoxFlat.new();style.bg_color=Color("773d46") if unit.team=="enemy" else Color("304f6a")
+   style.set_corner_radius_all(3);style.content_margin_left=7;style.content_margin_right=7
+   chip.add_theme_stylebox_override("normal",style);chips.append(chip)
+   if i<planned.size()-1:
+    var arrow=text_node("→",Color("685b43"));arrow.horizontal_alignment=HORIZONTAL_ALIGNMENT_CENTER;arrows.append(arrow)
+  resized.connect(arrange);arrange()
+ func arrange():
+  if caption==null:return
+  caption.position=Vector2(9,3);caption.size=Vector2(50,26)
+  condition.position=Vector2(size.x-108,3);condition.size=Vector2(102,26)
+  var available=maxf(1,size.x-180);var width=minf(145,(available-(chips.size()-1)*22)/maxi(1,chips.size()))
+  var extent=width*chips.size()+22*(chips.size()-1)
+  var start=62+(available-extent)*.5
+  for i in range(chips.size()):
+   chips[i].position=Vector2(start+i*(width+22),4);chips[i].size=Vector2(width,24)
+   if i<arrows.size():arrows[i].position=Vector2(chips[i].get_rect().end.x,4);arrows[i].size=Vector2(22,24)
+  queue_redraw()
+ func _draw():
+  draw_rect(Rect2(Vector2.ZERO,size),Color(.94,.89,.78,.97))
+  draw_line(Vector2.ZERO,Vector2(size.x,0),Color("bca36a"),1)
 
 class Card extends Control:
  const ORNAMENT=preload("res://assets/ui/river-scroll.svg")
@@ -83,6 +130,8 @@ func configure(parent: Control,rules,a: Dictionary,b: Dictionary,faces: Array):
   var multiplier=label(repeat,"×2",14,Color("f5f3d8"));multiplier.horizontal_alignment=HORIZONTAL_ALIGNMENT_CENTER
   stats[0].repeat=repeat
   records.append({"unit":unit.id,"card":card,"name":heading,"weapon":weapon,"icon":icon,"matchup":matchup,"portrait":portrait,"hp":hp,"caption":caption,"meter":meter,"note":note,"stats":stats})
+ strike_order=OrderStrip.new();add_child(strike_order)
+ strike_order.configure(a,b,attack,counter);strike_order.visible=rules.can_attack(a,b)
  resized.connect(arrange);arrange()
 
 func label(parent: Control,text: String,font_size: int,color=Color("303c48")) -> Label:
@@ -90,6 +139,8 @@ func label(parent: Control,text: String,font_size: int,color=Color("303c48")) ->
  node.autowrap_mode=TextServer.AUTOWRAP_OFF;node.text_overrun_behavior=TextServer.OVERRUN_TRIM_ELLIPSIS;node.tooltip_text=text;node.mouse_filter=Control.MOUSE_FILTER_IGNORE;parent.add_child(node);return node
 
 func arrange():
+ if strike_order!=null:
+  strike_order.position=Vector2(22,size.y-104);strike_order.size=Vector2(size.x-372,32)
  var width=(size.x-386)*.5
  for i in range(records.size()):
   var r=records[i];var card=r.card

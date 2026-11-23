@@ -40,7 +40,7 @@ Exports are generated locally and ignored by Git. If `build/web/index.html` or t
 
 ## Controls
 
-These controls apply to campaign battles; menus and the visual workshop have their own context-sensitive actions.
+These controls apply to campaign battles; menus and the visual workshop have their own context-sensitive actions. The attack forecast shows a numbered strike order; counters and follow-ups occur only while both units remain standing.
 
 | Action | Control |
 | --- | --- |

@@ -12,6 +12,7 @@ func watch_cinematic(app):
 
 func _initialize():call_deferred("run")
 func run():
+ await verify_strike_order()
  var game=Rules.new();game.chapter=5;game.start_battle();var portraits=Portraits.new()
  var favorable=[["sword","axe"],["axe","lance"],["lance","sword"]]
  for left in ["sword","axe","lance","bow","magic","staff"]:
@@ -95,3 +96,59 @@ func run():
  await Shutdown.dispose(app);await process_frame
  print("PASS: all 36 triangle pairings, 24 paired forecasts at three viewport sizes, real damage/hit/counter values, large cutout bounds/open center, live target cue/occlusion, follow-up badges, isolated matchup arrows, health bounds, retargeting and screen cleanup")
  quit()
+
+func verify_strike_order():
+ var game=Rules.new();var host=Control.new();root.add_child(host)
+ var cases=0;var layouts=0;var exchanges=0
+ var pairs=[["iron_sword","iron_axe"],["iron_axe","iron_lance"],["javelin","iron_sword"],["scout_bow","ember"],["ember","scout_bow"],["iron_sword","field_staff"]]
+ for pair in pairs:
+  for distance in [1,2]:
+   for lead in [-5,-3,0,3,5]:
+    for team in ["player","enemy"]:
+     game.new_campaign();game.chapter=11;game.start_battle();game.phase=team
+     var a=game.units[0];var b=game.living("enemy")[0]
+     var items=[]
+     for id in pair:items.append(game.equipment.filter(func(item):return item.id==id)[0])
+     a.item=items[0].id;a.weapon=items[0].kind;a.reach=int(items[0].max_range)
+     b.item=items[1].id;b.weapon=items[1].kind;b.reach=int(items[1].max_range)
+     a.team=team;b.team="enemy" if team=="player" else "player"
+     a.x=8;a.y=4;b.x=8+distance;b.y=4
+     a.speed=20+lead+int(items[0].weight);b.speed=20+int(items[1].weight)
+     for unit in [a,b]:unit.hp=999;unit.max_hp=999;unit.pow=0;unit.defense=255;unit.resistance=255;unit.acted=false;unit.level=99
+     game.units=[a,b];game.rng.seed=2387+cases
+     var before=JSON.stringify(game.save_data("battle"));var state=game.rng.state
+     var forecast=Forecast.new();forecast.configure(host,game,a,b,[null,null])
+     var strip=forecast.strike_order;var planned=strip.order.duplicate()
+     var legal=game.can_attack(a,b)
+     assert(strip.visible==legal,"Unavailable attacks do not show a planned exchange")
+     assert(strip.condition.text==("If both survive" if planned.size()>1 else "No counter"))
+     assert(planned[0]==a.id and planned.size()<=3)
+     for dimensions in [Vector2(1024,640),Vector2(1280,720),Vector2(1440,900)]:
+      host.size=dimensions;await process_frame;layouts+=1
+      assert(strip.position.y>forecast.records[0].card.get_rect().end.y and strip.get_rect().end.y<dimensions.y-64,"Order fits between cards and help without covering either")
+      assert(strip.position.x==22 and strip.get_rect().end.x<dimensions.x-343,"Order leaves the command sidebar clear")
+      var previous=strip.caption.get_rect().end.x
+      for i in range(strip.chips.size()):
+       var chip=strip.chips[i]
+       assert(chip.position.x>=previous and chip.get_rect().end.x<strip.condition.position.x,"Each named strike is separate from the label and conditional note")
+       assert(chip.text.begins_with(str(i+1)+" · ") and chip.mouse_filter==Control.MOUSE_FILTER_IGNORE)
+       previous=chip.get_rect().end.x
+       if i<strip.arrows.size():
+        var arrow=strip.arrows[i];assert(arrow.position.x>=previous and arrow.get_rect().end.x<=strip.chips[i+1].position.x+.01);previous=arrow.get_rect().end.x
+      for label in [strip.caption,strip.condition]:
+       assert(label.get_theme_font("font").get_string_size(label.text,HORIZONTAL_ALIGNMENT_LEFT,-1,13).x<=label.size.x,"Order explanation fits without clipping")
+      for node in strip.get_children():assert(Rect2(Vector2.ZERO,strip.size).encloses(node.get_rect()),"Order content stays inside its row")
+     assert(JSON.stringify(game.save_data("battle"))==before and game.rng.state==state,"Creating/resizing the order cannot mutate campaign or RNG")
+     var result=game.combat(a,b)
+     var actual=result.map(func(event):return event.actor)
+     assert(actual==(planned if legal else []),"Healthy actual combat follows every displayed step, for either initiating team")
+     if legal:
+      exchanges+=1
+      for fragile in [a,b]:
+       for unit in [a,b]:unit.hp=1 if unit==fragile else 999;unit.acted=false
+       var shortened=game.combat(a,b).map(func(event):return event.actor)
+       assert(shortened==planned.slice(0,shortened.size()),"Lethal hits can end a planned order, never invent or reorder a strike")
+       exchanges+=1
+     forecast.queue_free();await process_frame;cases+=1
+ host.queue_free();await process_frame
+ print("PASS: %d conditional-order cases, %d three-size layouts and %d actual healthy/lethal exchanges, both initiating teams, ranged counter exclusions, speed thresholds and exact forecast isolation"%[cases,layouts,exchanges])
