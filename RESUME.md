@@ -6,6 +6,8 @@ Development resumed on “go”. Continue in this chat until the user asks to st
 
 ### Latest state
 
+Reed Crossing, Greywood and Glass Harbor now use original eight-second stereo ambience loops. A single player keeps the field playhead through map and arena presentation. It fades between environments and follows the Effects volume. Eight focused suites passed, along with sample regeneration, both local exports, packaged PCM hashes and archive integrity. The first import used compressed audio. The final import preserves the original PCM. Listening review is pending. The registry now contains 383 suites.
+
 Both Glass Harbor boats now have shaped timber hulls and fitted yardarms. The new 140-triangle model sits across the waterline, with a raised prow and a mast that meets the deck. The same model appears in nearby combat scenery. Six focused suites, both local exports, packaged architecture and archive integrity passed. Rendered appearance still needs review.
 
 The Debug combat encounter picker can stage the selected recruit against a named commander on any eligible battlefield. The switch keeps the selected class, equipment and seed, and it clears for staff users. Eight focused suites passed, including deterministic setups for all twelve commanders, eight actual dialogue exchanges, and exact campaign and preference restoration. Both local exports, the complete packaged battlefield suite, and archive integrity passed.

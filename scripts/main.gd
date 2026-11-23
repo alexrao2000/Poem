@@ -99,6 +99,7 @@ var sfx_streams: Dictionary={}
 var sfx_players: Array=[]
 var interface_audio=preload("res://scripts/ui_audio.gd").new()
 var travel_audio=preload("res://scripts/travel_audio.gd").new()
+var field_audio=preload("res://scripts/field_audio.gd").new()
 var music_transition: Tween
 var sprites: Array = []
 var unit_nodes: Dictionary={}
@@ -185,6 +186,7 @@ func _ready():
 func setup_audio():
 	add_child(interface_audio);interface_audio.configure(preferences.volume_db("effects"))
 	add_child(travel_audio);travel_audio.configure(preferences.volume_db("effects"))
+	add_child(field_audio)
 	score_director=ScoreDirector.new();add_child(score_director);score_director.configure(preferences.volume_db("music"))
 	music=score_director.player;score=score_director.score
 	for effect in ["select","swing","hit","critical","heal","magic","phase","guard","cutin","levelup"]:
@@ -244,6 +246,7 @@ func box(color: Color) -> StyleBoxFlat:
 	return b
 
 func reset_ui():
+	field_audio.select(game.info().get("environment","") if screen=="battle" else "")
 	objective_label=null
 	portraits.expression_textures.clear()
 	dialogue_label=null
@@ -2055,6 +2058,7 @@ func preview_route(destination: Vector2i):
 func apply_audio_preferences():
 	interface_audio.player.volume_db=preferences.volume_db("effects")
 	travel_audio.set_volume(preferences.volume_db("effects"))
+	field_audio.set_volume(preferences.volume_db("effects"))
 	if is_instance_valid(score_director):score_director.set_volume(preferences.volume_db("music"))
 	for player in sfx_players:player.volume_db=preferences.volume_db("effects")
 

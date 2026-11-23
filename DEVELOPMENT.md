@@ -1,5 +1,7 @@
 # Poem development
 
+Three original battlefield ambience loops add river water, rain and harbor swells. The Effects setting controls the one shared field voice. Map-to-arena transitions retain its decoder while the paired score crossfades as before. Eight affected suites, deterministic sample regeneration, exact exported PCM and both archive checks passed. The sampled loop boundaries stay below each track’s 99th-percentile adjacent-sample change.
+
 Glass Harbor’s boats now use a shared 140-triangle hull with a raised prow, squared stern and continuous deck. The mast and yardarm meet the existing sail. The architecture suite checks closed edges, outward faces, waterline intersection and actual map and arena attachments.
 
 **Face the chapter commander** stages an ordinary weapon-range attack against the chapter’s named enemy in Debug. Choosing a staff user clears the switch and retains the healing setup. Staging happens through the same sandbox save path and records the selected opponent in the trace. All twelve commanders stage deterministically, and actual fights exercise eight of their captions in current and revised model sets.

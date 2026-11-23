@@ -173,6 +173,8 @@ Failed autosaves display a warning and a phase-status marker. Keep the game open
 
 Choose **Listen to campaign music** in Options to open the music room. Select any of the three act themes and switch between **Calm** and **Ablaze** without restarting the track. The room respects the music volume setting; returning resumes the campaign music where it was paused.
 
+Reed Crossing, Greywood, and Glass Harbor have their own quiet battlefield ambience. It continues through the switch to 3D combat and follows the **Effects** volume.
+
 ## Development
 
 Run commands below from the repository root. Python 3 is required for the test runner and packaging tools. Node.js runs browser-storage and exported-loader checks; playing the game does not require it. NumPy supports optional audio/texture generation, and Pillow is also needed for texture generation.

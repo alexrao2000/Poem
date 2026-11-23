@@ -139,6 +139,10 @@ A new original 320 ms synthesized air/chime cue begins with the strip. `scripts/
 
 Named commanders have a separate first-encounter caption. It uses their regular portrait and either the chapter’s original challenge or a line written for a recruit involved in that story. Quick maps center the caption above the battlefield with room for the unit panel. In 3D, the caption appears before the fighters advance. Tab uses the existing skip input.
 
+## Battlefield ambience
+
+The river, rain and harbor ambience use three original eight-second stereo PCM loops synthesized by [the field audio renderer](../scripts/render_field_audio.py). Each loop keeps the same playhead across the tactical map, 3D battle and camera return. A short fade handles scene changes, while the Effects setting controls the ambience volume. The Calm and Ablaze arrangements use their existing synchronized streams.
+
 ## Tactical action tracking
 
 Moving units receive a short camera pan only when their full sprite bounds lie outside the readable map area. The camera follows them at that area's edges without changing the chosen zoom, map angle or lens offset. Map-only attacks and recovery frame both participants before the cue appears; the next player phase returns attention to the first standing ally. Normal full-arena transitions retain their existing view restoration.
