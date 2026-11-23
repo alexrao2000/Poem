@@ -1,5 +1,7 @@
 # Poem development
 
+High-quality import compression for nine original paintings and material atlases reduced the Web data pack from 117.1 MB to 103.0 MB. The decoded textures keep their dimensions, alpha and mip counts. The largest mean color error was 1.9423 of 255 RGB levels across a full image, and 2.165 across an individual material swatch.
+
 Reddeep’s two furnace landmarks carry the same arched firebox, iron grate, glowing coals and open chimney from the tactical map into the combat arena. Their arena foundations sit behind the fighting lane. The Engine retains its separate machinery and armillary.
 
 Close-up harbor and bridge arenas now use long boards across the fighting lane. Two beams sit below the boards, and the back railing sits on the deck edge. The scene checks measure deck, support, railing and water contact in Glass Harbor and on a raised bridge.
