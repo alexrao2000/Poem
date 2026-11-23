@@ -12,6 +12,7 @@ const ConiferCrowns=preload("res://scripts/conifer_crowns.gd")
 const BarrelVisuals=preload("res://scripts/barrel_visuals.gd")
 const HarborBoat=preload("res://scripts/harbor_boat.gd")
 const ArenaRidges=preload("res://scripts/arena_ridges.gd")
+const SanctuaryPlinth=preload("res://scripts/sanctuary_plinth.gd")
 enum BuildingFinish { LIME_PLASTER, OCHRE_PLASTER, OAK, DECK_WOOD }
 const BUILDING_FINISHES=[
  {"color":Color("c5bca4"),"scale":.66,"weight":.66},
@@ -194,9 +195,7 @@ func bridge(parent,p,vertical=false):
   for x in [-.4,.4]:block(root,Vector3(x,.16,z),Vector3(.065,.4,.065),Color("655444"))
 
 func sanctuary(parent,p):
- cylinder(parent,p+Vector3(0,MapSurface.SANCTUARY_HEIGHT-.06,0),.08,.36,Color("b8b8a0"))
- block(parent,p+Vector3(0,MapSurface.SANCTUARY_HEIGHT-.01,0),Vector3(.35,.02,.08),Color("f5e4ac"))
- block(parent,p+Vector3(0,MapSurface.SANCTUARY_HEIGHT-.01,0),Vector3(.08,.02,.35),Color("f5e4ac"))
+ mesh(parent,SanctuaryPlinth.mesh(),p,Vector3.ONE,SanctuaryPlinth.material()).name="SanctuaryPlinth"
 
 func house(parent,p,scale_value=1.0,roof_variant=-1,warehouse=false):
  var root=Node3D.new();parent.add_child(root);root.position=p;root.scale=Vector3.ONE*scale_value

@@ -8,6 +8,7 @@ const MapOverlay=preload("res://scripts/map_overlay.gd")
 const Scenery=preload("res://scripts/scenery.gd")
 const RiverBank=preload("res://scripts/river_bank.gd")
 const MapGround=preload("res://scripts/map_ground.gd")
+const SanctuaryPlinth=preload("res://scripts/sanctuary_plinth.gd")
 func _initialize():call_deferred("run")
 func surface_geometry():
  var scenery=Scenery.new();var parent=Node3D.new();root.add_child(parent)
@@ -16,8 +17,7 @@ func surface_geometry():
   var bounds=plank.mesh.get_aabb()
   assert(is_equal_approx(plank.position.y+bounds.end.y*plank.scale.y,MapSurface.height_for("=")),"Bridge deck matches walkable height")
  var shrine=Node3D.new();parent.add_child(shrine);scenery.sanctuary(shrine,Vector3.ZERO)
- for cross in shrine.get_children().slice(1):
-  assert(is_equal_approx(cross.position.y+cross.mesh.get_aabb().end.y*cross.scale.y,MapSurface.height_for("+")),"Sanctuary crest matches walkable height")
+ verify_sanctuary(shrine.get_node("SanctuaryPlinth"))
  var path=[Vector2i(0,0),Vector2i(1,0),Vector2i(2,0),Vector2i(3,0)]
  var heights=func(point):return [0.0,MapSurface.BRIDGE_HEIGHT,MapSurface.SANCTUARY_HEIGHT,0.0][point.x]
  var overlay=MapOverlay.tiles(parent,path,Color.BLUE,.032,"RaisedRange",heights)
@@ -28,6 +28,32 @@ func surface_geometry():
   var cell=clampi(roundi(vertex.x),0,3)
   assert(vertex.y>=heights.call(Vector2i(cell,0))+.0569,"Route ramps clear the higher side at tile boundaries")
  parent.free()
+
+func verify_sanctuary(plinth: MeshInstance3D):
+ var bounds=plinth.transform*plinth.mesh.get_aabb()
+ var height=MapSurface.height_for("+")
+ assert(is_equal_approx(bounds.position.y,0) and is_equal_approx(bounds.end.y,height))
+ assert(bounds.size.x<.9 and bounds.size.z<.9,"The whole stone fits inside its own tile")
+ assert(plinth.mesh==SanctuaryPlinth.mesh() and plinth.material_override==SanctuaryPlinth.material())
+ assert(plinth.material_override.vertex_color_use_as_albedo and plinth.material_override.vertex_color_is_srgb)
+ var arrays=plinth.mesh.surface_get_arrays(0)
+ var points=arrays[Mesh.ARRAY_VERTEX];var normals=arrays[Mesh.ARRAY_NORMAL];var paints=arrays[Mesh.ARRAY_COLOR]
+ assert(points.size()==432)
+ var edge_uses={};var volume=0.0;var top_paints={};var hit_height=-INF
+ for i in range(0,points.size(),3):
+  var a=points[i];var b=points[i+1];var c=points[i+2]
+  var cross=(b-a).cross(c-a)
+  assert(cross.length()>.0001 and cross.normalized().dot(normals[i])<-.999)
+  volume-=a.dot(b.cross(c))/6.0
+  for edge in [[a,b],[b,c],[c,a]]:
+   var first=str(edge[0]);var second=str(edge[1]);var key=first+"/"+second if first<second else second+"/"+first
+   edge_uses[key]=edge_uses.get(key,0)+1
+  var hit=Geometry3D.ray_intersects_triangle(Vector3(.04,.5,.02),Vector3.DOWN,a,b,c)
+  if hit!=null:hit_height=maxf(hit_height,hit.y)
+  if normals[i].dot(Vector3.UP)>.999:top_paints[paints[i]]=true
+ assert(volume>.03 and volume<.06 and edge_uses.values().all(func(uses):return uses==2),"The beveled stone and inlay form a closed mesh")
+ assert(is_equal_approx(hit_height,height) and top_paints.size()==6,"The brass ring, stone field and four inlay faces meet the walkable surface")
+
 func run():
  surface_geometry()
  verify_arena_ground()
@@ -38,7 +64,7 @@ func run():
  var game=Rules.new();var seen={}
  var scenery=Scenery.new();scenery.batching_enabled=false
  var previous_paint: ShaderMaterial
- var bridge_water=0
+ var bridge_water=0;var sanctuaries=0
  for chapter in range(12):
   game.chapter=chapter;var state=game.rng.state;var board=game.board_size();var theme=game.info().environment
   var world=Node3D.new();root.add_child(world);scenery.landscape(world,game)
@@ -56,6 +82,13 @@ func run():
   assert(control.get_size()==board+Vector2i.ONE*4,"Control map includes grass padding around the board")
   assert(control.get_pixel(0,0)==Color(1,0,0,0) and control.get_pixel(control.get_width()-1,control.get_height()-1)==Color(1,0,0,0),"Landscape beyond the board resolves to grass")
   var floor_cells={};var water_cells={}
+  var shrine_cells={}
+  for plinth in world.find_children("SanctuaryPlinth*","MeshInstance3D",false,false):
+   assert(plinth.mesh==SanctuaryPlinth.mesh() and plinth.material_override==SanctuaryPlinth.material())
+   var cell=Vector2i(roundi(plinth.position.x),roundi(plinth.position.z))
+   assert(not shrine_cells.has(cell),"A tile gets one sanctuary plinth")
+   shrine_cells[cell]=true
+  sanctuaries+=shrine_cells.size()
   for floor in floors:
    assert(floor.material_override==paint,"All ground cells share one batchable material")
    floor_cells[Vector2i(roundi(floor.position.x),roundi(floor.position.z))]=true
@@ -64,6 +97,7 @@ func run():
   for y in range(board.y):
    for x in range(board.x):
     var cell=Vector2i(x,y);var symbol=game.terrain(cell);var weights=control.get_pixel(x+2,y+2)
+    assert(shrine_cells.has(cell)==(symbol=="+"),"Every sanctuary and only a sanctuary gets an inlaid crest")
     if symbol in ["~","="]:
      assert(not floor_cells.has(cell) and is_equal_approx(water_cells[cell],-.07),"Water and bridge cells have water below the deck, without grass sealing the opening")
      if symbol=="=":bridge_water+=1
@@ -75,6 +109,8 @@ func run():
   assert(game.rng.state==state,"Ground painting does not consume campaign randomness")
   world.free()
  assert(bridge_water==38,"All authored bridge tiles reveal water beneath the planks")
+ assert(sanctuaries==24)
+ print("PASS: 24 sanctuary plinths share one closed beveled mesh and preserve the raised walkable surface")
  var banks=0;var exposed=0
  for chapter in range(12):
   game.chapter=chapter;var seams={};var state=game.rng.state

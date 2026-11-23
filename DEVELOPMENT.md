@@ -1,5 +1,7 @@
 # Poem development
 
+All 24 sanctuary tiles now use a shared beveled stone model with a brass ring and the terrain card’s blue diamond. Its top meets the existing walkable height. The geometry and picking checks cover the inlay, cursor and route overlays, and actual combat handoffs on raised ground.
+
 Windscar Pass and Reddeep now use original eight-second stereo wind and furnace beds. Both keep their playhead across the tactical map and 3D arena and follow the Effects volume. The earlier three source tracks regenerate byte-for-byte, and all five exported PCM payloads match their sources.
 
 High-quality import compression for nine original paintings and material atlases reduced the Web data pack from 117.1 MB to 103.0 MB. The decoded textures keep their dimensions, alpha and mip counts. The largest mean color error was 1.9423 of 255 RGB levels across a full image, and 2.165 across an individual material swatch.

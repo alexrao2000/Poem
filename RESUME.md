@@ -6,6 +6,8 @@ Development resumed on “go”. Continue in this chat until the user asks to st
 
 ### Latest state
 
+Sanctuary tiles across all twelve chapters now use one shared stone, brass and blue inlay model. The closed mesh sits at the existing 0.10-unit height. Six source suites passed, including 24 sanctuary placements, tactical picking, map zoom, sprite-to-fighter handoffs and terrain batching. Both local exports, packaged terrain and archive integrity passed. Rendered appearance remains unreviewed.
+
 Windscar Pass and Reddeep now have original wind and furnace ambience. Seven focused suites passed, including actual map-to-arena transitions in both locations, Effects mute, and continuous Calm/Ablaze playback. All five exported PCM hashes match the sources. Both local builds and archive integrity passed. Listening review remains outstanding.
 
 Nine opaque paintings now use Godot’s 0.98 lossy import setting. The Web data pack fell from 117.1 MB to 103.0 MB. Decoding the exported pack confirmed exact dimensions, alpha and mip counts, with a maximum mean color error of 1.9423 out of 255 RGB levels across full images. Nine source and four packaged scene suites passed, along with both exports and archive integrity. Rendered quality and browser startup timing remain unreviewed.
