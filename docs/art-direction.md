@@ -87,6 +87,8 @@ Generation prompt: [dialogue-portrait-prompt.txt](dialogue-portrait-prompt.txt).
 
 Five more sheets give Oren, Sera, Ivo, Mara and Tarin three expressions each. In total, the six sheets cover 47 campaign lines and 47 lines in nine support scenes. The [company prompts and provenance](company-expression-provenance.json) include the two padding and transparency edits to Tarin’s sheet.
 
+The six expression sheets use [texture import compression](https://docs.godotengine.org/en/4.5/classes/class_resourceimportertexture.html#class-resourceimportertexture-property-compress-mode) at quality 0.96. The source PNGs retain their recorded hashes. Decoded exports match the source alpha channel and atlas dimensions exactly. The color comparison and a decoded portrait inspection guided the choice. Each archive is 5.93 MB smaller.
+
 ## Contact timing and guarded hits
 
 Damaging contact holds actor processing locally for 55 ms (100 ms for criticals), after a 35 ms recoil lead. The camera, effects, UI and shared music timeline continue. This uses node-bound tween processing, described in the [Godot 4.5 Tween documentation](https://docs.godotengine.org/en/4.5/classes/class_tween.html); tests cover procedural joints, imported AnimationPlayers, cancellation and combat skipping. No global time scale changes. Zero-damage hits have a guard stance and restrained gray glint instead of damaging sparks. `scripts/combat_accents.py` generates the original short metallic sound without rewriting the soundtrack; the main score generator also includes it.

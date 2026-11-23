@@ -6,6 +6,8 @@ Development resumed on “go”. Continue in this chat until the user asks to st
 
 ### Latest state
 
+The six expression sheets now use quality 0.96 for compressed color in the exported game. The original PNGs stay in the repository. Decoding the packaged textures reproduced every source alpha value. The largest per-sheet mean RGB error on opaque pixels was 2.01 on a 255-point scale. Each local archive shrank by 5.93 MB. Four focused suites, both exports, the complete packaged expression suite and archive integrity passed.
+
 The arena now follows the map sprites’ left-to-right order at the end of the combat zoom. Nameplates, nearby landmarks and critical portraits follow the same sides. Fighters approach and retreat along that axis even when they start on the right. Seven focused source suites passed, including map handoffs, counters, critical portraits, Skip and staff revival on either side. During export, the revival observer was corrected to identify the patient by role. The exported catalog, packaged map handoff and critical portrait suites passed, along with both local archives. The rendered handoff still needs a visual review.
 
 Dialogue now holds expression sheets only while a conversation uses them. A headless check of Chapter 1’s opening found four expression atlases still loaded after the scene before the change and zero afterward. Six focused suites passed, including lazy first-line loading, release on Continue and Skip, nine support replays, and shared forecast and reward portraits. Both local exports, the full packaged expression check and archive integrity passed.
