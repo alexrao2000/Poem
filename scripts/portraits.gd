@@ -5,6 +5,7 @@ const ENEMY_CLASSES=["Vanguard","Knight","Ranger","Arcanist","Warden","Rider","C
 var textures: Dictionary={}
 var sprite_textures: Dictionary={}
 var dialogue_regions=JSON.parse_string(FileAccess.get_file_as_string("res://data/dialogue_portraits.json"))
+var dialogue_expressions=JSON.parse_string(FileAccess.get_file_as_string("res://data/dialogue_expressions.json"))
 var critical_focus=JSON.parse_string(FileAccess.get_file_as_string("res://data/critical_portraits.json"))
 var regions=JSON.parse_string(FileAccess.get_file_as_string("res://data/sprite_regions.json"))
 
@@ -23,11 +24,13 @@ func get_critical_portrait(unit: Dictionary) -> Texture2D:
  var texture=AtlasTexture.new();texture.atlas=portrait;texture.region=Rect2(corner,extent);texture.filter_clip=true
  textures[key]=texture;return texture
 
-func get_dialogue_portrait(id: String) -> Texture2D:
- var key="dialogue."+id
+func get_dialogue_portrait(id: String,expression="") -> Texture2D:
+ var variants=dialogue_expressions.get(id,{})
+ var expressive=variants.has(expression)
+ var key="dialogue."+id+("."+expression if expressive else "")
  if textures.has(key):return textures[key]
  if not dialogue_regions.has(id):return get_portrait(id)
- var entry=dialogue_regions[id]
+ var entry=variants[expression] if expressive else dialogue_regions[id]
  var texture=AtlasTexture.new();texture.atlas=load(entry.path);texture.filter_clip=true
  texture.region=Rect2(entry.region[0],entry.region[1],entry.region[2],entry.region[3])
  textures[key]=texture;return texture

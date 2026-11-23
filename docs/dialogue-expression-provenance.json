@@ -1,0 +1,15 @@
+{
+  "tool": "Built-in image_gen",
+  "generated": "2026-11-22",
+  "reference": "assets/portraits/dialogue-a-v1.png",
+  "subject": "Lyra (top-left reference portrait)",
+  "output": "assets/portraits/dialogue-lyra-expressions-v1.png",
+  "expressions": [
+    "resolute",
+    "concerned",
+    "relieved"
+  ],
+  "prompt": "Create an ORIGINAL GAME ASSET: a transparent expression sheet for Lyra, the young woman in the TOP LEFT of the supplied Poem portrait sheet. Input image is an identity and painting-style reference; ignore all other characters. Preserve her specific chestnut braided long hair, brown eyes, youthful face, navy high-collar tunic with fine gold embroidery, white mantle, round gold shoulder clasp, silver shoulder armor, and three-quarter gaze toward the viewer's right. Make a wide canvas with EXACTLY THREE evenly sized isolated waist-up portraits arranged in ONE horizontal row, equal scale and identical body pose, head position, hairstyle and costume. Leave clear fully transparent gutters between them and all around their hair/shoulders. Her bottom crop should be aligned in all three cells. Vary ONLY the face expression: LEFT resolute determination (brows slightly lowered, firm closed mouth, no anger); MIDDLE worried concern (inner brows lifted, lips slightly parted, no tears); RIGHT gentle relieved small smile (relaxed eyes, closed mouth, no exaggerated grin). Match the reference's refined illustrated fantasy portrait linework and warm painted shading; clean game-ready cutout edges. No scenery, no colored backgrounds, no shadows outside the cutouts, no text, no labels, no frame. The white cape is opaque white fabric, while everything outside each figure is genuinely transparent. This is this project's own character, not a Nintendo character. Keep all three figures consistent enough for changing expression during a conversation without body/costume changes.",
+  "notes": "Original Poem character. Generated source pixels and alpha are preserved unchanged. Three 724×724 atlas regions use measured transparent gutters. Source-art inspection is separate from rendered-game review.",
+  "sha256": "29f23f77f7abfcd95ee510ac88212743849007f87694709c88b0ae12439de227"
+}

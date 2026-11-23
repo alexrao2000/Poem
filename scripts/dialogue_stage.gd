@@ -98,7 +98,9 @@ func show_speaker(id: String,display_name: String,texture: Texture2D) -> Texture
 	var entering=index<0
 	if entering:
 		index=0 if identities[0].is_empty() else 1-active
-		identities[index]=id;portraits[index].texture=texture
+		identities[index]=id
+	# Expression changes reuse the same slot and entrance, including consecutive lines.
+	portraits[index].texture=texture
 	active=index;heading.text=display_name
 	for slot in range(2):
 		portraits[slot].modulate=Color.WHITE if slot==active else Color(.66,.69,.73,.88)

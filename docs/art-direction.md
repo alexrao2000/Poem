@@ -81,6 +81,10 @@ All 24 original roster portraits now have transparent dialogue variants in `asse
 
 Generation prompt: [dialogue-portrait-prompt.txt](dialogue-portrait-prompt.txt). Source and generated file paths: [dialogue-portrait-provenance.json](dialogue-portrait-provenance.json). These are edits of this project’s original roster art, with no game-reference artwork included as source.
 
+### Dialogue expressions
+
+`assets/portraits/dialogue-lyra-expressions-v1.png` is an original three-expression sheet derived from this project’s Lyra portrait with built-in image generation on 2026-11-22. The [prompt and provenance](dialogue-expression-provenance.json) record the source and generated-file hash. Source pixels and alpha remain unchanged; three measured 724×724 regions have transparent gutters above the dialogue shader’s cutoff. [Expression metadata](../data/dialogue_expressions.json) is optional: unsupported values retain the original portrait, while same-speaker changes reuse the current control and entrance. Twenty-one campaign lines carry authored tags without changing their text or loss alternatives. Source art is inspected separately from rendered-game appearance.
+
 ## Contact timing and guarded hits
 
 Damaging contact holds actor processing locally for 55 ms (100 ms for criticals), after a 35 ms recoil lead. The camera, effects, UI and shared music timeline continue. This uses node-bound tween processing, described in the [Godot 4.5 Tween documentation](https://docs.godotengine.org/en/4.5/classes/class_tween.html); tests cover procedural joints, imported AnimationPlayers, cancellation and combat skipping. No global time scale changes. Zero-damage hits have a guard stance and restrained gray glint instead of damaging sparks. `scripts/combat_accents.py` generates the original short metallic sound without rewriting the soundtrack; the main score generator also includes it.

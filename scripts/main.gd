@@ -1516,7 +1516,7 @@ func refresh_dialogue():
 	if dialogue_index>=dialogue_lines.size():finish_dialogue();return
 	var line=dialogue_lines[dialogue_index]
 	var display_name=dialogue_speaker_name(line.speaker)
-	dialogue_portrait=dialogue_stage.show_speaker(line.speaker,display_name,portraits.get_dialogue_portrait(line.speaker))
+	dialogue_portrait=dialogue_stage.show_speaker(line.speaker,display_name,portraits.get_dialogue_portrait(line.speaker,line.get("expression","")))
 	dialogue_label.text=line.text;dialogue_label.visible_characters=-1 if preferences.values.text_speed==0 else 0;dialogue_reveal=0.0
 	dialogue_stage.refresh_prompt()
 
