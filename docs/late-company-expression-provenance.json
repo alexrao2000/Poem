@@ -1,0 +1,100 @@
+{
+  "sheets": [
+    {
+      "id": "noor",
+      "tool": "Built-in image_gen",
+      "generated": "2026-11-23",
+      "reference": "assets/portraits/dialogue-d-v1.png",
+      "subject": "noor (top-left reference portrait)",
+      "output": "assets/portraits/dialogue-noor-expressions-v1.png",
+      "expressions": [
+        "resolute",
+        "concerned",
+        "amused"
+      ],
+      "prompt": "Create an original transparent dialogue expression atlas for Noor, the violet-haired woman in the TOP LEFT cell of the supplied Poem portrait sheet. Use that one cell for character identity and painting style only. Ignore all other characters. Preserve medium dark brown skin, amber eyes, flowing dark violet waves, gold celestial hair chains, moon and star earrings with blue gem drops, embroidered midnight-blue mantle patterned with gold constellations, white underlayer and a gold astrolabe clasp, together with the same three-quarter view facing viewer’s right. Output a wide canvas with exactly three equal square cells in one horizontal row. Each cell contains a complete isolated chest-up portrait with matching scale, silhouette, costume, hairstyle, body pose, head position and torso crop. Place the entire figure inside each cell with a generous truly transparent gutter on all four sides, including space below the aligned straight bottom crop. Change facial expression only: LEFT clear intellectual resolve with steady brows and a firm mouth, CENTER alarmed thoughtfulness with raised inner brows and barely parted lips, RIGHT small knowing warmth with a restrained closed-mouth smile. Match the clean illustrated fantasy linework and painted color of the source. The figure is opaque and every pixel outside the silhouette is truly transparent. No added props, text, labels, frames, backdrop, halo, or outside shadows. This is original artwork for Poem. The three portraits must swap smoothly in a conversation.",
+      "sha256": "664b6668ae3c9b9e7d370c28f7673f5af0437097adb98947cc9af62fced4b9b7",
+      "notes": "Original source pixels and alpha are preserved. Measured transparent gutters separate the three 724×724 atlas regions."
+    },
+    {
+      "id": "galen",
+      "tool": "Built-in image_gen",
+      "generated": "2026-11-23",
+      "reference": "assets/portraits/dialogue-d-v1.png",
+      "subject": "galen (top-middle reference portrait)",
+      "output": "assets/portraits/dialogue-galen-expressions-v1.png",
+      "expressions": [
+        "resolute",
+        "concerned",
+        "reassuring"
+      ],
+      "prompt": "Create an original transparent dialogue expression atlas for Galen, the elderly gray-bearded man in the TOP MIDDLE cell of the supplied Poem portrait sheet. Use that one cell for character identity and painting style only. Ignore all other characters. Preserve bald crown with wavy silver hair at the temples and back, a long curly white beard and mustache, weathered fair skin, kind dark eyes, green embroidered robe and hood, white stole, brown straps with modest gold clasp, and the rosemary sprig tucked at his chest, together with the same three-quarter view facing viewer’s right. Output a wide canvas with exactly three equal square cells in one horizontal row. Each cell contains a complete isolated chest-up portrait with matching scale, silhouette, costume, hairstyle, body pose, head position and torso crop. Place the entire figure inside each cell with a generous truly transparent gutter on all four sides, including space below the aligned straight bottom crop. Change facial expression only: LEFT quiet steady resolve with a firm relaxed mouth, CENTER gentle concern with lowered eyes and raised inner brows, RIGHT a warm grandfatherly closed-mouth smile beneath his mustache. Match the clean illustrated fantasy linework and painted color of the source. The figure is opaque and every pixel outside the silhouette is truly transparent. No added props, text, labels, frames, backdrop, halo, or outside shadows. This is original artwork for Poem. The three portraits must swap smoothly in a conversation.",
+      "sha256": "fa8d75e716b382c44ee4abf5d5901de2d1539f33d10d06aae3a0160a7d0aeef2",
+      "notes": "Original source pixels and alpha are preserved. Measured transparent gutters separate the three 724×724 atlas regions."
+    },
+    {
+      "id": "yuna",
+      "tool": "Built-in image_gen",
+      "generated": "2026-11-23",
+      "reference": "assets/portraits/dialogue-d-v1.png",
+      "subject": "yuna (top-right reference portrait)",
+      "output": "assets/portraits/dialogue-yuna-expressions-v1.png",
+      "expressions": [
+        "resolute",
+        "concerned",
+        "reassuring"
+      ],
+      "prompt": "Create an original transparent dialogue expression atlas for Yuna, the dark-haired woman in the TOP RIGHT cell of the supplied Poem portrait sheet. Use that one cell for character identity and painting style only. Ignore all other characters. Preserve warm fair olive skin, dark amber eyes, long black hair set in a high ponytail with a gold tassel and ribbon, high-collared dusty purple and deep blue officer’s outfit, ivory center fabric and gold embroidery, brown leather straps and gold clasps, together with the same three-quarter view facing viewer’s right. Output a wide canvas with exactly three equal square cells in one horizontal row. Each cell contains a complete isolated chest-up portrait with matching scale, silhouette, costume, hairstyle, body pose, head position and torso crop. Place the entire figure inside each cell with a generous truly transparent gutter on all four sides, including space below the aligned straight bottom crop. Change facial expression only: LEFT composed, commanding resolve with steady eyes and firm closed lips, CENTER restrained concern with lifted inner brows, RIGHT quiet warmth with softened eyes and a small closed-mouth smile. Match the clean illustrated fantasy linework and painted color of the source. The figure is opaque and every pixel outside the silhouette is truly transparent. No added props, text, labels, frames, backdrop, halo, or outside shadows. This is original artwork for Poem. The three portraits must swap smoothly in a conversation.",
+      "sha256": "1c8e395660aa4144916c1eed76aeb394ce8f7d31b43ad81241cf90ab848e6488",
+      "notes": "Original source pixels and alpha are preserved. Measured transparent gutters separate the three 724×724 atlas regions."
+    },
+    {
+      "id": "hale",
+      "tool": "Built-in image_gen",
+      "generated": "2026-11-23",
+      "reference": "assets/portraits/dialogue-d-v1.png",
+      "subject": "hale (bottom-left reference portrait)",
+      "output": "assets/portraits/dialogue-hale-expressions-v1.png",
+      "expressions": [
+        "resolute",
+        "concerned",
+        "relieved"
+      ],
+      "prompt": "Create an original transparent dialogue expression atlas for Hale, the older dark-skinned man in the BOTTOM LEFT cell of the supplied Poem portrait sheet. Use that one cell for character identity and painting style only. Ignore all other characters. Preserve deep brown skin and strong build, close-cropped gray-black curls, thick gray beard, dark brown eyes, soot marks along forehead and cheek, worn rusty orange vest over an ivory shirt, navy sash and straps with brass buckle, and a worn mining pick head behind his shoulder, together with the same three-quarter view facing viewer’s right. Output a wide canvas with exactly three equal square cells in one horizontal row. Each cell contains a complete isolated chest-up portrait with matching scale, silhouette, costume, hairstyle, body pose, head position and torso crop. Place the entire figure inside each cell with a generous truly transparent gutter on all four sides, including space below the aligned straight bottom crop. Change facial expression only: LEFT steady protective determination with a firm mouth, CENTER sober concern with eyes slightly downcast, RIGHT a slight relieved closed-mouth smile beneath his beard. Match the clean illustrated fantasy linework and painted color of the source. The figure is opaque and every pixel outside the silhouette is truly transparent. No added props, text, labels, frames, backdrop, halo, or outside shadows. This is original artwork for Poem. The three portraits must swap smoothly in a conversation.",
+      "sha256": "f0555ae88e85eb614caa874b3530ecea97ac30d03bb7d4a3570fae3fb155dd11",
+      "notes": "Original 2170×725 source pixels and alpha are preserved. The three measured square crops are 723×723 with one pixel of vertical inset."
+    },
+    {
+      "id": "elian",
+      "tool": "Built-in image_gen",
+      "generated": "2026-11-23",
+      "reference": "assets/portraits/dialogue-d-v1.png",
+      "subject": "elian (bottom-middle reference portrait)",
+      "output": "assets/portraits/dialogue-elian-expressions-v1.png",
+      "expressions": [
+        "resolute",
+        "reflective",
+        "relieved"
+      ],
+      "prompt": "Create an original transparent dialogue expression atlas for Elian, the silver-haired knight in the BOTTOM MIDDLE cell of the supplied Poem portrait sheet. Use that one cell for character identity and painting style only. Ignore all other characters. Preserve tousled medium-length silver hair with a forelock, warm fair skin, dark brown eyes, clean-shaven youthful face, polished silver armor with gold floral relief, embroidered navy high collar, rich cobalt cloak, gold rosette clasp and brown leather strap, together with the same three-quarter view facing viewer’s right. Output a wide canvas with exactly three equal square cells in one horizontal row. Each cell contains a complete isolated chest-up portrait with matching scale, silhouette, costume, hairstyle, body pose, head position and torso crop. Place the entire figure inside each cell with a generous truly transparent gutter on all four sides, including space below the aligned straight bottom crop. Change facial expression only: LEFT unwavering resolve with a quiet firm mouth, CENTER sober doubt with eyes lowered and softened inner brows, RIGHT restrained relief with a small closed-mouth smile. Match the clean illustrated fantasy linework and painted color of the source. The figure is opaque and every pixel outside the silhouette is truly transparent. No added props, text, labels, frames, backdrop, halo, or outside shadows. This is original artwork for Poem. The three portraits must swap smoothly in a conversation.",
+      "sha256": "35218c65409161135a522fa00524b9c5e18bd6b7ec4d1223eb2a601d42d75f5b",
+      "notes": "Original source pixels and alpha are preserved. Measured transparent gutters separate the three 724×724 atlas regions."
+    },
+    {
+      "id": "rhea",
+      "tool": "Built-in image_gen",
+      "generated": "2026-11-23",
+      "reference": "assets/portraits/dialogue-d-v1.png",
+      "subject": "rhea (bottom-right reference portrait)",
+      "output": "assets/portraits/dialogue-rhea-expressions-v1.png",
+      "expressions": [
+        "resolute",
+        "concerned",
+        "relieved"
+      ],
+      "prompt": "Create an original transparent dialogue expression atlas for Rhea, the long red-haired woman in the BOTTOM RIGHT cell of the supplied Poem portrait sheet. Use that one cell for character identity and painting style only. Ignore all other characters. Preserve pale fair skin, pale blue eyes, long deep auburn waves with side braids and a thin gold ornament, silver plate with gold botanical engraving, navy high collar, ivory mantle with an embroidered blue-and-gold strip and a four-pointed gold clasp, together with the same three-quarter view facing viewer’s right. Output a wide canvas with exactly three equal square cells in one horizontal row. Each cell contains a complete isolated chest-up portrait with matching scale, silhouette, costume, hairstyle, body pose, head position and torso crop. Place the entire figure inside each cell with a generous truly transparent gutter on all four sides, including space below the aligned straight bottom crop. Change facial expression only: LEFT steady determination with level brows and firm closed lips, CENTER reflective worry with inner brows lifted slightly and a thoughtful mouth, RIGHT hopeful relief with softened eyes and a gentle closed-mouth smile. Match the clean illustrated fantasy linework and painted color of the source. The figure is opaque and every pixel outside the silhouette is truly transparent. No added props, text, labels, frames, backdrop, halo, or outside shadows. This is original artwork for Poem. The three portraits must swap smoothly in a conversation.",
+      "sha256": "3bd7059641acdec9b8cf8e0b9bf22018c2874883829e328bde00094767f03213",
+      "notes": "Original source pixels and alpha are preserved. Measured transparent gutters separate the three 724×724 atlas regions."
+    }
+  ]
+}

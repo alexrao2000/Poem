@@ -93,6 +93,8 @@ Nell, Bram, Esme, Rook, Faye and Cassian bring the total to twelve expressive re
 
 Vela, Dax, Una, Silas, Petra and Ari extend this system to the harbor, pass and aqueduct. Their [original sheets and prompts](third-company-expression-provenance.json) use the same measured crops and export compression.
 
+Noor, Galen, Yuna, Hale, Elian and Rhea complete the 24-recruit set. Their [original sheets and prompts](late-company-expression-provenance.json) document the source crops. Hale uses 723-pixel squares in a slightly different source canvas. The campaign assigns expressions to all 103 main lines, ten loss alternatives and 191 support lines.
+
 ## Chapter light and weather
 
 The twelve chapters define their own sky, sun and ambient light. Glass Harbor uses warm dusk, while Windscar Pass uses a cooler sky and pale blue sun. Map and arena share those colors. The arena adds distance haze beyond the fighters. Greywood has unlit slanted rain in the existing instanced atmosphere batch, with faded loop endpoints and a clock that pauses whenever the scene is hidden.

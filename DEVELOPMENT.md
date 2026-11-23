@@ -1,5 +1,7 @@
 # Poem development
 
+All 24 recruits now have three authored dialogue expressions. The game assigns them to all 103 main campaign lines, ten loss alternatives and 191 support lines. Five focused suites passed, including all 36 support replays, survivor layouts and trial-story regression. Both local exports, the full packaged expression suite, exact alpha on the final six sheets and archive integrity passed. Hale’s atlas uses a measured 723-pixel square crop that preserves its slightly different source dimensions.
+
 Vela, Dax, Una, Silas, Petra and Ari extend dialogue expressions to eighteen recruits. The campaign uses 82 expression tags, seven loss alternates and 143 lines across 27 support scenes. Four focused suites passed, including all 27 support replays and survivor dialogue layouts. Both local exports, the full packaged expression suite, exact alpha on the six new textures and archive integrity passed.
 
 Nell, Bram, Esme, Rook, Faye and Cassian now have three expressions each. The twelve expressive recruits cover 67 campaign lines, five loss alternates and 95 lines across 18 support scenes. Six focused suites passed, including all 18 support replays, survivor layouts, 72 automated chapter victories and permadeath and rescue checks. Both local exports, the full packaged expression suite, exact alpha on the six new textures and archive integrity passed. The original portrait prompts and source hashes are recorded in the art guide.

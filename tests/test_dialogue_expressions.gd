@@ -18,9 +18,7 @@ func run():
   var original=faces.get_dialogue_portrait(id)
   var expressions=faces.dialogue_expressions.get(id,{})
   assert(faces.get_dialogue_portrait(id,"missing")==original,"Unknown expressions use the original portrait")
-  if expressions.is_empty():
-   assert(faces.get_dialogue_portrait(id,"resolute")==original)
-   continue
+  assert(expressions.size()==3,"All recruits have a complete expression sheet")
   var atlas=faces.get_dialogue_portrait(id,expressions.keys()[0]).atlas
   var source=atlas.get_image()
   if source.is_compressed():source.decompress()
@@ -28,17 +26,18 @@ func run():
   for expression in expressions:
    var face=faces.get_dialogue_portrait(id,expression)
    assert(face!=original and face==faces.get_dialogue_portrait(id,expression),"Expression cache is distinct and stable")
-   assert(face.atlas==atlas and face.region.size==Vector2(724,724) and face.filter_clip)
+   var crop=Rect2i(face.region)
+   assert(face.atlas==atlas and crop.size.x==crop.size.y and crop.size.x>=723 and face.filter_clip)
    assert(Rect2(Vector2.ZERO,source.get_size()).encloses(face.region))
    for previous in previous_regions:
     assert(not previous.intersects(face.region),"Expression cells do not overlap")
    previous_regions.append(face.region)
-   for x in range(int(face.region.position.x),int(face.region.end.x)):
-    assert(source.get_pixel(x,0).a<.13 and source.get_pixel(x,723).a<.13,"Transparent horizontal gutters isolate the crop")
-   for y in range(724):
-    assert(source.get_pixel(int(face.region.position.x),y).a<.13 and source.get_pixel(int(face.region.end.x)-1,y).a<.13,"Transparent vertical gutters keep adjacent expressions out")
+   for x in range(crop.position.x,crop.end.x):
+    assert(source.get_pixel(x,crop.position.y).a<.13 and source.get_pixel(x,crop.end.y-1).a<.13,"Transparent horizontal gutters isolate the crop")
+   for y in range(crop.position.y,crop.end.y):
+    assert(source.get_pixel(crop.position.x,y).a<.13 and source.get_pixel(crop.end.x-1,y).a<.13,"Transparent vertical gutters keep adjacent expressions out")
    regions+=1
- assert(regions==54)
+ assert(regions==72)
  faces.expression_textures.clear()
  assert(loaded_sheets(faces).is_empty(),"Assets checked in isolation release before testing actual scenes")
  var story=JSON.parse_string(FileAccess.get_file_as_string("res://data/story.json"))
@@ -57,7 +56,7 @@ func run():
      var absent=[line.speaker] if line.speaker!=alternate.speaker else line.get("requires",[])
      assert(Resolve.resolve([line],absent)==[alternate],"An actual loss selects the authored alternate expression")
      alternate_tags+=1
- assert(campaign_tags==82 and alternate_tags==7)
+ assert(campaign_tags==103 and alternate_tags==10)
  var viewport=SubViewport.new();viewport.size=Vector2i(1280,720);viewport.render_target_update_mode=SubViewport.UPDATE_DISABLED;root.add_child(viewport)
  var app=load("res://main.tscn").instantiate();app.settings_path="";app.save_path="/private/tmp/poem-expressions-%d.json"%Time.get_ticks_usec();viewport.add_child(app);await process_frame
  app.preferences.values.text_speed=0;app.settings_path=app.save_path+".settings";assert(app.preferences.save_file(app.settings_path))
@@ -68,7 +67,7 @@ func run():
   if not entry.scenes.any(func(scene):return scene.lines.any(func(line):return line.has("expression"))):continue
   expressed_supports.append(entry)
   app.game.supports.state[entry.id]={"points":18,"rank":3,"chapter":11,"earned":0,"turn":-1}
- assert(expressed_supports.size()==9)
+ assert(expressed_supports.size()==12)
  assert(app.persist_campaign("camp"))
  var before=JSON.stringify(app.game.save_data("camp"));var state=app.game.rng.state
  var disk=FileAccess.get_file_as_string(app.save_path);var settings=FileAccess.get_file_as_string(app.settings_path)
@@ -111,7 +110,7 @@ func run():
    assert(app.screen=="supports","Replay returns to the company bonds menu")
    await process_frame;await process_frame
    assert(loaded_sheets(app.portraits).is_empty(),"Replayed scenes release both partners’ sheets")
- assert(support_tags==143)
+ assert(support_tags==191)
  var neutral=app.portraits.get_dialogue_portrait("lyra")
  app.show_dialogue(story.chapters[0].opening,func():app.show_dossier(app.game.roster[0]))
  assert(loaded_sheets(app.portraits)==["oren"],"Campaign openings load the first speaker only")
@@ -124,5 +123,5 @@ func run():
  assert(JSON.stringify(app.game.save_data("camp"))==before and app.game.rng.state==state)
  assert(FileAccess.get_file_as_string(app.save_path)==disk and FileAccess.get_file_as_string(app.settings_path)==settings,"Portrait changes leave campaign and preference files byte-identical")
  await Shutdown.dispose(app);viewport.queue_free();await process_frame
- print("PASS: 54 transparent expression regions, 82 campaign, seven alternate and 143 support tags, 27 support replays, 24 actual dialogue transitions across three sizes, neutral/unknown/full-roster fallback, same-speaker slot/entrance stability, history, lazy sheet loading and release on Continue/Skip, exact state/file isolation")
+ print("PASS: 72 transparent expression regions, 103 campaign, ten alternate and 191 support tags, 36 support replays, 24 actual dialogue transitions across three sizes, neutral and unknown fallback across the full roster, same-speaker slot/entrance stability, history, lazy sheet loading and release on Continue/Skip, exact state/file isolation")
  quit()

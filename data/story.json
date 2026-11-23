@@ -116,7 +116,8 @@
           "text": "Food? Weapons?",
           "requires": [
             "tarin"
-          ]
+          ],
+          "expression": "concerned"
         },
         {
           "speaker": "tarin",
@@ -691,7 +692,8 @@
               "speaker": "lyra",
               "text": "The observatory records are clear: the engine draws heat out of the valley and stores it above the capital."
             }
-          ]
+          ],
+          "expression": "concerned"
         },
         {
           "speaker": "tarin",
@@ -706,7 +708,8 @@
         },
         {
           "speaker": "galen",
-          "text": "The roots below my monastery are already warm in winter."
+          "text": "The roots below my monastery are already warm in winter.",
+          "expression": "concerned"
         },
         {
           "speaker": "lyra",
@@ -724,7 +727,8 @@
               "speaker": "lyra",
               "text": "This observatory controls the engine’s aim. Break that control, then find its remaining anchors."
             }
-          ]
+          ],
+          "expression": "resolute"
         }
       ],
       "closing": [
@@ -736,11 +740,13 @@
               "speaker": "lyra",
               "text": "The records show three anchors: one in the furnace and two under the palace. We can reach them."
             }
-          ]
+          ],
+          "expression": "resolute"
         },
         {
           "speaker": "galen",
-          "text": "Then I will pack more seeds."
+          "text": "Then I will pack more seeds.",
+          "expression": "reassuring"
         },
         {
           "speaker": "tarin",
@@ -759,9 +765,11 @@
           "when_absent": [
             {
               "speaker": "galen",
-              "text": "I will bring seeds for the day after. Someone ought to think of it."
+              "text": "I will bring seeds for the day after. Someone ought to think of it.",
+              "expression": "reassuring"
             }
-          ]
+          ],
+          "expression": "reassuring"
         }
       ]
     },
@@ -775,7 +783,8 @@
               "speaker": "lyra",
               "text": "These tunnels were built on a promise to end the hungry winters. People are still trapped working below."
             }
-          ]
+          ],
+          "expression": "concerned"
         },
         {
           "speaker": "yuna",
@@ -786,16 +795,19 @@
           "when_absent": [
             {
               "speaker": "yuna",
-              "text": "The palace calls the trapped workers honored volunteers. We will bring them out where the city can see them."
+              "text": "The palace calls the trapped workers honored volunteers. We will bring them out where the city can see them.",
+              "expression": "resolute"
             }
-          ]
+          ],
+          "expression": "concerned"
         },
         {
           "speaker": "hale",
           "text": "Then let us show them some honored volunteers walking out.",
           "requires": [
             "yuna"
-          ]
+          ],
+          "expression": "resolute"
         },
         {
           "speaker": "ivo",
@@ -817,7 +829,8 @@
               "speaker": "lyra",
               "text": "The old shafts are clear. Call the search parties back to the treatment stations."
             }
-          ]
+          ],
+          "expression": "relieved"
         },
         {
           "speaker": "yuna",
@@ -827,7 +840,8 @@
               "speaker": "lyra",
               "text": "We have the route through the palace service doors. They open at dawn."
             }
-          ]
+          ],
+          "expression": "resolute"
         },
         {
           "speaker": "lyra",
@@ -846,7 +860,8 @@
               "speaker": "lyra",
               "text": "The outer defenses have opened to us. The inner guard has not answered our surrender offer."
             }
-          ]
+          ],
+          "expression": "reflective"
         },
         {
           "speaker": "rhea",
@@ -856,7 +871,8 @@
               "speaker": "lyra",
               "text": "The engine chamber is locked from within. The keeper has refused to come out."
             }
-          ]
+          ],
+          "expression": "concerned"
         },
         {
           "speaker": "lyra",
@@ -868,7 +884,8 @@
         },
         {
           "speaker": "rhea",
-          "text": "I want him to open the door. If he will not, I want to be there when we do."
+          "text": "I want him to open the door. If he will not, I want to be there when we do.",
+          "expression": "resolute"
         },
         {
           "speaker": "cassian",
@@ -885,7 +902,8 @@
               "speaker": "lyra",
               "text": "The guard has stood down. Only the engine chamber remains closed."
             }
-          ]
+          ],
+          "expression": "relieved"
         },
         {
           "speaker": "rhea",
@@ -895,7 +913,8 @@
               "speaker": "lyra",
               "text": "We can hear the keeper through the door. He is still giving orders, but no one answers."
             }
-          ]
+          ],
+          "expression": "concerned"
         },
         {
           "speaker": "lyra",
@@ -914,7 +933,8 @@
               "speaker": "lyra",
               "text": "The anchors are failing. Every order sworn to the crown feeds the binding again. We must stop the keeper."
             }
-          ]
+          ],
+          "expression": "concerned"
         },
         {
           "speaker": "rhea",
@@ -924,7 +944,8 @@
               "speaker": "lyra",
               "text": "He believes the oath is holding the city together. It is holding the engine open."
             }
-          ]
+          ],
+          "expression": "concerned"
         },
         {
           "speaker": "oren",
@@ -959,7 +980,8 @@
       "closing": [
         {
           "speaker": "rhea",
-          "text": "I thought the sky would go dark."
+          "text": "I thought the sky would go dark.",
+          "expression": "relieved"
         },
         {
           "speaker": "noor",
@@ -970,13 +992,15 @@
           "when_absent": [
             {
               "speaker": "noor",
-              "text": "The borrowed light is gone. Morning does not need the engine."
+              "text": "The borrowed light is gone. Morning does not need the engine.",
+              "expression": "amused"
             },
             {
               "speaker": "lyra",
               "text": "The engine is quiet. There is still light over the valley."
             }
-          ]
+          ],
+          "expression": "amused"
         },
         {
           "speaker": "cassian",

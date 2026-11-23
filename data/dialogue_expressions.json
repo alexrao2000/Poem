@@ -520,5 +520,179 @@
         724
       ]
     }
+  },
+  "noor": {
+    "resolute": {
+      "path": "res://assets/portraits/dialogue-noor-expressions-v1.png",
+      "region": [
+        0,
+        0,
+        724,
+        724
+      ]
+    },
+    "concerned": {
+      "path": "res://assets/portraits/dialogue-noor-expressions-v1.png",
+      "region": [
+        724,
+        0,
+        724,
+        724
+      ]
+    },
+    "amused": {
+      "path": "res://assets/portraits/dialogue-noor-expressions-v1.png",
+      "region": [
+        1448,
+        0,
+        724,
+        724
+      ]
+    }
+  },
+  "galen": {
+    "resolute": {
+      "path": "res://assets/portraits/dialogue-galen-expressions-v1.png",
+      "region": [
+        0,
+        0,
+        724,
+        724
+      ]
+    },
+    "concerned": {
+      "path": "res://assets/portraits/dialogue-galen-expressions-v1.png",
+      "region": [
+        724,
+        0,
+        724,
+        724
+      ]
+    },
+    "reassuring": {
+      "path": "res://assets/portraits/dialogue-galen-expressions-v1.png",
+      "region": [
+        1448,
+        0,
+        724,
+        724
+      ]
+    }
+  },
+  "yuna": {
+    "resolute": {
+      "path": "res://assets/portraits/dialogue-yuna-expressions-v1.png",
+      "region": [
+        0,
+        0,
+        724,
+        724
+      ]
+    },
+    "concerned": {
+      "path": "res://assets/portraits/dialogue-yuna-expressions-v1.png",
+      "region": [
+        724,
+        0,
+        724,
+        724
+      ]
+    },
+    "reassuring": {
+      "path": "res://assets/portraits/dialogue-yuna-expressions-v1.png",
+      "region": [
+        1448,
+        0,
+        724,
+        724
+      ]
+    }
+  },
+  "hale": {
+    "resolute": {
+      "path": "res://assets/portraits/dialogue-hale-expressions-v1.png",
+      "region": [
+        0,
+        1,
+        723,
+        723
+      ]
+    },
+    "concerned": {
+      "path": "res://assets/portraits/dialogue-hale-expressions-v1.png",
+      "region": [
+        723,
+        1,
+        723,
+        723
+      ]
+    },
+    "relieved": {
+      "path": "res://assets/portraits/dialogue-hale-expressions-v1.png",
+      "region": [
+        1446,
+        1,
+        723,
+        723
+      ]
+    }
+  },
+  "elian": {
+    "resolute": {
+      "path": "res://assets/portraits/dialogue-elian-expressions-v1.png",
+      "region": [
+        0,
+        0,
+        724,
+        724
+      ]
+    },
+    "reflective": {
+      "path": "res://assets/portraits/dialogue-elian-expressions-v1.png",
+      "region": [
+        724,
+        0,
+        724,
+        724
+      ]
+    },
+    "relieved": {
+      "path": "res://assets/portraits/dialogue-elian-expressions-v1.png",
+      "region": [
+        1448,
+        0,
+        724,
+        724
+      ]
+    }
+  },
+  "rhea": {
+    "resolute": {
+      "path": "res://assets/portraits/dialogue-rhea-expressions-v1.png",
+      "region": [
+        0,
+        0,
+        724,
+        724
+      ]
+    },
+    "concerned": {
+      "path": "res://assets/portraits/dialogue-rhea-expressions-v1.png",
+      "region": [
+        724,
+        0,
+        724,
+        724
+      ]
+    },
+    "relieved": {
+      "path": "res://assets/portraits/dialogue-rhea-expressions-v1.png",
+      "region": [
+        1448,
+        0,
+        724,
+        724
+      ]
+    }
   }
 }

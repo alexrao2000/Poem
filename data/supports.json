@@ -1046,19 +1046,23 @@
         "lines": [
           {
             "speaker": "noor",
-            "text": "How long has this soil been warm?"
+            "text": "How long has this soil been warm?",
+            "expression": "concerned"
           },
           {
             "speaker": "galen",
-            "text": "Long enough for the roots to wake. Too soon for the leaves."
+            "text": "Long enough for the roots to wake. Too soon for the leaves.",
+            "expression": "concerned"
           },
           {
             "speaker": "noor",
-            "text": "I need a sample from each bed."
+            "text": "I need a sample from each bed.",
+            "expression": "resolute"
           },
           {
             "speaker": "galen",
-            "text": "Take the radishes too. They have made their objections quite plain."
+            "text": "Take the radishes too. They have made their objections quite plain.",
+            "expression": "reassuring"
           }
         ]
       },
@@ -1067,27 +1071,33 @@
         "lines": [
           {
             "speaker": "noor",
-            "text": "I cannot promise the gardens will survive the shutdown."
+            "text": "I cannot promise the gardens will survive the shutdown.",
+            "expression": "concerned"
           },
           {
             "speaker": "galen",
-            "text": "I asked for a forecast, not a promise."
+            "text": "I asked for a forecast, not a promise.",
+            "expression": "resolute"
           },
           {
             "speaker": "noor",
-            "text": "The eastern beds have the best chance."
+            "text": "The eastern beds have the best chance.",
+            "expression": "resolute"
           },
           {
             "speaker": "galen",
-            "text": "Then that is where the cuttings go."
+            "text": "Then that is where the cuttings go.",
+            "expression": "resolute"
           },
           {
             "speaker": "noor",
-            "text": "You do not seem surprised."
+            "text": "You do not seem surprised.",
+            "expression": "amused"
           },
           {
             "speaker": "galen",
-            "text": "I have planted through several rulers. Hope benefits from a second seed tray."
+            "text": "I have planted through several rulers. Hope benefits from a second seed tray.",
+            "expression": "reassuring"
           }
         ]
       },
@@ -1096,27 +1106,33 @@
         "lines": [
           {
             "speaker": "noor",
-            "text": "The cuttings have new leaves."
+            "text": "The cuttings have new leaves.",
+            "expression": "amused"
           },
           {
             "speaker": "galen",
-            "text": "Three of them. The fourth may yet surprise us."
+            "text": "Three of them. The fourth may yet surprise us.",
+            "expression": "reassuring"
           },
           {
             "speaker": "noor",
-            "text": "I recorded your name beside the observation."
+            "text": "I recorded your name beside the observation.",
+            "expression": "amused"
           },
           {
             "speaker": "galen",
-            "text": "Record who carried the water too."
+            "text": "Record who carried the water too.",
+            "expression": "resolute"
           },
           {
             "speaker": "noor",
-            "text": "I did. There was barely room on the page."
+            "text": "I did. There was barely room on the page.",
+            "expression": "amused"
           },
           {
             "speaker": "galen",
-            "text": "A good problem. Leave another page for what grows next."
+            "text": "A good problem. Leave another page for what grows next.",
+            "expression": "reassuring"
           }
         ]
       }
@@ -1144,19 +1160,23 @@
         "lines": [
           {
             "speaker": "yuna",
-            "text": "Why do you tap every beam?"
+            "text": "Why do you tap every beam?",
+            "expression": "concerned"
           },
           {
             "speaker": "hale",
-            "text": "A ceiling tells you when it is tired. Quietly, at first."
+            "text": "A ceiling tells you when it is tired. Quietly, at first.",
+            "expression": "resolute"
           },
           {
             "speaker": "yuna",
-            "text": "The palace taught me something similar about footsteps."
+            "text": "The palace taught me something similar about footsteps.",
+            "expression": "concerned"
           },
           {
             "speaker": "hale",
-            "text": "Then keep listening below while I listen above."
+            "text": "Then keep listening below while I listen above.",
+            "expression": "resolute"
           }
         ]
       },
@@ -1165,27 +1185,33 @@
         "lines": [
           {
             "speaker": "yuna",
-            "text": "That passage has patrols every forty breaths."
+            "text": "That passage has patrols every forty breaths.",
+            "expression": "resolute"
           },
           {
             "speaker": "hale",
-            "text": "And a cracked support at the turn. We cannot rush everyone through."
+            "text": "And a cracked support at the turn. We cannot rush everyone through.",
+            "expression": "concerned"
           },
           {
             "speaker": "yuna",
-            "text": "I can give us another forty."
+            "text": "I can give us another forty.",
+            "expression": "resolute"
           },
           {
             "speaker": "hale",
-            "text": "How?"
+            "text": "How?",
+            "expression": "concerned"
           },
           {
             "speaker": "yuna",
-            "text": "By being seen exactly where they expect a dancer to be."
+            "text": "By being seen exactly where they expect a dancer to be.",
+            "expression": "resolute"
           },
           {
             "speaker": "hale",
-            "text": "Only if you tell me where you will come back out."
+            "text": "Only if you tell me where you will come back out.",
+            "expression": "concerned"
           }
         ]
       },
@@ -1194,27 +1220,33 @@
         "lines": [
           {
             "speaker": "yuna",
-            "text": "No one told me where to stand this morning."
+            "text": "No one told me where to stand this morning.",
+            "expression": "reassuring"
           },
           {
             "speaker": "hale",
-            "text": "Did you find somewhere?"
+            "text": "Did you find somewhere?",
+            "expression": "concerned"
           },
           {
             "speaker": "yuna",
-            "text": "In the sun. For a while, that was enough."
+            "text": "In the sun. For a while, that was enough.",
+            "expression": "reassuring"
           },
           {
             "speaker": "hale",
-            "text": "My children used to ask why I kept my helmet on outside."
+            "text": "My children used to ask why I kept my helmet on outside.",
+            "expression": "concerned"
           },
           {
             "speaker": "yuna",
-            "text": "What will you tell them now?"
+            "text": "What will you tell them now?",
+            "expression": "concerned"
           },
           {
             "speaker": "hale",
-            "text": "That I am learning to look up without being afraid of what is above me."
+            "text": "That I am learning to look up without being afraid of what is above me.",
+            "expression": "relieved"
           }
         ]
       }
@@ -1242,19 +1274,23 @@
         "lines": [
           {
             "speaker": "rhea",
-            "text": "You have polished the same buckle for ten minutes."
+            "text": "You have polished the same buckle for ten minutes.",
+            "expression": "concerned"
           },
           {
             "speaker": "elian",
-            "text": "You have folded that letter six times."
+            "text": "You have folded that letter six times.",
+            "expression": "reflective"
           },
           {
             "speaker": "rhea",
-            "text": "It still says too little."
+            "text": "It still says too little.",
+            "expression": "concerned"
           },
           {
             "speaker": "elian",
-            "text": "Mine shines too much. Neither task is improving with repetition."
+            "text": "Mine shines too much. Neither task is improving with repetition.",
+            "expression": "relieved"
           }
         ]
       },
@@ -1263,27 +1299,33 @@
         "lines": [
           {
             "speaker": "rhea",
-            "text": "Did you ever tell him an order was wrong?"
+            "text": "Did you ever tell him an order was wrong?",
+            "expression": "concerned"
           },
           {
             "speaker": "elian",
-            "text": "Sometimes. More often I tried to make it less wrong."
+            "text": "Sometimes. More often I tried to make it less wrong.",
+            "expression": "reflective"
           },
           {
             "speaker": "rhea",
-            "text": "I keep removing the angry lines from my letter."
+            "text": "I keep removing the angry lines from my letter.",
+            "expression": "concerned"
           },
           {
             "speaker": "elian",
-            "text": "Does that leave anything true?"
+            "text": "Does that leave anything true?",
+            "expression": "reflective"
           },
           {
             "speaker": "rhea",
-            "text": "It leaves something easier for him to read."
+            "text": "It leaves something easier for him to read.",
+            "expression": "concerned"
           },
           {
             "speaker": "elian",
-            "text": "Then perhaps one angry line should stay."
+            "text": "Then perhaps one angry line should stay.",
+            "expression": "resolute"
           }
         ]
       },
@@ -1292,27 +1334,33 @@
         "lines": [
           {
             "speaker": "rhea",
-            "text": "I sent it."
+            "text": "I sent it.",
+            "expression": "relieved"
           },
           {
             "speaker": "elian",
-            "text": "Would you like me to ask whether it arrived?"
+            "text": "Would you like me to ask whether it arrived?",
+            "expression": "resolute"
           },
           {
             "speaker": "rhea",
-            "text": "Yes. But do not ask anyone to pretend he answered."
+            "text": "Yes. But do not ask anyone to pretend he answered.",
+            "expression": "concerned"
           },
           {
             "speaker": "elian",
-            "text": "I will bring you what I learn."
+            "text": "I will bring you what I learn.",
+            "expression": "resolute"
           },
           {
             "speaker": "rhea",
-            "text": "Whatever he chooses, the surrender road must stay open."
+            "text": "Whatever he chooses, the surrender road must stay open.",
+            "expression": "resolute"
           },
           {
             "speaker": "elian",
-            "text": "It will. And you will not have to stand at the gate alone."
+            "text": "It will. And you will not have to stand at the gate alone.",
+            "expression": "relieved"
           }
         ]
       }
