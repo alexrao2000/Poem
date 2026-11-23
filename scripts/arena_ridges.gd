@@ -8,6 +8,13 @@ const PROFILES=[
  [.18,.36,.78,.55,.95,.42,.63,1.0,.59,.32,.72,.48,.18],
  [.16,.43,.91,.54,.72,.34,1.0,.58,.87,.40,.68,.29,.12]]
 const DEPTHS=[Vector2(-26,-48),Vector2(-40,-66),Vector2(-56,-86)]
+const LANDSCAPES={
+ "village":{"height":1.0,"offset":0.0,"near":Color("617466"),"distant":Color("869394")},
+ "river":{"height":.61,"offset":4.0,"near":Color("526a63"),"distant":Color("8a9e9a")},
+ "forest":{"height":1.12,"offset":-3.0,"near":Color("455e5a"),"distant":Color("79908e")},
+ "road":{"height":.79,"offset":5.0,"near":Color("7a7b61"),"distant":Color("a2a590")},
+ "mountain":{"height":1.0,"offset":0.0,"near":Color("626d73"),"distant":Color("8e9ea6")},
+}
 static var meshes={}
 static var materials={}
 
@@ -46,19 +53,23 @@ static func mesh(layer: int,mountain: bool) -> ArrayMesh:
     surface.set_color(Color(shade,shade,shade,1));surface.set_uv(Vector2(point.x,point.z)*.125);surface.add_vertex(point)
  meshes[key]=surface.commit();return meshes[key]
 
-static func material(layer: int,mountain: bool) -> StandardMaterial3D:
- var key=str(layer)+str(mountain)
+static func material(layer: int,theme: String) -> StandardMaterial3D:
+ var key=str(layer)+theme
  if materials.has(key):return materials[key]
  var surface=StandardMaterial3D.new()
- surface.albedo_color=Color("626d73") if mountain else Color("617466")
- surface.albedo_color=surface.albedo_color.lerp(Color("869394"),layer*.15)
+ var look=LANDSCAPES[theme]
+ surface.albedo_color=look.near.lerp(look.distant,layer*.15)
  surface.vertex_color_use_as_albedo=true;surface.vertex_color_is_srgb=true
  surface.roughness=1.0
  materials[key]=surface;return surface
 
-static func build(parent: Node3D,center: Vector3,mountain: bool):
+static func build(parent: Node3D,center: Vector3,theme: String):
+ var look=LANDSCAPES[theme]
  for layer in range(3):
   var ridge=MeshInstance3D.new();ridge.name="ArenaRidge"+str(layer)
-  ridge.mesh=mesh(layer,mountain);ridge.material_override=material(layer,mountain);ridge.position=center
+  ridge.mesh=mesh(layer,theme=="mountain")
+  ridge.material_override=material(layer,theme)
+  ridge.scale.y=look.height
+  ridge.position=center+Vector3(look.offset*(layer+1),.06*(look.height-1),0)
   ridge.cast_shadow=GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
   parent.add_child(ridge)

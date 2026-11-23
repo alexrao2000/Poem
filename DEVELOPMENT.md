@@ -1,5 +1,9 @@
 # Poem development
 
+The exported Hard section-retreat run at `7837147` completed 15 attempts and 107 turns, with 17 permanent losses, 470 legal player actions, and 998 exact saves. Both planned retreats and the natural lord defeat exercised their normal menu paths. The battle results and final roster matched the earlier seed 309 run. The newer legacy shop also sold and retained the Rally lance and Vigil staff, adding two save checks.
+
+Five natural arenas now apply chapter-specific color, height and lateral offset to three shared ridge meshes. The height transform pins their edges to the distant floor. Tests verify the ridge order from the low river valley to the rocky mountain pass, clearance from combat, and material retention after batching.
+
 The ordinary campaign replay from the exported pack at `8976f6f` passed all twelve chapters, 298 legal player actions and 652 exact disk comparisons. The result matched the earlier seed 472019 campaign’s chapter records, progression and final roster. Twelve first-encounter captions were visible after their actions appeared in the save.
 
 Chapter water materials now share one world-space shader with settings for color, direction, scale, speed and crest strength. Across twelve maps, 250 water and bridge cells use the correct material. Eight actual arenas retain their chapter material after batching.

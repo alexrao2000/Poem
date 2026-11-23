@@ -6,6 +6,10 @@ Development resumed on “go”. Continue in this chat until the user asks to st
 
 ### Latest state
 
+The exported Hard run at `7837147` reached the ending in 107 turns across 15 attempts, with 470 legal player actions and 998 exact save comparisons. It retained 17 permanent losses. The chapter 6 → 5 and 10 → 9 retreats restored their section roster and commander flags. Lyra's defeat triggered a real result-screen retry. Reset pressure reached 3, and the later retreat preserved the Rally lance and Vigil staff purchases.
+
+Cinderford, Reed Crossing, Greywood, Kingsroad and Windscar Pass now have distinct arena skylines. Three heightfield layers use chapter-specific heights, colors and offsets. Six focused suites passed, including ground seams, distance from the fighting lane, and palette retention after batching. Both exports, packaged terrain and archive integrity passed. Rendered appearance still needs review.
+
 The exported build at `8976f6f` completed the full ordinary campaign in 62 turns. The headless run made 298 legal player actions and passed 652 exact save comparisons. It reached the ending with all 24 recruits available and verified twelve commander captions against their saved actions. The chapter records, promotions, supports and final roster matched the earlier run under seed 472019.
 
 Six wet battlefields now have distinct water colors and motion. Their map and combat materials use the same parameters. Terrain checks cover all 250 tactical water cells, eight actual arena bindings, and the bridge and bank levels. Eight focused suites, both local exports, packaged terrain and archive integrity passed. Rendered appearance still needs review.

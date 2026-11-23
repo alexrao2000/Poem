@@ -196,14 +196,35 @@ func verify_ridges():
    var signature=str(heights).sha256_text();assert(signature not in signatures,"Every hill/mountain layer has its own authored skyline")
    signatures.append(signature)
  var scenery=Scenery.new();scenery.batching_enabled=false
+ var skylines={}
  for theme in ["mountain","road","forest","river","village","harbor","castle"]:
   var stage=Node3D.new();root.add_child(stage);var center=Vector3(35,0,0)
   scenery.battle_landscape(stage,center,{"environment":theme})
   var layers=stage.get_children().filter(func(node):return node.name.begins_with("ArenaRidge"))
   assert(layers.size()==(0 if theme in ["harbor","castle"] else 3),"Only outdoor land arenas receive layered terrain")
-  for layer in layers:assert(layer.position==center and layer.material_override.vertex_color_use_as_albedo and layer.cast_shadow==GeometryInstance3D.SHADOW_CASTING_SETTING_OFF,"Distant terrain aligns with the arena and avoids consuming fighter shadow-map coverage")
+  if not layers.is_empty():
+   var look=ridges.LANDSCAPES[theme]
+   var heights=[]
+   for index in layers.size():
+    var layer=layers[index]
+    var framed=layer.transform*layer.mesh.get_aabb()
+    assert(is_equal_approx(framed.position.y,center.y-.06) and framed.end.z<=center.z-26,"The landscape maintains the ground seam and the fighting lane's clearance")
+    assert(layer.mesh==ridges.mesh(index,theme=="mountain") and layer.material_override==ridges.material(index,theme))
+    assert(layer.material_override.albedo_color==look.near.lerp(look.distant,index*.15),"Each layer takes its place-specific color")
+    assert(layer.material_override.vertex_color_use_as_albedo and layer.cast_shadow==GeometryInstance3D.SHADOW_CASTING_SETTING_OFF)
+    assert(is_equal_approx(layer.position.x-center.x,look.offset*(index+1)) and is_equal_approx(layer.scale.y,look.height))
+    heights.append(framed.end.y-center.y)
+   skylines[theme]=heights
+   scenery.batcher.combine(stage)
+   for index in layers.size():
+    var themed_surface=ridges.material(index,theme)
+    assert(stage.get_children().any(func(node):return node is MeshInstance3D and node.material_override==themed_surface),"The authored palette survives actual scenery batching")
   stage.free()
- assert(game.rng.state==rng,"Distant landscape generation consumes no campaign random state")
+ assert(skylines.size()==5 and game.rng.state==rng,"Distant landscape generation consumes no campaign random state")
+ for index in 3:
+  assert(skylines.river[index]<skylines.road[index] and skylines.road[index]<skylines.village[index])
+  assert(skylines.village[index]<skylines.forest[index] and skylines.forest[index]<skylines.mountain[index])
+ print("PASS: five natural arena skylines with distinct heights and palettes, planted boundaries, shared meshes and independent campaign RNG")
 
 func verify_rocks():
  var forms=preload("res://scripts/rock_forms.gd");var signatures=[]

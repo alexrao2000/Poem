@@ -105,6 +105,8 @@ Reed Crossing’s dry-ground arenas join the fight floor to a winding bank. Four
 
 Six chapters have authored water palettes with their own swell size, direction and pace. Reed Crossing has quick, green ripples. Glass Harbor has broader blue-gray swells, and Old Aqueduct runs slowly along the stone channels. The map and its close-up arena use the same chapter material. The opening fountain keeps its soft basin ripples.
 
+Five outdoor arenas have their own skyline. Reed Crossing sits below low, cool banks, Kingsroad has warm open hills, and Greywood rises behind its firs. Cinderford and Windscar Pass keep the rolling foothill and mountain profiles. Each skyline uses three distant layers with a palette that lightens toward the horizon.
+
 ## Contact timing and guarded hits
 
 Damaging contact holds actor processing locally for 55 ms (100 ms for criticals), after a 35 ms recoil lead. The camera, effects, UI and shared music timeline continue. This uses node-bound tween processing, described in the [Godot 4.5 Tween documentation](https://docs.godotengine.org/en/4.5/classes/class_tween.html); tests cover procedural joints, imported AnimationPlayers, cancellation and combat skipping. No global time scale changes. Zero-damage hits have a guard stance and restrained gray glint instead of damaging sparks. `scripts/combat_accents.py` generates the original short metallic sound without rewriting the soundtrack; the main score generator also includes it.

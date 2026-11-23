@@ -11,6 +11,7 @@ const GroundCover=preload("res://scripts/ground_cover.gd")
 const ConiferCrowns=preload("res://scripts/conifer_crowns.gd")
 const BarrelVisuals=preload("res://scripts/barrel_visuals.gd")
 const HarborBoat=preload("res://scripts/harbor_boat.gd")
+const ArenaRidges=preload("res://scripts/arena_ridges.gd")
 const WATER_STYLES={
  "river":{"deep_color":Color("28453b"),"crest_color":Color("a4b593"),"flow_direction":Vector2(0,1),"wave_scale":Vector2(.94,1.08),"wave_speed":1.14,"crest_strength":.31},
  "road":{"deep_color":Color("285054"),"crest_color":Color("a3b8a6"),"flow_direction":Vector2(1,0),"wave_scale":Vector2(.83,.92),"wave_speed":.86,"crest_strength":.30},
@@ -399,8 +400,8 @@ func battle_landscape(parent,center,context={}):
    Fortification.build_castle_wall(self,parent,center+Vector3(0,0,-9))
   elif theme=="observatory":
    var orbit=preload("res://scripts/clockwork_orbit.gd").new();parent.add_child(orbit);orbit.position=center+Vector3(0,2.6,-10);orbit.configure(theme,1.54,.55)
- if theme in ["mountain","road","forest","river","village"]:
-  preload("res://scripts/arena_ridges.gd").build(parent,center,theme=="mountain")
+ if ArenaRidges.LANDSCAPES.has(theme):
+  ArenaRidges.build(parent,center,theme)
   if theme=="mountain":
    for i in range(16):boulder(parent,center+Vector3(-12+(i*7)%25,.4,-4-i%3),1.0+i%3*.3)
    for i in range(8):
