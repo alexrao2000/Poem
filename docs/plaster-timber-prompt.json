@@ -1,0 +1,16 @@
+{
+  "mode": "Built-in image generation, opaque background",
+  "prompt": "Use case: stylized-concept. Asset type: original diffuse material atlas for the painted 3D environments in a medieval tactical RPG. Generate a square 2 by 2 atlas with precisely four equally sized full-bleed square material swatches, adjacent without separators. Upper left: pale warm ivory limewashed plaster on a cottage wall, mostly even, small trowel marks and faint sandstone flecks, no picture of a wall or architectural object. Upper right: slightly weathered straw-ochre lime plaster with subtle centuries-old wear and small aggregate, also even and softly painted. Lower left: deep umber medieval oak surface, subdued fine grain running vertically, shallow little knots, aged timber trim and door material. Lower right: lighter salt-silvered brown dock wood, with restrained vertical grain, narrow weathered streaks and sparse tiny knots. All four swatches are opaque, front-on diffuse albedo, undirected diffuse lighting, balanced medium detail for use on small world geometry, no perspective, cast shadows, decorative beams, windows, nails, caulking lines, tiles, text, lettering, borders, or symbols. Give each quadrant a consistent tone across its entire square, no distinct bright spot or vignette. Match quiet hand-painted wood and stone colors in an original historical fantasy scene.",
+  "asset": "assets/art/plaster-timber-v1.png",
+  "sha256": "af696d662cb5bba0acc9bd024e984c8762480d2c1a35bacae7382ca33b66c40b",
+  "size": [
+    1254,
+    1254
+  ],
+  "layout": [
+    "lime plaster",
+    "ochre plaster",
+    "oak",
+    "weathered deck timber"
+  ]
+}

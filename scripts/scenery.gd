@@ -12,6 +12,13 @@ const ConiferCrowns=preload("res://scripts/conifer_crowns.gd")
 const BarrelVisuals=preload("res://scripts/barrel_visuals.gd")
 const HarborBoat=preload("res://scripts/harbor_boat.gd")
 const ArenaRidges=preload("res://scripts/arena_ridges.gd")
+enum BuildingFinish { LIME_PLASTER, OCHRE_PLASTER, OAK, DECK_WOOD }
+const BUILDING_FINISHES=[
+ {"color":Color("c5bca4"),"scale":.66,"weight":.66},
+ {"color":Color("b19e80"),"scale":.60,"weight":.56},
+ {"color":Color("655240"),"scale":.64,"weight":.68},
+ {"color":Color("8b7a68"),"scale":.70,"weight":.62},
+]
 const WATER_STYLES={
  "river":{"deep_color":Color("28453b"),"crest_color":Color("a4b593"),"flow_direction":Vector2(0,1),"wave_scale":Vector2(.94,1.08),"wave_speed":1.14,"crest_strength":.31},
  "road":{"deep_color":Color("285054"),"crest_color":Color("a3b8a6"),"flow_direction":Vector2(1,0),"wave_scale":Vector2(.83,.92),"wave_speed":.86,"crest_strength":.30},
@@ -32,6 +39,7 @@ var planes: Dictionary={}
 var atlas: Texture2D
 var environment_atlas: Texture2D
 var foliage_atlas: Texture2D
+var building_atlas: Texture2D
 
 func _init():
  atlas=load("res://assets/art/terrain-atlas.png")
@@ -64,6 +72,21 @@ func water_material(theme="") -> ShaderMaterial:
   materials[key]=m
  return materials[key]
 
+func building_material(finish: int) -> ShaderMaterial:
+ var key="building"+str(finish)
+ if not materials.has(key):
+  if building_atlas==null:building_atlas=load("res://assets/art/plaster-timber-v1.png")
+  var style=BUILDING_FINISHES[finish]
+  var paint=ShaderMaterial.new()
+  paint.shader=preload("res://assets/shaders/plaster-timber.gdshader")
+  paint.set_shader_parameter("atlas_texture",building_atlas)
+  paint.set_shader_parameter("cell_origin",Vector2((finish%2)*.5,.5 if finish>=2 else 0.0))
+  paint.set_shader_parameter("base_color",style.color)
+  paint.set_shader_parameter("tile_scale",style.scale)
+  paint.set_shader_parameter("paint_weight",style.weight)
+  materials[key]=paint
+ return materials[key]
+
 func material(color: Color) -> StandardMaterial3D:
  var key=color.to_html()
  if materials.has(key):return materials[key]
@@ -88,8 +111,8 @@ func ground_material(tile: int) -> ShaderMaterial:
 func mesh(parent: Node3D,shape: Mesh,p: Vector3,scale_value: Vector3,m: Material) -> MeshInstance3D:
  var n=MeshInstance3D.new();n.mesh=shape;n.position=p;n.scale=scale_value;n.material_override=m;parent.add_child(n);return n
 
-func block(parent,p,size,color):
- return mesh(parent,unit_block,p,size,material(color))
+func block(parent,p,size,paint):
+ return mesh(parent,unit_block,p,size,paint if paint is Material else material(paint))
 
 func plane_shape(size: Vector2) -> PlaneMesh:
  if not planes.has(size):
@@ -163,8 +186,9 @@ func conifer(parent,p,seed_value,theme):
 func bridge(parent,p,vertical=false):
  var root=Node3D.new();parent.add_child(root);root.position=p
  if vertical:root.rotation.y=PI/2
+ var deck=building_material(BuildingFinish.DECK_WOOD)
  for i in range(7):
-  block(root,Vector3((i-3)*.145,MapSurface.BRIDGE_HEIGHT-.045,0),Vector3(.135,.09,.98),Color("978367").lightened((i%3)*.025))
+  block(root,Vector3((i-3)*.145,MapSurface.BRIDGE_HEIGHT-.045,0),Vector3(.135,.09,.98),deck).name="BridgePlank"
  for z in [-.43,.43]:
   block(root,Vector3(0,.25,z),Vector3(1,.07,.055),Color("665747"))
   for x in [-.4,.4]:block(root,Vector3(x,.16,z),Vector3(.065,.4,.065),Color("655444"))
@@ -174,17 +198,19 @@ func sanctuary(parent,p):
  block(parent,p+Vector3(0,MapSurface.SANCTUARY_HEIGHT-.01,0),Vector3(.35,.02,.08),Color("f5e4ac"))
  block(parent,p+Vector3(0,MapSurface.SANCTUARY_HEIGHT-.01,0),Vector3(.08,.02,.35),Color("f5e4ac"))
 
-func house(parent,p,scale_value=1.0,roof_variant=-1):
+func house(parent,p,scale_value=1.0,roof_variant=-1,warehouse=false):
  var root=Node3D.new();parent.add_child(root);root.position=p;root.scale=Vector3.ONE*scale_value
  root.name="House"
  if roof_variant<0:roof_variant=Architecture.variant_at(p)
  root.set_meta("roof_variant",roof_variant)
- block(root,Vector3(0,.6,0),Vector3(1.6,1.2,1.25),Color("c5bca4"))
+ var plaster=building_material(BuildingFinish.OCHRE_PLASTER if warehouse else BuildingFinish.LIME_PLASTER)
+ var oak=building_material(BuildingFinish.OAK)
+ block(root,Vector3(0,.6,0),Vector3(1.6,1.2,1.25),plaster).name="PlasterWall"
  # Stone foundation, half-timber braces, door and windows.
  var foundation=block(root,Vector3(0,.08,0),Vector3(1.7,.16,1.34),Color("8b8a79"));foundation.material_override=detail_material(3)
- for x in [-.76,0,.76]:block(root,Vector3(x,.6,.64),Vector3(.06,1.2,.06),Color("695543"))
- for y in [.2,.95]:block(root,Vector3(0,y,.64),Vector3(1.6,.055,.055),Color("695543"))
- block(root,Vector3(-.3,.39,.67),Vector3(.28,.65,.025),Color("584c42"))
+ for x in [-.76,0,.76]:block(root,Vector3(x,.6,.64),Vector3(.06,1.2,.06),oak)
+ for y in [.2,.95]:block(root,Vector3(0,y,.64),Vector3(1.6,.055,.055),oak)
+ block(root,Vector3(-.3,.39,.67),Vector3(.28,.65,.025),oak)
  block(root,Vector3(.4,.7,.67),Vector3(.27,.3,.025),Color("49616b"))
  for x in [.25,.55]:block(root,Vector3(x,.7,.69),Vector3(.06,.36,.05),Color("7a8379"))
  for y in [.54,.85]:block(root,Vector3(.4,y,.7),Vector3(.37,.045,.045),Color("796854"))
@@ -193,15 +219,14 @@ func house(parent,p,scale_value=1.0,roof_variant=-1):
  for x in [-.48,-.12]:block(root,Vector3(x,.42,.7),Vector3(.05,.72,.05),Color("76624b"))
  block(root,Vector3(-.3,.79,.7),Vector3(.4,.06,.06),Color("76624b"))
  for x in [-.82,.82]:
-  for z in [-.48,.48]:block(root,Vector3(x,.6,z),Vector3(.05,1.2,.06),Color("695543"))
-  for y in [.25,.95]:block(root,Vector3(x,y,0),Vector3(.05,.06,1.25),Color("695543"))
+  for z in [-.48,.48]:block(root,Vector3(x,.6,z),Vector3(.05,1.2,.06),oak)
+  for y in [.25,.95]:block(root,Vector3(x,y,0),Vector3(.05,.06,1.25),oak)
  for z in [-.63,.63]:
   var gable=SurfaceTool.new();gable.begin(Mesh.PRIMITIVE_TRIANGLES)
   for point in [Vector3(-.8,1.2,z),Vector3(.8,1.2,z),Vector3(0,1.7,z)]:gable.add_vertex(point)
   gable.generate_normals()
-  var plaster=material(Color("c5bca4")).duplicate();plaster.cull_mode=BaseMaterial3D.CULL_DISABLED
-  mesh(root,gable.commit(),Vector3.ZERO,Vector3.ONE,plaster)
-  block(root,Vector3(0,1.42,z),Vector3(.065,.55,.06),Color("695543"))
+  mesh(root,gable.commit(),Vector3.ZERO,Vector3.ONE,plaster).name="PlasterGable"
+  block(root,Vector3(0,1.42,z),Vector3(.065,.55,.06),oak)
  var roof=mesh(root,Architecture.roof(roof_variant),Vector3.ZERO,Vector3.ONE,Architecture.material());roof.name="TiledRoof"
  var chimney=block(root,Vector3(.5,1.6,-.3),Vector3(.23,.7,.25),Color("8d8271"));chimney.material_override=detail_material(3)
  block(root,Vector3(.5,1.97,-.3),Vector3(.29,.08,.3),Color("686c68"))
@@ -280,7 +305,8 @@ func landscape(parent,game):
 func landmark(parent,p,kind,roof_variant=-1):
  var stone=Color("969b91");var gold=Color("bba16b")
  if kind in ["house","warehouse"]:
-  house(parent,p,1.4 if kind=="warehouse" else 1.2,roof_variant)
+  var warehouse=kind=="warehouse"
+  house(parent,p,1.4 if warehouse else 1.2,roof_variant,warehouse)
  elif kind=="fountain":
   Fountain.build(parent,p,water_material())
  elif kind=="tower":
@@ -353,9 +379,10 @@ func battle_landscape(parent,center,context={}):
   var water_depth=-12.0 if wooden_floor else -23.0 if river else -22.0
   var water_surface=mesh(parent,plane,center+Vector3(0,water_level,water_depth),Vector3.ONE,water);water_surface.name="ArenaWater"
   if wooden_floor:
+   var deck=building_material(BuildingFinish.DECK_WOOD)
    for x in range(-10,11):
     for z in range(-2,3):
-     var plank=block(parent,center+Vector3(x,-.025,z),Vector3(.98,.05,.98),Color("877560").lightened((x+z+30)%3*.02));plank.name="ArenaDeck"
+     block(parent,center+Vector3(x,-.025,z),Vector3(.98,.05,.98),deck).name="ArenaDeck"
   if wooden_floor or theme=="aqueduct":
    for x in range(-10,11,2):
     block(parent,center+Vector3(x,.55,-3),Vector3(.13,1.1,.13),Color("72624f")).name="ArenaRailPost"

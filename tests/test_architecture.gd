@@ -38,6 +38,7 @@ func run():
   assert(varied,"Tile courses retain subtle individual coloration")
  assert(Roof.material().vertex_color_use_as_albedo and Roof.material().vertex_color_is_srgb,"Roof tile colors reach the shared material")
  var scenery=Scenery.new();scenery.batching_enabled=false;var game=Rules.new();var state=game.rng.state;var cases=0
+ verify_building_atlas(scenery)
  for chapter in range(12):
   game.chapter=chapter
   for item in game.info().landmarks:
@@ -46,16 +47,48 @@ func run():
    var world=Node3D.new();root.add_child(world);scenery.landmark(world,p,item.kind)
    var house=world.get_node("House");assert(house.get_meta("roof_variant")==expected)
    assert(house.get_node("TiledRoof").mesh==Roof.roof(expected),"Map building uses its stable position-based palette")
+   var finish=Scenery.BuildingFinish.OCHRE_PLASTER if item.kind=="warehouse" else Scenery.BuildingFinish.LIME_PLASTER
+   var plaster=scenery.building_material(finish)
+   assert(house.get_node("PlasterWall").material_override==plaster)
+   var gables=house.find_children("PlasterGable*","MeshInstance3D",true,false)
+   assert(gables.size()==2 and gables.all(func(node):return node.material_override==plaster),"Both gables use the same finish as the house walls")
+   var oak=scenery.building_material(Scenery.BuildingFinish.OAK)
+   assert(house.get_children().filter(func(node):return node is MeshInstance3D and node.material_override==oak).size()>=16)
    var context=scenery.combat_context(game,{"x":int(p.x)-1,"y":int(p.z)},{"x":int(p.x),"y":int(p.z)})
    assert(context.landmarks[0].kind==item.kind and context.landmarks[0].roof_variant==expected,"Nearest building keeps its roof identity when remapped into the arena")
    var arena=Node3D.new();root.add_child(arena);scenery.battle_landscape(arena,Vector3(35,0,0),context)
    var landmarks=arena.get_children().filter(func(node):return str(node.name).begins_with("ArenaLandmark"))
    assert(landmarks[0].get_node("House").get_meta("roof_variant")==expected,"Actual combat backdrop receives the preserved palette")
+   assert(landmarks[0].get_node("House/PlasterWall").material_override==plaster,"The map and arena share the painted building material")
    world.queue_free();arena.queue_free();await process_frame;cases+=1
  assert(cases>0 and game.rng.state==state,"Architecture never consumes gameplay RNG")
  await verify_cloth()
  print("PASS: arched castle gate/portcullis, tiered fountain basins/jets, six shared fortified towers, battlement/deck rays, three cached roofs, 204 gable intersections, ",cases," house identities, 14 pinned cloth resources, bounded motion parameters and cleanup")
  quit()
+
+func verify_building_atlas(scenery):
+ assert(scenery.building_atlas==null,"The atlas is loaded when a structure first needs it")
+ var paints=[]
+ for finish in range(4):
+  var paint=scenery.building_material(finish)
+  assert(paint==scenery.building_material(finish) and paint not in paints)
+  assert(paint.get_shader_parameter("atlas_texture")==scenery.building_atlas and paint.get_shader_parameter("cell_origin")==Vector2(finish%2,finish/2)*.5)
+  assert(paint.get_shader_parameter("tile_scale")>0 and paint.get_shader_parameter("paint_weight")>.5)
+  paints.append(paint)
+ var image=scenery.building_atlas.get_image()
+ assert(image.get_size()==Vector2i(1254,1254) and image.has_mipmaps(),"The four diffuse swatches retain the measured atlas size and mipmaps")
+ var averages=[]
+ for finish in range(4):
+  var start=Vector2i(finish%2,finish/2)*627
+  var average=Color(0,0,0,0)
+  for y in range(31,610,64):
+   for x in range(31,610,64):
+    var sample=image.get_pixel(start.x+x,start.y+y)
+    assert(sample.a==1)
+    average+=sample
+  averages.append(average/100)
+ assert(averages[0].g>averages[1].g and averages[1].g>averages[3].g and averages[3].g>averages[2].g)
+ print("PASS: four original plaster and timber swatches load lazily in a single mipmapped atlas")
 
 func verify_cloth():
  var world=Node3D.new();root.add_child(world);world.position=Vector3(35,.3,-2);world.rotation.y=.3;world.scale=Vector3.ONE*2

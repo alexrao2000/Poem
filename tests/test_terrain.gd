@@ -402,6 +402,9 @@ func verify_water_styles():
    wet_map+=row.count("~")
    crossings+=row.count("=")
   assert(markers.size()==wet_map+crossings)
+  var deck=scenery.building_material(Scenery.BuildingFinish.DECK_WOOD)
+  var planks=map.find_children("BridgePlank*","MeshInstance3D",true,false)
+  assert(planks.size()==crossings*7 and planks.all(func(node):return node.material_override==deck),"Every tactical bridge uses the painted deck wood swatch")
   for node in markers:
    assert(node.material_override==expected and is_equal_approx(node.position.y,-.07),"Map tiles share water material while retaining their physical level")
   wet_cells+=markers.size()

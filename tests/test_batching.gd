@@ -168,6 +168,7 @@ func verify_deck(world: Node3D,center: Vector3):
  assert(planks.size()==105,"Dock floor contains the full fighting lane")
  for plank in planks:
   assert(is_equal_approx(plank.position.y+plank.scale.y*plank.mesh.get_aabb().end.y,center.y),"Every deck top matches the fighters' ground plane")
+  assert(plank.material_override.get_shader_parameter("cell_origin")==Vector2(.5,.5),"Arena planks use the painted deck wood swatch")
  var water=world.get_node("ArenaWater")
  assert(water.position.y<center.y-.05 and water.position.z+water.mesh.size.y*.5>center.z+2.5,"Water stays below and extends beneath the entire deck")
  for mesh in world.find_children("*","MeshInstance3D",true,false):
