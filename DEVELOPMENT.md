@@ -1,5 +1,7 @@
 # Poem development
 
+Each named commander now has two original first-encounter lines. The opponent selects the chapter-specific variant. The app records the chosen encounter before saving the action, then presents its portrait caption in 3D and Quick map. Direct model and animation studies remain independent of campaign flags. Eight focused suites passed, including 144 layouts, both exchange directions, Tab, and exact Debug save isolation.
+
 Reed Crossing’s combat arenas use two cached bank meshes. Dry fights meet the near bank at the back of the fighting lane, with fourteen reeds rooted just above water. Trees and towers sit on the far bank. The towers retain their map-relative horizontal order and spread in depth. Bridge fights keep the existing deck and rail.
 
 Greywood and Windscar Pass now share four original conifer cutouts between their maps and combat arenas. Keep the planar cards upright and their lowest foliage attached to the tapered trunk. The tactical scale and distant arena placements keep the terrain and fighting lane clear. The atlas retains transparent gutters and mipmaps. [Source prompt and image hash](docs/conifer-crown-prompt.json).

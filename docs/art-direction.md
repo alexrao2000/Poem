@@ -137,6 +137,8 @@ Criticals use a 156 px full-width strip above the combat nameplates, with a clos
 
 A new original 320 ms synthesized air/chime cue begins with the strip. `scripts/combat_accents.py --effect cutin` regenerates it independently; the full score generator includes the same function. It uses its own fixed synthesis seed and does not touch either score arrangement or game RNG. Runtime checks do not substitute for a rendered or listening review.
 
+Named commanders have a separate first-encounter caption. It uses their regular portrait and either the chapter’s original challenge or a line written for a recruit involved in that story. Quick maps center the caption above the battlefield with room for the unit panel. In 3D, the caption appears before the fighters advance. Tab uses the existing skip input.
+
 ## Tactical action tracking
 
 Moving units receive a short camera pan only when their full sprite bounds lie outside the readable map area. The camera follows them at that area's edges without changing the chosen zoom, map angle or lens offset. Map-only attacks and recovery frame both participants before the cue appears; the next player phase returns attention to the first standing ally. Normal full-arena transitions retain their existing view restoration.

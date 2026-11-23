@@ -48,6 +48,7 @@ const CombatHeal=preload("res://scripts/combat_heal.gd")
 const CombatProjectile=preload("res://scripts/combat_projectile.gd")
 const CombatCamera=preload("res://scripts/combat_camera.gd")
 const CombatHUD=preload("res://scripts/combat_hud.gd")
+const Commanders=preload("res://scripts/commanders.gd")
 const CombatTransition=preload("res://scripts/combat_transition.gd")
 const ProgressReward=preload("res://scripts/progress_reward.gd")
 const ScoreDirector=preload("res://scripts/score_director.gd")
@@ -1049,8 +1050,9 @@ func player_attack():
 	var before=game.progress_snapshot()
 	var bonds_before=game.supports.state.duplicate(true)
 	var events=game.combat(a,b)
+	var challenge=commander_challenge(a,b,events)
 	if not checkpoint_action("attack"):return
-	await cinematic(a,b,events,initial_hp)
+	await cinematic(a,b,events,initial_hp,challenge)
 	await show_progress(before,bonds_before,a.id)
 	busy=false;finish_action()
 
@@ -1089,6 +1091,7 @@ func end_turn(resuming=false):
 		var bonds_before=game.supports.state.duplicate(true)
 		var path=game.movement_path(e,choice.position)
 		var events=tactics.apply_plan(game,e,choice)
+		var challenge=commander_challenge(e,chosen,events)
 		if not checkpoint_action("enemy_"+choice.action):return
 		# Keep the whole action durable before its first presentation await.
 		# Existing map figures retain pre-action health until feedback completes.
@@ -1099,7 +1102,7 @@ func end_turn(resuming=false):
 		if chosen!=null and choice.action=="heal" and chosen.hp>initial_hp[chosen.id]:
 			await staff_healing(e,chosen,int(chosen.hp-initial_hp[chosen.id]),before)
 		elif chosen!=null and not events.is_empty():
-			await cinematic(e,chosen,events,initial_hp)
+			await cinematic(e,chosen,events,initial_hp,challenge)
 			await show_progress(before,bonds_before,chosen.id)
 		refresh_pieces()
 		if game.result()!="":break
@@ -1141,11 +1144,56 @@ func staff_healing(healer,recipient,amount: int,before: Dictionary={}):
 	var limits={healer.id:old_max,recipient.id:recipient.max_hp}
 	await cinematic(healer,recipient,[{"actor":healer.id,"target":recipient.id,"healing":amount,"health_limits":limits,"revived":revived}],{healer.id:old_hp,recipient.id:recipient.hp-amount})
 
-func cinematic(a,b,events,initial_hp={}):
+func commander_challenge(attacker: Dictionary,defender,events: Array) -> Dictionary:
+	if defender==null or events.is_empty() or events[0].has("healing"):return {}
+	return Commanders.take_challenge(attacker,defender,game.info().boss,game.story_seen)
+
+func commander_caption(challenge: Dictionary,on_map: bool) -> Control:
+	var frame=CenterContainer.new()
+	frame.name="CommanderChallenge"
+	frame.mouse_filter=Control.MOUSE_FILTER_IGNORE
+	ui.add_child(frame)
+	frame.set_anchors_and_offsets_preset(Control.PRESET_TOP_WIDE)
+	frame.offset_left=22
+	frame.offset_right=-343 if on_map else -22
+	frame.offset_top=112 if on_map else 34
+	frame.offset_bottom=frame.offset_top
+	var card=PanelContainer.new()
+	card.add_theme_stylebox_override("panel",box(Color("312832ee")))
+	card.mouse_filter=Control.MOUSE_FILTER_IGNORE
+	frame.add_child(card)
+	var row=HBoxContainer.new()
+	row.add_theme_constant_override("separation",12)
+	row.mouse_filter=Control.MOUSE_FILTER_IGNORE
+	card.add_child(row)
+	var portrait=TextureRect.new()
+	portrait.name="CommanderPortrait"
+	portrait.texture=portraits.get_unit_portrait(challenge.unit)
+	portrait.custom_minimum_size=Vector2(45,56)
+	portrait.expand_mode=TextureRect.EXPAND_IGNORE_SIZE
+	portrait.stretch_mode=TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+	portrait.mouse_filter=Control.MOUSE_FILTER_IGNORE
+	row.add_child(portrait)
+	var text=VBoxContainer.new()
+	text.custom_minimum_size.x=322
+	text.alignment=BoxContainer.ALIGNMENT_CENTER
+	text.mouse_filter=Control.MOUSE_FILTER_IGNORE
+	row.add_child(text)
+	label_in(text,challenge.unit.name,15,Color("e9cf9c")).name="Speaker"
+	label_in(text,challenge.line,19,Color("faf2dd")).name="ChallengeLine"
+	return frame
+
+func present_commander_challenge(challenge: Dictionary,on_map: bool):
+	var caption=commander_caption(challenge,on_map)
+	await combat_pause(1.45)
+	if is_instance_valid(caption):caption.queue_free()
+
+func cinematic(a,b,events,initial_hp={},challenge: Dictionary={}):
 	if events.is_empty():return
 	skip_combat=false
 	map_navigation.stop()
 	if not preferences.show_cinematic(a.team):
+		if not challenge.is_empty():await present_commander_challenge(challenge,true)
 		await map_combat_feedback(events)
 		await present_casualties(events)
 		return
@@ -1225,7 +1273,8 @@ func cinematic(a,b,events,initial_hp={}):
 
 	var finished_exchange=false
 	var dodge: Tween
-	await combat_pause(.3)
+	if challenge.is_empty():await combat_pause(.3)
+	else:await present_commander_challenge(challenge,false)
 	for event in events:
 		if skip_combat:break
 		var who=actor if event.actor==a.id else defender

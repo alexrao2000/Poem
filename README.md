@@ -107,6 +107,8 @@ Combat includes weighted terrain movement, occupancy, the weapon triangle, two-r
 
 Presentation includes weapon-specific projectiles, distinct Ember/Gale/Thunder spells, continuous counters and follow-ups, critical portrait accents, animated health meters, and terrain-matched arenas. Full 3D battles begin by enlarging the engaged map sprites before the transition covers the battlefield. Options let you choose full 3D, player-only, or quick-map battles.
 
+Each named commander speaks the first time they fight your company. The line changes for a recruit with a connection to that chapter. The portrait caption appears in 3D and Quick map combat. Press **Tab** to dismiss it.
+
 ### Promotions and supports
 
 At level 10, open **Advanced training** in a recruit's dossier to compare two permanent promotion paths. There are 16 advanced paths across the eight base classes. Training retains level, experience, and equipment, and costs no consumable.

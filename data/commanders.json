@@ -23,7 +23,13 @@
       0.63,
       0.35
     ],
-    "critical_quote": "Hold the line."
+    "critical_quote": "Hold the line.",
+    "challenge": {
+      "default": "Set down the banner and step aside.",
+      "opponents": {
+        "lyra": "Still flying that torn thing, Lyra?"
+      }
+    }
   },
   "Tollmaster Renn": {
     "id": "renn",
@@ -48,7 +54,13 @@
       0.7,
       0.4
     ],
-    "critical_quote": "Pay in steel."
+    "critical_quote": "Pay in steel.",
+    "challenge": {
+      "default": "The chain stays up. You turn back.",
+      "opponents": {
+        "mara": "Your boats crossed here once, Mara. Once."
+      }
+    }
   },
   "Hunter Cale": {
     "id": "cale",
@@ -75,7 +87,13 @@
       0.66,
       0.4
     ],
-    "critical_quote": "No road is safe."
+    "critical_quote": "No road is safe.",
+    "challenge": {
+      "default": "Put out the lanterns. The hunt is over.",
+      "opponents": {
+        "nell": "I followed your lanterns all the way here, Nell."
+      }
+    }
   },
   "Prior Ash": {
     "id": "ash",
@@ -102,7 +120,13 @@
       0.71,
       0.37
     ],
-    "critical_quote": "Listen to the silence."
+    "critical_quote": "Listen to the silence.",
+    "challenge": {
+      "default": "The bell has found a higher purpose.",
+      "opponents": {
+        "esme": "You should have left with the other novices, Esme."
+      }
+    }
   },
   "Marshal Orr": {
     "id": "orr",
@@ -129,7 +153,13 @@
       0.73,
       0.38
     ],
-    "critical_quote": "The crown advances."
+    "critical_quote": "The crown advances.",
+    "challenge": {
+      "default": "This road belongs to the crown.",
+      "opponents": {
+        "cassian": "There is room for one banner on this road, Cassian."
+      }
+    }
   },
   "Admiral Vale": {
     "id": "vale",
@@ -156,7 +186,13 @@
       0.61,
       0.35
     ],
-    "critical_quote": "All roads end here."
+    "critical_quote": "All roads end here.",
+    "challenge": {
+      "default": "I decide which ships leave this harbor.",
+      "opponents": {
+        "dax": "I know who untied the moorings, Dax."
+      }
+    }
   },
   "General Kest": {
     "id": "kest",
@@ -181,7 +217,13 @@
       0.68,
       0.41
     ],
-    "critical_quote": "Retreat is over."
+    "critical_quote": "Retreat is over.",
+    "challenge": {
+      "default": "Give me the dispatch and keep your lives.",
+      "opponents": {
+        "una": "You should have burned that letter, Una."
+      }
+    }
   },
   "Engineer Mal": {
     "id": "mal",
@@ -206,7 +248,13 @@
       0.69,
       0.38
     ],
-    "critical_quote": "Every seam will fail."
+    "critical_quote": "Every seam will fail.",
+    "challenge": {
+      "default": "One gate turns, and this whole span drowns.",
+      "opponents": {
+        "petra": "I sealed your passage myself, Petra."
+      }
+    }
   },
   "Astrologer Sen": {
     "id": "sen",
@@ -233,7 +281,13 @@
       0.66,
       0.3
     ],
-    "critical_quote": "The sky has judged."
+    "critical_quote": "The sky has judged.",
+    "challenge": {
+      "default": "The capital will have its morning.",
+      "opponents": {
+        "noor": "You counted the cost. I chose who would pay."
+      }
+    }
   },
   "Warden Flint": {
     "id": "flint",
@@ -258,7 +312,13 @@
       0.68,
       0.34
     ],
-    "critical_quote": "Let the iron speak."
+    "critical_quote": "Let the iron speak.",
+    "challenge": {
+      "default": "The furnace burns until the work is done.",
+      "opponents": {
+        "hale": "I heard your people under the east grating, Hale."
+      }
+    }
   },
   "Lord Regent’s Guard": {
     "id": "regent_guard",
@@ -283,7 +343,13 @@
       0.66,
       0.34
     ],
-    "critical_quote": "By the final oath."
+    "critical_quote": "By the final oath.",
+    "challenge": {
+      "default": "You are within bowshot of the crown.",
+      "opponents": {
+        "rhea": "Keep your offer, envoy. This gate stays shut."
+      }
+    }
   },
   "Regent Vael": {
     "id": "vael",
@@ -311,6 +377,12 @@
       0.68,
       0.31
     ],
-    "critical_quote": "I will not yield the dawn."
+    "critical_quote": "I will not yield the dawn.",
+    "challenge": {
+      "default": "Every oath ends here, in the fire.",
+      "opponents": {
+        "lyra": "This engine knows your oath, even if you forget."
+      }
+    }
   }
 }
