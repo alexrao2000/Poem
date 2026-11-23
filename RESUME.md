@@ -6,6 +6,8 @@ Development resumed on “go”. Continue in this chat until the user asks to st
 
 ### Latest state
 
+The tactical map now reuses its health-bar textures and contact-shadow plane. A six-actor probe checked every whole-number HP percentage for both teams. It used 50 textures and one shadow plane across 606 refreshes, with identical health-bar pixels. Seven focused suites, the two packaged checks, both local exports and archive integrity passed.
+
 Staff users now see a green target when a carried patient is in range. Clicking the carrying badge opens that patient’s triage menu. Seven focused suites passed, including the marker click, Escape, actual healing, shared tiles, and a single tile mark when both allies can be healed. Both local exports, the packed Debug flow and archive integrity passed.
 
 The second exported Hard run at `8f5e453` used the carrying strategy and completed all twelve chapters in 83 turns, with 384 player actions and 805 exact save checks. Lyra rescued Una in the last chapter with one phase left. Her countdown stayed at one through the enemy phase, and Esme revived her with 16 HP. The run recorded 22 revivals, three permanent losses and 21 available recruits. Its chapter results, turns and rescue matched the rules benchmark under seed 8675309.

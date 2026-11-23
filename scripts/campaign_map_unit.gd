@@ -4,9 +4,12 @@ extends "res://visuals/unit_3d.gd"
 # resolution stays in Rules. Owned motion always returns to the original tile.
 
 const TACTICAL_PIXEL_SIZE=1.0/48.0
+const HEALTH_COLORS=[Color("e87c63"),Color("f2c45e"),Color("acd86b")]
 static var contact_material: StandardMaterial3D
+static var contact_mesh: PlaneMesh
 static var selected_mesh: ArrayMesh
 static var selected_material: StandardMaterial3D
+static var health_textures={}
 var unit_id=""
 var downed=false
 var commander_insignia: Sprite3D
@@ -32,7 +35,9 @@ func configure(source: RefCounted,unit: Dictionary,facing="south",carried_name="
  elif team=="enemy" and source.assets.has(enemy):chosen=enemy
  setup(source,chosen)
  sprite.pixel_size=TACTICAL_PIXEL_SIZE;sprite.no_depth_test=true;sprite.render_priority=2
- var shadow=PlaneMesh.new();shadow.size=Vector2(.58,.40);marker.mesh=shadow;marker.material_override=shadow_material()
+ if contact_mesh==null:
+  contact_mesh=PlaneMesh.new();contact_mesh.size=Vector2(.58,.40)
+ marker.mesh=contact_mesh;marker.material_override=shadow_material()
  ring.mesh=selection_mesh();ring.material_override=selection_material();ring.position.y=.072
  ring.cast_shadow=GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
  marker.cast_shadow=GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
@@ -114,12 +119,16 @@ static func shadow_material() -> StandardMaterial3D:
  return contact_material
 
 func refresh_health():
- var image=Image.create(24,4,false,Image.FORMAT_RGBA8)
- image.fill(Color("6fb6d3") if team=="player" else Color("d77870"))
- image.fill_rect(Rect2i(1,1,22,2),Color("172b30"))
- var fill=Color("acd86b") if hp_ratio>.5 else Color("f2c45e") if hp_ratio>.25 else Color("e87c63")
- image.fill_rect(Rect2i(1,1,maxi(0,roundi(22*clampf(hp_ratio,0,1))),2),fill)
- health.texture=ImageTexture.create_from_image(image);health.visible=tactical_details_visible
+ var width=roundi(22*clampf(hp_ratio,0,1))
+ var tier=2 if hp_ratio>.5 else 1 if hp_ratio>.25 else 0
+ var key=Vector3i(0 if team=="player" else 1,width,tier)
+ if not health_textures.has(key):
+  var image=Image.create(24,4,false,Image.FORMAT_RGBA8)
+  image.fill(Color("6fb6d3") if team=="player" else Color("d77870"))
+  image.fill_rect(Rect2i(1,1,22,2),Color("172b30"))
+  image.fill_rect(Rect2i(1,1,width,2),HEALTH_COLORS[tier])
+  health_textures[key]=ImageTexture.create_from_image(image)
+ health.texture=health_textures[key];health.visible=tactical_details_visible
 
 func set_tactical_details_visible(value: bool):
  tactical_details_visible=value

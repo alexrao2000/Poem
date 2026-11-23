@@ -9,6 +9,9 @@ func run():
  var catalog=Catalog.new();assert(catalog.open("res://visuals/units.json") and catalog.recruit_errors.is_empty())
  assert(catalog.assets.size()==40,"Full roster and enemy army extend eight base classes")
  var game=Rules.new();var stage=Node3D.new();root.add_child(stage)
+ var shared_shadow: PlaneMesh
+ var full_health: Texture2D
+ var enemy_bars={}
  for source in game.roster:
   var unit=source.duplicate(true);unit.team="player";unit.acted=false
   var actor=Unit.new();stage.add_child(actor);actor.configure(catalog,unit)
@@ -16,6 +19,8 @@ func run():
   assert(individual and actor.visual_id=="recruit."+unit.id,"Every campaign recruit has its own animated identity")
   assert(actor.marker.mesh is PlaneMesh and actor.marker.material_override==Unit.shadow_material(),"Campaign units share a soft contact shadow instead of a solid team plate")
   assert(actor.health.visible and actor.health.texture.get_image().get_pixel(0,0).is_equal_approx(Color("6fb6d3")),"Player health remains visible at full HP with a blue team border")
+  if shared_shadow==null:shared_shadow=actor.marker.mesh;full_health=actor.health.texture
+  assert(actor.marker.mesh==shared_shadow and actor.health.texture==full_health,"Full health and contact shadows share their resources across the company")
   var extent=actor.sprite.texture.get_size()*Vector2(actor.sprite.scale.x,actor.sprite.scale.y)*actor.sprite.pixel_size
   assert(extent.y>=.8 and extent.y<=1.2 and extent.x<=1.15,"Idle recruit silhouettes stay near one tile tall without crowding adjacent tiles")
   if individual:
@@ -65,6 +70,8 @@ func run():
   assert(actor.visual_id=="enemy."+unit.job.to_lower(),"Enemy figures use army class silhouettes even if an ID matches a recruit")
   for ratio in [1.0,.5,.25,0.0]:
    actor.hp_ratio=ratio;actor.refresh_health()
+   if not enemy_bars.has(ratio):enemy_bars[ratio]=actor.health.texture
+   assert(actor.health.texture==enemy_bars[ratio] and actor.marker.mesh==shared_shadow)
    var bar=actor.health.texture.get_image()
    assert(actor.health.visible and bar.get_pixel(0,0).is_equal_approx(Color("d77870")),"Enemy health keeps its red border at every HP level")
    var fill=Color("acd86b") if ratio>.5 else Color("f2c45e") if ratio>.25 else Color("e87c63")
@@ -78,5 +85,5 @@ func run():
  assert(not catalog.add_recruits("res://data/campaign.json") and catalog.assets.keys()==keys,"Malformed supplement preserves class fallback")
  assert(catalog.open("res://visuals/units.json") and catalog.recruit_errors.is_empty() and catalog.spent_textures.is_empty(),"Reopening resets supplemental errors and presentation cache")
  stage.queue_free();await process_frame
- print("PASS: 24 original recruit identities, 288 isolated poses, stable density/pivots, directional attacks, cached grayscale spent states, class/enemy fallbacks and supplemental validation")
+ print("PASS: 24 original recruit identities, 288 isolated poses, stable density/pivots, directional attacks, shared health bars and shadows, cached grayscale states, class/enemy fallbacks and supplemental validation")
  quit()

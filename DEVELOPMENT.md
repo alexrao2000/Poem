@@ -1,5 +1,7 @@
 # Poem development
 
+Campaign sprites reuse health-bar textures by team, fill width and health color. Their contact shadows share one plane. Across 606 headless health-bar refreshes, distinct textures fell from 606 to 50 and shadow planes fell from six to one. Every health-bar pixel matched the earlier package.
+
 Green healing targets now include carried patients in healing range, and staff users can click a carrying badge to open that patient’s triage menu. When both allies are injured, the tile gets one green mark.
 
 The exported carrying run at `8f5e453` reached the ending in 83 turns. Across 384 player actions and 805 exact save checks, it recorded Lyra rescuing Una, the countdown staying paused through the enemy phase, and Esme reviving Una with 16 HP. Twenty-one recruits remained available.
