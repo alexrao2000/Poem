@@ -306,7 +306,7 @@ func combat_context(game,a,b,screen_direction=1.0) -> Dictionary:
  return {"chapter":game.chapter,"environment":game.info().get("environment","village"),"terrain":game.terrain(game.pos(b)),"landmarks":candidates.slice(0,2)}
 
 func battle_tree(parent,point,seed_value,scale_value,theme=""):
- var group=Node3D.new();group.name="ArenaTree";group.position=point;group.scale=Vector3.ONE*scale_value;parent.add_child(group)
+ var group=Node3D.new();group.name="ArenaTree";group.position=point;group.scale=Vector3.ONE*scale_value;parent.add_child(group,true)
  tree(group,Vector3.ZERO,seed_value,theme)
 
 func battle_landscape(parent,center,context={}):
@@ -318,29 +318,47 @@ func battle_landscape(parent,center,context={}):
  var wooden_floor=theme=="harbor" or tile=="="
  var surface=maxi(0,MapGround.surface_for(tile,theme))
  parent.set_meta("arena_surface",surface)
+ var river=theme=="river"
  ground(parent,center-Vector3(0,.06,0),Vector2(70,70),3 if stone else 0)
  if not wooden_floor:ground(parent,center,Vector2(24,6),surface)
- if theme in ["river","harbor","aqueduct"] or context.get("terrain")=="=":
+ if river or theme in ["harbor","aqueduct"] or tile=="=":
   var water=water_material()
-  var plane=PlaneMesh.new();plane.size=Vector2(60,60 if wooden_floor else 40)
-  var water_surface=mesh(parent,plane,center+Vector3(0,-.055 if wooden_floor else -.025,-12 if wooden_floor else -22),Vector3.ONE,water);water_surface.name="ArenaWater"
+  var plane=PlaneMesh.new();plane.size=Vector2(RiverBank.ARENA_WIDTH,60 if wooden_floor else 40)
+  var water_level=-.055 if wooden_floor else RiverBank.ARENA_WATER_LEVEL
+  var water_depth=-12.0 if wooden_floor else -23.0 if river else -22.0
+  var water_surface=mesh(parent,plane,center+Vector3(0,water_level,water_depth),Vector3.ONE,water);water_surface.name="ArenaWater"
   if wooden_floor:
    for x in range(-10,11):
     for z in range(-2,3):
      var plank=block(parent,center+Vector3(x,-.025,z),Vector3(.98,.05,.98),Color("877560").lightened((x+z+30)%3*.02));plank.name="ArenaDeck"
-  for x in range(-10,11,2):
-   block(parent,center+Vector3(x,.55,-3),Vector3(.13,1.1,.13),Color("72624f"))
-  block(parent,center+Vector3(0,.7,-3),Vector3(22,.12,.10),Color("8e7c60"))
+  if wooden_floor or theme=="aqueduct":
+   for x in range(-10,11,2):
+    block(parent,center+Vector3(x,.55,-3),Vector3(.13,1.1,.13),Color("72624f")).name="ArenaRailPost"
+   block(parent,center+Vector3(0,.7,-3),Vector3(22,.12,.10),Color("8e7c60")).name="ArenaRailing"
+ if river:
+  var far_ground=ground(parent,center+Vector3(0,0,RiverBank.ARENA_FAR_START-14.5),Vector2(RiverBank.ARENA_WIDTH,29),0)
+  far_ground.name="ArenaFarBankGround"
+  mesh(parent,RiverBank.arena_strip(true),center,Vector3.ONE,ground_material(0)).name="ArenaFarBank"
+  if not wooden_floor:
+   mesh(parent,RiverBank.arena_strip(false),center,Vector3.ONE,ground_material(surface)).name="ArenaNearBank"
+   for index in range(14):
+    var column=7+(index*7)%27
+    var x=(float(column)/RiverBank.ARENA_COLUMNS-.5)*RiverBank.ARENA_WIDTH
+    var position=center+RiverBank.arena_point(x,3.0/RiverBank.ARENA_ROWS,false)
+    var reed=ground_cover.plant(parent,{"kind":2,"position":position,"height":.28+(index%3)*.045,"yaw":index*2.399})
+    reed.name="ArenaBankReed"
  if theme in ["village","river","road","forest","harbor"]:
   var base=-.06 if theme=="forest" else 0.0
+  var tree_line=RiverBank.ARENA_FAR_START-1 if river else -8.0
   for i in range(28 if theme=="forest" or tile=="f" else 17):
-   battle_tree(parent,center+Vector3(-20+(i*11)%41,base,-8-(i%4)*3),i*83,2.6+(i%3)*.25,theme)
+   battle_tree(parent,center+Vector3(-20+(i*11)%41,base,tree_line-(i%4)*3),i*83,2.6+(i%3)*.25,theme)
   if theme!="forest" and context.get("landmarks",[]).is_empty():
    for i in range(3):house(parent,center+Vector3(-12+i*11,0,-17),2.0+i*.2)
  var backdrop=context.get("landmarks",[])
  parent.set_meta("backdrop_count",backdrop.size())
  for item in backdrop:
-  var group=Node3D.new();group.name="ArenaLandmark";parent.add_child(group);group.position=center+Vector3(item.x,0,item.z)
+  var depth=RiverBank.ARENA_FAR_START-1.5+(item.z+7)*.7 if river else item.z
+  var group=Node3D.new();group.name="ArenaLandmark";parent.add_child(group,true);group.position=center+Vector3(item.x,0,depth)
   group.scale=Vector3.ONE*(2.1 if item.kind in ["house","warehouse","tower","spire","arch"] else 1.4)
   landmark(group,Vector3.ZERO,item.kind,item.get("roof_variant",0))
  if theme in ["village","road"]:

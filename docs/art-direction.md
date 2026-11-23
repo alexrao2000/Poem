@@ -101,6 +101,8 @@ The twelve chapters define their own sky, sun and ambient light. Glass Harbor us
 
 Greywood mixes two original fir crowns with its broadleaf trees. Windscar Pass uses two sparse pine crowns behind its rocks. The same four cutouts appear on the tactical maps and behind the fighting lanes. Each tree has a tapered trunk and three crossed cards with root-pinned wind. The cards share a mipmapped atlas and join the existing static batches. [Source prompt and image hash](conifer-crown-prompt.json).
 
+Reed Crossing’s dry-ground arenas join the fight floor to a winding bank. Fourteen small reeds sit where the ground slopes into the river. The distant bank supports the trees and towers, and towers keep their left-to-right order from the map. Bridge fights retain the raised deck, rail, and lower water level.
+
 ## Contact timing and guarded hits
 
 Damaging contact holds actor processing locally for 55 ms (100 ms for criticals), after a 35 ms recoil lead. The camera, effects, UI and shared music timeline continue. This uses node-bound tween processing, described in the [Godot 4.5 Tween documentation](https://docs.godotengine.org/en/4.5/classes/class_tween.html); tests cover procedural joints, imported AnimationPlayers, cancellation and combat skipping. No global time scale changes. Zero-damage hits have a guard stance and restrained gray glint instead of damaging sparks. `scripts/combat_accents.py` generates the original short metallic sound without rewriting the soundtrack; the main score generator also includes it.

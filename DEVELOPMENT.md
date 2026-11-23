@@ -1,5 +1,7 @@
 # Poem development
 
+Reed Crossing’s combat arenas use two cached bank meshes. Dry fights meet the near bank at the back of the fighting lane, with fourteen reeds rooted just above water. Trees and towers sit on the far bank. The towers retain their map-relative horizontal order and spread in depth. Bridge fights keep the existing deck and rail.
+
 Greywood and Windscar Pass now share four original conifer cutouts between their maps and combat arenas. Keep the planar cards upright and their lowest foliage attached to the tapered trunk. The tactical scale and distant arena placements keep the terrain and fighting lane clear. The atlas retains transparent gutters and mipmaps. [Source prompt and image hash](docs/conifer-crown-prompt.json).
 
 Debug tools includes a dialogue replay picker for all chapter openings, closings, and support ranks. Replays use the normal scene controls, backdrops, and expressions. The campaign picker can resolve survivor dialogue against the current Debug roster. Returning from a scene restores the chosen chapter, pair, and rank. Seven focused suites passed, including 60 replays, three layout sizes, a survivor branch, keyboard focus, and save isolation.

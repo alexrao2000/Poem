@@ -4,6 +4,14 @@ extends RefCounted
 # softens the shore without changing the playable grid or consuming game RNG.
 const STEPS=8
 const BED_HEIGHT=-.13
+const ARENA_WIDTH=60.0
+const ARENA_COLUMNS=40
+const ARENA_ROWS=8
+const ARENA_NEAR_START=-3.0
+const ARENA_FAR_START=-15.0
+const ARENA_WATER_LEVEL=-.025
+
+static var arena_strips: Dictionary={}
 
 static func nearby_land(game,cell: Vector2i) -> Array:
  var result=[];var board=game.board_size()
@@ -35,3 +43,30 @@ static func build(game,cell: Vector2i) -> ArrayMesh:
     surface.add_vertex(Vector3(local.x,height_at(point,land),local.y))
  surface.generate_normals();surface.index()
  return surface.commit()
+
+static func arena_point(x: float,depth: float,far_bank: bool) -> Vector3:
+ var start=ARENA_FAR_START if far_bank else ARENA_NEAR_START
+ var phase=1.23 if far_bank else 0.0
+ var meander=.83*sin(x*.31+phase)+.31*sin(x*.78-.4)
+ var edge=start+(4.2 if far_bank else -3.6)+meander
+ return Vector3(x,BED_HEIGHT*depth*depth,lerpf(start,edge,depth))
+
+static func arena_strip(far_bank: bool) -> ArrayMesh:
+ if arena_strips.has(far_bank):return arena_strips[far_bank]
+ var surface=SurfaceTool.new()
+ surface.begin(Mesh.PRIMITIVE_TRIANGLES)
+ surface.set_smooth_group(0)
+ var corners=[Vector2i.ZERO,Vector2i.RIGHT,Vector2i.ONE,Vector2i.DOWN]
+ var winding=[0,1,2,0,2,3] if far_bank else [0,2,1,0,3,2]
+ for row in range(ARENA_ROWS):
+  for column in range(ARENA_COLUMNS):
+   for index in winding:
+    var sample=corners[index]+Vector2i(column,row)
+    var x=(float(sample.x)/ARENA_COLUMNS-.5)*ARENA_WIDTH
+    var point=arena_point(x,float(sample.y)/ARENA_ROWS,far_bank)
+    surface.set_uv(Vector2(point.x,point.z))
+    surface.add_vertex(point)
+ surface.generate_normals()
+ surface.index()
+ arena_strips[far_bank]=surface.commit()
+ return arena_strips[far_bank]

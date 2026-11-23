@@ -31,6 +31,7 @@ func surface_geometry():
 func run():
  surface_geometry()
  verify_arena_ground()
+ verify_river_arena()
  verify_ridges()
  verify_rocks()
  var game=Rules.new();var seen={}
@@ -273,3 +274,71 @@ func verify_arena_ground():
    count+=1;arena.free()
   assert(game.rng.state==before,"Ground presentation consumes no campaign RNG")
  print("PASS: %d raw/batched arena floors share tactical natural texture variety and scale while preserving stone, deck and water"%count)
+
+func verify_river_arena():
+ for far_bank in [false,true]:
+  var strip=RiverBank.arena_strip(far_bank)
+  assert(strip==RiverBank.arena_strip(far_bank),"The banks reuse two fixed meshes")
+  var data=strip.surface_get_arrays(0)
+  var vertices=data[Mesh.ARRAY_VERTEX]
+  var normals=data[Mesh.ARRAY_NORMAL]
+  var triangles=data[Mesh.ARRAY_INDEX]
+  assert(triangles.size()==RiverBank.ARENA_COLUMNS*RiverBank.ARENA_ROWS*6)
+  var dry_edge=RiverBank.ARENA_FAR_START if far_bank else RiverBank.ARENA_NEAR_START
+  var dry_points=0
+  var bed_points=0
+  var shore_min=INF
+  var shore_max=-INF
+  for index in vertices.size():
+   var point=vertices[index]
+   assert(normals[index].y>.94 and point.y<=0 and point.y>=RiverBank.BED_HEIGHT-.0001,"Slopes have upward normals and bounded depth")
+   if is_zero_approx(point.y):
+    assert(is_equal_approx(point.z,dry_edge),"Every dry edge point meets the adjacent level floor")
+    dry_points+=1
+   if is_equal_approx(point.y,RiverBank.BED_HEIGHT):bed_points+=1
+   if is_equal_approx(point.y,RiverBank.BED_HEIGHT*.25):
+    shore_min=minf(shore_min,point.z)
+    shore_max=maxf(shore_max,point.z)
+  assert(dry_points==RiverBank.ARENA_COLUMNS+1 and bed_points==dry_points)
+  assert(shore_max-shore_min>.6,"The waterline follows an irregular bank")
+
+ var scenery=Scenery.new()
+ scenery.batching_enabled=false
+ var game=Rules.new()
+ game.chapter=1
+ var before=game.rng.state
+ var origin=Vector3(35,.65,0)
+ var context=scenery.combat_context(game,{"x":9,"y":4},{"x":10,"y":4})
+ assert(context.landmarks.size()==2)
+ for tile in [".","f","h","p","="]:
+  var arena=Node3D.new();root.add_child(arena)
+  context.terrain=tile
+  scenery.battle_landscape(arena,origin,context)
+  var bridge=tile=="="
+  var water=arena.get_node("ArenaWater")
+  var far_ground=arena.get_node("ArenaFarBankGround")
+  assert(arena.get_node("ArenaFarBank").mesh==RiverBank.arena_strip(true))
+  assert(is_equal_approx(far_ground.position.z+far_ground.mesh.size.y*.5,RiverBank.ARENA_FAR_START))
+  assert(is_equal_approx(far_ground.position.y,origin.y))
+  assert(arena.has_node("ArenaRailing")==bridge and arena.has_node("ArenaNearBank")!=bridge)
+  var reeds=arena.find_children("ArenaBankReed*","MeshInstance3D",true,false)
+  assert(reeds.size()==(0 if bridge else 14))
+  if not bridge:
+   assert(is_equal_approx(water.position.y,origin.y+RiverBank.ARENA_WATER_LEVEL) and is_equal_approx(water.position.z+water.mesh.size.y*.5,-3))
+   var near_bank=arena.get_node("ArenaNearBank")
+   assert(near_bank.mesh==RiverBank.arena_strip(false) and near_bank.position==origin)
+   assert(near_bank.material_override==scenery.ground_material(arena.get_meta("arena_surface")))
+  for reed in reeds:
+   var offset=reed.position-origin
+   assert(offset.is_equal_approx(RiverBank.arena_point(offset.x,3.0/RiverBank.ARENA_ROWS,false)) and reed.position.y>water.position.y)
+   assert(reed.get_meta("plant_kind")==2 and reed.cast_shadow==GeometryInstance3D.SHADOW_CASTING_SETTING_OFF)
+  for group in arena.get_children():
+   if group.name.begins_with("ArenaTree") or group.name.begins_with("ArenaLandmark"):
+    assert(is_equal_approx(group.position.y,origin.y) and group.position.z<RiverBank.ARENA_FAR_START,"Trees and towers stand on the far shore")
+  var landmarks=arena.find_children("ArenaLandmark*","Node3D",false,false)
+  assert(landmarks.size()==context.landmarks.size())
+  for index in landmarks.size():
+   assert(is_equal_approx(landmarks[index].position.x-origin.x,context.landmarks[index].x),"Planted towers retain their horizontal map relation")
+  arena.free()
+ assert(game.rng.state==before,"The river stage leaves the combat roll unchanged")
+ print("PASS: two grounded Reed Crossing banks, 14 planted reeds, preserved bridge and water levels, and map-relative towers on dry ground")

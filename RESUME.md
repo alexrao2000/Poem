@@ -6,6 +6,8 @@ Development resumed on “go”. Continue in this chat until the user asks to st
 
 ### Latest state
 
+Reed Crossing’s close-up scenes now show a winding river with grounded reeds, trees, and towers. The near bank joins dry fighting floors, while bridge fights keep the deck and railing. Six focused suites passed, including five terrain variants, actual combat scenes, mesh batching, and tower placement. Both local exports, packaged terrain checks and archive integrity passed. Rendered appearance still needs review.
+
 Greywood and Windscar Pass have distinct painted conifers on their maps and in their combat arenas. Greywood mixes the firs with broadleaf trees. Windscar’s pines stand behind the pass. The new crowns use three crossed cards each, with tapered trunks planted on the ground. Greywood’s map builds 1,315 source meshes before batching, down from 3,795. Seven affected suites, both local exports, packaged scenery checks and archive integrity passed. Rendered appearance still needs review.
 
 **Debug tools → Replay dialogue** opens all 24 campaign openings and closings and all 36 support conversations. The picker can apply losses from the current Debug roster to campaign scenes. Each replay uses its own backdrop and expressions and restores the picker selection and focus afterward. Seven focused suites passed, including all 60 replays, a loss branch, three layout sizes, and exact restoration of campaign, Debug, camera, and save state. Both local exports, the packed replay suite, and archive integrity passed. The registry now contains 381 suites.
