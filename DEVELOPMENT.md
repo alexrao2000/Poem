@@ -1,5 +1,7 @@
 # Poem development
 
+Tactical selection reuses the figures already on the map. A committed move now shows the unit’s action reach from its saved tile, without a second route preview. Undoing an uncommitted move still restores the figure and its position.
+
 Battlefield ambience stays on the same player when opening triage or the shared-tile chooser. The map, those menus and the 3D arena retain their playback during the same chapter.
 
 Stone Remembers has a masonry aqueduct in its close-up arena, with six spans on submerged footings, a continuous channel coping and a far walk for the chapter’s landmarks. A low stone parapet marks the edge of the dry fighting lane.

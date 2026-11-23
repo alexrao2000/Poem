@@ -18,8 +18,10 @@ func run():
  repeated.echo=false;repeated.keycode=KEY_R;app._unhandled_input(repeated);assert(app.show_danger)
  app._unhandled_input(repeated);assert(not app.show_danger,"Fresh range presses still toggle normally")
  app.selected=null
+ var figures=app.unit_nodes.duplicate()
  app.cycle_ready_ally(1);assert(app.selected.id=="lyra" and app.cursor_visible,"Cycle begins with first ready ally")
  app.cycle_ready_ally(1);assert(app.selected.id=="oren")
+ assert(app.unit_nodes==figures,"Switching between ready allies keeps the existing figures")
  app.selected.acted=true;app.cycle_ready_ally(1);assert(app.selected.id=="lyra","Cycle excludes allies that have acted")
  app.move_map_cursor(Vector2i(-100,-100));assert(app.cursor_tile==Vector2i.ZERO,"Cursor clamps to board")
  var before=app.cursor_tile;app.busy=true;app.move_map_cursor(Vector2i.RIGHT);assert(app.cursor_tile==before,"Busy phases ignore cursor movement")
@@ -30,7 +32,7 @@ func run():
  var origin=app.game.pos(unit);app.cursor_tile=destination;app.activate_map_cursor()
  while app.busy:await process_frame
  assert(app.game.pos(unit)==destination and app.origin==origin,"Keyboard selection uses normal validated movement")
- app.cycle_ready_ally(1);assert(app.game.pos(unit)==origin,"Cycling restores uncommitted movement")
+ app.cycle_ready_ally(1);assert(app.game.pos(unit)==origin and app.unit_nodes[unit.id].position==app.map_position(origin),"Cycling restores uncommitted movement and its map figure")
  app.selected=unit;app.cursor_tile=origin;app.wait_action();await process_frame
  assert(unit.acted and app.game.phase=="player","Wait commits action without forced phase when disabled")
  app.game.start_battle();app.make_map();app.show_battle();unit=app.game.units[0]

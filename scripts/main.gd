@@ -780,6 +780,7 @@ func update_side():
 					battle_hint.text="Green: heal · Carry badge: triage · Enter: act"
 			elif game.units.any(func(unit):return game.DeathDoor.can_rescue(game,selected,unit)):battle_hint.text="Blue: move · Gold: rescue · Enter: act · Esc: undo"
 			if game.DeathDoor.downed(selected):battle_hint.text="Needs help: select a nearby ally for Rescue & triage, or heal with a staff."
+			if selected.get("moved",false):battle_hint.text=battle_hint.text.trim_prefix("Blue: move · ")
 			if game.action_saves:battle_hint.text=battle_hint.text.replace("Esc: undo","Esc: deselect")
 		if drop_mode:battle_hint.text="Gold: drop ally · Arrows / Enter: choose · Esc / right-click: cancel drop"
 	arrange_battle_side()
@@ -854,7 +855,7 @@ func highlight():
 	if drop_mode:
 		MapOverlay.tiles(markers,game.DeathDoor.drop_positions(game,selected),Color(.86,.66,.23,.42),.039,"DropTargets",map_height)
 		return
-	var range_map=game.reachable(selected) if origin==null else {game.pos(selected):0}
+	var range_map=game.reachable(selected) if selection_can_move() else {game.pos(selected):0}
 	MapOverlay.tiles(markers,range_map.keys(),Color(.18,.49,.85,.30),.032,"MovementRange",map_height)
 	var healing=selected.weapon=="staff"
 	var reach=ActionRange.tiles(game,selected,range_map)
@@ -1007,9 +1008,13 @@ func pick_map_unit(point: Vector2):
 
 func cancel_selection():
 	drop_mode=false
-	if selected!=null and origin!=null and not selected.acted:
-		game.undo_move(selected)
-	selected=null;target=null;origin=null;refresh_pieces();highlight();update_side()
+	var moved_back=selected!=null and origin!=null and game.undo_move(selected)
+	selected=null;target=null;origin=null
+	if moved_back:refresh_pieces()
+	highlight();update_side()
+
+func selection_can_move() -> bool:
+	return selected!=null and selected.team=="player" and origin==null and not selected.get("moved",false) and game.can_act(selected)
 
 func click_tile(p: Vector2i,unit_id=""):
 	if busy or not action_save_ready():return
@@ -1039,7 +1044,7 @@ func click_tile(p: Vector2i,unit_id=""):
 		cancel_selection();selected=u;play_sfx("select");highlight();update_side();return
 	if u!=null and u.team=="enemy" and (selected==null or selected.team=="enemy"):
 		selected=u;target=null;play_sfx("select");highlight();update_side();return
-	if selected!=null and selected.team=="player" and not selected.acted and origin==null and u==null and game.reachable(selected).has(p):
+	if u==null and selection_can_move() and game.reachable(selected).has(p):
 		origin=game.pos(selected)
 		var path=game.movement_path(selected,p)
 		if game.move_unit(selected,p):
@@ -2066,7 +2071,7 @@ func preview_route(destination: Vector2i):
 	last_hover=destination
 	if is_instance_valid(route_preview):
 		for child in route_preview.get_children():route_preview.remove_child(child);child.queue_free()
-	if busy or drop_mode or selected==null or selected.team!="player" or selected.acted or origin!=null:return
+	if busy or drop_mode or not selection_can_move():return
 	var path=game.movement_path(selected,destination)
 	if path.size()<2:return
 	if not is_instance_valid(route_preview):route_preview=Node3D.new();markers.add_child(route_preview)

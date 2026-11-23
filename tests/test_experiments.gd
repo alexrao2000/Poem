@@ -221,7 +221,16 @@ func run():
  var destination=Vector2i(2,2);app.click_tile(destination)
  var loaded=Rules.new();assert(loaded.load_game(app.save_path)=="battle" and loaded.pos(loaded.units[0])==destination,"Movement saves before its animation finishes")
  while app.busy:await process_frame
- app.cancel_selection();assert(app.game.pos(ally)==destination,"Escape cannot rewind committed movement")
+ var figures=app.unit_nodes.duplicate()
+ var committed=FileAccess.get_file_as_string(app.save_path)
+ app.cancel_selection();assert(app.game.pos(ally)==destination and app.unit_nodes==figures,"Deselecting a committed move preserves its endpoint and figures")
+ app.click_tile(destination)
+ var blue=app.markers.get_node("MovementRange").mesh.surface_get_arrays(0)[Mesh.ARRAY_VERTEX]
+ assert(blue.size()==30 and not app.selection_can_move(),"Reselecting a moved ally shows range from its saved endpoint")
+ var next=Vector2i(3,2)
+ assert(app.game.at(next)==null and app.game.reachable(ally).has(next),"The test tile would be within ordinary movement range")
+ app.preview_route(next);app.click_tile(next)
+ assert(app.route_preview==null and app.origin==null and app.game.pos(ally)==destination and FileAccess.get_file_as_string(app.save_path)==committed,"A committed move has no additional route, movement or write")
  var patient=app.game.units[1];patient.x=3;patient.y=2;casualty(app.game,patient)
  app.refresh_pieces();app.selected=ally;app.update_side();await process_frame
  assert(app.unit_nodes.has(patient.id) and app.unit_nodes[patient.id].downed,"Downed units remain visible on the tactical map")
