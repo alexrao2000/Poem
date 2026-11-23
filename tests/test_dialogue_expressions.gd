@@ -3,6 +3,13 @@ extends SceneTree
 const Portraits=preload("res://scripts/portraits.gd")
 const Resolve=preload("res://scripts/story_survivors.gd")
 const Shutdown=preload("helpers/game_shutdown.gd")
+func loaded_sheets(faces) -> Array:
+ var result=[]
+ for id in faces.dialogue_expressions:
+  var entry=faces.dialogue_expressions[id].values()[0]
+  if ResourceLoader.has_cached(entry.path):result.append(id)
+ return result
+
 func _initialize():call_deferred("run")
 func run():
  var faces=Portraits.new()
@@ -32,6 +39,8 @@ func run():
     assert(source.get_pixel(int(face.region.position.x),y).a<.13 and source.get_pixel(int(face.region.end.x)-1,y).a<.13,"Transparent vertical gutters keep adjacent expressions out")
    regions+=1
  assert(regions==18)
+ faces.expression_textures.clear()
+ assert(loaded_sheets(faces).is_empty(),"Assets checked in isolation release before testing actual scenes")
  var story=JSON.parse_string(FileAccess.get_file_as_string("res://data/story.json"))
  var campaign_tags=0
  for chapter in story.chapters:
@@ -61,6 +70,7 @@ func run():
  for dimensions in [Vector2i(1024,640),Vector2i(1280,720),Vector2i(1440,900)]:
   viewport.size=dimensions;app.show_dialogue(lines,func():app.show_dossier(app.game.roster[0]),"support");await process_frame;await process_frame
   var stage=app.dialogue_stage
+  assert(loaded_sheets(app.portraits)==["lyra"],"The first line loads only the requested expression sheet")
   for i in range(lines.size()):
    var line=lines[i];var slot=stage.active;var portrait=stage.portraits[slot]
    assert(app.dialogue_index==i and stage.identities[slot]==line.speaker)
@@ -77,6 +87,7 @@ func run():
     assert(stage.active==slot and stage.portraits[slot]==portrait and portrait.position==position and stage.entrances[slot]==entrance,"A new expression on the same speaker cannot slide or replace the portrait control")
    await process_frame
   assert(app.screen=="dossier","The final Continue still completes the scene")
+  assert(loaded_sheets(app.portraits).is_empty(),"A finished scene releases its expression sheets")
  var support_tags=0
  for entry in expressed_supports:
   var unit=app.game.roster.filter(func(recruit):return recruit.id==entry.members[0])[0]
@@ -91,9 +102,20 @@ func run():
     assert(app.dialogue_portrait.texture==app.portraits.get_dialogue_portrait(line.speaker,expression),"The support replay reads expressions through its ordinary entry point")
     app.advance_dialogue()
    assert(app.screen=="supports","Replay returns to the company bonds menu")
+   await process_frame;await process_frame
+   assert(loaded_sheets(app.portraits).is_empty(),"Replayed scenes release both partners’ sheets")
  assert(support_tags==47)
+ var neutral=app.portraits.get_dialogue_portrait("lyra")
+ app.show_dialogue(story.chapters[0].opening,func():app.show_dossier(app.game.roster[0]))
+ assert(loaded_sheets(app.portraits)==["oren"],"Campaign openings load the first speaker only")
+ app.advance_dialogue()
+ assert(loaded_sheets(app.portraits).size()==2)
+ app.finish_dialogue()
+ await process_frame;await process_frame
+ assert(loaded_sheets(app.portraits).is_empty() and app.portraits.get_dialogue_portrait("lyra")==neutral,"Skip releases expressions and retains the shared neutral portrait")
+
  assert(JSON.stringify(app.game.save_data("camp"))==before and app.game.rng.state==state)
  assert(FileAccess.get_file_as_string(app.save_path)==disk and FileAccess.get_file_as_string(app.settings_path)==settings,"Portrait changes leave campaign and preference files byte-identical")
  await Shutdown.dispose(app);viewport.queue_free();await process_frame
- print("PASS: 18 transparent expression regions, 47 campaign and 47 support tags, nine support replays, 24 actual dialogue transitions across three sizes, neutral/unknown/full-roster fallback, same-speaker slot/entrance stability, history and exact state/file isolation")
+ print("PASS: 18 transparent expression regions, 47 campaign and 47 support tags, nine support replays, 24 actual dialogue transitions across three sizes, neutral/unknown/full-roster fallback, same-speaker slot/entrance stability, history, lazy sheet loading and release on Continue/Skip, exact state/file isolation")
  quit()

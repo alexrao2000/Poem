@@ -229,8 +229,10 @@ func box(color: Color) -> StyleBoxFlat:
 
 func reset_ui():
 	objective_label=null
+	portraits.expression_textures.clear()
 	dialogue_label=null
 	dialogue_stage=null
+	dialogue_portrait=null
 	terrain_card=null
 	forecast_panel=null
 	battle_menu=null

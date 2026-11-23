@@ -1,8 +1,11 @@
 extends RefCounted
+# Keep expression textures separate so a closed conversation can release its
+# sheets while forecast, reward and neutral portraits stay available.
 const Commanders=preload("res://scripts/commanders.gd")
 const ORDER=["lyra","oren","sera","ivo","mara","tarin","nell","bram","esme","rook","faye","cassian","vela","dax","una","silas","petra","ari","noor","galen","yuna","hale","elian","rhea"]
 const ENEMY_CLASSES=["Vanguard","Knight","Ranger","Arcanist","Warden","Rider","Corsair","Duelist"]
 var textures: Dictionary={}
+var expression_textures: Dictionary={}
 var sprite_textures: Dictionary={}
 var dialogue_regions=JSON.parse_string(FileAccess.get_file_as_string("res://data/dialogue_portraits.json"))
 var dialogue_expressions=JSON.parse_string(FileAccess.get_file_as_string("res://data/dialogue_expressions.json"))
@@ -28,12 +31,13 @@ func get_dialogue_portrait(id: String,expression="") -> Texture2D:
  var variants=dialogue_expressions.get(id,{})
  var expressive=variants.has(expression)
  var key="dialogue."+id+("."+expression if expressive else "")
- if textures.has(key):return textures[key]
+ var cache=expression_textures if expressive else textures
+ if cache.has(key):return cache[key]
  if not dialogue_regions.has(id):return get_portrait(id)
  var entry=variants[expression] if expressive else dialogue_regions[id]
  var texture=AtlasTexture.new();texture.atlas=load(entry.path);texture.filter_clip=true
  texture.region=Rect2(entry.region[0],entry.region[1],entry.region[2],entry.region[3])
- textures[key]=texture;return texture
+ cache[key]=texture;return texture
 
 func get_forecast_portrait(unit: Dictionary) -> Texture2D:
  return get_unit_portrait(unit) if unit.get("team","player")=="enemy" else get_dialogue_portrait(unit.id)

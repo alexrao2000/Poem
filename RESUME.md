@@ -6,6 +6,8 @@ Development resumed on “go”. Continue in this chat until the user asks to st
 
 ### Latest state
 
+Dialogue now holds expression sheets only while a conversation uses them. A headless check of Chapter 1’s opening found four expression atlases still loaded after the scene before the change and zero afterward. Six focused suites passed, including lazy first-line loading, release on Continue and Skip, nine support replays, and shared forecast and reward portraits. Both local exports, the full packaged expression check and archive integrity passed.
+
 The map-to-arena transition now shades the edges of the battlefield while the two sprites grow in a clear center. The darkening follows the projected pair and gives way to the existing cover before the arena appears. Four focused suites passed, including 54 measured sprite pairs at three viewport sizes, camera framing, actual Skip controls and map return. An isolated alpha texture check sampled 1,369 pixels. Both local exports, the packaged map camera suite and archive integrity passed. The rendered transition still needs a visual review.
 
 Lyra, Oren, Sera, Ivo, Mara and Tarin now use 18 authored expressions across 47 campaign lines and 47 lines in nine support conversations. Six affected suites passed, including the complete support replay paths, 978 story and support layouts, and 180 combinations of campaign losses. Both local exports, the complete packaged expression check and archive integrity passed. The five additional atlases add 8.0 MB to each archive. Registry 380, with the full 378-suite baseline recorded separately. The source portraits were inspected and rendered gameplay still needs a visual review.
