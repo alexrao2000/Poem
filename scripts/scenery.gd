@@ -360,6 +360,20 @@ func battle_tree(parent,point,seed_value,scale_value,theme=""):
  var group=Node3D.new();group.name="ArenaTree";group.position=point;group.scale=Vector3.ONE*scale_value;parent.add_child(group,true)
  tree(group,Vector3.ZERO,seed_value,theme)
 
+func arena_deck(parent: Node3D,center: Vector3):
+ var deck=building_material(BuildingFinish.DECK_WOOD)
+ for column in range(42):
+  var x=(column-20.5)*.5
+  block(parent,center+Vector3(x,-.025,0),Vector3(.49,.05,4.98),deck).name="ArenaDeck"
+ for z in [-1.86,1.86]:
+  block(parent,center+Vector3(0,-.095,z),Vector3(21,.14,.2),deck).name="DeckBeam"
+ arena_railing(parent,center,-2.42,20.5)
+
+func arena_railing(parent: Node3D,center: Vector3,depth: float,width: float):
+ for x in range(-10,11,2):
+  block(parent,center+Vector3(x,.54,depth),Vector3(.13,1.1,.13),Color("72624f")).name="ArenaRailPost"
+ block(parent,center+Vector3(0,.7,depth),Vector3(width,.12,.10),Color("8e7c60")).name="ArenaRailing"
+
 func battle_landscape(parent,center,context={}):
  var theme=context.get("environment","village")
  parent.set_meta("environment",theme)
@@ -378,15 +392,8 @@ func battle_landscape(parent,center,context={}):
   var water_level=-.055 if wooden_floor else RiverBank.ARENA_WATER_LEVEL
   var water_depth=-12.0 if wooden_floor else -23.0 if river else -22.0
   var water_surface=mesh(parent,plane,center+Vector3(0,water_level,water_depth),Vector3.ONE,water);water_surface.name="ArenaWater"
-  if wooden_floor:
-   var deck=building_material(BuildingFinish.DECK_WOOD)
-   for x in range(-10,11):
-    for z in range(-2,3):
-     block(parent,center+Vector3(x,-.025,z),Vector3(.98,.05,.98),deck).name="ArenaDeck"
-  if wooden_floor or theme=="aqueduct":
-   for x in range(-10,11,2):
-    block(parent,center+Vector3(x,.55,-3),Vector3(.13,1.1,.13),Color("72624f")).name="ArenaRailPost"
-   block(parent,center+Vector3(0,.7,-3),Vector3(22,.12,.10),Color("8e7c60")).name="ArenaRailing"
+  if wooden_floor:arena_deck(parent,center)
+  elif theme=="aqueduct":arena_railing(parent,center,-3,22)
  if river:
   var far_ground=ground(parent,center+Vector3(0,0,RiverBank.ARENA_FAR_START-14.5),Vector2(RiverBank.ARENA_WIDTH,29),0)
   far_ground.name="ArenaFarBankGround"

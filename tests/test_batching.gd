@@ -165,11 +165,30 @@ func verify_conifers(world: Node3D,theme: String,arena: bool):
 
 func verify_deck(world: Node3D,center: Vector3):
  var planks=world.find_children("ArenaDeck*","MeshInstance3D",true,false)
- assert(planks.size()==105,"Dock floor contains the full fighting lane")
- for plank in planks:
-  assert(is_equal_approx(plank.position.y+plank.scale.y*plank.mesh.get_aabb().end.y,center.y),"Every deck top matches the fighters' ground plane")
-  assert(plank.material_override.get_shader_parameter("cell_origin")==Vector2(.5,.5),"Arena planks use the painted deck wood swatch")
+ assert(planks.size()==42,"The deck uses forty-two full-width boards")
+ planks.sort_custom(func(a,b):return a.position.x<b.position.x)
+ var timber=planks[0].material_override
+ for column in planks.size():
+  var plank=planks[column]
+  var envelope=plank.transform*plank.mesh.get_aabb()
+  assert(is_equal_approx(envelope.end.y,center.y),"Every deck top matches the fighters' ground plane")
+  assert(is_equal_approx(envelope.position.z,center.z-2.49) and is_equal_approx(envelope.end.z,center.z+2.49))
+  assert(is_equal_approx(plank.position.x,center.x+(column-20.5)*.5) and is_equal_approx(envelope.size.x,.49),"The slim gaps are spaced evenly along the full fighting lane")
+  assert(plank.material_override==timber and timber.get_shader_parameter("cell_origin")==Vector2(.5,.5),"Arena planks use the shared deck wood swatch")
  var water=world.get_node("ArenaWater")
  assert(water.position.y<center.y-.05 and water.position.z+water.mesh.size.y*.5>center.z+2.5,"Water stays below and extends beneath the entire deck")
+ var beams=world.find_children("DeckBeam*","MeshInstance3D",true,false)
+ assert(beams.size()==2)
+ for beam in beams:
+  var envelope=beam.transform*beam.mesh.get_aabb()
+  assert(is_equal_approx(envelope.size.x,21) and envelope.position.y<water.position.y and envelope.end.y>center.y-.05 and envelope.end.y<center.y,"Each support beam crosses the waterline and meets the boards from below")
+ var rail=world.get_node("ArenaRailing")
+ var rail_bounds=rail.transform*rail.mesh.get_aabb()
+ var posts=world.find_children("ArenaRailPost*","MeshInstance3D",true,false)
+ assert(posts.size()==11 and is_equal_approx(rail_bounds.size.x,20.5))
+ for post in posts:
+  var envelope=post.transform*post.mesh.get_aabb()
+  assert(envelope.position.z>=center.z-2.49 and envelope.end.z<=center.z+2.49)
+  assert(envelope.position.y<center.y and envelope.position.y>center.y-.05 and rail_bounds.intersects(envelope),"Rail posts seat inside the boards and meet the handrail")
  for mesh in world.find_children("*","MeshInstance3D",true,false):
   assert(not (mesh.mesh is PlaneMesh and mesh.mesh.size==Vector2(24,6)),"Wooden arenas do not retain a coincident central ground plane")
