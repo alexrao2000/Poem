@@ -76,7 +76,7 @@ func run():
  assert(not app.field_audio.player.playing and app.field_audio.player.stream==null)
  await Shutdown.dispose(app)
  viewport.queue_free();await process_frame
- print("PASS: five eight-second stereo loops, bounded one-voice fades, rapid retargeting and mute, actual Greywood, Windscar Pass and Reddeep combat playhead continuity, score and save isolation")
+ print("PASS: five eight-second stereo loops, bounded one-voice fades, rapid retargeting and mute, combat and tactical menu playhead continuity in Greywood, Windscar Pass and Reddeep, score and save isolation")
  quit()
 
 func verify_combat_voice(app,chapter: int,theme: String,x: int) -> AudioStreamPlayback:
@@ -111,4 +111,19 @@ func verify_combat_voice(app,chapter: int,theme: String,x: int) -> AudioStreamPl
  assert(app.field_audio.player.get_stream_playback()==decoder and app.score==score and app.music.get_stream_playback()==music_decoder)
  assert(app.game.save_data("battle")==frozen,"Field playback cannot change a resolved action")
  app.busy=false
+ var ready=app.game.living("player").filter(func(unit):return app.game.can_act(unit))
+ assert(not ready.is_empty())
+ var previous_selection=app.selected
+ app.selected=ready[0]
+ for menu in ["triage","tile_units"]:
+  if menu=="triage":app.show_triage()
+  else:app.show_tile_units(app.game.pos(app.selected))
+  assert(app.screen==menu)
+  await create_timer(Field.FADE_SECONDS+.05).timeout
+  assert(app.field_audio.requested_theme==theme and app.field_audio.player.stream==ambience)
+  assert(app.field_audio.player.get_stream_playback()==decoder and app.music.get_stream_playback()==music_decoder)
+  app.show_battle()
+  assert(app.field_audio.player.get_stream_playback()==decoder and app.game.save_data("battle")==frozen)
+ app.selected=previous_selection
+ app.update_side();app.highlight()
  return decoder

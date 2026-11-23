@@ -6,6 +6,8 @@ Development resumed on “go”. Continue in this chat until the user asks to st
 
 ### Latest state
 
+Triage and the shared-tile chooser now keep the field ambience playing. The preceding package reproduced a stop and restart in both menus. Eight focused suites passed, including both menus in Greywood, Windscar Pass and Reddeep, the 3D handoff, the Effects setting and exact campaign state. Both local exports, the packaged audio suite and archive integrity passed. Listening review remains outstanding.
+
 Stone Remembers now has six aqueduct spans in its close-up arena. The stone piers meet submerged footings and a continuous channel coping. Chapter landmarks stand on the far walk. The dry fighting lane has a stone parapet, and the timber variant keeps its deck railing. Seven focused suites passed, including six wide-shot projections, both floor variants and real encounters. Both local exports, packaged architecture and archive integrity passed. Rendered appearance remains unreviewed.
 
 The tactical map now reuses its health-bar textures and contact-shadow plane. A six-actor probe checked every whole-number HP percentage for both teams. It used 50 textures and one shadow plane across 606 refreshes, with identical health-bar pixels. Seven focused suites, the two packaged checks, both local exports and archive integrity passed.

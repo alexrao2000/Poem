@@ -246,7 +246,7 @@ func box(color: Color) -> StyleBoxFlat:
 	return b
 
 func reset_ui():
-	field_audio.select(game.info().get("environment","") if screen=="battle" else "")
+	field_audio.select(game.info().get("environment","") if screen in ["battle","triage","tile_units"] else "")
 	objective_label=null
 	portraits.expression_textures.clear()
 	dialogue_label=null

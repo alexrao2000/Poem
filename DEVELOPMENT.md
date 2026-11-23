@@ -1,5 +1,7 @@
 # Poem development
 
+Battlefield ambience stays on the same player when opening triage or the shared-tile chooser. The map, those menus and the 3D arena retain their playback during the same chapter.
+
 Stone Remembers has a masonry aqueduct in its close-up arena, with six spans on submerged footings, a continuous channel coping and a far walk for the chapter’s landmarks. A low stone parapet marks the edge of the dry fighting lane.
 
 Campaign sprites reuse health-bar textures by team, fill width and health color. Their contact shadows share one plane. Across 606 headless health-bar refreshes, distinct textures fell from 606 to 50 and shadow planes fell from six to one. Every health-bar pixel matched the earlier package.
