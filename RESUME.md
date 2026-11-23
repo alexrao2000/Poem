@@ -6,6 +6,8 @@ Development resumed on “go”. Continue in this chat until the user asks to st
 
 ### Latest state
 
+Repeated masonry arches now share geometry across the maps, aqueduct spans, Reddeep hearths and arenas. Two builds of all twelve maps and arenas retained all 42 placements and five exact geometry hashes. The number of arch mesh resources fell from 42 to five. Five focused suites, both exports, packaged architecture and resource checks, and archive integrity passed.
+
 Reselecting an ally after a committed move now shows action reach from the saved endpoint and removes the misleading extra route. Deselecting and cycling through ready allies reuse the same figures. Ten ready-ally cycles created zero figures in the exported build, down from 180 in the earlier probe. Eight focused suites, both local exports, two packaged checks and archive integrity passed.
 
 Triage and the shared-tile chooser now keep the field ambience playing. The preceding package reproduced a stop and restart in both menus. Eight focused suites passed, including both menus in Greywood, Windscar Pass and Reddeep, the 3D handoff, the Effects setting and exact campaign state. Both local exports, the packaged audio suite and archive integrity passed. Listening review remains outstanding.

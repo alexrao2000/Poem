@@ -37,6 +37,7 @@ var ground_cover=GroundCover.new()
 var conifer_crowns=ConiferCrowns.new()
 var unit_block=BoxMesh.new()
 var planes: Dictionary={}
+static var arch_shapes: Dictionary={}
 var atlas: Texture2D
 var environment_atlas: Texture2D
 var foliage_atlas: Texture2D
@@ -135,18 +136,22 @@ func boulder(parent,p,radius):
  rock.name="Boulder";return rock
 
 func arch_span(parent,p,inner_radius=.5,thickness=.4,depth=.6):
- var surface=SurfaceTool.new();surface.begin(Mesh.PRIMITIVE_TRIANGLES)
- var uv=[Vector2(0,0),Vector2(1,0),Vector2(1,1),Vector2(0,1)]
- for segment in range(11):
-  var a=segment*PI/11+.008;var b=(segment+1)*PI/11-.008
-  var points=[]
-  for z in [depth*.5,-depth*.5]:
-   for entry in [[a,inner_radius],[a,inner_radius+thickness],[b,inner_radius+thickness],[b,inner_radius]]:
-    points.append(Vector3(cos(entry[0])*entry[1],sin(entry[0])*entry[1],z))
-  for face in [[0,1,2,3],[7,6,5,4],[0,4,5,1],[1,5,6,2],[2,6,7,3],[3,7,4,0]]:
-   for i in [0,1,2,0,2,3]:surface.set_uv(uv[i]);surface.add_vertex(points[face[i]])
- surface.generate_normals()
- var span=mesh(parent,surface.commit(),p,Vector3.ONE,detail_material(3));span.name="MasonryArch"
+ var key=Vector3(inner_radius,thickness,depth)
+ if not arch_shapes.has(key):
+  var surface=SurfaceTool.new();surface.begin(Mesh.PRIMITIVE_TRIANGLES)
+  var uv=[Vector2.ZERO,Vector2.RIGHT,Vector2.ONE,Vector2.DOWN]
+  for segment in range(11):
+   var a=segment*PI/11+.008;var b=(segment+1)*PI/11-.008
+   var points=[]
+   for z in [depth*.5,-depth*.5]:
+    for entry in [[a,inner_radius],[a,inner_radius+thickness],[b,inner_radius+thickness],[b,inner_radius]]:
+     points.append(Vector3(cos(entry[0])*entry[1],sin(entry[0])*entry[1],z))
+   for face in [[0,1,2,3],[7,6,5,4],[0,4,5,1],[1,5,6,2],[2,6,7,3],[3,7,4,0]]:
+    for i in [0,1,2,0,2,3]:
+     surface.set_uv(uv[i]);surface.add_vertex(points[face[i]])
+  surface.generate_normals()
+  arch_shapes[key]=surface.commit()
+ var span=mesh(parent,arch_shapes[key],p,Vector3.ONE,detail_material(3));span.name="MasonryArch"
  return span
 
 func tree(parent,p,seed_value=0,theme=""):

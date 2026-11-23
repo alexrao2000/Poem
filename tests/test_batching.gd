@@ -59,8 +59,13 @@ func run():
  var scenery=Scenery.new();scenery.batching_enabled=false;var game=Rules.new();var total_sources=0;var total_batches=0
  verify_shared_primitives(scenery)
  world=Node3D.new();root.add_child(world)
+ var arches=[]
  for dimensions in [[.5,.4,.6],[1.65,.35,.8]]:
   var arch=scenery.arch_span(world,Vector3.ZERO,dimensions[0],dimensions[1],dimensions[2])
+  var other=Scenery.new().arch_span(world,Vector3.RIGHT,dimensions[0],dimensions[1],dimensions[2])
+  assert(arch.mesh==other.mesh and arch.position!=other.position)
+  assert(arch.mesh not in arches,"Distinct physical arch dimensions retain distinct geometry")
+  arches.append(arch.mesh)
   var arrays=arch.mesh.surface_get_arrays(0);var points=arrays[Mesh.ARRAY_VERTEX];var signed_volume=0.0
   for point in points:
    var radius=Vector2(point.x,point.y).length()

@@ -90,6 +90,7 @@ func verify_aqueduct_gallery():
   var arches=gallery.find_children("MasonryArch*","MeshInstance3D",false,false)
   var channel=gallery.find_children("ChannelStone*","MeshInstance3D",false,false)
   assert(footings.size()==7 and piers.size()==7 and capitals.size()==7 and arches.size()==6 and channel.size()==6)
+  assert(arches.all(func(arch):return arch.mesh==arches[0].mesh),"The aqueduct reuses one arch mesh across all its spans")
   for index in 7:
    var footing=footings[index];var pier=piers[index];var capital=capitals[index]
    var lower=footing.transform*footing.mesh.get_aabb()
@@ -140,6 +141,7 @@ func verify_reddeep_furnaces():
   var foundation=hearth.get_node("HearthFoundation")
   assert(anchor.position.y==center.y and anchor.position.z<center.z-6 and anchor.scale.is_equal_approx(Vector3.ONE*2.1))
   assert(foundation.mesh==landmarks[0].get_node("HearthFoundation").mesh)
+  assert(hearth.get_node("MasonryArch").mesh==landmarks[0].get_node("MasonryArch").mesh)
   assert(foundation.material_override==landmarks[0].get_node("HearthFoundation").material_override)
  var fallback=Node3D.new();root.add_child(fallback)
  scenery.battle_landscape(fallback,center,{"environment":"furnace"})

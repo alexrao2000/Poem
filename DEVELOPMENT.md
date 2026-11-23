@@ -1,5 +1,7 @@
 # Poem development
 
+Masonry arches reuse a mesh for each set of dimensions. Two passes over all twelve tactical maps and close-up arenas retained 42 arch placements and every geometry hash while using five mesh resources.
+
 Tactical selection reuses the figures already on the map. A committed move now shows the unit’s action reach from its saved tile, without a second route preview. Undoing an uncommitted move still restores the figure and its position.
 
 Battlefield ambience stays on the same player when opening triage or the shared-tile chooser. The map, those menus and the 3D arena retain their playback during the same chapter.
