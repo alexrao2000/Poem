@@ -1,5 +1,7 @@
 # Poem development
 
+Debug tools includes a dialogue replay picker for all chapter openings, closings, and support ranks. Replays use the normal scene controls, backdrops, and expressions. The campaign picker can resolve survivor dialogue against the current Debug roster. Returning from a scene restores the chosen chapter, pair, and rank. Seven focused suites passed, including 60 replays, three layout sizes, a survivor branch, keyboard focus, and save isolation.
+
 All 24 recruits now have three authored dialogue expressions. The game assigns them to all 103 main campaign lines, ten loss alternatives and 191 support lines. Five focused suites passed, including all 36 support replays, survivor layouts and trial-story regression. Both local exports, the full packaged expression suite, exact alpha on the final six sheets and archive integrity passed. Hale’s atlas uses a measured 723-pixel square crop that preserves its slightly different source dimensions.
 
 Vela, Dax, Una, Silas, Petra and Ari extend dialogue expressions to eighteen recruits. The campaign uses 82 expression tags, seven loss alternates and 143 lines across 27 support scenes. Four focused suites passed, including all 27 support replays and survivor dialogue layouts. Both local exports, the full packaged expression suite, exact alpha on the six new textures and archive integrity passed.

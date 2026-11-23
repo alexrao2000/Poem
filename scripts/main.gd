@@ -924,7 +924,7 @@ func _unhandled_input(event):
 		interface_audio.cue("back");close_music_room();get_viewport().set_input_as_handled();return
 	if screen=="debug_encounters" and event is InputEventKey and event.pressed and not event.echo and event.keycode==KEY_ESCAPE:
 		close_debug_encounters();get_viewport().set_input_as_handled();return
-	if screen in ["debug_report","debug_experiments"] and event is InputEventKey and event.pressed and not event.echo and event.keycode==KEY_ESCAPE:
+	if screen in ["debug_report","debug_experiments","debug_dialogue"] and event is InputEventKey and event.pressed and not event.echo and event.keycode==KEY_ESCAPE:
 		show_debug_tools(options_return);get_viewport().set_input_as_handled();return
 	if screen in ["triage","tile_units"] and event is InputEventKey and event.pressed and not event.echo and event.keycode==KEY_ESCAPE:
 		show_battle();get_viewport().set_input_as_handled();return
@@ -1521,11 +1521,11 @@ func show_ending():
 	if not game.trials.read_scenes.is_empty() or not game.trials.events.is_empty():button_in(v,"Company memories",show_campaign_trials)
 	button_in(v,"Return to title",show_title)
 
-func show_dialogue(lines: Array,on_complete: Callable,kind="opening"):
+func show_dialogue(lines: Array,on_complete: Callable,kind="opening",backdrop_chapter=-1,use_losses=true):
 	screen="dialogue";reset_ui()
 	var backdrop=preload("res://scripts/dialogue_backdrop.gd").new()
-	backdrop.begin(ui,[world,pieces,markers],game.chapter,kind)
-	var losses=game.lost_ids(kind=="closing")
+	backdrop.begin(ui,[world,pieces,markers],game.chapter if backdrop_chapter<0 else backdrop_chapter,kind)
+	var losses=game.lost_ids(kind=="closing") if use_losses else []
 	dialogue_lines=lines if kind=="support" else preload("res://scripts/story_survivors.gd").resolve(lines,losses)
 	dialogue_index=0;dialogue_callback=on_complete
 	dialogue_stage=preload("res://scripts/dialogue_stage.gd").new();ui.add_child(dialogue_stage)
@@ -2136,6 +2136,7 @@ func show_debug_tools(return_to: String):
 	button_in(panel,"View experiment report",show_debug_report)
 	button_in(panel,"Choose an experiment setup",show_debug_experiments)
 	button_in(panel,"Stage a combat encounter",show_debug_encounters)
+	button_in(panel,"Replay dialogue",show_debug_dialogue).name="DebugDialogueScenes"
 	var chapters=OptionButton.new();chapters.name="DebugChapter";chapters.custom_minimum_size.y=42
 	for index in range(game.content.chapters.size()):chapters.add_item("%02d · %s"%[index+1,game.content.chapters[index].title])
 	chapters.selected=game.chapter;panel.add_child(chapters)
@@ -2292,6 +2293,55 @@ func show_debug_experiments():
 				make_map();show_battle();persist_campaign("battle",true,"experiment:"+setup.id)
 		).name="StartExperiment_"+setup.id
 	button_in(frame,"Return to debug tools",func():show_debug_tools(options_return))
+
+func show_debug_dialogue(selection: Dictionary={}):
+	if not debug_session.active:return
+	screen="debug_dialogue";reset_ui()
+	var frame=menu_panel(840)
+	var panel=scrolling_column(frame)
+	label_in(panel,"Dialogue replay",36,GOLD)
+	label_in(panel,"Preview scenes without changing progress or bond ranks.",18)
+	label_in(panel,"Campaign scenes",23,GOLD)
+	var chapters=OptionButton.new();chapters.name="ReplayChapter";chapters.custom_minimum_size.y=42;panel.add_child(chapters)
+	for index in game.content.chapters.size():
+		chapters.add_item("%02d · %s"%[index+1,game.content.chapters[index].title])
+	chapters.select(int(selection.get("chapter",game.chapter)))
+	var losses=CheckBox.new();losses.name="ReplayLosses";losses.text="Apply current campaign losses"
+	losses.button_pressed=selection.get("losses",false);panel.add_child(losses)
+	var chapter_actions=HBoxContainer.new();chapter_actions.add_theme_constant_override("separation",12);panel.add_child(chapter_actions)
+	label_in(panel,"Support conversations",23,GOLD)
+	var pairs=OptionButton.new();pairs.name="ReplayPair";pairs.custom_minimum_size.y=42;panel.add_child(pairs)
+	for entry in game.supports.entries:
+		pairs.add_item("%s and %s"%[dialogue_speaker_name(entry.members[0]),dialogue_speaker_name(entry.members[1])])
+	pairs.select(int(selection.get("pair",0)))
+	var ranks=OptionButton.new();ranks.name="ReplayRank";ranks.custom_minimum_size.y=42;panel.add_child(ranks)
+	var populate_ranks=func(pair_index: int,selected_rank: int):
+		ranks.clear()
+		var scenes=game.supports.entries[pair_index].scenes
+		for index in scenes.size():ranks.add_item("%s · %s"%[game.supports.RANKS[index+1],scenes[index].title])
+		ranks.select(selected_rank)
+	populate_ranks.call(pairs.selected,int(selection.get("rank",0)))
+	pairs.item_selected.connect(func(index):populate_ranks.call(index,0))
+	var picker_state=func(focus_name: String) -> Dictionary:
+		return {"chapter":chapters.selected,"losses":losses.button_pressed,"pair":pairs.selected,"rank":ranks.selected,"focus":focus_name}
+	for kind in ["opening","closing"]:
+		var button_name="Replay"+kind.capitalize()
+		var button=button_in(chapter_actions,"Replay "+kind,func():
+			var state: Dictionary=picker_state.call(button_name)
+			show_dialogue(story.chapters[state.chapter][kind],show_debug_dialogue.bind(state),kind,state.chapter,state.losses))
+		button.name=button_name;button.size_flags_horizontal=Control.SIZE_EXPAND_FILL
+	var replay_support=button_in(panel,"Replay support",func():
+		var state: Dictionary=picker_state.call("ReplaySupport")
+		var entry=game.supports.entries[state.pair]
+		show_dialogue(entry.scenes[state.rank].lines,show_debug_dialogue.bind(state),"support",int(entry.chapters[state.rank])))
+	replay_support.name="ReplaySupport"
+	button_in(frame,"Return to Debug tools",func():show_debug_tools(options_return)).name="ReplayReturn"
+	var focus=frame.find_child(str(selection.get("focus","ReplayChapter")),true,false)
+	if focus!=null:
+		var pending=weakref(focus)
+		(func():
+			var button=pending.get_ref()
+			if button!=null and button.is_inside_tree():button.grab_focus()).call_deferred()
 
 func show_debug_encounters(return_to="debug_tools"):
 	if not debug_session.active:return
