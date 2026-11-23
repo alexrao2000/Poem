@@ -346,5 +346,179 @@
         724
       ]
     }
+  },
+  "vela": {
+    "resolute": {
+      "path": "res://assets/portraits/dialogue-vela-expressions-v1.png",
+      "region": [
+        0,
+        0,
+        724,
+        724
+      ]
+    },
+    "concerned": {
+      "path": "res://assets/portraits/dialogue-vela-expressions-v1.png",
+      "region": [
+        724,
+        0,
+        724,
+        724
+      ]
+    },
+    "relieved": {
+      "path": "res://assets/portraits/dialogue-vela-expressions-v1.png",
+      "region": [
+        1448,
+        0,
+        724,
+        724
+      ]
+    }
+  },
+  "dax": {
+    "resolute": {
+      "path": "res://assets/portraits/dialogue-dax-expressions-v1.png",
+      "region": [
+        0,
+        0,
+        724,
+        724
+      ]
+    },
+    "concerned": {
+      "path": "res://assets/portraits/dialogue-dax-expressions-v1.png",
+      "region": [
+        724,
+        0,
+        724,
+        724
+      ]
+    },
+    "reassuring": {
+      "path": "res://assets/portraits/dialogue-dax-expressions-v1.png",
+      "region": [
+        1448,
+        0,
+        724,
+        724
+      ]
+    }
+  },
+  "una": {
+    "resolute": {
+      "path": "res://assets/portraits/dialogue-una-expressions-v1.png",
+      "region": [
+        0,
+        0,
+        724,
+        724
+      ]
+    },
+    "concerned": {
+      "path": "res://assets/portraits/dialogue-una-expressions-v1.png",
+      "region": [
+        724,
+        0,
+        724,
+        724
+      ]
+    },
+    "reassuring": {
+      "path": "res://assets/portraits/dialogue-una-expressions-v1.png",
+      "region": [
+        1448,
+        0,
+        724,
+        724
+      ]
+    }
+  },
+  "silas": {
+    "resolute": {
+      "path": "res://assets/portraits/dialogue-silas-expressions-v1.png",
+      "region": [
+        0,
+        0,
+        724,
+        724
+      ]
+    },
+    "concerned": {
+      "path": "res://assets/portraits/dialogue-silas-expressions-v1.png",
+      "region": [
+        724,
+        0,
+        724,
+        724
+      ]
+    },
+    "amused": {
+      "path": "res://assets/portraits/dialogue-silas-expressions-v1.png",
+      "region": [
+        1448,
+        0,
+        724,
+        724
+      ]
+    }
+  },
+  "petra": {
+    "resolute": {
+      "path": "res://assets/portraits/dialogue-petra-expressions-v1.png",
+      "region": [
+        0,
+        0,
+        724,
+        724
+      ]
+    },
+    "concerned": {
+      "path": "res://assets/portraits/dialogue-petra-expressions-v1.png",
+      "region": [
+        724,
+        0,
+        724,
+        724
+      ]
+    },
+    "satisfied": {
+      "path": "res://assets/portraits/dialogue-petra-expressions-v1.png",
+      "region": [
+        1448,
+        0,
+        724,
+        724
+      ]
+    }
+  },
+  "ari": {
+    "resolute": {
+      "path": "res://assets/portraits/dialogue-ari-expressions-v1.png",
+      "region": [
+        0,
+        0,
+        724,
+        724
+      ]
+    },
+    "concerned": {
+      "path": "res://assets/portraits/dialogue-ari-expressions-v1.png",
+      "region": [
+        724,
+        0,
+        724,
+        724
+      ]
+    },
+    "relieved": {
+      "path": "res://assets/portraits/dialogue-ari-expressions-v1.png",
+      "region": [
+        1448,
+        0,
+        724,
+        724
+      ]
+    }
   }
 }

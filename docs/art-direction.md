@@ -91,6 +91,8 @@ The six expression sheets use [texture import compression](https://docs.godoteng
 
 Nell, Bram, Esme, Rook, Faye and Cassian bring the total to twelve expressive recruits. Their [generated sheets and prompts](second-company-expression-provenance.json) follow the same original-art and export checks. Alternate lines can take a different expression after a story loss.
 
+Vela, Dax, Una, Silas, Petra and Ari extend this system to the harbor, pass and aqueduct. Their [original sheets and prompts](third-company-expression-provenance.json) use the same measured crops and export compression.
+
 ## Chapter light and weather
 
 The twelve chapters define their own sky, sun and ambient light. Glass Harbor uses warm dusk, while Windscar Pass uses a cooler sky and pale blue sun. Map and arena share those colors. The arena adds distance haze beyond the fighters. Greywood has unlit slanted rain in the existing instanced atmosphere batch, with faded loop endpoints and a clock that pauses whenever the scene is hidden.

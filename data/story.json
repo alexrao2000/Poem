@@ -463,7 +463,8 @@
               "speaker": "lyra",
               "text": "The beacon is lit, but patrols still hold the warehouses below it."
             }
-          ]
+          ],
+          "expression": "concerned"
         },
         {
           "speaker": "dax",
@@ -473,7 +474,8 @@
               "speaker": "lyra",
               "text": "The dock crews are trapped between the soldiers and the fires. Give them a way out."
             }
-          ]
+          ],
+          "expression": "concerned"
         },
         {
           "speaker": "mara",
@@ -487,7 +489,8 @@
         },
         {
           "speaker": "dax",
-          "text": "You heard her. Today we unload an army."
+          "text": "You heard her. Today we unload an army.",
+          "expression": "resolute"
         }
       ],
       "closing": [
@@ -499,7 +502,8 @@
               "speaker": "lyra",
               "text": "The warehouses are clear. Search the barges once more before we call everyone in."
             }
-          ]
+          ],
+          "expression": "reassuring"
         },
         {
           "speaker": "vela",
@@ -509,7 +513,8 @@
               "speaker": "lyra",
               "text": "There is an answering light across the water. Keep our beacon burning."
             }
-          ]
+          ],
+          "expression": "relieved"
         },
         {
           "speaker": "mara",
@@ -528,7 +533,8 @@
               "speaker": "lyra",
               "text": "The embassy was ambushed in the pass after being promised safe passage. We are taking the survivors out."
             }
-          ]
+          ],
+          "expression": "concerned"
         },
         {
           "speaker": "silas",
@@ -538,7 +544,8 @@
               "speaker": "lyra",
               "text": "We have the written ambush order. Copies must reach the cities, along with the survivors."
             }
-          ]
+          ],
+          "expression": "resolute"
         },
         {
           "speaker": "cassian",
@@ -554,9 +561,11 @@
           "when_absent": [
             {
               "speaker": "una",
-              "text": "Send copies of the orders ahead. I will stay with the embassy survivors."
+              "text": "Send copies of the orders ahead. I will stay with the embassy survivors.",
+              "expression": "resolute"
             }
-          ]
+          ],
+          "expression": "resolute"
         },
         {
           "speaker": "lyra",
@@ -573,11 +582,13 @@
               "speaker": "lyra",
               "text": "The copies are on their way to the city councils. The regent cannot call this an accident now."
             }
-          ]
+          ],
+          "expression": "amused"
         },
         {
           "speaker": "una",
-          "text": "And the embassy survivors?"
+          "text": "And the embassy survivors?",
+          "expression": "concerned"
         },
         {
           "speaker": "ivo",
@@ -609,11 +620,13 @@
               "speaker": "lyra",
               "text": "The old maintenance walk passes beneath the garrison. We can reach the eastern gate from there."
             }
-          ]
+          ],
+          "expression": "resolute"
         },
         {
           "speaker": "ari",
-          "text": "The patrol changes at the eastern gate. I can keep the signal birds above the arches."
+          "text": "The patrol changes at the eastern gate. I can keep the signal birds above the arches.",
+          "expression": "resolute"
         },
         {
           "speaker": "oren",
@@ -632,9 +645,11 @@
           "when_absent": [
             {
               "speaker": "petra",
-              "text": "The aqueduct carried a city’s water for two hundred years. Keep to the maintenance walk."
+              "text": "The aqueduct carried a city’s water for two hundred years. Keep to the maintenance walk.",
+              "expression": "resolute"
             }
-          ]
+          ],
+          "expression": "resolute"
         },
         {
           "speaker": "lyra",
@@ -651,11 +666,13 @@
               "speaker": "lyra",
               "text": "The lower channels are filling. The valley has its water back."
             }
-          ]
+          ],
+          "expression": "satisfied"
         },
         {
           "speaker": "ari",
-          "text": "The birds are following it all the way down."
+          "text": "The birds are following it all the way down.",
+          "expression": "relieved"
         },
         {
           "speaker": "lyra",

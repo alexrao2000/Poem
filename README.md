@@ -66,7 +66,7 @@ These controls apply to campaign battles; menus and the visual workshop have the
 | Apply Options or return from save transfer | Fresh Escape |
 | Skip the current dialogue sequence | Fresh Escape |
 
-The first twelve recruits change expression on selected campaign and support lines.
+The first eighteen recruits change expression on selected campaign and support lines.
 
 History pauses text reveal while you reread the current conversation and returns to the same position. Arrow keys, Page Up/Down and Home/End scroll the transcript. Dialogue keys act once per fresh press; held keys do not dismiss following lines. Menu back-navigation also requires a fresh Escape for each level. Enter or Space activates **Skip scene** when that button has keyboard focus.
 

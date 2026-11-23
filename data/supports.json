@@ -704,19 +704,23 @@
         "lines": [
           {
             "speaker": "vela",
-            "text": "You have checked everyone in this camp except yourself."
+            "text": "You have checked everyone in this camp except yourself.",
+            "expression": "concerned"
           },
           {
             "speaker": "dax",
-            "text": "Someone has to check the newest arrivals."
+            "text": "Someone has to check the newest arrivals.",
+            "expression": "resolute"
           },
           {
             "speaker": "vela",
-            "text": "The lighthouse keeper counts as an arrival. She has brought two bowls."
+            "text": "The lighthouse keeper counts as an arrival. She has brought two bowls.",
+            "expression": "relieved"
           },
           {
             "speaker": "dax",
-            "text": "That is a remarkably specific regulation."
+            "text": "That is a remarkably specific regulation.",
+            "expression": "reassuring"
           }
         ]
       },
@@ -725,27 +729,33 @@
         "lines": [
           {
             "speaker": "dax",
-            "text": "Could your light signal a storm to the far docks?"
+            "text": "Could your light signal a storm to the far docks?",
+            "expression": "concerned"
           },
           {
             "speaker": "vela",
-            "text": "If someone there knows the sequence."
+            "text": "If someone there knows the sequence.",
+            "expression": "resolute"
           },
           {
             "speaker": "dax",
-            "text": "Teach me. We lost two hands because a warning stopped at the foreman's office."
+            "text": "Teach me. We lost two hands because a warning stopped at the foreman's office.",
+            "expression": "resolute"
           },
           {
             "speaker": "vela",
-            "text": "Then we will teach more than one person."
+            "text": "Then we will teach more than one person.",
+            "expression": "resolute"
           },
           {
             "speaker": "dax",
-            "text": "Every shift. And the kitchen workers."
+            "text": "Every shift. And the kitchen workers.",
+            "expression": "resolute"
           },
           {
             "speaker": "vela",
-            "text": "Especially anyone who notices when a crew fails to return."
+            "text": "Especially anyone who notices when a crew fails to return.",
+            "expression": "concerned"
           }
         ]
       },
@@ -754,27 +764,33 @@
         "lines": [
           {
             "speaker": "dax",
-            "text": "The dock crews sent back your signal."
+            "text": "The dock crews sent back your signal.",
+            "expression": "reassuring"
           },
           {
             "speaker": "vela",
-            "text": "All three shifts?"
+            "text": "All three shifts?",
+            "expression": "concerned"
           },
           {
             "speaker": "dax",
-            "text": "And the kitchen. They added a signal for hot supper."
+            "text": "And the kitchen. They added a signal for hot supper.",
+            "expression": "reassuring"
           },
           {
             "speaker": "vela",
-            "text": "A valuable addition to maritime safety."
+            "text": "A valuable addition to maritime safety.",
+            "expression": "relieved"
           },
           {
             "speaker": "dax",
-            "text": "You can come down from the tower tonight. They know the watch."
+            "text": "You can come down from the tower tonight. They know the watch.",
+            "expression": "reassuring"
           },
           {
             "speaker": "vela",
-            "text": "Keep me a bowl. I would like to see their faces when they answer."
+            "text": "Keep me a bowl. I would like to see their faces when they answer.",
+            "expression": "relieved"
           }
         ]
       }
@@ -802,19 +818,23 @@
         "lines": [
           {
             "speaker": "una",
-            "text": "I chose the chair facing the door for you."
+            "text": "I chose the chair facing the door for you.",
+            "expression": "reassuring"
           },
           {
             "speaker": "silas",
-            "text": "That is either kindness or a very good interrogation technique."
+            "text": "That is either kindness or a very good interrogation technique.",
+            "expression": "amused"
           },
           {
             "speaker": "una",
-            "text": "Tonight it is kindness."
+            "text": "Tonight it is kindness.",
+            "expression": "reassuring"
           },
           {
             "speaker": "silas",
-            "text": "I will try to accept the shorter explanation."
+            "text": "I will try to accept the shorter explanation.",
+            "expression": "amused"
           }
         ]
       },
@@ -823,27 +843,33 @@
         "lines": [
           {
             "speaker": "silas",
-            "text": "You kept the clause they removed from the treaty."
+            "text": "You kept the clause they removed from the treaty.",
+            "expression": "concerned"
           },
           {
             "speaker": "una",
-            "text": "It named the villages that would lose their wells."
+            "text": "It named the villages that would lose their wells.",
+            "expression": "resolute"
           },
           {
             "speaker": "silas",
-            "text": "I have destroyed documents for less."
+            "text": "I have destroyed documents for less.",
+            "expression": "concerned"
           },
           {
             "speaker": "una",
-            "text": "Why tell me that?"
+            "text": "Why tell me that?",
+            "expression": "concerned"
           },
           {
             "speaker": "silas",
-            "text": "Because I want you to know what I mean when I say I will keep this one safe."
+            "text": "Because I want you to know what I mean when I say I will keep this one safe.",
+            "expression": "resolute"
           },
           {
             "speaker": "una",
-            "text": "Then let us make copies. Safety should not depend on one honest evening."
+            "text": "Then let us make copies. Safety should not depend on one honest evening.",
+            "expression": "resolute"
           }
         ]
       },
@@ -852,27 +878,33 @@
         "lines": [
           {
             "speaker": "silas",
-            "text": "I sat with my back to the door yesterday."
+            "text": "I sat with my back to the door yesterday.",
+            "expression": "amused"
           },
           {
             "speaker": "una",
-            "text": "I noticed. I also noticed you moved the mirror."
+            "text": "I noticed. I also noticed you moved the mirror.",
+            "expression": "reassuring"
           },
           {
             "speaker": "silas",
-            "text": "A modest victory, then."
+            "text": "A modest victory, then.",
+            "expression": "amused"
           },
           {
             "speaker": "una",
-            "text": "A real one. You do not owe me a performance of trust."
+            "text": "A real one. You do not owe me a performance of trust.",
+            "expression": "reassuring"
           },
           {
             "speaker": "silas",
-            "text": "What do I owe you?"
+            "text": "What do I owe you?",
+            "expression": "concerned"
           },
           {
             "speaker": "una",
-            "text": "The truth when it is difficult. I will try to offer the same."
+            "text": "The truth when it is difficult. I will try to offer the same.",
+            "expression": "resolute"
           }
         ]
       }
@@ -900,19 +932,23 @@
         "lines": [
           {
             "speaker": "petra",
-            "text": "Your bird has stolen my measuring string."
+            "text": "Your bird has stolen my measuring string.",
+            "expression": "concerned"
           },
           {
             "speaker": "ari",
-            "text": "Rain considers all string a preliminary nest."
+            "text": "Rain considers all string a preliminary nest.",
+            "expression": "relieved"
           },
           {
             "speaker": "petra",
-            "text": "It was supporting a model bridge."
+            "text": "It was supporting a model bridge.",
+            "expression": "resolute"
           },
           {
             "speaker": "ari",
-            "text": "Then she has discovered a serious design weakness."
+            "text": "Then she has discovered a serious design weakness.",
+            "expression": "relieved"
           }
         ]
       },
@@ -921,27 +957,33 @@
         "lines": [
           {
             "speaker": "petra",
-            "text": "I added a perch to the signal tower plan."
+            "text": "I added a perch to the signal tower plan.",
+            "expression": "satisfied"
           },
           {
             "speaker": "ari",
-            "text": "Rain prefers a clear approach from the east."
+            "text": "Rain prefers a clear approach from the east.",
+            "expression": "resolute"
           },
           {
             "speaker": "petra",
-            "text": "I was designing for messengers, not her preferences."
+            "text": "I was designing for messengers, not her preferences.",
+            "expression": "concerned"
           },
           {
             "speaker": "ari",
-            "text": "She is the messenger."
+            "text": "She is the messenger.",
+            "expression": "resolute"
           },
           {
             "speaker": "petra",
-            "text": "Then ask her about the crosswind before I set the height."
+            "text": "Then ask her about the crosswind before I set the height.",
+            "expression": "resolute"
           },
           {
             "speaker": "ari",
-            "text": "I will take her up. She is more persuasive in person."
+            "text": "I will take her up. She is more persuasive in person.",
+            "expression": "relieved"
           }
         ]
       },
@@ -950,27 +992,33 @@
         "lines": [
           {
             "speaker": "ari",
-            "text": "The tower held three birds, two children, and an anxious mayor."
+            "text": "The tower held three birds, two children, and an anxious mayor.",
+            "expression": "relieved"
           },
           {
             "speaker": "petra",
-            "text": "I allowed for four children."
+            "text": "I allowed for four children.",
+            "expression": "satisfied"
           },
           {
             "speaker": "ari",
-            "text": "You did not mention that in the plan."
+            "text": "You did not mention that in the plan.",
+            "expression": "concerned"
           },
           {
             "speaker": "petra",
-            "text": "People climb things. A useful structure survives being used."
+            "text": "People climb things. A useful structure survives being used.",
+            "expression": "resolute"
           },
           {
             "speaker": "ari",
-            "text": "I will put that on the plaque."
+            "text": "I will put that on the plaque.",
+            "expression": "relieved"
           },
           {
             "speaker": "petra",
-            "text": "Put the maintenance instructions there instead. We can argue about wisdom later."
+            "text": "Put the maintenance instructions there instead. We can argue about wisdom later.",
+            "expression": "satisfied"
           }
         ]
       }
