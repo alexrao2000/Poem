@@ -1,5 +1,6 @@
 extends SceneTree
 const Batch=preload("res://scripts/static_batch.gd")
+const Crowns=preload("res://scripts/conifer_crowns.gd")
 const Scenery=preload("res://scripts/scenery.gd")
 const Rules=preload("res://scripts/rules.gd")
 func _initialize():call_deferred("run")
@@ -37,6 +38,7 @@ func run():
      coverage+=1
      assert(x>cell*.07 and y>cell*.07 and x<cell*.93 and y<cell*.93,"Leaf cards retain transparent gutters")
   assert(coverage>1000 and coverage<cell*cell*.8,"Each foliage card has leaves and transparent gaps")
+ verify_conifer_atlas()
  var world=Node3D.new();root.add_child(world)
  var shared=StandardMaterial3D.new();var surface=SurfaceTool.new();surface.begin(Mesh.PRIMITIVE_TRIANGLES)
  surface.set_normal(Vector3.ONE.normalized());surface.add_vertex(Vector3.ZERO);surface.add_vertex(Vector3.RIGHT);surface.add_vertex(Vector3.UP)
@@ -69,6 +71,7 @@ func run():
  world.queue_free();await process_frame
  for chapter in range(12):
   game.chapter=chapter;world=Node3D.new();root.add_child(world);scenery.landscape(world,game)
+  verify_conifers(world,game.info().environment,false)
   before=signature(world);var began=Time.get_ticks_msec();stats=batch.combine(world);var elapsed=Time.get_ticks_msec()-began;after=signature(world)
   assert(before.vertices==after.vertices and before.triangles==after.triangles,"All chapter geometry is retained")
   assert(before.sum.distance_to(after.sum)<maxf(1,before.sum.length()*.000001),"Positions preserved within float accumulation error")
@@ -78,6 +81,7 @@ func run():
   world.queue_free();await process_frame
  for chapter in range(12):
   game.chapter=chapter;world=Node3D.new();root.add_child(world);scenery.battle_landscape(world,Vector3(35,0,0),{"environment":game.info().environment})
+  verify_conifers(world,game.info().environment,true)
   if game.info().environment=="harbor":verify_deck(world,Vector3(35,0,0))
   before=signature(world);stats=batch.combine(world);after=signature(world)
   assert(before.vertices==after.vertices and before.triangles==after.triangles,"Combat arenas retain all geometry")
@@ -86,8 +90,59 @@ func run():
  world=Node3D.new();root.add_child(world);scenery.battle_landscape(world,Vector3(35,.7,0),{"environment":"road","terrain":"="})
  verify_deck(world,Vector3(35,.7,0));world.queue_free();await process_frame
  assert(total_batches<total_sources*.6,"Static mesh submissions reduced by at least forty percent")
- print("PASS: 12 maps and 12 arenas retain vertices, triangles, UVs and transforms; correct scaled normals; ",total_sources," meshes → ",total_batches," batches")
+ print("PASS: 12 maps and 12 arenas retain vertices, triangles, UVs and transforms; correct scaled normals, four conifer atlas regions and grounded woodland/pass trees; ",total_sources," meshes → ",total_batches," batches")
  quit()
+
+func verify_conifer_atlas():
+ var crowns=Crowns.new()
+ var texture: Texture2D=crowns.material().get_shader_parameter("plant_atlas")
+ var image=texture.get_image()
+ assert(image.get_size()==Vector2i(Crowns.ATLAS),"Crown texture matches its measured crop coordinates")
+ var cell=Vector2i(image.get_size()/2)
+ for variant in Crowns.REGIONS.size():
+  var region=Crowns.REGIONS[variant]
+  var start=Vector2i(variant%2,variant/2)*cell
+  var coverage=0
+  for y in range(start.y,start.y+cell.y):
+   for x in range(start.x,start.x+cell.x):
+    if image.get_pixel(x,y).a<.45:continue
+    coverage+=1
+    assert(region.grow(-4).has_point(Vector2i(x,y)),"Opaque crown detail and filtering gutters fit their own crop")
+  assert(coverage>50000 and coverage<cell.x*cell.y*.5,"The atlas contains four detailed cutouts with open space")
+  var crown=crowns.shape(variant)
+  assert(crowns.shape(variant)==crown,"Tree instances reuse the four crown meshes")
+  var data=crown.surface_get_arrays(0)
+  var points=data[Mesh.ARRAY_VERTEX]
+  var uv=data[Mesh.ARRAY_TEX_UV]
+  var wind=data[Mesh.ARRAY_TEX_UV2]
+  assert(points.size()==18,"Each crown uses six triangles in three crossing planes")
+  for index in points.size():
+   var pixel=(uv[index]*Crowns.ATLAS).round()
+   assert(pixel.x>=region.position.x and pixel.y>=region.position.y and pixel.x<=region.end.x and pixel.y<=region.end.y)
+   assert(is_equal_approx(wind[index].y,1.0 if points[index].y>.99 else 0.0),"Wind pins the bottom of all three cards")
+
+func verify_conifers(world: Node3D,theme: String,arena: bool):
+ var crowns=world.find_children("ConiferCrown*","MeshInstance3D",true,false)
+ if theme not in ["forest","mountain"]:
+  assert(crowns.is_empty(),"Conifers are limited to Greywood and Windscar Pass")
+  return
+ assert(crowns.size()>=(21 if theme=="forest" else 7))
+ var variants={}
+ for crown in crowns:
+  var trunk=crown.get_parent().get_child(crown.get_index()-1)
+  var variant=crown.get_meta("conifer_variant")
+  variants[variant]=true
+  assert(trunk.name.begins_with("ConiferTrunk") and trunk.mesh is CylinderMesh)
+  assert(is_equal_approx(trunk.global_position.y-trunk.mesh.height*.5*trunk.global_basis.y.length(),crown.global_position.y),"Trunk and crown share the same planted base")
+  assert(is_equal_approx(trunk.global_position.x,crown.global_position.x) and is_equal_approx(trunk.global_position.z,crown.global_position.z))
+  assert(crown.extra_cull_margin>=.01,"Culling bounds include the crest's shader motion")
+  if arena:
+   assert(is_equal_approx(crown.global_position.y,-.06) and crown.global_position.z<=-8,"The fighting lane stays clear and the trunks start on the arena ground")
+  elif theme=="mountain":
+   assert(is_equal_approx(crown.global_position.y,-.15) and crown.global_position.z<=-6,"Pass firs grow behind the tactical ridge")
+  else:
+   assert(is_zero_approx(crown.global_position.y) or is_equal_approx(crown.global_position.y,-.15),"Woodland trees stand on the map or extended ground")
+ assert(variants.size()==2 and variants.has(0 if theme=="forest" else 2) and variants.has(1 if theme=="forest" else 3))
 
 func verify_deck(world: Node3D,center: Vector3):
  var planks=world.find_children("ArenaDeck*","MeshInstance3D",true,false)

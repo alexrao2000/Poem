@@ -8,12 +8,14 @@ const Fortification=preload("res://scripts/fortification.gd")
 const Fountain=preload("res://scripts/fountain.gd")
 const AmbientDrift=preload("res://scripts/ambient_drift.gd")
 const GroundCover=preload("res://scripts/ground_cover.gd")
+const ConiferCrowns=preload("res://scripts/conifer_crowns.gd")
 # Shared landscape construction for the tactical board and battle stage.
 # Masonry spans use closed wedge stones with small joints and an open underside.
 var materials: Dictionary = {}
 var batching_enabled=true
 var batcher=preload("res://scripts/static_batch.gd").new()
 var ground_cover=GroundCover.new()
+var conifer_crowns=ConiferCrowns.new()
 var atlas: Texture2D
 var environment_atlas: Texture2D
 var foliage_atlas: Texture2D
@@ -98,7 +100,10 @@ func arch_span(parent,p,inner_radius=.5,thickness=.4,depth=.6):
  var span=mesh(parent,surface.commit(),p,Vector3.ONE,detail_material(3));span.name="MasonryArch"
  return span
 
-func tree(parent,p,seed_value=0):
+func tree(parent,p,seed_value=0,theme=""):
+ if theme=="mountain" or (theme=="forest" and seed_value%4!=0):
+  conifer(parent,p,seed_value,theme)
+  return
  var rng=RandomNumberGenerator.new();rng.seed=seed_value+997
  var h=rng.randf_range(1.45,2.1)
  var trunk=cylinder(parent,p+Vector3(0,h*.32,0),h*.72,.075,Color.WHITE,.035)
@@ -114,6 +119,21 @@ func tree(parent,p,seed_value=0):
   var base=p+Vector3(0,h*.38,0)
   var branch=cylinder(parent,(base+center)*.5,base.distance_to(center),.03,Color.WHITE,.012)
   branch.quaternion=Quaternion(Vector3.UP,(center-base).normalized());branch.material_override=detail_material(2)
+
+func conifer(parent,p,seed_value,theme):
+ var rng=RandomNumberGenerator.new();rng.seed=seed_value+12043
+ var mountain=theme=="mountain"
+ var variant=seed_value%2+(2 if mountain else 0)
+ var height=rng.randf_range(1.26,1.57) if mountain else rng.randf_range(1.44,1.72)
+ var stem_height=height*.76
+ var trunk=cylinder(parent,p+Vector3(0,stem_height*.5,0),stem_height,height*.043,Color.WHITE,height*.009)
+ trunk.name="ConiferTrunk"
+ trunk.material_override=detail_material(2)
+ var crown=mesh(parent,conifer_crowns.shape(variant),p,Vector3.ONE*height,conifer_crowns.material())
+ crown.name="ConiferCrown"
+ crown.rotation.y=rng.randf()*TAU
+ crown.extra_cull_margin=.02
+ crown.set_meta("conifer_variant",variant)
 
 func bridge(parent,p,vertical=false):
  var root=Node3D.new();parent.add_child(root);root.position=p
@@ -200,7 +220,7 @@ func landscape(parent,game):
    else:
     var floor=ground(parent,p,Vector2.ONE,0,ground_paint);floor.name="MapGround"
    if t=="=":bridge(parent,p,theme in ["harbor","road"])
-   elif t=="f":tree(parent,p+Vector3(.22,0,-.22),x+y*17)
+   elif t=="f":tree(parent,p+Vector3(.22,0,-.22),x+y*17,theme)
    elif t=="h":boulder(parent,p+Vector3(.22,0,-.2),.32)
    elif t=="#" and theme=="mountain":boulder(parent,p+Vector3(0,.2,0),.8)
    elif t=="#" and not building_cells.has(Vector2i(x,y)):
@@ -217,10 +237,12 @@ func landscape(parent,game):
  for item in game.info().get("landmarks",[]):
   landmark(parent,Vector3(item.position[0],0,item.position[1]),item.kind)
  if theme in ["village","river","forest","road","castle"]:
-  for i in range(22):tree(parent,Vector3(-4+(i*7)%23,0,-3-(i%3)*1.3),i*23)
-  for i in range(12):tree(parent,Vector3(-3+(i*13)%21,0,12+i%3),i*11)
+  var base=-.15 if theme=="forest" else 0.0
+  for i in range(22):tree(parent,Vector3(-4+(i*7)%23,base,-3-(i%3)*1.3),i*23,theme)
+  for i in range(12):tree(parent,Vector3(-3+(i*13)%21,base,12+i%3),i*11,theme)
  elif theme=="mountain":
   for i in range(16):boulder(parent,Vector3(-3+(i*5)%22,.2,-3-i%3),2.5)
+  for i in range(7):tree(parent,Vector3(-3+(i*9)%22,-.15,-6-(i%3)),i*31,theme)
  elif theme in ["harbor","aqueduct"]:
   var sea=PlaneMesh.new();sea.size=Vector2(55,35)
   mesh(parent,sea,Vector3(7,-.12,26),Vector3.ONE,water_material())
@@ -283,9 +305,9 @@ func combat_context(game,a,b,screen_direction=1.0) -> Dictionary:
  candidates.sort_custom(func(left,right):return left.distance<right.distance)
  return {"chapter":game.chapter,"environment":game.info().get("environment","village"),"terrain":game.terrain(game.pos(b)),"landmarks":candidates.slice(0,2)}
 
-func battle_tree(parent,point,seed_value,scale_value):
+func battle_tree(parent,point,seed_value,scale_value,theme=""):
  var group=Node3D.new();group.name="ArenaTree";group.position=point;group.scale=Vector3.ONE*scale_value;parent.add_child(group)
- tree(group,Vector3.ZERO,seed_value)
+ tree(group,Vector3.ZERO,seed_value,theme)
 
 func battle_landscape(parent,center,context={}):
  var theme=context.get("environment","village")
@@ -310,8 +332,9 @@ func battle_landscape(parent,center,context={}):
    block(parent,center+Vector3(x,.55,-3),Vector3(.13,1.1,.13),Color("72624f"))
   block(parent,center+Vector3(0,.7,-3),Vector3(22,.12,.10),Color("8e7c60"))
  if theme in ["village","river","road","forest","harbor"]:
+  var base=-.06 if theme=="forest" else 0.0
   for i in range(28 if theme=="forest" or tile=="f" else 17):
-   battle_tree(parent,center+Vector3(-20+(i*11)%41,0,-8-(i%4)*3),i*83,2.6+(i%3)*.25)
+   battle_tree(parent,center+Vector3(-20+(i*11)%41,base,-8-(i%4)*3),i*83,2.6+(i%3)*.25,theme)
   if theme!="forest" and context.get("landmarks",[]).is_empty():
    for i in range(3):house(parent,center+Vector3(-12+i*11,0,-17),2.0+i*.2)
  var backdrop=context.get("landmarks",[])
@@ -338,6 +361,8 @@ func battle_landscape(parent,center,context={}):
   preload("res://scripts/arena_ridges.gd").build(parent,center,theme=="mountain")
   if theme=="mountain":
    for i in range(16):boulder(parent,center+Vector3(-12+(i*7)%25,.4,-4-i%3),1.0+i%3*.3)
+   for i in range(8):
+    battle_tree(parent,center+Vector3(-17+(i*11)%35,-.06,-9-i%3*2),i*47,2.2+i%3*.2,theme)
  if theme in ["engine","furnace"]:
   for x in [-8,-4,0,4,8]:
    cylinder(parent,center+Vector3(x,2,-7),4,.4,Color("494d51"))

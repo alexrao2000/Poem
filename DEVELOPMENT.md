@@ -1,5 +1,7 @@
 # Poem development
 
+Greywood and Windscar Pass now share four original conifer cutouts between their maps and combat arenas. Keep the planar cards upright and their lowest foliage attached to the tapered trunk. The tactical scale and distant arena placements keep the terrain and fighting lane clear. The atlas retains transparent gutters and mipmaps. [Source prompt and image hash](docs/conifer-crown-prompt.json).
+
 Debug tools includes a dialogue replay picker for all chapter openings, closings, and support ranks. Replays use the normal scene controls, backdrops, and expressions. The campaign picker can resolve survivor dialogue against the current Debug roster. Returning from a scene restores the chosen chapter, pair, and rank. Seven focused suites passed, including 60 replays, three layout sizes, a survivor branch, keyboard focus, and save isolation.
 
 All 24 recruits now have three authored dialogue expressions. The game assigns them to all 103 main campaign lines, ten loss alternatives and 191 support lines. Five focused suites passed, including all 36 support replays, survivor layouts and trial-story regression. Both local exports, the full packaged expression suite, exact alpha on the final six sheets and archive integrity passed. Hale’s atlas uses a measured 723-pixel square crop that preserves its slightly different source dimensions.

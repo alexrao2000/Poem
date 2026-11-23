@@ -99,6 +99,8 @@ Noor, Galen, Yuna, Hale, Elian and Rhea complete the 24-recruit set. Their [orig
 
 The twelve chapters define their own sky, sun and ambient light. Glass Harbor uses warm dusk, while Windscar Pass uses a cooler sky and pale blue sun. Map and arena share those colors. The arena adds distance haze beyond the fighters. Greywood has unlit slanted rain in the existing instanced atmosphere batch, with faded loop endpoints and a clock that pauses whenever the scene is hidden.
 
+Greywood mixes two original fir crowns with its broadleaf trees. Windscar Pass uses two sparse pine crowns behind its rocks. The same four cutouts appear on the tactical maps and behind the fighting lanes. Each tree has a tapered trunk and three crossed cards with root-pinned wind. The cards share a mipmapped atlas and join the existing static batches. [Source prompt and image hash](conifer-crown-prompt.json).
+
 ## Contact timing and guarded hits
 
 Damaging contact holds actor processing locally for 55 ms (100 ms for criticals), after a 35 ms recoil lead. The camera, effects, UI and shared music timeline continue. This uses node-bound tween processing, described in the [Godot 4.5 Tween documentation](https://docs.godotengine.org/en/4.5/classes/class_tween.html); tests cover procedural joints, imported AnimationPlayers, cancellation and combat skipping. No global time scale changes. Zero-damage hits have a guard stance and restrained gray glint instead of damaging sparks. `scripts/combat_accents.py` generates the original short metallic sound without rewriting the soundtrack; the main score generator also includes it.
