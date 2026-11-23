@@ -6,6 +6,8 @@ Development resumed on “go”. Continue in this chat until the user asks to st
 
 ### Latest state
 
+Four outdoor combat arenas now use continuous ground with irregular borders where stone or earth meets grass. The ground meets the combatants, plants and distant slopes at their tested footing heights. Eight focused suites, 72 arena floor configurations, both local exports, packaged terrain and ground cover, and archive integrity passed. Rendered appearance remains unreviewed.
+
 The tactical chapter title and objective now share a navy plate at the upper left, with a separate turn plate at the upper right. It changes color for the enemy phase and keeps Debug and Save failed messages. Thirty-six chapter layouts preserve exact objectives and keep the center of the battlefield exposed at the three supported sizes. Ten focused suites, both local exports, packaged objective and save recovery checks, and archive integrity passed. Rendered appearance remains unreviewed.
 
 The Hard opening formation sweep at `d120bd8` ran 1,800 first attempts. It tested every placement of four recruits in six slots against five combat seeds. All five default placements reproduced the earlier opening metrics exactly. Seed 17 won with 279 arrangements, including 169 without permanent losses. Sixty-two arrangements won all five openings without permanent losses. The local report `build/review/opening-formations.html` gives the tested slots and raw outcomes.

@@ -62,7 +62,7 @@ func run():
   for plant in world.get_children():
    var offset=plant.position-center
    assert(absf(offset.x)>6 or offset.z< -4,"Close-up plants leave engagement, projectiles and footwork clear")
-   assert(is_equal_approx(offset.y,0 if offset.z>=-3 else -.06),"Arena roots follow the actual central or distant ground plane")
+   assert(is_zero_approx(offset.y),"Arena roots meet the level meadow or dry riverbank")
    if game.info().environment=="river":assert(offset.z>=-2.5,"River planting never floats above the water behind the fighting lane")
   world.free()
  world=Node3D.new();root.add_child(world);cover.add_arena(world,Vector3.ZERO,{"environment":"road","terrain":"="})

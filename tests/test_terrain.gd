@@ -246,7 +246,8 @@ func verify_ridges():
    for index in layers.size():
     var layer=layers[index]
     var framed=layer.transform*layer.mesh.get_aabb()
-    assert(is_equal_approx(framed.position.y,center.y-.06) and framed.end.z<=center.z-26,"The landscape maintains the ground seam and the fighting lane's clearance")
+    var level=center.y if theme in MapGround.CONTINUOUS_ARENAS else center.y-.06
+    assert(is_equal_approx(framed.position.y,level) and framed.end.z<=center.z-26,"The landscape maintains the ground seam and the fighting lane's clearance")
     assert(layer.mesh==ridges.mesh(index,theme=="mountain") and layer.material_override==ridges.material(index,theme))
     assert(layer.material_override.albedo_color==look.near.lerp(look.distant,index*.15),"Each layer takes its place-specific color")
     assert(layer.material_override.vertex_color_use_as_albedo and layer.cast_shadow==GeometryInstance3D.SHADOW_CASTING_SETTING_OFF)
@@ -292,7 +293,7 @@ func verify_pass_escarpment():
  var slope=stage.get_node("PassEscarpment")
  var bounds=slope.transform*slope.mesh.get_aabb()
  assert(slope.mesh==map_slope.mesh and slope.material_override==map_slope.material_override)
- assert(is_equal_approx(bounds.position.y,-.06) and bounds.end.z<-10 and bounds.position.z>-26)
+ assert(is_equal_approx(bounds.position.y,center.y) and bounds.end.z<-10 and bounds.position.z>-26)
  for landmark in stage.find_children("ArenaLandmark*","Node3D",false,false):
   for stone in landmark.find_children("*","MeshInstance3D"):
    assert((stone.global_transform*stone.mesh.get_aabb()).position.z>bounds.end.z,"The old pass ruin stands in front of the escarpment")
@@ -345,6 +346,7 @@ func verify_rocks():
 
 func verify_arena_ground():
  var scenery=Scenery.new();var game=Rules.new();var count=0
+ verify_arena_paint(scenery)
  for chapter in range(12):
   game.chapter=chapter;var before=game.rng.state
   var tactical=MapGround.material(game,scenery.atlas)
@@ -360,20 +362,31 @@ func verify_arena_ground():
   for symbol in [".","f","h","p","+","="]:
    var arena=Node3D.new();root.add_child(arena);scenery.batching_enabled=false
    scenery.battle_landscape(arena,Vector3(35,0,0),{"chapter":chapter,"environment":game.info().environment,"terrain":symbol})
-   var natural={};var geometry=[]
+   var natural={};var sheets=0
    for node in arena.get_children():
     if not node is MeshInstance3D or not node.mesh is PlaneMesh:continue
     var paint=node.material_override
+    if paint is ShaderMaterial and paint.shader==tactical.shader:sheets+=1
     if paint is ShaderMaterial and paint.shader==tactical.shader and paint.get_shader_parameter("wang_enabled")==true:
-     var kind=paint.get_shader_parameter("natural_surface");natural[kind]=paint
-     assert(kind in [0,1] and (is_zero_approx(node.position.y) or is_equal_approx(node.position.y,-.06)),"Only intact ground sheets use standalone natural painting, without changing their floor height")
-     geometry.append(node.mesh.get_aabb().size)
+     var kind=0 if paint.get_shader_parameter("blend_edges")==true else paint.get_shader_parameter("natural_surface")
+     natural[kind]=paint
+     assert(kind in [0,1] and (is_zero_approx(node.position.y) or is_equal_approx(node.position.y,-.06)),"Natural arena painting stays on intact ground sheets at the intended levels")
    var stone=game.info().environment in MapGround.STONE
    var wood=symbol=="=" or game.info().environment=="harbor"
+   var continuous=not wood and game.info().environment in MapGround.CONTINUOUS_ARENAS
    var expected=maxi(0,MapGround.surface_for(symbol,game.info().environment))
    assert(arena.get_meta("arena_surface")==expected,"Combat retains the selected tactical tile's actual grass, earth or paving instead of replacing a whole chapter with slate")
    assert(natural.has(0)==(not stone or (not wood and expected==0)),"Natural chapters retain varied grass around the fighting lane")
-   assert(natural.has(1)==(not wood and expected==2),"Hill combat retains varied dirt at the fighters' feet")
+   if continuous:
+    var floor=arena.get_node("ArenaGround")
+    assert(sheets==1 and floor.mesh.size==Vector2(70,70) and is_zero_approx(floor.position.y),"The walking surface extends continuously through the meadow")
+    var paint=floor.material_override
+    assert((paint.get_shader_parameter("blend_edges")==true)==(expected!=0))
+    if expected!=0:
+     assert(paint.get_shader_parameter("surface_weights")==MapGround.arena_controls[expected])
+     assert(paint.get_shader_parameter("control_origin")==Vector2(35,0)-Vector2(MapGround.ARENA_CONTROL_RADIUS))
+   else:
+    assert(natural.has(1)==(not wood and expected==2),"Hill combat retains varied dirt at the fighters' feet")
    scenery.batcher.combine(arena)
    for paint in natural.values():
     var present=false
@@ -383,6 +396,29 @@ func verify_arena_ground():
    count+=1;arena.free()
   assert(game.rng.state==before,"Ground presentation consumes no campaign RNG")
  print("PASS: %d raw/batched arena floors share tactical natural texture variety and scale while preserving stone, deck and water"%count)
+
+func verify_arena_paint(scenery):
+ var radius=MapGround.ARENA_CONTROL_RADIUS
+ for kind in [1,2]:
+  var image=MapGround.arena_control_image(kind)
+  assert(image.get_size()==radius*2+Vector2i.ONE)
+  var shoulder={}
+  for row in image.get_height():
+   for column in image.get_width():
+    var pixel=image.get_pixel(column,row)
+    assert(absf(pixel.r+pixel[kind]-1)<.005 and pixel.a==0)
+    if column in [0,image.get_width()-1] or row in [0,image.get_height()-1]:
+     assert(pixel==MapGround.WEIGHTS[0],"The entire mask boundary is pure grass")
+    if absi(column-radius.x)<=7 and row==radius.y:
+     assert(pixel==MapGround.WEIGHTS[kind],"The complete engagement line keeps the selected tactical surface")
+    if pixel[kind]>0 and pixel[kind]<1:shoulder[pixel[kind]]=true
+  assert(shoulder.size()>35,"The irregular shoulder has a gradual transition instead of a hard edge")
+  var first=MapGround.arena_material(kind,Vector3(35,0,0),scenery.atlas)
+  var later=MapGround.arena_material(kind,Vector3(-9,.7,7),scenery.atlas)
+  var texture=first.get_shader_parameter("surface_weights")
+  assert(texture==later.get_shader_parameter("surface_weights") and texture.get_image().get_data()==image.get_data())
+  assert(later.get_shader_parameter("control_origin")==Vector2(-9,7)-Vector2(radius),"One shared mask follows the arena at a different world origin")
+ print("PASS: continuous outdoor lanes, grass borders, two gradual control masks, exact footing and shared paint at translated origins")
 
 func verify_river_arena():
  for far_bank in [false,true]:

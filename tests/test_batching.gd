@@ -178,7 +178,7 @@ func verify_conifers(world: Node3D,theme: String,arena: bool):
     if hit!=null:hit_height=maxf(hit_height,hit.y)
    assert(absf(hit_height-crown.global_position.y)<.001,"Windscar fir roots meet the actual rock slope")
   elif arena:
-   assert(is_equal_approx(crown.global_position.y,-.06) and crown.global_position.z<=-8,"The fighting lane stays clear and the trunks start on the arena ground")
+   assert(is_zero_approx(crown.global_position.y) and crown.global_position.z<=-8,"The fighting lane stays clear and the trunks start on the arena ground")
   else:
    assert(is_zero_approx(crown.global_position.y) or is_equal_approx(crown.global_position.y,-.15),"Woodland trees stand on the map or extended ground")
  assert(variants.size()==2 and variants.has(0 if theme=="forest" else 2) and variants.has(1 if theme=="forest" else 3))

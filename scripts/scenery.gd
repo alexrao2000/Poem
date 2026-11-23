@@ -477,11 +477,16 @@ func battle_landscape(parent,center,context={}):
  parent.set_meta("terrain",tile)
  var stone=theme in ["abbey","aqueduct","observatory","castle","engine","furnace"]
  var wooden_floor=theme=="harbor" or tile=="="
+ var continuous_floor=not wooden_floor and theme in MapGround.CONTINUOUS_ARENAS
  var surface=maxi(0,MapGround.surface_for(tile,theme))
  parent.set_meta("arena_surface",surface)
  var river=theme=="river"
- ground(parent,center-Vector3(0,.06,0),Vector2(70,70),3 if stone else 0)
- if not wooden_floor:ground(parent,center,Vector2(24,6),surface)
+ if continuous_floor:
+  var paint=MapGround.arena_material(surface,center,atlas) if surface!=0 else null
+  ground(parent,center,Vector2(70,70),0,paint).name="ArenaGround"
+ else:
+  ground(parent,center-Vector3(0,.06,0),Vector2(70,70),3 if stone else 0)
+  if not wooden_floor:ground(parent,center,Vector2(24,6),surface)
  if river or theme in ["harbor","aqueduct"] or tile=="=":
   var water=water_material(theme)
   var plane=plane_shape(Vector2(RiverBank.ARENA_WIDTH,60 if wooden_floor else 40))
@@ -503,7 +508,7 @@ func battle_landscape(parent,center,context={}):
     var reed=ground_cover.plant(parent,{"kind":2,"position":position,"height":.28+(index%3)*.045,"yaw":index*2.399})
     reed.name="ArenaBankReed"
  if theme in ["village","river","road","forest","harbor"]:
-  var base=-.06 if theme=="forest" else 0.0
+  var base=-.06 if theme=="forest" and not continuous_floor else 0.0
   var tree_line=RiverBank.ARENA_FAR_START-1 if river else -8.0
   for i in range(28 if theme=="forest" or tile=="f" else 17):
    battle_tree(parent,center+Vector3(-20+(i*11)%41,base,tree_line-(i%4)*3),i*83,2.6+(i%3)*.25,theme)
@@ -539,9 +544,10 @@ func battle_landscape(parent,center,context={}):
   elif theme=="observatory":
    var orbit=preload("res://scripts/clockwork_orbit.gd").new();parent.add_child(orbit);orbit.position=mechanism+Vector3.UP*2.6;orbit.configure(theme,1.54,.55)
  if ArenaRidges.LANDSCAPES.has(theme):
-  ArenaRidges.build(parent,center,theme)
+  ArenaRidges.build(parent,center+Vector3.UP*.06 if continuous_floor else center,theme)
   if theme=="mountain":
-   var slope=PassEscarpment.build(parent,center+Vector3(0,-.06,-10.8),Vector3(1,1.24,1))
+   var slope_origin=center+Vector3(0,0 if continuous_floor else -.06,-10.8)
+   var slope=PassEscarpment.build(parent,slope_origin,Vector3(1,1.24,1))
    for i in range(16):boulder(parent,center+Vector3(-12+(i*7)%25,.4,-4-i%3),1.0+i%3*.3)
    for i in range(8):
     var position=center+Vector3(-17+(i*11)%35,0,-12.8-i%3*2.25)

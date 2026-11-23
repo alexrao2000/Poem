@@ -13,6 +13,7 @@ uniform bool blend_edges = false;
 uniform sampler2D surface_weights : filter_linear, repeat_disable;
 uniform vec2 control_size = vec2(1.0);
 uniform float control_padding = 2.0;
+uniform vec2 control_origin = vec2(0.0);
 varying vec3 world_position;
 
 void vertex() { world_position = (MODEL_MATRIX * vec4(VERTEX, 1.0)).xyz; }
@@ -45,6 +46,7 @@ void fragment() {
 	if (blend_edges) {
 		vec2 ground = world_position.xz;
 		ground += vec2(sin(ground.y * 5.1 + ground.x * 2.3), cos(ground.x * 4.7 - ground.y * 2.1)) * 0.035;
+		ground -= control_origin;
 		vec2 blend_position = floor(ground) + smoothstep(vec2(0.36), vec2(0.64), fract(ground));
 		vec4 weights = texture(surface_weights, (blend_position + vec2(0.5 + control_padding)) / control_size);
 		float total = dot(weights, vec4(1.0));

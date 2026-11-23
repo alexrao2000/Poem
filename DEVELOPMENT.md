@@ -1,5 +1,7 @@
 # Poem development
 
+Village, woodland, road and mountain close-ups use continuous ground at the fighters’ foot level. Cobblestone and earth blend into the surrounding grass along irregular edges. Both surface masks are shared across encounters and follow the arena location. Wooden decks, riverbanks and masonry floors keep their existing geometry.
+
 The tactical map places the chapter title and objective on a navy plate at the upper left. The turn indicator sits on a separate plate at the upper right and uses a warmer palette during the enemy phase. This leaves the middle of the map visible and keeps the exact objective, turn, Debug and autosave messages.
 
 Windscar Pass uses the same layered rock escarpment behind the tactical board and the close-up arena. The trees follow the actual rock faces, and the old pass ruin sits forward of the slope in combat. The 448 triangles stay in one reusable mesh.

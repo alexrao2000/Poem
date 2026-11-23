@@ -69,9 +69,9 @@ func add_arena(parent: Node3D,center: Vector3,context: Dictionary):
  var count=0
  for i in range(48 if theme=="forest" else 30):
   var side=i%2*2-1;var x=side*rng.randf_range(6.2,11.3)
-  var z=rng.randf_range(-2.5,2.3);var level=0.0
+  var z=rng.randf_range(-2.5,2.3)
   if theme!="river" and i%3==0:
-   x=rng.randf_range(-11,11);z=rng.randf_range(-10,-4.2);level=-.06
+   x=rng.randf_range(-11,11);z=rng.randf_range(-10,-4.2)
   var kind=1 if theme=="forest" else 3 if i%9==0 else 0
-  plant(parent,{"position":center+Vector3(x,level,z),"kind":kind,"height":HEIGHTS[kind]*rng.randf_range(1.5,2.2),"yaw":rng.randf()*TAU});count+=1
+  plant(parent,{"position":center+Vector3(x,0,z),"kind":kind,"height":HEIGHTS[kind]*rng.randf_range(1.5,2.2),"yaw":rng.randf()*TAU});count+=1
  parent.set_meta("ground_cover_count",count)
