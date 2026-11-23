@@ -4,6 +4,8 @@ The game supports authored skeletal characters without changing campaign data, c
 
 Godot 4.5 imports `.glb` and `.gltf` into scenes and exports those imported resources for both browser and native builds. Put model files and their textures under `assets/models/`. Prefer a `.tscn` wrapper around the imported scene when adding weapons, a mount, `BoneAttachment3D` effect sockets, or other accessories. The wrapper and all dependencies must remain local. The project exports all resources, so catalog references are included even when no `.tscn` directly references them.
 
+The ordinary character viewer also offers **Use current settings**, **Current models** and **Revised models · preview**. These temporary choices leave campaign appearance preferences and Debug class switches unchanged. Switching retains selector focus, facing and zoom, cancels the old actor’s pending replay and restarts the selected supported action. Reopening uses the active settings again. Unsupported revised outfits show a notice and use the normal model. The [viewer-selection check](../tests/test_preview_models.gd) covers all recruits and promotions, real switches, controls at three sizes and unchanged campaign/preferences files.
+
 ## Authoring contract
 
 - Model faces local **-Z**, Y is up, feet sit at Y=0. The existing camera expects a roughly 1.8–2-unit standing character. Use catalog scale/yaw/offset for an explicit correction. There is no automatic bounding-box normalization.

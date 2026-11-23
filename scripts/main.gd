@@ -1612,14 +1612,25 @@ func show_equipment(unit):
 	button_in(panel,"Return to company record",func():show_dossier(unit))
 	button_in(panel,"Return to war council",show_camp)
 
-func show_model_view(unit,on_close=Callable(),model_spec: Dictionary={}):
+func make_preview_fighter(unit,position,model_choice: String) -> Dictionary:
+	if model_choice=="current":return {"actor":fighters.build(stage,unit,position),"available":true}
+	if model_choice=="revised":
+		for builder in [debug_vanguard,debug_duelists,debug_caster,debug_warden,debug_corsair,debug_ranger,debug_knight,debug_rider]:
+			var actor=builder.build(stage,unit,position)
+			if actor!=null:return {"actor":actor,"available":true}
+		return {"actor":fighters.build(stage,unit,position),"available":false}
+	return {"actor":make_fighter(unit,position),"available":true}
+
+func show_model_view(unit,on_close=Callable(),model_spec: Dictionary={},model_choice=""):
 	screen="model";preview_unit=unit;preview_return=on_close;reset_ui()
 	for child in stage.get_children():stage.remove_child(child);child.queue_free()
 	world.hide();pieces.hide();markers.hide();stage.process_mode=Node.PROCESS_MODE_INHERIT;stage.show()
 	var theme=game.info().get("environment","village");battle_lighting(theme)
 	scenery.battle_landscape(stage,Vector3(35,0,0),{"environment":theme})
 	var actor_data=unit.duplicate(true);actor_data.team="enemy" if model_spec.has("study_enemy_class") else "player"
-	if model_spec.is_empty():preview_actor=make_fighter(actor_data,Vector3(35,0,0))
+	var preview_available=true
+	if model_spec.is_empty():
+		var built=make_preview_fighter(actor_data,Vector3(35,0,0),model_choice);preview_actor=built.actor;preview_available=built.available
 	else:
 		var library=preload("res://scripts/combat_models.gd").new("")
 		library.catalog={"characters":{unit.id:model_spec}}
@@ -1657,9 +1668,16 @@ func show_model_view(unit,on_close=Callable(),model_spec: Dictionary={}):
 			show_source_model_view(model_spec.study_id,unit.item,value)
 			preview_actor.rotation.y=facing)
 	var spacer=Control.new();spacer.size_flags_vertical=Control.SIZE_EXPAND_FILL;panel.add_child(spacer)
-	var turns: Control=panel
-	if not model_spec.is_empty():
-		turns=HBoxContainer.new();panel.add_child(turns)
+	var model_choice_control: OptionButton
+	if model_spec.is_empty():
+		model_choice_control=OptionButton.new();model_choice_control.name="PreviewModels";model_choice_control.custom_minimum_size.y=42
+		model_choice_control.tooltip_text="Only changes this preview. Campaign appearance and Debug choices stay as they are."
+		for entry in [["Use current settings",""],["Current models","current"],["Revised models · preview","revised"]]:
+			model_choice_control.add_item(entry[0]);model_choice_control.set_item_metadata(model_choice_control.item_count-1,entry[1])
+			if entry[1]==model_choice:model_choice_control.select(model_choice_control.item_count-1)
+		panel.add_child(model_choice_control);interface_audio.watch(model_choice_control)
+		if not preview_available:label_in(panel,"Revised preview unavailable for this outfit.",15,GOLD)
+	var turns=HBoxContainer.new();panel.add_child(turns)
 	button_in(turns,"Turn left",func():preview_actor.rotation.y-=PI/6).size_flags_horizontal=Control.SIZE_EXPAND_FILL
 	button_in(turns,"Turn right",func():preview_actor.rotation.y+=PI/6).size_flags_horizontal=Control.SIZE_EXPAND_FILL
 	label_in(panel,"Preview action",15,GOLD)
@@ -1699,6 +1717,18 @@ func show_model_view(unit,on_close=Callable(),model_spec: Dictionary={}):
 	var framing=preload("res://scripts/preview_camera.gd").new();framing.name="PreviewCamera";stage.add_child(framing)
 	framing.configure(preview_actor,camera,panel.get_parent(),actions.map(func(entry):return entry[1]))
 	framing.add_hint(ui)
+	if model_choice_control!=null:
+		model_choice_control.item_selected.connect(func(index):
+			var yaw=preview_actor.rotation.y;var zoom=framing.zoom;var keep_focus=model_choice_control.has_focus()
+			var action=str(choice.get_item_metadata(choice.selected));var selected_model=str(model_choice_control.get_item_metadata(index))
+			show_model_view(unit,on_close,{},selected_model)
+			preview_actor.rotation.y=yaw
+			var next_camera=stage.get_node("PreviewCamera");next_camera.zoom=zoom;next_camera.reframe()
+			var next_choice=ui.find_child("PreviewAction",true,false)
+			for at in range(next_choice.item_count):
+				if next_choice.get_item_metadata(at)==action:
+					next_choice.select(at);stage.get_node("PreviewActionPlayer").play(action);break
+			if keep_focus:ui.find_child("PreviewModels",true,false).grab_focus())
 
 func show_source_model_view(gender: String,item="",styled=false):
 	if not debug_session.active:return
