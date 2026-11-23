@@ -173,6 +173,8 @@ Failed autosaves display a warning and a phase-status marker. Keep the game open
 
 Choose **Listen to campaign music** in Options to open the music room. Select any of the three act themes and switch between **Calm** and **Ablaze** without restarting the track. The room respects the music volume setting; returning resumes the campaign music where it was paused.
 
+Quick map attacks blend into Ablaze during the exchange and return to Calm afterward on the same playhead.
+
 Reed Crossing, Greywood, and Glass Harbor have their own quiet battlefield ambience. It continues through the switch to 3D combat and follows the **Effects** volume.
 
 ## Development

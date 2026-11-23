@@ -1,5 +1,9 @@
 # Poem development
 
+The exported recoverable-loss campaign at `4ebd4e2` passed all twelve chapters in 75 turns with 355 legal actions and 755 exact saves. Six recovering deployments and 72 boosted unit-turns passed their penalty and expiry checks. All 24 recruits remained available. The recorded outcomes matched the earlier seed 472019 campaign.
+
+Quick map fights now start the Ablaze blend before their first strike and begin the return to Calm after the last one. Both arrangements keep the same live playback. The audio suite checks two back-to-back exchanges and the final gains.
+
 An original four-swatch plaster and timber atlas adds lime to cottages, ochre to the warehouse, oak to the framing and weathered timber to decking. World-space sampling keeps the painting aligned as scenery is batched. Tests cover eight building identities, all 38 tactical bridges and the arena deck. The decoded pack stayed below 1.45 mean RGB levels of error per swatch. [Source prompt and image hash](docs/plaster-timber-prompt.json).
 
 The exported Hard section-retreat run at `7837147` completed 15 attempts and 107 turns, with 17 permanent losses, 470 legal player actions, and 998 exact saves. Both planned retreats and the natural lord defeat exercised their normal menu paths. The battle results and final roster matched the earlier seed 309 run. The newer legacy shop also sold and retained the Rally lance and Vigil staff, adding two save checks.

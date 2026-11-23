@@ -28,6 +28,7 @@ func run():
  assert(app.sfx_streams.cutin.get_length()>.31 and app.sfx_streams.cutin.get_length()<.33,"Portrait cue ends before the strike resumes")
  assert(app.sfx_streams.levelup.get_length()>.71 and app.sfx_streams.levelup.get_length()<.73,"Level-up bell ends within the stat reveal")
  await verify_themes(app)
+ await verify_quick_battles(app)
  await Shutdown.dispose(app);await process_frame
  print("PASS: three exact calm/Ablaze pairs, 12 chapter mappings, continuous combat mixing, bounded act crossfades, mute/interruption and independent effects")
  quit()
@@ -74,6 +75,39 @@ func verify_themes(app):
  assert(app.game.rng.state==rng and app.game.roster==roster,"Music changes leave the roster and gameplay RNG untouched")
  director.cancel_fade();app.music.stop()
  await create_timer(.2).timeout
+
+func verify_quick_battles(app):
+ app.preferences.values.combat="map"
+ app.game.chapter=1;app.game.start_battle()
+ var ally=app.game.living("player")[0]
+ var foe=app.game.living("enemy")[1]
+ ally.x=8;ally.y=4;foe.x=9;foe.y=4
+ app.make_map();app.show_battle()
+ app.music.play()
+ await process_frame
+ var score=app.score
+ var decoder=app.music.get_stream_playback()
+ assert(decoder!=null)
+ var state=app.game.save_data("battle").duplicate(true)
+ for _repeat in range(2):
+  var completed=[false]
+  var contact=[{"actor":ally.id,"target":foe.id,"damage":1,"remaining":foe.hp,"hit":true,"crit":false}]
+  (func():
+   await app.cinematic(ally,foe,contact,{ally.id:ally.hp,foe.id:foe.hp})
+   completed[0]=true).call()
+  var peak=-80.0
+  var deadline=Time.get_ticks_msec()+3500
+  while not completed[0] and Time.get_ticks_msec()<deadline:
+   await process_frame
+   peak=maxf(peak,score.get_sync_stream_volume(1))
+   assert(app.score==score and app.music.get_stream_playback()==decoder,"Quick map combat keeps the paired score decoder")
+   assert(not app.stage.visible and not app.ui.has_node("CombatPlayback"))
+  assert(completed[0] and peak>-12,"Ablaze gain rises during the actual map exchange")
+  assert(app.music_transition.is_running(),"Every exchange immediately starts the return to Calm")
+ await create_timer(.55).timeout;await process_frame
+ assert(absf(score.get_sync_stream_volume(0))<.01 and score.get_sync_stream_volume(1)<-50)
+ assert(app.score==score and app.music.get_stream_playback()==decoder and app.game.save_data("battle")==state)
+ print("PASS: consecutive Quick map exchanges blend Ablaze and restore Calm on the same live decoder")
 
 func verify_decoded_loop(stream: AudioStreamWAV):
  # Exercise the actual QOA decoder through one complete loop, without waiting

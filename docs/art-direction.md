@@ -147,6 +147,8 @@ Named commanders have a separate first-encounter caption. It uses their regular 
 
 The river, rain and harbor ambience use three original eight-second stereo PCM loops synthesized by [the field audio renderer](../scripts/render_field_audio.py). Each loop keeps the same playhead across the tactical map, 3D battle and camera return. A short fade handles scene changes, while the Effects setting controls the ambience volume. The Calm and Ablaze arrangements use their existing synchronized streams.
 
+Quick map attacks also blend into Ablaze and start the return to Calm after the last strike. Consecutive attacks take up the blend from its current gain on the same live decoder.
+
 ## Tactical action tracking
 
 Moving units receive a short camera pan only when their full sprite bounds lie outside the readable map area. The camera follows them at that area's edges without changing the chosen zoom, map angle or lens offset. Map-only attacks and recovery frame both participants before the cue appears; the next player phase returns attention to the first standing ally. Normal full-arena transitions retain their existing view restoration.

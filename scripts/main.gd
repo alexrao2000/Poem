@@ -1197,8 +1197,10 @@ func cinematic(a,b,events,initial_hp={},challenge: Dictionary={}):
 	skip_combat=false
 	map_navigation.stop()
 	if not preferences.show_cinematic(a.team):
+		music_mix(true)
 		if not challenge.is_empty():await present_commander_challenge(challenge,true)
 		await map_combat_feedback(events)
+		music_mix(false)
 		await present_casualties(events)
 		return
 	for pair in [[a,b],[b,a]]:

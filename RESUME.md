@@ -6,6 +6,10 @@ Development resumed on “go”. Continue in this chat until the user asks to st
 
 ### Latest state
 
+The exported Hard recovery run at `4ebd4e2` cleared all twelve chapters in 75 turns. All 24 recruits remained available. The run passed 755 exact save comparisons across 355 legal player actions. It verified six deployments with recovery penalties and 72 unit-turns with the temporary +2 attack bonus. The recorded results matched the earlier campaign under seed 472019.
+
+Quick map attacks now blend into Ablaze and return to Calm on the same playhead. Seven focused suites passed, including two consecutive real quick exchanges, the original 3D transition, field ambience, and the Music Room. Seven packaged suites also passed, including rescue, carried healing, bleed-out, permadeath, enemy preparation and interrupted saves. Both local exports and archive integrity passed. Listening review is pending.
+
 Cinderford’s cottages, Glass Harbor’s warehouse, oak frames, and wooden bridges now use four original painted swatches. Map buildings and their arena backdrops share the same materials. Seven focused suites passed, covering both plaster finishes, the gables, bridge heights, picking and complete scene transitions. Both exports, packaged architecture and decking, and archive integrity passed. The exported atlas stays within 1.45 mean RGB levels of the source in every swatch. Rendered appearance still needs review.
 
 The exported Hard run at `7837147` reached the ending in 107 turns across 15 attempts, with 470 legal player actions and 998 exact save comparisons. It retained 17 permanent losses. The chapter 6 → 5 and 10 → 9 retreats restored their section roster and commander flags. Lyra's defeat triggered a real result-screen retry. Reset pressure reached 3, and the later retreat preserved the Rally lance and Vigil staff purchases.
