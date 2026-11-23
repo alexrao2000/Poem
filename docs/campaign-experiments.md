@@ -18,6 +18,8 @@ The debug seed control accepts whole numbers from 0 through 2147483647. **Apply 
 
 **Choose an experiment setup → Last chance rescue** starts Oren downed with one player-phase ending left, Lyra beside him and Ivo already spent. Select Lyra, then Oren, and choose **Rescue Oren** before ending the phase. After the enemies act, move Lyra west beside Ivo, select Ivo and use **Rescue & triage → Heal carried Oren**. The countdown stays paused while carried; healing returns Oren with his action spent. Restart the setup and end the first phase without rescuing him to compare the committed permanent loss. Both branches use ordinary rules and the separate Debug save. The original rescue tutorial remains available with everyone ready.
 
+With a ready staff user selected, a carrier’s tile turns green when their passenger can be healed. Click the carrying badge above the carrier to open triage for that patient. **Heal carried** confirms the action. Escape returns to the map with the staff user still selected.
+
 In Quick map battles, a lethal hit that leaves an ally at death’s door keeps their figure visible in the wounded pose and shows the countdown immediately. A fallen carrier’s carrying badge clears when the passenger is released. Ordinary defeated units still fade away.
 
 ## Starting positions

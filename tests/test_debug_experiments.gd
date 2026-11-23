@@ -118,7 +118,28 @@ func run():
  assert(app.game.turn==2 and patient.bleed_turns==1 and patient.carried_by==carrier.id)
  app.click_tile(app.game.pos(carrier));app.click_tile(Vector2i(1,4));await settle(app);saved_setup(app)
  assert(app.game.pos(carrier)==Vector2i(1,4) and app.game.pos(patient)==Vector2i(1,4))
- app.click_tile(app.game.pos(healer));app.show_triage();press(app,"Heal carried Oren");await settle(app);saved_setup(app)
+ var badge=app.unit_nodes[carrier.id].carry_screen_bounds(app.camera)
+ assert(badge.has_area() and app.carried_healing_target_at(badge.get_center())==null,"The carry badge offers healing only to an eligible staff user")
+ app.click_tile(app.game.pos(healer));assert(app.selected==healer and app.game.can_heal(healer,patient))
+ var original_hp=carrier.hp
+ for health in [carrier.max_hp,carrier.max_hp-1]:
+  carrier.hp=health;app.highlight()
+  var overlay=app.markers.get_node("HealingTargets")
+  var marked=0
+  for vertex in overlay.mesh.surface_get_arrays(0)[Mesh.ARRAY_VERTEX]:
+   if Vector2i(roundi(vertex.x),roundi(vertex.z))==app.game.pos(carrier):marked+=1
+  assert(marked==30,"The carrier's tile is marked once when the patient is the only target and when both allies can be healed")
+ carrier.hp=original_hp;app.highlight()
+ assert("Carry badge: triage" in app.battle_hint.text)
+ var saved=app.game.save_data("battle").duplicate(true)
+ var click=InputEventMouseButton.new();click.button_index=MOUSE_BUTTON_LEFT;click.pressed=true;click.position=badge.get_center()
+ app._unhandled_input(click)
+ assert(app.screen=="triage" and app.selected==healer and app.game.save_data("battle")==saved,"Badge opens patient-specific triage without acting")
+ saved_setup(app)
+ var back=InputEventKey.new();back.keycode=KEY_ESCAPE;back.pressed=true;app._unhandled_input(back)
+ assert(app.screen=="battle" and app.selected==healer and app.game.save_data("battle")==saved)
+ app._unhandled_input(click);assert(app.screen=="triage")
+ press(app,"Heal carried Oren");await settle(app);saved_setup(app)
  assert(patient.hp>0 and patient.acted and not app.game.DeathDoor.downed(patient) and patient.get("carried_by","").is_empty() and "oren" not in app.game.lost_ids())
  app.show_debug_experiments();app.ui.find_child("StartExperiment_last_rescue",true,false).pressed.emit();await process_frame;await process_frame
  app.end_turn();await settle(app);saved_setup(app)
@@ -126,5 +147,5 @@ func run():
  app.show_options("battle");app.ui.find_child("DebugMode",true,false).button_pressed=false
  assert(not app.debug_session.active and app.game.save_data("camp")==live and FileAccess.get_file_as_string(app.save_path)==disk)
  await Shutdown.dispose(app);await process_frame
- print("PASS: five deterministic experiment starters, five-seed rescue/bleed-out branches, actual rescue/enemy phase/carry movement/revival and abandoned-patient app checkpoints, three-size setup menus, separate saves, traces and exact campaign restoration")
+ print("PASS: five deterministic experiment starters, five-seed rescue/bleed-out branches, carrier badge triage and exact map targets, actual rescue/enemy phase/carry movement/revival and abandoned-patient checkpoints, three-size menus, separate saves, traces and exact campaign restoration")
  quit()

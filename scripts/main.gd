@@ -774,7 +774,10 @@ func update_side():
 		if selected!=null:
 			battle_hint.text="Blue: move · Orange: reach · Enter: act · Esc: undo"
 			if selected.team=="enemy":battle_hint.text="Red: foe reach · Purple: tracked · T: track · R: all"
-			elif selected.weapon=="staff":battle_hint.text="Blue: move · Green: heal · Enter: act · Esc: undo"
+			elif selected.weapon=="staff":
+				battle_hint.text="Blue: move · Green: heal · Enter: act · Esc: undo"
+				if game.units.any(func(patient):return not patient.get("carried_by","").is_empty() and game.can_heal(selected,patient)):
+					battle_hint.text="Green: heal · Carry badge: triage · Enter: act"
 			elif game.units.any(func(unit):return game.DeathDoor.can_rescue(game,selected,unit)):battle_hint.text="Blue: move · Gold: rescue · Enter: act · Esc: undo"
 			if game.DeathDoor.downed(selected):battle_hint.text="Needs help: select a nearby ally for Rescue & triage, or heal with a staff."
 			if game.action_saves:battle_hint.text=battle_hint.text.replace("Esc: undo","Esc: deselect")
@@ -858,7 +861,7 @@ func highlight():
 	for point in range_map:reach.erase(point)
 	MapOverlay.tiles(markers,reach.keys(),Color(.22,.68,.45,.23) if healing else Color(.88,.40,.14,.23),.035,"HealingReach" if healing else "ActionReach",map_height)
 	var targets=[]
-	var candidates=game.units.filter(func(unit):return unit.team==selected.team and unit.get("carried_by","").is_empty()) if healing else game.living("enemy")
+	var candidates=game.units.filter(func(unit):return unit.team==selected.team) if healing else game.living("enemy")
 	for unit in candidates:
 		if game.can_heal(selected,unit) if healing else game.can_attack(selected,unit):targets.append(game.pos(unit))
 	MapOverlay.tiles(markers,targets,Color(.25,.78,.49,.40) if healing else Color(.87,.29,.16,.38),.039,"HealingTargets" if healing else "AttackRange",map_height)
@@ -971,6 +974,9 @@ func _unhandled_input(event):
 			return
 		if event.button_index!=MOUSE_BUTTON_LEFT:return
 		cursor_visible=false;highlight()
+		var patient=carried_healing_target_at(event.position)
+		if patient!=null:
+			show_triage(patient);get_viewport().set_input_as_handled();return
 		var picked=pick_map_unit(event.position)
 		if picked!=null:click_tile(game.pos(picked));return
 		var tile=map_tile_at(event.position)
@@ -978,6 +984,15 @@ func _unhandled_input(event):
 
 func map_tile_at(point: Vector2):
 	return MapSurface.tile_at_ray(camera.project_ray_origin(point),camera.project_ray_normal(point),game.board_size(),map_height)
+
+func carried_healing_target_at(point: Vector2):
+	if drop_mode or selected==null or selected.weapon!="staff" or not game.can_act(selected):return null
+	for carrier in game.living("player"):
+		var visual=unit_nodes.get(carrier.id)
+		if not is_instance_valid(visual) or not visual.carry_screen_bounds(camera).has_point(point):continue
+		var patient=game.DeathDoor.passenger(game,carrier)
+		if patient!=null and game.can_heal(selected,patient):return patient
+	return null
 
 func pick_map_unit(point: Vector2):
 	var picked=null;var front=-INF

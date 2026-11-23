@@ -6,6 +6,10 @@ Development resumed on “go”. Continue in this chat until the user asks to st
 
 ### Latest state
 
+Staff users now see a green target when a carried patient is in range. Clicking the carrying badge opens that patient’s triage menu. Seven focused suites passed, including the marker click, Escape, actual healing, shared tiles, and a single tile mark when both allies can be healed. Both local exports, the packed Debug flow and archive integrity passed.
+
+The second exported Hard run at `8f5e453` used the carrying strategy and completed all twelve chapters in 83 turns, with 384 player actions and 805 exact save checks. Lyra rescued Una in the last chapter with one phase left. Her countdown stayed at one through the enemy phase, and Esme revived her with 16 HP. The run recorded 22 revivals, three permanent losses and 21 available recruits. Its chapter results, turns and rescue matched the rules benchmark under seed 8675309.
+
 The campaign benchmark now supports `--carry-patients`. Ten matched Hard death’s-door trials completed. The carrying strategy performed four rescues, three carried revivals and three paused countdowns. Three seeds each lost one fewer recruit. The strategy is available in the benchmark driver for repeatable comparisons with the same profiles and seeds.
 
 The exported Hard death’s-door campaign at `8f5e453` cleared all twelve chapters in 73 turns. The run verified 371 player actions, 781 exact save comparisons, twelve commander cues saved before display and eight staff revivals. Tarin bled out in Chapter 10 and remained the only permanent loss. The battle, revival, support and roster records matched the earlier seed 472019 run.

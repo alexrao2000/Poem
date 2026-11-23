@@ -1,5 +1,9 @@
 # Poem development
 
+Green healing targets now include carried patients in healing range, and staff users can click a carrying badge to open that patient’s triage menu. When both allies are injured, the tile gets one green mark.
+
+The exported carrying run at `8f5e453` reached the ending in 83 turns. Across 384 player actions and 805 exact save checks, it recorded Lyra rescuing Una, the countdown staying paused through the enemy phase, and Esme reviving Una with 16 HP. Twenty-one recruits remained available.
+
 The campaign benchmark can now compare carrying through `--carry-patients`. All ten matched Hard death’s-door runs reached the ending. The carrying strategy rescued four allies and revived three while carried. Permanent losses fell by one in three of the five seeds.
 
 The exported Hard death’s-door replay at `8f5e453` completed twelve chapters in 73 turns. It recorded eight staff revivals and one permanent loss, with 371 legal player actions and 781 exact saves. All twelve commander cues appeared after their actions and story flags were saved.
