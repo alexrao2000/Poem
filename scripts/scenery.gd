@@ -303,7 +303,7 @@ func landscape(parent,game):
  atmosphere.configure(theme,Vector3(game.board_size().x+6,3,game.board_size().y+6),false,game.chapter)
 
 func landmark(parent,p,kind,roof_variant=-1):
- var stone=Color("969b91");var gold=Color("bba16b")
+ var stone=Color("969b91")
  if kind in ["house","warehouse"]:
   var warehouse=kind=="warehouse"
   house(parent,p,1.4 if warehouse else 1.2,roof_variant,warehouse)
@@ -334,13 +334,39 @@ func landmark(parent,p,kind,roof_variant=-1):
  elif kind in ["engine","observatory"]:
   cylinder(parent,p+Vector3(0,.2,0),.4,1.3,stone)
   var orbit=preload("res://scripts/clockwork_orbit.gd").new();parent.add_child(orbit);orbit.position=p+Vector3(0,1.5,0);orbit.configure(kind)
- elif kind=="furnace":
-  cylinder(parent,p+Vector3(0,1,0),2,.65,Color("595b5b"))
-  for y in [.5,1.3]:cylinder(parent,p+Vector3(0,y,0),.12,.72,gold)
-  var glow=block(parent,p+Vector3(0,.7,.66),Vector3(.45,.55,.025),Color("e7a16b"))
-  glow.material_override=glow.material_override.duplicate();glow.material_override.shading_mode=BaseMaterial3D.SHADING_MODE_UNSHADED
+ elif kind=="furnace":furnace(parent,p)
  elif kind=="ruin":
   for i in range(3):cylinder(parent,p+Vector3(i*.6,.4+i*.2,0),.8+i*.4,.22,stone)
+
+func furnace(parent: Node3D,p: Vector3,scale_value=1.0):
+ var hearth=Node3D.new();hearth.name="FurnaceHearth";hearth.position=p
+ hearth.scale=Vector3.ONE*scale_value;parent.add_child(hearth,true)
+ var masonry=detail_material(3)
+ var iron=material(Color("464148"))
+ var brass=material(Color("a58761"))
+ block(hearth,Vector3(0,-.025,0),Vector3(1.26,.29,1.02),masonry).name="HearthFoundation"
+ block(hearth,Vector3(0,.53,-.39),Vector3(1.12,.87,.14),iron).name="FireboxBack"
+ for x in [-.445,.445]:
+  block(hearth,Vector3(x,.55,-.05),Vector3(.31,.88,.94),masonry).name="HearthJamb"
+ arch_span(hearth,Vector3(0,.48,.36),.29,.17,.19)
+ block(hearth,Vector3(0,1.02,-.025),Vector3(1.17,.25,.91),masonry).name="HearthHood"
+ block(hearth,Vector3(0,1.22,-.075),Vector3(.84,.22,.68),iron).name="FlueShoulder"
+ block(hearth,Vector3(0,1.31,-.08),Vector3(.63,.08,.59),brass).name="FlueCollar"
+ for side in [-1,1]:
+  block(hearth,Vector3(side*.245,1.76,-.08),Vector3(.09,.92,.52),iron).name="ChimneySide"
+  block(hearth,Vector3(0,1.76,-.08+side*.215),Vector3(.40,.92,.09),iron).name="ChimneySide"
+  block(hearth,Vector3(side*.245,2.23,-.08),Vector3(.13,.09,.56),brass).name="ChimneyLip"
+  block(hearth,Vector3(0,2.23,-.08+side*.215),Vector3(.36,.09,.13),brass).name="ChimneyLip"
+ for slot in range(-2,3):
+  block(hearth,Vector3(slot*.105,.255,.428),Vector3(.028,.28,.045),iron).name="FurnaceGrate"
+ block(hearth,Vector3(0,.34,.432),Vector3(.60,.044,.052),iron).name="GrateCrossbar"
+ if not materials.has("furnace_coals"):
+  var coals=StandardMaterial3D.new()
+  coals.albedo_color=Color("a84f25");coals.emission_enabled=true;coals.emission=Color("ed7735")
+  materials["furnace_coals"]=coals
+ for i in range(7):
+  var coal=block(hearth,Vector3((i%3-1)*.14,.15+i%2*.028,.24-floori(i/3.0)*.20),Vector3(.149,.10,.165),materials["furnace_coals"])
+  coal.name="HearthCoal";coal.rotation=Vector3(.17*(i%3-1),i*.9,.14*(i%2))
 
 func combat_context(game,a,b,screen_direction=1.0) -> Dictionary:
  var midpoint=Vector2(a.x+b.x,a.y+b.y)*.5
@@ -418,7 +444,7 @@ func battle_landscape(parent,center,context={}):
  for item in backdrop:
   var depth=RiverBank.ARENA_FAR_START-1.5+(item.z+7)*.7 if river else item.z
   var group=Node3D.new();group.name="ArenaLandmark";parent.add_child(group,true);group.position=center+Vector3(item.x,0,depth)
-  group.scale=Vector3.ONE*(2.1 if item.kind in ["house","warehouse","tower","spire","arch"] else 1.4)
+  group.scale=Vector3.ONE*(2.1 if item.kind in ["house","warehouse","tower","spire","arch","furnace"] else 1.4)
   landmark(group,Vector3.ZERO,item.kind,item.get("roof_variant",0))
  if theme in ["village","road"]:
   cart(parent,center+Vector3(-6,0,-3.8));fence(parent,center+Vector3(3,0,-4),5.0)
@@ -440,15 +466,16 @@ func battle_landscape(parent,center,context={}):
    for i in range(16):boulder(parent,center+Vector3(-12+(i*7)%25,.4,-4-i%3),1.0+i%3*.3)
    for i in range(8):
     battle_tree(parent,center+Vector3(-17+(i*11)%35,-.06,-9-i%3*2),i*47,2.2+i%3*.2,theme)
- if theme in ["engine","furnace"]:
+ if theme=="furnace" and backdrop.is_empty():
+  for x in [-5,5]:furnace(parent,center+Vector3(x,0,-8),2.1)
+ if theme=="engine":
   for x in [-8,-4,0,4,8]:
    cylinder(parent,center+Vector3(x,2,-7),4,.4,Color("494d51"))
    cylinder(parent,center+Vector3(x,3.5,-7),.12,.6,Color("bb9a64"))
    var core_material=material(Color("fbb56c")).duplicate();core_material.shading_mode=BaseMaterial3D.SHADING_MODE_UNSHADED
    var core=SphereMesh.new();core.radius=.24;core.height=.48
    mesh(parent,core,center+Vector3(x,2.5,-6.6),Vector3.ONE,core_material)
-  if theme=="engine":
-   var orbit=preload("res://scripts/clockwork_orbit.gd").new();parent.add_child(orbit);orbit.position=center+Vector3(0,4,-12);orbit.configure(theme,1.875,1.2)
+  var orbit=preload("res://scripts/clockwork_orbit.gd").new();parent.add_child(orbit);orbit.position=center+Vector3(0,4,-12);orbit.configure(theme,1.875,1.2)
  ground_cover.add_arena(parent,center,context)
  if batching_enabled:batcher.combine(parent)
  var atmosphere=AmbientDrift.new();parent.add_child(atmosphere);atmosphere.position=center+Vector3(0,0,-3)

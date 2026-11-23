@@ -1,5 +1,7 @@
 # Poem development
 
+Reddeep’s two furnace landmarks carry the same arched firebox, iron grate, glowing coals and open chimney from the tactical map into the combat arena. Their arena foundations sit behind the fighting lane. The Engine retains its separate machinery and armillary.
+
 Close-up harbor and bridge arenas now use long boards across the fighting lane. Two beams sit below the boards, and the back railing sits on the deck edge. The scene checks measure deck, support, railing and water contact in Glass Harbor and on a raised bridge.
 
 The exported recoverable-loss campaign at `4ebd4e2` passed all twelve chapters in 75 turns with 355 legal actions and 755 exact saves. Six recovering deployments and 72 boosted unit-turns passed their penalty and expiry checks. All 24 recruits remained available. The recorded outcomes matched the earlier seed 472019 campaign.

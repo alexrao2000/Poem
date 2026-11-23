@@ -6,6 +6,8 @@ Development resumed on “go”. Continue in this chat until the user asks to st
 
 ### Latest state
 
+Reddeep’s two furnaces now have original masonry fireboxes, iron grates, glowing coals and open flues. The same designs appear on the map and in close-up combat. Six focused suites passed, covering grounded foundations, connected grates and hoods, open rims, scenery batching and real encounters. Both local exports, the packaged architecture suite and archive integrity passed. Rendered appearance remains unreviewed.
+
 Wooden combat arenas now have 42 full-width boards with two support beams and railing posts set into the back edge. The fighting floor still meets the foot level. Six focused suites cover the harbor, raised bridge, travel cues and real encounters. Both local exports, the packaged scene check and archive integrity passed. Rendered appearance remains unreviewed.
 
 The exported Hard recovery run at `4ebd4e2` cleared all twelve chapters in 75 turns. All 24 recruits remained available. The run passed 755 exact save comparisons across 355 legal player actions. It verified six deployments with recovery penalties and 72 unit-turns with the temporary +2 attack bonus. The recorded results matched the earlier campaign under seed 472019.

@@ -10,6 +10,7 @@ func run():
  await verify_towers()
  await verify_fountain()
  await verify_harbor_boats()
+ await verify_reddeep_furnaces()
  await verify_cart()
  await verify_barrels()
  var colors=[]
@@ -65,6 +66,70 @@ func run():
  await verify_cloth()
  print("PASS: arched castle gate/portcullis, tiered fountain basins/jets, six shared fortified towers, battlement/deck rays, three cached roofs, 204 gable intersections, ",cases," house identities, 14 pinned cloth resources, bounded motion parameters and cleanup")
  quit()
+
+func verify_reddeep_furnaces():
+ var scenery=Scenery.new();scenery.batching_enabled=false
+ var game=Rules.new();game.chapter=9
+ var rng_state=game.rng.state
+ var map=Node3D.new();root.add_child(map);scenery.landscape(map,game)
+ var landmarks=map.find_children("FurnaceHearth*","Node3D",false,false)
+ var layout=game.info().landmarks
+ assert(landmarks.size()==layout.size() and layout.size()==2,"Expected two Reddeep hearths, got %s at %s" % [landmarks,layout])
+ for i in landmarks.size():
+  assert(landmarks[i].position==Vector3(layout[i].position[0],0,layout[i].position[1]))
+  verify_hearth(landmarks[i])
+ var context=scenery.combat_context(game,{"x":4,"y":5},{"x":6,"y":5})
+ var arena=Node3D.new();root.add_child(arena)
+ var center=Vector3(35,0,0)
+ scenery.battle_landscape(arena,center,context)
+ var staged=arena.find_children("FurnaceHearth*","Node3D",true,false)
+ assert(staged.size()==2 and context.landmarks.size()==2)
+ for hearth in staged:
+  verify_hearth(hearth)
+  var anchor=hearth.get_parent() as Node3D
+  var foundation=hearth.get_node("HearthFoundation")
+  assert(anchor.position.y==center.y and anchor.position.z<center.z-6 and anchor.scale.is_equal_approx(Vector3.ONE*2.1))
+  assert(foundation.mesh==landmarks[0].get_node("HearthFoundation").mesh)
+  assert(foundation.material_override==landmarks[0].get_node("HearthFoundation").material_override)
+ var fallback=Node3D.new();root.add_child(fallback)
+ scenery.battle_landscape(fallback,center,{"environment":"furnace"})
+ var extra=fallback.find_children("FurnaceHearth*","Node3D",false,false)
+ assert(extra.size()==2 and extra.all(func(hearth):return hearth.position.z==center.z-8 and hearth.scale.is_equal_approx(Vector3.ONE*2.1)))
+ assert(game.rng.state==rng_state)
+ map.queue_free();arena.queue_free();fallback.queue_free();await process_frame
+ print("PASS: two Reddeep map hearths, arched fireboxes, connected grates, open chimney flues and actual arena counterparts")
+
+func verify_hearth(hearth: Node3D):
+ var foundation=hearth.get_node("HearthFoundation")
+ var floor_bounds=foundation.transform*foundation.mesh.get_aabb()
+ assert(floor_bounds.position.y<-.07 and floor_bounds.end.y>.1,"The foundation rises from the channel through the hearth floor")
+ var arch=hearth.get_node("MasonryArch")
+ var hood=hearth.get_node("HearthHood")
+ assert((arch.transform*arch.mesh.get_aabb()).intersects(hood.transform*hood.mesh.get_aabb()),"The arch meets the hood")
+ var crossbar=hearth.get_node("GrateCrossbar")
+ var grate_bounds=crossbar.transform*crossbar.mesh.get_aabb()
+ var grates=hearth.find_children("FurnaceGrate*","MeshInstance3D",false,false)
+ assert(grates.size()==5)
+ for bar in grates:
+  var bounds=bar.transform*bar.mesh.get_aabb()
+  assert(bounds.intersects(floor_bounds) and bounds.intersects(grate_bounds))
+ var coals=hearth.find_children("HearthCoal*","MeshInstance3D",false,false)
+ assert(coals.size()==7)
+ var emission=coals[0].material_override
+ for coal in coals:
+  assert((coal.transform*coal.mesh.get_aabb()).end.z<grate_bounds.end.z and coal.material_override==emission and emission.emission_enabled)
+ var chimney=hearth.find_children("ChimneySide*","MeshInstance3D",false,false)
+ var lip=hearth.find_children("ChimneyLip*","MeshInstance3D",false,false)
+ assert(chimney.size()==4 and lip.size()==4)
+ var collar=hearth.get_node("FlueCollar")
+ var collar_bounds=collar.transform*collar.mesh.get_aabb()
+ for wall in chimney:
+  var bounds=wall.transform*wall.mesh.get_aabb()
+  assert(bounds.intersects(collar_bounds) and not bounds.has_point(Vector3(0,1.76,-.08)))
+ for rim in lip:
+  var bounds=rim.transform*rim.mesh.get_aabb()
+  assert(chimney.any(func(wall):return bounds.intersects(wall.transform*wall.mesh.get_aabb())))
+  assert(not bounds.has_point(Vector3(0,2.23,-.08)),"The flue stays open through the rim")
 
 func verify_building_atlas(scenery):
  assert(scenery.building_atlas==null,"The atlas is loaded when a structure first needs it")
