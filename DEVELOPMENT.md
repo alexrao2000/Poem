@@ -1,5 +1,7 @@
 # Poem development
 
+Scenery reuses cylinders of equal dimensions while building a scene. Repeated arenas in one environment keep up to 256 shapes, and changing scenes to another environment resets the cache. Eighteen repeated arena builds used 99 resources for 594 cylinder placements. Their geometry hashes matched the preceding package.
+
 The Sun Engine now sits over a water basin within a four-pylon chamber. Its map landmark and close-up scene share the chamber design and an original eight-second mechanical pulse. The Sun Engine and observatory each use one animated mechanism in close-up, with placement derived from the corresponding map landmark.
 
 Masonry arches reuse a mesh for each set of dimensions. Two passes over all twelve tactical maps and close-up arenas retained 42 arch placements and every geometry hash while using five mesh resources.

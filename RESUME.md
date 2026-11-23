@@ -6,6 +6,8 @@ Development resumed on “go”. Continue in this chat until the user asks to st
 
 ### Latest state
 
+Identical cylinders now share geometry during scene construction. Repeated arenas retain a bounded cache for their environment. A headless comparison measured 594 cylinder resources before the change and 99 afterward across eighteen arena builds, with the same placements and exact geometry hashes. Two builds of the full campaign’s maps and arenas also preserved all 5,402 cylinder placements and all 971 geometry hashes. Six focused suites, both local exports, packaged batching and geometry comparison, and archive integrity passed.
+
 The Sun Engine’s new chamber appears on the map and in the arena, with a water basin beneath four bronze-trimmed pylons and an original eight-second mechanical pulse. Both the Sun Engine and observatory use one moving mechanism per arena. Ten focused suites passed, including ring clearance, the actual scene handoff, and audio across menus and combat. Both local exports, the two packed checks, six exact PCM hashes and archive integrity passed. Rendered and listening review remain outstanding.
 
 The ordinary campaign replay at `69a9528` reached the ending with all 24 recruits available. It matched the earlier twelve chapter results, 62 turns, 298 legal player actions, 652 exact save comparisons, ten promotions, nine support conversations and twelve commander captions.

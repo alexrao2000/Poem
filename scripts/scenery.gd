@@ -13,6 +13,7 @@ const BarrelVisuals=preload("res://scripts/barrel_visuals.gd")
 const HarborBoat=preload("res://scripts/harbor_boat.gd")
 const ArenaRidges=preload("res://scripts/arena_ridges.gd")
 const SanctuaryPlinth=preload("res://scripts/sanctuary_plinth.gd")
+const MAX_CACHED_CYLINDERS=256
 enum BuildingFinish { LIME_PLASTER, OCHRE_PLASTER, OAK, DECK_WOOD }
 const BUILDING_FINISHES=[
  {"color":Color("c5bca4"),"scale":.66,"weight":.66},
@@ -37,6 +38,8 @@ var ground_cover=GroundCover.new()
 var conifer_crowns=ConiferCrowns.new()
 var unit_block=BoxMesh.new()
 var planes: Dictionary={}
+var cylinders: Dictionary={}
+var cylinder_environment=""
 static var arch_shapes: Dictionary={}
 var atlas: Texture2D
 var environment_atlas: Texture2D
@@ -127,7 +130,13 @@ func ground(parent,p,size,tile,blended: Material=null):
  return mesh(parent,plane_shape(size),p,Vector3.ONE,blended if blended!=null else ground_material(tile))
 
 func cylinder(parent,p,height,radius,color,top=-1.0):
- var shape=CylinderMesh.new();shape.height=height;shape.bottom_radius=radius;shape.top_radius=radius if top<0 else top;shape.radial_segments=8
+ var upper_radius=radius if top<0 else top
+ var key=Vector3(height,radius,upper_radius)
+ var shape=cylinders.get(key) as CylinderMesh
+ if shape==null:
+  shape=CylinderMesh.new();shape.height=height;shape.bottom_radius=radius
+  shape.top_radius=upper_radius;shape.radial_segments=8
+  if cylinders.size()<MAX_CACHED_CYLINDERS:cylinders[key]=shape
  return mesh(parent,shape,p,Vector3.ONE,material(color))
 
 func boulder(parent,p,radius):
@@ -242,6 +251,7 @@ func house(parent,p,scale_value=1.0,roof_variant=-1,warehouse=false):
   mesh(root,shrub,Vector3(x,.13,.78),Vector3(1,.8,1),detail_material(1))
 
 func landscape(parent,game):
+ cylinders.clear();cylinder_environment=""
  # Surrounding land continues beyond the playable cells instead of exposing a board edge.
  var ground_paint=MapGround.material(game,atlas)
  ground(parent,Vector3(7,-.15,5),Vector2(64,64),0,ground_paint)
@@ -302,6 +312,7 @@ func landscape(parent,game):
 
  ground_cover.add_map(parent,game,building_cells)
  if batching_enabled:batcher.combine(parent)
+ cylinders.clear()
  var atmosphere=AmbientDrift.new();parent.add_child(atmosphere)
  atmosphere.position=Vector3((game.board_size().x-1)*.5,0,(game.board_size().y-1)*.5)
  atmosphere.configure(theme,Vector3(game.board_size().x+6,3,game.board_size().y+6),false,game.chapter)
@@ -454,6 +465,8 @@ func sun_engine_basin(parent: Node3D,anchor: Vector3):
 
 func battle_landscape(parent,center,context={}):
  var theme=context.get("environment","village")
+ if theme!=cylinder_environment:
+  cylinders.clear();cylinder_environment=theme
  parent.set_meta("environment",theme)
  var tile=context.get("terrain","p")
  parent.set_meta("terrain",tile)

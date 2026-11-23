@@ -77,6 +77,7 @@ func run():
  world.queue_free();await process_frame
  for chapter in range(12):
   game.chapter=chapter;world=Node3D.new();root.add_child(world);scenery.landscape(world,game)
+  assert(scenery.cylinders.is_empty(),"The map releases the cylinder construction cache")
   verify_conifers(world,game.info().environment,false)
   before=signature(world);var began=Time.get_ticks_msec();stats=batch.combine(world);var elapsed=Time.get_ticks_msec()-began;after=signature(world)
   assert(before.vertices==after.vertices and before.triangles==after.triangles,"All chapter geometry is retained")
@@ -87,6 +88,7 @@ func run():
   world.queue_free();await process_frame
  for chapter in range(12):
   game.chapter=chapter;world=Node3D.new();root.add_child(world);scenery.battle_landscape(world,Vector3(35,0,0),{"environment":game.info().environment})
+  assert(scenery.cylinder_environment==game.info().environment and scenery.cylinders.size()<=Scenery.MAX_CACHED_CYLINDERS,"Arena construction retains a bounded cache for its own environment")
   verify_conifers(world,game.info().environment,true)
   if game.info().environment=="harbor":verify_deck(world,Vector3(35,0,0))
   before=signature(world);stats=batch.combine(world);after=signature(world)
@@ -111,11 +113,16 @@ func verify_shared_primitives(scenery):
  assert(land.mesh==water.mesh and land.material_override!=water.material_override,"Ground and water share geometry with independent paint, height and UVs")
  assert(clearing.mesh!=land.mesh and clearing.mesh.size==Vector2(24,6) and land.mesh.size==Vector2.ONE)
  assert(clearing.mesh==scenery.plane_shape(Vector2(24,6)),"The cache reuses geometry only at equal physical dimensions")
+ var post=scenery.cylinder(host,Vector3(1,0,0),1.3,.1,Color.CYAN)
+ var second=scenery.cylinder(host,Vector3(-1,0,0),1.3,.1,Color.ORANGE,.1)
+ var taper=scenery.cylinder(host,Vector3.ZERO,1.3,.1,Color.MAGENTA,0.0)
+ assert(post.mesh==second.mesh and post.position!=second.position and post.material_override!=second.material_override)
+ assert(post.mesh!=taper.mesh and taper.mesh.top_radius==0.0,"Tapered structures keep their own dimensions")
  var before=signature(host);var stats=scenery.batcher.combine(host);var after=signature(host)
  assert(before.triangles==after.triangles and before.vertices==after.vertices and before.sum.is_equal_approx(after.sum))
- assert(before.uv_sum.is_equal_approx(after.uv_sum) and stats.sources==5 and stats.batches==5)
+ assert(before.uv_sum.is_equal_approx(after.uv_sum) and stats.sources==8 and stats.batches==8)
  host.free()
- print("PASS: shared scenery box and dimension-matched planes preserve transform, paint, geometry and UVs")
+ print("PASS: shared boxes, dimension-matched planes and bounded cylinders preserve transform, paint, geometry and UVs")
 
 func verify_conifer_atlas():
  var crowns=Crowns.new()
