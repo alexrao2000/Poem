@@ -19,9 +19,7 @@ func run():
    app.game.new_campaign();app.game.chapter=chapter;app.game.start_battle();app.make_map();app.show_battle();await process_frame;await process_frame
    var before=canonical(app.game.save_data("battle"));var label=app.ui.find_child("BattleObjective",true,false)
    assert(label==app.objective_label and label.text==app.battle_objective_text())
-   var panel=label.get_parent().get_parent().get_parent()
-   assert(Rect2(Vector2.ZERO,Vector2(dimensions)).encloses(panel.get_global_rect()))
-   assert(panel.get_global_rect().encloses(label.get_global_rect()) and not label.get_global_rect().intersects(app.status.get_global_rect()),"Chapter objective and turn indicator do not overlap")
+   verify_header(app,dimensions)
    assert(label.get_line_count()<=label.get_visible_line_count(),"The full objective is legible")
    match app.game.info().objective:
     "rout":
@@ -41,6 +39,7 @@ func run():
       for phase in ["player","enemy"]:
        app.game.phase=phase;app.update_side()
        assert("%d/6"%(turn-1) in label.text,"Only completed enemy phases count")
+       assert(app.battle_header.phase_plate.fill==(app.battle_header.ENEMY_COLOR if phase=="enemy" else app.battle_header.PLAYER_COLOR))
      assert(app.game.restore_save(before)=="battle");app.update_side()
    assert(canonical(app.game.save_data("battle"))==before,"Objective inspection changes no campaign, countdown or RNG state")
    layouts+=1
@@ -64,5 +63,26 @@ func run():
   await app.end_turn()
   assert(app.game.turn==7 and app.game.result()=="victory" and app.screen=="result" and "6/6" in app.battle_objective_text())
  await Shutdown.dispose(app);viewport.queue_free();await process_frame
- print("PASS: %d actual chapter objective layouts, exact victory descriptions, read-only phase counters, configured limits, real attack contact ordering and both survival chapter finishes"%layouts)
+ print("PASS: %d actual chapter layouts with separate chapter and phase plates, inset text and readable palette; exact descriptions, phase counters, real attack contact ordering and both survival chapter finishes"%layouts)
  quit()
+
+func verify_header(app,dimensions: Vector2i):
+ var header=app.battle_header;var chapter=header.chapter_plate;var phase=header.phase_plate
+ var screen=Rect2(Vector2.ZERO,Vector2(dimensions))
+ var gap=phase.get_global_rect().position.x-chapter.get_global_rect().end.x
+ assert(screen.encloses(chapter.get_global_rect()) and screen.encloses(phase.get_global_rect()),
+  "Chapter %d at %s must contain %s and %s"%[app.game.chapter+1,dimensions,chapter.get_global_rect(),phase.get_global_rect()])
+ assert(gap>180,"The middle of the tactical map stays exposed at every supported size")
+ assert(chapter.get_global_rect().end.y+10<=app.terrain_card.get_global_rect().position.y)
+ assert(phase.get_global_rect().end.y+10<=app.side.get_parent().get_global_rect().position.y)
+ assert(header.heading.text.ends_with(app.game.info().title) and app.objective_label.tooltip_text==app.objective_text())
+ for pair in [[header.heading,chapter],[app.objective_label,chapter],[app.status,phase]]:
+  var label: Label=pair[0];var plate=pair[1]
+  var rect=label.get_global_rect()
+  for corner in [rect.position,rect.end,Vector2(rect.end.x,rect.position.y),Vector2(rect.position.x,rect.end.y)]:
+   assert(Geometry2D.is_point_in_polygon(corner-plate.global_position,plate.outline()),"Text remains inside each trimmed corner")
+  var width=label.get_theme_font("font").get_string_size(label.text,HORIZONTAL_ALIGNMENT_LEFT,-1,label.get_theme_font_size("font_size")).x
+  assert(width<=label.size.x,"The full header text fits without clipping")
+  var lightest=plate.fill.lerp(Color(1,.88,.64),.09).srgb_to_linear().get_luminance()
+  var ink=label.get_theme_color("font_color").srgb_to_linear().get_luminance()
+  assert((ink+.05)/(lightest+.05)>4.5,"Text passes contrast over the brightest ornament")

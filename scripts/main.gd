@@ -9,6 +9,7 @@ const ActionRange=preload("res://scripts/action_range.gd")
 const MapOverlay=preload("res://scripts/map_overlay.gd")
 const MapSurface=preload("res://scripts/map_surface.gd")
 const TerrainCard=preload("res://scripts/terrain_card.gd")
+const BattleHeader=preload("res://scripts/battle_header.gd")
 const MenuLayout=preload("res://scripts/menu_layout.gd")
 const BattleForecast=preload("res://scripts/battle_forecast.gd")
 const CloudSky=preload("res://scripts/cloud_sky.gd")
@@ -82,6 +83,7 @@ var canvas: CanvasLayer
 var ui: Control
 var side: VBoxContainer
 var terrain_card: Control
+var battle_header: Control
 var forecast_panel: Control
 var battle_menu: Control
 var battle_hint: Label
@@ -248,6 +250,7 @@ func box(color: Color) -> StyleBoxFlat:
 func reset_ui():
 	field_audio.select(game.info().get("environment","") if screen in ["battle","triage","tile_units"] else "")
 	objective_label=null
+	battle_header=null
 	portraits.expression_textures.clear()
 	dialogue_label=null
 	dialogue_stage=null
@@ -654,15 +657,9 @@ func announce_phase(side: String):
 func show_battle():
 	prefetch_battle_models()
 	screen="battle";reset_ui()
-	var top=PanelContainer.new();top.set_anchors_and_offsets_preset(Control.PRESET_TOP_WIDE);top.offset_left=22;top.offset_right=-22;top.offset_top=18;top.offset_bottom=100;ui.add_child(top)
-	var row=HBoxContainer.new();top.add_child(row)
-	var titles=VBoxContainer.new();titles.size_flags_horizontal=Control.SIZE_EXPAND_FILL;row.add_child(titles)
-	label_in(titles,"%02d  /  %s"%[game.chapter+1,game.info().title.to_upper()],24,GOLD)
-	objective_label=label_in(titles,battle_objective_text(),16);objective_label.name="BattleObjective"
-	objective_label.tooltip_text=objective_text();objective_label.mouse_filter=Control.MOUSE_FILTER_PASS
-	status=label_in(row,"TURN %d  /  %s"%[game.turn,game.phase.to_upper()],20)
-	status.custom_minimum_size.x=300
-	status.autowrap_mode=TextServer.AUTOWRAP_OFF
+	battle_header=BattleHeader.new()
+	battle_header.configure(ui,"%02d  ·  %s"%[game.chapter+1,game.info().title],battle_objective_text(),objective_text())
+	objective_label=battle_header.objective;status=battle_header.status
 	var panel=PanelContainer.new();panel.set_anchors_and_offsets_preset(Control.PRESET_TOP_RIGHT);panel.offset_left=-325;panel.offset_right=-22;panel.offset_top=118;panel.offset_bottom=118;panel.custom_minimum_size.x=303;ui.add_child(panel)
 	side=VBoxContainer.new();side.add_theme_constant_override("separation",5);panel.add_child(side)
 	var bottom=PanelContainer.new();bottom.set_anchors_and_offsets_preset(Control.PRESET_BOTTOM_WIDE);bottom.offset_left=22;bottom.offset_right=-343;bottom.offset_top=-64;bottom.offset_bottom=-22;ui.add_child(bottom)
@@ -679,7 +676,8 @@ func update_side():
 	if is_instance_valid(forecast_panel):ui.remove_child(forecast_panel);forecast_panel.queue_free()
 	forecast_panel=null
 	for n in side.get_children():side.remove_child(n);n.queue_free()
-	status.text="TURN %d  /  %s"%[game.turn,game.phase.to_upper()]+(" · DEBUG" if debug_session.active else "")+("\nSAVE FAILED" if save_failed else "")
+	var phase_text="TURN %d  /  %s"%[game.turn,game.phase.to_upper()]+(" · DEBUG" if debug_session.active else "")+("\nSAVE FAILED" if save_failed else "")
+	battle_header.set_phase(phase_text,game.phase=="enemy",save_failed)
 	if selected!=null:
 		var identity=HBoxContainer.new();identity.add_theme_constant_override("separation",8);side.add_child(identity)
 		var portrait=TextureRect.new();portrait.name="UnitPortrait";portrait.texture=portraits.get_unit_portrait(selected);portrait.expand_mode=TextureRect.EXPAND_IGNORE_SIZE;portrait.flip_h=selected.team=="enemy"

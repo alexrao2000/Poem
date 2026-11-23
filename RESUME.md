@@ -6,6 +6,10 @@ Development resumed on “go”. Continue in this chat until the user asks to st
 
 ### Latest state
 
+The tactical chapter title and objective now share a navy plate at the upper left, with a separate turn plate at the upper right. It changes color for the enemy phase and keeps Debug and Save failed messages. Thirty-six chapter layouts preserve exact objectives and keep the center of the battlefield exposed at the three supported sizes. Ten focused suites, both local exports, packaged objective and save recovery checks, and archive integrity passed. Rendered appearance remains unreviewed.
+
+The Hard opening formation sweep at `d120bd8` ran 1,800 first attempts. It tested every placement of four recruits in six slots against five combat seeds. All five default placements reproduced the earlier opening metrics exactly. Seed 17 won with 279 arrangements, including 169 without permanent losses. Sixty-two arrangements won all five openings without permanent losses. The local report `build/review/opening-formations.html` gives the tested slots and raw outcomes.
+
 Windscar Pass now has a continuous layered rock slope behind its tactical and close-up scenes. Both use one 448-triangle mesh, with fifteen conifer roots checked against the actual triangles. The ruin stands forward of the slope, and the crest projects into six opening camera configurations. Seven focused suites, both local exports, packaged terrain and batching, and archive integrity passed. The tactical board and camp snapshot match the existing chapter data. Rendered appearance remains unreviewed.
 
 Twenty combined Hard rules-layer campaigns at `21b4083` tested five seeds with and without emergency carrying. Eighteen reached Chapter 6 and the ending. The planned retreat sent Permanent mode to Chapter 5 and Recoverable mode back to Chapter 6, with 134 enemy preparation checks and 56 advanced raider placements. The Permanent retreat preserved committed losses and purchases. Seed 17 reached the opening retry limit in both Permanent runs. Carrying performed eleven rescues and nine carried revivals. See `build/review/combined-rules.html` for the local evidence and scope.
