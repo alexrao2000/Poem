@@ -9,6 +9,8 @@ const Fountain=preload("res://scripts/fountain.gd")
 const AmbientDrift=preload("res://scripts/ambient_drift.gd")
 const GroundCover=preload("res://scripts/ground_cover.gd")
 const ConiferCrowns=preload("res://scripts/conifer_crowns.gd")
+const BarrelVisuals=preload("res://scripts/barrel_visuals.gd")
+const HarborBoat=preload("res://scripts/harbor_boat.gd")
 # Shared landscape construction for the tactical board and battle stage.
 # Masonry spans use closed wedge stones with small joints and an open underside.
 var materials: Dictionary = {}
@@ -272,9 +274,10 @@ func landmark(parent,p,kind,roof_variant=-1):
    block(parent,p+Vector3(x,.08,0),Vector3(.5,.16,.7),stone.darkened(.1))
   arch_span(parent,p+Vector3(0,1.1,0))
  elif kind=="boat":
-  var hull=cylinder(parent,p+Vector3(0,-.08,0),.4,.65,Color("605141"),.9);hull.scale.z=2.0
-  block(parent,p+Vector3(0,.18,0),Vector3(1.2,.1,2.8),Color("9b886b"))
-  cylinder(parent,p+Vector3(0,1.1,0),2.2,.045,Color("685644"))
+  mesh(parent,HarborBoat.hull(),p,Vector3.ONE,BarrelVisuals.material(false)).name="HarborHull"
+  cylinder(parent,p+Vector3(0,1.18,0),2.16,.045,Color("685644"),.026).name="BoatMast"
+  var yard=cylinder(parent,p+Vector3(.62,2.2,0),1.44,.023,Color("685644"),.014)
+  yard.name="BoatYardarm";yard.rotation.z=-PI/2.0
   var sail=WindCloth.new();parent.add_child(sail);sail.position=p+Vector3(0,1.5,0)
   sail.configure(Vector2(1.3,1.4),Color("dcd4b9"),false,p.x*.71+p.z*.37)
  elif kind=="camp":
@@ -397,7 +400,7 @@ func battle_landscape(parent,center,context={}):
  return theme
 
 func barrel(parent,p,scale_value=1.0):
- preload("res://scripts/barrel_visuals.gd").build(parent,p,scale_value)
+ BarrelVisuals.build(parent,p,scale_value)
 
 func fence(parent,p,length=3.0):
  for i in range(int(length)+1):

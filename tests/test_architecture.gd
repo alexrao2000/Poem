@@ -3,11 +3,13 @@ const Cloth=preload("res://scripts/wind_cloth.gd")
 const Roof=preload("res://scripts/architecture.gd")
 const Scenery=preload("res://scripts/scenery.gd")
 const Rules=preload("res://scripts/rules.gd")
+const HarborBoat=preload("res://scripts/harbor_boat.gd")
 func _initialize():call_deferred("run")
 func run():
  await verify_gate()
  await verify_towers()
  await verify_fountain()
+ await verify_harbor_boats()
  await verify_cart()
  await verify_barrels()
  var colors=[]
@@ -108,6 +110,78 @@ func verify_cloth():
   var references=pieces.map(func(piece):return weakref(piece));world.queue_free();await process_frame
   for reference in references:assert(reference.get_ref()==null,"Cloth resources release with their map")
  assert(flags==12 and sails==2 and game.rng.state==state,"All campaign cloth is bounded and independent of gameplay RNG")
+
+func verify_harbor_boats():
+ var hull=HarborBoat.hull()
+ assert(hull==HarborBoat.hull(),"Both harbor boats share the same cached geometry")
+ var data=hull.surface_get_arrays(0)
+ var points=data[Mesh.ARRAY_VERTEX]
+ var normals=data[Mesh.ARRAY_NORMAL]
+ var colors=data[Mesh.ARRAY_COLOR]
+ var edges={}
+ var palette={}
+ var volume=0.0
+ assert(points.size()/3==140 and colors.size()==points.size())
+ for index in range(0,points.size(),3):
+  var a=points[index];var b=points[index+1];var c=points[index+2]
+  var cross=(b-a).cross(c-a)
+  assert(cross.length()>.0001 and cross.normalized().dot(normals[index])<-.999,"The hull has outward-facing nondegenerate triangles")
+  volume-=a.dot(b.cross(c))/6.0
+  palette[colors[index]]=true
+  for endpoints in [[a,b],[b,c],[c,a]]:
+   var left=str(endpoints[0]);var right=str(endpoints[1])
+   var key=left+"/"+right if left<right else right+"/"+left
+   edges[key]=edges.get(key,0)+1
+ assert(volume>1.2 and volume<1.3 and palette.size()>=12)
+ for usage in edges.values():assert(usage==2,"The timber hull and deck close around every edge")
+ var bounds=hull.get_aabb()
+ assert(bounds.size.x<1.6 and bounds.size.z<3.2 and bounds.position.y<-.30 and bounds.end.y>.34)
+ assert(HarborBoat.point(8,0).y>HarborBoat.point(0,0).y and absf(HarborBoat.point(8,0).x)<absf(HarborBoat.point(0,0).x),"The prow rises and tightens beyond the wider squared stern")
+
+ var scenery=Scenery.new()
+ scenery.batching_enabled=false
+ var game=Rules.new();game.chapter=5
+ var before=game.rng.state
+ var map=Node3D.new();root.add_child(map)
+ scenery.landscape(map,game)
+ var map_hulls=map.find_children("HarborHull*","MeshInstance3D",true,false)
+ assert(map_hulls.size()==2)
+ for piece in map_hulls:
+  var cell=Vector2i(roundi(piece.position.x),roundi(piece.position.z))
+  assert(game.terrain(cell)=="~")
+  verify_mooring(piece,-.07)
+  var context=scenery.combat_context(game,{"x":cell.x-1,"y":cell.y},{"x":cell.x,"y":cell.y})
+  var arena=Node3D.new();root.add_child(arena)
+  scenery.battle_landscape(arena,Vector3(35,0,0),context)
+  var boats=arena.find_children("HarborHull*","MeshInstance3D",true,false)
+  assert(boats.size()==context.landmarks.filter(func(item):return item.kind=="boat").size() and not boats.is_empty())
+  for boat in boats:verify_mooring(boat,arena.get_node("ArenaWater").global_position.y)
+  arena.free()
+ assert(game.rng.state==before,"Harbor scenery leaves campaign rolls intact")
+ map.free()
+ await process_frame
+ print("PASS: closed 140-triangle timber hull, raised prow, fitted yardarm, and both moored boats on the map and in combat")
+
+func verify_mooring(piece: MeshInstance3D,water_level: float):
+ var wood=piece.material_override as StandardMaterial3D
+ assert(piece.mesh==HarborBoat.hull() and wood!=null and wood.vertex_color_use_as_albedo)
+ var bounds=piece.global_transform*piece.mesh.get_aabb()
+ assert(bounds.position.y<water_level and bounds.end.y>water_level,"The hull crosses the actual water plane")
+ var sail: Cloth
+ var mast: MeshInstance3D
+ var yard: MeshInstance3D
+ for node in piece.get_parent().get_children():
+  if not node is Node3D:continue
+  if node is Cloth and not node.standard and (node.position-piece.position).is_equal_approx(Vector3(0,1.5,0)):sail=node
+  if node.name.begins_with("BoatMast") and (node.position-piece.position).is_equal_approx(Vector3(0,1.18,0)):mast=node
+  if node.name.begins_with("BoatYardarm") and (node.position-piece.position).is_equal_approx(Vector3(.62,2.2,0)):yard=node
+ assert(sail!=null and mast!=null and yard!=null,"Every hull retains its mast, sail and yardarm")
+ var mast_mesh=mast.mesh as CylinderMesh
+ var yard_mesh=yard.mesh as CylinderMesh
+ assert(mast.position.y-mast_mesh.height*.5<piece.position.y+.195,"The mast meets the deck")
+ assert(is_equal_approx(yard.position.y,sail.position.y+sail.dimensions.y*.5),"The sail's upper edge meets the yardarm")
+ var span=yard.basis.y*yard_mesh.height*.5
+ assert(yard.position.x-span.x<sail.position.x and yard.position.x+span.x>sail.position.x+sail.dimensions.x)
 
 func verify_towers():
  var masonry=preload("res://scripts/fortification.gd")
