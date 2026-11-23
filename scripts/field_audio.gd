@@ -4,6 +4,8 @@ const TRACKS={
  "river":"res://assets/audio/field-river.wav",
  "forest":"res://assets/audio/field-forest.wav",
  "harbor":"res://assets/audio/field-harbor.wav",
+ "mountain":"res://assets/audio/field-mountain.wav",
+ "furnace":"res://assets/audio/field-furnace.wav",
 }
 const LOOP_FRAMES=176400
 const MIX_OFFSET_DB=-14.0

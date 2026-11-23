@@ -6,6 +6,8 @@ Development resumed on “go”. Continue in this chat until the user asks to st
 
 ### Latest state
 
+Windscar Pass and Reddeep now have original wind and furnace ambience. Seven focused suites passed, including actual map-to-arena transitions in both locations, Effects mute, and continuous Calm/Ablaze playback. All five exported PCM hashes match the sources. Both local builds and archive integrity passed. Listening review remains outstanding.
+
 Nine opaque paintings now use Godot’s 0.98 lossy import setting. The Web data pack fell from 117.1 MB to 103.0 MB. Decoding the exported pack confirmed exact dimensions, alpha and mip counts, with a maximum mean color error of 1.9423 out of 255 RGB levels across full images. Nine source and four packaged scene suites passed, along with both exports and archive integrity. Rendered quality and browser startup timing remain unreviewed.
 
 Reddeep’s two furnaces now have original masonry fireboxes, iron grates, glowing coals and open flues. The same designs appear on the map and in close-up combat. Six focused suites passed, covering grounded foundations, connected grates and hoods, open rims, scenery batching and real encounters. Both local exports, the packaged architecture suite and archive integrity passed. Rendered appearance remains unreviewed.

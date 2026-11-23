@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Synthesize three seamless stereo ambience beds for the outdoor battlefields."""
+"""Synthesize seamless stereo ambience beds for the campaign battlefields."""
 
 import argparse
 from pathlib import Path
@@ -36,6 +36,22 @@ PROFILES = {
         "depth": .48,
         "spread": .26,
         "rms": .074,
+    },
+    "mountain": {
+        "seed": 54281,
+        "bands": [(83, 365, .61), (330, 1460, .33), (1410, 3100, .06)],
+        "swells": 2,
+        "depth": .45,
+        "spread": .42,
+        "rms": .067,
+    },
+    "furnace": {
+        "seed": 84913,
+        "bands": [(40, 165, .64), (150, 550, .23), (750, 2350, .13)],
+        "swells": 3,
+        "depth": .28,
+        "spread": .25,
+        "rms": .057,
     },
 }
 

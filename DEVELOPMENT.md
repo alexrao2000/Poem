@@ -1,5 +1,7 @@
 # Poem development
 
+Windscar Pass and Reddeep now use original eight-second stereo wind and furnace beds. Both keep their playhead across the tactical map and 3D arena and follow the Effects volume. The earlier three source tracks regenerate byte-for-byte, and all five exported PCM payloads match their sources.
+
 High-quality import compression for nine original paintings and material atlases reduced the Web data pack from 117.1 MB to 103.0 MB. The decoded textures keep their dimensions, alpha and mip counts. The largest mean color error was 1.9423 of 255 RGB levels across a full image, and 2.165 across an individual material swatch.
 
 Reddeep’s two furnace landmarks carry the same arched firebox, iron grate, glowing coals and open chimney from the tactical map into the combat arena. Their arena foundations sit behind the fighting lane. The Engine retains its separate machinery and armillary.
