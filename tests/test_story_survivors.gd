@@ -68,6 +68,8 @@ func run():
    for child in stage.panel.find_children("*","Control",true,false):assert(stage.panel.get_global_rect().grow(1).encloses(child.get_global_rect()))
    assert(stage.speech.get_line_count()<=stage.speech.get_visible_line_count(),"Survivor lines fit the actual dialogue panel")
    assert(stage.identities[stage.active]==variants[at].speaker)
+   var choice=variants[at]
+   assert(stage.portraits[stage.active].texture==app.portraits.get_dialogue_portrait(choice.speaker,choice.get("expression","")),"Loss alternate lines can use their own expression")
    layout_count+=1
  assert(not FileAccess.file_exists(app.save_path) and not FileAccess.file_exists(app.save_path+".debug"))
  await Shutdown.dispose(app);await process_frame

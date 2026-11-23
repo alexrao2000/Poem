@@ -89,6 +89,8 @@ Five more sheets give Oren, Sera, Ivo, Mara and Tarin three expressions each. In
 
 The six expression sheets use [texture import compression](https://docs.godotengine.org/en/4.5/classes/class_resourceimportertexture.html#class-resourceimportertexture-property-compress-mode) at quality 0.96. The source PNGs retain their recorded hashes. Decoded exports match the source alpha channel and atlas dimensions exactly. The color comparison and a decoded portrait inspection guided the choice. Each archive is 5.93 MB smaller.
 
+Nell, Bram, Esme, Rook, Faye and Cassian bring the total to twelve expressive recruits. Their [generated sheets and prompts](second-company-expression-provenance.json) follow the same original-art and export checks. Alternate lines can take a different expression after a story loss.
+
 ## Chapter light and weather
 
 The twelve chapters define their own sky, sun and ambient light. Glass Harbor uses warm dusk, while Windscar Pass uses a cooler sky and pale blue sun. Map and arena share those colors. The arena adds distance haze beyond the fighters. Greywood has unlit slanted rain in the existing instanced atmosphere batch, with faded loop endpoints and a clock that pauses whenever the scene is hidden.

@@ -362,19 +362,23 @@
         "lines": [
           {
             "speaker": "nell",
-            "text": "You heard me coming?"
+            "text": "You heard me coming?",
+            "expression": "uneasy"
           },
           {
             "speaker": "bram",
-            "text": "The buckle on your left boot clicks."
+            "text": "The buckle on your left boot clicks.",
+            "expression": "relieved"
           },
           {
             "speaker": "nell",
-            "text": "I spent years learning to open doors quietly."
+            "text": "I spent years learning to open doors quietly.",
+            "expression": "resolute"
           },
           {
             "speaker": "bram",
-            "text": "Doors rarely have that many loose buckles."
+            "text": "Doors rarely have that many loose buckles.",
+            "expression": "relieved"
           }
         ]
       },
@@ -383,27 +387,33 @@
         "lines": [
           {
             "speaker": "nell",
-            "text": "You fixed my boot without asking."
+            "text": "You fixed my boot without asking.",
+            "expression": "resolute"
           },
           {
             "speaker": "bram",
-            "text": "The leather was splitting. I left the buckle loose in case you preferred it."
+            "text": "The leather was splitting. I left the buckle loose in case you preferred it.",
+            "expression": "concerned"
           },
           {
             "speaker": "nell",
-            "text": "Why would I prefer being heard?"
+            "text": "Why would I prefer being heard?",
+            "expression": "uneasy"
           },
           {
             "speaker": "bram",
-            "text": "Sometimes it helps people know you are coming home."
+            "text": "Sometimes it helps people know you are coming home.",
+            "expression": "relieved"
           },
           {
             "speaker": "nell",
-            "text": "Leave a little click, then."
+            "text": "Leave a little click, then.",
+            "expression": "amused"
           },
           {
             "speaker": "bram",
-            "text": "A little click I can manage."
+            "text": "A little click I can manage.",
+            "expression": "relieved"
           }
         ]
       },
@@ -412,27 +422,33 @@
         "lines": [
           {
             "speaker": "nell",
-            "text": "I found a key that fits nothing."
+            "text": "I found a key that fits nothing.",
+            "expression": "amused"
           },
           {
             "speaker": "bram",
-            "text": "We could build something around it."
+            "text": "We could build something around it.",
+            "expression": "resolute"
           },
           {
             "speaker": "nell",
-            "text": "That sounds like a ridiculous way to build a house."
+            "text": "That sounds like a ridiculous way to build a house.",
+            "expression": "amused"
           },
           {
             "speaker": "bram",
-            "text": "A workshop, perhaps. You could decide who gets copies."
+            "text": "A workshop, perhaps. You could decide who gets copies.",
+            "expression": "relieved"
           },
           {
             "speaker": "nell",
-            "text": "One for you. You will be doing most of the sensible work."
+            "text": "One for you. You will be doing most of the sensible work.",
+            "expression": "amused"
           },
           {
             "speaker": "bram",
-            "text": "And a bell. So neither of us has to sneak in."
+            "text": "And a bell. So neither of us has to sneak in.",
+            "expression": "relieved"
           }
         ]
       }
@@ -460,19 +476,23 @@
         "lines": [
           {
             "speaker": "esme",
-            "text": "You have repaired that step twice."
+            "text": "You have repaired that step twice.",
+            "expression": "concerned"
           },
           {
             "speaker": "rook",
-            "text": "The first repair was poor."
+            "text": "The first repair was poor.",
+            "expression": "resolute"
           },
           {
             "speaker": "esme",
-            "text": "The second was finished an hour ago."
+            "text": "The second was finished an hour ago.",
+            "expression": "reassuring"
           },
           {
             "speaker": "rook",
-            "text": "I was not ready to come inside."
+            "text": "I was not ready to come inside.",
+            "expression": "remorseful"
           }
         ]
       },
@@ -481,27 +501,33 @@
         "lines": [
           {
             "speaker": "rook",
-            "text": "I knew the woman whose name is in that verse."
+            "text": "I knew the woman whose name is in that verse.",
+            "expression": "remorseful"
           },
           {
             "speaker": "esme",
-            "text": "Then tell me something I do not know."
+            "text": "Then tell me something I do not know.",
+            "expression": "reassuring"
           },
           {
             "speaker": "rook",
-            "text": "She kept geese. They chased our captain out of her yard."
+            "text": "She kept geese. They chased our captain out of her yard.",
+            "expression": "relieved"
           },
           {
             "speaker": "esme",
-            "text": "That deserves a place beside her name."
+            "text": "That deserves a place beside her name.",
+            "expression": "reassuring"
           },
           {
             "speaker": "rook",
-            "text": "I thought you would want an apology."
+            "text": "I thought you would want an apology.",
+            "expression": "remorseful"
           },
           {
             "speaker": "esme",
-            "text": "I want her remembered as more than what was done to her."
+            "text": "I want her remembered as more than what was done to her.",
+            "expression": "resolute"
           }
         ]
       },
@@ -510,27 +536,33 @@
         "lines": [
           {
             "speaker": "esme",
-            "text": "The wall will need another pair of hands tomorrow."
+            "text": "The wall will need another pair of hands tomorrow.",
+            "expression": "reassuring"
           },
           {
             "speaker": "rook",
-            "text": "I will be here."
+            "text": "I will be here.",
+            "expression": "resolute"
           },
           {
             "speaker": "esme",
-            "text": "I know. I was asking whether you would teach the children to lay the stones."
+            "text": "I know. I was asking whether you would teach the children to lay the stones.",
+            "expression": "reassuring"
           },
           {
             "speaker": "rook",
-            "text": "Are you certain they should learn from me?"
+            "text": "Are you certain they should learn from me?",
+            "expression": "remorseful"
           },
           {
             "speaker": "esme",
-            "text": "They should learn how a wall is made strong, and how a mistake is repaired."
+            "text": "They should learn how a wall is made strong, and how a mistake is repaired.",
+            "expression": "resolute"
           },
           {
             "speaker": "rook",
-            "text": "I can teach that. I am still learning it."
+            "text": "I can teach that. I am still learning it.",
+            "expression": "relieved"
           }
         ]
       }
@@ -558,19 +590,23 @@
         "lines": [
           {
             "speaker": "cassian",
-            "text": "Your trail marker points away from the road."
+            "text": "Your trail marker points away from the road.",
+            "expression": "reflective"
           },
           {
             "speaker": "faye",
-            "text": "The road is flooded."
+            "text": "The road is flooded.",
+            "expression": "resolute"
           },
           {
             "speaker": "cassian",
-            "text": "The official map does not show a stream there."
+            "text": "The official map does not show a stream there.",
+            "expression": "reflective"
           },
           {
             "speaker": "faye",
-            "text": "You can explain that to the water while I find us a crossing."
+            "text": "You can explain that to the water while I find us a crossing.",
+            "expression": "amused"
           }
         ]
       },
@@ -579,27 +615,33 @@
         "lines": [
           {
             "speaker": "cassian",
-            "text": "I prepared a speech for the village council."
+            "text": "I prepared a speech for the village council.",
+            "expression": "resolute"
           },
           {
             "speaker": "faye",
-            "text": "They need their culvert cleared."
+            "text": "They need their culvert cleared.",
+            "expression": "resolute"
           },
           {
             "speaker": "cassian",
-            "text": "I can do both."
+            "text": "I can do both.",
+            "expression": "resolute"
           },
           {
             "speaker": "faye",
-            "text": "Start with the culvert. You may find they have things to tell you."
+            "text": "Start with the culvert. You may find they have things to tell you.",
+            "expression": "concerned"
           },
           {
             "speaker": "cassian",
-            "text": "Would you listen to the speech afterward?"
+            "text": "Would you listen to the speech afterward?",
+            "expression": "reflective"
           },
           {
             "speaker": "faye",
-            "text": "If you still think it answers their questions."
+            "text": "If you still think it answers their questions.",
+            "expression": "amused"
           }
         ]
       },
@@ -608,27 +650,33 @@
         "lines": [
           {
             "speaker": "cassian",
-            "text": "I threw away the speech."
+            "text": "I threw away the speech.",
+            "expression": "reflective"
           },
           {
             "speaker": "faye",
-            "text": "You could have used the back for notes."
+            "text": "You could have used the back for notes.",
+            "expression": "amused"
           },
           {
             "speaker": "cassian",
-            "text": "I did. Three pages of them."
+            "text": "I did. Three pages of them.",
+            "expression": "amused"
           },
           {
             "speaker": "faye",
-            "text": "And what did you learn?"
+            "text": "And what did you learn?",
+            "expression": "concerned"
           },
           {
             "speaker": "cassian",
-            "text": "Who repairs the bank when the river rises. I had never asked."
+            "text": "Who repairs the bank when the river rises. I had never asked.",
+            "expression": "reflective"
           },
           {
             "speaker": "faye",
-            "text": "Good. Next spring, ask where they need another shovel."
+            "text": "Good. Next spring, ask where they need another shovel.",
+            "expression": "amused"
           }
         ]
       }

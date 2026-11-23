@@ -175,7 +175,8 @@
               "speaker": "lyra",
               "text": "The children are following the lanterns. Keep those lights ahead of the soldiers."
             }
-          ]
+          ],
+          "expression": "uneasy"
         },
         {
           "speaker": "bram",
@@ -185,7 +186,8 @@
               "speaker": "lyra",
               "text": "The last wagon has a damaged axle. We must give it time to clear the road."
             }
-          ]
+          ],
+          "expression": "concerned"
         },
         {
           "speaker": "sera",
@@ -219,20 +221,23 @@
           "when_absent": [
             {
               "speaker": "nell",
-              "text": "Every lantern accounted for. I wish the road had cost us less."
+              "text": "Every lantern accounted for. I wish the road had cost us less.",
+              "expression": "uneasy"
             },
             {
               "speaker": "lyra",
               "text": "The lanterns have reached the abbey road. Let the wagons rest before we follow."
             }
-          ]
+          ],
+          "expression": "amused"
         },
         {
           "speaker": "bram",
           "text": "Good timber is good timber.",
           "requires": [
             "nell"
-          ]
+          ],
+          "expression": "relieved"
         },
         {
           "speaker": "sera",
@@ -251,7 +256,8 @@
               "speaker": "lyra",
               "text": "The abbey bell is gone. An iron plate calls the work shifts now. We can hear it from here."
             }
-          ]
+          ],
+          "expression": "concerned"
         },
         {
           "speaker": "rook",
@@ -261,7 +267,8 @@
               "speaker": "lyra",
               "text": "We have the sentry routes. Stay together when we enter the granary court."
             }
-          ]
+          ],
+          "expression": "remorseful"
         },
         {
           "speaker": "oren",
@@ -280,9 +287,11 @@
           "when_absent": [
             {
               "speaker": "rook",
-              "text": "Put me at the front. I will not ask anyone else to take that risk for me."
+              "text": "Put me at the front. I will not ask anyone else to take that risk for me.",
+              "expression": "resolute"
             }
-          ]
+          ],
+          "expression": "resolute"
         },
         {
           "speaker": "lyra",
@@ -308,11 +317,13 @@
               "speaker": "lyra",
               "text": "We found the granary keys. Open every storehouse before the next work bell."
             }
-          ]
+          ],
+          "expression": "concerned"
         },
         {
           "speaker": "rook",
-          "text": "I cannot give back the mornings we took from this place."
+          "text": "I cannot give back the mornings we took from this place.",
+          "expression": "remorseful"
         },
         {
           "speaker": "esme",
@@ -323,13 +334,15 @@
           "when_absent": [
             {
               "speaker": "esme",
-              "text": "We will hang another bell. This time it will call people home."
+              "text": "We will hang another bell. This time it will call people home.",
+              "expression": "resolute"
             },
             {
               "speaker": "lyra",
               "text": "The grain belongs to the people who grew it. We will stay until it reaches them."
             }
-          ]
+          ],
+          "expression": "reassuring"
         }
       ]
     },
@@ -337,7 +350,8 @@
       "opening": [
         {
           "speaker": "cassian",
-          "text": "Your standard bears my family’s colors."
+          "text": "Your standard bears my family’s colors.",
+          "expression": "resolute"
         },
         {
           "speaker": "lyra",
@@ -356,20 +370,23 @@
           "when_absent": [
             {
               "speaker": "faye",
-              "text": "The imperial checkpoint blocks the road. I know two routes through the trees."
+              "text": "The imperial checkpoint blocks the road. I know two routes through the trees.",
+              "expression": "resolute"
             },
             {
               "speaker": "lyra",
               "text": "The checkpoint blocks the road. We will reach its eastern gate through the trees."
             }
-          ]
+          ],
+          "expression": "amused"
         },
         {
           "speaker": "cassian",
           "text": "You have a route through the trees?",
           "requires": [
             "faye"
-          ]
+          ],
+          "expression": "reflective"
         },
         {
           "speaker": "faye",
@@ -377,7 +394,8 @@
           "requires": [
             "cassian",
             "faye"
-          ]
+          ],
+          "expression": "amused"
         },
         {
           "speaker": "lyra",
@@ -388,7 +406,8 @@
       "closing": [
         {
           "speaker": "cassian",
-          "text": "I thought people would rally when they saw my crest."
+          "text": "I thought people would rally when they saw my crest.",
+          "expression": "reflective"
         },
         {
           "speaker": "faye",
@@ -399,20 +418,23 @@
           "when_absent": [
             {
               "speaker": "faye",
-              "text": "The carts are through. People remember who helped them out of the ditch."
+              "text": "The carts are through. People remember who helped them out of the ditch.",
+              "expression": "amused"
             },
             {
               "speaker": "lyra",
               "text": "The carts are through the checkpoint. Get them clear of the road before we rest."
             }
-          ]
+          ],
+          "expression": "amused"
         },
         {
           "speaker": "cassian",
           "text": "A rather less dignified kind of leadership.",
           "requires": [
             "faye"
-          ]
+          ],
+          "expression": "amused"
         },
         {
           "speaker": "lyra",
@@ -520,7 +542,8 @@
         },
         {
           "speaker": "cassian",
-          "text": "And if we cannot hold the pass?"
+          "text": "And if we cannot hold the pass?",
+          "expression": "reflective"
         },
         {
           "speaker": "una",
@@ -832,7 +855,8 @@
         },
         {
           "speaker": "cassian",
-          "text": "Then no banners above the gate until this is over. Today we enter as a company."
+          "text": "Then no banners above the gate until this is over. Today we enter as a company.",
+          "expression": "resolute"
         }
       ],
       "closing": [
@@ -939,7 +963,8 @@
         },
         {
           "speaker": "cassian",
-          "text": "And the throne?"
+          "text": "And the throne?",
+          "expression": "reflective"
         },
         {
           "speaker": "lyra",

@@ -172,5 +172,179 @@
         724
       ]
     }
+  },
+  "nell": {
+    "resolute": {
+      "path": "res://assets/portraits/dialogue-nell-expressions-v1.png",
+      "region": [
+        0,
+        0,
+        724,
+        724
+      ]
+    },
+    "uneasy": {
+      "path": "res://assets/portraits/dialogue-nell-expressions-v1.png",
+      "region": [
+        724,
+        0,
+        724,
+        724
+      ]
+    },
+    "amused": {
+      "path": "res://assets/portraits/dialogue-nell-expressions-v1.png",
+      "region": [
+        1448,
+        0,
+        724,
+        724
+      ]
+    }
+  },
+  "bram": {
+    "resolute": {
+      "path": "res://assets/portraits/dialogue-bram-expressions-v1.png",
+      "region": [
+        0,
+        0,
+        724,
+        724
+      ]
+    },
+    "concerned": {
+      "path": "res://assets/portraits/dialogue-bram-expressions-v1.png",
+      "region": [
+        724,
+        0,
+        724,
+        724
+      ]
+    },
+    "relieved": {
+      "path": "res://assets/portraits/dialogue-bram-expressions-v1.png",
+      "region": [
+        1448,
+        0,
+        724,
+        724
+      ]
+    }
+  },
+  "esme": {
+    "resolute": {
+      "path": "res://assets/portraits/dialogue-esme-expressions-v1.png",
+      "region": [
+        0,
+        0,
+        724,
+        724
+      ]
+    },
+    "concerned": {
+      "path": "res://assets/portraits/dialogue-esme-expressions-v1.png",
+      "region": [
+        724,
+        0,
+        724,
+        724
+      ]
+    },
+    "reassuring": {
+      "path": "res://assets/portraits/dialogue-esme-expressions-v1.png",
+      "region": [
+        1448,
+        0,
+        724,
+        724
+      ]
+    }
+  },
+  "rook": {
+    "resolute": {
+      "path": "res://assets/portraits/dialogue-rook-expressions-v1.png",
+      "region": [
+        0,
+        0,
+        724,
+        724
+      ]
+    },
+    "remorseful": {
+      "path": "res://assets/portraits/dialogue-rook-expressions-v1.png",
+      "region": [
+        724,
+        0,
+        724,
+        724
+      ]
+    },
+    "relieved": {
+      "path": "res://assets/portraits/dialogue-rook-expressions-v1.png",
+      "region": [
+        1448,
+        0,
+        724,
+        724
+      ]
+    }
+  },
+  "faye": {
+    "resolute": {
+      "path": "res://assets/portraits/dialogue-faye-expressions-v1.png",
+      "region": [
+        0,
+        0,
+        724,
+        724
+      ]
+    },
+    "concerned": {
+      "path": "res://assets/portraits/dialogue-faye-expressions-v1.png",
+      "region": [
+        724,
+        0,
+        724,
+        724
+      ]
+    },
+    "amused": {
+      "path": "res://assets/portraits/dialogue-faye-expressions-v1.png",
+      "region": [
+        1448,
+        0,
+        724,
+        724
+      ]
+    }
+  },
+  "cassian": {
+    "resolute": {
+      "path": "res://assets/portraits/dialogue-cassian-expressions-v1.png",
+      "region": [
+        0,
+        0,
+        724,
+        724
+      ]
+    },
+    "reflective": {
+      "path": "res://assets/portraits/dialogue-cassian-expressions-v1.png",
+      "region": [
+        724,
+        0,
+        724,
+        724
+      ]
+    },
+    "amused": {
+      "path": "res://assets/portraits/dialogue-cassian-expressions-v1.png",
+      "region": [
+        1448,
+        0,
+        724,
+        724
+      ]
+    }
   }
 }
