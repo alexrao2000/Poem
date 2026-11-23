@@ -20,6 +20,8 @@ func run():
 	var app=load("res://main.tscn").instantiate();app.settings_path="";app.save_path="/private/tmp/poem-test_presentation-ui-save.json"
 	root.add_child(app)
 	await process_frame
+	var chapter_lights={}
+	var horizon_colors={}
 	for chapter in range(12):
 		app.game.chapter=chapter
 		app.show_camp()
@@ -46,11 +48,23 @@ func run():
 			assert(mirror.kind==normal.kind and mirror.z==normal.z and is_equal_approx(mirror.x,-normal.x),"Mirrored arena landmarks preserve their depth and map-relative side")
 		assert(arena.get_meta("batch_stats").sources>5,"Arena includes batched scenery")
 		arena.queue_free()
-		var lighting=app.lighting_state();var previous=app.battle_lighting(app.game.info().environment)
-		assert(app.environment.sky.sky_material.sky_cover==app.CloudSky.texture() and app.environment.sky.sky_material.sky_cover_modulate==app.CloudSky.tint(app.game.info().environment),"Every chapter shares the cloud panorama with its own lighting contrast")
+		var theme=app.game.info().environment
+		var lighting=app.lighting_state()
+		var previous=app.battle_lighting(theme)
+		var atmosphere=app.lighting_state()
+		chapter_lights[theme]=lighting
+		horizon_colors[lighting.horizon]=true
+		assert(app.environment.sky.sky_material.sky_cover==app.CloudSky.texture() and atmosphere.clouds==app.CloudSky.tint(theme),"Every chapter shares the cloud panorama with its own lighting contrast")
 		assert(previous==lighting and app.environment.fog_enabled,"Battle atmosphere saves the complete previous state")
+		for key in ["color","energy","ambient","top","horizon","ground","clouds"]:
+			assert(atmosphere[key]==lighting[key],"The map and its arena share the same chapter light")
+		assert(atmosphere.ambient>=.5 and atmosphere.energy>=.4,"Shadowed combatants keep a minimum light level")
 		assert(app.environment.fog_depth_begin>=12 and app.environment.fog_density<.6,"Distance haze starts behind combatants and remains translucent")
 		app.restore_lighting(previous);assert(app.lighting_state()==lighting,"Chapter atmosphere cannot leak into the tactical map")
+	assert(chapter_lights.size()==12 and horizon_colors.size()==12,"Every chapter has its own horizon color")
+	assert(chapter_lights.harbor.horizon.r>chapter_lights.harbor.horizon.b and chapter_lights.mountain.horizon.b>chapter_lights.mountain.horizon.r,"Harbor dusk stays warm and the mountain pass stays cool")
+	assert(chapter_lights.forest.energy<chapter_lights.road.energy and chapter_lights.forest.fog.fog_density>chapter_lights.road.fog.fog_density,"Wet woodland has gentler sun and stronger haze than the open road")
+	assert(chapter_lights.furnace.color.r>chapter_lights.furnace.color.b and chapter_lights.observatory.color.b>chapter_lights.observatory.color.r,"Late firelight and observatory moonlight remain distinct")
 	for tile in [".","f","h","p","o","+"]:
 		var arena=Node3D.new();app.add_child(arena)
 		app.scenery.battle_landscape(arena,Vector3.ZERO,{"environment":"village","terrain":tile})
@@ -119,5 +133,5 @@ func run():
 	await process_frame
 	await Shutdown.dispose(app)
 	await process_frame
-	print("PASS: 12 camp/map scenes, combat camera transition, control restoration and ending")
+	print("PASS: 12 distinct chapter palettes shared by map and arena, 12 camp/map scenes, combat camera transition, control restoration and ending")
 	quit()

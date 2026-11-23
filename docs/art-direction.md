@@ -89,6 +89,10 @@ Five more sheets give Oren, Sera, Ivo, Mara and Tarin three expressions each. In
 
 The six expression sheets use [texture import compression](https://docs.godotengine.org/en/4.5/classes/class_resourceimportertexture.html#class-resourceimportertexture-property-compress-mode) at quality 0.96. The source PNGs retain their recorded hashes. Decoded exports match the source alpha channel and atlas dimensions exactly. The color comparison and a decoded portrait inspection guided the choice. Each archive is 5.93 MB smaller.
 
+## Chapter light and weather
+
+The twelve chapters define their own sky, sun and ambient light. Glass Harbor uses warm dusk, while Windscar Pass uses a cooler sky and pale blue sun. Map and arena share those colors. The arena adds distance haze beyond the fighters. Greywood has unlit slanted rain in the existing instanced atmosphere batch, with faded loop endpoints and a clock that pauses whenever the scene is hidden.
+
 ## Contact timing and guarded hits
 
 Damaging contact holds actor processing locally for 55 ms (100 ms for criticals), after a 35 ms recoil lead. The camera, effects, UI and shared music timeline continue. This uses node-bound tween processing, described in the [Godot 4.5 Tween documentation](https://docs.godotengine.org/en/4.5/classes/class_tween.html); tests cover procedural joints, imported AnimationPlayers, cancellation and combat skipping. No global time scale changes. Zero-damage hits have a guard stance and restrained gray glint instead of damaging sparks. `scripts/combat_accents.py` generates the original short metallic sound without rewriting the soundtrack; the main score generator also includes it.

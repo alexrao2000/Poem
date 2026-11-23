@@ -13,6 +13,20 @@ const MenuLayout=preload("res://scripts/menu_layout.gd")
 const BattleForecast=preload("res://scripts/battle_forecast.gd")
 const CloudSky=preload("res://scripts/cloud_sky.gd")
 const FOG_FIELDS=["fog_enabled","fog_mode","fog_density","fog_depth_begin","fog_depth_end","fog_depth_curve","fog_light_color","fog_light_energy","fog_sky_affect"]
+const CHAPTER_LIGHTING={
+	"village":{"sun":"ffe0b8","energy":.90,"ambient":.55,"top":"718fa8","horizon":"d8c5ae","haze":.38},
+	"river":{"sun":"fff1ca","energy":.84,"ambient":.56,"top":"7b9eac","horizon":"c7d9c9","haze":.48},
+	"forest":{"sun":"dce4ed","energy":.70,"ambient":.60,"top":"536c82","horizon":"b5b9ab","haze":.55},
+	"abbey":{"sun":"f4dbb3","energy":.72,"ambient":.65,"top":"8496a0","horizon":"d5d2b8","haze":.28},
+	"road":{"sun":"fff0cd","energy":.98,"ambient":.53,"top":"6b9ac1","horizon":"dfe5cd","haze":.34},
+	"harbor":{"sun":"ffc591","energy":.81,"ambient":.60,"top":"6e7896","horizon":"d8a790","haze":.48},
+	"mountain":{"sun":"dde9ff","energy":.77,"ambient":.65,"top":"657d9e","horizon":"c6d5d8","haze":.48},
+	"aqueduct":{"sun":"deecd6","energy":.82,"ambient":.61,"top":"668b98","horizon":"bed1bd","haze":.42},
+	"observatory":{"sun":"bbbdde","energy":.45,"ambient":.70,"top":"14243b","horizon":"596179","haze":.28},
+	"furnace":{"sun":"f2a878","energy":.45,"ambient":.70,"top":"352d34","horizon":"89594c","haze":.28},
+	"castle":{"sun":"f0e6d5","energy":.78,"ambient":.57,"top":"617589","horizon":"c7c9c3","haze":.28},
+	"engine":{"sun":"ffc48e","energy":.55,"ambient":.69,"top":"514750","horizon":"a47965","haze":.28},
+}
 var map_catalog=preload("res://scripts/campaign_catalog.gd").new()
 var map_facings: Dictionary={}
 const DISPLAY_FONT = preload("res://assets/fonts/CormorantGaramond.ttf")
@@ -1411,18 +1425,17 @@ func battle_lighting(theme: String,arena=true) -> Dictionary:
 	if not default_lighting.is_empty():restore_lighting(default_lighting)
 	var sky=environment.sky.sky_material
 	sky.sky_cover_modulate=CloudSky.tint(theme)
-	if theme in ["forest","mountain"]:
-		sunlight.light_energy=.7;environment.ambient_light_energy=.6
-		sky.sky_top_color=Color("536c82");sky.sky_horizon_color=Color("b5b9ab");sky.ground_horizon_color=Color("b5b9ab")
-	elif theme in ["observatory","engine","furnace"]:
-		sunlight.light_energy=.45;environment.ambient_light_energy=.7
-		sunlight.light_color=Color("bbbdde") if theme=="observatory" else Color("efb17f")
-		sky.sky_top_color=Color("14243b") if theme=="observatory" else Color("3c343a")
-		sky.sky_horizon_color=Color("596179") if theme=="observatory" else Color("98725e")
+	var palette=CHAPTER_LIGHTING.get(theme,{})
+	if not palette.is_empty():
+		sunlight.light_color=Color(palette.sun)
+		sunlight.light_energy=palette.energy
+		environment.ambient_light_energy=palette.ambient
+		sky.sky_top_color=Color(palette.top)
+		sky.sky_horizon_color=Color(palette.horizon)
 		sky.ground_horizon_color=sky.sky_horizon_color
 	environment.fog_enabled=arena;environment.fog_mode=Environment.FOG_MODE_DEPTH
 	environment.fog_depth_begin=12.0;environment.fog_depth_end=65.0;environment.fog_depth_curve=1.3
-	environment.fog_density=.55 if theme=="forest" else .48 if theme in ["river","harbor","mountain"] else .28 if theme in ["observatory","engine","furnace","castle","abbey"] else .38
+	environment.fog_density=palette.get("haze",.38)
 	environment.fog_light_color=sky.sky_horizon_color.lerp(sky.sky_top_color,.3);environment.fog_light_energy=1.0;environment.fog_sky_affect=0.0
 	return old
 

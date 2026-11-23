@@ -94,6 +94,9 @@ func controls():
    if playback!=null:playback.fast_button.button_pressed=true
    if app.stage.visible:
     saw_stage=true;assert(app.stage.get_meta("environment")==app.game.info().environment)
+    if chapter==2:
+     var weather=app.stage.get_node("AmbientDrift")
+     assert(weather.kind=="rain" and weather.cloud.multimesh.instance_count==56,"Greywood uses rain in the actual combat arena")
     if chapter%3==2 and playback!=null:playback.skip_button.pressed.emit()
    if is_instance_valid(app.reward_panel):app.reward_panel.request_continue()
   assert(not app.busy and saw_stage and not app.stage.visible and app.lighting_state()==lighting)

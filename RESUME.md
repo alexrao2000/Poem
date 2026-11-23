@@ -6,6 +6,8 @@ Development resumed on “go”. Continue in this chat until the user asks to st
 
 ### Latest state
 
+Each of the twelve chapters now has its own light and sky colors shared by the map and its combat arena. Greywood adds slanted rain to the existing atmosphere batch. It uses 36 streaks on the map and 56 in the arena, and pauses while the scene is hidden. Five focused suites passed, including palette and weather checks, twelve actual Debug scenes, Skip and exact lighting restoration. Both local exports, packaged atmosphere and presentation checks, and archive integrity passed. The assembled lighting and rain still need a visual review.
+
 The six expression sheets now use quality 0.96 for compressed color in the exported game. The original PNGs stay in the repository. Decoding the packaged textures reproduced every source alpha value. The largest per-sheet mean RGB error on opaque pixels was 2.01 on a 255-point scale. Each local archive shrank by 5.93 MB. Four focused suites, both exports, the complete packaged expression suite and archive integrity passed.
 
 The arena now follows the map sprites’ left-to-right order at the end of the combat zoom. Nameplates, nearby landmarks and critical portraits follow the same sides. Fighters approach and retreat along that axis even when they start on the right. Seven focused source suites passed, including map handoffs, counters, critical portraits, Skip and staff revival on either side. During export, the revival observer was corrected to identify the patient by role. The exported catalog, packaged map handoff and critical portrait suites passed, along with both local archives. The rendered handoff still needs a visual review.

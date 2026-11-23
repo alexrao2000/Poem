@@ -15,11 +15,20 @@ func run():
    var a=Drift.new();host.add_child(a);a.configure(theme,Vector3(24,4,18),arena,17);a.set_process(false)
    var b=Drift.new();host.add_child(b);b.configure(theme,Vector3(24,4,18),arena,17);b.set_process(false)
    assert(a.states==b.states,"Chapter atmosphere has a reproducible local seed")
-   assert(a.get_child_count()==1 and a.cloud.multimesh.instance_count<=32,"All drift particles share one bounded instanced mesh")
+   assert(a.get_child_count()==1 and a.cloud.multimesh.instance_count<=(56 if theme=="forest" else 32),"All drift particles share one bounded instanced mesh")
    assert(a.cloud.cast_shadow==GeometryInstance3D.SHADOW_CASTING_SETTING_OFF and a.find_children("*","Light3D",true,false).is_empty(),"Atmosphere adds no lights or shadows")
    assert(a.cloud.material_override.disable_fog,"Fog cannot reveal fully faded particle quads")
    if a.kind!="leaves":assert(a.cloud.material_override.billboard_keep_scale,"Camera-facing particles retain their small instance scales")
-   if theme in ["forest","road"]:assert(a.kind=="leaves" and a.cloud.multimesh.mesh is ArrayMesh)
+   if theme=="forest":
+    assert(a.kind=="rain" and a.cloud.multimesh.instance_count==(56 if arena else 36))
+    var mesh=a.cloud.multimesh.mesh
+    var surface=mesh.surface_get_arrays(0)
+    assert(surface[Mesh.ARRAY_VERTEX].size()==6 and mesh==b.cloud.multimesh.mesh,"Greywood shares a lightweight rain streak mesh")
+    for state in a.states:
+     var earlier=a.particle_position(state,.25)
+     var later=a.particle_position(state,.75)
+     assert(later.y<earlier.y and later.x>earlier.x and later.z==earlier.z and state.life<1.11,"Rain falls quickly along one wind direction")
+   elif theme=="road":assert(a.kind=="leaves" and a.cloud.multimesh.mesh is ArrayMesh)
    elif theme in ["furnace","engine"]:assert(a.kind=="embers" and a.cloud.material_override.blend_mode==BaseMaterial3D.BLEND_MODE_ADD)
    for state in a.states:
     for phase in [0.0,.1,.25,.5,.75,.9,1.0]:
@@ -61,7 +70,7 @@ func run():
   var reference=weakref(atmosphere);map.queue_free();arena.queue_free();await process_frame
   assert(reference.get_ref()==null,"Leaving a chapter releases its instanced atmosphere")
  host.queue_free();await process_frame
- print("PASS: seamless deterministic cloud panorama, cached cover, horizon/zenith continuity, theme contrast; twelve chapter atmospheres, 24 map/arena configurations, bounded instances, deterministic motion, hidden suspension, fade loops and cleanup")
+ print("PASS: seamless deterministic cloud panorama, cached cover, horizon/zenith continuity, theme contrast; twelve chapter atmospheres, 24 map/arena configurations, bounded rain streaks and other instances, deterministic motion, hidden suspension, fade loops and cleanup")
  quit()
 
 func verify_clouds():
