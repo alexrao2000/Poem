@@ -4,7 +4,26 @@ A playable tactical RPG prototype built with Godot 4.5.1 and GDScript. Lead 24 r
 
 The campaign uses animated 2D map sprites over textured 3D terrain, with separate 3D combat scenes. Combat zooms enlarge the sprites with tactical indicators hidden, then restore current health and status when map control returns. Browser and macOS exports run locally.
 
-[Play](#play) · [Controls](#controls) · [Campaign guide](#campaign-guide) · [Saves and options](#saves-and-options) · [Development](#development) · [Testing](#testing) · [Builds](#builds) · [Assets and credits](#assets-and-credits)
+[Screenshots](#screenshots) · [Play](#play) · [Controls](#controls) · [Campaign guide](#campaign-guide) · [Saves and options](#saves-and-options) · [Development](#development) · [Testing](#testing) · [Builds](#builds) · [Assets and credits](#assets-and-credits)
+
+## Screenshots
+
+**Tactical battles.** Plan movement and attacks across the campaign's textured battlefields.
+
+![The Broken Toll battlefield with allied and enemy sprites, movement range, terrain details, and unit controls](docs/screenshots/tactical-battle.png)
+
+<details>
+<summary>More screenshots: 3D combat and equipment</summary>
+
+**3D combat.** Lyra faces a Crown scout, with weapon matchups, attack forecasts, and health shown below the arena.
+
+![Lyra and a Crown scout in a village combat arena, with portraits, weapons, combat stats, and health meters](docs/screenshots/combat.png)
+
+**Company arsenal.** Compare weapons and their effects on attack and speed before equipping them.
+
+![Lyra's equipment screen showing her portrait, equipped sword, and alternative weapons with stat comparisons](docs/screenshots/equipment.png)
+
+</details>
 
 ## Play
 
