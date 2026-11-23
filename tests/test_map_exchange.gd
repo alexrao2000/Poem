@@ -23,6 +23,8 @@ var staged_pair=[]
 var projected_order=[]
 var mirrored_reveals=0
 var matching_nameplates=0
+var opening_mix: Tween
+var returning_mix: Tween
 
 func _initialize():call_deferred("run")
 
@@ -41,6 +43,7 @@ func setup():
 func run():
  app=load("res://main.tscn").instantiate();app.settings_path="";app.save_path="/private/tmp/poem-map-exchange.json";root.add_child(app);await process_frame
  await verify_departures()
+ app.music.play()
  var directions={"defeat":[Vector2i.RIGHT,"east","west"],"counter":[Vector2i.UP,"north","south"],"survive":[Vector2i.LEFT,"west","east"],"heal":[Vector2i.DOWN,"south","north"],"skip":[Vector2i.RIGHT,"east","west"]}
  var origins={"defeat":Vector2i(6,4),"counter":Vector2i(3,4),"survive":Vector2i(8,4),"heal":Vector2i(10,6),"skip":Vector2i(8,4)}
  var dimensions=[Vector2i(1024,640),Vector2i(1280,720),Vector2i(1440,900)]
@@ -66,7 +69,10 @@ func run():
   var tactical_view=app.map_navigation.capture_view()
   expected_facings={a.id:directions[case][1],b.id:directions[case][2]}
   var saved=app.game.save_data("battle").duplicate(true);var rng=app.game.rng.state
+  var score_playback=app.music.get_stream_playback()
   await app.cinematic(a,b,events,initial)
+  assert(app.music_transition==returning_mix and app.score.get_sync_stream_volume(0)>-20,"Calm is already returning by the end of the camera pullback")
+  assert(app.music.get_stream_playback()==score_playback,"Return mixing keeps the same decoded playhead")
   assert(saw_return and saw_facing and saw_entry_motion,"Field departure, moving arena reveal and return were observed for "+case)
   assert(app.map_navigation.capture_view()==tactical_view,"Actual combat restores the complete panned/offset tactical view")
   assert(app.game.save_data("battle")==saved and app.game.rng.state==rng,"Field synchronization only presents resolved outcomes")
@@ -85,7 +91,7 @@ func run():
   assert(not app.unit_nodes.has(lost_id),"Defeated map figure disappears after feedback")
   if case=="enemy_counter":assert(saw_reward,"Counterattack XP begins after field synchronization")
  mode="";await Shutdown.dispose(app);await process_frame
- print("PASS: five raised/flat map handoffs at three sizes with sprite-to-fighter and nameplate side continuity, exact view restoration and moving arena reveals/returns (defeat/counter/survival/heal/skip), actual enemy kill/counter map reactions, 25 coordinated sprite exits and teardown, updated health before XP, and unchanged resolved state")
+ print("PASS: five raised/flat map handoffs at three sizes with sprite-to-fighter and nameplate side continuity, exact view restoration, score fade during moving arena returns (defeat/counter/survival/heal/skip), actual enemy kill/counter map reactions, 25 coordinated sprite exits and teardown, updated health before XP, and unchanged resolved state")
  quit()
 
 func watch_return():
@@ -102,7 +108,11 @@ func watch_return():
   var second=app.camera.unproject_position(app.unit_nodes[staged_pair[1]].position)
   projected_order=staged_pair.duplicate()
   if first.x>second.x+.5:projected_order.reverse()
+  opening_mix=app.music_transition
   saw_facing=true;return
+ returning_mix=app.music_transition
+ var veil=app.ui.get_node("CombatTransition")
+ assert(returning_mix!=opening_mix and returning_mix.is_running() and veil.cover_alpha()==1,"The Calm fade starts before the tactical reveal")
  saw_return=true;verify_field()
  for id in expected_facings:
   if app.unit_nodes.has(id):assert(app.unit_nodes[id].player.facing==expected_facings[id],"Surviving map figures retain their facing through the combat return")

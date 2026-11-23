@@ -1384,6 +1384,7 @@ func cinematic(a,b,events,initial_hp={}):
 	await present_casualties(events)
 
 func return_to_tactical_map(veil,playback,close_map_view: Dictionary,tactical_view: Dictionary,tactical_controls: Dictionary):
+	music_mix(false)
 	refresh_pieces()
 	for visual in unit_nodes.values():visual.set_tactical_details_visible(false)
 	world.show();pieces.show()
@@ -1396,7 +1397,6 @@ func return_to_tactical_map(veil,playback,close_map_view: Dictionary,tactical_vi
 	markers.show()
 	for control in tactical_controls:
 		if is_instance_valid(control):control.visible=tactical_controls[control]
-	music_mix(false)
 
 func present_casualties(events: Array):
 	if skip_combat:return
