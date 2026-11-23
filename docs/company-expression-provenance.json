@@ -1,0 +1,96 @@
+{
+  "sheets": [
+    {
+      "id": "oren",
+      "tool": "Built-in image_gen",
+      "generated": "2026-11-22",
+      "reference": "assets/portraits/dialogue-a-v1.png",
+      "subject": "oren (top-middle reference portrait)",
+      "output": "assets/portraits/dialogue-oren-expressions-v1.png",
+      "expressions": [
+        "resolute",
+        "somber",
+        "reassuring"
+      ],
+      "prompt": "Create an ORIGINAL GAME ASSET: a transparent expression sheet for Oren, the older gray-haired armored man in the TOP MIDDLE of the supplied Poem portrait sheet. Input is an identity and painting-style reference; ignore every other character. Preserve his specific swept-back short gray hair, short gray beard, weathered lined face, brown eyes, battered silver plate armor with gold edging, navy scarf and embroidered blue chest cloth, brown diagonal leather strap, and three-quarter gaze toward the viewer's right. A wide canvas with EXACTLY THREE equally sized isolated chest-up portraits in ONE horizontal row, equal scale and identical body pose, head position, hairstyle and costume. Clear fully transparent gutters between figures and around their hair and shoulders. Align their bottom crops. Change ONLY facial expression: LEFT stern resolve (steady eyes, slightly knit brows, firm closed mouth); MIDDLE somber concern (slightly lowered brows and eyes, thoughtful closed mouth, no tears, no exaggerated despair); RIGHT warm restrained reassuring smile (softened eyes, subtle closed-mouth smile, no teeth). Match the refined illustrated fantasy linework and warm painted shading of the reference, not photorealism. Consistency across all three portraits is crucial for changing expressions in dialogue without body motion. No scenery, colored background, outside shadows, writing, labels, or frames. Skin, hair and armor fully opaque; everything outside each cutout genuinely transparent. Original Poem character, not a character from another game.",
+      "notes": "Original Poem character. Generated source pixels and alpha preserved unchanged. Three 724×724 atlas regions; source-art inspection is separate from rendered-game review.",
+      "sha256": "ed93b49924c3a81851648df207d1da929dd4d66bb8eb295191400398e8721110"
+    },
+    {
+      "id": "sera",
+      "tool": "Built-in image_gen",
+      "generated": "2026-11-22",
+      "reference": "assets/portraits/dialogue-a-v1.png",
+      "subject": "sera (top-right reference portrait)",
+      "output": "assets/portraits/dialogue-sera-expressions-v1.png",
+      "expressions": [
+        "resolute",
+        "concerned",
+        "amused"
+      ],
+      "prompt": "Create an ORIGINAL GAME ASSET: transparent expression sheet for Sera, the red-haired young archer woman in the TOP RIGHT of the supplied Poem portrait sheet. Reference is for identity and painting style; ignore other characters. Preserve her long copper-red high ponytail and loose face strands, green eyes, fair lightly freckled face, olive hooded cloak, navy scarf, brown leather armor with gold fastener and feather, and visible arrow quiver. Same three-quarter gaze toward viewer's right. Wide canvas with EXACTLY THREE equal isolated chest-up portraits in ONE horizontal row; identical scale, body pose, head position, hair, costume and bottom crop. Clear fully transparent gutters between figures and around hair and shoulders. Change ONLY facial expression: LEFT focused alert determination, steady eyes and closed mouth; MIDDLE worried concern, inner brows lifted and lips slightly parted; RIGHT lightly amused confident closed-mouth smile, softened eyes. Match refined illustrated fantasy linework and warm painted shading from the reference, not photorealism. Keep costume/hair/body nearly identical so dialogue expression swaps do not shift them. No background, scenery, outside shadow, text, labels or frame. Figure fully opaque; everything outside genuinely transparent. Original Poem character, not a character from another game.",
+      "notes": "Original Poem character. Generated source pixels and alpha preserved unchanged. Three 724×724 atlas regions; source-art inspection is separate from rendered-game review.",
+      "sha256": "35920be26cf221ae78d1f3751278952c1a7cef7e89af08c24d5cd857da98122c"
+    },
+    {
+      "id": "ivo",
+      "tool": "Built-in image_gen",
+      "generated": "2026-11-22",
+      "reference": "assets/portraits/dialogue-a-v1.png",
+      "subject": "ivo (bottom-left reference portrait)",
+      "output": "assets/portraits/dialogue-ivo-expressions-v1.png",
+      "expressions": [
+        "resolute",
+        "concerned",
+        "reassuring"
+      ],
+      "prompt": "Create an ORIGINAL GAME ASSET: a transparent expression sheet for Ivo, the dark-haired young male healer in the BOTTOM LEFT of the supplied Poem portrait sheet. Input is an identity and painting-style reference; ignore other characters. Preserve his short wavy dark-brown hair, warm brown eyes, warm olive complexion, gentle youthful face, ivory robe, violet stole with gold embroidery, leather medicine satchel with herbs and gold pendant. Preserve the three-quarter gaze toward the viewer's right. Wide canvas with EXACTLY THREE equally sized isolated chest-up portraits in ONE horizontal row. Identical scale, body pose, head position, hair, costume and aligned bottom crop. Leave clear fully transparent gutters between all figures and around their hair and shoulders. Change ONLY facial expression: LEFT calm firm resolve, steady gaze and closed mouth; MIDDLE concerned sympathy, inner brows lifted and lips slightly parted, no tears; RIGHT gentle reassuring closed-mouth smile with softened eyes. Match the reference's refined illustrated fantasy portrait linework and warm painted shading, not photorealism. Keep body, hair and costume nearly identical across the three cutouts so dialogue expression swaps do not shift them. No backdrop, scenery, outside shadows, text, labels or frame. Figure opaque; everything outside each figure genuinely transparent. Original Poem character, not a character from another game.",
+      "notes": "Original Poem character. Generated source pixels and alpha preserved unchanged. Three 724×724 atlas regions; source-art inspection is separate from rendered-game review.",
+      "sha256": "af430dee9334f700392f0df11cfafa5fdc24f1f67f8c2f91f55bce0217a82810"
+    },
+    {
+      "id": "mara",
+      "tool": "Built-in image_gen",
+      "generated": "2026-11-22",
+      "reference": "assets/portraits/dialogue-a-v1.png",
+      "subject": "mara (bottom-middle reference portrait)",
+      "output": "assets/portraits/dialogue-mara-expressions-v1.png",
+      "expressions": [
+        "resolute",
+        "concerned",
+        "amused"
+      ],
+      "prompt": "Create an ORIGINAL GAME ASSET: a transparent expression sheet for Mara, the copper-red-haired woman in the BOTTOM MIDDLE of the supplied Poem portrait sheet. Input is an identity and painting-style reference; ignore other characters. Preserve her thick wavy copper-red hair loosely tied back with yellow ribbons, warm brown eyes, warm brown freckled skin, gold hoop earrings, mustard-yellow scarf and worn dark brown leather captain's coat with brass fasteners and diagonal chest strap. Preserve the three-quarter gaze toward the viewer's right. Wide canvas with EXACTLY THREE equally sized isolated chest-up portraits in ONE horizontal row. Identical scale, body pose, head position, hair, costume and aligned bottom crop. Leave clear fully transparent gutters between all figures and around their hair and shoulders. Change ONLY facial expression: LEFT firm determination, slightly lowered brows and closed mouth; MIDDLE worried concern, lifted inner brows and slightly parted lips; RIGHT playful confident closed-mouth smile with bright amused eyes. Match the reference's refined illustrated fantasy portrait linework and warm painted shading, not photorealism. Keep body, hair and costume nearly identical across the three cutouts so dialogue expression swaps do not shift them. No backdrop, scenery, outside shadows, text, labels or frame. Figure opaque; everything outside each figure genuinely transparent. Original Poem character, not a character from another game.",
+      "notes": "Original Poem character. Generated source pixels and alpha preserved unchanged. Three 724×724 atlas regions; source-art inspection is separate from rendered-game review.",
+      "sha256": "213b86e3f402b9f50a13d3aff0a938f874d11a2b4e49216e140bfc5888fa6f3b"
+    },
+    {
+      "id": "tarin",
+      "tool": "Built-in image_gen",
+      "generated": "2026-11-22",
+      "reference": "assets/portraits/dialogue-a-v1.png",
+      "subject": "tarin (bottom-right reference portrait)",
+      "output": "assets/portraits/dialogue-tarin-expressions-v1.png",
+      "expressions": [
+        "resolute",
+        "concerned",
+        "amused"
+      ],
+      "prompt": "Create an ORIGINAL GAME ASSET: transparent expression sheet for Tarin, the fair blond young man in the BOTTOM RIGHT of the supplied Poem portrait sheet. Reference is for identity and painting style; ignore other characters. Preserve his tousled short honey-blond hair, blue eyes, fair youthful face, high-collared dark navy coat with intricate pale silver/gold embroidery, ivory cravat, leather shoulder strap and thin decorative chains. Preserve three-quarter gaze toward viewer's right. Wide canvas with EXACTLY THREE equal isolated chest-up portraits in ONE horizontal row; identical scale, body pose, head position, hair, costume and aligned bottom crop. Clear fully transparent gutters between figures and around hair and shoulders. Change ONLY facial expression: LEFT thoughtful steady resolve, brows slightly knit, mouth closed; MIDDLE worried realization, inner brows lifted, lips slightly parted; RIGHT small dry amused closed-mouth smile, softened eyes. Match refined illustrated fantasy linework and warm painted shading from the reference, not photorealism. Keep costume/hair/body nearly identical so dialogue expression swaps do not shift them. No background, scenery, outside shadow, writing, labels or frame. Figure opaque; everything outside genuinely transparent. Original Poem character, not a character from another game.",
+      "notes": "Original Poem character. Generated source pixels and alpha preserved unchanged. Three 724×724 atlas regions; source-art inspection is separate from rendered-game review.",
+      "edits": [
+        {
+          "prompt": "Edit this original Tarin expression sheet for safe game-atlas padding only. Keep the same wide 3-column single-row layout and exactly the same three facial expressions, character identity, colors, linework, hair, costume and body poses. Reduce each portrait very slightly within its own equal square cell so that its complete existing chest crop is visible with at least 14 pixels of genuinely transparent padding below it, as well as clear gutters on the left/right and above the hair. Do not extend the cropped torso, repaint the expressions, change clothing or add anything. All three bottom crop lines must align at the same height, above the transparent bottom gutter. Keep the three figures equally scaled. Transparent background, no text or frame.",
+          "retained": false,
+          "reason": "Added padding but introduced a pale background halo above the shader cutoff."
+        },
+        {
+          "prompt": "Remove the entire white/gray background and every cast shadow, pale halo, colored haze and soft glow from this three-portrait sheet. Output a REAL transparent PNG: every pixel outside the actual character silhouettes must have alpha exactly zero, not a pale low-opacity fill. Keep the three existing Tarin figures exactly as they are: same facial expressions, hair, clothing, size, alignment and positions. Preserve the current generous clear gaps and padding, including below the straight torso crops. No added shadow, scene, background, text or frame. Only the three fully opaque illustrated character cutouts on perfectly transparent space.",
+          "retained": true,
+          "reason": "Removed the background while retaining the padded layout."
+        }
+      ],
+      "sha256": "cafae610e859461290d23e11de282326b3513ff700a0164d64ea005f67cd70f8"
+    }
+  ]
+}

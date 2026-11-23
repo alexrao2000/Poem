@@ -10,7 +10,8 @@
               "speaker": "lyra",
               "text": "The evacuation order leaves no room for anyone who cannot walk. We will make room."
             }
-          ]
+          ],
+          "expression": "somber"
         },
         {
           "speaker": "lyra",
@@ -28,7 +29,8 @@
               "speaker": "lyra",
               "text": "Six patients are still waiting on this side of the river. The wagons cannot leave them."
             }
-          ]
+          ],
+          "expression": "concerned"
         },
         {
           "speaker": "sera",
@@ -38,7 +40,8 @@
               "speaker": "lyra",
               "text": "The patrol is coming over the upper bridge. Hold the square until the wagons reach the south road."
             }
-          ]
+          ],
+          "expression": "resolute"
         },
         {
           "speaker": "lyra",
@@ -47,7 +50,8 @@
         },
         {
           "speaker": "oren",
-          "text": "That will be enough for the people behind us."
+          "text": "That will be enough for the people behind us.",
+          "expression": "reassuring"
         }
       ],
       "closing": [
@@ -59,7 +63,8 @@
               "speaker": "lyra",
               "text": "The last wagon is across. The people we came for are on the south road."
             }
-          ]
+          ],
+          "expression": "reassuring"
         },
         {
           "speaker": "lyra",
@@ -77,7 +82,8 @@
         },
         {
           "speaker": "oren",
-          "text": "There is an empty square where my home used to feel safe. I would rather help you change that."
+          "text": "There is an empty square where my home used to feel safe. I would rather help you change that.",
+          "expression": "somber"
         }
       ]
     },
@@ -91,7 +97,8 @@
               "speaker": "lyra",
               "text": "The boats are ready, but an iron chain still closes the river."
             }
-          ]
+          ],
+          "expression": "resolute"
         },
         {
           "speaker": "tarin",
@@ -101,7 +108,8 @@
               "speaker": "lyra",
               "text": "The eastern tollhouse raises the chain. Its manifests bear the royal observatory seal."
             }
-          ]
+          ],
+          "expression": "resolute"
         },
         {
           "speaker": "lyra",
@@ -118,11 +126,13 @@
               "speaker": "lyra",
               "text": "Sunstone. The cargo list names more than any furnace could safely burn."
             }
-          ]
+          ],
+          "expression": "concerned"
         },
         {
           "speaker": "mara",
-          "text": "Questions after the crossing. Take their flag, and I will take their river."
+          "text": "Questions after the crossing. Take their flag, and I will take their river.",
+          "expression": "resolute"
         }
       ],
       "closing": [
@@ -134,7 +144,8 @@
               "speaker": "lyra",
               "text": "The river is open. Get the boats through before another patrol reaches the tollhouse."
             }
-          ]
+          ],
+          "expression": "amused"
         },
         {
           "speaker": "tarin",
@@ -144,7 +155,8 @@
               "speaker": "lyra",
               "text": "These manifests lead to the abbey furnaces. If the regent needs this much sunstone, he is running out of time."
             }
-          ]
+          ],
+          "expression": "concerned"
         },
         {
           "speaker": "lyra",
@@ -177,7 +189,8 @@
         },
         {
           "speaker": "sera",
-          "text": "We can hold the bends in the road. The trees will make their archers work for a clear shot."
+          "text": "We can hold the bends in the road. The trees will make their archers work for a clear shot.",
+          "expression": "resolute"
         },
         {
           "speaker": "ivo",
@@ -187,7 +200,8 @@
               "speaker": "lyra",
               "text": "Six bells. Hold the bends until the last wagon is clear."
             }
-          ]
+          ],
+          "expression": "resolute"
         },
         {
           "speaker": "lyra",
@@ -222,7 +236,8 @@
         },
         {
           "speaker": "sera",
-          "text": "Tomorrow we follow the abbey road. Tonight, let the horses sleep."
+          "text": "Tomorrow we follow the abbey road. Tonight, let the horses sleep.",
+          "expression": "amused"
         }
       ]
     },
@@ -253,7 +268,8 @@
           "text": "You expect us to trust you?",
           "requires": [
             "rook"
-          ]
+          ],
+          "expression": "resolute"
         },
         {
           "speaker": "rook",
@@ -439,7 +455,8 @@
         },
         {
           "speaker": "mara",
-          "text": "My boat is on the far quay. Try not to burn the good rope."
+          "text": "My boat is on the far quay. Try not to burn the good rope.",
+          "expression": "amused"
         },
         {
           "speaker": "lyra",
@@ -474,7 +491,8 @@
         },
         {
           "speaker": "mara",
-          "text": "Then the next tide belongs to us."
+          "text": "Then the next tide belongs to us.",
+          "expression": "amused"
         }
       ]
     },
@@ -553,7 +571,8 @@
               "speaker": "lyra",
               "text": "The embassy survivors are with the wagons. Give them water, and room to rest."
             }
-          ]
+          ],
+          "expression": "reassuring"
         }
       ]
     },
@@ -578,7 +597,8 @@
           "text": "Can the aqueduct bear the company?",
           "requires": [
             "petra"
-          ]
+          ],
+          "expression": "somber"
         },
         {
           "speaker": "petra",
@@ -641,7 +661,8 @@
               "speaker": "lyra",
               "text": "If the containment fails, everything the engine has taken will fall back on the city."
             }
-          ]
+          ],
+          "expression": "concerned"
         },
         {
           "speaker": "galen",
@@ -686,7 +707,8 @@
           "text": "For a siege?",
           "requires": [
             "galen"
-          ]
+          ],
+          "expression": "concerned"
         },
         {
           "speaker": "galen",
@@ -737,7 +759,8 @@
         },
         {
           "speaker": "ivo",
-          "text": "The treatment stations are ready at both exits."
+          "text": "The treatment stations are ready at both exits.",
+          "expression": "resolute"
         },
         {
           "speaker": "lyra",
@@ -864,7 +887,8 @@
         },
         {
           "speaker": "oren",
-          "text": "An oath does not mend a broken thing by breaking everyone around it."
+          "text": "An oath does not mend a broken thing by breaking everyone around it.",
+          "expression": "resolute"
         },
         {
           "speaker": "lyra",
@@ -873,7 +897,8 @@
         },
         {
           "speaker": "ivo",
-          "text": "I have brought every bandage we own."
+          "text": "I have brought every bandage we own.",
+          "expression": "resolute"
         },
         {
           "speaker": "lyra",
@@ -932,7 +957,8 @@
         },
         {
           "speaker": "oren",
-          "text": "I know a square with room for a very long table."
+          "text": "I know a square with room for a very long table.",
+          "expression": "reassuring"
         }
       ]
     }

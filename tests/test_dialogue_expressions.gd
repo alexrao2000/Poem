@@ -5,34 +5,55 @@ const Resolve=preload("res://scripts/story_survivors.gd")
 const Shutdown=preload("helpers/game_shutdown.gd")
 func _initialize():call_deferred("run")
 func run():
- var faces=Portraits.new();var neutral=faces.get_dialogue_portrait("lyra")
- for expression in ["resolute","concerned","relieved"]:
-  var face=faces.get_dialogue_portrait("lyra",expression)
-  assert(face!=neutral and face==faces.get_dialogue_portrait("lyra",expression),"Expression cache is distinct and stable")
-  assert(face.region.size==Vector2(724,724) and face.filter_clip)
-  var source=face.atlas.get_image()
-  if source.is_compressed():source.decompress()
-  assert(Rect2(Vector2.ZERO,source.get_size()).encloses(face.region))
-  for x in range(int(face.region.position.x),int(face.region.end.x)):
-   assert(source.get_pixel(x,0).a<.13 and source.get_pixel(x,723).a<.13,"Transparent horizontal gutters isolate the crop")
-  for y in range(724):
-   assert(source.get_pixel(int(face.region.position.x),y).a<.13 and source.get_pixel(int(face.region.end.x)-1,y).a<.13,"Transparent vertical gutters keep adjacent expressions out")
- assert(faces.get_dialogue_portrait("lyra","missing")==neutral,"Unknown expressions use the original portrait")
+ var faces=Portraits.new()
+ var regions=0
  for id in Portraits.ORDER:
-  if id!="lyra":assert(faces.get_dialogue_portrait(id,"resolute")==faces.get_dialogue_portrait(id),"Unpainted recruits retain their existing portrait")
- var story=JSON.parse_string(FileAccess.get_file_as_string("res://data/story.json"));var tagged=0
+  var original=faces.get_dialogue_portrait(id)
+  var expressions=faces.dialogue_expressions.get(id,{})
+  assert(faces.get_dialogue_portrait(id,"missing")==original,"Unknown expressions use the original portrait")
+  if expressions.is_empty():
+   assert(faces.get_dialogue_portrait(id,"resolute")==original)
+   continue
+  var atlas=faces.get_dialogue_portrait(id,expressions.keys()[0]).atlas
+  var source=atlas.get_image()
+  if source.is_compressed():source.decompress()
+  var previous_regions=[]
+  for expression in expressions:
+   var face=faces.get_dialogue_portrait(id,expression)
+   assert(face!=original and face==faces.get_dialogue_portrait(id,expression),"Expression cache is distinct and stable")
+   assert(face.atlas==atlas and face.region.size==Vector2(724,724) and face.filter_clip)
+   assert(Rect2(Vector2.ZERO,source.get_size()).encloses(face.region))
+   for previous in previous_regions:
+    assert(not previous.intersects(face.region),"Expression cells do not overlap")
+   previous_regions.append(face.region)
+   for x in range(int(face.region.position.x),int(face.region.end.x)):
+    assert(source.get_pixel(x,0).a<.13 and source.get_pixel(x,723).a<.13,"Transparent horizontal gutters isolate the crop")
+   for y in range(724):
+    assert(source.get_pixel(int(face.region.position.x),y).a<.13 and source.get_pixel(int(face.region.end.x)-1,y).a<.13,"Transparent vertical gutters keep adjacent expressions out")
+   regions+=1
+ assert(regions==18)
+ var story=JSON.parse_string(FileAccess.get_file_as_string("res://data/story.json"))
+ var campaign_tags=0
  for chapter in story.chapters:
   for kind in ["opening","closing"]:
    for line in chapter[kind]:
     if not line.has("expression"):continue
-    assert(faces.dialogue_expressions.get(line.speaker,{}).has(line.expression),"Every authored expression has an asset")
+    assert(faces.dialogue_expressions.get(line.speaker,{}).has(line.expression),"Every authored campaign expression has an asset")
     assert(Resolve.resolve([line],[])[0].expression==line.expression,"Loss-aware story copies retain expression metadata")
-    tagged+=1
- assert(tagged==21)
+    campaign_tags+=1
+ assert(campaign_tags==47)
  var viewport=SubViewport.new();viewport.size=Vector2i(1280,720);viewport.render_target_update_mode=SubViewport.UPDATE_DISABLED;root.add_child(viewport)
  var app=load("res://main.tscn").instantiate();app.settings_path="";app.save_path="/private/tmp/poem-expressions-%d.json"%Time.get_ticks_usec();viewport.add_child(app);await process_frame
  app.preferences.values.text_speed=0;app.settings_path=app.save_path+".settings";assert(app.preferences.save_file(app.settings_path))
- app.game.story_seen=["opening_0"];app.show_camp();assert(app.persist_campaign("camp"))
+ app.game.chapter=4
+ app.game.story_seen=["opening_4"];app.show_camp()
+ var expressed_supports=[]
+ for entry in app.game.supports.entries:
+  if not entry.scenes.any(func(scene):return scene.lines.any(func(line):return line.has("expression"))):continue
+  expressed_supports.append(entry)
+  app.game.supports.state[entry.id]={"points":18,"rank":3,"chapter":4,"earned":0,"turn":-1}
+ assert(expressed_supports.size()==3)
+ assert(app.persist_campaign("camp"))
  var before=JSON.stringify(app.game.save_data("camp"));var state=app.game.rng.state
  var disk=FileAccess.get_file_as_string(app.save_path);var settings=FileAccess.get_file_as_string(app.settings_path)
  var lines=[{"speaker":"lyra","text":"We will keep the road.","expression":"resolute"},{"speaker":"lyra","text":"And the people behind us?","expression":"concerned"},{"speaker":"oren","text":"They are across."},{"speaker":"lyra","text":"Then we can go home.","expression":"relieved"},{"speaker":"lyra","text":"Tell the others."},{"speaker":"lyra","text":"I will follow.","expression":"missing"},{"speaker":"sera","text":"The way is clear."},{"speaker":"lyra","text":"Stay together.","expression":"resolute"}]
@@ -56,8 +77,23 @@ func run():
     assert(stage.active==slot and stage.portraits[slot]==portrait and portrait.position==position and stage.entrances[slot]==entrance,"A new expression on the same speaker cannot slide or replace the portrait control")
    await process_frame
   assert(app.screen=="dossier","The final Continue still completes the scene")
+ var support_tags=0
+ for entry in expressed_supports:
+  var unit=app.game.roster.filter(func(recruit):return recruit.id==entry.members[0])[0]
+  for index in range(entry.scenes.size()):
+   app.read_support(unit,entry,index)
+   assert(app.screen=="dialogue")
+   for line in entry.scenes[index].lines:
+    var expression=line.get("expression","")
+    if not expression.is_empty():
+     assert(faces.dialogue_expressions.get(line.speaker,{}).has(expression))
+     support_tags+=1
+    assert(app.dialogue_portrait.texture==app.portraits.get_dialogue_portrait(line.speaker,expression),"The support replay reads expressions through its ordinary entry point")
+    app.advance_dialogue()
+   assert(app.screen=="supports","Replay returns to the company bonds menu")
+ assert(support_tags==47)
  assert(JSON.stringify(app.game.save_data("camp"))==before and app.game.rng.state==state)
  assert(FileAccess.get_file_as_string(app.save_path)==disk and FileAccess.get_file_as_string(app.settings_path)==settings,"Portrait changes leave campaign and preference files byte-identical")
  await Shutdown.dispose(app);viewport.queue_free();await process_frame
- print("PASS: three transparent expression regions, 21 authored lines, 24 actual dialogue transitions across three sizes, neutral/unknown/full-roster fallback, same-speaker slot/entrance stability, history and exact state/file isolation")
+ print("PASS: 18 transparent expression regions, 47 campaign and 47 support tags, nine support replays, 24 actual dialogue transitions across three sizes, neutral/unknown/full-roster fallback, same-speaker slot/entrance stability, history and exact state/file isolation")
  quit()

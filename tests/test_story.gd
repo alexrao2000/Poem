@@ -71,6 +71,8 @@ func run():
      assert(stage.panel.get_global_rect().grow(1).encloses(child.get_global_rect()),"Every line and control fits the dialogue panel")
     assert(stage.speech.get_line_count()<=stage.speech.get_visible_line_count(),"Long dialogue never clips its last line")
     assert(stage.identities[stage.active]==scene[index].speaker,"Current speaker owns the highlighted portrait")
+    var line=scene[index]
+    assert(stage.portraits[stage.active].texture==app.portraits.get_dialogue_portrait(line.speaker,line.get("expression","")),"Campaign and support lines bind their authored expression")
     assert(stage.portraits[0].flip_h==false and stage.portraits[1].flip_h,"Portraits face into the conversation")
     assert(stage.portraits[stage.active].modulate==Color.WHITE,"Active speaker remains fully lit")
     checked+=1

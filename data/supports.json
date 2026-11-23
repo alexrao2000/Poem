@@ -21,19 +21,23 @@
         "lines": [
           {
             "speaker": "lyra",
-            "text": "You set out two cups before I arrived."
+            "text": "You set out two cups before I arrived.",
+            "expression": "relieved"
           },
           {
             "speaker": "oren",
-            "text": "You make the same circuit every night. I was beginning to worry about the tea."
+            "text": "You make the same circuit every night. I was beginning to worry about the tea.",
+            "expression": "reassuring"
           },
           {
             "speaker": "lyra",
-            "text": "I came to ask whether I gave the right orders."
+            "text": "I came to ask whether I gave the right orders.",
+            "expression": "concerned"
           },
           {
             "speaker": "oren",
-            "text": "Sit down first. You are allowed to be thirsty before you are a commander."
+            "text": "Sit down first. You are allowed to be thirsty before you are a commander.",
+            "expression": "reassuring"
           }
         ]
       },
@@ -42,27 +46,33 @@
         "lines": [
           {
             "speaker": "oren",
-            "text": "There is no Oren on your list of people to repay."
+            "text": "There is no Oren on your list of people to repay.",
+            "expression": "resolute"
           },
           {
             "speaker": "lyra",
-            "text": "You said you needed nothing."
+            "text": "You said you needed nothing.",
+            "expression": "concerned"
           },
           {
             "speaker": "oren",
-            "text": "I said my roof did not leak. Those are different things."
+            "text": "I said my roof did not leak. Those are different things.",
+            "expression": "somber"
           },
           {
             "speaker": "lyra",
-            "text": "Then tell me what to write."
+            "text": "Then tell me what to write.",
+            "expression": "concerned"
           },
           {
             "speaker": "oren",
-            "text": "A morning when you let someone else carry the banner."
+            "text": "A morning when you let someone else carry the banner.",
+            "expression": "reassuring"
           },
           {
             "speaker": "lyra",
-            "text": "I can promise you tomorrow morning."
+            "text": "I can promise you tomorrow morning.",
+            "expression": "relieved"
           }
         ]
       },
@@ -71,27 +81,33 @@
         "lines": [
           {
             "speaker": "lyra",
-            "text": "When this ends, will you stand guard again?"
+            "text": "When this ends, will you stand guard again?",
+            "expression": "relieved"
           },
           {
             "speaker": "oren",
-            "text": "At the workshop, perhaps. To keep the rain out."
+            "text": "At the workshop, perhaps. To keep the rain out.",
+            "expression": "reassuring"
           },
           {
             "speaker": "lyra",
-            "text": "I was hoping you would help me with the meeting hall."
+            "text": "I was hoping you would help me with the meeting hall.",
+            "expression": "relieved"
           },
           {
             "speaker": "oren",
-            "text": "Does it need a guard?"
+            "text": "Does it need a guard?",
+            "expression": "reassuring"
           },
           {
             "speaker": "lyra",
-            "text": "Someone who knows when to leave the door open."
+            "text": "Someone who knows when to leave the door open.",
+            "expression": "relieved"
           },
           {
             "speaker": "oren",
-            "text": "Then I will bring the spare cup."
+            "text": "Then I will bring the spare cup.",
+            "expression": "reassuring"
           }
         ]
       }
@@ -123,15 +139,18 @@
           },
           {
             "speaker": "sera",
-            "text": "Clean water. The pie is marked with a triangle."
+            "text": "Clean water. The pie is marked with a triangle.",
+            "expression": "amused"
           },
           {
             "speaker": "ivo",
-            "text": "Your water marks could save my patients a day of travel."
+            "text": "Your water marks could save my patients a day of travel.",
+            "expression": "reassuring"
           },
           {
             "speaker": "sera",
-            "text": "Then take this copy. I can remember where the pie is."
+            "text": "Then take this copy. I can remember where the pie is.",
+            "expression": "amused"
           }
         ]
       },
@@ -140,27 +159,33 @@
         "lines": [
           {
             "speaker": "sera",
-            "text": "I found a shorter route to the infirmary."
+            "text": "I found a shorter route to the infirmary.",
+            "expression": "amused"
           },
           {
             "speaker": "ivo",
-            "text": "How steep?"
+            "text": "How steep?",
+            "expression": "concerned"
           },
           {
             "speaker": "sera",
-            "text": "Steep enough that I should have asked before calling it shorter."
+            "text": "Steep enough that I should have asked before calling it shorter.",
+            "expression": "concerned"
           },
           {
             "speaker": "ivo",
-            "text": "Distance looks different from a stretcher."
+            "text": "Distance looks different from a stretcher.",
+            "expression": "resolute"
           },
           {
             "speaker": "sera",
-            "text": "Come with me tomorrow. We will draw that version too."
+            "text": "Come with me tomorrow. We will draw that version too.",
+            "expression": "resolute"
           },
           {
             "speaker": "ivo",
-            "text": "Bring the pencil with the broad point. My hands shake after a long shift."
+            "text": "Bring the pencil with the broad point. My hands shake after a long shift.",
+            "expression": "concerned"
           }
         ]
       },
@@ -169,27 +194,33 @@
         "lines": [
           {
             "speaker": "ivo",
-            "text": "Your new atlas has a very large margin."
+            "text": "Your new atlas has a very large margin.",
+            "expression": "reassuring"
           },
           {
             "speaker": "sera",
-            "text": "Beds, wells, people who will open a door after dark. I needed the space."
+            "text": "Beds, wells, people who will open a door after dark. I needed the space.",
+            "expression": "resolute"
           },
           {
             "speaker": "ivo",
-            "text": "You cannot promise every traveler a welcome."
+            "text": "You cannot promise every traveler a welcome.",
+            "expression": "concerned"
           },
           {
             "speaker": "sera",
-            "text": "No. But I can make it easier for a welcome to be found."
+            "text": "No. But I can make it easier for a welcome to be found.",
+            "expression": "resolute"
           },
           {
             "speaker": "ivo",
-            "text": "Put my name beside the first infirmary."
+            "text": "Put my name beside the first infirmary.",
+            "expression": "reassuring"
           },
           {
             "speaker": "sera",
-            "text": "Already there. Beside a blue cup."
+            "text": "Already there. Beside a blue cup.",
+            "expression": "amused"
           }
         ]
       }
@@ -217,19 +248,23 @@
         "lines": [
           {
             "speaker": "mara",
-            "text": "That is the worst river chart I have ever seen."
+            "text": "That is the worst river chart I have ever seen.",
+            "expression": "amused"
           },
           {
             "speaker": "tarin",
-            "text": "It is a diagram of the night sky."
+            "text": "It is a diagram of the night sky.",
+            "expression": "resolute"
           },
           {
             "speaker": "mara",
-            "text": "Explains why I could not find the toll station."
+            "text": "Explains why I could not find the toll station.",
+            "expression": "amused"
           },
           {
             "speaker": "tarin",
-            "text": "If the sky acquires one, I will draw you a better chart."
+            "text": "If the sky acquires one, I will draw you a better chart.",
+            "expression": "amused"
           }
         ]
       },
@@ -238,27 +273,33 @@
         "lines": [
           {
             "speaker": "tarin",
-            "text": "Your boat sits lower than your cargo list predicts."
+            "text": "Your boat sits lower than your cargo list predicts.",
+            "expression": "concerned"
           },
           {
             "speaker": "mara",
-            "text": "The list forgets the medicine under the grain."
+            "text": "The list forgets the medicine under the grain.",
+            "expression": "amused"
           },
           {
             "speaker": "tarin",
-            "text": "You should include it. The current will not honor a discreet omission."
+            "text": "You should include it. The current will not honor a discreet omission.",
+            "expression": "resolute"
           },
           {
             "speaker": "mara",
-            "text": "Then help me write two lists. One for the guards, one for the river."
+            "text": "Then help me write two lists. One for the guards, one for the river.",
+            "expression": "amused"
           },
           {
             "speaker": "tarin",
-            "text": "I would rather the river receive the honest one."
+            "text": "I would rather the river receive the honest one.",
+            "expression": "resolute"
           },
           {
             "speaker": "mara",
-            "text": "Now you are learning my business."
+            "text": "Now you are learning my business.",
+            "expression": "amused"
           }
         ]
       },
@@ -267,27 +308,33 @@
         "lines": [
           {
             "speaker": "tarin",
-            "text": "I have calculated the safest load for your next vessel."
+            "text": "I have calculated the safest load for your next vessel.",
+            "expression": "resolute"
           },
           {
             "speaker": "mara",
-            "text": "Good. Have you calculated its name?"
+            "text": "Good. Have you calculated its name?",
+            "expression": "amused"
           },
           {
             "speaker": "tarin",
-            "text": "That lies outside my field."
+            "text": "That lies outside my field.",
+            "expression": "amused"
           },
           {
             "speaker": "mara",
-            "text": "The Question. You kept asking until somebody listened."
+            "text": "The Question. You kept asking until somebody listened.",
+            "expression": "amused"
           },
           {
             "speaker": "tarin",
-            "text": "I am not sure I deserve a boat."
+            "text": "I am not sure I deserve a boat.",
+            "expression": "concerned"
           },
           {
             "speaker": "mara",
-            "text": "Then keep her from sinking. We can discuss deserving it afterward."
+            "text": "Then keep her from sinking. We can discuss deserving it afterward.",
+            "expression": "amused"
           }
         ]
       }

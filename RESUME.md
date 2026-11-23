@@ -1,10 +1,12 @@
 # Poem — development handoff
 
-## Active checkpoint · 2026-11-22
+## Active checkpoint · 2026-11-23
 
 Development resumed on “go”. Continue in this chat until the user asks to stop; no scheduled work is requested. This checkpoint supersedes the older paused status below.
 
 ### Latest state
+
+Lyra, Oren, Sera, Ivo, Mara and Tarin now use 18 authored expressions across 47 campaign lines and 47 lines in nine support conversations. Six affected suites passed, including the complete support replay paths, 978 story and support layouts, and 180 combinations of campaign losses. Both local exports, the complete packaged expression check and archive integrity passed. The five additional atlases add 8.0 MB to each archive. Registry 380, with the full 378-suite baseline recorded separately. The source portraits were inspected and rendered gameplay still needs a visual review.
 
 Lyra now has three original dialogue expressions—resolute, concerned and relieved—on 21 existing campaign lines. The unchanged generated sheet uses measured transparent gutters; missing expressions and other recruits retain their original portraits. Consecutive lines update the existing speaker texture without repeating the entrance, and History keeps the current expression. Five affected suites pass, including 24 expression transitions, 978 story/support/trial layouts, 180 loss subsets with 486 alternate-line layouts, chapter backdrops and forecast regression. Both local exports, the complete exported expression suite, loader and ZIP integrity pass. Story text, campaign state and preference files remain unchanged. Registry 380; complete 378-suite baseline retained separately. Source art was inspected; rendered-game appearance remains unreviewed.
 

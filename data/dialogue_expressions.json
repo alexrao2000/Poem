@@ -27,5 +27,150 @@
         724
       ]
     }
+  },
+  "oren": {
+    "resolute": {
+      "path": "res://assets/portraits/dialogue-oren-expressions-v1.png",
+      "region": [
+        0,
+        0,
+        724,
+        724
+      ]
+    },
+    "somber": {
+      "path": "res://assets/portraits/dialogue-oren-expressions-v1.png",
+      "region": [
+        724,
+        0,
+        724,
+        724
+      ]
+    },
+    "reassuring": {
+      "path": "res://assets/portraits/dialogue-oren-expressions-v1.png",
+      "region": [
+        1448,
+        0,
+        724,
+        724
+      ]
+    }
+  },
+  "sera": {
+    "resolute": {
+      "path": "res://assets/portraits/dialogue-sera-expressions-v1.png",
+      "region": [
+        0,
+        0,
+        724,
+        724
+      ]
+    },
+    "concerned": {
+      "path": "res://assets/portraits/dialogue-sera-expressions-v1.png",
+      "region": [
+        724,
+        0,
+        724,
+        724
+      ]
+    },
+    "amused": {
+      "path": "res://assets/portraits/dialogue-sera-expressions-v1.png",
+      "region": [
+        1448,
+        0,
+        724,
+        724
+      ]
+    }
+  },
+  "ivo": {
+    "resolute": {
+      "path": "res://assets/portraits/dialogue-ivo-expressions-v1.png",
+      "region": [
+        0,
+        0,
+        724,
+        724
+      ]
+    },
+    "concerned": {
+      "path": "res://assets/portraits/dialogue-ivo-expressions-v1.png",
+      "region": [
+        724,
+        0,
+        724,
+        724
+      ]
+    },
+    "reassuring": {
+      "path": "res://assets/portraits/dialogue-ivo-expressions-v1.png",
+      "region": [
+        1448,
+        0,
+        724,
+        724
+      ]
+    }
+  },
+  "mara": {
+    "resolute": {
+      "path": "res://assets/portraits/dialogue-mara-expressions-v1.png",
+      "region": [
+        0,
+        0,
+        724,
+        724
+      ]
+    },
+    "concerned": {
+      "path": "res://assets/portraits/dialogue-mara-expressions-v1.png",
+      "region": [
+        724,
+        0,
+        724,
+        724
+      ]
+    },
+    "amused": {
+      "path": "res://assets/portraits/dialogue-mara-expressions-v1.png",
+      "region": [
+        1448,
+        0,
+        724,
+        724
+      ]
+    }
+  },
+  "tarin": {
+    "resolute": {
+      "path": "res://assets/portraits/dialogue-tarin-expressions-v1.png",
+      "region": [
+        0,
+        0,
+        724,
+        724
+      ]
+    },
+    "concerned": {
+      "path": "res://assets/portraits/dialogue-tarin-expressions-v1.png",
+      "region": [
+        724,
+        0,
+        724,
+        724
+      ]
+    },
+    "amused": {
+      "path": "res://assets/portraits/dialogue-tarin-expressions-v1.png",
+      "region": [
+        1448,
+        0,
+        724,
+        724
+      ]
+    }
   }
 }
