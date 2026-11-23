@@ -1160,16 +1160,21 @@ func cinematic(a,b,events,initial_hp={}):
 	if skip_combat:
 		await return_to_tactical_map(veil,playback,close_map_view,tactical_view,tactical_controls)
 		return
+	var map_x_a=camera.unproject_position(map_position(game.pos(a))).x
+	var map_x_b=camera.unproject_position(map_position(game.pos(b))).x
+	var actor_on_left=map_x_a<=map_x_b+.5
+	var opening_direction=1.0 if actor_on_left else -1.0
 	for n in stage.get_children():stage.remove_child(n);n.queue_free()
 	stage.process_mode=Node.PROCESS_MODE_INHERIT;stage.visible=true
 	var old_lighting=battle_lighting(game.info().get("environment","village"))
-	var arena_context=scenery.combat_context(game,a,b)
+	var arena_context=scenery.combat_context(game,a,b,opening_direction)
 	scenery.battle_landscape(stage,Vector3(35,0,0),arena_context)
 	world.hide();pieces.hide()
 	var ranged=events[0].has("healing") or game.distance(a,b)>1 or a.weapon in ["bow","magic"] or b.weapon in ["bow","magic"]
 	var spacing=2.0 if ranged else 1.6
-	var actor=make_fighter(a,Vector3(35-spacing,0,0));var defender=make_fighter(b,Vector3(35+spacing,0,0))
-	actor.rotation.y=-PI/2;defender.rotation.y=PI/2
+	var actor=make_fighter(a,Vector3(35-opening_direction*spacing,0,0))
+	var defender=make_fighter(b,Vector3(35+opening_direction*spacing,0,0))
+	actor.rotation.y=-opening_direction*PI/2;defender.rotation.y=opening_direction*PI/2
 	var contact_terrain="=" if arena_context.environment=="harbor" else arena_context.terrain
 	for pair in [[actor,a],[defender,b]]:
 		var combatant=pair[0];var job=pair[1].job
@@ -1188,7 +1193,8 @@ func cinematic(a,b,events,initial_hp={}):
 	await veil.reveal().finished
 	veil.hide()
 	var displayed_hp={};var entries=[]
-	for unit in [a,b]:
+	var arena_order=[a,b] if actor_on_left else [b,a]
+	for unit in arena_order:
 		var hp=int(initial_hp.get(unit.id,unit.hp))
 		if initial_hp.is_empty():
 			for strike_event in events:
@@ -1243,7 +1249,7 @@ func cinematic(a,b,events,initial_hp={}):
 		var contact_socket="guard" if blocked else "impact"
 		if blocked:whom.pose("guard",.18)
 		var base=who.position
-		var direction=1.0 if who==actor else -1.0
+		var direction=signf(whom.position.x-base.x)
 		var is_ranged=unit.weapon in ["bow","magic"] or (unit.weapon=="lance" and game.distance(a,b)>1)
 		if not is_ranged:
 			var distance_to_close=absf(whom.position.x-who.position.x)-who.approach_spacing(unit.get("item",""))
@@ -1272,7 +1278,7 @@ func cinematic(a,b,events,initial_hp={}):
 			if is_instance_valid(gathering):gathering.queue_free()
 			break
 		if event.crit:
-			await critical_cutin(unit)
+			await critical_cutin(unit,direction<0)
 			if skip_combat:
 				if is_instance_valid(gathering):gathering.queue_free()
 				break
@@ -2616,15 +2622,15 @@ func activate_map_cursor():
 func draw_map_cursor():
 	preload("res://scripts/tactical_cursor.gd").new().build(markers,map_position(cursor_tile))
 
-func critical_cutin(unit: Dictionary):
+func critical_cutin(unit: Dictionary,from_right=null):
 	if skip_combat:return
 	var cutin=CriticalCutin.new()
 	var quote=fighters.profiles.get(unit.id,{}).get("critical_quote","Stand aside!")
 	var commander=fighters.Commanders.profile(unit)
 	if not commander.is_empty():quote=commander.critical_quote
-	cutin.configure(ui,unit,portraits.get_critical_portrait(unit),quote)
+	cutin.configure(ui,unit,portraits.get_critical_portrait(unit),quote,from_right)
 	play_sfx("cutin")
-	await cutin.play(func():return skip_combat,unit.team=="enemy")
+	await cutin.play(func():return skip_combat,cutin.right_side)
 	cutin.queue_free()
 
 func persist_campaign(stage_name: String,notify_failure=true,reason="save") -> bool:

@@ -1,6 +1,7 @@
 extends SceneTree
 const Rider=preload("res://scripts/imported_rider.gd")
 const Imported=preload("res://scripts/imported_fighter.gd")
+const Director=preload("res://scripts/combat_camera.gd")
 const Shutdown=preload("helpers/game_shutdown.gd")
 const Vertices=preload("helpers/authored_vertices.gd")
 # Run this external script against an exported PCK from a different working
@@ -698,9 +699,11 @@ func run():
  app.preferences.values.combat="all";app.debug_session.revised_knight=true
  var packed_rise_seen=[false,false];var packed_recovery_state=app.game.save_data("battle").duplicate(true)
  var watch_rise=func():
-  var recipients=app.stage.get_children().filter(func(node):return node.has_method("socket_position") and node.position.x>35)
-  if not app.stage.visible or recipients.is_empty():return
-  var recipient_actor=recipients[0];assert(recipient_actor is Imported)
+  if not app.stage.visible:return
+  var directors=app.stage.get_children().filter(func(node):return node is Director)
+  if directors.is_empty():return
+  var recipient_actor=directors[0].subjects[1]
+  assert(recipient_actor is Imported and recipient_actor.kind==fallen_patient.weapon)
   if recipient_actor.pose_name=="down":packed_rise_seen[0]=true
   elif recipient_actor.pose_name=="revive":
    var light=app.stage.get_node_or_null("CombatHeal")

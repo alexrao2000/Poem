@@ -15,6 +15,11 @@ func watch(node):
    var prepared=app.stage.get_children().filter(func(actor):return actor is Actor and actor.pose_name in ["critical_windup","critical_throw_windup"])
    assert(prepared.size()==1,"Portrait appears after the active fighter adopts critical preparation")
    assert(prepared[0].face_blink.focused and prepared[0].face_blink.serious,"Actual critical cut-in keeps the 3D fighter in its focused expression")
+   var actors=app.stage.get_children().filter(func(actor):return actor is Actor)
+   var other=actors[1] if actors[0]==prepared[0] else actors[0]
+   var from_right=prepared[0].position.x>other.position.x
+   await process_frame
+   assert(node.right_side==from_right and node.face.flip_h==from_right and signf(node.slide_offset)==(1 if from_right else -1),"Critical art and entry direction follow the attacking fighter")
 func watch_contact(node):
  if not node is HitStop:return
  await process_frame
@@ -70,7 +75,7 @@ func run():
   cutin.queue_free();await process_frame
  watched_app=app
  app.game.start_battle();app.make_map();app.show_battle();app.ui.child_entered_tree.connect(watch);app.stage.child_entered_tree.connect(watch_contact)
- var a=app.game.units[0];var b=app.game.living("enemy")[0];a.x=8;a.y=4;b.x=9;b.y=4
+ var a=app.game.units[0];var b=app.game.living("enemy")[0];a.x=9;a.y=4;b.x=8;b.y=4
  var events=app.game.combat(a,b);events[0].crit=true;events[0].hit=true;events[0].damage=maxi(1,events[0].damage)
  var rng=app.game.rng.state;var hp=b.hp
  await app.cinematic(a,b,events);await process_frame

@@ -1,6 +1,6 @@
 extends Control
-# A fast eye-level portrait slash leaves the arena and HP visible. Streaks and
-# crops use fixed authored values; this accent never owns combat outcomes.
+# The portrait enters from the attacking fighter’s arena side. Accent colors
+# distinguish the teams independently of where the fighters stand.
 var landing=Vector2.ZERO
 var slide: Tween
 var accent=Color("d8bd7d")
@@ -9,6 +9,7 @@ var face: TextureRect
 var heading: Label
 var line: Label
 var enemy=false
+var right_side=false
 var slide_offset=0.0:
  set(value):slide_offset=value;place()
 
@@ -25,16 +26,17 @@ class StreakLayer extends Control:
    var color=accent;color.a=.08+(i%3)*.035
    draw_colored_polygon(PackedVector2Array([Vector2(x,y),Vector2(x+length,y-2),Vector2(x+length+28,y+1),Vector2(x+18,y+2)]),color)
 
-func configure(parent: Control,unit: Dictionary,portrait: Texture2D,quote: String):
+func configure(parent: Control,unit: Dictionary,portrait: Texture2D,quote: String,from_right=null):
  name="CriticalCutin";mouse_filter=Control.MOUSE_FILTER_IGNORE;z_index=20
  parent.add_child(self)
  clip_contents=true
  enemy=unit.team=="enemy"
+ right_side=enemy if from_right==null else bool(from_right)
  accent=Color("dc9684") if enemy else Color("d8bd7d")
- streaks=StreakLayer.new();streaks.name="Streaks";streaks.size=size;streaks.accent=accent;streaks.direction=-1.0 if enemy else 1.0
+ streaks=StreakLayer.new();streaks.name="Streaks";streaks.size=size;streaks.accent=accent;streaks.direction=-1.0 if right_side else 1.0
  streaks.mouse_filter=Control.MOUSE_FILTER_IGNORE;add_child(streaks)
  if portrait!=null:
-  face=TextureRect.new();face.name="Portrait";face.texture=portrait;face.flip_h=enemy
+  face=TextureRect.new();face.name="Portrait";face.texture=portrait;face.flip_h=right_side
   face.expand_mode=TextureRect.EXPAND_IGNORE_SIZE;face.stretch_mode=TextureRect.STRETCH_KEEP_ASPECT_COVERED
   face.material=ShaderMaterial.new();face.material.shader=preload("res://assets/shaders/critical-portrait.gdshader")
   face.mouse_filter=Control.MOUSE_FILTER_IGNORE;add_child(face)
@@ -53,9 +55,9 @@ func arrange():
  var text_start=42.0;var text_width=size.x-84
  if face!=null:
   var width=minf(650,size.x*.52)
-  face.position=Vector2(size.x-width-16 if enemy else 16.0,8);face.size=Vector2(width,140)
+  face.position=Vector2(size.x-width-16 if right_side else 16.0,8);face.size=Vector2(width,140)
   face.material.set_shader_parameter("panel_size",face.size)
-  text_start=32.0 if enemy else width+36;text_width=size.x-width-68
+  text_start=32.0 if right_side else width+36;text_width=size.x-width-68
  heading.position=Vector2(text_start,22);heading.size=Vector2(text_width,28)
  line.position=Vector2(text_start,55);line.size=Vector2(text_width,80)
  place();queue_redraw()

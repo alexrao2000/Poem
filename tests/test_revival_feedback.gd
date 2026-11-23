@@ -2,6 +2,7 @@ extends SceneTree
 const Rules=preload("res://scripts/rules.gd")
 const Door=preload("res://scripts/death_door.gd")
 const Heal=preload("res://scripts/combat_heal.gd")
+const Director=preload("res://scripts/combat_camera.gd")
 const Shutdown=preload("helpers/game_shutdown.gd")
 func _initialize():call_deferred("run")
 func canonical(data):return JSON.parse_string(JSON.stringify(data))
@@ -24,6 +25,7 @@ func run():
   ["skip_windup","revised","all",Vector2i(1440,900)],
   ["skip_arrival","revised","all",Vector2i(1280,720)]
  ]
+ var rise_sides={}
  for sample in cases:
   viewport.size=sample[3];await process_frame
   app.preferences.values.combat=sample[2];app.preferences.values.character_models=sample[1]
@@ -32,6 +34,7 @@ func run():
   app.game.start_battle()
   var carrier=unit(app.game,"oren");var patient=unit(app.game,"bram" if sample[0]=="mounted" else "sera");var healer=unit(app.game,"ivo")
   carrier.x=3;carrier.y=3;patient.x=2;patient.y=3;healer.x=2;healer.y=4
+  if sample[0]=="field" and sample[1]=="revised":healer.y=2
   if sample[0]=="mounted":unit(app.game,"lyra").x=1;unit(app.game,"lyra").y=4
   patient.hp=patient.max_hp-6 if sample[0]=="normal" else 0
   if sample[0]!="normal":Door.fall(app.game,patient)
@@ -59,13 +62,16 @@ func run():
    var caption=app.ui.get_node_or_null("CombatCaption");var effect=app.stage.get_node_or_null("CombatHeal")
    if effect!=null and effect.has_arrived:arrived=true
    var hud=app.ui.get_node_or_null("CombatHUD")
-   var recipients=app.stage.get_children().filter(func(node):return node.has_method("socket_position") and node.position.x>35)
-   if sample[0]!="normal" and sample[2]!="map" and not recipients.is_empty() and app.stage.visible:
-    var recovering=recipients[0]
+   var directors=app.stage.get_children().filter(func(node):return node is Director)
+   if sample[0]!="normal" and sample[2]!="map" and not directors.is_empty() and app.stage.visible:
+    var subjects=directors[0].subjects
+    var recovering=subjects[1]
+    assert(recovering.kind==patient.weapon,"The arena recipient matches the resolved patient")
     if not arrived:
      assert(recovering.pose_name=="down","The zero-health recipient stays wounded before staff light arrives");saw_wounded=true
     elif recovering.pose_name=="revive":
      saw_rise=true
+     rise_sides[recovering.position.x>subjects[0].position.x]=true
      if effect!=null:
       assert(effect.recipient.get_ref()==recovering,"Recovery light follows the rising recipient");saw_follow=true
    if hud!=null and sample[0]!="normal" and is_zero_approx(hud.records[patient.id].meter.value):saw_zero=true
@@ -103,6 +109,7 @@ func run():
   if sample[2]!="map":assert(app.map_navigation.capture_view()==before_camera)
   assert(app.ui.get_node_or_null("CombatCaption")==null and app.ui.get_node_or_null("MapRecoveryCue")==null and app.stage.get_node_or_null("CombatHeal")==null)
   assert(saved.load_game(app.save_path)=="battle" and canonical(saved.save_data("battle"))==resolved)
+ assert(rise_sides.size()==2,"Actual revivals place the patient on both sides of the healer")
  await Shutdown.dispose(app);viewport.queue_free();await process_frame
- print("PASS: twelve real field/carried/mounted/surrounded/ordinary/skip healing flows, current/revised wounded-to-rising recipients and followed light, captions at contact, three-size cue bounds, committed health/spent actions, unchanged RNG/checkpoints and cleanup")
+ print("PASS: twelve real field/carried/mounted/surrounded/ordinary/skip healing flows, current/revised wounded-to-rising recipients on both sides and followed light, captions at contact, three-size cue bounds, committed health/spent actions, unchanged RNG/checkpoints and cleanup")
  quit()

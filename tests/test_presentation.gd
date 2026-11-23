@@ -38,6 +38,12 @@ func run():
 		assert(arena.get_meta("terrain")==context.terrain and arena.get_meta("backdrop_count")==context.landmarks.size(),"Combat uses target terrain and nearby map landmarks")
 		assert(context.landmarks.size()<=2 and app.game.rng.state==rng_before,"Backdrop selection is bounded and independent of gameplay RNG")
 		for landmark in context.landmarks:assert(absf(landmark.x)<=11 and landmark.z<=-7,"Landmarks remain behind the action")
+		var flipped=app.scenery.combat_context(app.game,app.game.living("player")[0],app.game.living("enemy")[0],-1.0)
+		assert(flipped.terrain==context.terrain and flipped.landmarks.size()==context.landmarks.size())
+		for index in context.landmarks.size():
+			var normal=context.landmarks[index]
+			var mirror=flipped.landmarks[index]
+			assert(mirror.kind==normal.kind and mirror.z==normal.z and is_equal_approx(mirror.x,-normal.x),"Mirrored arena landmarks preserve their depth and map-relative side")
 		assert(arena.get_meta("batch_stats").sources>5,"Arena includes batched scenery")
 		arena.queue_free()
 		var lighting=app.lighting_state();var previous=app.battle_lighting(app.game.info().environment)

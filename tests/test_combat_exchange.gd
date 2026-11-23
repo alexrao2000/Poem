@@ -148,6 +148,8 @@ func run():
  var a=app.game.units[0];var b=app.game.living("enemy")[0]
  a.x=8;a.y=4;b.x=9;b.y=4;b.weapon="sword"
  for case in ["swords","mixed","axe","skip","skip_hold","skip_recovery"]:
+  var opening_direction=-1 if case=="mixed" else 1
+  a.x=8;b.x=8+opening_direction
   sound_cues.clear();travel_cues.clear()
   skip_on_hold=case=="skip_hold";skip_on_recovery=case=="skip_recovery";recoveries.clear()
   a.weapon="lance" if case=="mixed" else "axe" if case=="axe" else "sword"
@@ -160,14 +162,14 @@ func run():
   assert(recoveries.size()==(0 if case=="skip_hold" else 1 if case in ["skip","skip_recovery"] else 3),"Every completed strike recovers once; skip interrupts the sequence")
   var expected_matchup=1 if case=="mixed" else -1 if case=="axe" else 0
   for shot in shots:
-   assert(shot.matchups==[expected_matchup,-expected_matchup],"Actual nameplates carry the resolved matchup through initiation, counter and follow-up")
+   assert(shot.matchups==[expected_matchup*opening_direction,-expected_matchup*opening_direction],"Actual nameplates carry the resolved matchup through %s, got %s"%[case,shot.matchups])
    assert(is_equal_approx(absf(shot.a.x-shot.b.x),Actor.melee_spacing(shot.kind)),"Each attack starts at its weapon's contact distance")
-   assert(shot.a.x<shot.b.x,"Neither fighter crosses the combat axis")
+   assert(signf(shot.b.x-shot.a.x)==opening_direction,"Neither fighter crosses the combat axis")
   if case=="swords":
    assert(travel_cues.size()==2 and travel_cues.all(func(family):return family.begins_with("foot_")),"A sword approach has two footfalls; stationary counters add none")
    assert(shots[0].a==shots[1].a and shots[0].b==shots[1].b and shots[0].a==shots[2].a,"Counter and follow-up hold engagement instead of repeating the approach")
   if case=="mixed":
-   assert(shots[2].a.x<shots[1].a.x,"Long weapon steps back to regain reach after a short-weapon counter")
+   assert((shots[1].a.x-shots[2].a.x)*opening_direction>0,"Long weapon steps back to regain reach after a short-weapon counter, including from the right")
   if case in ["swords","mixed","axe"]:
    assert(sound_cues==["release_"+a.weapon,"hit","release_sword","hit","release_"+a.weapon,"hit"],"Every strike and counter uses its weapon cue before contact")
   assert(app.game.save_data("battle")==saved and app.game.rng.state==rng,"Animation never changes campaign outcomes")

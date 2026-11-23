@@ -269,10 +269,11 @@ func landmark(parent,p,kind,roof_variant=-1):
  elif kind=="ruin":
   for i in range(3):cylinder(parent,p+Vector3(i*.6,.4+i*.2,0),.8+i*.4,.22,stone)
 
-func combat_context(game,a,b) -> Dictionary:
+func combat_context(game,a,b,screen_direction=1.0) -> Dictionary:
  var midpoint=Vector2(a.x+b.x,a.y+b.y)*.5
  var axis=Vector2(b.x-a.x,b.y-a.y).normalized()
  if axis.is_zero_approx():axis=Vector2.RIGHT
+ axis*=screen_direction
  var depth=Vector2(-axis.y,axis.x)
  var candidates=[]
  for item in game.info().get("landmarks",[]):

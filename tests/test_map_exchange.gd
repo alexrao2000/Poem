@@ -19,6 +19,10 @@ var expected_facings={}
 var saw_facing=false
 var saw_entry_motion=false
 var expected_focus=Vector3.ZERO
+var staged_pair=[]
+var projected_order=[]
+var mirrored_reveals=0
+var matching_nameplates=0
 
 func _initialize():call_deferred("run")
 
@@ -55,6 +59,7 @@ func run():
    var damage=3 if case=="survive" else target.hp;target.hp-=damage
    lost_id=target.id if target.hp==0 else ""
    events=[{"actor":attacker.id,"target":target.id,"damage":damage,"remaining":target.hp,"hit":true,"crit":false}]
+  staged_pair=[a.id,b.id]
   expected_focus=(app.unit_nodes[a.id].position+app.unit_nodes[b.id].position)*.5
   assert(is_equal_approx(expected_focus.y,0.0 if case=="skip" else .05 if case in ["counter","heal"] else .04),"Actual map pair spans the expected flat/bridge/sanctuary heights")
   app.camera.position+=Vector3(2,0,-1);app.camera.size=12;app.camera.h_offset=.3;app.camera.v_offset=-.2
@@ -66,6 +71,7 @@ func run():
   assert(app.map_navigation.capture_view()==tactical_view,"Actual combat restores the complete panned/offset tactical view")
   assert(app.game.save_data("battle")==saved and app.game.rng.state==rng,"Field synchronization only presents resolved outcomes")
   app.busy=false
+ assert(matching_nameplates==5 and mirrored_reveals>0,"Actual left/right nameplates match every arena entry, including a reversed pair")
  for case in ["enemy_kill","enemy_counter"]:
   var pair=setup();var a=pair[0];var b=pair[1];mode="map";app.preferences.values.combat="map"
   if case=="enemy_kill":
@@ -79,7 +85,7 @@ func run():
   assert(not app.unit_nodes.has(lost_id),"Defeated map figure disappears after feedback")
   if case=="enemy_counter":assert(saw_reward,"Counterattack XP begins after field synchronization")
  mode="";await Shutdown.dispose(app);await process_frame
- print("PASS: five raised/flat map handoffs at three sizes with exact view restoration and moving arena reveals/returns (defeat/counter/survival/heal/skip), actual enemy kill/counter map reactions, 25 coordinated sprite exits and teardown, updated health before XP, and unchanged resolved state")
+ print("PASS: five raised/flat map handoffs at three sizes with sprite-to-fighter and nameplate side continuity, exact view restoration and moving arena reveals/returns (defeat/counter/survival/heal/skip), actual enemy kill/counter map reactions, 25 coordinated sprite exits and teardown, updated health before XP, and unchanged resolved state")
  quit()
 
 func watch_return():
@@ -92,6 +98,10 @@ func watch_return():
   assert(veil.focal_source.is_valid() and veil.focal_source.call().distance_to(projected)<.01,"Transition streaks share the projected map-pair focus")
   for id in expected_facings:
    assert(app.unit_nodes[id].player.facing==expected_facings[id] and app.map_facings[id]==expected_facings[id],"Both map figures face the exchange before the arena handoff")
+  var first=app.camera.unproject_position(app.unit_nodes[staged_pair[0]].position)
+  var second=app.camera.unproject_position(app.unit_nodes[staged_pair[1]].position)
+  projected_order=staged_pair.duplicate()
+  if first.x>second.x+.5:projected_order.reverse()
   saw_facing=true;return
  saw_return=true;verify_field()
  for id in expected_facings:
@@ -108,6 +118,11 @@ func verify_field():
 func watch_arena(node):
  if mode=="arena" and node is Director:
   await process_frame
+  var opening=node.subjects
+  assert(opening.size()==2)
+  var first_left=node.camera.unproject_position(opening[0].global_position).x<node.camera.unproject_position(opening[1].global_position).x
+  assert(first_left==(projected_order[0]==staged_pair[0]),"Both fighters appear on the same screen sides as their map sprites")
+  if not first_left:mirrored_reveals+=1
   var veil=app.ui.get_node("CombatTransition");var previous=node.camera.position
   var advances=0
   while veil.visible and veil.progress>0:
@@ -120,6 +135,10 @@ func watch_arena(node):
  await process_frame;app.skip_combat=true
 
 func watch_ui(node):
+ if mode=="arena" and node.name=="CombatHUD":
+  await process_frame
+  assert(node.order==projected_order,"HUD shows each combatant on their projected side")
+  matching_nameplates+=1
  if mode!="map":return
  if node is Reward:
   await process_frame
