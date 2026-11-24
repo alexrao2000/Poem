@@ -13,6 +13,7 @@ var entrance_motion: Tween
 
 class HealthMeter extends Control:
  signal value_changed(value: float)
+ var mirrored=false
  var maximum=1.0
  var value=1.0:
   set(next):
@@ -30,18 +31,24 @@ class HealthMeter extends Control:
    if maximum-end<step*.5:end=maximum
    var width=inside.size.x*(end-start)/maximum
    var rect=Rect2(Vector2(inside.position.x+inside.size.x*start/maximum,inside.position.y),Vector2(width-(minf(1,width*.2) if end<maximum else 0),inside.size.y))
+   if mirrored:rect.position.x=size.x-rect.end.x
    result.append({"rect":rect,"start":start,"end":end,"fill":clampf((value-start)/(end-start),0,1),"ghost":clampf((trailing-start)/(end-start),0,1)})
    start=end
   return result
+ func fill_rect(rect: Rect2,fraction: float) -> Rect2:
+  var edge=rect.end.x
+  rect.size.x*=fraction
+  if mirrored:rect.position.x=edge-rect.size.x
+  return rect
  func _draw():
   draw_rect(Rect2(Vector2.ZERO,size),Color("ad986b"),false,1)
   draw_rect(Rect2(Vector2(1,2),(size-Vector2(2,4)).max(Vector2.ZERO)),Color("18222a"))
   for segment in segments():
    var rect=segment.rect
    draw_rect(rect,Color("283c49"))
-   var ghost=rect;ghost.size.x*=segment.ghost
+   var ghost=fill_rect(rect,segment.ghost)
    if ghost.size.x>0:draw_rect(ghost,Color("e3bd73"))
-   var fill=rect;fill.size.x*=segment.fill
+   var fill=fill_rect(rect,segment.fill)
    if fill.size.x<=0:continue
    draw_rect(fill,accent)
    draw_line(fill.position+Vector2(0,1),fill.position+Vector2(fill.size.x,1),accent.lightened(.35),1)
@@ -123,6 +130,7 @@ func configure(parent: Control,entries: Array):
   matchup.tooltip_text="Weapon advantage" if matchup.advantage>0 else "Weapon disadvantage";plate.add_child(matchup)
   var hp=make_label(plate,"",24,Color("fff8e7"));hp.horizontal_alignment=HORIZONTAL_ALIGNMENT_RIGHT
   var meter=HealthMeter.new();meter.name="Health";meter.maximum=maxf(1,entry.get("health_max",forecast.get("max_hp",unit.max_hp)))
+  meter.mirrored=plate.mirrored
   meter.accent=Color("d98684") if plate.enemy else Color("8fc8b8")
   meter.mouse_filter=Control.MOUSE_FILTER_IGNORE;plate.add_child(meter)
   meter.value_changed.connect(func(amount):hp.text="%d / %d"%[ceili(amount),int(meter.maximum)])

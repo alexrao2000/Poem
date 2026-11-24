@@ -29,6 +29,7 @@ func run():
    await process_frame;await process_frame
    var left=hud.records[unit.id].plate;var right=hud.records.foe.plate
    assert(hud.records.foe.portrait.flip_h and not hud.records[unit.id].portrait.flip_h,"Enemy portrait faces inward toward its opponent")
+   assert(hud.records.foe.meter.mirrored and not hud.records[unit.id].meter.mirrored,"Each meter fills from its own outer edge")
    assert(left.get_rect().end.x<right.position.x,"Nameplates leave the arena center clear")
    for id in hud.records:
     var r=hud.records[id];var bounds=r.plate.get_rect();var compact=bounds.size.x<HUD.COMPACT_PLATE_WIDTH
@@ -69,6 +70,7 @@ func run():
  var hero=game.roster[0].duplicate(true);hero.team="player"
  var reversed=HUD.new();reversed.configure(host,[{"unit":foe,"hp":999,"portrait":portraits.get_unit_portrait(foe),"class_name":"Knight","weapon":"Steel spear"},{"unit":hero,"hp":hero.hp,"portrait":portraits.get_portrait(hero.id),"class_name":"Vanguard","weapon":"Iron sword"}])
  assert(not reversed.records.foe.portrait.flip_h and reversed.records[hero.id].portrait.flip_h,"Enemy-initiated combat still turns both portraits inward")
+ assert(not reversed.records.foe.meter.mirrored and reversed.records[hero.id].meter.mirrored,"Meter direction follows screen position in an enemy-initiated exchange")
  var original=[reversed.records.foe.plate.position,reversed.records[hero.id].plate.position]
  var entrance=reversed.reveal();entrance.pause()
  assert(reversed.records.foe.plate.position==original[0]-Vector2(36,0) and reversed.records[hero.id].plate.position==original[1]+Vector2(36,0),"Opposing plates enter from their own outer edges")
@@ -111,25 +113,42 @@ func run():
  hud.set_health("foe",0,true);assert(meter.value==0 and meter.trailing==0,"Instant skip state stays consistent")
  hud.set_health("foe",2000,true);assert(meter.value==999,"Presentation caps HP to maximum")
  hud.queue_free();host.queue_free();await process_frame
- print("PASS: 24 combat portraits at six widths, every weapon in compact and wide text bounds, damage/hit/crit snapshot rows, per-point/grouped pip geometry, exact partial fill, active side, mirrored entrance/dismissal, in-flight resize, damage trails and interrupted HP animation")
+ print("PASS: 24 combat portraits at six widths, every weapon in compact and wide text bounds, damage/hit/crit snapshot rows, mirrored per-point/grouped pips and exact partial fills, active side, mirrored entrance/dismissal, in-flight resize, damage trails and interrupted HP animation")
  quit()
 
 func verify_segments():
  var meter=HUD.HealthMeter.new();root.add_child(meter)
+ var mirror=HUD.HealthMeter.new();mirror.mirrored=true;root.add_child(mirror)
  for width in [90,160,261,392]:
   meter.size=Vector2(width,12)
+  mirror.size=meter.size
   for maximum in [1,2,23,40,60,99,481,999]:
    meter.maximum=maximum
+   mirror.maximum=maximum
    for fraction in [0.0,.17,.5,1.0]:
     meter.value=maximum*fraction;meter.trailing=minf(maximum,meter.value+5)
+    mirror.value=meter.value;mirror.trailing=meter.trailing
     var parts=meter.segments();var health=0.0;var ghost=0.0;var previous=0.0;var right=0.0
+    var mirrored_parts=mirror.segments()
+    assert(mirrored_parts.size()==parts.size(),"Both directions group identical maximum HP into the same number of pips")
     assert(parts.size()<=maxi(1,floori((width-2)/4)),"Large HP totals keep a bounded number of readable segments")
     if maximum<=floori((width-2)/4):assert(parts.size()==maximum,"Normal health totals show one pip per HP")
-    for part in parts:
+    for index in range(parts.size()):
+     var part=parts[index]
+     var reflected=mirrored_parts[index]
      assert(part.start==previous and part.end>part.start,"Segment ranges cover HP contiguously without skipped points")
      assert(part.rect.position.x>=right and part.rect.end.x<=width-1+.001 and part.rect.size.x>0,"Actual pip geometry stays separated inside the meter")
      assert(part.rect.position.y==2 and part.rect.end.y==10,"Beveled pips retain the existing health meter height")
+     assert(reflected.start==part.start and reflected.end==part.end and reflected.rect.size.is_equal_approx(part.rect.size))
+     assert(absf(reflected.rect.position.x+part.rect.end.x-width)<.001,"Pip gaps reflect with the meter")
+     for layer in ["fill","ghost"]:
+      assert(reflected[layer]==part[layer])
+      var left_fill=meter.fill_rect(part.rect,part[layer])
+      var right_fill=mirror.fill_rect(reflected.rect,reflected[layer])
+      assert(left_fill.size.is_equal_approx(right_fill.size))
+      assert(absf(left_fill.position.x+right_fill.end.x-width)<.001,"Both HP and its delayed trail fill from the outside")
      health+=part.fill*(part.end-part.start);ghost+=part.ghost*(part.end-part.start)
      previous=part.end;right=part.rect.end.x
     assert(previous==maximum and absf(health-meter.value)<.001 and absf(ghost-meter.trailing)<.001,"Pip fill and delayed damage carry the exact animated HP, including partial final groups")
  meter.queue_free()
+ mirror.queue_free()
