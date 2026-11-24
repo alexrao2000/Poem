@@ -134,6 +134,9 @@ func run():
   for actor in app.unit_nodes.values():assert(actor.sprite.texture!=null and actor.player.asset.clips.has("move"),"Packaged actors have atlas frames and animations")
  app.game.story_seen.append("opening_"+str(app.game.chapter));app.show_camp();await process_frame
  assert(app.ui.find_child("CompanyCards",true,false).get_child_count()==24 and app.ui.has_node("CouncilBackdrop"),"Release includes the complete portrait preparation roster and covered-scene suspension")
+ for path in ["res://assets/art/class-sprites.png","res://assets/sprites/company-a.png",
+              "res://assets/sprites/company-b.png","res://assets/sprites/company-c.png"]:
+  assert(not ResourceLoader.exists(path),"Source-only sprite drafts stay outside the release")
  var history_state=app.game.save_data("camp").duplicate(true);var history_speed=app.preferences.values.text_speed
  app.preferences.values.text_speed=55
  app.show_dialogue([{"speaker":"lyra","text":"Only the revealed prefix belongs in history."},{"speaker":"oren","text":"This future line remains hidden."}],app.show_camp)

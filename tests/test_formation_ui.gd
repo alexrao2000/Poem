@@ -22,8 +22,12 @@ func run():
    app.ui.find_child("OpenFormation",true,false).pressed.emit();await process_frame;await process_frame
    var board=app.ui.find_child("FormationBoard",true,false);assert(app.screen=="formation" and board.draft==app.game.deployment_slots())
    assert(Rect2(Vector2.ZERO,Vector2(dimensions)).encloses(board.get_global_rect()) and Rect2(Vector2.ZERO,board.size).encloses(board.map_rect.grow(4)))
-   for button in board.slots:
+   for index in range(board.slots.size()):
+    var button=board.slots[index]
     assert(board.map_rect.encloses(button.get_rect()) and button.size.x>=24 and button.size.y>=24,"Every legal starting tile is selectable")
+    var unit=board.units.get(board.draft[index],{})
+    var art=button.get_node("AllySprite").texture
+    assert(art==(null if unit.is_empty() else app.map_catalog.preview_sprite(unit)),"Starting slots reuse their tactical sprites")
    for name in ["ApplyFormation","CancelFormation","DefaultFormation","FormationHint"]:
     var node=app.ui.find_child(name,true,false);assert(Rect2(Vector2.ZERO,Vector2(dimensions)).grow(1).encloses(node.get_global_rect()))
    var all_reach=app.ui.find_child("FormationAllReach",true,false);assert(not all_reach.button_pressed and board.all_danger.is_empty())

@@ -20,7 +20,6 @@ func run():
   var image=cutout.atlas.get_image()
   if image.is_compressed():image.decompress()
   assert(image.get_pixel(int(cutout.region.position.x+2),int(cutout.region.position.y+2)).a<.13,"Transparent portrait corners reveal the map")
-  assert(portraits.get_map_sprite(u.id)!=null,"Individual map sprite available")
  assert(story.chapters.size()==12)
  for chapter in range(12):
   for section in ["opening","closing"]:

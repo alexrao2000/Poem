@@ -55,9 +55,15 @@ func add_supplement(path: String,prefix: String,issues: Array[String]) -> bool:
 func asset_id_for(unit: Dictionary) -> String:
  var individual="recruit."+unit.id
  var enemy="enemy."+unit.job.to_lower()
- if unit.team=="player" and assets.has(individual):return individual
- if unit.team=="enemy" and assets.has(enemy):return enemy
+ var team=unit.get("team","player")
+ if team=="player" and assets.has(individual):return individual
+ if team=="enemy" and assets.has(enemy):return enemy
  return "unit."+unit.job.to_lower()
+
+func preview_sprite(unit: Dictionary) -> Texture2D:
+ var id=asset_id_for(unit)
+ if not assets.has(id):id="unit.vanguard"
+ return frame_texture(id,int(assets[id].clips.idle.south.frames[0]))
 
 func frame_scale(asset: Dictionary, frame: Dictionary) -> Vector2:
  var density: float=asset.get("source_pixel_scale",0)

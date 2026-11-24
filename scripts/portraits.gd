@@ -6,11 +6,9 @@ const ORDER=["lyra","oren","sera","ivo","mara","tarin","nell","bram","esme","roo
 const ENEMY_CLASSES=["Vanguard","Knight","Ranger","Arcanist","Warden","Rider","Corsair","Duelist"]
 var textures: Dictionary={}
 var expression_textures: Dictionary={}
-var sprite_textures: Dictionary={}
 var dialogue_regions=JSON.parse_string(FileAccess.get_file_as_string("res://data/dialogue_portraits.json"))
 var dialogue_expressions=JSON.parse_string(FileAccess.get_file_as_string("res://data/dialogue_expressions.json"))
 var critical_focus=JSON.parse_string(FileAccess.get_file_as_string("res://data/critical_portraits.json"))
-var regions=JSON.parse_string(FileAccess.get_file_as_string("res://data/sprite_regions.json"))
 
 func get_critical_portrait(unit: Dictionary) -> Texture2D:
  var identity="enemy."+unit.job if unit.get("team","player")=="enemy" else unit.id
@@ -61,14 +59,6 @@ func get_unit_portrait(unit: Dictionary) -> Texture2D:
  var texture=AtlasTexture.new();texture.atlas=atlas;texture.filter_clip=true
  texture.region=Rect2(Vector2(index%4,index/4)*cell+Vector2(8,8),cell-Vector2(16,16))
  textures[key]=texture;return texture
-
-func get_map_sprite(id: String) -> Texture2D:
- if sprite_textures.has(id):return sprite_textures[id]
- if not regions.has(id):return null
- var entry=regions[id]
- var texture=AtlasTexture.new();texture.atlas=load("res://assets/sprites/"+entry.sheet+".png")
- texture.region=Rect2(entry.region[0],entry.region[1],entry.region[2],entry.region[3]);texture.filter_clip=true
- sprite_textures[id]=texture;return texture
 
 func get_portrait(id: String) -> Texture2D:
  if textures.has(id):return textures[id]

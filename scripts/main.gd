@@ -418,14 +418,6 @@ func refresh_pieces():
 		visual.selected=selected!=null and selected.id==u.id
 		unit_nodes[u.id]=visual;sprites.append(visual.sprite)
 
-func unit_portrait(u) -> Texture2D:
-	var individual=portraits.get_map_sprite(u.id)
-	if individual!=null:return individual
-	var texture=AtlasTexture.new();texture.atlas=load("res://assets/art/class-sprites.png")
-	var index=maxi(0,CLASSES.find(u.job))
-	texture.region=Rect2((index%4)*384+12,(index/4)*512+10,360,492)
-	return texture
-
 func show_title():
 	screen="title";game.start_battle();make_map();reset_ui()
 	title_backdrop()
@@ -576,7 +568,7 @@ func show_camp():
 	for u in game.roster:
 		var unlocked=game.trials.joined(game,u) and not u.get("fallen",false)
 		var card=preload("res://scripts/company_card.gd").new();cards.add_child(card)
-		card.configure(u,game.class_name_for(u),portraits.get_portrait(u.id) if unlocked or u.get("fallen",false) else unit_portrait(u),game.item_for(u),u.id in game.deployed,unlocked,unlocked and supports_ready(u),game.deployed.size()>=6,game.trials.deployment_condition(game,u))
+		card.configure(u,game.class_name_for(u),portraits.get_portrait(u.id) if unlocked or u.get("fallen",false) else map_catalog.preview_sprite(u),game.item_for(u),u.id in game.deployed,unlocked,unlocked and supports_ready(u),game.deployed.size()>=6,game.trials.deployment_condition(game,u))
 		if u.id=="lyra" and (game.trials.flags.reset_pressure or (game.trials.flags.section_restarts and game.permadeath)):
 			card.deploy_button.disabled=true;card.deploy_button.tooltip_text="The lord leads the company in this experiment."
 		interface_audio.watch(card.portrait_button);interface_audio.watch(card.deploy_button)
@@ -605,7 +597,7 @@ func show_formation():
 	label_in(frame,"STARTING POSITIONS",30,GOLD)
 	label_in(frame,"Select two numbered starting tiles to swap their allies. Empty tiles can be used too.",17)
 	var row=HBoxContainer.new();row.add_theme_constant_override("separation",20);row.size_flags_vertical=Control.SIZE_EXPAND_FILL;frame.add_child(row)
-	var board=preload("res://scripts/formation_board.gd").new();row.add_child(board);board.configure(game,portraits)
+	var board=preload("res://scripts/formation_board.gd").new();row.add_child(board);board.configure(game,map_catalog)
 	for slot in board.slots:interface_audio.watch(slot)
 	for foe in board.foes:interface_audio.watch(foe)
 	var details=VBoxContainer.new();details.custom_minimum_size.x=240;row.add_child(details)
@@ -770,7 +762,7 @@ func update_side():
 	if selected!=null:
 		var identity=HBoxContainer.new();identity.add_theme_constant_override("separation",8);side.add_child(identity)
 		var portrait=TextureRect.new();portrait.name="UnitPortrait";portrait.texture=portraits.get_unit_portrait(selected);portrait.expand_mode=TextureRect.EXPAND_IGNORE_SIZE;portrait.flip_h=selected.team=="enemy"
-		if portrait.texture==null:portrait.texture=unit_portrait(selected)
+		if portrait.texture==null:portrait.texture=map_catalog.preview_sprite(selected)
 		portrait.stretch_mode=TextureRect.STRETCH_KEEP_ASPECT_CENTERED;portrait.custom_minimum_size=Vector2(90,100);identity.add_child(portrait)
 		var details=VBoxContainer.new();details.size_flags_horizontal=Control.SIZE_EXPAND_FILL;identity.add_child(details)
 		var unit_name=label_in(details,selected.name,27,GOLD)
@@ -813,7 +805,7 @@ func update_side():
 			var counter=game.forecast(target,selected)
 			var faces=[]
 			for unit in [selected,target]:
-				var face=portraits.get_forecast_portrait(unit);faces.append(face if face!=null else unit_portrait(unit))
+				var face=portraits.get_forecast_portrait(unit);faces.append(face if face!=null else map_catalog.preview_sprite(unit))
 			forecast_panel=BattleForecast.new();forecast_panel.configure(ui,game,selected,target,faces)
 			var target_id=target.id
 			forecast_panel.track_target(func():

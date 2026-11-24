@@ -1,5 +1,7 @@
 # Poem development
 
+Formation slots and recruit previews before joining share the battlefield sprite atlas. Removing the old preview sheets from the exports saved 7,029,600 bytes per data pack.
+
 Hallow Abbey’s grass and grove extend beyond the courtyard on the tactical map. The same trees frame the open arcade in close-up, with three low ridges on the horizon.
 
 Mounted map figures use a fitted ground shadow that follows the hoof spread and flips with mirrored attacks.

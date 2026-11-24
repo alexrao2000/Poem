@@ -6,6 +6,8 @@ This checkpoint describes the current development branch and supersedes the earl
 
 ### Latest state
 
+Formation slots and locked recruit cards now use each unit’s tactical idle frame. Unlocked and memorial cards retain their portraits. Both local data packs are 7,029,600 bytes smaller, and all 231 retained textures, audio files, scenes and fonts match the earlier packed bytes. The earlier sprite sheets remain in source. Both packs completed the roster and formation checks. See `build/review/shared-prep-art-checks.json`.
+
 Hallow Abbey’s stone court now opens onto grass and eight shared garden trees. Three distant ridges are visible through the open arcade in the close-up. The original rosette and empty belfry remain the main landmarks. See the [Abbey garden comparison](build/review/hallow-abbey-garden-comparison.png), with simplified software lighting, and `build/review/abbey-garden-checks.json`.
 
 Mounted map shadows follow the visible hoof span in all 48 poses of Bram, Una, Elian and the Crown cavalry. West strikes mirror their shadow offset. The four figures share the existing shadow mesh and material, and their sprite sheets, pivot positions and animation clips match the previous build. See the [mounted comparison](build/review/hoof-shadow-study.png) and `build/review/hoof-shadow-checks.json`.

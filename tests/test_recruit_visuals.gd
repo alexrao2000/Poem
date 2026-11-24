@@ -17,6 +17,7 @@ func run():
   var actor=Unit.new();stage.add_child(actor);actor.configure(catalog,unit)
   var individual=catalog.assets.has("recruit."+unit.id)
   assert(individual and actor.visual_id=="recruit."+unit.id,"Every campaign recruit has its own animated identity")
+  assert(catalog.preview_sprite(unit)==actor.sprite.texture,"Preparation previews use the first live map frame")
   assert(actor.marker.mesh is PlaneMesh and actor.marker.material_override==Unit.shadow_material(),"Campaign units share a soft contact shadow instead of a solid team plate")
   assert(actor.health.visible and actor.health.texture.get_image().get_pixel(0,0).is_equal_approx(Color("6fb6d3")),"Player health remains visible at full HP with a blue team border")
   if shared_shadow==null:shared_shadow=actor.marker.mesh;full_health=actor.health.texture
@@ -65,6 +66,7 @@ func run():
   var visual_id="recruit."+unit.id;var saved=catalog.assets[visual_id];catalog.assets.erase(visual_id)
   actor=Unit.new();stage.add_child(actor);actor.configure(catalog,unit)
   assert(actor.visual_id=="unit."+unit.job.to_lower(),"Missing recruit artwork falls back to the correct class")
+  assert(catalog.preview_sprite(unit)==actor.sprite.texture)
   assert(actor.marker.position==Vector3.UP*.03 and actor.marker.scale==Vector3.ONE,"Legacy class sprites use the original radial shadow")
   actor.queue_free();catalog.assets[visual_id]=saved
   unit.team="enemy";actor=Unit.new();stage.add_child(actor);actor.configure(catalog,unit)

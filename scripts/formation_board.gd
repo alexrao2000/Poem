@@ -9,7 +9,7 @@ var chapter={}
 var draft=[]
 var defaults=[]
 var units={}
-var portraits
+var map_sprites: RefCounted
 var preview_rules
 var preview_order=[]
 var enemy_markers=[]
@@ -24,8 +24,8 @@ var selected=-1
 var map_rect=Rect2()
 var cell_size=0.0
 
-func configure(game,art):
- name="FormationBoard";chapter=game.info().duplicate(true);portraits=art
+func configure(game,catalog: RefCounted):
+ name="FormationBoard";chapter=game.info().duplicate(true);map_sprites=catalog
  draft=game.deployment_slots();defaults=game.deployment_slots(false)
  preview_rules=game.get_script().new()
  if preview_rules.restore_save(game.save_data("camp"))!="camp":
@@ -100,7 +100,7 @@ func refresh():
   var tile=chapter.deployment_positions[index];var threatened=danger.has(Vector2i(tile[0],tile[1])) or all_danger.has(Vector2i(tile[0],tile[1]))
   slots[index].get_node("ThreatBadge").visible=threatened
   slots[index].tooltip_text="Slot %d · %s"%[index+1,unit.get("name","Empty")]+("\nInside possible enemy attack reach" if threatened else "")
-  slots[index].get_node("AllySprite").texture=portraits.get_map_sprite(unit.id) if not unit.is_empty() else null
+  slots[index].get_node("AllySprite").texture=map_sprites.preview_sprite(unit) if not unit.is_empty() else null
  arrange()
 
 func arrange():
