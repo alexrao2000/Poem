@@ -6,6 +6,8 @@ This checkpoint describes the current development branch and supersedes the earl
 
 ### Latest state
 
+Arrows, spell projectiles and casting effects reuse their fixed meshes. A tactical projectile retains its own material and depth settings. Spear tips still fit their equipped widths. The construction probe used 13 fixed mesh resources where the earlier build created 579, with all 55 geometry and material cases matching. Median construction and cleanup for 306 effects fell from 100.78 ms to 93.45–93.69 ms across the two headless exports. Eight focused suites, four packed checks, 72 matched chapter outcomes and both ZIP checks passed. See `build/review/flight-mesh-profile.json`.
+
 The ground beyond the battlefield now grows with the board. Wider river strips follow that ground, and woodland behind the playfield stays clear of the authored tiles as maps get deeper. All 40 camera checks found ground under each corner. All 24 shipped batched and unbatched map assemblies match outside the larger perimeter planes. Eight focused suites, four packed checks, 72 matched chapter outcomes and both ZIP checks passed. See `build/review/battlefield-perimeter.json`.
 
 Ember leaves a compact bright trail, Gale opens a longer soft wake, and Thunder cuts a shorter, narrower line. Tactical and 3D projectiles use the same shapes at their respective scales. Forty sampled arrays match across both exports, and unknown spell IDs keep the earlier fallback. Eight focused suites, four packed checks, 72 matched chapter outcomes and both ZIP checks passed. See `build/review/elemental-wake-study.png` for the isolated software comparison and `build/review/elemental-wake-geometry.json` for the geometry evidence. Assembled rendering remains unreviewed.

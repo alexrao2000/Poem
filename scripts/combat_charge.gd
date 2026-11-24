@@ -4,6 +4,8 @@ extends Node3D
 const Spell=preload("res://scripts/combat_spell.gd")
 const Seal=preload("res://scripts/casting_seal.gd")
 const Impact=preload("res://scripts/combat_impact.gd")
+static var ring_mesh: TorusMesh
+static var ember_mesh: SphereMesh
 var caster: Node3D
 var spell=""
 var strength=0.0
@@ -20,14 +22,17 @@ func begin(actor: Node3D,folio: String,duration: float):
  name="CombatCharge";caster=actor;spell=folio
  var colors=Spell.palette(spell)
  ring=MeshInstance3D.new();ring.name="GatheringRing"
- var shape=TorusMesh.new();shape.inner_radius=.18;shape.outer_radius=.19;shape.rings=24;shape.ring_segments=4
- ring.mesh=shape;ring.rotation.x=PI/2;ring.material_override=material(colors.accent);add_child(ring)
+ if ring_mesh==null:
+  ring_mesh=TorusMesh.new();ring_mesh.inner_radius=.18;ring_mesh.outer_radius=.19;ring_mesh.rings=24;ring_mesh.ring_segments=4
+ ring.mesh=ring_mesh;ring.rotation.x=PI/2;ring.material_override=material(colors.accent);add_child(ring)
  for i in range(3):
   var mote=MeshInstance3D.new();mote.name="Element"+str(i)
   if spell=="gale":mote.mesh=Spell.crescent()
   elif spell=="thunder":mote.mesh=Spell.bolt()
   else:
-   var ember=SphereMesh.new();ember.radius=.045;ember.height=.09;ember.radial_segments=8;ember.rings=4;mote.mesh=ember
+   if ember_mesh==null:
+    ember_mesh=SphereMesh.new();ember_mesh.radius=.045;ember_mesh.height=.09;ember_mesh.radial_segments=8;ember_mesh.rings=4
+   mote.mesh=ember_mesh
   mote.material_override=material(colors.core if i==0 else colors.wake);add_child(mote);motes.append(mote)
  seal=MeshInstance3D.new();seal.name="CastingSeal";seal.mesh=Seal.shape(spell)
  seal.material_override=material(Color.WHITE);add_child(seal)

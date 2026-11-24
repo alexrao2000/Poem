@@ -10,6 +10,8 @@ func run():
  stage.position=Vector3(35,2,-8);stage.rotation=Vector3(.12,.42,-.08);stage.scale=Vector3.ONE*1.2
  verify_geometry()
  var bindings=0
+ var ring_mesh: Mesh
+ var shared_motes={}
  for unit in rules.roster.filter(func(u):return u.weapon=="magic"):
   unit=unit.duplicate(true);unit.team="player"
   for direction in [-1,1]:
@@ -17,6 +19,10 @@ func run():
    for folio in ["ember","gale","thunder"]:
     var effect=Charge.new();stage.add_child(effect);effect.begin(actor,folio,.28);effect.motion.kill();effect.set_process(false)
     assert(effect.motes.size()==3 and effect.get_child_count()==5,"Gathering uses four hand meshes and one ground seal without lights")
+    if ring_mesh==null:ring_mesh=effect.ring.mesh
+    if not shared_motes.has(folio):shared_motes[folio]=effect.motes[0].mesh
+    assert(effect.ring.mesh==ring_mesh and effect.motes.all(func(mote):return mote.mesh==shared_motes[folio]))
+    assert(effect.motes[0].material_override!=effect.motes[1].material_override)
     for pose in ["windup","critical_windup","strike"]:
      actor.pose(pose,1).custom_step(1)
      for strength in [0.0,.5,1.0]:
@@ -62,6 +68,7 @@ func run():
  actor.queue_free();await process_frame;await process_frame
  assert(reference.get_ref()==null,"Removing a caster also releases its gathering")
  stage.queue_free();await process_frame
+ print("PASS: one gathering ring and three mote shapes are shared across casters with private materials")
  print("PASS: %d caster/element/facing bindings, transformed hand attachment, bounded additive geometry, release anchoring and cleanup"%bindings)
  quit()
 

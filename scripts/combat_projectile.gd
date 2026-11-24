@@ -13,6 +13,11 @@ const ELEMENTAL_WAKES={
  "gale":{"span":.35,"width":.16,"opacity":.38},
  "thunder":{"span":.18,"width":.072,"opacity":.58},
 }
+static var shaft_meshes: Array[CylinderMesh]=[null,null]
+static var arrow_tip: ArrayMesh
+static var feather_mesh: ArrayMesh
+static var spell_core: SphereMesh
+static var spell_halo: QuadMesh
 var origin=Vector3.ZERO
 var destination=Vector3.ZERO
 var arc=0.0
@@ -47,19 +52,23 @@ func launch(from: Vector3,to: Vector3,weapon: String,duration=.23,spell_id="",ap
   origin=from+from.direction_to(to)*minf(reach*visual_scale,from.distance_to(to)*.5)
  else:
   var colors=Spell.palette(spell)
-  var orb=SphereMesh.new();orb.radius=.14;orb.height=.28;orb.radial_segments=12;orb.rings=6
   if spell=="gale":
+   var shape=Spell.crescent()
    for i in range(3):
-    var ring=piece(body,Spell.crescent(),colors.accent,true);ring.name="WindCrescent"+str(i)
+    var ring=piece(body,shape,colors.accent,true);ring.name="WindCrescent"+str(i)
     ring.rotation=Vector3(.5,0,i*TAU/3);ring.position.z=(i-1)*.08
   elif spell=="thunder":
+   var shape=Spell.bolt()
    for i in range(2):
-    var bolt=piece(body,Spell.bolt(),colors.core if i==0 else colors.accent,true);bolt.name="ThunderBolt"+str(i);bolt.rotation.z=i*PI/2
+    var bolt=piece(body,shape,colors.core if i==0 else colors.accent,true);bolt.name="ThunderBolt"+str(i);bolt.rotation.z=i*PI/2
   else:
-   var core=piece(body,orb,colors.core,true);core.name="EmberCore" if spell=="ember" else "SpellCore"
+   if spell_core==null:
+    spell_core=SphereMesh.new();spell_core.radius=.14;spell_core.height=.28;spell_core.radial_segments=12;spell_core.rings=6
+   var core=piece(body,spell_core,colors.core,true);core.name="EmberCore" if spell=="ember" else "SpellCore"
    core.scale=Vector3(.85,.85,1.45) if spell=="ember" else Vector3.ONE
-  var halo_shape=QuadMesh.new();halo_shape.size=Vector2.ONE*.6
-  var halo=piece(body,halo_shape,colors.accent,true);halo.name="SpellGlow"
+  if spell_halo==null:
+   spell_halo=QuadMesh.new();spell_halo.size=Vector2.ONE*.6
+  var halo=piece(body,spell_halo,colors.accent,true);halo.name="SpellGlow"
   halo.material_override.albedo_texture=preload("res://scripts/combat_impact.gd").radial_texture()
   halo.material_override.albedo_color.a=.35;halo.material_override.billboard_mode=BaseMaterial3D.BILLBOARD_ENABLED;halo.material_override.billboard_keep_scale=true
   wake=MeshInstance3D.new();wake.name="SpellWake";wake_color=colors.wake
@@ -76,18 +85,30 @@ func launch(from: Vector3,to: Vector3,weapon: String,duration=.23,spell_id="",ap
  return motion
 
 static func physical_geometry(parent: Node3D,weapon: String,appearance={}) -> float:
- var length=ARROW_LENGTH if weapon=="bow" else 1.3
- var shaft=CylinderMesh.new();shaft.height=length;shaft.top_radius=.012 if weapon=="bow" else .021;shaft.bottom_radius=shaft.top_radius;shaft.radial_segments=8
+ var is_arrow=weapon=="bow"
+ var length=ARROW_LENGTH if is_arrow else 1.3
+ var shaft_index=int(not is_arrow)
+ var shaft=shaft_meshes[shaft_index]
+ if shaft==null:
+  shaft=CylinderMesh.new();shaft.height=length
+  shaft.top_radius=.012 if is_arrow else .021;shaft.bottom_radius=shaft.top_radius;shaft.radial_segments=8
+  shaft_meshes[shaft_index]=shaft
  var pole=piece(parent,shaft,Color(appearance.get("grip","78604a")) if weapon=="lance" else Color("78604a"));pole.name="Shaft";pole.rotation.x=PI/2
- var width=.04 if weapon=="bow" else float(appearance.get("width",.065))
- var tip=piece(parent,WeaponBlades.spear(-length*.5+.10,-length*.5,-length*.5-(.075 if weapon=="bow" else .12),width),Color(appearance.get("steel","d5dce1")) if weapon=="lance" else Color("d5dce1"));tip.name="Tip"
- if weapon=="bow":
-  var feather_material: Material
-  for angle in [0,TAU/3,TAU*2/3]:
+ var tip_mesh: ArrayMesh
+ if is_arrow:
+  if arrow_tip==null:arrow_tip=WeaponBlades.spear(-length*.5+.10,-length*.5,-length*.5-.075,.04)
+  tip_mesh=arrow_tip
+ else:
+  tip_mesh=WeaponBlades.spear(-length*.5+.10,-length*.5,-length*.5-.12,float(appearance.get("width",.065)))
+ var tip=piece(parent,tip_mesh,Color(appearance.get("steel","d5dce1")) if weapon=="lance" else Color("d5dce1"));tip.name="Tip"
+ if is_arrow:
+  if feather_mesh==null:
    var surface=SurfaceTool.new();surface.begin(Mesh.PRIMITIVE_TRIANGLES)
    for p in [Vector3(0,0,.20),Vector3(.075,0,.34),Vector3(0,0,.34)]:surface.add_vertex(p)
-   surface.generate_normals()
-   var feather=piece(parent,surface.commit(),Color("c5d1c9"));feather.rotation.z=angle
+   surface.generate_normals();feather_mesh=surface.commit()
+  var feather_material: Material
+  for angle in [0,TAU/3,TAU*2/3]:
+   var feather=piece(parent,feather_mesh,Color("c5d1c9"));feather.rotation.z=angle
    if feather_material==null:feather_material=feather.material_override
    else:feather.material_override=feather_material
  return -tip.mesh.get_aabb().position.z

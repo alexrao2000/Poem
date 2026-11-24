@@ -2,6 +2,7 @@ extends SceneTree
 ## Scaled flights retain physical tip contact and spell identity. Actual map
 ## attacks verify sprite-body alignment, pre-contact health and committed saves.
 const Projectile=preload("res://scripts/combat_projectile.gd")
+const MapProjectile=preload("res://scripts/map_projectile.gd")
 const Contact=preload("res://scripts/map_impact.gd")
 const Rules=preload("res://scripts/rules.gd")
 const Encounters=preload("res://scripts/debug_encounters.gd")
@@ -14,6 +15,28 @@ var impacts=[]
 var observed=0
 func _initialize():call_deferred("run")
 func canonical(data):return JSON.parse_string(JSON.stringify(data))
+
+func verify_shared_geometry(host: Node3D):
+ for sample in [["bow",""],["lance",""],["magic","ember"],["magic","gale"],["magic","thunder"],["magic",""]]:
+  var arena=Projectile.new();host.add_child(arena)
+  var tactical=MapProjectile.new();host.add_child(tactical)
+  var from=host.global_position+Vector3.UP;var to=from+Vector3.RIGHT*3
+  arena.launch(from,to,sample[0],1,sample[1],{"width":.05}).kill()
+  tactical.fly(from,to,sample[0],sample[1],{"width":.09}).kill()
+  var models=arena.body.get_children();var scaled=tactical.body.get_children()
+  assert(models.size()==scaled.size())
+  for index in models.size():
+   var first=models[index];var second=scaled[index]
+   if sample[0]=="lance" and first.name=="Tip":
+    assert(first.mesh!=second.mesh and first.mesh.get_aabb().size.x<second.mesh.get_aabb().size.x,
+     "Each thrown spear tip retains the equipped width")
+   else:
+    assert(first.mesh==second.mesh,"Fixed shapes are shared between the two presentation modes")
+   assert(first.material_override!=second.material_override and not first.material_override.no_depth_test and second.material_override.no_depth_test,
+    "A map projectile can change depth without affecting the 3D projectile")
+  if sample[0]=="bow":assert(models[2].mesh==models[3].mesh and models[3].mesh==models[4].mesh)
+  arena.free();tactical.free()
+ print("PASS: arrows, fixed spell pieces and shafts share geometry across both modes with independent materials and fitted spear tips")
 
 func watch(node):
  if node is Contact:
@@ -38,6 +61,7 @@ func watch(node):
 
 func run():
  var host=Node3D.new();root.add_child(host);host.position=Vector3(3,.2,-4);host.rotation.y=.3;host.scale=Vector3.ONE*1.3
+ verify_shared_geometry(host)
  var view=Camera3D.new();host.add_child(view);view.rotation=Vector3(-.7,.3,0)
  for spell in ["","ember","gale","thunder"]:
   for damage in [0,3]:
