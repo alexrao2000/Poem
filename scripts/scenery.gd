@@ -381,6 +381,8 @@ func landmark(parent,p,kind,roof_variant=-1,map_site=Vector2.INF):
   Fountain.build(parent,p,water_material())
  elif kind=="tower":
   var tower=mesh(parent,Fortification.tower(),p,Vector3.ONE,Fortification.material());tower.name="FortifiedTower"
+ elif kind=="belfry":
+  abbey_belfry(parent,p+Vector3(0,-.13,-1.31),1.0)
  elif kind=="spire":
   cylinder(parent,p+Vector3(0,1,0),2,.55,stone)
   cylinder(parent,p+Vector3(0,.15,0),.3,.7,stone.darkened(.15))
@@ -577,6 +579,29 @@ func abbey_arcade(parent: Node3D,anchor: Vector3):
  block(arcade,Vector3(0,5.23,0),Vector3(25.6,.34,.82),stone).name="ArcadeCoping"
  block(arcade,Vector3(0,5.43,0),Vector3(25.8,.10,1.06),Color("b7b3a0")).name="ArcadeCornice"
 
+func abbey_belfry(parent: Node3D,anchor: Vector3,size: float):
+ var tower=Node3D.new();tower.name="EmptyBelfry";tower.position=anchor
+ tower.scale=Vector3.ONE*size;parent.add_child(tower)
+ var stone=detail_material(3)
+ var wood=building_material(BuildingFinish.OAK)
+ block(tower,Vector3(0,.035,0),Vector3(1.53,.21,1.26),stone).name="BelfryFooting"
+ block(tower,Vector3(0,.63,0),Vector3(1.28,1.12,1.03),stone).name="BelfryTrunk"
+ block(tower,Vector3(0,1.21,0),Vector3(1.42,.15,1.17),stone).name="BelfrySill"
+ for z in [-.44,.44]:
+  for x in [-.54,.54]:
+   block(tower,Vector3(x,1.853,z),Vector3(.42,1.28,.36),stone).name="BelfryPier"
+  arch_span(tower,Vector3(0,2.48,z),.33,.23,.37).name="BelfryArch"
+ for x in [-.54,.54]:
+  block(tower,Vector3(x,2.46,0),Vector3(.20,.16,1.25),wood).name="BelfryBearing"
+ block(tower,Vector3(0,2.43,0),Vector3(1.24,.13,.15),wood).name="BelfryYoke"
+ for x in [-.12,.12]:
+  var bolt=block(tower,Vector3(x,2.311,0),Vector3(.057,.15,.061),Color("574e46"))
+  bolt.name="BelfryBolt";bolt.rotation.z=signf(x)*.20
+ block(tower,Vector3(0,3.04,0),Vector3(1.59,.16,1.28),stone).name="BelfryCornice"
+ for side in [-1,1]:
+  var roof=block(tower,Vector3(side*.395,3.22,0),Vector3(.96,.108,1.48),Color("586670"))
+  roof.name="BelfryRoof";roof.rotation.z=-side*.44
+
 func aqueduct_gallery(parent: Node3D,center: Vector3,water_height: float):
  var gallery=Node3D.new();gallery.name="AqueductGallery";gallery.position=center+Vector3(0,0,-8.4);parent.add_child(gallery)
  var masonry=detail_material(3)
@@ -766,9 +791,13 @@ func battle_landscape(parent,center,context={}):
     battle_tree(parent,center+Vector3(-20+(i*11)%41,base,tree_line-(i%4)*3),i*83,2.6+(i%3)*.25,theme)
  parent.set_meta("backdrop_count",backdrop.size())
  var mechanism=center+Vector3(0,0,-12 if theme=="engine" else -10)
+ var belfry_lateral=-5.7
  for item in backdrop:
   var depth=RiverBank.ARENA_FAR_START-1.5+(item.z+7)*.7 if river else item.z
   var lateral=item.x
+  if item.kind=="belfry":
+   belfry_lateral=2.7 if lateral>=0 else -5.7
+   continue
   if theme=="aqueduct":depth=minf(depth,-11.0)
   if road_canal:depth=minf(depth,ROAD_CANAL_FAR-1.8)
   if theme=="abbey":depth=minf(depth,-13.0)
@@ -788,7 +817,9 @@ func battle_landscape(parent,center,context={}):
   for i in range(3):barrel(parent,center+Vector3(6+i*.4,0,-4.3),1.0)
  if theme=="forest":TrailLanterns.fighting_lane(parent,center)
  if theme=="aqueduct":aqueduct_gallery(parent,center,water_level)
- if theme=="abbey":abbey_arcade(parent,center+Vector3(0,0,-9.7))
+ if theme=="abbey":
+  abbey_arcade(parent,center+Vector3(0,0,-9.7))
+  abbey_belfry(parent,center+Vector3(belfry_lateral,0,-6.5),1.35)
  if theme=="castle":
   Fortification.build_castle_wall(self,parent,center+Vector3(0,0,-9))
  elif theme=="observatory":

@@ -15,6 +15,7 @@ func run():
  await verify_reddeep_furnaces()
  await verify_aqueduct_gallery()
  await verify_abbey_arcade()
+ await verify_abbey_belfry()
  await verify_ruined_columns()
  await verify_village_groves()
  await verify_trail_lanterns()
@@ -172,6 +173,72 @@ func verify_abbey_arcade():
  viewport.queue_free();await process_frame
  assert(game.save_data("camp")==snapshot)
  print("PASS: seven seated abbey piers, six open arches in shared stone, planted walk and six camera projections")
+
+func verify_abbey_belfry():
+ var scenery=Scenery.new();scenery.batching_enabled=false
+ var game=Rules.new();game.chapter=3
+ var saved=game.save_data("camp");var rng=game.rng.state
+ var field=Node3D.new();root.add_child(field);scenery.landscape(field,game)
+ var belfry=field.get_node("EmptyBelfry")
+ verify_belfry_frame(belfry)
+ var foot=belfry.get_node("BelfryFooting")
+ var footprint=foot.global_transform*foot.mesh.get_aabb()
+ assert(footprint.end.z<-.5 and footprint.position.y<-.15 and footprint.end.y>-.15)
+ var viewport=SubViewport.new();viewport.render_target_update_mode=SubViewport.UPDATE_DISABLED;root.add_child(viewport)
+ var camera=Camera3D.new();viewport.add_child(camera);camera.current=true
+ var center=Vector3((game.board_size().x-1)*.5,0,(game.board_size().y-1)*.5)
+ camera.projection=Camera3D.PROJECTION_ORTHOGONAL;camera.size=maxf(16,game.board_size().x+2)
+ camera.position=center+Vector3(2.5,22,11.5);camera.look_at(center);camera.h_offset=2
+ var sizes=[Vector2i(1024,640),Vector2i(1280,720),Vector2i(1440,900)]
+ for size in sizes:
+  viewport.size=size;await process_frame
+  assert(Rect2(Vector2.ZERO,Vector2(size)).grow(-12).has_point(camera.unproject_position(belfry.to_global(Vector3(0,2.06,.62)))))
+ camera.projection=Camera3D.PROJECTION_PERSPECTIVE;camera.h_offset=0
+ for pair in [[Vector2i(3,7),Vector2i(4,7)],[Vector2i(10,3),Vector2i(11,3)],[Vector2i(11,3),Vector2i(10,3)]]:
+  var context=scenery.combat_context(game,{"x":pair[0].x,"y":pair[0].y},{"x":pair[1].x,"y":pair[1].y})
+  var has_map_belfry=context.landmarks.any(func(item):return item.kind=="belfry")
+  assert(has_map_belfry==(pair[0].x>=10))
+  var mounted=pair[0].x==11
+  center=Vector3(35,0,0)
+  var stage=Node3D.new();root.add_child(stage);scenery.battle_landscape(stage,center,context)
+  var arena=stage.get_node("EmptyBelfry")
+  assert(stage.find_children("EmptyBelfry","Node3D",false,false).size()==1)
+  assert(is_equal_approx(arena.position.x,center.x+(2.7 if pair[0].x==10 else -5.7)))
+  verify_belfry_frame(arena)
+  assert(arena.get_node("BelfryArch").mesh==belfry.get_node("BelfryArch").mesh)
+  var step=stage.get_node("AbbeyArcade/ArcadeStep")
+  var bounds=step.global_transform*step.mesh.get_aabb()
+  assert(arena.global_position.z-arena.scale.z*.74>bounds.end.z,"The belfry sits in front of the abbey walk")
+  var frame=CombatCamera.frame_pair(center+Vector3.LEFT*1.6,center+Vector3.RIGHT*1.6,"wide",false,mounted)
+  camera.position=frame.anchor;camera.fov=frame.lens;camera.look_at(frame.focus)
+  for size in sizes:
+   viewport.size=size;await process_frame
+   var screen=camera.unproject_position(arena.to_global(Vector3(0,2.06,.62)))
+   assert(Rect2(Vector2.ZERO,Vector2(size)).grow(-12).has_point(screen) and screen.y<size.y*.61,"The empty belfry window frames clear of the bottom HUD")
+  stage.free()
+ viewport.free();field.free()
+ assert(game.save_data("camp")==saved and game.rng.state==rng)
+ print("PASS: Hallow Abbey's empty belfry frames the missing bell in twelve tactical and arena projections")
+
+func verify_belfry_frame(tower: Node3D):
+ var arches=tower.find_children("BelfryArch*","MeshInstance3D",false,false)
+ var piers=tower.find_children("BelfryPier*","MeshInstance3D",false,false)
+ var roof=tower.find_children("BelfryRoof*","MeshInstance3D",false,false)
+ assert([arches.size(),piers.size(),roof.size()]==[2,4,2])
+ var bounds=func(node):return node.transform*node.mesh.get_aabb()
+ var foundation=bounds.call(tower.get_node("BelfryFooting"))
+ var trunk=bounds.call(tower.get_node("BelfryTrunk"))
+ var sill=bounds.call(tower.get_node("BelfrySill"))
+ var cornice=bounds.call(tower.get_node("BelfryCornice"))
+ assert(foundation.intersects(trunk) and trunk.intersects(sill))
+ for pier in piers:
+  assert(bounds.call(pier).intersects(sill) and arches.any(func(arch):return bounds.call(arch).intersects(bounds.call(pier))))
+ for arch in arches:assert(bounds.call(arch).intersects(cornice))
+ assert(roof.all(func(slope):return bounds.call(slope).intersects(cornice)) and bounds.call(roof[0]).intersects(bounds.call(roof[1])))
+ var yoke=bounds.call(tower.get_node("BelfryYoke"))
+ assert(yoke.has_point(Vector3(0,2.43,0)))
+ for part in tower.get_children():
+  assert(bounds.call(part).intersects_segment(Vector3(0,2.08,-2),Vector3(0,2.08,2))==null,"No stone or timber fills the bay where the bell hung")
 
 func verify_village_groves():
  var scenery=Scenery.new();scenery.batching_enabled=false

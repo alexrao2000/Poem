@@ -939,7 +939,7 @@
       "tactical_brief": "The abbey’s side chapels connect through narrow doors. Use both aisles to avoid a queue at the entrance. Defeat Prior Ash; clearing every guard is optional.",
       "landmarks": [
         {
-          "kind": "spire",
+          "kind": "belfry",
           "position": [
             12,
             0

@@ -6,6 +6,8 @@ This checkpoint describes the current development branch and supersedes the earl
 
 ### Latest state
 
+Hallow Abbey’s stone belfry shows the opening and timber yoke from the chapter’s missing bell. Twelve tactical and arena projections checked the open bay, including both sides of mapped approaches and a distant fallback. The lone landmark-kind change preserved the other campaign data and all 72 matched victory outcomes. Nine focused suites, both exports, architecture and route checks in both packs, and archive integrity passed. Rendered appearance remains unreviewed.
+
 Windscar Pass now has low crosswind that drifts across the battlefield and grows wider mid-gust. It uses fourteen instances on the map and twenty-four in the arena. At seven sample times, the other twenty-two map and arena configurations produced exactly the same instance buffers in source and both packages. Seven focused suites, both exports, packed atmosphere and presentation, and archive integrity passed. Rendered appearance remains unreviewed.
 
 Windscar Pass has two stone ridge beacons with separate flame motion in the tactical map and combat arena. The map placements were moved forward after the first projection clipped them at the top of the overview. Three tactical and six arena projections checked their final framing. A complete and a skipped battle checked both phase handoffs, with exact campaign and RNG comparisons. Nine focused suites, four final placement reruns, both exports, terrain and combat transitions in both packs, and archive integrity passed. Rendered appearance remains unreviewed.
