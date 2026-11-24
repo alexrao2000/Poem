@@ -21,6 +21,9 @@ func watch_playback(node):
  if not node is Playback:return
  await process_frame
  if mode=="normal":return
+ if mode=="default_fast":
+  accelerated_seen=node.accelerated and node.fast_button.button_pressed and Engine.time_scale==2.0
+  return
  if mode.begins_with("slow"):
   speed_key(KEY_Z,true)
   slow_seen=node.slowed and Engine.time_scale==.5
@@ -109,6 +112,11 @@ func verify_slow_controls(host: Control):
  debug.queue_free();await process_frame
  assert(Engine.time_scale==.75)
  speed_key(KEY_Z,false)
+ var from_settings=Playback.new();from_settings.configure(host,false,true)
+ assert(from_settings.accelerated and from_settings.fast_button.button_pressed and Engine.time_scale==1.5)
+ from_settings.fast_button.button_pressed=false
+ assert(not from_settings.accelerated and Engine.time_scale==.75,"The exchange’s toggle can override the starting speed")
+ from_settings.queue_free();await process_frame
 
 func verify_actual_debug_slow(app):
  app.game.new_campaign();app.game.start_battle();app.make_map();app.show_battle();app.busy=true
@@ -169,8 +177,9 @@ func run():
  var a=app.game.units[0];var b=app.game.living("enemy")[0];a.x=8;a.y=4;b.x=9;b.y=4
  var events=[{"actor":a.id,"target":b.id,"damage":1,"remaining":19,"hit":true,"crit":false}]
  var saved=app.game.save_data("battle").duplicate(true);var rng=app.game.rng.state;var camera=app.camera.transform;var score=app.score;var durations={}
- for case in ["normal","fast","skip"]:
+ for case in ["normal","fast","skip","default_fast"]:
   mode=case;accelerated_seen=false
+  app.preferences.values.combat_speed="fast" if case=="default_fast" else "normal"
   var started=Time.get_ticks_msec()
   await app.cinematic(a,b,events,{a.id:20,b.id:20})
   durations[case]=Time.get_ticks_msec()-started
@@ -182,11 +191,13 @@ func run():
   assert(app.game.save_data("battle")==saved and app.game.rng.state==rng and app.camera.transform.is_equal_approx(camera),"Speed changes cannot alter combat outcomes or restored map framing")
   assert(app.score==score and app.music.pitch_scale==1.0 and AudioServer.playback_speed_scale==audio_speed,"Normal/Ablaze streams retain their shared audio clock and pitch")
  assert(durations.fast<durations.normal*.8,"The actual accelerated cinematic completes measurably faster")
+ assert(durations.default_fast<durations.normal*.8,"The setting accelerates the full exchange without holding a key")
  mode="fast";accelerated_seen=false;app.preferences.values.combat="map"
  await app.cinematic(a,b,events,{a.id:20,b.id:20})
  assert(not accelerated_seen and Engine.time_scale==baseline,"Map-only battles never acquire a cinematic speed override")
+ app.preferences.values.combat_speed="normal"
  await verify_phase_skips(app,a,b)
  await verify_actual_debug_slow(app)
  await Shutdown.dispose(app);await process_frame
- print("PASS: held/released speed, three hint layouts, focus loss, exact prior-scale cleanup, faster real combat, nine phase-specific skips within two frames, transient cleanup, map-only isolation and unchanged simulation/audio/camera")
+ print("PASS: saved starting speed and per-exchange override, held/released speed, three hint layouts, focus loss, exact prior-scale cleanup, faster real combat, nine phase-specific skips within two frames, transient cleanup, map-only isolation and unchanged simulation/audio/camera")
  quit()

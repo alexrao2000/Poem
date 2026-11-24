@@ -6,6 +6,8 @@ This checkpoint describes the current development branch and supersedes the earl
 
 ### Latest state
 
+**Starting 3D battle speed** in Options saves Normal or Fast ×2 on the device. The in-battle Fast button still overrides the individual exchange. The setting keeps the score’s decoder and pitch and restores the previous presentation clock and tactical view. Older preference files start at Normal. Eight focused suites, packed preferences and both playback suites in each export, and archive integrity passed. Rendered gameplay remains unreviewed.
+
 Debug can save one reusable experiment checkpoint and restore its battle or war council with the exact roster, rules, RNG and chosen seed. The live Last chance rescue test rescued and healed Oren, restored the identical starting state, then committed his loss by ending the phase. Both outcomes used the Debug slot and left the normal campaign untouched. Eight focused suites, the final Debug and rescue reruns, three packed Debug checks in each export, and ZIP integrity passed. The interface was checked headlessly.
 
 The complete Hard recoverable replay at `6c62b79` matched 879 exact saves from the earlier Quick Map route. It took 13 battles, 96 turns and 429 player actions. Both revised figures, continuous audio decoders and the new score gain curve were present in all 458 3D exchanges. Fourteen played through and 444 used Skip. The market appeared in 107 scenes, tollhouse in 11, refuge in 23 and Abbey mosaic in 23. All 24 recruits were available at the ending. See `build/review/current-scene-route.html`. Rendered appearance, listening and human difficulty remain unreviewed.

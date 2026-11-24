@@ -21,25 +21,29 @@ func verify_sections(app):
  assert(app.game.save_data("camp")==snapshot and app.preferences.values==settings,"Section navigation changes no campaign state, RNG or setting")
 func run():
  var prefs=Preferences.new()
- assert(prefs.show_cinematic("player") and prefs.show_cinematic("enemy"),"Default retains full 3D combat")
+ assert(prefs.show_cinematic("player") and prefs.show_cinematic("enemy") and prefs.values.combat_speed=="normal")
  prefs.values.combat="player";assert(prefs.show_cinematic("player") and not prefs.show_cinematic("enemy"))
  prefs.values.combat="map";assert(not prefs.show_cinematic("player"))
  prefs.values.music=0;assert(prefs.volume_db("music")==-80)
+ prefs.values.erase("combat_speed")
  assert(prefs.save_file("/private/tmp/poem-preferences.json"))
  var restored=Preferences.new();assert(restored.load_file("/private/tmp/poem-preferences.json") and restored.values.combat=="map" and restored.values.music==0 and restored.values.text_speed==55)
+ assert(restored.values.combat_speed=="normal","Older settings use normal speed")
+ var bad_speed=restored.values.duplicate();bad_speed.combat_speed="3x";assert(not restored.valid(bad_speed))
  var invalid=prefs.values.duplicate();invalid.effects=4;assert(not prefs.valid(invalid))
  invalid.effects="loud";assert(not prefs.valid(invalid))
  var app=load("res://main.tscn").instantiate();app.settings_path="";app.save_path="/private/tmp/poem-preferences-campaign.json";root.add_child(app);await process_frame
  app.settings_path="/private/tmp/poem-preferences-ui.json";app.show_options("title");await process_frame;await process_frame
  await verify_sections(app)
  var mode=app.ui.find_child("CombatMode",true,false);mode.selected=2;mode.item_selected.emit(2)
+ var speed=app.ui.find_child("CombatSpeed",true,false);speed.selected=1;speed.item_selected.emit(1)
  var music=app.ui.find_child("MusicVolume",true,false);music.value=0
  assert(app.preferences.values.combat=="map" and app.music.volume_db==-80,"Menu updates playback and audio")
  var text=app.ui.find_child("TextSpeed",true,false);text.selected=2;text.item_selected.emit(2)
  press_escape(true);assert(app.screen=="options","Held Escape does not leave Options")
  press_escape();await process_frame
  assert(app.screen=="title","Fresh Escape applies Options and returns to its title origin")
- assert(restored.load_file(app.settings_path) and restored.values.text_speed==0)
+ assert(restored.load_file(app.settings_path) and restored.values.text_speed==0 and restored.values.combat_speed=="fast")
  app.show_dialogue([{"speaker":"lyra","text":"Instant text."},{"speaker":"oren","text":"Second line."}],func():app.show_title())
  assert(app.dialogue_label.visible_characters==-1 and app.dialogue_stage.ready_indicator.visible and app.dialogue_stage.next_button.text=="Continue  >");app.advance_dialogue()
  assert(app.dialogue_index==1,"Instant dialogue advances with one press")
@@ -89,7 +93,7 @@ func run():
   for control in app.ui.find_children("*","Button",true,false):
    if control.text in ["Options","Save campaign","Transfer a local save","Return to title","Deploy company  >"]:assert(control.get_global_rect().end.y<=app.ui.size.y,"Camp controls fit all twelve chapters")
  await Shutdown.dispose(app);await process_frame
- print("PASS: local preferences, fixed section navigation/focus at three sizes, volume, cinematic modes, instant dialogue, persistence and unchanged combat simulation")
+ print("PASS: local preferences, starting 3D speed and legacy defaults, fixed section navigation/focus at three sizes, volume, cinematic modes, instant dialogue, persistence and unchanged combat simulation")
  quit()
 
 func press_escape(echo=false):

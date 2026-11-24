@@ -15,10 +15,10 @@ var keyboard_slow=false
 var slowed=false
 var skip_sent=false
 
-func configure(parent: Control,debug_slow=false):
+func configure(parent: Control,debug_slow=false,start_fast=false):
  name="CombatPlayback";mouse_filter=Control.MOUSE_FILTER_IGNORE;z_index=15
  parent.add_child(self);set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
- original_scale=Engine.time_scale;active=true;slow_available=debug_slow
+ original_scale=Engine.time_scale;active=true;slow_available=debug_slow;pointer_fast=start_fast
  hint=Label.new();hint.name="PlaybackHint";hint.mouse_filter=Control.MOUSE_FILTER_IGNORE
  hint.horizontal_alignment=HORIZONTAL_ALIGNMENT_CENTER
  hint.add_theme_font_size_override("font_size",14);hint.add_theme_color_override("font_color",Color("f4e7c6"))

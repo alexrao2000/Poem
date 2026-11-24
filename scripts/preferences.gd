@@ -1,11 +1,12 @@
 extends RefCounted
-const DEFAULTS={"combat":"all","music":1.0,"effects":1.0,"text_speed":55,"auto_end":true,"character_models":"revised"}
+const DEFAULTS={"combat":"all","combat_speed":"normal","music":1.0,"effects":1.0,"text_speed":55,"auto_end":true,"character_models":"revised"}
 var values=DEFAULTS.duplicate()
 
 func reset():values=DEFAULTS.duplicate()
 
 func valid(data) -> bool:
  if not data is Dictionary or data.get("combat") not in ["all","player","map"]:return false
+ if data.get("combat_speed","normal") not in ["normal","fast"]:return false
  if data.get("character_models","current") not in ["current","revised"]:return false
  if not (data.get("text_speed") is int or data.get("text_speed") is float):return false
  if not is_finite(float(data.text_speed)) or data.text_speed!=int(data.text_speed) or int(data.text_speed) not in [0,55,90] or not data.get("auto_end") is bool:return false

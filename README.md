@@ -189,7 +189,7 @@ Failed autosaves display a warning and a phase-status marker. Keep the game open
 
 ### Preferences
 
-**Options** is available from the title screen, war council, and battle sidebar. Fixed **Presentation**, **Audio** and **Campaign** shortcuts jump to the corresponding settings and keep keyboard focus visible. It controls combat presentation, music and effects volume, dialogue speed, and automatic phase ending. Preferences are stored on the device separately from campaign saves. Holding Shift speeds up combat animation without changing the music.
+**Options** is available from the title screen, war council, and battle sidebar. Fixed **Presentation**, **Audio** and **Campaign** shortcuts jump to the corresponding settings and keep keyboard focus visible. You can set the starting speed for 3D battles, music and effects volume, dialogue speed, and automatic phase ending. The **Fast ×2** button overrides the speed for the current exchange. Preferences are stored on the device separately from campaign saves.
 
 Choose **Listen to campaign music** in Options to open the music room. Select any of the three act themes and switch between **Calm** and **Ablaze** without restarting the track. The room respects the music volume setting; returning resumes the campaign music where it was paused.
 

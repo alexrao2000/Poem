@@ -1260,7 +1260,8 @@ func cinematic(a,b,events,initial_hp={},challenge: Dictionary={}):
 	for visual in unit_nodes.values():visual.set_tactical_details_visible(false)
 	var tactical_controls={}
 	for control in ui.get_children():tactical_controls[control]=control.visible;control.hide()
-	var playback=preload("res://scripts/combat_playback.gd").new();playback.configure(ui,debug_session.active)
+	var playback=preload("res://scripts/combat_playback.gd").new()
+	playback.configure(ui,debug_session.active,preferences.values.combat_speed=="fast")
 	interface_audio.watch(playback.fast_button)
 	interface_audio.watch_navigation(playback.skip_button)
 	# Skip disables its button first, so acknowledge the one-shot request itself.
@@ -2147,6 +2148,11 @@ func show_options(return_to: String):
 	for title in ["All 3D battles","3D for player attacks","Quick map battles"]:mode.add_item(title)
 	mode.selected=["all","player","map"].find(preferences.values.combat);panel.add_child(mode)
 	mode.item_selected.connect(func(index):preferences.values.combat=["all","player","map"][index])
+	label_in(panel,"Starting 3D battle speed",21,GOLD)
+	var combat_speed=OptionButton.new();combat_speed.name="CombatSpeed";combat_speed.custom_minimum_size.y=42
+	combat_speed.add_item("Normal");combat_speed.add_item("Fast ×2")
+	combat_speed.selected=1 if preferences.values.combat_speed=="fast" else 0;panel.add_child(combat_speed)
+	combat_speed.item_selected.connect(func(index):preferences.values.combat_speed="fast" if index==1 else "normal")
 	label_in(panel,"Character models",21,GOLD)
 	var model_mode=OptionButton.new();model_mode.name="CharacterModels";model_mode.custom_minimum_size.y=42
 	for title in ["Original models","Revised models"]:model_mode.add_item(title)
