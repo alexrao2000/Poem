@@ -1049,6 +1049,9 @@ func verify_reddeep_furnaces():
   verify_hearth(hearth)
   var anchor=hearth.get_parent() as Node3D
   var foundation=hearth.get_node("HearthFoundation")
+  var fire=hearth.get_node("HearthFire")
+  var original=landmarks.filter(func(placed):return placed.get_node("HearthFire").get_meta("hearth_site")==fire.get_meta("hearth_site"))[0]
+  assert(fire.get_node("Tongues").mesh==original.get_node("HearthFire/Tongues").mesh,"Each hearth keeps its identity and shared shape in combat")
   assert(anchor.position.y==center.y and anchor.position.z<center.z-6 and anchor.scale.is_equal_approx(Vector3.ONE*2.1))
   assert(foundation.mesh==landmarks[0].get_node("HearthFoundation").mesh)
   assert(hearth.get_node("MasonryArch").mesh==landmarks[0].get_node("MasonryArch").mesh)
@@ -1057,12 +1060,14 @@ func verify_reddeep_furnaces():
  scenery.battle_landscape(fallback,center,{"environment":"furnace"})
  var extra=fallback.find_children("FurnaceHearth*","Node3D",false,false)
  assert(extra.size()==2 and extra.all(func(hearth):return hearth.position.z==center.z-8 and hearth.scale.is_equal_approx(Vector3.ONE*2.1)))
+ for hearth in extra:verify_hearth(hearth)
  verify_reddeep_service_sheds(map,arena,fallback,game.board_size())
  await verify_reddeep_gantry(arena,center,staged)
  await verify_reddeep_gantry(fallback,center,extra)
  assert(game.rng.state==rng_state)
  map.queue_free();arena.queue_free();fallback.queue_free();await process_frame
  print("PASS: two Reddeep map hearths, arched fireboxes, connected grates, open chimney flues and actual arena counterparts")
+ print("PASS: Reddeep hearth flames retain all 42 triangles behind the grate through 180 sampled phases")
  print("PASS: five planted Reddeep gantry supports, four crossed spans, two connected hoists and twelve wide-shot projections")
 
 func verify_reddeep_service_sheds(field: Node3D, arena: Node3D, fallback: Node3D, size: Vector2i):
@@ -1279,6 +1284,19 @@ func verify_hearth(hearth: Node3D):
  var emission=coals[0].material_override
  for coal in coals:
   assert((coal.transform*coal.mesh.get_aabb()).end.z<grate_bounds.end.z and coal.material_override==emission and emission.emission_enabled)
+ var fire=hearth.get_node("HearthFire")
+ var tongues=fire.get_node("Tongues")
+ var vertices=tongues.mesh.surface_get_arrays(0)[Mesh.ARRAY_VERTEX]
+ assert(vertices.size()==126 and tongues.material_override.emission_enabled)
+ assert(tongues.cast_shadow==GeometryInstance3D.SHADOW_CASTING_SETTING_OFF)
+ var old_phase=fire.phase
+ for index in 30:
+  fire.seek_phase(TAU*index/30.0)
+  var bounds=fire.transform*tongues.mesh.get_aabb()
+  assert(bounds.position.y>floor_bounds.end.y and bounds.end.y<.65)
+  assert(bounds.position.x>-.29 and bounds.end.x<.29)
+  assert(bounds.position.z>-.3 and bounds.end.z<grate_bounds.position.z,"Every animated tongue stays inside the firebox")
+ fire.seek_phase(old_phase)
  var chimney=hearth.find_children("ChimneySide*","MeshInstance3D",false,false)
  var lip=hearth.find_children("ChimneyLip*","MeshInstance3D",false,false)
  assert(chimney.size()==4 and lip.size()==4)

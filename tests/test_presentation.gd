@@ -132,6 +132,7 @@ func run():
 	await verify_starfall_exchange(app)
 	await verify_abbey_banner(app)
 	await verify_aqueduct_exchange(app)
+	await verify_reddeep_fires(app)
 	await verify_crown_gate_exchange(app)
 	await verify_weather_exchange(app)
 	await verify_harbor_gulls(app)
@@ -287,6 +288,49 @@ func verify_aqueduct_exchange(app):
 	assert(progress.entry>1 and progress.returned and app.world.visible and not app.stage.visible)
 	assert(app.game.save_data("battle")==snapshot and app.game.rng.state==rng)
 	print("PASS: the Aqueduct waterwheel retains its motion through a complete combat cut and return without changing the campaign")
+
+func verify_reddeep_fires(app):
+	app.game.chapter=9;app.game.start_battle();app.make_map();app.show_battle()
+	var a=app.game.living("player")[0];var b=app.game.living("enemy")[0]
+	var field={}
+	for fire in app.world.find_children("HearthFire","Node3D",true,false):
+		field[fire.get_meta("hearth_site")]=fire
+	assert(field.size()==2)
+	for skip in [false,true]:
+		if skip:a.x=1;a.y=4;b.x=2;b.y=4
+		else:a.x=4;a.y=5;b.x=4;b.y=6
+		app.refresh_pieces()
+		var state=app.game.save_data("battle").duplicate(true);var rng=app.game.rng.state
+		var transfer={"entry":{},"return":{},"hidden":{},"skipped":false}
+		var entering=func():
+			if app.world.visible:return
+			for fire in app.stage.find_children("HearthFire","Node3D",true,false):
+				var site=fire.get_meta("hearth_site")
+				assert(fire.phase==field[site].phase and fire.scale==field[site].scale)
+				transfer.entry[site]=fire.phase
+			for site in field:
+				if not transfer.entry.has(site):transfer.hidden[site]=field[site].phase
+		var returning=func():
+			if app.stage.visible or app.world.visible:return
+			for fire in app.stage.find_children("HearthFire","Node3D",true,false):
+				var site=fire.get_meta("hearth_site")
+				assert(fire.phase==field[site].phase and fire.phase!=transfer.entry[site])
+				transfer.return[site]=fire.phase
+			for site in transfer.hidden:
+				assert(field[site].phase==transfer.hidden[site],"An omitted hearth retains its hidden phase")
+		var request=func():
+			if skip and not transfer.skipped and app.stage.visible and app.ui.has_node("CombatHUD"):
+				app.ui.get_node("CombatPlayback").request_skip();transfer.skipped=true
+		app.world.visibility_changed.connect(entering)
+		app.stage.visibility_changed.connect(returning)
+		process_frame.connect(request)
+		await app.cinematic(a,b,[{"actor":a.id,"target":b.id,"damage":1,"remaining":b.hp-1,"hit":true,"crit":false}],{a.id:a.hp,b.id:b.hp})
+		app.world.visibility_changed.disconnect(entering)
+		app.stage.visibility_changed.disconnect(returning)
+		process_frame.disconnect(request)
+		assert(transfer.entry.size()==(1 if skip else 2) and transfer.return.size()==transfer.entry.size())
+		assert(transfer.skipped==skip and app.game.save_data("battle")==state and app.game.rng.state==rng)
+	print("PASS: both Reddeep fires preserve their exact phase through normal combat, and Skip restores only the staged hearth")
 
 func verify_crown_gate_exchange(app):
 	app.game.chapter=10;app.game.start_battle();app.make_map();app.show_battle()

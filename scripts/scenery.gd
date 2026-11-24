@@ -35,6 +35,7 @@ const StarfallChart=preload("res://scripts/starfall_chart.gd")
 const StarfallTerrain=preload("res://scripts/starfall_terrain.gd")
 const AqueductWheel=preload("res://scripts/aqueduct_waterwheel.gd")
 const ReddeepCart=preload("res://scripts/reddeep_slag_cart.gd")
+const HearthFire=preload("res://scripts/hearth_fire.gd")
 const ReddeepWorks=preload("res://scripts/reddeep_works.gd")
 const ARENA_GROVE_CACHE_LIMIT=4
 const EngineConduits=preload("res://scripts/sun_engine_conduits.gd")
@@ -508,7 +509,7 @@ func landmark(parent,p,kind,roof_variant=-1,map_site=Vector2.INF,vented=false):
  elif kind=="observatory":
   observatory(parent,p)
   StarfallChart.build(self,parent,p+Vector3(-1.94,-.15,.27),.66)
- elif kind=="furnace":furnace(parent,p)
+ elif kind=="furnace":furnace(parent,p,1.0,map_site)
  elif kind=="ruin":
   var ruin=mesh(parent,RuinedColumns.mesh(),p,Vector3.ONE,Fortification.material())
   ruin.name="RuinMasonry"
@@ -548,7 +549,7 @@ func observatory(parent: Node3D,point: Vector3,in_arena=false):
  orbit.position=point+Vector3.UP*(2.6 if in_arena else 1.5)
  orbit.configure("observatory",1.54 if in_arena else 1.1,.55)
 
-func furnace(parent: Node3D,p: Vector3,scale_value=1.0):
+func furnace(parent: Node3D,p: Vector3,scale_value=1.0,map_site=Vector2.INF):
  var hearth=Node3D.new();hearth.name="FurnaceHearth";hearth.position=p
  hearth.scale=Vector3.ONE*scale_value;parent.add_child(hearth,true)
  var masonry=detail_material(3)
@@ -577,6 +578,8 @@ func furnace(parent: Node3D,p: Vector3,scale_value=1.0):
  for i in range(7):
   var coal=block(hearth,Vector3((i%3-1)*.14,.15+i%2*.028,.24-floori(i/3.0)*.20),Vector3(.149,.10,.165),materials["furnace_coals"])
   coal.name="HearthCoal";coal.rotation=Vector3(.17*(i%3-1),i*.9,.14*(i%2))
+ var fire=HearthFire.new();hearth.add_child(fire)
+ fire.configure(Vector2(p.x,p.z) if map_site==Vector2.INF else map_site)
 
 func combat_context(game,a,b,screen_direction=1.0) -> Dictionary:
  var midpoint=Vector2(a.x+b.x,a.y+b.y)*.5
@@ -658,6 +661,13 @@ func transfer_environment_motion(source: Node3D,destination: Node3D,theme: Strin
    var original=source.get_node_or_null(path)
    var counterpart=destination.get_node_or_null(path)
    if original!=null and counterpart!=null:counterpart.seek_phase(original.phase)
+ elif theme=="furnace":
+  var originals={}
+  for fire in source.find_children("HearthFire","Node3D",true,false):
+   originals[fire.get_meta("hearth_site")]=fire
+  for fire in destination.find_children("HearthFire","Node3D",true,false):
+   var original=originals.get(fire.get_meta("hearth_site"))
+   if original!=null:fire.seek_phase(original.phase)
 
 func boat_sails(parent: Node3D) -> Dictionary:
  var sails={}
