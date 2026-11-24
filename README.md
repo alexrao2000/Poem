@@ -326,7 +326,7 @@ Run [pack_web.py](scripts/pack_web.py) after every Web export. It compresses the
 
 ## Assets and credits
 
-Story, music composition, raster illustrations, and procedural 3D figures are original prototype work. The score includes eight 32-bar stereo themes with Calm and Ablaze arrangements sharing a sample timeline, plus separate combat, healing, and phase effects.
+Story, music composition, raster illustrations, and procedural 3D figures are original prototype work. The score includes nine 32-bar stereo themes with Calm and Ablaze arrangements sharing a sample timeline, plus separate combat, healing, and phase effects.
 
 - Font license: [SIL Open Font License](assets/fonts/OFL.txt).
 - Instrument recordings: [CC0 license](assets/audio/VSCO-LICENSE.txt), [credits](assets/audio/VSCO-CREDITS.txt), and [source paths and hashes](assets/audio/orchestra-sources.json).

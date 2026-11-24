@@ -193,6 +193,30 @@
         }
       },
       "composition_sha256": "9a897fa053f82be498a9a567eb01a71a841e8e2a0769b95598324b0517ebc2ca"
+    },
+    {
+      "id": "windscar",
+      "title": "Above the Weather",
+      "bpm": 120,
+      "bars": 32,
+      "frames": 1411200,
+      "sample_rate": 22050,
+      "channels": 2,
+      "arrangements": {
+        "calm": {
+          "path": "res://assets/audio/windscar-calm.wav",
+          "peak": 0.6047417352867007,
+          "rms": 0.11999999999999998,
+          "boundary_step": 0.017512482815823405
+        },
+        "ablaze": {
+          "path": "res://assets/audio/windscar-ablaze.wav",
+          "peak": 0.8699999999999999,
+          "rms": 0.14738036587653394,
+          "boundary_step": 0.01720114592966583
+        }
+      },
+      "composition_sha256": "1cb300b70299fcd99a3110d667cc0f1d261eb2041af592973c859b67f9e2f809"
     }
   ]
 }

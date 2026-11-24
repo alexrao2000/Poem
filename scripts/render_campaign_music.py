@@ -122,6 +122,31 @@ THEMES = [
                  [(84,0,1.25),(79,1.5,.75),(76,2.25,.75),(72,3,1)],
                  [(74,0,1),(78,1.5,.75),(81,2.25,.75),(78,3,.75)],
                  [(79,0,1.5),(74,1.5,1),(67,2.5,1.0)]]),
+    dict(id='windscar', title='Above the Weather', bpm=120, seed=37859,
+         harp_pattern=(0,2,1,0,1,2,0,2),
+         ablaze_harp_pattern=(0,1,2,1,0,2,1,2),
+         percussion_pattern=((0,2.5),(1.5,3)),
+         melody_instruments=(('flute','harp'),('horn','strings')),
+         chords=[(50,57,65),(48,55,62),(43,50,59),(45,52,62),
+                 (50,57,65),(53,60,69),(43,50,59),(45,52,61),
+                 (48,55,64),(47,50,58),(43,50,59),(50,57,65),
+                 (53,60,67),(48,55,64),(45,52,61),(50,57,65)],
+         melody=[[(62,0,1),(69,1,2),(72,3,.75)],
+                 [(74,0,1.5),(72,1.5,.5),(67,2,1.5)],
+                 [(67,.5,1),(71,1.5,1),(74,2.5,1)],
+                 [(76,0,.75),(74,1,1.5),(69,3,.75)],
+                 [(65,0,1),(72,1,2),(74,3,.75)],
+                 [(77,0,1.5),(76,1.5,.5),(72,2,1.5)],
+                 [(74,.5,1),(71,1.5,.75),(67,2.5,1)],
+                 [(69,0,.75),(73,1,1.5),(76,3,.75)],
+                 [(72,0,1),(79,1,2),(76,3,.75)],
+                 [(77,0,1.5),(74,1.5,.5),(70,2,1.5)],
+                 [(71,.5,1),(74,1.5,1),(79,2.5,1.25)],
+                 [(81,0,1.5),(77,1.5,.75),(74,2.5,1.25)],
+                 [(72,0,1),(77,1,2),(79,3,.75)],
+                 [(76,0,1.5),(74,1.5,.5),(72,2,1.5)],
+                 [(69,.5,1),(73,1.5,1),(76,2.5,1)],
+                 [(74,0,1.75),(69,2,1),(65,3,.8)]]),
 ]
 
 
@@ -136,6 +161,7 @@ def render(theme,bank):
     for mode in ('calm','ablaze'):
         rng=np.random.default_rng(theme['seed'])
         track=np.zeros((frames,2),dtype=np.float64);intense=mode=='ablaze'
+        lead, answer=theme.get('melody_instruments', (('flute','harp'),('strings','horn')))[int(intense)]
         pattern=theme.get('ablaze_harp_pattern',calm_pattern) if intense else calm_pattern
         def place(signal,beat,pan=0):
             start=round(beat*beat_seconds*RATE)%frames
@@ -158,8 +184,8 @@ def render(theme,bank):
             for i,pitch in enumerate(chord):note(pitch,start,beats+.2,'strings',.12 if intense else .1,(i-1)*.4)
             for step,degree in enumerate(pattern):note(chord[degree]+12,start+step*.5,.85,'harp',.07 if intense else .12,-.4)
             for pitch,offset,length in theme['melody'][bar%16]:
-                note(pitch,start+offset,length*.94,'strings' if intense else 'flute',.23 if intense else .2,.12)
-                if bar>=16 and bar%4 in (2,3):note(pitch-12,start+offset,length*.9,'horn' if intense else 'harp',.09,-.25)
+                note(pitch,start+offset,length*.94,lead,.23 if intense else .2,.12)
+                if bar>=16 and bar%4 in (2,3):note(pitch-12,start+offset,length*.9,answer,.09,-.25)
             if intense:
                 for step in range(beats*2):note(chord[0]-12 if step%2==0 else chord[0]-5,start+step*.5,.44,'bass',.19,.05)
                 for beat in downbeats:percussion(start+beat)
