@@ -5,8 +5,9 @@ static func tiles(game,unit: Dictionary,origins: Dictionary) -> Dictionary:
  var result={}
  if unit.hp<=0:return result
  var item=game.item_for(unit);var reach=int(item.max_range);var minimum=int(item.min_range)
+ var occupants=game.occupied_tiles()
  for origin in origins:
-  var occupied=game.at(origin)
+  var occupied=occupants.get(origin)
   if occupied!=null and occupied.id!=unit.id:continue
   if game.terrain(origin) in ["#","~"]:continue
   for y in range(-reach,reach+1):

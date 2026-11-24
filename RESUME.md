@@ -6,6 +6,10 @@ This checkpoint describes the current development branch and supersedes the earl
 
 ### Latest state
 
+Movement, threat previews and reverse searches use a per-query occupancy lookup. All 5,631 ordered results match in twelve campaign maps and two synthetic stress boards. The summed headless movement medians across the campaign fell from 30.99 ms to 16.46–16.73 ms. On the synthetic 169-unit board, movement fell from 756.68 ms to 57.01–59.59 ms. Ten focused suites, four packed checks, 72 matched chapter outcomes and both ZIP checks passed. See `build/review/tactical-query-profile.json`.
+
+The [local company roster](build/review/company-roster.html) shows the tactical sprites and revised base models of all 24 recruits from `0d6558e`. Its six isolated asset sheets use simplified software lighting.
+
 Weather particles retain fixed color and transform components between updates. The 336 submitted buffers match byte for byte across the earlier build and both exports. A headless sample of 24 clouds over 240 updates fell from 182.07 ms to 88.49–89.44 ms. Eight focused suites, four packed checks, 72 matched chapter outcomes and both ZIP checks passed. See `build/review/particle-buffer-profile.json`.
 
 The current portrait campaign replay uses the exact Web pack from `0d6558e` in a 720 × 960 logical viewport. See `build/review/portrait-cinematics-state.json` for its recorded progress. A separate frozen full-suite run at `bfb2f22` records its progress in `build/review/current-package-regression/full-current-state.json`. The Cinderford asset study shows the four opening tactical sprites and revised models from the same Web pack as the portrait replay. See `build/review/cinderford-sprites-and-models.png` for the isolated software projection.

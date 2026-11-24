@@ -206,7 +206,17 @@ func living(team: String) -> Array:
 func distance(a: Dictionary,b: Dictionary) -> int:
 	return absi(int(a.x-b.x))+absi(int(a.y-b.y))
 
-func reachable(u: Dictionary) -> Dictionary:
+func occupied_tiles() -> Dictionary:
+	var result = {}
+	for unit in units:
+		if not unit.get("carried_by","").is_empty() or (unit.hp<=0 and not DeathDoor.downed(unit)):continue
+		var tile = pos(unit)
+		var previous = result.get(tile)
+		if previous==null or (previous.hp<=0 and unit.hp>0):result[tile]=unit
+	return result
+
+func reachable(u: Dictionary, occupied=null) -> Dictionary:
+	if occupied==null:occupied=occupied_tiles()
 	var start = pos(u)
 	var costs = {start:0}
 	var step_costs = {}
@@ -223,7 +233,7 @@ func reachable(u: Dictionary) -> Dictionary:
 				var tile = terrain(q)
 				step_cost = 0
 				if tile not in ["#","~"]:
-					var other = at(q)
+					var other = occupied.get(q)
 					if other==null or other.team==u.team:
 						step_cost = TERRAIN_PROFILES.get(tile,TERRAIN_PROFILES["."]).move
 				step_costs[q] = step_cost

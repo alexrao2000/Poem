@@ -5,9 +5,10 @@ const DIRECTIONS=[Vector2i.LEFT,Vector2i.RIGHT,Vector2i.UP,Vector2i.DOWN]
 func threatened_tiles(game,unit: Dictionary) -> Dictionary:
  var result={}
  if unit.hp<=0 or unit.weapon=="staff":return result
- var moves={game.pos(unit):0} if unit.get("ai","")=="guard" else game.reachable(unit)
+ var occupants=game.occupied_tiles()
+ var moves={game.pos(unit):0} if unit.get("ai","")=="guard" else game.reachable(unit,occupants)
  for p in moves:
-  var occupied=game.at(p)
+  var occupied=occupants.get(p)
   if occupied!=null and occupied.id!=unit.id:continue
   for y in range(-int(unit.reach),int(unit.reach)+1):
    for x in range(-int(unit.reach),int(unit.reach)+1):
@@ -23,15 +24,17 @@ func step_cost(game,p: Vector2i) -> int:
 func distance_field(game,unit: Dictionary,goals: Array) -> Dictionary:
  # Reverse weighted flood: cost at q is the cost of moving from q to a goal.
  var costs={};var queue=[]
+ var occupants=game.occupied_tiles()
  for p in goals:
   if game.terrain(p) not in ["#","~"]:
    costs[p]=0;queue.append(p)
- while not queue.is_empty():
-  var p=queue.pop_front()
+ var next=0
+ while next<queue.size():
+  var p=queue[next];next+=1
   for direction in DIRECTIONS:
    var q=p+direction
    if game.terrain(q) in ["#","~"]:continue
-   var occupant=game.at(q)
+   var occupant=occupants.get(q)
    if occupant!=null and occupant.team!=unit.team:continue
    var value=costs[p]+step_cost(game,p)
    if not costs.has(q) or value<costs[q]:costs[q]=value;queue.append(q)

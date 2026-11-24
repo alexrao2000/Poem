@@ -22,8 +22,10 @@ func run():
  for permanent in [false,true]:
   var game=Rules.new();var sample=setup(game,permanent);var point=Vector2i(3,3)
   assert(Door.downed(sample.carrier) and Door.downed(sample.patient) and sample.patient.get("carried_by","").is_empty())
+  assert(game.occupied_tiles().get(point)==game.at(point),"The first uncarried patient occupies a tile with no standing unit")
   var restored=Rules.new();assert(restored.import_code(game.export_code("battle"))=="battle" and restored.occupants(point).size()==2,"A surrounded carrier fall remains a recoverable exact save")
   assert(game.heal(sample.healer,sample.patient) and game.at(point)==sample.patient,"Standing occupant takes precedence over an earlier-listed downed ally")
+  assert(game.occupied_tiles().get(point)==sample.patient,"A new range query observes the restored standing occupant")
   sample.healer.acted=false
   var before=game.save_data("battle").duplicate(true);var seed=game.rng.state
   assert(not game.can_heal(sample.healer,sample.carrier) and not game.heal(sample.healer,sample.carrier))
@@ -41,6 +43,7 @@ func run():
   assert(game.occupants(point).size()==1 and game.at(point)==sample.patient)
   sample.healer.acted=false
   assert(game.heal(sample.healer,sample.carrier) and sample.carrier.hp>0 and sample.carrier.get("carried_by","")==sample.patient.id,"A surrounded carried patient can still recover safely while remaining carried")
+  assert(game.occupied_tiles().get(point)==sample.patient and not game.occupied_tiles().values().has(sample.carrier),"A healthy carried unit does not block an additional tile")
   assert(game.valid_save(game.save_data("battle")))
  root.size=Vector2i(1024,640)
  var app=load("res://main.tscn").instantiate();app.settings_path="";app.save_path="/private/tmp/poem-crowded-rescue-save.json";root.add_child(app);await process_frame
