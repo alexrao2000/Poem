@@ -27,7 +27,9 @@ static func control_image(game) -> Image:
 
 static func material(game,atlas: Texture2D) -> ShaderMaterial:
 	var paint=blended_material(atlas,ImageTexture.create_from_image(control_image(game)),float(PADDING))
-	if game.info().get("environment","village")=="forest":paint.set_shader_parameter("rain_soaked",true)
+	var theme=game.info().get("environment","village")
+	if theme=="forest":paint.set_shader_parameter("rain_soaked",true)
+	if theme=="furnace":paint.set_shader_parameter("ash_paving",true)
 	return paint
 
 static func arena_control_image(surface: int) -> Image:

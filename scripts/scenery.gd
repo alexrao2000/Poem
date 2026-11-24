@@ -174,13 +174,14 @@ func material(color: Color) -> StandardMaterial3D:
  materials[key]=m
  return m
 
-func ground_material(tile: int,rain_soaked=false) -> ShaderMaterial:
- var key="ground"+str(tile)+("_rain" if rain_soaked else "")
+func ground_material(tile: int,rain_soaked=false,ash_paving=false) -> ShaderMaterial:
+ var key="ground"+str(tile)+("_rain" if rain_soaked else "")+("_ash" if ash_paving else "")
  if materials.has(key):return materials[key]
  var shader=preload("res://assets/shaders/ground.gdshader")
  var m=ShaderMaterial.new();m.shader=shader;m.set_shader_parameter("atlas_texture",atlas)
  m.set_shader_parameter("quadrant",Vector2((tile%2)*.5,(tile/2)*.5))
  if rain_soaked:m.set_shader_parameter("rain_soaked",true)
+ if ash_paving:m.set_shader_parameter("ash_paving",true)
  if tile in [0,2]:
   m.set_shader_parameter("wang_enabled",true)
   m.set_shader_parameter("natural_surface",0 if tile==0 else 1)
@@ -969,8 +970,11 @@ func battle_landscape(parent,center,context={}):
    ground(parent,center+Vector3(0,-.06,5.0),Vector2(70,42),3).name="ObservatoryTerrace"
   else:
    var outer_paint=ground_material(0,true) if rain_soaked else null
+   if theme=="furnace":outer_paint=ground_material(3,false,true)
    ground(parent,center-Vector3(0,.06,0),Vector2(70,70),3 if stone else 0,outer_paint)
-  if not wooden_floor:ground(parent,center,Vector2(24,6),surface)
+  if not wooden_floor:
+   var floor_paint=ground_material(surface,false,true) if theme=="furnace" and surface==3 else null
+   ground(parent,center,Vector2(24,6),surface,floor_paint)
  var water_level=-.055 if wooden_floor else RiverBank.ARENA_WATER_LEVEL
  if river or theme=="aqueduct" or wooden_floor:
   var water=water_material(theme)

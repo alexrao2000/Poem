@@ -147,6 +147,7 @@ func run():
   previous_paint=paint
   assert(paint.get_shader_parameter("blend_edges")==true,"Tactical ground uses the blending shader")
   assert(paint.get_shader_parameter("wang_enabled")==true,"All chapter floors enable edge-matched texture variation")
+  assert((paint.get_shader_parameter("ash_paving")==true)==(theme=="furnace"),"Only Reddeep tints the tactical paving with ash")
   var wang=paint.get_shader_parameter("wang_texture")
   assert(wang is Texture2D and wang.get_size()==Vector2(576,1152),"Each chapter binds the padded natural-ground Wang atlas")
   assert(wang.get_image().has_mipmaps(),"Natural ground retains mipmaps for distant map views")
@@ -553,6 +554,7 @@ func verify_arena_ground():
  for chapter in range(12):
   game.chapter=chapter;var before=game.rng.state
   var rainy=game.info().environment=="forest"
+  var furnace=game.info().environment=="furnace"
   var tactical=MapGround.material(game,scenery.atlas)
   assert((tactical.get_shader_parameter("rain_soaked")==true)==rainy)
   assert(scenery.ground_material(0).get_shader_parameter("rain_soaked")!=true,"Greywood cannot change the shared dry grass")
@@ -570,6 +572,7 @@ func verify_arena_ground():
    scenery.battle_landscape(arena,Vector3(35,0,0),{"chapter":chapter,"environment":game.info().environment,"terrain":symbol})
    var natural={};var sheets=0
    var wet_floor: Material
+   var ash_sheets=0
    for node in arena.get_children():
     if not node is MeshInstance3D or not node.mesh is PlaneMesh:continue
     var paint=node.material_override
@@ -578,6 +581,10 @@ func verify_arena_ground():
      assert(node.position.z+node.mesh.size.y*.5<-11.5,"The garden paint begins beyond the fighting floor")
      continue
     if paint is ShaderMaterial and paint.shader==tactical.shader:sheets+=1
+    if paint is ShaderMaterial and paint.get_shader_parameter("ash_paving")==true:
+     ash_sheets+=1
+     assert(paint==scenery.ground_material(3,false,true) and paint.get_shader_parameter("quadrant")==Vector2(.5,.5))
+     assert(paint.get_shader_parameter("atlas_texture")==tactical.get_shader_parameter("atlas_texture"))
     if paint is ShaderMaterial and paint.get_shader_parameter("rain_soaked")==true:
      assert(wet_floor==null and paint.shader==tactical.shader)
      wet_floor=paint
@@ -589,6 +596,9 @@ func verify_arena_ground():
    var wood=symbol=="="
    var continuous=not wood and game.info().environment in MapGround.CONTINUOUS_ARENAS
    var expected=maxi(0,MapGround.surface_for(symbol,game.info().environment))
+   assert(ash_sheets==(1+int(not wood and expected==3) if furnace else 0),
+    "Reddeep recolors its background and slate fighting lane, including the slate banks beside an unchanged wooden deck")
+   assert(scenery.ground_material(3).get_shader_parameter("ash_paving")!=true,"Reddeep leaves shared slate intact")
    assert(arena.get_meta("arena_surface")==expected,"Combat retains the selected tactical tile's actual grass, earth or paving instead of replacing a whole chapter with slate")
    assert(natural.has(0)==(not stone or (not wood and expected==0)),"Natural chapters retain varied grass around the fighting lane")
    if continuous:
@@ -606,6 +616,10 @@ func verify_arena_ground():
    if rainy:
     assert(arena.get_children().any(func(node):return node is MeshInstance3D and node.material_override==wet_floor),
      "Static batching keeps the rain treatment")
+   if furnace:
+    var ash=scenery.ground_material(3,false,true)
+    assert(arena.get_children().any(func(node):return node is MeshInstance3D and node.get_meta("static_batch",false) and node.material_override==ash),
+     "Static batching keeps Reddeep's shared ash material")
    for paint in natural.values():
     var present=false
     for node in arena.get_children():
@@ -615,6 +629,7 @@ func verify_arena_ground():
   assert(game.rng.state==before,"Ground presentation consumes no campaign RNG")
  print("PASS: %d raw/batched arena floors share tactical natural texture variety and scale while preserving stone, deck and water"%count)
  print("PASS: Greywood alone keeps a rain-soaked material on the map and across all six arena floor layouts")
+ print("PASS: Reddeep alone tints its slate paving with ash across the map and six raw/batched arena layouts")
 
 func verify_arena_paint(scenery):
  var radius=MapGround.ARENA_CONTROL_RADIUS

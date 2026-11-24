@@ -17,6 +17,7 @@ uniform vec2 control_size = vec2(1.0);
 uniform float control_padding = 2.0;
 uniform vec2 control_origin = vec2(0.0);
 uniform bool rain_soaked = false;
+uniform bool ash_paving = false;
 varying vec3 world_position;
 
 void vertex() { world_position = (MODEL_MATRIX * vec4(VERTEX, 1.0)).xyz; }
@@ -39,17 +40,17 @@ vec3 wang_paint(int index, int surface, vec2 local_uv, vec2 dx, vec2 dy) {
 	return textureGrad(wang_texture, uv, dx * 127.0 * mip_scale / dimensions, dy * 127.0 * mip_scale / dimensions).rgb;
 }
 
-float moisture_corner(ivec2 cell) {
+float field_corner(ivec2 cell) {
 	ivec2 position = ivec2(mod(vec2(cell), vec2(251.0)));
 	int key = (position.x * 113 + position.y * 73 + 19) % 251;
 	return float((key * key * 97 + key * 61 + 29) % 251) / 250.0;
 }
 
-float terrain_moisture(vec2 point) {
+float terrain_field(vec2 point) {
 	ivec2 cell = ivec2(floor(point));
 	vec2 blend = smoothstep(vec2(0.0), vec2(1.0), fract(point));
-	float near_edge = mix(moisture_corner(cell), moisture_corner(cell + ivec2(1, 0)), blend.x);
-	float far_edge = mix(moisture_corner(cell + ivec2(0, 1)), moisture_corner(cell + ivec2(1, 1)), blend.x);
+	float near_edge = mix(field_corner(cell), field_corner(cell + ivec2(1, 0)), blend.x);
+	float far_edge = mix(field_corner(cell + ivec2(0, 1)), field_corner(cell + ivec2(1, 1)), blend.x);
 	return mix(near_edge, far_edge, blend.y);
 }
 
@@ -63,6 +64,7 @@ void fragment() {
 	vec2 local_uv = fract(position);
 	vec2 uv = abs(fract(world_position.xz * 0.25) * 2.0 - 1.0) * 0.496 + 0.002;
 	vec3 paint;
+	float paving = 1.0;
 	if (blend_edges) {
 		vec2 ground = world_position.xz;
 		ground += vec2(sin(ground.y * 5.1 + ground.x * 2.3), cos(ground.x * 4.7 - ground.y * 2.1)) * 0.035;
@@ -71,6 +73,7 @@ void fragment() {
 		vec4 weights = texture(surface_weights, (blend_position + vec2(0.5 + control_padding)) / control_size);
 		float total = dot(weights, vec4(1.0));
 		weights = total > 0.001 ? weights / total : vec4(1.0, 0.0, 0.0, 0.0);
+		paving = weights.a;
 		if (wang_enabled) {
 			paint = wang_paint(index, 0, local_uv, dx, dy) * weights.r
 				+ texture(atlas_texture, uv + vec2(0.5, 0.0)).rgb * weights.g
@@ -93,10 +96,17 @@ void fragment() {
 	ROUGHNESS = 1.0;
 	if (rain_soaked) {
 		vec2 ground = world_position.xz;
-		float basin = 0.72 * terrain_moisture(ground * vec2(0.60, 0.72))
-			+ 0.28 * terrain_moisture(ground * vec2(1.43, 1.59) + vec2(50.2, 14.7));
+		float basin = 0.72 * terrain_field(ground * vec2(0.60, 0.72))
+			+ 0.28 * terrain_field(ground * vec2(1.43, 1.59) + vec2(50.2, 14.7));
 		float pooled = smoothstep(0.47, 0.80, basin);
 		ALBEDO *= mix(vec3(0.93, 0.946, 0.96), vec3(0.73, 0.79, 0.82), pooled);
 		ROUGHNESS = mix(0.92, 0.43, pooled);
+	}
+	if (ash_paving) {
+		float dust = smoothstep(0.22, 0.84, terrain_field(world_position.xz * vec2(0.43, 0.82) + vec2(11.8, 7.2)));
+		vec3 exposed_stone = gray * vec3(0.92, 0.81, 0.73);
+		vec3 soot = gray * vec3(0.52, 0.55, 0.59);
+		vec3 ash = mix(exposed_stone, soot, dust) * (0.93 + variation * 0.07);
+		ALBEDO = mix(ALBEDO, ash, paving);
 	}
 }
