@@ -18,6 +18,7 @@ func run():
    assert(app.ui.size==dimensions)
    var route=app.ui.find_child("CampaignRoute",true,false)
    assert(route!=null and route.markers.size()==12 and route.selected==chapter and route.section_starts)
+   assert(not app.ui.find_child("ReachedChapters",true,false).visible,"The illustrated route is enough when every seal has room")
    assert("Chapter %02d"%(int(chapter/4)*4+1) in app.ui.find_child("RouteLegend",true,false).text,"The legend identifies the actual retreat point")
    assert(Rect2(Vector2.ZERO,dimensions).encloses(route.get_global_rect()),"The complete route control fits the requested viewport")
    for node in app.ui.find_children("*","Control",true,false):
@@ -99,7 +100,65 @@ func run():
  app.debug_session.begin(app.game,"camp")
  assert(app.debug_session.report(app.game,"camp").section==2)
  app.debug_session.end(app.game)
+ await verify_longer_route(app)
  await Shutdown.dispose(app);await process_frame
  print("PASS: ",count," campaign route layouts, all twelve chapter markers selectable at 720, live focus and reflow, locked briefing protection, read-only campaign state and Escape return")
  print("PASS: unequal section ranges and reached rally points agree in the route, war council and Debug report")
  quit()
+
+func verify_longer_route(app):
+ var original=app.game.content.chapters.duplicate(true)
+ for sample in [["Across the Ridge",Vector2.ZERO],["The Eastern Road",Vector2(.90,.76)]]:
+  var chapter=original[0].duplicate(true)
+  chapter.title=sample[0]
+  chapter.route_position=[sample[1].x,sample[1].y]
+  app.game.content.chapters.append(chapter)
+ app.game.trials.configure_section_starts([0,3,7,12],app.game.content.chapters.size())
+ app.game.chapter=12
+ for dimensions in [Vector2(720,640),Vector2(1024,640),Vector2(1440,900)]:
+  app.show_campaign_route()
+  app.ui.set_anchors_and_offsets_preset(Control.PRESET_TOP_LEFT);app.ui.size=dimensions
+  await process_frame;await process_frame
+  var route=app.ui.find_child("CampaignRoute",true,false)
+  assert(route.markers.size()==14 and route.selected==12 and route.markers[13].disabled)
+  assert(route.point(12).is_equal_approx(route.map_rect.position),"A seal can sit on the authored map corner")
+  var bounds=Rect2(Vector2.ZERO,route.size).grow(.001)
+  assert(bounds.encloses(Rect2(route.point(12)-Vector2(20,41),Vector2(40,61))),"Even a corner seal keeps its standard inside the route")
+  assert(app.ui.find_child("RouteSection",true,false).text=="SECTION 4 · CHAPTERS 13–14")
+  for index in range(route.markers.size()):
+   var hit=route.markers[index].get_rect()
+   assert(bounds.encloses(hit))
+   for earlier in range(index):
+    assert(not hit.intersects(route.markers[earlier].get_rect()),"Each seal has a separate hit target in the larger authored route")
+  route.select_chapter(13);assert(route.selected==12)
+  route.markers[12].pressed.emit()
+  assert("Across the Ridge" in route.markers[12].tooltip_text)
+ app.game.chapter=13;app.show_campaign_route();await process_frame
+ var finished=app.ui.find_child("CampaignRoute",true,false)
+ assert(not finished.markers[13].disabled and finished.selected==13 and "The Eastern Road" in finished.markers[13].tooltip_text)
+ app.game.content.chapters[13].route_position=app.game.content.chapters[12].route_position.duplicate()
+ app.game.chapter=12;app.show_campaign_route();await process_frame;await process_frame
+ var chooser=app.ui.find_child("ReachedChapters",true,false)
+ var crowded=app.ui.find_child("CampaignRoute",true,false)
+ assert(chooser.visible and chooser.item_count==13 and crowded.markers[13].disabled,"Overlapping seals offer a list of only reached chapters")
+ chooser.select(0);chooser.item_selected.emit(0)
+ assert(crowded.selected==0 and "OBJECTIVE / " in app.ui.find_child("RouteObjective",true,false).text)
+ crowded.select_chapter(12);assert(chooser.selected==12)
+ app.game.chapter=13;app.show_campaign_route();await process_frame;await process_frame
+ chooser=app.ui.find_child("ReachedChapters",true,false)
+ assert(chooser.visible and chooser.item_count==14 and chooser.get_item_text(13)=="14 · The Eastern Road")
+ app.game.content.chapters[13].route_position=[.13,.64]
+ app.show_campaign_route()
+ app.ui.set_anchors_and_offsets_preset(Control.PRESET_TOP_LEFT);app.ui.size=Vector2(720,640)
+ await process_frame;await process_frame
+ chooser=app.ui.find_child("ReachedChapters",true,false)
+ var reflow=app.ui.find_child("CampaignRoute",true,false)
+ assert(chooser.visible)
+ chooser.grab_focus()
+ app.ui.size=Vector2(1440,900)
+ await process_frame;await process_frame
+ assert(not chooser.visible and app.get_viewport().gui_get_focus_owner()==reflow.markers[13],"When seals separate, focus follows the selected chapter")
+ app.game.content.chapters=original
+ app.game.trials.configure_section_starts(app.game.content.section_starts,original.size())
+ app.game.chapter=11
+ print("PASS: a fourteen-chapter authored route keeps every seal selectable through three sizes and lets players review overlapping reached seals")

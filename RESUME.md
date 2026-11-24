@@ -6,6 +6,8 @@ This checkpoint describes the current development branch and supersedes the earl
 
 ### Latest state
 
+Chapter data now places the route seals. All twelve original coordinates match the previous build. A fourteen-chapter layout fixture tested an extra destination, a corner seal and a reached-chapter list for overlapping markers. Keyboard focus moves back to the selected seal when a wider layout separates the markers. Eight focused suites, the final focus rerun, 72 matched chapter outcomes, packed route and trial checks and both ZIP checks passed.
+
 Campaign data now defines the chapter indices of section starts. The same boundaries drive rally points, relief scenes, memorials, checkpoint validation and the route, War Council and Debug displays. An uneven-section fixture tested a lord retry, relief, an exact save round trip and named losses. Eight focused suites, 72 matched chapter outcomes, packed trial and route checks, an exact older ending save in both packs and both ZIP checks passed.
 
 The clean `92d4558` checkout passed all 383 registered engine suites and four offline checks. All test sources and logs match their recorded digests. The terrain generator used installed Pillow and the score check used the verified local sample cache. The recorded dependency errors and passing reruns are in `build/review/full-current-state.json`.

@@ -629,6 +629,20 @@ func show_campaign_route():
 	var title=label_in(details,"",28)
 	var place=label_in(details,"",17,GOLD)
 	var section_label=label_in(details,"",15,GOLD);section_label.name="RouteSection";section_label.visible=sectioned
+	var chapter_choice=OptionButton.new()
+	chapter_choice.name="ReachedChapters"
+	chapter_choice.tooltip_text="Review a reached chapter"
+	chapter_choice.fit_to_longest_item=false;chapter_choice.clip_text=true
+	chapter_choice.custom_minimum_size.y=42
+	chapter_choice.visible=route.crowded
+	for index in (game.content.chapters.size() if game.completed else game.chapter+1):
+		var entry=game.content.chapters[index]
+		chapter_choice.add_item("%02d · %s"%[index+1,entry.title])
+	details.add_child(chapter_choice);interface_audio.watch(chapter_choice)
+	chapter_choice.item_selected.connect(route.select_chapter)
+	route.seal_spacing_changed.connect(func(crowded):
+		if not crowded and chapter_choice.has_focus():route.markers[route.selected].grab_focus()
+		chapter_choice.visible=crowded)
 	var reading=scrolling_column(details)
 	var objective=label_in(reading,"",17,GOLD);objective.name="RouteObjective"
 	var briefing=label_in(reading,"",20)
@@ -642,6 +656,7 @@ func show_campaign_route():
 		section_label.text="SECTION %d · CHAPTERS %02d–%02d"%[game.trials.section_index(index)+1,start+1,last+1]
 		briefing.text=chapter.intro;tactics_text.text=chapter.get("tactical_brief","")
 		objective.text="OBJECTIVE / "+objective_text(chapter)
+		chapter_choice.select(index)
 		reading.get_parent().scroll_vertical=0
 	route.chapter_selected.connect(refresh);refresh.call(game.chapter)
 	var route_hint="Numbered seals mark the road traveled. The standard marks your company’s current chapter."

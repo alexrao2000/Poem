@@ -2,9 +2,12 @@ extends Control
 ## Read-only campaign geography. Buttons review reached chapters; selecting a
 ## marker never changes campaign state or reveals an unreached briefing.
 signal chapter_selected(index: int)
+signal seal_spacing_changed(crowded: bool)
 const MAP=preload("res://assets/art/campaign-valley-v1.png")
-const POINTS=[Vector2(.18,.64),Vector2(.25,.61),Vector2(.23,.38),Vector2(.40,.32),Vector2(.52,.53),Vector2(.74,.73),Vector2(.83,.49),Vector2(.71,.31),Vector2(.55,.14),Vector2(.73,.20),Vector2(.82,.22),Vector2(.90,.10)]
 const SEAL_SIZE=36.0
+const SEAL_INSET=20.0
+const STANDARD_INSET=41.0
+var positions=PackedVector2Array()
 var markers: Array[Button]=[]
 var current=0
 var selected=0
@@ -12,17 +15,22 @@ var complete=false
 var section_starts=false
 var rally_points=PackedInt32Array()
 var retreat_chapter=0
+var crowded=false
 var clock=0.0
 var map_rect=Rect2()
 var seal_scale=1.0
 
 func configure(chapters: Array,index: int,finished=false,rallies=PackedInt32Array(),retreat=0):
- current=clampi(index,0,POINTS.size()-1);selected=current;complete=finished
+ for chapter in chapters:
+  var pin=chapter.get("route_position",[])
+  assert(pin is Array and pin.size()==2 and pin[0]>=0 and pin[0]<=1 and pin[1]>=0 and pin[1]<=1,"Route positions use normalized image coordinates")
+  positions.append(Vector2(pin[0],pin[1]))
+ current=clampi(index,0,positions.size()-1);selected=current;complete=finished
  rally_points=rallies;retreat_chapter=retreat;section_starts=not rally_points.is_empty()
  mouse_filter=Control.MOUSE_FILTER_IGNORE
  size_flags_horizontal=Control.SIZE_EXPAND_FILL;size_flags_vertical=Control.SIZE_EXPAND_FILL
  custom_minimum_size=Vector2(350,240)
- for i in range(POINTS.size()):
+ for i in positions.size():
   var marker=Button.new();marker.name="Chapter"+str(i+1);marker.text=str(i+1)
   marker.tooltip_text=chapters[i].place+" · "+chapters[i].title if i<=current or complete else "Unreached destination"
   if rally_points.has(i) and (i<=current or complete):marker.tooltip_text+="\nSection %d start%s"%[rally_points.find(i)+1," · Current retreat point" if i==retreat_chapter and not complete else ""]
@@ -37,13 +45,21 @@ func configure(chapters: Array,index: int,finished=false,rallies=PackedInt32Arra
  resized.connect(arrange);arrange()
 
 func select_chapter(index: int):
- if index<0 or index>=POINTS.size() or (index>current and not complete):return
+ if index<0 or index>=positions.size() or (index>current and not complete):return
  selected=index;queue_redraw();chapter_selected.emit(index)
 
 func arrange():
  var available=(size-Vector2(32 if size.x<500 else 48,64)).max(Vector2.ONE)
- var scale_value=minf(available.x/MAP.get_width(),available.y/MAP.get_height())
- var extent=MAP.get_size()*scale_value;map_rect=Rect2((size-extent)*.5,extent)
+ var atlas_size=MAP.get_size()
+ var scale_value=minf(available.x/atlas_size.x,available.y/atlas_size.y)
+ for seal in positions:
+  var offset=(seal-Vector2(.5,.5))*atlas_size
+  if not is_zero_approx(offset.x):
+   scale_value=minf(scale_value,maxf(1,size.x*.5-SEAL_INSET)/absf(offset.x))
+  if not is_zero_approx(offset.y):
+   var inset=STANDARD_INSET if offset.y<0 else SEAL_INSET
+   scale_value=minf(scale_value,maxf(1,size.y*.5-inset)/absf(offset.y))
+ var extent=atlas_size*scale_value;map_rect=Rect2((size-extent)*.5,extent)
  var clearance=SEAL_SIZE+1
  for i in range(markers.size()):
   for previous in range(i):
@@ -57,10 +73,14 @@ func arrange():
   markers[i].add_theme_font_size_override("font_size",font_size)
   markers[i].position=point(i)-target*.5
   markers[i].size=target
+ var overlaps=clearance<24
+ if overlaps!=crowded:
+  crowded=overlaps
+  seal_spacing_changed.emit(crowded)
  queue_redraw()
 
 func point(index: int) -> Vector2:
- return map_rect.position+POINTS[index]*map_rect.size
+ return map_rect.position+positions[index]*map_rect.size
 
 func _process(dt):
  clock+=dt;queue_redraw()
@@ -68,7 +88,7 @@ func _process(dt):
 func _draw():
  if map_rect.size.x<=0:return
  draw_texture_rect(MAP,map_rect,false)
- for i in range(POINTS.size()-1):
+ for i in range(positions.size()-1):
   var a=point(i);var b=point(i+1);var delta=b-a
   var side=Vector2(-delta.y,delta.x).normalized()*minf(18,delta.length()*.1)
   var reached=i<current or complete

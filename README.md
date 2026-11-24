@@ -224,6 +224,8 @@ The authored combat-model catalog starts empty; procedural actors remain the fal
 
 The `section_starts` list in [campaign.json](data/campaign.json) gives the zero-based chapter indices of the rally points. Start with `0` and list later starts in chapter order. In [campaign_trial_scenes.json](data/campaign_trial_scenes.json), append the same index to `relief_`, `memorial_`, and `retreat_` when authoring a section’s scenes.
 
+Each chapter’s `route_position` places its seal on the illustrated route. Coordinates run from `[0, 0]` at the upper left to `[1, 1]` at the lower right. The route offers a separate reached-chapter list when the seals overlap.
+
 - [author_maps.py](scripts/author_maps.py) authors map geometry, deployment, squads, landmarks, and tactical briefings.
 - [index_sprites.gd](scripts/index_sprites.gd) generates sprite-region metadata from alpha bounds without modifying source images.
 - [package_visuals.py](scripts/package_visuals.py) creates a clean starter project and `build/Reusable2DVisuals.zip` for reuse in another game.
