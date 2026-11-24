@@ -3,7 +3,7 @@ const Rules=preload("res://scripts/rules.gd")
 const Session=preload("res://scripts/debug_session.gd")
 const Tactics=preload("res://scripts/tactics.gd")
 const Shutdown=preload("helpers/game_shutdown.gd")
-const SETUP_IDS=["committed_losses","reset_pressure","section_retreat","rescue","last_rescue","sacrifice"]
+const SETUP_IDS=["committed_losses","reset_pressure","section_retreat","rescue","last_rescue","legacy_recruits","sacrifice"]
 func _initialize():call_deferred("run")
 func canonical(data):return JSON.parse_string(JSON.stringify(data))
 func unit(game,id):return game.units.filter(func(u):return u.id==id)[0]
@@ -60,6 +60,22 @@ func consequences(game,session,id):
   assert(game.move_unit(carrier,Vector2i(1,4)) and game.can_heal(healer,patient))
   assert(game.heal(healer,patient) and patient.hp>0 and patient.acted and patient.get("carried_by","").is_empty())
   assert(not "oren" in game.lost_ids() and game.valid_save(game.save_data("battle")))
+ elif id=="legacy_recruits":
+  var snapshot=game.save_data("battle").duplicate(true)
+  var healer=unit(game,"esme")
+  assert(game.roster.size()==24 and game.trials.volunteers.is_empty())
+  for id_to_save in ["ivo","sera"]:
+   var branch=Rules.new();assert(branch.restore_save(snapshot)=="battle")
+   var patient=unit(branch,id_to_save)
+   assert(branch.DeathDoor.downed(patient) and patient.bleed_turns==1)
+   assert(branch.heal(unit(branch,healer.id),patient))
+   branch.begin_enemy_phase()
+   var expected="tovin" if id_to_save=="ivo" else "maelin"
+   var other="maelin" if id_to_save=="ivo" else "tovin"
+   assert(expected in branch.trials.volunteers and other not in branch.trials.volunteers and branch.trials.credits==1)
+   assert(branch.trials.restart(branch) and branch.chapter==0 and branch.available().any(func(unit):return unit.id==expected))
+  game.begin_enemy_phase()
+  assert(game.trials.credits==2 and game.trials.earned_scenes.has("volunteer_maelin") and game.trials.earned_scenes.has("volunteer_tovin"))
  else:
   assert(unit(game,"oren").hp==1 and unit(game,"enemy_4").hp==6 and game.action_saves)
   var attack=game.attack_power(unit(game,"lyra"))
@@ -160,8 +176,24 @@ func run():
   "Rescue and abandonment start from the same exact checkpoint, including the RNG")
  app.end_turn();await settle(app);saved_setup(app)
  assert("oren" in app.game.lost_ids() and app.game.turn==2 and FileAccess.get_file_as_string(app.save_path)==disk,"The contrasting actual end-phase path commits the loss only in the Debug slot")
+ app.show_debug_experiments();app.ui.find_child("StartExperiment_legacy_recruits",true,false).pressed.emit()
+ app.show_debug_tools("battle");press(app,"Save experiment checkpoint");press(app,"Restore experiment checkpoint")
+ await settle(app);saved_setup(app)
+ var pair_checkpoint=canonical(app.game.save_data("battle"))
+ for id_to_save in ["ivo","sera"]:
+  app.click_tile(app.game.pos(unit(app.game,"esme")));app.click_tile(app.game.pos(unit(app.game,id_to_save)))
+  await settle(app);saved_setup(app)
+  assert(unit(app.game,id_to_save).hp>0,"Esme's ordinary staff action can choose either patient")
+  app.end_turn();await settle(app);saved_setup(app)
+  var expected="tovin" if id_to_save=="ivo" else "maelin"
+  var other="maelin" if id_to_save=="ivo" else "tovin"
+  assert(expected in app.game.trials.volunteers and other not in app.game.trials.volunteers and app.game.trials.credits==1)
+  assert(FileAccess.get_file_as_string(app.save_path)==disk)
+  app.show_debug_tools("battle");press(app,"Restore experiment checkpoint")
+  await settle(app);saved_setup(app)
+  assert(canonical(app.game.save_data("battle"))==pair_checkpoint,"Both legacy branches use the same initial company, RNG and casualties")
  app.show_options("battle");app.ui.find_child("DebugMode",true,false).button_pressed=false
  assert(not app.debug_session.active and app.game.save_data("camp")==live and FileAccess.get_file_as_string(app.save_path)==disk)
  await Shutdown.dispose(app);await process_frame
- print("PASS: six deterministic experiment starters, five-seed rescue/bleed-out branches, carrier badge triage and exact map targets, checkpointed rescue and loss branches, four-size menus, separate saves, traces and exact campaign restoration")
+ print("PASS: seven deterministic experiment starters, five-seed rescue/bleed-out branches, matched Warden and Ranger replacement paths, carrier badge triage, four-size menus, separate saves, traces and exact campaign restoration")
  quit()

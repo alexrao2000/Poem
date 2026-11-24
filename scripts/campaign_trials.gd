@@ -5,7 +5,7 @@ extends RefCounted
 
 const FLAGS={"section_restarts":false,"reset_pressure":false,"hard_campaign":false,"death_legacies":false,"sacrifice_cost":false}
 const LEGACY_STOCK=[{"id":"tempered_sword","cost":1,"losses":1},{"id":"war_hammer","cost":2,"losses":2},{"id":"longbow","cost":3,"losses":3},{"id":"rally_lance","cost":2,"losses":2},{"id":"vigil_staff","cost":2,"losses":2}]
-const SCENE_TITLES={"relief_4":"Relief at the abbey","relief_8":"Relief at the monastery","retreat_0":"Regrouping at Cinderford","retreat_4":"Return to the abbey","retreat_8":"Return to Starfall","volunteer_faye":"Faye answers the call","volunteer_noor":"Noor leaves the observatory","volunteer_maelin":"The hospice road","memorial_0":"Names in the company book","memorial_4":"The abbey record","memorial_8":"The monastery bell"}
+const SCENE_TITLES={"relief_4":"Relief at the abbey","relief_8":"Relief at the monastery","retreat_0":"Regrouping at Cinderford","retreat_4":"Return to the abbey","retreat_8":"Return to Starfall","volunteer_faye":"Faye answers the call","volunteer_noor":"Noor leaves the observatory","volunteer_maelin":"The hospice road","volunteer_tovin":"The lanes beneath the hedge","memorial_0":"Names in the company book","memorial_4":"The abbey record","memorial_8":"The monastery bell"}
 var scenes: Dictionary=JSON.parse_string(FileAccess.get_file_as_string("res://data/campaign_trial_scenes.json"))
 var earned_scenes: Array=[]
 var read_scenes: Array=[]
@@ -118,7 +118,7 @@ func record_losses(game) -> Dictionary:
    if legacy.after_loss_job!=unit.job or recruit.id in volunteers:continue
    volunteers.append(recruit.id);game.enlist_legacy_recruit(recruit);queue_scene("volunteer_"+recruit.id)
    outcome.replacement=recruit.name
-   log_event(recruit.name+" takes up "+unit.name+"'s rounds and joins the company.")
+   log_event(recruit.name+" takes up "+unit.name+"'s work and joins the company.")
  return consequences
 
 func enemy_modifiers(chapter: int,pressure_override: int=-1) -> Dictionary:

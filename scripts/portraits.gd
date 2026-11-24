@@ -4,7 +4,7 @@ extends RefCounted
 const Commanders=preload("res://scripts/commanders.gd")
 const ORDER=["lyra","oren","sera","ivo","mara","tarin","nell","bram","esme","rook","faye","cassian","vela","dax","una","silas","petra","ari","noor","galen","yuna","hale","elian","rhea"]
 const ENEMY_CLASSES=["Vanguard","Knight","Ranger","Arcanist","Warden","Rider","Corsair","Duelist"]
-const INDIVIDUAL_PORTRAITS={"maelin":"res://assets/portraits/maelin-v1.png"}
+const INDIVIDUAL_PORTRAITS={"maelin":"res://assets/portraits/maelin-v1.png","tovin":"res://assets/portraits/tovin-v1.png"}
 var textures: Dictionary={}
 var expression_textures: Dictionary={}
 var dialogue_regions=JSON.parse_string(FileAccess.get_file_as_string("res://data/dialogue_portraits.json"))

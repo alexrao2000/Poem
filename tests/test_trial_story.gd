@@ -22,7 +22,7 @@ func run():
  for scene in game.trials.scenes.values():
   for line in scene:
    assert(line.speaker in ids and line.text.length()>20 and line.text.length()<500);count+=1
- assert(count==35)
+ assert(count==39)
  game.trials.queue_scene("relief_4");game.trials.queue_scene("relief_4")
  assert(game.trials.earned_scenes.size()==1 and game.trials.next_scene(game).size()==5)
  assert(game.trials.next_scene(game).is_empty())
@@ -89,8 +89,9 @@ func run():
  assert(app.screen=="ending","The archive return button also preserves the completed route")
  await verify_section_roll(app)
  await verify_legacy_warden(app)
+ await verify_legacy_ranger(app)
  await Shutdown.dispose(app);await process_frame
- print("PASS: 35 original trial-story lines, section memorial roll of names, live and archive playback, one-time arrivals, saved read state, deceased volunteer guard and debug restoration")
+ print("PASS: 39 original trial-story lines, section memorial roll of names, live and archive playback, one-time arrivals, saved read state, deceased volunteer guard and debug restoration")
  quit()
 
 func verify_section_roll(app):
@@ -198,3 +199,47 @@ func verify_legacy_warden(app):
  assert(resumed.import_code(game.export_code("camp"))=="camp" and "maelin" in resumed.lost_ids(),
   "Her eventual permanent loss also survives a rewind")
  print("PASS: permanent Warden loss alone enlists Maelin exactly once, preserves the recruit across disk, transfer and section rewind, and deploys her with a portrait and revised staff model")
+
+func verify_legacy_ranger(app):
+ var game=app.game;game.new_campaign(true)
+ game.story_seen=["opening_0"];game.action_saves=true
+ game.trials.flags.death_legacies=true;game.trials.flags.section_restarts=true
+ game.start_battle()
+ var fallen=game.units[2];assert(fallen.id=="sera")
+ fallen.hp=0;game.commit_casualties()
+ assert(game.lost_ids()==["sera"] and game.trials.volunteers==["faye","tovin"])
+ assert(game.trials.restart(game) and game.chapter==0 and game.roster.size()==25)
+ app.show_camp()
+ for _index in 3:
+  if app.dialogue_lines[0].speaker=="tovin":break
+  app.finish_dialogue()
+ assert(app.screen=="dialogue" and app.dialogue_lines[0].speaker=="tovin")
+ assert(app.dialogue_portrait.texture==app.portraits.get_portrait("tovin"))
+ while app.screen=="dialogue":app.finish_dialogue()
+ assert(app.screen=="camp" and app.ui.find_child("Company_tovin",true,false)!=null)
+ game.deployed=["lyra","tovin"];game.start_battle()
+ var ranger=game.living("player").filter(func(unit):return unit.id=="tovin")[0]
+ var guard=game.at(Vector2i(9,4))
+ ranger.x=7;ranger.y=4
+ app.make_map();app.show_battle()
+ assert(app.unit_nodes.tovin.visual_id=="recruit.tovin" and ranger.item=="scout_bow")
+ var scene={"model":false,"arrow":false}
+ var inspect=func():
+  if is_instance_valid(app.reward_panel):app.reward_panel.request_continue()
+  if not app.stage.visible:return
+  for node in app.stage.get_children():
+   if node is Imported and node.model.get_meta("character_identity","")=="tovin":scene.model=true
+   if node.name=="CombatProjectile" and node.kind=="bow":scene.arrow=true
+ process_frame.connect(inspect)
+ assert(game.can_attack(ranger,guard))
+ app.click_tile(game.pos(ranger));app.click_tile(game.pos(guard))
+ assert(app.selected==ranger and app.target==guard)
+ app.player_attack()
+ var deadline=Time.get_ticks_msec()+12000
+ while app.busy and Time.get_ticks_msec()<deadline:await process_frame
+ process_frame.disconnect(inspect)
+ assert(not app.busy and scene.model and scene.arrow and ranger.acted,
+  "Expected revised bow playback, got %s with busy=%s and acted=%s"%[scene,app.busy,ranger.acted])
+ var restored=Rules.new();assert(restored.load_game(app.save_path)=="battle")
+ assert(restored.units.any(func(unit):return unit.id=="tovin" and unit.acted) and restored.lost_ids()==["sera"])
+ print("PASS: permanent Ranger loss enlists Tovin with his own portrait and tactical sprite, survives the section rewind, and plays a saved revised 3D bow attack")

@@ -29,7 +29,7 @@ const SWITCHES=[
  {
   "key": "death_legacies",
   "name": "Death events & legacy supplies",
-  "text": "With permadeath: each loss grants a supply credit and may bring a volunteer. Losing a Warden can bring a hospice keeper into the company."
+  "text": "With permadeath: each loss grants a supply credit. A first Warden or Ranger loss can bring a new recruit into the company."
  },
  {
   "key": "sacrifice_cost",

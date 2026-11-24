@@ -10903,11 +10903,910 @@
           }
         }
       }
+    },
+    {
+      "id": "recruit.maelin",
+      "kind": "map_unit",
+      "texture": "assets/sprites/legacy-recruits-v1.png",
+      "logical_frame_px": [
+        64,
+        64
+      ],
+      "source_pixel_scale": 0.24,
+      "right_facing_frames": [
+        3,
+        10
+      ],
+      "fallback_visual_id": null,
+      "frames": [
+        {
+          "rect": [
+            35,
+            218,
+            85,
+            191
+          ],
+          "pivot_px": [
+            29,
+            188
+          ]
+        },
+        {
+          "rect": [
+            159,
+            218,
+            86,
+            191
+          ],
+          "pivot_px": [
+            33,
+            188
+          ]
+        },
+        {
+          "rect": [
+            278,
+            218,
+            83,
+            190
+          ],
+          "pivot_px": [
+            42,
+            187
+          ]
+        },
+        {
+          "rect": [
+            404,
+            219,
+            85,
+            189
+          ],
+          "pivot_px": [
+            44,
+            186
+          ]
+        },
+        {
+          "rect": [
+            533,
+            216,
+            85,
+            192
+          ],
+          "pivot_px": [
+            43,
+            189
+          ]
+        },
+        {
+          "rect": [
+            650,
+            218,
+            94,
+            190
+          ],
+          "pivot_px": [
+            54,
+            187
+          ]
+        },
+        {
+          "rect": [
+            788,
+            216,
+            87,
+            194
+          ],
+          "pivot_px": [
+            44,
+            191
+          ]
+        },
+        {
+          "rect": [
+            915,
+            216,
+            85,
+            195
+          ],
+          "pivot_px": [
+            45,
+            192
+          ]
+        },
+        {
+          "rect": [
+            1036,
+            218,
+            93,
+            196
+          ],
+          "pivot_px": [
+            52,
+            193
+          ]
+        },
+        {
+          "rect": [
+            1161,
+            218,
+            92,
+            196
+          ],
+          "pivot_px": [
+            55,
+            193
+          ]
+        },
+        {
+          "rect": [
+            1264,
+            230,
+            135,
+            178
+          ],
+          "pivot_px": [
+            80,
+            175
+          ]
+        },
+        {
+          "rect": [
+            1410,
+            257,
+            100,
+            156
+          ],
+          "pivot_px": [
+            62,
+            153
+          ]
+        }
+      ],
+      "clips": {
+        "idle": {
+          "south": {
+            "frames": [
+              0,
+              1
+            ],
+            "duration_ms": [
+              350,
+              350
+            ],
+            "loop": true,
+            "cues": []
+          },
+          "west": {
+            "frames": [
+              2,
+              2
+            ],
+            "duration_ms": [
+              350,
+              350
+            ],
+            "loop": true,
+            "cues": []
+          },
+          "east": {
+            "frames": [
+              4,
+              4
+            ],
+            "duration_ms": [
+              350,
+              350
+            ],
+            "loop": true,
+            "cues": []
+          },
+          "north": {
+            "frames": [
+              6,
+              6
+            ],
+            "duration_ms": [
+              350,
+              350
+            ],
+            "loop": true,
+            "cues": []
+          }
+        },
+        "move": {
+          "south": {
+            "frames": [
+              8,
+              9
+            ],
+            "duration_ms": [
+              110,
+              110
+            ],
+            "loop": true,
+            "cues": []
+          },
+          "west": {
+            "frames": [
+              2,
+              3
+            ],
+            "duration_ms": [
+              110,
+              110
+            ],
+            "loop": true,
+            "cues": []
+          },
+          "east": {
+            "frames": [
+              4,
+              5
+            ],
+            "duration_ms": [
+              110,
+              110
+            ],
+            "loop": true,
+            "cues": []
+          },
+          "north": {
+            "frames": [
+              6,
+              7
+            ],
+            "duration_ms": [
+              110,
+              110
+            ],
+            "loop": true,
+            "cues": []
+          }
+        },
+        "act": {
+          "south": {
+            "frames": [
+              0,
+              10,
+              10,
+              0
+            ],
+            "duration_ms": [
+              120,
+              100,
+              90,
+              110
+            ],
+            "loop": false,
+            "cues": [
+              {
+                "frame_index": 1,
+                "name": "contact"
+              }
+            ]
+          },
+          "west": {
+            "frames": [
+              2,
+              10,
+              10,
+              2
+            ],
+            "duration_ms": [
+              120,
+              100,
+              90,
+              110
+            ],
+            "loop": false,
+            "cues": [
+              {
+                "frame_index": 1,
+                "name": "contact"
+              }
+            ]
+          },
+          "east": {
+            "frames": [
+              4,
+              10,
+              10,
+              4
+            ],
+            "duration_ms": [
+              120,
+              100,
+              90,
+              110
+            ],
+            "loop": false,
+            "cues": [
+              {
+                "frame_index": 1,
+                "name": "contact"
+              }
+            ]
+          },
+          "north": {
+            "frames": [
+              6,
+              10,
+              10,
+              6
+            ],
+            "duration_ms": [
+              120,
+              100,
+              90,
+              110
+            ],
+            "loop": false,
+            "cues": [
+              {
+                "frame_index": 1,
+                "name": "contact"
+              }
+            ]
+          }
+        },
+        "hurt": {
+          "south": {
+            "frames": [
+              11,
+              11
+            ],
+            "duration_ms": [
+              120,
+              160
+            ],
+            "loop": false,
+            "cues": []
+          },
+          "west": {
+            "frames": [
+              11,
+              11
+            ],
+            "duration_ms": [
+              120,
+              160
+            ],
+            "loop": false,
+            "cues": []
+          },
+          "east": {
+            "frames": [
+              11,
+              11
+            ],
+            "duration_ms": [
+              120,
+              160
+            ],
+            "loop": false,
+            "cues": []
+          },
+          "north": {
+            "frames": [
+              11,
+              11
+            ],
+            "duration_ms": [
+              120,
+              160
+            ],
+            "loop": false,
+            "cues": []
+          }
+        },
+        "defeated": {
+          "south": {
+            "frames": [
+              11,
+              11
+            ],
+            "duration_ms": [
+              200,
+              300
+            ],
+            "loop": false,
+            "cues": []
+          },
+          "west": {
+            "frames": [
+              11,
+              11
+            ],
+            "duration_ms": [
+              200,
+              300
+            ],
+            "loop": false,
+            "cues": []
+          },
+          "east": {
+            "frames": [
+              11,
+              11
+            ],
+            "duration_ms": [
+              200,
+              300
+            ],
+            "loop": false,
+            "cues": []
+          },
+          "north": {
+            "frames": [
+              11,
+              11
+            ],
+            "duration_ms": [
+              200,
+              300
+            ],
+            "loop": false,
+            "cues": []
+          }
+        }
+      }
+    },
+    {
+      "id": "recruit.tovin",
+      "kind": "map_unit",
+      "texture": "assets/sprites/legacy-recruits-v1.png",
+      "logical_frame_px": [
+        64,
+        64
+      ],
+      "source_pixel_scale": 0.24,
+      "right_facing_frames": [
+        3,
+        10
+      ],
+      "fallback_visual_id": null,
+      "frames": [
+        {
+          "rect": [
+            39,
+            659,
+            90,
+            202
+          ],
+          "pivot_px": [
+            25,
+            199
+          ]
+        },
+        {
+          "rect": [
+            161,
+            659,
+            91,
+            202
+          ],
+          "pivot_px": [
+            31,
+            199
+          ]
+        },
+        {
+          "rect": [
+            285,
+            662,
+            85,
+            197
+          ],
+          "pivot_px": [
+            35,
+            194
+          ]
+        },
+        {
+          "rect": [
+            398,
+            664,
+            97,
+            194
+          ],
+          "pivot_px": [
+            50,
+            191
+          ]
+        },
+        {
+          "rect": [
+            528,
+            660,
+            87,
+            200
+          ],
+          "pivot_px": [
+            48,
+            197
+          ]
+        },
+        {
+          "rect": [
+            646,
+            663,
+            99,
+            194
+          ],
+          "pivot_px": [
+            58,
+            191
+          ]
+        },
+        {
+          "rect": [
+            779,
+            660,
+            94,
+            199
+          ],
+          "pivot_px": [
+            53,
+            196
+          ]
+        },
+        {
+          "rect": [
+            910,
+            662,
+            91,
+            197
+          ],
+          "pivot_px": [
+            50,
+            194
+          ]
+        },
+        {
+          "rect": [
+            1034,
+            661,
+            95,
+            202
+          ],
+          "pivot_px": [
+            54,
+            199
+          ]
+        },
+        {
+          "rect": [
+            1158,
+            661,
+            94,
+            201
+          ],
+          "pivot_px": [
+            58,
+            198
+          ]
+        },
+        {
+          "rect": [
+            1260,
+            648,
+            156,
+            211
+          ],
+          "pivot_px": [
+            84,
+            208
+          ]
+        },
+        {
+          "rect": [
+            1415,
+            704,
+            96,
+            157
+          ],
+          "pivot_px": [
+            57,
+            154
+          ]
+        }
+      ],
+      "clips": {
+        "idle": {
+          "south": {
+            "frames": [
+              0,
+              1
+            ],
+            "duration_ms": [
+              350,
+              350
+            ],
+            "loop": true,
+            "cues": []
+          },
+          "west": {
+            "frames": [
+              2,
+              2
+            ],
+            "duration_ms": [
+              350,
+              350
+            ],
+            "loop": true,
+            "cues": []
+          },
+          "east": {
+            "frames": [
+              4,
+              4
+            ],
+            "duration_ms": [
+              350,
+              350
+            ],
+            "loop": true,
+            "cues": []
+          },
+          "north": {
+            "frames": [
+              6,
+              6
+            ],
+            "duration_ms": [
+              350,
+              350
+            ],
+            "loop": true,
+            "cues": []
+          }
+        },
+        "move": {
+          "south": {
+            "frames": [
+              8,
+              9
+            ],
+            "duration_ms": [
+              110,
+              110
+            ],
+            "loop": true,
+            "cues": []
+          },
+          "west": {
+            "frames": [
+              2,
+              3
+            ],
+            "duration_ms": [
+              110,
+              110
+            ],
+            "loop": true,
+            "cues": []
+          },
+          "east": {
+            "frames": [
+              4,
+              5
+            ],
+            "duration_ms": [
+              110,
+              110
+            ],
+            "loop": true,
+            "cues": []
+          },
+          "north": {
+            "frames": [
+              6,
+              7
+            ],
+            "duration_ms": [
+              110,
+              110
+            ],
+            "loop": true,
+            "cues": []
+          }
+        },
+        "act": {
+          "south": {
+            "frames": [
+              0,
+              10,
+              10,
+              0
+            ],
+            "duration_ms": [
+              120,
+              100,
+              90,
+              110
+            ],
+            "loop": false,
+            "cues": [
+              {
+                "frame_index": 1,
+                "name": "contact"
+              }
+            ]
+          },
+          "west": {
+            "frames": [
+              2,
+              10,
+              10,
+              2
+            ],
+            "duration_ms": [
+              120,
+              100,
+              90,
+              110
+            ],
+            "loop": false,
+            "cues": [
+              {
+                "frame_index": 1,
+                "name": "contact"
+              }
+            ]
+          },
+          "east": {
+            "frames": [
+              4,
+              10,
+              10,
+              4
+            ],
+            "duration_ms": [
+              120,
+              100,
+              90,
+              110
+            ],
+            "loop": false,
+            "cues": [
+              {
+                "frame_index": 1,
+                "name": "contact"
+              }
+            ]
+          },
+          "north": {
+            "frames": [
+              6,
+              10,
+              10,
+              6
+            ],
+            "duration_ms": [
+              120,
+              100,
+              90,
+              110
+            ],
+            "loop": false,
+            "cues": [
+              {
+                "frame_index": 1,
+                "name": "contact"
+              }
+            ]
+          }
+        },
+        "hurt": {
+          "south": {
+            "frames": [
+              11,
+              11
+            ],
+            "duration_ms": [
+              120,
+              160
+            ],
+            "loop": false,
+            "cues": []
+          },
+          "west": {
+            "frames": [
+              11,
+              11
+            ],
+            "duration_ms": [
+              120,
+              160
+            ],
+            "loop": false,
+            "cues": []
+          },
+          "east": {
+            "frames": [
+              11,
+              11
+            ],
+            "duration_ms": [
+              120,
+              160
+            ],
+            "loop": false,
+            "cues": []
+          },
+          "north": {
+            "frames": [
+              11,
+              11
+            ],
+            "duration_ms": [
+              120,
+              160
+            ],
+            "loop": false,
+            "cues": []
+          }
+        },
+        "defeated": {
+          "south": {
+            "frames": [
+              11,
+              11
+            ],
+            "duration_ms": [
+              200,
+              300
+            ],
+            "loop": false,
+            "cues": []
+          },
+          "west": {
+            "frames": [
+              11,
+              11
+            ],
+            "duration_ms": [
+              200,
+              300
+            ],
+            "loop": false,
+            "cues": []
+          },
+          "east": {
+            "frames": [
+              11,
+              11
+            ],
+            "duration_ms": [
+              200,
+              300
+            ],
+            "loop": false,
+            "cues": []
+          },
+          "north": {
+            "frames": [
+              11,
+              11
+            ],
+            "duration_ms": [
+              200,
+              300
+            ],
+            "loop": false,
+            "cues": []
+          }
+        }
+      }
     }
   ],
   "sources": {
     "assets/sprites/opening-animated-v1.png": "2406ec8616979d919e8ee3639dfabd8fc5181ae5aa0da1335e9b7ca022783858",
     "assets/sprites/company-c-animated-v1.png": "527b050ca509f7ee6c408584037acea104d7045d88a0eb1c03b747d7322cd8ad",
-    "assets/sprites/company-b-animated-v1.png": "a04638b63b32753db14c1cd8a184ff676786d2e81822b9cbc6ab3d28d48c78c8"
+    "assets/sprites/company-b-animated-v1.png": "a04638b63b32753db14c1cd8a184ff676786d2e81822b9cbc6ab3d28d48c78c8",
+    "assets/sprites/legacy-recruits-v1.png": "297094bcf15e1ecdce5a626d02025a473950b011bc1f69f0585880141b00a78a"
   }
 }

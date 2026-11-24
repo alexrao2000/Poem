@@ -18,6 +18,24 @@
     "finish_quote": "Let me get to them.",
     "growth_quote": "I can make the next round."
   },
+  "tovin": {
+    "title": "The lanes beneath the hedge",
+    "biography": "A road surveyor before the occupation, Tovin used to measure the space between bridges and field gates. When the regent struck the old lanes from the maps, Tovin moved the waymarks beneath the hedgerows. He joins the company after a Ranger is lost on a road he helped chart.",
+    "note": "Draws a left-facing feather beside any gate that will open from both sides.",
+    "ending": "Tovin rewrote the valley's survey with the villages that lived beside the roads. Every copy marked the way round a closed bridge.",
+    "appearance": {
+      "skin": "855638",
+      "hair": "282321",
+      "hair_style": "short",
+      "hair_fringe": "tousled",
+      "face_shape": "angular",
+      "cloth": "69795a",
+      "cape": "70687c"
+    },
+    "critical_quote": "Through the gap!",
+    "finish_quote": "The lane is open.",
+    "growth_quote": "I can find a better line."
+  },
   "lyra": {
     "title": "A standard without a throne",
     "biography": "Lyra grew up repairing nets and reading histories borrowed from a teacher who never asked for them back. A distant connection to the old royal household made her useful to people with ambitions; the river evacuation made those ambitions seem very small. She is most decisive when the choice concerns someone else, and least comfortable when others ask what she wants.",

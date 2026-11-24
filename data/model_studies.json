@@ -1207,6 +1207,10 @@
     "study_character": "ari",
     "study_label": "male Ranger",
     "study_title": "Ranger \u00b7 Ari",
+    "campaign_characters": [
+      "ari",
+      "tovin"
+    ],
     "supported_promotions": [
       "sharpshooter",
       "pathfinder"

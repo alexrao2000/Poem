@@ -41,7 +41,7 @@ def hoof_span(mask, rect, pivot):
     return [int(edge) for edge in np.quantile(columns, [.03, .97], method="nearest")]
 
 
-def index_sheet(path, ids, scale):
+def index_sheet(path, ids, scale, right_facing_frames=(10,)):
     image = Image.open(path)
     if image.mode != "RGBA":
         raise ValueError("Recruit atlas must preserve an alpha channel")
@@ -49,7 +49,9 @@ def index_sheet(path, ids, scale):
     mask = alpha >= 100
     height, width = mask.shape
     rows = separators(mask.sum(axis=1), len(ids), round(height / len(ids) * .38))
-    roster = {unit["id"]: unit for unit in json.loads((ROOT / "data/campaign.json").read_text())["roster"]}
+    campaign = json.loads((ROOT / "data/campaign.json").read_text())
+    recruits = campaign["roster"] + [entry["unit"] for entry in campaign.get("legacy_recruits", [])]
+    roster = {unit["id"]: unit for unit in recruits}
     classes = {asset["id"]: asset for asset in json.loads((ROOT / "visuals/units.json").read_text())["assets"]}
     result = []
     for row, character in enumerate(ids):
@@ -78,7 +80,7 @@ def index_sheet(path, ids, scale):
                 frame["hoof_span_px"] = hoof_span(mask, rect, pivot)
             frames.append(frame)
         template = classes["unit." + roster[character]["job"].lower()]
-        result.append({"id": "recruit." + character, "kind": "map_unit", "texture": path.relative_to(ROOT).as_posix(), "logical_frame_px": [64, 64], "source_pixel_scale": scale, "right_facing_frames": [10], "fallback_visual_id": None, "frames": frames, "clips": copy.deepcopy(template["clips"])})
+        result.append({"id": "recruit." + character, "kind": "map_unit", "texture": path.relative_to(ROOT).as_posix(), "logical_frame_px": [64, 64], "source_pixel_scale": scale, "right_facing_frames": list(right_facing_frames), "fallback_visual_id": None, "frames": frames, "clips": copy.deepcopy(template["clips"])})
     return result
 
 
@@ -87,6 +89,8 @@ def main():
     parser.add_argument("sheet", type=Path)
     parser.add_argument("--characters", required=True, help="Comma-separated character IDs in row order")
     parser.add_argument("--scale", type=float, default=.5)
+    parser.add_argument("--right-facing", type=int, nargs="+", default=[10],
+                        help="Frame indexes to mirror when a west-facing clip uses a right-facing pose")
     args = parser.parse_args()
     if not 0 < args.scale <= 2:
         raise ValueError("Source scale must be between zero and two")
@@ -94,7 +98,9 @@ def main():
     ids = args.characters.split(",")
     if len(ids) != len(set(ids)):
         raise ValueError("Duplicate character ID")
-    assets = index_sheet(path, ids, args.scale)
+    if any(index not in range(12) for index in args.right_facing):
+        raise ValueError("Right-facing frame indexes must be between 0 and 11")
+    assets = index_sheet(path, ids, args.scale, args.right_facing)
     output = ROOT / "campaign_visuals.json"
     catalog = json.loads(output.read_text()) if output.exists() else {"schema_version": 1, "profile": {"id": "poem-recruits-v1", "tile_size_px": [32, 32]}, "assets": [], "sources": {}}
     updated = {asset["id"]: asset for asset in catalog["assets"]}

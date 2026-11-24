@@ -7,12 +7,15 @@ const Rules=preload("res://scripts/rules.gd")
 func _initialize():call_deferred("run")
 func run():
  var catalog=Catalog.new();assert(catalog.open("res://visuals/units.json") and catalog.recruit_errors.is_empty())
- assert(catalog.assets.size()==40,"Full roster and enemy army extend eight base classes")
+ assert(catalog.assets.size()==42,"The company, two optional recruits and enemy army extend eight base classes")
  var game=Rules.new();var stage=Node3D.new();root.add_child(stage)
+ var recruits=game.roster.duplicate()
+ for legacy in game.content.legacy_recruits:
+  var unit=legacy.unit.duplicate(true);game.initialize_recruit(unit);recruits.append(unit)
  var shared_shadow: PlaneMesh
  var full_health: Texture2D
  var enemy_bars={}
- for source in game.roster:
+ for source in recruits:
   var unit=source.duplicate(true);unit.team="player";unit.acted=false
   var actor=Unit.new();stage.add_child(actor);actor.configure(catalog,unit)
   var individual=catalog.assets.has("recruit."+unit.id)
@@ -42,7 +45,11 @@ func run():
      actor.player.play(state,facing,true);actor.update_frame()
      assert(actor.sprite.scale==Vector3(entry.source_pixel_scale,entry.source_pixel_scale,1),"Variable frame crops retain one source-pixel density")
      var frame=entry.frames[actor.player.frame_index()]
-     assert(actor.sprite.offset==Vector2(-frame.pivot_px[0],frame.pivot_px[1]-frame.rect[3]),"Pose retains its indexed foot pivot")
+     var pivot=frame.pivot_px[0]-frame.rect[2] if actor.sprite.flip_h else -frame.pivot_px[0]
+     assert(actor.sprite.offset==Vector2(pivot,frame.pivot_px[1]-frame.rect[3]),"Pose retains its indexed foot pivot")
+   if 3 in entry.right_facing_frames:
+    actor.player.play("move","west",true);actor.player.advance(.12);actor.update_frame()
+    assert(actor.player.frame_index()==3 and actor.sprite.flip_h,"The shared right-facing stride follows the west clip")
    actor.player.play("act","west",true);actor.player.advance(.13);actor.update_frame()
    var contact=entry.frames[actor.player.frame_index()]
    assert(actor.sprite.flip_h and actor.sprite.offset.x==contact.pivot_px[0]-contact.rect[2],"West attack mirrors the right-facing pose around its foot pivot")
@@ -89,7 +96,7 @@ func run():
  assert(catalog.open("res://visuals/units.json") and catalog.recruit_errors.is_empty() and catalog.spent_textures.is_empty(),"Reopening resets supplemental errors and presentation cache")
  verify_hoof_shadows(catalog,stage,game)
  stage.queue_free();await process_frame
- print("PASS: 24 original recruit identities, 288 isolated poses, stable density/pivots, directional attacks, shared health bars and shadows, cached grayscale states, class/enemy fallbacks and supplemental validation")
+ print("PASS: 26 original recruit identities, 312 isolated poses, stable density/pivots, directional attacks, shared health bars and shadows, cached grayscale states, class/enemy fallbacks and supplemental validation")
  quit()
 
 func verify_hoof_shadows(catalog,stage: Node3D,game):

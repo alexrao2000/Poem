@@ -18,6 +18,25 @@
         "reach": 1,
         "resistance": 7
       }
+    },
+    {
+      "after_loss_job": "Ranger",
+      "unit": {
+        "id": "tovin",
+        "name": "Tovin",
+        "job": "Ranger",
+        "bio": "A hedgerow surveyor who keeps the valley's erased lanes marked by hand.",
+        "color": "#779e87",
+        "join": 2,
+        "hp": 22,
+        "pow": 6,
+        "defense": 3,
+        "speed": 9,
+        "move": 5,
+        "weapon": "bow",
+        "reach": 2,
+        "resistance": 3
+      }
     }
   ],
   "section_starts": [0, 4, 8],

@@ -41,6 +41,12 @@
     {"speaker":"maelin","text":"Then give me the addresses they carried. Show me where you are going. I can take their round as far as the next village."},
     {"speaker":"lyra","text":"We leave together at dawn. I'll make sure there is room for your bag."}
   ],
+  "volunteer_tovin": [
+    {"speaker":"tovin","text":"I knew whose boots to look for when your company came by. Today I counted them twice."},
+    {"speaker":"lyra","text":"The lookout they were meant to meet is still waiting. I need someone who can find the old lane after dark."},
+    {"speaker":"tovin","text":"I set the waymarks there myself. Lend me a place in your line. We can tell the lookout together."},
+    {"speaker":"lyra","text":"Come with us. After we tell them, I'd like you to mark the road for whoever follows."}
+  ],
   "memorial_0": [
     {"speaker":"lyra","text":"We will enter their names in the company book tonight. Leave room beside each one for the people who should hear from us when the roads are open."},
     {"speaker":"lyra","text":"They left instructions with the quartermaster. The sealed supplies are for whoever can carry the work forward. We will honor those instructions before the next march."},

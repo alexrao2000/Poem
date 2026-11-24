@@ -49,10 +49,10 @@ func run():
    assert(not setup.is_empty())
    var actor=roster_rules.units.filter(func(u):return u.id==setup.actor)[0];var recipient=roster_rules.units.filter(func(u):return u.id==setup.target)[0]
    assert(actor.item==item.id and roster_rules.distance(actor,recipient)==int(item.max_range) and roster_rules.valid_save(roster_rules.save_data("battle")),"Packed equipment starters retain all catalogued legal item/recruit pairs")
- assert(load("res://scripts/casualty_card.gd").lines.size()==25,"Export includes all recruit casualty dialogue")
- var maelin_portrait=load("res://assets/portraits/maelin-v1.png") as Texture2D
- assert(maelin_portrait!=null and maelin_portrait.resource_path=="res://assets/portraits/maelin-v1.png")
- assert(maxf(maelin_portrait.get_width(),maelin_portrait.get_height())==768)
+ assert(load("res://scripts/casualty_card.gd").lines.size()==26,"Export includes all recruit casualty dialogue")
+ for id in ["maelin","tovin"]:
+  var portrait=load("res://assets/portraits/"+id+"-v1.png") as Texture2D
+  assert(portrait!=null and maxf(portrait.get_width(),portrait.get_height())==768)
  for path in ["res://assets/fonts/OFL.txt","res://assets/audio/VSCO-LICENSE.txt","res://assets/audio/VSCO-CREDITS.txt"]:
   assert(FileAccess.file_exists(path) and FileAccess.get_file_as_string(path).length()>100,"Export includes font and instrument credits/licenses")
  for family in ["base","outfits","animations"]:
@@ -225,9 +225,11 @@ func run():
  assert(Geometry3D.get_closest_point_to_segment(enemy_point,enemy_edge[0],enemy_edge[1]).distance_to(enemy_point)<.006)
  app.close_model_view();await process_frame
  var support_curves=JSON.parse_string(FileAccess.get_file_as_string("res://data/authored_fall_fit.json"))
- assert(support_curves.size()==34,"Packaged full-outfit support includes 22 infantry recruits, seven enemy classes and their separately fitted promotions")
+ assert(support_curves.size()==37,"Packaged full-outfit support includes 23 infantry recruits, seven enemy classes and their separately fitted promotions")
  for support_key in ["promotion:dax:stormbreaker","promotion:dax:trailguard","promotion:hale:stormbreaker","recruit:maelin","promotion:maelin:luminary","promotion:maelin:wayfarer"]:
   assert(support_curves.has(support_key))
+ for key in ["recruit:tovin","promotion:tovin:sharpshooter","promotion:tovin:pathfinder"]:
+  assert(support_curves.has(key))
  var enemy_metadata=JSON.parse_string(FileAccess.get_file_as_string("res://data/model_studies.json"))
  for job in ["Vanguard","Knight","Corsair","Ranger","Arcanist","Warden","Rider"]:
   var key="enemy_"+job.to_lower();app.show_source_model_view(key,enemy_metadata[key].supported_items[0],true);await process_frame
@@ -361,7 +363,7 @@ func run():
  app.ui.find_child("DebugEnemyModels",true,false).button_pressed=false
  app.show_debug_report();assert(JSON.parse_string(app.ui.find_child("DebugReport",true,false).text).debug,"Packaged debug reports contain the current experiment record")
  assert(app.ui.find_child("DebugReportPosition",true,false).text.contains("Permadeath ") and app.ui.find_child("DebugReportSummary",true,false).text.contains("Pressure: %d"%app.game.trials.pressure),"Packed reports include the human-readable experiment summary")
- assert(app.game.trials.scenes.size()==11 and app.game.trials.scenes.has("volunteer_maelin"),
+ assert(app.game.trials.scenes.size()==12 and app.game.trials.scenes.has("volunteer_maelin") and app.game.trials.scenes.has("volunteer_tovin"),
   "Release includes relief, retreat, volunteer and memorial story scenes")
  assert(app.persist_campaign("battle") and FileAccess.file_exists(app.save_path+".debug"),"Packaged debug actions save separately")
  app.debug_session.end(app.game);app.preferences.values.character_models="revised"
