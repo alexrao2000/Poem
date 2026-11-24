@@ -104,11 +104,51 @@ func run():
   assert(saw_contact,"Resolved enemy turn still presents the defeated unit's actual map reaction: "+case)
   assert(not app.unit_nodes.has(lost_id),"Defeated map figure disappears after feedback")
   if case=="enemy_counter":assert(saw_reward,"Counterattack XP begins after field synchronization")
+ await verify_beacon_handoffs()
  mode="";await Shutdown.dispose(app);await process_frame
  print("PASS: five raised/flat map handoffs at three sizes with sprite-to-fighter and nameplate side continuity, exact view restoration, score fade during moving arena returns (defeat/counter/survival/heal/skip), actual enemy kill/counter map reactions, 25 coordinated sprite exits and teardown, updated health before XP, and unchanged resolved state")
  print("PASS: five arena approach cues start during the tactical zoom, follow Effects mute and stay out of Quick Map combat")
  print("PASS: five tactical and arena windmill handoffs carry the same rotation in both directions")
  quit()
+
+func verify_beacon_handoffs():
+ mode="";app.preferences.values.combat="all"
+ var paths=["PassBeaconWest/BeaconFlame","PassBeaconEast/BeaconFlame"]
+ for skip in [false,true]:
+  app.game.new_campaign();app.game.chapter=6;app.game.start_battle()
+  var a=app.game.living("player")[0];var b=app.game.living("enemy")[0]
+  a.x=4;a.y=5;b.x=5;b.y=5
+  app.game.units=[a,b];app.make_map();app.show_battle();app.busy=true
+  app.world.get_node(paths[0]).seek_phase(.34);app.world.get_node(paths[1]).seek_phase(3.10)
+  var observed={"entry":[],"return":[]}
+  var at_entry=func():
+   for path in paths:
+    var field=app.world.get_node(path);var arena=app.stage.get_node(path)
+    assert(field.phase==arena.phase and field.scale==arena.scale)
+    observed.entry.append(arena.phase)
+  var at_return=func():
+   if app.stage.visible:return
+   for path in paths:
+    var field=app.world.get_node(path);var arena=app.stage.get_node(path)
+    assert(field.phase==arena.phase and field.scale==arena.scale)
+    observed.return.append(field.phase)
+  var skip_after_reveal=func(node):
+   if node.name=="CombatHUD":app.skip_combat=true
+  app.world.visibility_changed.connect(at_entry,CONNECT_ONE_SHOT)
+  app.stage.visibility_changed.connect(at_return)
+  if skip:app.ui.child_entered_tree.connect(skip_after_reveal)
+  var initial={a.id:a.hp,b.id:b.hp};b.hp-=2
+  var snapshot=app.game.save_data("battle");var rng=app.game.rng.state
+  await app.cinematic(a,b,[{"actor":a.id,"target":b.id,"damage":2,"remaining":b.hp,"hit":true,"crit":false}],initial)
+  if skip:app.ui.child_entered_tree.disconnect(skip_after_reveal)
+  app.stage.visibility_changed.disconnect(at_return)
+  assert(observed.entry.size()==2 and observed.return.size()==2)
+  for i in paths.size():assert(observed.entry[i]!=observed.return[i],"The arena flame advances before handing its phase back")
+  assert(observed.entry[0]!=observed.entry[1] and observed.return[0]!=observed.return[1])
+  assert(app.world.visible and not app.stage.visible and app.skip_combat==skip)
+  assert(app.game.save_data("battle")==snapshot and app.game.rng.state==rng)
+  app.busy=false
+ print("PASS: both Windscar beacon flames carry their own phase through complete and skipped real exchanges")
 
 func watch_return():
  if mode!="arena":return

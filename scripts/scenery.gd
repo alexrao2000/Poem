@@ -26,6 +26,10 @@ const MILL_MAP_SITE=Vector3(8.25,-.15,-2.85)
 const MILL_ARENA_SITE=Vector3(-9,0,-13)
 const MILL_ALTERNATE_SITE=Vector3(-2,0,-15)
 const MILL_DISTANT_SITE=Vector3(-9,0,-21)
+const PASS_BEACON_SITES={
+ "PassBeaconWest":{"field":Vector2(-8.13,-.35),"arena":Vector2(-3.1,-4.25)},
+ "PassBeaconEast":{"field":Vector2(12.57,-.98),"arena":Vector2(8.2,-4.68)},
+}
 # Left and right roadside groves lead into a lower, more distant orchard.
 const VILLAGE_TREES=[
  {"position":Vector2(-15.7,-8.8),"scale":2.3},
@@ -351,6 +355,7 @@ func landscape(parent,game):
   for i in range(12):tree(parent,Vector3(-3+(i*13)%21,base,12+i%3),i*11,theme)
  elif theme=="mountain":
   var slope=PassEscarpment.build(parent,Vector3((game.board_size().x-1)*.5,-.15,-2.1),Vector3(.72,.66,.77))
+  pass_beacons(parent,slope,false)
   for i in range(16):boulder(parent,Vector3(-3+(i*5)%22,.2,-3-i%3),2.5)
   for i in range(7):
    var position=Vector3(-3+(i*9)%22,0,-6-i%3)
@@ -510,6 +515,12 @@ func transfer_landmark_motion(source: Node3D,destination: Node3D,theme: String):
   var counterparts=boat_sails(destination)
   for site in counterparts:
    if originals.has(site):counterparts[site].seek_phase(originals[site].phase)
+ elif theme=="mountain":
+  for name in PASS_BEACON_SITES:
+   var path=NodePath(name+"/BeaconFlame")
+   var original=source.get_node_or_null(path)
+   var counterpart=destination.get_node_or_null(path)
+   if original!=null and counterpart!=null:counterpart.seek_phase(original.phase)
 
 func boat_sails(parent: Node3D) -> Dictionary:
  var sails={}
@@ -791,6 +802,7 @@ func battle_landscape(parent,center,context={}):
   if theme=="mountain":
    var slope_origin=center+Vector3(0,0 if continuous_floor else -.06,-10.8)
    var slope=PassEscarpment.build(parent,slope_origin,Vector3(1,1.24,1))
+   pass_beacons(parent,slope,true)
    for i in range(16):boulder(parent,center+Vector3(-12+(i*7)%25,.4,-4-i%3),1.0+i%3*.3)
    for i in range(8):
     var position=center+Vector3(-17+(i*11)%35,0,-12.8-i%3*2.25)
@@ -808,6 +820,34 @@ func battle_landscape(parent,center,context={}):
  var atmosphere=AmbientDrift.new();parent.add_child(atmosphere);atmosphere.position=center+Vector3(0,0,-3)
  atmosphere.configure(theme,Vector3(28,4,14),true)
  return theme
+
+func pass_beacons(parent: Node3D,slope: MeshInstance3D,arena: bool):
+ var flame_paint=materials.get("pass_beacon_flame") as StandardMaterial3D
+ if flame_paint==null:
+  flame_paint=StandardMaterial3D.new();flame_paint.albedo_color=Color("e17838")
+  flame_paint.emission_enabled=true;flame_paint.emission=Color("f0a150")
+  materials["pass_beacon_flame"]=flame_paint
+ for name in PASS_BEACON_SITES:
+  var sites=PASS_BEACON_SITES[name]
+  var offset=sites.arena if arena else sites.field
+  var point=slope.transform*Vector3(offset.x,0,offset.y)
+  point.y=PassEscarpment.height_at(slope,point)
+  var beacon=Node3D.new();beacon.name=name;beacon.position=point
+  beacon.scale=Vector3.ONE*(1.05 if arena else .55);parent.add_child(beacon,true)
+  cylinder(beacon,Vector3(0,-.05,0),.67,.58,Color("626766"),.49).name="BeaconFooting"
+  cylinder(beacon,Vector3(0,.49,0),.52,.41,Color("7e8179"),.33).name="BeaconPedestal"
+  cylinder(beacon,Vector3(0,.773,0),.19,.32,Color("4a4b45"),.46).name="BeaconBowl"
+  cylinder(beacon,Vector3(0,.86,0),.105,.47,Color("9a8160"),.47).name="BeaconRim"
+  cylinder(beacon,Vector3(0,.917,0),.043,.32,Color("623a2e")).name="BeaconCoal"
+  var flame=preload("res://scripts/beacon_flame.gd").new()
+  flame.name="BeaconFlame";flame.position=Vector3(0,.92,0);beacon.add_child(flame,true)
+  flame.seek_phase(sites.arena.x)
+  var tongue=cylinder(flame,Vector3(0,.235,0),.52,.20,Color.WHITE,.012)
+  tongue.rotation.z=.18;tongue.material_override=flame_paint
+  tongue.cast_shadow=GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+  var edge=cylinder(flame,Vector3(-.13,.14,0),.31,.125,Color.WHITE,.01)
+  edge.rotation.z=-.23;edge.material_override=flame_paint
+  edge.cast_shadow=GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
 
 func village_mill_site(houses: Array) -> Vector3:
  for site in [MILL_ARENA_SITE,MILL_ALTERNATE_SITE]:

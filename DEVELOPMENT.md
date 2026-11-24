@@ -1,5 +1,7 @@
 # Poem development
 
+Windscar Pass has two stone beacons on the ridge. Their independent flames carry their shape through the cut into the arena and back to the tactical map.
+
 Debug mode supports half-speed 3D playback while holding Z. Releasing it restores the previously selected speed. The music keeps its normal pitch and playhead.
 
 Glass Harbor’s close-up sails inherit the wind phase of their own boats on the tactical map. A boat shown in combat carries its new phase back to the map at the end of the exchange.

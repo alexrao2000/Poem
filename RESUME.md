@@ -6,6 +6,8 @@ This checkpoint describes the current development branch and supersedes the earl
 
 ### Latest state
 
+Windscar Pass has two stone ridge beacons with separate flame motion in the tactical map and combat arena. The map placements were moved forward after the first projection clipped them at the top of the overview. Three tactical and six arena projections checked their final framing. A complete and a skipped battle checked both phase handoffs, with exact campaign and RNG comparisons. Nine focused suites, four final placement reruns, both exports, terrain and combat transitions in both packs, and archive integrity passed. Rendered appearance remains unreviewed.
+
 Hold Z during a 3D fight in Debug mode to view it at half speed. Three headless layouts checked the hint, and live full and skipped exchanges checked the Fast toggle, focus loss, exact clock restoration, unchanged battle state and continuous music. Ten focused source suites, a final playback rerun, both exports, both playback suites in each pack and archive integrity passed.
 
 The two Glass Harbor sails carry independent wind phases between the tactical map and the combat stage. One actual quay fight and one pier fight checked the corresponding uniforms in both directions, including the phase of a boat outside the shot. Ten focused suites, both exports, architecture and mounted harbor checks in both packs, and archive integrity passed. Rendered appearance remains unreviewed.
@@ -80,7 +82,7 @@ The village arena now uses two roadside groves and a distant orchard. The split 
 
 The local package at `f3c7e6e` reached the ending with seed 17 using the tested six-slot opening formation. The normal starting-position controls reproduced the twelve-turn opening victory without losses. The run then completed thirteen battles in 86 turns with 441 player actions, 907 exact disk checkpoints, fourteen promotions and ten support conversations. Its Chapter 6 retreat reached Chapter 5 with eight prepared enemies and two advanced raiders. Sera was the only permanent loss. See `build/review/chosen-formation.html`.
 
-All 381 registered suites and four offline checks passed at frozen source `d1c951d`. The result archive includes ordered test-source and output hashes and an isolated presentation recheck. Later revisions keep their separate focused package checks. The live registry has 383 suites. See `build/review/verification.html`.
+All 383 registered suites and four offline checks passed at frozen source `667343e`. The result archive includes ordered test-source and output hashes. Later revisions keep their separate focused package checks. See `build/review/verification.html`.
 
 Four outdoor combat arenas now use continuous ground with irregular borders where stone or earth meets grass. The ground meets the combatants, plants and distant slopes at their tested footing heights. Eight focused suites, 72 arena floor configurations, both local exports, packaged terrain and ground cover, and archive integrity passed. Rendered appearance remains unreviewed.
 

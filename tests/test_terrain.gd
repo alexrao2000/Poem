@@ -331,7 +331,14 @@ func verify_pass_escarpment():
  for landmark in stage.find_children("ArenaLandmark*","Node3D",false,false):
   for stone in landmark.find_children("*","MeshInstance3D"):
    assert((stone.global_transform*stone.mesh.get_aabb()).position.z>bounds.end.z,"The old pass ruin stands in front of the escarpment")
+ var arena_flames=verify_pass_beacons(stage,slope)
+ var map_flames=verify_pass_beacons(map,map_slope)
+ var map_boulders=[]
+ for stone in map.find_children("Boulder*","MeshInstance3D",false,false):
+  map_boulders.append({"local":stone.global_transform.affine_inverse(),"points":stone.mesh.surface_get_arrays(0)[Mesh.ARRAY_VERTEX]})
  scenery.batcher.combine(stage);scenery.batcher.combine(map)
+ for flame in arena_flames+map_flames:
+  assert(flame.get_child_count()==2,"Animating flames retain both parts after static batching")
  assert(stage.get_node("PassEscarpment")==slope and map.get_node("PassEscarpment")==map_slope,"Scenery retains the same slope mesh after batching")
  var viewport=SubViewport.new();viewport.render_target_update_mode=SubViewport.UPDATE_DISABLED;root.add_child(viewport)
  var camera=Camera3D.new();viewport.add_child(camera);camera.current=true
@@ -344,9 +351,78 @@ func verify_pass_escarpment():
    var crest=slope.to_global(PassEscarpment.vertex(9,4))
    var screen=camera.unproject_position(crest)
    assert(Rect2(Vector2.ZERO,Vector2(size)).grow(-12).has_point(screen) and screen.y<size.y*.60,"Windscar's ridge appears behind the fighters in the default opening shot")
+   var safe=Rect2(12,12,size.x-24,size.y*.64-12)
+   assert(arena_flames.any(func(flame):return clear_pass_flame(flame,slope,points,camera,safe)),
+    "A Windscar beacon should be visible above the rock and clear of the combat HUD")
+ var map_center=Vector3((game.board_size().x-1)*.5,0,(game.board_size().y-1)*.5)
+ camera.projection=Camera3D.PROJECTION_ORTHOGONAL
+ camera.size=maxf(16,game.board_size().x+2)
+ camera.position=map_center+Vector3(2.5,22,11.5);camera.look_at(map_center)
+ camera.h_offset=2.0
+ for size in [Vector2i(1024,640),Vector2i(1280,720),Vector2i(1440,900)]:
+  viewport.size=size;await process_frame
+  var safe=Rect2(Vector2.ZERO,Vector2(size)).grow(-12)
+  for flame in map_flames:
+   assert(clear_pass_flame(flame,map_slope,points,camera,safe),"The Windscar overview frames both beacons above the rock")
+   var target=flame.to_global(Vector3(0,.34,0))
+   var start=camera.project_ray_origin(camera.unproject_position(target))
+   assert(not map_boulders.any(func(stone):
+    return rock_blocks_flame(stone.local*start,stone.local*target,stone.points)
+   ),"The individual rocks leave both map flames visible")
  viewport.free();stage.free();map.free()
  assert(game.save_data("camp")==snapshot,"The new scenery leaves the campaign snapshot and RNG unchanged")
  print("PASS: continuous Windscar escarpment, 448 lit triangles, shared geometry, clear ruins and six wide-shot projections")
+ print("PASS: both Windscar maps seat two independent beacons, with animated flames retained after batching and nine clear arena/map projections")
+
+func verify_pass_beacons(parent: Node3D,slope: MeshInstance3D) -> Array:
+ var beacons=parent.find_children("PassBeacon*","Node3D",false,false)
+ assert(beacons.size()==2 and parent.find_children("*","Light3D",true,false).is_empty())
+ var flames=[]
+ for beacon in beacons:
+  assert(is_equal_approx(beacon.position.y,PassEscarpment.height_at(slope,beacon.position)))
+  var foundation=beacon.get_node("BeaconFooting")
+  var base=foundation.global_transform*foundation.mesh.get_aabb()
+  for offset in [Vector3.ZERO,Vector3.LEFT*.25,Vector3.RIGHT*.25,Vector3.FORWARD*.25,Vector3.BACK*.25]:
+   var point=beacon.to_global(offset)
+   var y=PassEscarpment.height_at(slope,point)
+   assert(base.position.y<y and base.end.y>y,"The stone foundation seats across the actual slope")
+  var names=["BeaconFooting","BeaconPedestal","BeaconBowl","BeaconRim","BeaconCoal"]
+  var previous=AABB()
+  for name in names:
+   var part=beacon.get_node(name)
+   var bounds=part.transform*part.mesh.get_aabb()
+   if name!=names[0]:assert(bounds.intersects(previous))
+   previous=bounds
+  var flame=beacon.get_node("BeaconFlame")
+  flame.set_process(false)
+  assert(is_equal_approx(flame.position.y,.92))
+  for tongue in flame.get_children():
+   assert(tongue.material_override.emission_enabled and tongue.cast_shadow==GeometryInstance3D.SHADOW_CASTING_SETTING_OFF)
+   var bounds=(flame.transform*tongue.transform)*tongue.mesh.get_aabb()
+   assert(bounds.intersects(previous),"The tongues emerge from the coal bed")
+  var initial=flame.phase
+  flame._process(.3)
+  assert(flame.phase!=initial and flame.scale.y>=.78 and flame.scale.y<=1.22)
+  var visible_phase=flame.phase;var visible_shape=flame.scale
+  beacon.hide();flame._process(4)
+  assert(flame.phase==visible_phase and flame.scale==visible_shape)
+  beacon.show();flames.append(flame)
+ assert(flames[0].phase!=flames[1].phase)
+ return flames
+
+func clear_pass_flame(flame: Node3D,slope: MeshInstance3D,points: PackedVector3Array,camera: Camera3D,safe: Rect2) -> bool:
+ var target=flame.to_global(Vector3(0,.34,0))
+ var screen=camera.unproject_position(target)
+ if camera.is_position_behind(target) or not safe.has_point(screen):return false
+ return not rock_blocks_flame(slope.to_local(camera.project_ray_origin(screen)),slope.to_local(target),points)
+
+func rock_blocks_flame(start: Vector3,finish: Vector3,points: PackedVector3Array) -> bool:
+ var span=finish-start
+ var direction=span.normalized();var reach=span.length_squared()
+ for index in range(0,points.size(),3):
+  var hit=Geometry3D.ray_intersects_triangle(start,direction,points[index],points[index+1],points[index+2])
+  if hit!=null and Vector3(hit).distance_squared_to(start)<reach:return true
+ return false
 
 func verify_rocks():
  var forms=preload("res://scripts/rock_forms.gd");var signatures=[]
