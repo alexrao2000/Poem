@@ -1,5 +1,7 @@
 # Poem development
 
+The Debug report’s Compare enemies view shows the next retry deployment row by row. It marks changed tiles, stats and tonic counts and keeps the report’s copy and restore controls one step away.
+
 Reed Crossing’s timber tollhouse has an open stone arch, slate roof and gold scales. The tactical map places it beside the eastern objective. Nearby 3D fights frame it across the river with both crossing towers.
 
 The Debug report previews the next retry with reset pressure enabled. It uses the same restart and deployment rules on a copy of the battle. Each enemy’s projected tile, stats and tonics are compared with the corresponding deployment at pressure zero.

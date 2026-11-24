@@ -93,6 +93,33 @@ func verify_retry_previews():
    assert(unit.id==expected.id and [unit.x,unit.y]==expected.after.position)
    assert(unit.hp==expected.after.hp and g.attack_power(unit)==expected.after.attack and unit.held_tonics==expected.after.held_tonics)
 
+func verify_retry_table(app,preview: Dictionary):
+ press(app,"Compare enemies")
+ assert(app.screen=="debug_retry_deployment")
+ var table=app.ui.find_child("DebugRetryEnemies",true,false)
+ var fields=["position","hp","attack","speed","defense","held_tonics"]
+ assert(table.columns==7 and table.get_child_count()==7*(preview.enemies.size()+1))
+ for index in preview.enemies.size():
+  var record=preview.enemies[index];var first=7*(index+1)
+  assert(table.get_child(first).text==record.name)
+  for offset in fields.size():
+   var field=fields[offset];var before=record.before[field];var after=record.after[field]
+   var expected=("%d,%d"%after if field=="position" else str(int(after)))
+   if before!=after:expected=("%d,%d"%before if field=="position" else str(int(before)))+" → "+expected
+   assert(table.get_child(first+offset+1).text==expected)
+ for dimensions in [Vector2(720,480),Vector2(1024,640),Vector2(1280,720),Vector2(1440,900)]:
+  app.ui.set_anchors_and_offsets_preset(Control.PRESET_TOP_LEFT);app.ui.size=dimensions
+  await process_frame;await process_frame
+  var scroll=table.get_parent().get_parent()
+  var bounds=table.get_global_rect()
+  assert(bounds.position.x>=scroll.global_position.x and bounds.end.x<=scroll.get_global_rect().end.x+1)
+  assert(Rect2(Vector2.ZERO,dimensions).grow(1).encloses(table.get_child(6).get_global_rect()))
+  var close=app.ui.find_children("*","Button",true,false).filter(func(button):return button.text=="Return to experiment report")[0]
+  assert(Rect2(Vector2.ZERO,dimensions).grow(1).encloses(close.get_global_rect()))
+ escape_key(true);assert(app.screen=="debug_retry_deployment")
+ escape_key();assert(app.screen=="debug_report")
+ press(app,"Compare enemies");press(app,"Return to experiment report");assert(app.screen=="debug_report")
+
 func run():
  verify_debug_casualties()
  verify_retry_previews()
@@ -154,6 +181,7 @@ func run():
  assert(not report_text.editable and JSON.parse_string(report_text.text).seed_for_new_attempts==309)
  assert(report_text.text.find("\"settings\"")<report_text.text.find("\"save_code\""),"Readable report settings precede the long restore code")
  assert(app.ui.find_children("*","Button",true,false).any(func(button):return button.text=="Copy restore code" and not button.disabled))
+ assert(app.ui.find_child("DebugCompareEnemies",true,false)==null,"Preparation reports omit battle-only comparison controls")
  press(app,"Return to debug tools")
  var chooser=app.ui.find_child("DebugChapter",true,false)
  assert(chooser.item_count==12);chooser.select(11);press(app,"Load chapter with fresh roster")
@@ -175,8 +203,10 @@ func run():
  assert(preview_label!=null and preview_label.text.begins_with("Retry preview · Chapter 12 · Pressure 6"))
  var preview=JSON.parse_string(app.ui.find_child("DebugReport",true,false).text).retry_deployment
  assert(preview.chapter==12 and preview.pressure==6 and preview.enemies.all(func(enemy):return enemy.after.held_tonics==0))
+ var trace=app.debug_session.trace.report()
+ await verify_retry_table(app,preview)
  assert(app.game.save_data("battle")==live_battle and FileAccess.get_file_as_string(app.save_path+".debug")==on_disk)
- assert(FileAccess.get_file_as_string(app.save_path)==disk)
+ assert(app.debug_session.trace.report()==trace and FileAccess.get_file_as_string(app.save_path)==disk)
  press(app,"Return to debug tools")
  app.ui.find_child("DebugLevel",true,false).value=20;press(app,"Raise company and reset battle")
  assert(app.screen=="battle" and app.game.available().all(func(unit):return unit.level>=20))
@@ -218,7 +248,7 @@ func run():
  app.show_options("camp");app.ui.find_child("Permadeath",true,false).button_pressed=false;app.close_options()
  assert(loaded.load_game(app.save_path)=="camp" and not loaded.permadeath,"Permadeath can be changed and saved outside debug as requested")
  await Shutdown.dispose(app);await process_frame
- print("PASS: opt-in debug controls, exact retry deployment previews, twelve-chapter chooser, heal/revive/reset, separate save slot, unsaved checkpoint restoration, guarded actions, three layouts and live permadeath toggle persistence")
+ print("PASS: opt-in debug controls, exact retry deployment previews, four retry table layouts, twelve-chapter chooser, heal/revive/reset, separate save slot, unsaved checkpoint restoration, guarded actions and live permadeath toggle persistence")
  quit()
 
 func escape_key(echo=false):

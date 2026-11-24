@@ -953,6 +953,8 @@ func _unhandled_input(event):
 		interface_audio.cue("back");close_music_room();get_viewport().set_input_as_handled();return
 	if screen=="debug_encounters" and event is InputEventKey and event.pressed and not event.echo and event.keycode==KEY_ESCAPE:
 		close_debug_encounters();get_viewport().set_input_as_handled();return
+	if screen=="debug_retry_deployment" and event is InputEventKey and event.pressed and not event.echo and event.keycode==KEY_ESCAPE:
+		show_debug_report();get_viewport().set_input_as_handled();return
 	if screen in ["debug_report","debug_experiments","debug_dialogue"] and event is InputEventKey and event.pressed and not event.echo and event.keycode==KEY_ESCAPE:
 		show_debug_tools(options_return);get_viewport().set_input_as_handled();return
 	if screen in ["triage","tile_units"] and event is InputEventKey and event.pressed and not event.echo and event.keycode==KEY_ESCAPE:
@@ -2342,7 +2344,10 @@ func show_debug_report():
 	if record.has("retry_deployment"):
 		var retry=record.retry_deployment
 		var advances=retry.enemies.filter(func(unit):return unit.before.position!=unit.after.position).size()
-		label_in(panel,"Retry preview · Chapter %02d · Pressure %d · Raider advances %d"%[retry.chapter,retry.pressure,advances],16,GOLD).name="DebugRetryPreview"
+		var preview=HBoxContainer.new();preview.add_theme_constant_override("separation",12);panel.add_child(preview)
+		var headline=label_in(preview,"Retry preview · Chapter %02d · Pressure %d · Raider advances %d"%[retry.chapter,retry.pressure,advances],16,GOLD)
+		headline.name="DebugRetryPreview";headline.size_flags_horizontal=Control.SIZE_EXPAND_FILL
+		button_in(preview,"Compare enemies",func():show_debug_retry_deployment(retry)).name="DebugCompareEnemies"
 	label_in(panel,"Copy rules, casualties and the last 64 action changes, including RNG and save results. History lasts only for this Debug session; the restore code carries the current position.",19)
 	var report=TextEdit.new();report.name="DebugReport";report.editable=false;report.wrap_mode=TextEdit.LINE_WRAPPING_BOUNDARY
 	report.custom_minimum_size.y=160;report.size_flags_vertical=Control.SIZE_EXPAND_FILL;report.add_theme_font_size_override("font_size",14)
@@ -2353,6 +2358,30 @@ func show_debug_report():
 	button_in(actions,"Copy restore code",func():DisplayServer.clipboard_set(record.save_code);show_notice("Restore code copied. Paste it into Transfer a local save in another debug session."))
 	button_in(actions,"Select all text",func():report.grab_focus();report.select_all())
 	button_in(panel,"Return to debug tools",func():show_debug_tools(options_return))
+
+func show_debug_retry_deployment(retry: Dictionary):
+	if not debug_session.active:return
+	screen="debug_retry_deployment";reset_ui()
+	var panel=menu_panel(1040)
+	label_in(panel,"Enemy deployment after a retry",36,GOLD)
+	label_in(panel,"Chapter %02d · Pressure %d → %d"%[retry.chapter,retry.reference_pressure,retry.pressure],18,GOLD)
+	label_in(panel,"Tile coordinates show column, row, starting at 0.",16)
+	var columns=[["position","Tile"],["hp","HP"],["attack","Attack"],["speed","Speed"],["defense","Defense"],["held_tonics","Tonics"]]
+	var table=GridContainer.new();table.name="DebugRetryEnemies";table.columns=columns.size()+1
+	table.add_theme_constant_override("h_separation",16);table.add_theme_constant_override("v_separation",10)
+	scrolling_column(panel).add_child(table)
+	label_in(table,"Enemy",16,GOLD).size_flags_horizontal=Control.SIZE_EXPAND_FILL
+	for column in columns:label_in(table,column[1],16,GOLD).autowrap_mode=TextServer.AUTOWRAP_OFF
+	for enemy in retry.enemies:
+		label_in(table,enemy.name,16).name="RetryEnemy_"+enemy.id
+		for column in columns:
+			var before=enemy.before[column[0]];var after=enemy.after[column[0]]
+			var previous="%d,%d"%before if column[0]=="position" else str(before)
+			var next="%d,%d"%after if column[0]=="position" else str(after)
+			var changed=before!=after
+			var value=label_in(table,previous+" → "+next if changed else next,16,GOLD if changed else Color("443e36"))
+			value.autowrap_mode=TextServer.AUTOWRAP_OFF
+	button_in(panel,"Return to experiment report",show_debug_report)
 
 func action_save_ready() -> bool:
 	return not game.action_saves or not save_failed or persist_campaign("battle")
