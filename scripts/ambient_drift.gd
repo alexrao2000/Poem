@@ -114,6 +114,10 @@ func update_particles():
   instance_buffer[i*16+12]=color.r;instance_buffer[i*16+13]=color.g;instance_buffer[i*16+14]=color.b;instance_buffer[i*16+15]=color.a
  cloud.multimesh.buffer=instance_buffer
 
+func seek_elapsed(value: float):
+ elapsed=value
+ update_particles()
+
 func _process(dt):
  if not is_visible_in_tree() or cloud==null:return
  elapsed+=dt;update_particles()

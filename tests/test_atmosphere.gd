@@ -83,14 +83,51 @@ func run():
   var map=Node3D.new();host.add_child(map);scenery.landscape(map,game)
   var atmosphere=map.get_node("AmbientDrift")
   assert(atmosphere.cloud.multimesh.instance_count>0 and atmosphere.position.y==0,"Every tactical chapter attaches its atmosphere after scenery batching")
-  var arena=Node3D.new();host.add_child(arena);scenery.battle_landscape(arena,Vector3(35,0,0),{"environment":game.info().environment})
+  var arena=Node3D.new();host.add_child(arena);scenery.battle_landscape(arena,Vector3(35,0,0),{"environment":game.info().environment,"chapter":chapter})
   var closeup=arena.get_node("AmbientDrift")
   assert(closeup.kind==atmosphere.kind and closeup.position.x==35,"Close-up arena retains the chapter atmosphere around its real stage origin")
+  verify_handoff(scenery,map,arena,game.info().environment)
   var reference=weakref(atmosphere);map.queue_free();arena.queue_free();await process_frame
   assert(reference.get_ref()==null,"Leaving a chapter releases its instanced atmosphere")
  host.queue_free();await process_frame
+ print("PASS: all twelve battlefields share seeded particles and exact phases in both directions at three sampled times")
  print("PASS: seamless deterministic cloud panorama, cached cover, horizon/zenith continuity, theme contrast; twelve chapter atmospheres, 24 map/arena configurations, bounded rain streaks, low Windscar crosswind and other instances, deterministic motion, hidden suspension, fade loops and cleanup")
  quit()
+
+
+func verify_handoff(scenery,field: Node3D,stage: Node3D,theme: String):
+ var map=field.get_node("AmbientDrift")
+ var closeup=stage.get_node("AmbientDrift")
+ assert(closeup.cloud.multimesh!=map.cloud.multimesh)
+ assert(closeup.states.size()>map.states.size() and closeup.states.slice(0,map.states.size())==map.states,"The arena retains the field particles and adds a local layer")
+ for elapsed in [1.375,39.5,97.125]:
+  map.seek_elapsed(elapsed)
+  var start=map.instance_buffer.duplicate()
+  scenery.transfer_environment_motion(field,stage,theme)
+  assert(closeup.elapsed==elapsed and map.instance_buffer==start)
+  compare_drift(map,closeup)
+  field.hide();stage.show()
+  map._process(.23);closeup._process(.23)
+  assert(map.elapsed==elapsed and closeup.elapsed>elapsed)
+  var later=closeup.instance_buffer.duplicate()
+  scenery.transfer_environment_motion(stage,field,theme)
+  assert(map.elapsed==closeup.elapsed and map.instance_buffer!=start and closeup.instance_buffer==later)
+  compare_drift(map,closeup)
+  field.show()
+
+func compare_drift(map,closeup):
+ for index in range(map.states.size()):
+  var offset=index*16
+  for channel in range(16):
+   var near=map.instance_buffer[offset+channel]
+   var far=closeup.instance_buffer[offset+channel]
+   match channel:
+    3:assert(absf(near/map.extent.x-far/closeup.extent.x)<.000001)
+    7:
+     if map.kind=="wind":assert(near==far)
+     else:assert(absf((near-.15)/(map.extent.y-.3)-(far-.15)/(closeup.extent.y-.3))<.000001)
+    11:assert(absf(near/map.extent.z-far/closeup.extent.z)<.000001)
+    _:assert(near==far,"The same particle keeps its orientation, scale and opacity in both scenes")
 
 func verify_clouds():
  var image=CloudSky.image();var total=0.0;var bright=0;var clear=0

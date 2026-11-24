@@ -132,6 +132,7 @@ func run():
 	await verify_starfall_exchange(app)
 	await verify_aqueduct_exchange(app)
 	await verify_crown_gate_exchange(app)
+	await verify_weather_exchange(app)
 	app.show_ending()
 	await process_frame
 	await Shutdown.dispose(app)
@@ -219,3 +220,41 @@ func verify_crown_gate_exchange(app):
 	assert(moments.entry.size()==2 and moments.returned and not is_equal_approx(moments.entry[0],moments.entry[1]))
 	assert(app.game.save_data("battle")==state and app.game.rng.state==rng)
 	print("PASS: both Crown Approach standards carry their separate wind phases through a complete 3D exchange")
+
+func verify_weather_exchange(app):
+	app.game.chapter=2;app.game.start_battle();app.make_map();app.show_battle()
+	var a=app.game.living("player")[0];var b=app.game.living("enemy")[0]
+	a.x=7;a.y=4;b.x=8;b.y=4;app.refresh_pieces()
+	var rain=app.world.get_node("AmbientDrift")
+	rain.seek_elapsed(7.25)
+	var state=app.game.save_data("battle").duplicate(true)
+	for skip in [false,true]:
+		await process_frame
+		var transfer={"entry":-1.0,"return":-1.0,"skipped":false}
+		var enter=func():
+			if app.world.visible:return
+			var arena=app.stage.get_node("AmbientDrift")
+			assert(arena.kind=="rain" and arena.elapsed==rain.elapsed)
+			assert(arena.states.slice(0,rain.states.size())==rain.states)
+			transfer.entry=rain.elapsed
+		var finish=func():
+			if app.stage.visible or app.world.visible:return
+			var arena=app.stage.get_node("AmbientDrift")
+			assert(arena.elapsed==rain.elapsed and arena.elapsed>transfer.entry)
+			transfer.return=rain.elapsed
+		var handle_skip=func():
+			var playback=app.ui.get_node_or_null("CombatPlayback")
+			if not skip or transfer.skipped or playback==null or not app.stage.visible or not app.ui.has_node("CombatHUD"):return
+			playback.request_skip()
+			transfer.skipped=true
+		app.world.visibility_changed.connect(enter)
+		app.stage.visibility_changed.connect(finish)
+		process_frame.connect(handle_skip)
+		await app.cinematic(a,b,[{"actor":a.id,"target":b.id,"damage":1,"remaining":b.hp-1,"hit":true,"crit":false}],{a.id:a.hp,b.id:b.hp})
+		app.world.visibility_changed.disconnect(enter)
+		app.stage.visibility_changed.disconnect(finish)
+		process_frame.disconnect(handle_skip)
+		assert(transfer.entry>7.25 and transfer.return>transfer.entry and transfer.skipped==skip)
+		assert(rain.elapsed>=transfer.return and app.world.visible and not app.stage.visible)
+	assert(app.game.save_data("battle")==state)
+	print("PASS: Greywood carries the same seeded rain phases into a complete and a skipped 3D exchange, then continues on the map")

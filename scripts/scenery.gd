@@ -541,7 +541,11 @@ func combat_context(game,a,b,screen_direction=1.0) -> Dictionary:
   context.mosaic_yaw=atan2(axis.y,axis.x)
  return context
 
-func transfer_landmark_motion(source: Node3D,destination: Node3D,theme: String):
+func transfer_environment_motion(source: Node3D,destination: Node3D,theme: String):
+ var previous_drift=source.get_node_or_null("AmbientDrift") as AmbientDrift
+ var next_drift=destination.get_node_or_null("AmbientDrift") as AmbientDrift
+ if previous_drift!=null and next_drift!=null and previous_drift.kind==next_drift.kind:
+  next_drift.seek_elapsed(previous_drift.elapsed)
  if theme=="village":
   var original=source.get_node_or_null("CinderfordMill/MillRotor")
   var counterpart=destination.get_node_or_null("CinderfordMill/MillRotor")
@@ -919,7 +923,7 @@ func battle_landscape(parent,center,context={}):
  ground_cover.add_arena(parent,center,context)
  if batching_enabled:batcher.combine(parent)
  var atmosphere=AmbientDrift.new();parent.add_child(atmosphere);atmosphere.position=center+Vector3(0,0,-3)
- atmosphere.configure(theme,Vector3(28,4,14),true)
+ atmosphere.configure(theme,Vector3(28,4,14),true,context.get("chapter",0))
  return theme
 
 func pass_beacons(parent: Node3D,slope: MeshInstance3D,arena: bool):
