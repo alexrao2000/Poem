@@ -5,6 +5,8 @@ signal arrived
 var has_arrived=false
 const Impact=preload("res://scripts/combat_impact.gd")
 const FloatingText=preload("res://scripts/combat_text.gd")
+const TRAIL_CENTER=Color("e5efbd")
+const TRAIL_FRINGE=Color("86e2b9")
 var origin=Vector3.ZERO
 var destination=Vector3.ZERO
 var trails: Array=[]
@@ -27,12 +29,16 @@ func flight_point(progress: float,strand=0) -> Vector3:
  var t=clampf(progress,0,1);var arc=sin(t*PI)
  return origin.lerp(destination,t)+Vector3(0,arc*(.24+sin(t*TAU+strand*TAU/3)*.10),arc*cos(t*TAU+strand*TAU/3)*.16)
 
-func play(from: Vector3,to: Vector3,ground: Vector3,healing: int) -> Tween:
- name="CombatHeal";origin=from;destination=to;has_arrived=false
+func add_staff_trails(count: int,first_size: float,size_step: float,crystal: Color):
  for strand in range(3):
-  for step in range(7):
-   var mote=light(.18-step*.018,Color("e5efbd") if strand==0 else Color("86e2b9"))
-   trails.append({"node":mote,"strand":strand,"step":step})
+  var tint=TRAIL_CENTER if strand==0 else crystal
+  for step in range(count):
+   var mote=light(first_size-step*size_step,tint)
+   trails.append({"node":mote,"strand":strand,"step":step,"tint":tint})
+
+func play(from: Vector3,to: Vector3,ground: Vector3,healing: int,crystal=TRAIL_FRINGE) -> Tween:
+ name="CombatHeal";origin=from;destination=to;has_arrived=false
+ add_staff_trails(7,.18,.018,crystal)
  for i in range(2):
   var ring=MeshInstance3D.new();var shape=TorusMesh.new();shape.inner_radius=.42;shape.outer_radius=.46;shape.rings=32;shape.ring_segments=8;ring.mesh=shape
   var material=Impact.accent_material();material.albedo_color=Color("a4e8c2") if i==0 else Color("eee5b9");ring.material_override=material
@@ -57,7 +63,10 @@ func travel(progress: float):
   var t=progress-entry.step*.025
   entry.node.visible=t>=0
   entry.node.position=to_local(flight_point(maxf(0,t),entry.strand))
-  entry.node.material_override.albedo_color.a=(1.0-entry.step*.10)*minf(1,progress*8+.2)
+  # The staff's colored light settles into the common recovery palette at contact.
+  var tint: Color=entry.tint if entry.strand==0 else entry.tint.lerp(TRAIL_FRINGE,smoothstep(.48,.95,t))
+  tint.a=(1.0-entry.step*.10)*minf(1,progress*8+.2)
+  entry.node.material_override.albedo_color=tint
 
 func bloom(progress: float):
  var actor=recipient.get_ref() if recipient!=null else null

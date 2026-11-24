@@ -6,6 +6,8 @@ This checkpoint describes the current development branch and supersedes the earl
 
 ### Latest state
 
+Field, Mending, Beacon and Vigil now send blue, mint, gold or lilac light across the battlefield. Quick Map and close-up use the same crystal palettes. The leading motes turn green near the recipient, followed by the shared bloom and HP cue at contact. The [healing light study](build/review/staff-light-study.png) magnifies isolated samples from the two modes. See `build/review/staff-light-checks.json` for the actual healing and package checks.
+
 Field, Mend, Beacon and Vigil staffs use upright brass settings with faceted crystals. The outer band turns across the main bands so the setting stays visible from the side. All twelve cast snapshots using Ivo, Esme and Galen launch from the same coordinates as before. The original and revised models share the prop. See the [staff comparison](build/review/staff-crown-comparison.png) for isolated projections and `build/review/staff-crown-checks.json` for verification.
 
 During the 2D-to-3D camera move, nearby sprites gradually darken while the combatants keep their usual colors. The return restores the exact tactical colors, including after Skipping. Cinderford’s seven bystander colors match in source and both packages. Both combatants, the normal map view, sprite frames and camera poses match the earlier build. Eight focused suites, four packed checks, 72 matched chapter outcomes and both ZIP checks passed. See the [combat focus study](build/review/combat-focus-comparison.png) and `build/review/bystander-focus.json`. The study uses software projection.

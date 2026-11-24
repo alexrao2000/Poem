@@ -1451,7 +1451,8 @@ func cinematic(a,b,events,initial_hp={},challenge: Dictionary={}):
 			if skip_combat:break
 			var recovery=CombatHeal.new();stage.add_child(recovery)
 			var recovery_point=whom.socket_position("recovery" if event.get("revived",false) else "impact")
-			var healing_motion=recovery.play(who.socket_position("projectile"),recovery_point,whom.global_position,event.healing)
+			var crystal=fighters.EquipmentVisuals.staff_core(unit.get("item",""))
+			var healing_motion=recovery.play(who.socket_position("projectile"),recovery_point,whom.global_position,event.healing,crystal)
 			if event.get("revived",false):recovery.follow_recipient(whom)
 			while not recovery.has_arrived and not skip_combat:await get_tree().process_frame
 			if skip_combat:recovery.queue_free();break
@@ -3027,7 +3028,9 @@ func map_heal_feedback(healer,recipient,amount: int,revived=false):
 	var recipient_point=map_contact_point(contact) if contact!=null else map_position(game.pos(recipient))+camera.global_basis.y*.55
 	var healer_point=map_contact_point(actor) if actor!=null else map_position(game.pos(healer))+camera.global_basis.y*.55
 	var recovery=preload("res://scripts/map_heal.gd").new();pieces.add_child(recovery)
-	recovery.cast(healer_point,recipient_point,map_position(game.pos(recipient)),healer.id!=recipient.id)
+	var connection=healer.id!=recipient.id
+	var crystal=fighters.EquipmentVisuals.staff_core(healer.get("item","")) if connection else CombatHeal.TRAIL_FRINGE
+	recovery.cast(healer_point,recipient_point,map_position(game.pos(recipient)),connection,crystal)
 	await recovery.arrived
 	var text_label=map_recovery_label(recipient,cue_text,28);text_label.name="MapRecoveryCue"
 	if patient!=null:patient.recover_health(float(recipient.hp)/maxf(1,recipient.max_hp),revived)

@@ -4,13 +4,9 @@ extends "res://scripts/combat_heal.gd"
 const FLIGHT_TIME=.12
 const BLOOM_TIME=.35
 
-func cast(from: Vector3,to: Vector3,ground: Vector3,connection=true) -> Tween:
+func cast(from: Vector3,to: Vector3,ground: Vector3,connection=true,crystal=TRAIL_FRINGE) -> Tween:
  name="MapHeal";origin=from;destination=to;global_basis=Basis.IDENTITY
- if connection:
-  for strand in range(3):
-   for step in range(4):
-    var mote=light(.13-step*.02,Color("e5efbd") if strand==0 else Color("86e2b9"))
-    trails.append({"node":mote,"strand":strand,"step":step})
+ if connection:add_staff_trails(4,.13,.02,crystal)
  var ring=MeshInstance3D.new();ring.name="RecoveryRing"
  var shape=TorusMesh.new();shape.inner_radius=.28;shape.outer_radius=.32;shape.rings=24;shape.ring_segments=6;ring.mesh=shape
  var surface=Impact.accent_material();surface.albedo_color=Color("a4e8c2");surface.render_priority=1

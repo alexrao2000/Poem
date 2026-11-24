@@ -29,6 +29,9 @@ func run():
   ["skip_arrival","revised","all",Vector2i(1280,720)]
  ]
  var rise_sides={}
+ var staff_items=["field_staff","mend_staff","beacon_staff","vigil_staff"]
+ var cast_modes={"all":{},"map":{}}
+ var cast_counts={"all":0,"map":0}
  for sample in cases:
   viewport.size=sample[3];await process_frame
   app.preferences.values.combat=sample[2];app.preferences.values.character_models=sample[1]
@@ -36,6 +39,10 @@ func run():
   if sample[0]=="mounted":app.game.chapter=2;app.game.deployed.erase("sera");app.game.deployed.append("bram")
   app.game.start_battle()
   var carrier=unit(app.game,"oren");var patient=unit(app.game,"bram" if sample[0]=="mounted" else "sera");var healer=unit(app.game,"ivo")
+  healer.item=staff_items[cast_counts[sample[2]]%staff_items.size()]
+  app.game.normalize_equipment(healer)
+  cast_counts[sample[2]]+=1
+  var crystal=app.fighters.EquipmentVisuals.staff_core(healer.item)
   carrier.x=3;carrier.y=3;patient.x=2;patient.y=3;healer.x=2;healer.y=4
   if sample[0]=="field" and sample[1]=="revised":healer.y=2
   if sample[0]=="mounted":unit(app.game,"lyra").x=1;unit(app.game,"lyra").y=4
@@ -71,6 +78,7 @@ func run():
   while app.busy and Time.get_ticks_msec()<deadline:
    await process_frame
    var caption=app.ui.get_node_or_null("CombatCaption");var effect=app.stage.get_node_or_null("CombatHeal")
+   if effect!=null:record_cast(effect,crystal,cast_modes.all,healer.item)
    if effect!=null and effect.has_arrived:arrived=true
    var hud=app.ui.get_node_or_null("CombatHUD")
    var directors=app.stage.get_children().filter(func(node):return node is Director)
@@ -94,6 +102,7 @@ func run():
     if hud!=null:assert(not caption.get_global_rect().intersects(hud.records[patient.id].plate.get_global_rect()))
     saw_caption=true
    var map_effect=app.pieces.get_node_or_null("MapHeal")
+   if map_effect!=null:record_cast(map_effect,crystal,cast_modes.map,healer.item)
    if map_effect!=null and not map_effect.has_arrived:
     saw_map_flight=true
     assert(not map_effect.rings[0].visible and app.ui.get_node_or_null("MapRecoveryCue")==null,"Map recovery waits for staff light to arrive")
@@ -141,6 +150,14 @@ func run():
   assert(app.ui.get_node_or_null("CombatCaption")==null and app.ui.get_node_or_null("MapRecoveryCue")==null and app.stage.get_node_or_null("CombatHeal")==null)
   assert(saved.load_game(app.save_path)=="battle" and canonical(saved.save_data("battle"))==resolved)
  assert(rise_sides.size()==2,"Actual revivals place the patient on both sides of the healer")
+ assert(cast_modes.all.size()==4 and cast_modes.map.size()==4,"Actual staff actions use all four crystal colors on the map and in close-up")
  await Shutdown.dispose(app);viewport.queue_free();await process_frame
  print("PASS: thirteen real healing flows including a portrait carried revival with the carrier framed on the map, actual patient in the close-up, wounded-to-rising poses, followed light, caption bounds, committed recovery and exact RNG/checkpoints")
  quit()
+
+func record_cast(effect,crystal: Color,seen: Dictionary,item: String):
+ if seen.has(item):return
+ var fringes=effect.trails.filter(func(entry):return entry.strand!=0 and entry.step==0)
+ assert(fringes.size()==2 and fringes.all(func(entry):return entry.tint==crystal),
+  "The actual staff action uses the equipped crystal hue")
+ seen[item]=true

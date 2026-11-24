@@ -15,6 +15,9 @@ static var staff_crystal: ArrayMesh
 static func resolve(kind: String,item: String) -> String:
  return item if profiles.has(item) and profiles[item].kind==kind else DEFAULT.get(kind,"iron_sword")
 
+static func staff_core(item: String) -> Color:
+ return Color(profiles[resolve("staff",item)].core)
+
 static func blade(item: String) -> Mesh:
  if shapes.has(item):return shapes[item]
  var look=profiles[item];var shape: Mesh

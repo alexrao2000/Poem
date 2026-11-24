@@ -66,6 +66,7 @@ func run():
   assert(effect.rings[0].global_position.distance_to(Vector3(5,.48,5))<.0001 and effect.glow.global_position.distance_to(to)<.0001)
   var reference=weakref(effect);flight.custom_step(.36);await process_frame
   assert(reference.get_ref()==null,"Map staff and self-use effects release at the end of the existing recovery interval")
+ await verify_staff_light(world,fighters.EquipmentVisuals)
  world.queue_free();await process_frame
  var app=load("res://main.tscn").instantiate();app.settings_path="";app.save_path="/private/tmp/poem-healing-"+healer_id+"-"+promotion_id+"-test.json";root.add_child(app);await process_frame
  app.preferences.values.auto_end=false;app.preferences.values.character_models="revised" if revised_models else "current"
@@ -131,3 +132,34 @@ func run():
  app.music.stop();await create_timer(.15).timeout;await Shutdown.dispose(app);await process_frame
  print("PASS: three staff rigs, world-space recovery, mounted recipients, real field healing, rising HP, preferences, skip cleanup and unchanged resolved progression")
  quit()
+
+func verify_staff_light(world: Node3D,looks):
+ var tints={}
+ var from=Vector3(4,1.5,4)
+ var to=Vector3(6,1,5)
+ for item in ["field_staff","mend_staff","beacon_staff","vigil_staff"]:
+  var crystal=looks.staff_core(item)
+  tints[crystal.to_html()]=true
+  for on_map in [false,true]:
+   var effect=MapHeal.new() if on_map else Heal.new()
+   world.add_child(effect)
+   var ground=Vector3(to.x,0,to.z)
+   var flight=effect.cast(from,to,ground,true,crystal) if on_map else effect.play(from,to,ground,10,crystal)
+   flight.pause()
+   var flight_time=MapHeal.FLIGHT_TIME if on_map else .32
+   var fringes=effect.trails.filter(func(entry):return entry.strand!=0 and entry.step==0)
+   flight.custom_step(flight_time*.30)
+   for entry in fringes:
+    assert(Color(entry.node.material_override.albedo_color,1).is_equal_approx(crystal),"Travelling light has the equipped crystal hue")
+   flight.custom_step(flight_time*.67)
+   for entry in fringes:
+    assert(Color(entry.node.material_override.albedo_color,1).is_equal_approx(Heal.TRAIL_FRINGE),"Lead motes return to common recovery green near the patient")
+   assert(not effect.has_arrived and not effect.glow.visible)
+   flight.custom_step(flight_time*.05)
+   assert(effect.has_arrived and effect.glow.visible and effect.trails.all(func(entry):return not entry.node.visible))
+   assert(Color(effect.glow.material_override.albedo_color,1).is_equal_approx(Color("a0e6c0")))
+   flight.kill()
+   effect.queue_free()
+   await process_frame
+ assert(tints.size()==4 and looks.staff_core("missing")==looks.staff_core("field_staff"))
+ print("PASS: four distinct crystal hues in both travel paths, shared contact glow and existing arrival timing")

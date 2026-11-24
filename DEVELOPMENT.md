@@ -1,5 +1,7 @@
 # Poem development
 
+Staff light carries the equipped crystal's color on the map and in close-up. The recovery glow and HP cue use one palette for all four staffs.
+
 The four healing staffs now use upright brass settings and faceted crystals that follow the existing item icons. The launch point is the center of the crystal for both model sets.
 
 Casualty cards name the legacy credit, early recruit or sacrifice effect earned by that loss. The rules supply the details on the resolved strike or phase ending.
