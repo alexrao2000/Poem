@@ -493,6 +493,23 @@ func verify_market_stall():
   var box=bounds.call(rail)
   assert(posts.filter(func(post):return box.intersects(bounds.call(post))).size()==2)
   assert(boards.all(func(board):return box.intersects(bounds.call(board))))
+ var pottery=market.get_node("Earthenware")
+ assert(pottery.mesh==CinderfordMarket.pottery_mesh() and pottery.material_override==CinderfordMarket.pottery_paint())
+ assert(pottery.mesh.get_surface_count()==1 and pottery.material_override.vertex_color_use_as_albedo)
+ var pottery_arrays=pottery.mesh.surface_get_arrays(0)
+ var pottery_points=pottery_arrays[Mesh.ARRAY_VERTEX];var pottery_normals=pottery_arrays[Mesh.ARRAY_NORMAL]
+ for index in range(0,pottery_points.size(),3):
+  var face=(pottery_points[index+1]-pottery_points[index]).cross(pottery_points[index+2]-pottery_points[index])
+  assert(face.length_squared()>1e-12 and face.normalized().dot(pottery_normals[index])<-.5)
+ var pottery_bounds=bounds.call(pottery)
+ assert(is_equal_approx(pottery_bounds.position.y,CinderfordMarket.COUNTER_TOP) and pottery_bounds.end.y<1.0)
+ assert(pottery_bounds.position.x>-.766 and pottery_bounds.end.x<.766 and pottery_bounds.position.z>-.32 and pottery_bounds.end.z<.33)
+ for ware in CinderfordMarket.WARES:
+  var sample=Vector3(ware.spot.x,CinderfordMarket.COUNTER_TOP,ware.spot.y)
+  assert(boards.any(func(board):return bounds.call(board).grow(.0001).has_point(sample)),"Each piece of pottery sits on a counter board")
+  var mouth_hit=barrel_hit(pottery.mesh,sample+Vector3.UP*.6,Vector3.DOWN)
+  var depth=.2 if ware.handle!=0 else .039
+  assert(mouth_hit!=null and absf(mouth_hit.y-sample.y-depth*ware.scale)<.001,"The visible mouth opens to a recessed interior")
  var viewport=SubViewport.new();viewport.render_target_update_mode=SubViewport.UPDATE_DISABLED;root.add_child(viewport)
  var camera=Camera3D.new();viewport.add_child(camera);camera.current=true
  var focus=Vector3((game.board_size().x-1)*.5,0,(game.board_size().y-1)*.5)
@@ -510,8 +527,11 @@ func verify_market_stall():
   scenery.battle_landscape(stage,center,context)
   var close_market=stage.get_node("CinderfordMarketStall")
   var close_awning=close_market.get_node("StripedAwning")
+  var close_wares=close_market.get_node("Earthenware")
   var canopy=close_awning.global_transform*mesh.get_aabb()
   assert(close_awning.mesh==mesh and close_awning.material_override==awning.material_override)
+  assert(close_wares.mesh==pottery.mesh and close_wares.material_override==pottery.material_override,
+   "The same painted pottery is visible on the tactical and arena counter")
   assert(canopy.end.x<center.x+3.0 and canopy.end.z<center.z-3.2)
   assert(canopy.position.z>center.z-4.8,"The awning clears the foreground and mapped houses")
   var frame=CombatCamera.frame_pair(center+Vector3.LEFT*1.6,center+Vector3.RIGHT*1.6,"wide",false,mirror<0)
@@ -521,10 +541,14 @@ func verify_market_stall():
    var open=Rect2(Vector2(12,12),Vector2(size)-Vector2(24,164))
    var striped_edge=close_market.to_global(Vector3(0,1.31,.547))
    assert(not camera.is_position_behind(striped_edge) and open.has_point(camera.unproject_position(striped_edge)))
+   for ware in CinderfordMarket.WARES:
+    var item=close_market.to_global(Vector3(ware.spot.x,.75,ware.spot.y))
+    assert(not camera.is_position_behind(item) and open.has_point(camera.unproject_position(item)))
   stage.free()
  viewport.free();field.free()
  assert(game.save_data("camp")==saved)
  print("PASS: nine Cinderford awning stripes, grounded supports and connected counter, shared map/arena mesh and nine camera views")
+ print("PASS: four pieces of Cinderford earthenware share one mesh, stay on the counter and retain open mouths across both views")
 
 func verify_reed_tollhouse():
  var scenery=Scenery.new();scenery.batching_enabled=false
