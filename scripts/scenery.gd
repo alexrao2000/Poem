@@ -16,6 +16,7 @@ const HarborBoat=preload("res://scripts/harbor_boat.gd")
 const HarborNet=preload("res://scripts/harbor_net.gd")
 const HarborSignal=preload("res://scripts/harbor_signal.gd")
 const HarborBreakwater=preload("res://scripts/harbor_breakwater.gd")
+const HarborGulls=preload("res://scripts/harbor_gulls.gd")
 const ArenaRidges=preload("res://scripts/arena_ridges.gd")
 const PassEscarpment=preload("res://scripts/pass_escarpment.gd")
 const RuinedColumns=preload("res://scripts/ruined_columns.gd")
@@ -452,7 +453,14 @@ func landscape(parent,game):
  var atmosphere=AmbientDrift.new();parent.add_child(atmosphere)
  atmosphere.position=Vector3((game.board_size().x-1)*.5,0,(game.board_size().y-1)*.5)
  atmosphere.configure(theme,Vector3(game.board_size().x+6,3,game.board_size().y+6),false,game.chapter)
+ if theme=="harbor":add_harbor_gulls(atmosphere,HarborBreakwater.MAP_SITE,HarborBreakwater.MAP_SCALE,PI)
  add_chimney_smoke(parent,vents,ChimneySmoke.WIND,atmosphere)
+
+func add_harbor_gulls(atmosphere: AmbientDrift,site: Vector3,size: float,heading: float):
+ var flock=HarborGulls.new()
+ atmosphere.add_child(flock)
+ flock.position=site-atmosphere.position;flock.rotation.y=heading;flock.scale=Vector3.ONE*size
+ flock.configure()
 
 func add_chimney_smoke(parent: Node3D,vents: Array,wind: Vector2,atmosphere: AmbientDrift):
  if vents.is_empty():return
@@ -633,6 +641,8 @@ func transfer_environment_motion(source: Node3D,destination: Node3D,theme: Strin
    var counterpart=destination.get_node_or_null(address)
    if original!=null and counterpart!=null:counterpart.seek_phase(original.phase)
  elif theme=="harbor":
+  var flock=destination.get_node_or_null("AmbientDrift/HarborGulls")
+  if flock!=null:flock.update_from_clock()
   var originals=boat_sails(source)
   var counterparts=boat_sails(destination)
   for site in counterparts:
@@ -1070,6 +1080,8 @@ func battle_landscape(parent,center,context={}):
  if batching_enabled:batcher.combine(parent)
  var atmosphere=AmbientDrift.new();parent.add_child(atmosphere);atmosphere.position=center+Vector3(0,0,-3)
  atmosphere.configure(theme,Vector3(28,4,14),true,context.get("chapter",0))
+ if theme=="harbor" and (harbor_quayside or wooden_floor):
+  add_harbor_gulls(atmosphere,center+HarborBreakwater.ARENA_SITE,1.0,0.0)
  add_chimney_smoke(parent,vents,context.get("chimney_wind",ChimneySmoke.WIND),atmosphere)
  return theme
 

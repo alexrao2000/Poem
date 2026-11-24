@@ -129,7 +129,12 @@ func run():
   var saved=app.game.save_data("battle").duplicate(true);var rng=app.game.rng.state;var camera=app.map_navigation.capture_view();var score=app.score
   await app.cinematic(a,b,[event],{a.id:20,b.id:17 if mode=="healing" else 20});await process_frame
   assert(not app.stage.visible and app.world.visible and not app.ui.has_node("CombatPlayback") and Engine.time_scale==original_scale)
-  assert(app.game.save_data("battle")==saved and app.game.rng.state==rng and app.map_navigation.capture_view()==camera,"Pointer controls preserve resolved state and exact map framing")
+  assert(app.game.save_data("battle")==saved and app.game.rng.state==rng,"Pointer controls preserve resolved state")
+  var restored=app.map_navigation.capture_view()
+  if mode=="melee":
+   assert(app.map_navigation.at_home() and restored.size>camera.size,"A resize in combat refits Home to the narrower viewport")
+   assert(restored.transform==camera.transform and restored.projection==camera.projection and restored.fov==camera.fov)
+  else:assert(restored==camera,"The original tactical frame returns after Skip at the same size")
   assert(app.score==score and app.music.pitch_scale==1.0 and AudioServer.playback_speed_scale==audio_scale,"Speed controls leave the score and audio pitch untouched")
  assert(requested==4)
  app.ui.child_entered_tree.disconnect(watch)

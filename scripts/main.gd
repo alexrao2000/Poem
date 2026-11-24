@@ -1627,7 +1627,8 @@ func return_to_tactical_map(veil,playback,close_map_view: Dictionary,tactical_vi
 	if veil.motion.is_running():await veil.motion.finished
 	if home_viewport!=Vector2.ZERO and get_viewport().get_visible_rect().size!=return_viewport:
 		map_camera()
-	veil.queue_free();playback.stop();playback.queue_free()
+	ui.remove_child(veil);veil.queue_free()
+	playback.stop();ui.remove_child(playback);playback.queue_free()
 	for visual in unit_nodes.values():visual.set_tactical_details_visible(true)
 	markers.show()
 	for control in tactical_controls:

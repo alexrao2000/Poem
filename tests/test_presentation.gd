@@ -133,6 +133,7 @@ func run():
 	await verify_aqueduct_exchange(app)
 	await verify_crown_gate_exchange(app)
 	await verify_weather_exchange(app)
+	await verify_harbor_gulls(app)
 	await verify_chimney_exchange(app)
 	app.show_ending()
 	await process_frame
@@ -370,3 +371,59 @@ func verify_weather_exchange(app):
 	print("PASS: both combatants and a bystander retain their exact tactical idle phases through full and skipped 3D exchanges")
 	print("PASS: both map reveals respect scenery depth for bystanders and restore tactical visibility")
 	print("PASS: bystander color follows the camera in both directions through full and skipped 3D exchanges")
+
+func verify_harbor_gulls(app):
+	app.game.chapter=5;app.game.start_battle()
+	var a=app.game.living("player")[0];var b=app.game.living("enemy")[0]
+	a.x=5;a.y=4;b.x=6;b.y=4
+	app.make_map();app.show_battle();await process_frame
+	var clock=app.world.get_node("AmbientDrift")
+	var flock=clock.get_node("HarborGulls")
+	assert(flock.multimesh.instance_count==6 and flock.cast_shadow==GeometryInstance3D.SHADOW_CASTING_SETTING_OFF)
+	var wings=flock.multimesh.mesh.surface_get_arrays(0)[Mesh.ARRAY_VERTEX]
+	var bounds=flock.multimesh.custom_aabb
+	var samples=0
+	for frame in 180:
+		clock.seek_elapsed(frame*.19);flock.update_from_clock()
+		var data=flock.pose_buffer
+		for instance in 6:
+			var offset=instance*12
+			var basis=Basis(Vector3(data[offset],data[offset+4],data[offset+8]),
+				Vector3(data[offset+1],data[offset+5],data[offset+9]),Vector3(data[offset+2],data[offset+6],data[offset+10]))
+			var center=Vector3(data[offset+3],data[offset+7],data[offset+11])
+			for wing in wings:
+				var posed=center+basis*wing
+				assert(bounds.has_point(posed) and flock.to_global(posed).z>app.game.board_size().y,"Every wing stays in the cull bounds and outside the playable harbor")
+			samples+=1
+	var state=app.game.save_data("battle").duplicate(true)
+	for skip in [false,true]:
+		clock.seek_elapsed(4.25);flock.update_from_clock()
+		var transfer={"entry":-1.0,"returned":-1.0,"skipped":false}
+		var enter=func():
+			if app.world.visible:return
+			var sky=app.stage.get_node("AmbientDrift")
+			var distant=sky.get_node("HarborGulls")
+			assert(clock.elapsed==sky.elapsed and distant.pose_buffer==flock.pose_buffer)
+			assert(distant.multimesh.mesh==flock.multimesh.mesh and distant.material_override==flock.material_override)
+			transfer.entry=sky.elapsed
+		var exit=func():
+			if app.stage.visible or app.world.visible:return
+			var sky=app.stage.get_node("AmbientDrift")
+			assert(clock.elapsed==sky.elapsed and flock.pose_buffer==sky.get_node("HarborGulls").pose_buffer)
+			transfer.returned=clock.elapsed
+		var request=func():
+			if skip and not transfer.skipped and app.stage.visible and app.ui.has_node("CombatHUD"):
+				var playback=app.ui.get_node_or_null("CombatPlayback")
+				assert(playback!=null,"The next exchange can reuse the playback control name immediately")
+				playback.request_skip();transfer.skipped=true
+		app.world.visibility_changed.connect(enter)
+		app.stage.visibility_changed.connect(exit)
+		process_frame.connect(request)
+		await app.cinematic(a,b,[{"actor":a.id,"target":b.id,"damage":1,"remaining":b.hp-1,"hit":true,"crit":false}],{a.id:a.hp,b.id:b.hp})
+		app.world.visibility_changed.disconnect(enter)
+		app.stage.visibility_changed.disconnect(exit)
+		process_frame.disconnect(request)
+		assert(transfer.entry>4.25 and transfer.returned>transfer.entry and transfer.skipped==skip)
+		assert(clock.elapsed>=transfer.returned and app.world.visible and not app.stage.visible)
+	assert(app.game.save_data("battle")==state)
+	print("PASS: %d bounded gull wing poses, one shared mesh and exact map/arena motion before and after normal and skipped combat"%samples)

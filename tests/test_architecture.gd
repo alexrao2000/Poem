@@ -1455,6 +1455,7 @@ func verify_harbor_quay():
  var field=Node3D.new();root.add_child(field);scenery.landscape(field,game)
  var map_rack=field.get_node("HarborNetRack")
  var map_net=map_rack.get_node("HangingNet")
+ var map_gulls=field.get_node("AmbientDrift/HarborGulls")
  var map_breakwater=field.get_node("HarborBreakwater")
  var outer_wall=map_breakwater.global_transform*map_breakwater.mesh.get_aabb()
  assert(outer_wall.position.z>game.board_size().y+1.0 and outer_wall.position.y<-.12 and outer_wall.end.y>-.12)
@@ -1509,6 +1510,9 @@ func verify_harbor_quay():
   var deck=arena.get_node_or_null("ArenaDeck")
   var floor=arena.get_node_or_null("ArenaGround")
   assert((harbor_wall!=null)==(water!=null),"The outer harbor is visible from the quay and piers")
+  var gulls=arena.get_node_or_null("AmbientDrift/HarborGulls")
+  assert((gulls!=null)==(water!=null),"The gulls stay over water in waterfront fights")
+  if gulls!=null:assert(gulls.multimesh.mesh==map_gulls.multimesh.mesh)
   if harbor_wall!=null:
    assert(harbor_wall.mesh==map_breakwater.mesh and harbor_wall.cast_shadow==GeometryInstance3D.SHADOW_CASTING_SETTING_OFF)
    assert(is_equal_approx(harbor_wall.position.y,water.position.y))
