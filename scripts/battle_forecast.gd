@@ -154,7 +154,11 @@ func configure(parent: Control,rules,a: Dictionary,b: Dictionary,faces: Array):
   var fallen=strike_order.ordinary_hit_fall(a,b,attack,counter)
   for record in records:
    if record.unit==fallen:
-    var notice="Downed if hits land" if rules.death_door and not record.card.enemy else "Falls if hits land"
+    var notice="Falls if hits land"
+    match rules.forecast_fall(a if a.id==fallen else b):
+     &"defeat":notice="Defeat if hits land"
+     &"downed":notice="Downed if hits land"
+     &"permanent":notice="Lost if hits land"
     record.fall=label(record.card,notice,14,Color("8b3a40"))
     record.fall.name="FallForecast"
     record.fall.horizontal_alignment=HORIZONTAL_ALIGNMENT_RIGHT

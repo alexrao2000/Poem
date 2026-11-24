@@ -10,6 +10,8 @@ Use **Save experiment checkpoint** to remember the current war council or battle
 
 The casualty card names the effects earned by that loss. Legacy awards show the credit and any volunteer who joins early. A sacrifice can show the company’s attack bonus and recovery on redeployment. A downed recruit keeps the rescue cue while their countdown is active.
 
+The battle forecast shows what an ordinary hit sequence can do. **Downed if hits land** leaves a rescue opportunity. **Lost if hits land** marks an immediate permanent loss. **Defeat if hits land** warns that the fall can end the battle. A healed passenger can keep fighting after their carrier falls and releases them.
+
 The debug seed control accepts whole numbers from 0 through 2147483647. **Apply seed to next rolls** changes the sandbox’s random stream immediately. Loading a chapter, clean-resetting a battle or reviving/resetting the company reuses that seed; ordinary penalty retreats follow the campaign’s restart rules. The same seed, settings and sequence of actions reproduce the same results.
 
 **Test pressure and reset battle** accepts pressure 0–10, enables enemy preparation and rebuilds the current chapter using the selected seed. It keeps other trial switches and the consequence ledger. Load the chapter first, then choose pressure; a fresh-roster chapter load clears earlier consequences. The company experiment panel and debug report show the stat bonuses, held tonics and raider advance that will apply on the next deployment.

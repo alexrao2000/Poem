@@ -393,8 +393,25 @@ func raise_stat(unit: Dictionary,key: String,amount: int) -> int:
 	unit[key]=mini(STAT_CAPS[key],before+maxi(0,amount))
 	return int(unit[key])-before
 
+func leader_fall_is_defeat() -> bool:
+	return permadeath or trials.flags.reset_pressure
+
+func commits_losses_during_battle() -> bool:
+	return permadeath and (action_saves or trials.flags.section_restarts or trials.flags.death_legacies)
+
+func forecast_fall(unit: Dictionary) -> StringName:
+	if unit.team!="player":return &"fall"
+	if unit.id=="lyra" and not death_door and leader_fall_is_defeat():return &"defeat"
+	if living("player").size()==1:
+		# Falling releases a passenger. A healed passenger can keep the fight going.
+		var passenger=DeathDoor.passenger(self,unit)
+		if passenger==null or passenger.hp<=0:return &"defeat"
+	if death_door:return &"downed"
+	if unit.id!="lyra" and commits_losses_during_battle():return &"permanent"
+	return &"fall"
+
 func result() -> String:
-	if (permadeath or trials.flags.reset_pressure) and units.any(func(u):return u.id=="lyra" and u.team=="player" and u.hp<=0 and not DeathDoor.downed(u)):return "defeat"
+	if leader_fall_is_defeat() and units.any(func(u):return u.id=="lyra" and u.team=="player" and u.hp<=0 and not DeathDoor.downed(u)):return "defeat"
 	if living("player").is_empty(): return "defeat"
 	var boss_alive = units.any(func(u): return u.get("boss",false) and u.hp>0)
 	match info().objective:
@@ -440,7 +457,7 @@ func next_player_turn():
 
 func commit_casualties() -> Dictionary:
 	var consequences=trials.record_losses(self)
-	if not permadeath or not (action_saves or trials.flags.section_restarts or trials.flags.death_legacies):return consequences
+	if not commits_losses_during_battle():return consequences
 	for unit in units:
 		if unit.team!="player" or unit.id=="lyra" or unit.hp>0 or DeathDoor.downed(unit):continue
 		for recruit in roster:

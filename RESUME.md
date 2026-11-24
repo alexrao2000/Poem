@@ -6,6 +6,8 @@ This checkpoint describes the current development branch and supersedes the earl
 
 ### Latest state
 
+The battle forecast distinguishes a rescuable fall, a loss committed during battle, and a fall that would cause defeat. Eleven actual exchanges matched the forecast at two sizes, including a healed passenger released by their falling carrier. Eight focused suites and two packed suites per platform passed. The 72 casualty and save records match the prior source exactly in both exports. Rendered gameplay remains unreviewed.
+
 Starfall has a tilted slate chart beside the armillary on the tactical map and in 3D fights. Sixteen stars are etched with three original constellations. The timber posts and braces meet their stone footings, and eighteen wide shots retain a clear view of the chart. Eight focused suites, matching source and packed geometry, all 72 matched chapter outcomes, both local exports and their clockwork and presentation suites passed. A new Debug code enters a full revised observatory fight in both packs. See `build/review/starfall-chart-study.png` and `build/review/playtest/README.md`. Rendered gameplay remains unreviewed.
 
 The full committed-loss replay at `657df70` reached the ending after 15 battles and 470 actions. Lyra read all three section memorials. The run matched 998 exact saves to the earlier replay, including both planned rewinds, one leader defeat and all 17 permanent losses. See `build/review/memorial-route.html`.

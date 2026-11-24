@@ -14,6 +14,7 @@ func _initialize():call_deferred("run")
 func run():
  await verify_strike_order()
  await verify_fall_warning()
+ await verify_experiment_fall_results()
  await verify_compact_cards()
  var game=Rules.new();game.chapter=5;game.start_battle();var portraits=Portraits.new()
  var favorable=[["sword","axe"],["axe","lance"],["lance","sword"]]
@@ -169,7 +170,7 @@ func verify_fall_warning():
  var game=Rules.new();game.start_battle()
  var host=Control.new();root.add_child(host)
  var a=game.living("player")[0];var b=game.living("enemy")[0]
- game.units=[a,b]
+ game.units=[a,b,game.living("player")[1]]
  var cases=[
   {"name":"healthy pair","expected":"","lead":0},
   {"name":"counter reaches zero","expected":a.id,"lead":0,"ally_hits":1},
@@ -209,6 +210,56 @@ func verify_fall_warning():
   panel.free()
  host.free()
  print("PASS: 60 conditional fall layouts, death's door, ordinary-hit threshold, both follow-ups, no counter, out-of-range, and exact campaign/RNG isolation")
+
+func verify_experiment_fall_results():
+ var cases=[
+  {"notice":"Defeat if hits land","lyra":true,"permadeath":true},
+  {"notice":"Defeat if hits land","lyra":true,"flag":"reset_pressure"},
+  {"notice":"Downed if hits land","lyra":true,"permadeath":true,"death_door":true},
+  {"notice":"Lost if hits land","permadeath":true,"action_saves":true},
+  {"notice":"Lost if hits land","permadeath":true,"flag":"section_restarts"},
+  {"notice":"Lost if hits land","permadeath":true,"flag":"death_legacies"},
+  {"notice":"Falls if hits land","permadeath":true},
+  {"notice":"Falls if hits land","action_saves":true},
+  {"notice":"Defeat if hits land","last":true,"death_door":true},
+  {"notice":"Defeat if hits land","last":true,"death_door":true,"passenger_hp":0},
+  {"notice":"Downed if hits land","last":true,"death_door":true,"passenger_hp":8},
+ ]
+ var host=Control.new();root.add_child(host)
+ for sample in cases:
+  var game=Rules.new();game.new_campaign(sample.get("permadeath",false));game.start_battle()
+  game.death_door=sample.get("death_door",false);game.action_saves=sample.get("action_saves",false)
+  if sample.has("flag"):game.trials.flags[sample.flag]=true
+  var a: Dictionary=game.living("player").filter(func(unit):return unit.id==("lyra" if sample.get("lyra",false) else "oren"))[0]
+  var b=game.living("enemy")[0]
+  var passenger=game.living("player").filter(func(unit):return unit.id=="ivo")[0]
+  a.x=8;a.y=4;a.hp=1;a.speed=4;a.pow=0
+  b.x=9;b.y=4;b.hp=100;b.max_hp=100;b.speed=28;b.pow=18
+  if sample.get("last",false):game.units=[a,b]
+  if sample.has("passenger_hp"):
+   passenger.carried_by=a.id;passenger.hp=sample.passenger_hp;passenger.x=a.x;passenger.y=a.y
+   if passenger.hp==0:passenger.downed=true;passenger.bleed_turns=2
+   game.units.append(passenger)
+  for unit in [a,b]:
+   unit.item="iron_sword";unit.weapon="sword";unit.reach=1
+  game.rng.seed=28
+  var before=game.save_data("battle").duplicate(true);var rng=game.rng.state
+  var panel=Forecast.new();panel.configure(host,game,a,b,[null,null])
+  for dimensions in [Vector2(720,640),Vector2(1440,900)]:
+   host.size=dimensions;await process_frame;await process_frame
+   var notice=panel.records[0].fall
+   assert(notice!=null and notice.text==sample.notice and panel.records[1].fall==null,sample.notice)
+   assert(notice.get_theme_font("font").get_string_size(notice.text,HORIZONTAL_ALIGNMENT_LEFT,-1,14).x<=notice.size.x)
+  assert(game.save_data("battle")==before and game.rng.state==rng)
+  panel.free()
+  var exchange=game.combat(a,b)
+  assert(exchange.size()==2 and exchange[-1].remaining==0)
+  assert((game.result()=="defeat")==sample.notice.begins_with("Defeat"))
+  assert((a.id in game.lost_ids())==sample.notice.begins_with("Lost"))
+  if sample.notice.begins_with("Downed"):assert(game.DeathDoor.downed(a))
+  if sample.get("passenger_hp",0)>0:assert(not passenger.has("carried_by") and passenger in game.living("player"))
+ host.free()
+ print("PASS: 11 live forecast-to-fall outcomes and 22 layouts cover immediate loss, leader defeat, rescue, released passengers and unchanged forecast RNG")
 
 func verify_compact_cards():
  var game=Rules.new();game.chapter=11;game.start_battle()
