@@ -204,6 +204,7 @@ func resized_combat_return():
   await app.cinematic(attacker,target,events)
   process_frame.disconnect(resize);app.busy=false
   assert(resized[0] and viewport.size==fixture[1],"The real encounter reached the requested resize point")
+  assert(app.unit_nodes.values().all(func(visual):return is_zero_approx(visual.cutaway_dim)),"Returning from combat clears bystander dimming after resize or opening Skip")
   if fixture[2]:
    assert(nav.at_home() and nav.capture_view()!=original and app.camera.fov==original.fov,"An arena return fits Home to the new viewport without losing the saved lens")
    check_home_edges(app.camera,app.game.board_size())

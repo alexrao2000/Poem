@@ -1357,7 +1357,7 @@ func cinematic(a,b,events,initial_hp={},challenge: Dictionary={}):
 	var focus=(map_position(game.pos(a))+map_position(game.pos(b)))*.5
 	markers.hide()
 	# Keep the exchange readable while the lower camera lets scenery cover bystanders.
-	for visual in unit_nodes.values():visual.set_tactical_details_visible(false,visual.unit_id in focal_units)
+	var bystanders=prepare_tactical_cut(focal_units,0.0)
 	var tactical_controls={}
 	for control in ui.get_children():tactical_controls[control]=control.visible;control.hide()
 	var playback=preload("res://scripts/combat_playback.gd").new()
@@ -1370,7 +1370,9 @@ func cinematic(a,b,events,initial_hp={},challenge: Dictionary={}):
 	var veil=CombatTransition.new();veil.configure(ui,func():return camera.unproject_position(focus),horizon)
 	veil.conceal()
 	play_sfx("approach")
-	var push=map_navigation.approach_combat(focus,.42,combat_sprites)
+	var push_time=.42
+	var push=map_navigation.approach_combat(focus,push_time,combat_sprites)
+	push.parallel().tween_method(dim_bystanders.bind(bystanders),0.0,1.0,push_time)
 	await push.finished
 	if veil.motion.is_running():await veil.motion.finished
 	var close_map_view=map_navigation.capture_view()
@@ -1596,15 +1598,17 @@ func cinematic(a,b,events,initial_hp={},challenge: Dictionary={}):
 func return_to_tactical_map(veil,playback,close_map_view: Dictionary,tactical_view: Dictionary,tactical_controls: Dictionary,focus: Vector3,home_viewport: Vector2,focal_units: Array):
 	music_mix(false)
 	refresh_pieces()
-	for visual in unit_nodes.values():visual.set_tactical_details_visible(false,visual.unit_id in focal_units)
+	var bystanders=prepare_tactical_cut(focal_units,1.0)
 	world.show();pieces.show()
 	var return_viewport=get_viewport().get_visible_rect().size
 	if home_viewport!=Vector2.ZERO and return_viewport!=home_viewport:
 		camera.fov=tactical_view.fov
 		map_camera()
 		tactical_view=map_navigation.capture_view()
-	var pull=map_navigation.return_from_combat(close_map_view,tactical_view,.25)
-	veil.reveal(.25,func():return camera.unproject_position(focus))
+	var pull_time=.25
+	var pull=map_navigation.return_from_combat(close_map_view,tactical_view,pull_time)
+	pull.parallel().tween_method(dim_bystanders.bind(bystanders),1.0,0.0,pull_time)
+	veil.reveal(pull_time,func():return camera.unproject_position(focus))
 	await pull.finished
 	if veil.motion.is_running():await veil.motion.finished
 	if home_viewport!=Vector2.ZERO and get_viewport().get_visible_rect().size!=return_viewport:
@@ -1614,6 +1618,19 @@ func return_to_tactical_map(veil,playback,close_map_view: Dictionary,tactical_vi
 	markers.show()
 	for control in tactical_controls:
 		if is_instance_valid(control):control.visible=tactical_controls[control]
+
+func prepare_tactical_cut(focal_units: Array,dim: float) -> Array:
+	var bystanders=[]
+	for visual in unit_nodes.values():
+		var focal=visual.unit_id in focal_units
+		visual.set_tactical_details_visible(false,focal)
+		if not focal:
+			visual.set_cutaway_dim(dim)
+			bystanders.append(visual)
+	return bystanders
+
+func dim_bystanders(value: float,bystanders: Array):
+	for visual in bystanders:visual.set_cutaway_dim(value)
 
 func present_casualties(events: Array):
 	if skip_combat:return

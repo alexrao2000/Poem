@@ -294,12 +294,15 @@ func verify_weather_exchange(app):
 		await process_frame
 		var transfer={"entry":-1.0,"return":-1.0,"skipped":false}
 		var idle_phases={}
+		var emphasis={}
 		var sprites_restored=[0]
 		var inspect_idle=func():
 			for unit in [a,b,bystander]:
 				var piece=app.unit_nodes[unit.id]
 				assert(piece.sprite.no_depth_test==(unit!=bystander),
 					"Only the focal pair bypasses scenery depth on either side of the close-up")
+				assert(is_equal_approx(piece.cutaway_dim,1.0 if unit==bystander else 0.0))
+				if unit==bystander:assert(piece.sprite.modulate.is_equal_approx(app.MapUnit.CUTAWAY_TINT))
 				if not app.pieces.visible:
 					# Set distinct nonzero positions once the hidden sprite clock pauses.
 					piece.player.play("idle","",true)
@@ -322,6 +325,12 @@ func verify_weather_exchange(app):
 			assert(arena.elapsed==rain.elapsed and arena.elapsed>transfer.entry)
 			transfer.return=rain.elapsed
 		var handle_skip=func():
+			var veil=app.ui.get_node_or_null("CombatTransition")
+			if veil!=null and app.world.visible and app.pieces.visible:
+				var piece=app.unit_nodes[bystander.id]
+				if piece.cutaway_dim>.02 and piece.cutaway_dim<.98:
+					assert(piece.sprite.modulate.is_equal_approx(Color.WHITE.lerp(app.MapUnit.CUTAWAY_TINT,piece.cutaway_dim)))
+					emphasis[veil.revealing]=true
 			var playback=app.ui.get_node_or_null("CombatPlayback")
 			if not skip or transfer.skipped or playback==null or not app.stage.visible or not app.ui.has_node("CombatHUD"):return
 			playback.request_skip()
@@ -337,10 +346,13 @@ func verify_weather_exchange(app):
 		process_frame.disconnect(handle_skip)
 		assert(transfer.entry>7.25 and transfer.return>transfer.entry and transfer.skipped==skip)
 		assert(sprites_restored[0]==3)
+		assert(emphasis.size()==2,"Bystander color moves through intermediate values in both directions")
 		assert(rain.elapsed>=transfer.return and app.world.visible and not app.stage.visible)
 		for piece in app.unit_nodes.values():
-			assert(piece.sprite.no_depth_test,"Normal tactical readability returns for every surviving figure")
+			assert(piece.sprite.no_depth_test and is_zero_approx(piece.cutaway_dim),"Normal tactical readability returns for every surviving figure")
+		assert(app.unit_nodes[bystander.id].sprite.modulate==Color.WHITE)
 	assert(app.game.save_data("battle")==state)
 	print("PASS: Greywood carries the same seeded rain phases into a complete and a skipped 3D exchange, then continues on the map")
 	print("PASS: both combatants and a bystander retain their exact tactical idle phases through full and skipped 3D exchanges")
 	print("PASS: both map reveals respect scenery depth for bystanders and restore tactical visibility")
+	print("PASS: bystander color follows the camera in both directions through full and skipped 3D exchanges")

@@ -5,6 +5,7 @@ extends "res://visuals/unit_3d.gd"
 
 const TACTICAL_PIXEL_SIZE=1.0/48.0
 const HEALTH_COLORS=[Color("e87c63"),Color("f2c45e"),Color("acd86b")]
+const CUTAWAY_TINT=Color(.66,.73,.79)
 static var contact_material: StandardMaterial3D
 static var contact_mesh: PlaneMesh
 static var selected_mesh: ArrayMesh
@@ -24,6 +25,7 @@ var defeat_motion: Tween
 var transferring=false
 var rescue_opacity=1.0
 var tactical_details_visible=true
+var cutaway_dim=0.0
 
 func configure(source: RefCounted,unit: Dictionary,facing="south",carried_name="",shared_count=0):
  unit_id=unit.id;team=unit.team;spent=unit.acted;downed=unit.get("downed",false)
@@ -137,16 +139,25 @@ func set_tactical_details_visible(value: bool, draw_over_scenery=true):
  for icon in [commander_insignia,rescue_marker,carry_marker,shared_marker]:
   if is_instance_valid(icon):icon.visible=value
 
+func set_cutaway_dim(value: float):
+ cutaway_dim=value
+ refresh_tint(sprite.modulate.a)
+
+func refresh_tint(alpha: float):
+ var tint=Color(.78,.78,.78) if spent else Color.WHITE
+ if team=="enemy" and not spent and not visual_id.begins_with("enemy."):tint=Color(1,.72,.68)
+ if downed:tint=Color("d8a178")
+ if cutaway_dim>0:tint*=Color.WHITE.lerp(CUTAWAY_TINT,cutaway_dim)
+ tint.a=alpha;sprite.modulate=tint
+
 func _process(dt):
  if not is_visible_in_tree():return
  super._process(dt)
  spent_tick.hide()
- if spent:sprite.modulate=Color(.78,.78,.78,sprite.modulate.a)
  var breath=1.0+sin(clock*4)*.045
  ring.scale=Vector3(breath,1,breath)
  ring.visible=ring.visible and tactical_details_visible
- if team=="enemy" and not spent and not visual_id.begins_with("enemy."):sprite.modulate*=Color(1,.72,.68)
- if downed:sprite.modulate=Color("d8a178")
+ refresh_tint(1.0 if downed else sprite.modulate.a)
  if departing:set_defeat_opacity(defeat_opacity);ring.hide()
  if transferring:apply_opacity(rescue_opacity);ring.hide()
 
