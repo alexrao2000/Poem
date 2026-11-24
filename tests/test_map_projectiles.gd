@@ -87,6 +87,7 @@ func run():
      var from=Vector3(3,.7,-4);var to=from+direction*2.5+Vector3.UP*.3
      shot.launch(from,to,entry[0],1,entry[1],{},missed,null,scale_value).kill();shot.set_process(false)
      assert(shot.point_at(1).distance_to(to)<.0001 and shot.body.global_basis.get_scale().is_equal_approx(Vector3.ONE*scale_value))
+     assert((shot.travel_end>1)==missed and shot.point_at(shot.travel_end).distance_to(to)<.901)
      for step in 13:
       shot.progress=shot.travel_end*step/12.0;shot._process(0)
       assert(shot.global_position.distance_to(shot.point_at(shot.progress))<.0001)
@@ -96,6 +97,18 @@ func run():
        assert(tip.to_global(Vector3(0,0,tip.mesh.get_aabb().position.z)).distance_to(shot.point_at(shot.progress))<.0001)
       elif step>0:assert(shot.wake.visible and shot.wake.mesh.get_surface_count()==1 and shot.spell==entry[1])
       samples+=1
+     if entry[0]=="magic":
+      var halo=shot.body.get_node("SpellGlow")
+      if missed:
+       assert(shot.wake.material_override.albedo_color.a==0 and halo.material_override.albedo_color.a==0)
+       shot.progress=lerpf(1.0,shot.travel_end,.5);shot._process(0)
+       assert(shot.global_position.distance_to(to)>.15)
+       assert(is_equal_approx(shot.wake.material_override.albedo_color.a,.5))
+       for part in shot.body.get_children():
+        var expected_opacity=.175 if part==halo else .375
+        assert(is_equal_approx(part.material_override.albedo_color.a,expected_opacity),"The core, halo and wake fade beyond the target")
+       shot.progress=1.0;shot._process(0)
+      assert(is_equal_approx(halo.material_override.albedo_color.a,.35),"A landed spell retains its full glow through contact")
      shot.queue_free();await process_frame
  host.queue_free();await process_frame
  var viewport=SubViewport.new();viewport.size=Vector2i(1440,900);viewport.render_target_update_mode=SubViewport.UPDATE_DISABLED;root.add_child(viewport)
@@ -124,4 +137,5 @@ func run():
   app.pieces.child_entered_tree.disconnect(watch)
  await Shutdown.dispose(app);viewport.queue_free();await process_frame
  print("PASS: %d scaled/full-size flight samples across five projectiles, four directions and hits/misses; six actual three-size ranged map attacks, body alignment, pre-contact health, committed state/RNG and cleanup"%samples)
+ print("PASS: scaled and full-size missed spells travel beyond their aim and fade out after crossing it")
  quit()

@@ -185,18 +185,21 @@ func run():
  skip_on_hold=false;skip_on_recovery=false
  var confirmed_holds=holds
  app.stage.child_entered_tree.connect(watch_miss)
- for weapon in ["sword","bow","lance"]:
+ for weapon in ["sword","bow","lance","magic"]:
   sound_cues.clear()
-  a.weapon=weapon;a.job="Ranger" if weapon=="bow" else "Knight" if weapon=="lance" else "Vanguard";b.x=10 if weapon in ["bow","lance"] else 9
+  var ranged=weapon!="sword"
+  a.weapon=weapon;a.job={"sword":"Vanguard","bow":"Ranger","lance":"Knight","magic":"Arcanist"}[weapon]
+  if weapon=="magic":a.item="gale"
+  b.x=10 if ranged else 9
   misses.clear();var saved=app.game.save_data("battle").duplicate(true);var rng=app.game.rng.state
   await app.cinematic(a,b,[{"actor":a.id,"target":b.id,"damage":0,"remaining":20,"hit":false,"crit":false}],{a.id:20,b.id:20})
-  assert(misses.size()==(2 if weapon in ["bow","lance"] else 1))
-  assert(sound_cues==["approach","release_"+weapon],"A missed attack plays the approach and release cues")
+  assert(misses.size()==(2 if ranged else 1))
+  assert(sound_cues==["approach","release_"+("gale" if weapon=="magic" else weapon)],"A missed attack plays only the approach and release cues")
   for sample in misses:
    assert(sample.position.z<-.25 and sample.pose=="evade","Defender dodges before projectile release or melee contact")
    if sample.has("destination"):
     assert(is_zero_approx(sample.destination.z),"Missed projectile keeps its original aim instead of tracking the dodge")
-    assert(sample.travel_end>1,"Actual missed arrows and spears carry beyond their original aim point")
+    assert(sample.travel_end>1,"Missed arrows, spears and spells carry beyond their original aim point")
   for actor in app.stage.get_children().filter(func(node):return node is Actor):assert(is_zero_approx(actor.position.z),"Dodge settles before returning to the map")
   assert(app.game.save_data("battle")==saved and app.game.rng.state==rng,"Dodge presentation never changes the miss result")
  app.stage.child_entered_tree.disconnect(watch_miss)

@@ -2,11 +2,14 @@ extends Node3D
 # Original arrow, thrown spear and spell presentations follow an explicit arc.
 # Physical flights track the leading tip to contact, with the shaft behind it.
 # Launch advances the tip from the hand so the shaft begins near the grip.
-# Missed physical shots continue along their arrival tangent beyond the target.
+# Missed shots follow the arrival tangent beyond the target. Magic fades out
+# along that final stretch, including its wake.
 
 const Spell=preload("res://scripts/combat_spell.gd")
 const WeaponBlades=preload("res://scripts/weapon_blades.gd")
 const ARROW_LENGTH=.72
+const SPELL_BODY_OPACITY=.75
+const SPELL_GLOW_OPACITY=.35
 const DEFAULT_WAKE={"span":.28,"width":.11,"opacity":.45}
 const ELEMENTAL_WAKES={
  "ember":{"span":.22,"width":.135,"opacity":.52},
@@ -70,7 +73,7 @@ func launch(from: Vector3,to: Vector3,weapon: String,duration=.23,spell_id="",ap
    spell_halo=QuadMesh.new();spell_halo.size=Vector2.ONE*.6
   var halo=piece(body,spell_halo,colors.accent,true);halo.name="SpellGlow"
   halo.material_override.albedo_texture=preload("res://scripts/combat_impact.gd").radial_texture()
-  halo.material_override.albedo_color.a=.35;halo.material_override.billboard_mode=BaseMaterial3D.BILLBOARD_ENABLED;halo.material_override.billboard_keep_scale=true
+  halo.material_override.albedo_color.a=SPELL_GLOW_OPACITY;halo.material_override.billboard_mode=BaseMaterial3D.BILLBOARD_ENABLED;halo.material_override.billboard_keep_scale=true
   wake=MeshInstance3D.new();wake.name="SpellWake";wake_color=colors.wake
   wake_shape=ELEMENTAL_WAKES.get(spell,DEFAULT_WAKE)
   var surface=StandardMaterial3D.new();surface.shading_mode=BaseMaterial3D.SHADING_MODE_UNSHADED
@@ -78,7 +81,7 @@ func launch(from: Vector3,to: Vector3,weapon: String,duration=.23,spell_id="",ap
   surface.cull_mode=BaseMaterial3D.CULL_DISABLED;surface.vertex_color_use_as_albedo=true;surface.vertex_color_is_srgb=true;surface.disable_fog=true
   wake.material_override=surface;wake.cast_shadow=GeometryInstance3D.SHADOW_CASTING_SETTING_OFF;add_child(wake)
  var tangent=destination-origin-Vector3.UP*PI*arc
- travel_end=1.0+minf(.35,.9/maxf(tangent.length(),.001)) if miss and kind in ["bow","lance"] else 1.0
+ travel_end=1.0+minf(.35,.9/maxf(tangent.length(),.001)) if miss else 1.0
  _process(0)
  motion=create_tween();motion.tween_property(self,"progress",travel_end,duration*travel_end).set_trans(Tween.TRANS_LINEAR)
  motion.tween_callback(func():_process(0);queue_free())
@@ -125,7 +128,13 @@ func _process(_dt):
  if direction.length_squared()>.0001:
   body.look_at(global_position+direction,Vector3.FORWARD if direction.normalized().cross(launch_up).length_squared()<.001 else launch_up)
  if kind=="magic" and spell=="gale":body.rotate_object_local(Vector3.FORWARD,progress*TAU*2)
- if wake!=null:update_wake(direction.normalized())
+ if wake!=null:
+  update_wake(direction.normalized())
+  if travel_end>1.0:
+   var opacity=1.0-smoothstep(1.0,travel_end,progress)
+   wake.material_override.albedo_color.a=opacity
+   for part in body.get_children():
+    part.material_override.albedo_color.a=(SPELL_GLOW_OPACITY if part.name=="SpellGlow" else SPELL_BODY_OPACITY)*opacity
 
 func update_wake(direction: Vector3):
  var span=minf(progress,wake_shape.span)
@@ -158,7 +167,7 @@ static func piece(parent: Node3D,mesh: Mesh,color: Color,unlit=false) -> MeshIns
  if unlit:
   material.shading_mode=BaseMaterial3D.SHADING_MODE_UNSHADED
   material.transparency=BaseMaterial3D.TRANSPARENCY_ALPHA;material.blend_mode=BaseMaterial3D.BLEND_MODE_ADD
-  material.albedo_color.a=.75;material.disable_fog=true
+  material.albedo_color.a=SPELL_BODY_OPACITY;material.disable_fog=true
   if mesh is SphereMesh:material.cull_mode=BaseMaterial3D.CULL_BACK
   node.cast_shadow=GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
  node.material_override=material;parent.add_child(node);return node
