@@ -1,15 +1,15 @@
 extends RefCounted
-# One deterministic cloud panorama extends the existing lightweight sky.
-# A horizontal noise field is projected onto the upper hemisphere, fading
-# before the horizon. No scene geometry, animation clock or gameplay RNG.
+# Deterministic day clouds and a faint Starfall sky cover fade before the horizon.
 
 const SIZE=Vector2i(1024,512)
 static var cover: ImageTexture
+static var night_cover: ImageTexture
 
-static func image() -> Image:
+static func image(night=false) -> Image:
  var noise=FastNoiseLite.new();noise.seed=7139;noise.noise_type=FastNoiseLite.TYPE_SIMPLEX_SMOOTH
  noise.frequency=.85;noise.fractal_octaves=4;noise.fractal_gain=.5
  var result=Image.create(SIZE.x,SIZE.y,false,Image.FORMAT_RGBA8)
+ var opacity=.18 if night else 1.0
  for y in range(SIZE.y/2):
   var elevation=cos(float(y)/(SIZE.y-1)*PI)
   var radius=sqrt(maxf(0,1-elevation*elevation))/maxf(elevation,.08)
@@ -18,15 +18,33 @@ static func image() -> Image:
    var angle=float(x)/(SIZE.x-1)*TAU
    var value=noise.get_noise_2d(cos(angle)*radius*1.7,sin(angle)*radius*1.7)
    var density=smoothstep(-.04,.32,value)*fade
-   result.set_pixel(x,y,Color(1,1,1,density))
+   result.set_pixel(x,y,Color(1,1,1,density*opacity))
+ if night:paint_stars(result)
  result.generate_mipmaps();return result
 
-static func texture() -> ImageTexture:
+static func paint_stars(panorama: Image):
+ var random=RandomNumberGenerator.new();random.seed=17205
+ for index in range(164):
+  var center=Vector2i(random.randi_range(4,SIZE.x-5),random.randi_range(15,SIZE.y/2-17))
+  var radius=random.randf_range(1.4,2.0) if index<12 else random.randf_range(.8,1.44)
+  var clarity=random.randf_range(.84,1) if index<12 else random.randf_range(.44,.79)
+  var pigment=Color("f8e9cd") if index%9==0 else Color("d3e7f7").lerp(Color.WHITE,random.randf_range(.25,.70))
+  var reach=ceili(radius)
+  for y in range(-reach,reach+1):
+   for x in range(-reach,reach+1):
+    var light=clarity*(1-smoothstep(0.0,radius,Vector2(x,y).length()))
+    var pixel=center+Vector2i(x,y)
+    if light>panorama.get_pixelv(pixel).a:panorama.set_pixelv(pixel,Color(pigment,light))
+
+static func texture(night=false) -> ImageTexture:
+ if night:
+  if night_cover==null:night_cover=ImageTexture.create_from_image(image(true))
+  return night_cover
  if cover==null:cover=ImageTexture.create_from_image(image())
  return cover
 
 static func tint(theme: String) -> Color:
  if theme in ["engine","furnace"]:return Color(0,0,0,0)
- if theme=="observatory":return Color(.45,.52,.70,.08)
+ if theme=="observatory":return Color(.84,.91,1,.32)
  if theme in ["forest","mountain"]:return Color(.78,.82,.85,.30)
  return Color(.96,.95,.91,.38)

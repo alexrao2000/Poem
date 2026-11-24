@@ -54,9 +54,9 @@ func run():
 		var atmosphere=app.lighting_state()
 		chapter_lights[theme]=lighting
 		horizon_colors[lighting.horizon]=true
-		assert(app.environment.sky.sky_material.sky_cover==app.CloudSky.texture() and atmosphere.clouds==app.CloudSky.tint(theme),"Every chapter shares the cloud panorama with its own lighting contrast")
+		assert(atmosphere.sky_cover==app.CloudSky.texture(theme=="observatory") and atmosphere.clouds==app.CloudSky.tint(theme),"Starfall uses the night cover and other chapters share the daytime cover")
 		assert(previous==lighting and app.environment.fog_enabled,"Battle atmosphere saves the complete previous state")
-		for key in ["color","energy","ambient","top","horizon","ground","clouds"]:
+		for key in ["color","energy","ambient","top","horizon","ground","clouds","sky_cover"]:
 			assert(atmosphere[key]==lighting[key],"The map and its arena share the same chapter light")
 		assert(atmosphere.ambient>=.5 and atmosphere.energy>=.4,"Shadowed combatants keep a minimum light level")
 		assert(app.environment.fog_depth_begin>=12 and app.environment.fog_density<.6,"Distance haze starts behind combatants and remains translucent")
@@ -129,9 +129,30 @@ func run():
 	assert(app.screen=="model" and app.stage.visible and not app.world.visible,"Model gallery isolates presentation")
 	app.close_model_view();await process_frame
 	assert(app.screen=="dossier" and app.camera.projection==Camera3D.PROJECTION_ORTHOGONAL,"Gallery restores map camera")
+	await verify_starfall_exchange(app)
 	app.show_ending()
 	await process_frame
 	await Shutdown.dispose(app)
 	await process_frame
 	print("PASS: 12 distinct chapter palettes shared by map and arena, 12 camp/map scenes, combat camera transition, control restoration and ending")
 	quit()
+
+func verify_starfall_exchange(app):
+	app.game.chapter=8;app.game.start_battle();app.make_map();app.show_battle()
+	var night=app.CloudSky.texture(true)
+	var map_lighting=app.lighting_state()
+	assert(map_lighting.sky_cover==night)
+	var a=app.game.living("player")[0];var b=app.game.living("enemy")[0]
+	a.x=6;a.y=6;b.x=7;b.y=6;app.refresh_pieces()
+	var observed=[false]
+	var watch_arena=func():
+		if app.stage.visible and app.ui.has_node("CombatHUD"):
+			assert(app.lighting_state().sky_cover==night and app.environment.fog_enabled)
+			observed[0]=true
+	process_frame.connect(watch_arena)
+	await app.cinematic(a,b,[{"actor":a.id,"target":b.id,"damage":1,"remaining":b.hp-1,"hit":true,"crit":false}],{a.id:a.hp,b.id:b.hp})
+	process_frame.disconnect(watch_arena)
+	assert(observed[0] and app.lighting_state()==map_lighting)
+	app.battle_lighting("village",false)
+	assert(app.lighting_state().sky_cover==app.CloudSky.texture())
+	print("PASS: Starfall shares one night cover through a complete exchange and restores the daytime cover on chapter change")

@@ -1521,12 +1521,13 @@ func lighting_state() -> Dictionary:
 	var sky=environment.sky.sky_material
 	var fog={}
 	for field in FOG_FIELDS:fog[field]=environment.get(field)
-	return {"energy":sunlight.light_energy,"color":sunlight.light_color,"ambient":environment.ambient_light_energy,"top":sky.sky_top_color,"horizon":sky.sky_horizon_color,"ground":sky.ground_horizon_color,"clouds":sky.sky_cover_modulate,"fog":fog}
+	return {"energy":sunlight.light_energy,"color":sunlight.light_color,"ambient":environment.ambient_light_energy,"top":sky.sky_top_color,"horizon":sky.sky_horizon_color,"ground":sky.ground_horizon_color,"clouds":sky.sky_cover_modulate,"sky_cover":sky.sky_cover,"fog":fog}
 
 func battle_lighting(theme: String,arena=true) -> Dictionary:
 	var old=lighting_state()
 	if not default_lighting.is_empty():restore_lighting(default_lighting)
 	var sky=environment.sky.sky_material
+	sky.sky_cover=CloudSky.texture(theme=="observatory")
 	sky.sky_cover_modulate=CloudSky.tint(theme)
 	var palette=CHAPTER_LIGHTING.get(theme,{})
 	if not palette.is_empty():
@@ -1546,6 +1547,7 @@ func restore_lighting(old: Dictionary):
 	var sky=environment.sky.sky_material
 	sunlight.light_energy=old.energy;sunlight.light_color=old.color;environment.ambient_light_energy=old.ambient
 	sky.sky_top_color=old.top;sky.sky_horizon_color=old.horizon;sky.ground_horizon_color=old.ground;sky.sky_cover_modulate=old.clouds
+	sky.sky_cover=old.sky_cover
 	for field in FOG_FIELDS:environment.set(field,old.fog[field])
 
 func combat_wait(motion: Tween) -> bool:

@@ -8,6 +8,7 @@ func _initialize():call_deferred("run")
 
 func run():
  verify_clouds()
+ verify_star_cover()
  var game=Rules.new();var rng=game.rng.state;var saved=game.save_data("camp").duplicate(true)
  var host=Node3D.new();root.add_child(host)
  var source_meshes={};var materials={}
@@ -109,3 +110,20 @@ func verify_clouds():
  assert(total/(1024*256)>.15 and total/(1024*256)<.45 and bright>1000 and clear>10000,"Cloud cover keeps both substantial cloud banks and open sky")
  for x in range(1024):assert(image.get_pixel(x,255).a==0,"Clouds fade out before meeting the distant horizon")
  assert(CloudSky.tint("observatory").a<CloudSky.tint("village").a and CloudSky.tint("engine").a==0 and CloudSky.tint("furnace").a==0,"Night cloud contrast is reduced and enclosed industrial skies stay clear")
+
+func verify_star_cover():
+ var night=CloudSky.image(true)
+ assert(night.get_size()==CloudSky.SIZE and night.has_mipmaps())
+ assert(night.get_data()==CloudSky.image(true).get_data(),"Starfall's cover regenerates byte for byte")
+ assert(CloudSky.texture(true)!=CloudSky.texture() and CloudSky.texture(true)==CloudSky.texture(true))
+ var quarters=[0,0,0,0]
+ for y in night.get_height():
+  assert(absf(night.get_pixel(0,y).a-night.get_pixel(night.get_width()-1,y).a)<=1.0/255)
+  for x in night.get_width():
+   var point=night.get_pixel(x,y)
+   if y>=night.get_height()/2:assert(point.a==0)
+   if point.a>.4:
+    assert(y>=13 and y<night.get_height()/2-14,"Stars stay away from the zenith seam and horizon fade")
+    quarters[x/(night.get_width()/4)]+=1
+ assert(quarters.all(func(count):return count>22 and count<83),"Bright stars spread quietly around the panorama")
+ print("PASS: the deterministic Starfall cover scatters dim stars across four sectors and preserves the horizon and longitude seams")

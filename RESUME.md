@@ -6,6 +6,10 @@ This checkpoint describes the current development branch and supersedes the earl
 
 ### Latest state
 
+Starfall’s map and 3D arena share a night sky with a sparse field of stars and faint clouds. Seven focused suites, including a complete Starfall exchange and the return to daytime on chapter change, passed. Both exports produced the same sky bytes as the source. The daytime panorama also matches the preceding package byte for byte. Packed atmosphere and presentation and both archive checks passed. See `build/review/starfall-cover-study.png` for a source texture study. Assembled gameplay rendering remains unreviewed.
+
+The fresh-settings Hard replay at `1cf9967` reached the ending after 13 battles, 96 turns and 429 player actions. All 879 snapshots matched the earlier Quick Map run. Both revised figures and the field ambience loaded in all 458 3D exchanges, including the new belfry in 28 and the beacons and crosswind in 37. All 24 recruits remained available at the ending. See `build/review/fresh-profile-revised-route.html`.
+
 Fresh settings and Restore defaults now select the revised 3D roster. Older settings that lack a model choice use Original models, and both saved choices round-trip. The viewer, Options and Debug encounter list use the same model names. Thirty-one focused suites covered all 24 recruits in real exchanges, promotion and fallback choices, both preferences, playback and Debug comparisons. The older combat fixture now expects the tactical zoom cue before weapon release. Both local exports, preference and prefetch checks in both packs, the browser journal check, and archive integrity passed. Rendered browser and macOS appearance remains unreviewed.
 
 Wind, rain, leaves, embers and other weather effects now reuse three meshes and four materials. The 144-placement comparison previously created 133 meshes and 144 materials. Exact mesh arrays, material settings and seven instance samples per configuration matched across source and both packs. Seven focused suites, both exports, packaged weather and presentation checks, and archive integrity passed.
