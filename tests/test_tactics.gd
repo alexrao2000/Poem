@@ -47,9 +47,24 @@ func _initialize():
  ally.hp-=10;assert(g.use_tonic(ally) and ally.potions==1,"Tonic consumes one use and one action")
  enemy.ai="guard";enemy.x=12;enemy.y=4;g.begin_enemy_phase()
  assert(ai.plan(g,enemy).position==g.pos(enemy),"Guard holds objective")
+ verify_pursuit_ties(ai)
  verify_rescue_planning(ai)
  print("PASS: obstacle detours, archer spacing, pure planning, phase/action legality and healing")
  quit()
+
+func verify_pursuit_ties(ai):
+ var game=Rules.new();game.start_battle()
+ var actor=game.living("enemy").filter(func(unit):return unit.weapon=="axe")[0]
+ var left=game.units[0];var right=game.units[1]
+ actor.x=6;actor.y=4;actor.move=2;actor.ai="pursue"
+ left.x=1;left.y=4;right.x=11;right.y=4
+ game.info().map=[]
+ for y in 10:game.info().map.append("..............")
+ game.phase="enemy";game.units=[actor,right,left]
+ var choice=ai.plan(game,actor)
+ assert(choice.action=="wait" and choice.position==Vector2i(8,4),"An equal pursuit cost prefers the first foe even when the left tile enters the movement field first")
+ game.units=[actor,left,right]
+ assert(ai.plan(game,actor).position==Vector2i(4,4),"Changing foe order changes only the equal-cost pursuit decision")
 
 func verify_rescue_planning(ai):
  var g=Rules.new();g.death_door=true;g.start_battle()

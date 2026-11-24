@@ -26,47 +26,77 @@ func step_cost(game,p: Vector2i) -> int:
  return 2 if game.terrain(p) in ["f","h"] else 1
 
 func distance_field(game,unit: Dictionary,goals: Array) -> Dictionary:
+ return _reverse_field(game,unit,goals,game.occupied_tiles())
+
+func _reverse_field(game,unit: Dictionary,goals: Array,occupants: Dictionary,goal_costs: Dictionary={},cost_scale: int=1) -> Dictionary:
  # Reverse weighted flood: cost at q is the cost of moving from q to a goal.
  var costs={};var queue=[]
- var occupants=game.occupied_tiles()
  for p in goals:
   if game.terrain(p) not in ["#","~"]:
-   costs[p]=0;queue.append(p)
+   costs[p]=goal_costs.get(p,0);queue.append(p)
  var next=0
  while next<queue.size():
   var p=queue[next];next+=1
+  var value=costs[p]+step_cost(game,p)*cost_scale
   for direction in DIRECTIONS:
    var q=p+direction
    if game.terrain(q) in ["#","~"]:continue
    var occupant=occupants.get(q)
    if occupant!=null and occupant.team!=unit.team:continue
-   var value=costs[p]+step_cost(game,p)
    if not costs.has(q) or value<costs[q]:costs[q]=value;queue.append(q)
  return costs
 
 func attack_positions(game,unit: Dictionary,target: Dictionary) -> Array:
- var result=[];var center=game.pos(target)
- for step in _attack_offsets(game,unit):
+ return _attack_positions(game,unit,game.pos(target),_attack_offsets(game,unit),game.occupied_tiles())
+
+func _attack_positions(game,unit: Dictionary,center: Vector2i,steps: Array[Vector2i],occupants: Dictionary) -> Array:
+ var result=[]
+ for step in steps:
   var p=center+step
-  var other=game.at(p)
+  var other=occupants.get(p)
   if game.terrain(p) not in ["#","~"] and (other==null or other.id==unit.id):result.append(p)
  return result
+
+func _pursuit(game,unit: Dictionary,foes: Array,free: Array,options: Dictionary,occupants: Dictionary) -> Dictionary:
+ var priority={}
+ var steps=_attack_offsets(game,unit)
+ for index in foes.size():
+  for tile in _attack_positions(game,unit,game.pos(foes[index]),steps,occupants):
+   if not priority.has(tile):priority[tile]=index
+ # One reverse search covers all foes. Whole movement costs sort first and
+ # the remainder preserves the original foe order when costs tie.
+ var scale_value=foes.size()
+ var field=_reverse_field(game,unit,priority.keys(),occupants,priority,scale_value)
+ var nearest=INF
+ var nearest_priority=scale_value
+ var destination=game.pos(unit)
+ for tile in free:
+  if not field.has(tile):continue
+  var cost=int(field[tile])
+  @warning_ignore("integer_division")
+  var distance=cost/scale_value
+  var value=distance+float(options[tile])*.03
+  var rank=cost%scale_value
+  if value<nearest or (value==nearest and rank<nearest_priority):
+   nearest=value;nearest_priority=rank;destination=tile
+ return {"position":destination,"cost":nearest}
 
 func plan(game,unit: Dictionary) -> Dictionary:
  var here=game.pos(unit)
  var idle={"position":here,"action":"wait","target":"","alert":false}
  if not game.can_act(unit):return idle
- var options=game.reachable(unit) if not unit.get("moved",false) else {here:0}
- if unit.get("ai","")=="guard":options={here:0}
+ var occupants=game.occupied_tiles()
+ var options={here:0}
+ if not unit.get("moved",false) and unit.get("ai","")!="guard":options=game.reachable(unit,occupants)
  var free=[]
  for p in options:
-  if p==here or game.at(p)==null:free.append(p)
+  if p==here or not occupants.has(p):free.append(p)
  var foes=game.living("enemy" if unit.team=="player" else "player")
  if unit.team=="player":
   if game.info().objective=="seize" and game.objective_position() in free:
    return {"position":game.objective_position(),"action":"wait","target":"","alert":true}
   if game.info().objective=="seize" and foes.is_empty():
-   var field=distance_field(game,unit,[game.objective_position()])
+   var field=_reverse_field(game,unit,[game.objective_position()],occupants)
    var best=game.pos(unit);var remaining=field.get(best,INF)
    for p in free:
     if field.get(p,INF)<remaining:best=p;remaining=field[p]
@@ -99,16 +129,10 @@ func plan(game,unit: Dictionary) -> Dictionary:
     best_score=value;best={"position":p,"action":"attack","target":foe.id,"alert":true}
  if best.action=="attack":return best
  if unit.get("ai","")=="guard":return idle
- var nearest=INF;var destination=here
- for foe in foes:
-  var field=distance_field(game,unit,attack_positions(game,unit,foe))
-  for p in free:
-   var remaining=field.get(p,INF)
-   var value=remaining+float(options[p])*.03
-   if value<nearest:nearest=value;destination=p
- if unit.get("ai","")=="sentry" and not unit.get("alerted",false) and nearest>3:return idle
- if nearest==INF:return idle
- return {"position":destination,"action":"wait","target":"","alert":true}
+ var pursuit=_pursuit(game,unit,foes,free,options,occupants)
+ if unit.get("ai","")=="sentry" and not unit.get("alerted",false) and pursuit.cost>3:return idle
+ if pursuit.cost==INF:return idle
+ return {"position":pursuit.position,"action":"wait","target":"","alert":true}
 
 func plan_healer(game,unit: Dictionary,free: Array,foes: Array) -> Dictionary:
  var best={"position":game.pos(unit),"action":"wait","target":"","alert":true}

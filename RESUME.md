@@ -6,9 +6,13 @@ This checkpoint describes the current development branch and supersedes the earl
 
 ### Latest state
 
+Pursuit uses one reverse movement search per unit. The earlier target order still decides ties. All 145 benchmark plans and 6,018 tactical queries match the earlier build. Across the twelve shipped maps, the summed headless planning medians fell from 377.87 ms to 104.27–105.10 ms. Four plans on the 144-unit stress board fell from 7.81 seconds to 89.54–90.02 ms. Eight focused suites, four packed checks, 72 matched chapter outcomes and both ZIP checks passed. See `build/review/ai-pursuit-profile.json`.
+
 Cinderford’s seven cottage chimneys now emit smoke on the tactical map and in nearby close-ups. The houses keep the same plume phase through the cut and return. The close-up roofline has more headroom and adjacent eaves have a gap in the scene. Fifty phase samples, all three smoke projections, eight focused suites, four packed checks, 72 matched chapter outcomes and both ZIP checks passed. See the [three-stage Cinderford study](build/review/cinderford-chimney-smoke.png) and `build/review/chimney-smoke.json`. The study uses simplified software lighting.
 
 The paired Hard campaign at `59a67b8` reached the ending in Quick Map and full 3D. All 805 durable saves match across twelve battles and 384 player actions. The 3D run completed 435 close-ups and showed all 22 staff revivals. In the Sun Engine, Lyra carried Una with a single bleed-out turn left. Carrying preserved that turn, and Esme revived Una for 16 HP. The route finished with 21 recruits available and three permanent losses. See `build/review/carried-campaign-replay-state.json`.
+
+The Sun Engine Debug starters are actual saves 775 and 794 from that Hard route. [Turn 6](build/review/playtest/sun-engine-before-rescue.txt) can commit Una’s loss or preserve her one remaining turn by carrying her. [Turn 7](build/review/playtest/sun-engine-before-healing.txt) opens on Esme’s chance to revive her. Both local packages matched the rescue, loss and revival checkpoints and restored the original campaign on leaving Debug. See `build/review/sun-engine-rescue-checks.json`.
 
 A patient set down for staff treatment starts in the wounded tactical pose. Quick Map restores their standing pose at staff contact. The 3D approach shows them wounded, and the map reveal shows them recovered after the full scene or an opening Skip. The [carried treatment starter](build/review/playtest/carried-treatment.txt) set Sera down at (4, 3) with 12 HP and her action spent in all three flows. Source and both local packages produced the same committed save. Eight focused suites, four packed checks, 72 matched chapter outcomes and both ZIP checks passed. See `build/review/carried-treatment.json`.
 
