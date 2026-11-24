@@ -69,7 +69,8 @@ func run():
   elif kind=="recoverable":assert(cards["Oren · WITHDRAWING"]=="Allies gain +2 attack · Recovery on redeployment")
   elif kind=="multiple":
    assert(cards["Oren · LAST WORDS"]=="Legacy credit +1 · Faye joins early · Allies gain +2 attack")
-   assert(cards["Ivo · LAST WORDS"]=="Legacy credit +1","The second loss does not reannounce the same attack boost")
+   assert(cards["Ivo · LAST WORDS"]=="Legacy credit +1 · Maelin joins","Ivo's card names his replacement and omits the attack boost already announced")
+   assert(app.game.trials.volunteers==["faye","maelin"],"Both loss rewards are recorded once")
   assert(app.game.rng.state==rng and not app.stage.visible)
   if not will_fall:
    assert(app.game.DeathDoor.downed(patient) and patient.bleed_turns==1 and not app.game.roster.filter(func(u):return u.id==patient.id)[0].fallen)
