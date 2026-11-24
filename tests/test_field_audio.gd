@@ -1,5 +1,7 @@
 extends SceneTree
 const Field=preload("res://scripts/field_audio.gd")
+const Architecture=preload("res://scripts/architecture.gd")
+const ReedTollhouse=preload("res://scripts/reed_tollhouse.gd")
 const GreywoodShelter=preload("res://scripts/greywood_shelter.gd")
 const CinderfordMarket=preload("res://scripts/cinderford_market.gd")
 const Shutdown=preload("helpers/game_shutdown.gd")
@@ -62,7 +64,7 @@ func run():
  assert(not app.field_audio.player.playing,"Title has no battlefield audio")
  var active_decoder: AudioStreamPlayback
  var locations=[
-  Vector2i(8,4),Vector2i(3,4),Vector2i(4,4),Vector2i(3,4),
+  Vector2i(8,4),Vector2i(11,3),Vector2i(4,4),Vector2i(3,4),
   Vector2i(8,3),Vector2i(5,4),Vector2i(3,4),Vector2i(3,4),
   Vector2i(4,2),Vector2i(3,4),Vector2i(3,4),Vector2i(10,4),
  ]
@@ -114,9 +116,12 @@ func verify_combat_voice(app,chapter: int,theme: String,point: Vector2i) -> Audi
   await process_frame
  assert(app.stage.visible and app.field_audio.player.stream==ambience and app.field_audio.player.get_stream_playback()==decoder)
  if theme=="village":
-  verify_canopy_batches(app,"CinderfordMarketStall",CinderfordMarket.canvas_mesh(),CinderfordMarket.paint())
+  verify_prop_batches(app,"CinderfordMarketStall",CinderfordMarket.canvas_mesh(),CinderfordMarket.paint())
+ if theme=="river":
+  var roof_transform=Transform3D(Basis.from_scale(ReedTollhouse.ROOF_SCALE),ReedTollhouse.ROOF_OFFSET)
+  verify_prop_batches(app,"ReedTollhouse",Architecture.roof(),Architecture.material(),roof_transform)
  if theme=="forest":
-  verify_canopy_batches(app,"GreywoodShelter",GreywoodShelter.canvas_shape(),GreywoodShelter.paint())
+  verify_prop_batches(app,"GreywoodShelter",GreywoodShelter.canvas_shape(),GreywoodShelter.paint())
  if theme=="road":
   var canal_material=app.scenery.water_material("road")
   assert(app.stage.get_children().any(func(node):return node is MeshInstance3D and node.material_override==canal_material),
@@ -146,13 +151,13 @@ func verify_combat_voice(app,chapter: int,theme: String,point: Vector2i) -> Audi
  app.update_side();app.highlight()
  return decoder
 
-func verify_canopy_batches(app,name: String,canvas: Mesh,material: Material):
+func verify_prop_batches(app,name: String,shape: Mesh,material: Material,placement=Transform3D.IDENTITY):
  for landscape in [app.world,app.stage]:
   var prop=landscape.find_child(name,true,false)
   assert(prop!=null)
   var batches=landscape.get_children().filter(func(node):
    return node is MeshInstance3D and node.material_override==material)
-  assert(batches.size()==1 and batches[0].mesh.surface_get_array_len(0)==canvas.surface_get_array_len(0))
-  var expected=prop.global_transform*canvas.get_aabb()
+  assert(batches.size()==1 and batches[0].mesh.surface_get_array_len(0)==shape.surface_get_array_len(0))
+  var expected=(prop.global_transform*placement)*shape.get_aabb()
   assert((batches[0].global_transform*batches[0].mesh.get_aabb()).is_equal_approx(expected),
-   "A live cut retains the canvas after scenery is batched")
+   "A live cut retains the prop mesh after scenery is batched")

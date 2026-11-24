@@ -6,6 +6,8 @@ const Rules=preload("res://scripts/rules.gd")
 const HarborBoat=preload("res://scripts/harbor_boat.gd")
 const CombatCamera=preload("res://scripts/combat_camera.gd")
 const CinderfordMarket=preload("res://scripts/cinderford_market.gd")
+const ReedTollhouse=preload("res://scripts/reed_tollhouse.gd")
+const RiverBank=preload("res://scripts/river_bank.gd")
 func _initialize():call_deferred("run")
 func run():
  await verify_gate()
@@ -20,6 +22,7 @@ func run():
  await verify_ruined_columns()
  await verify_village_groves()
  await verify_market_stall()
+ await verify_reed_tollhouse()
  await verify_trail_lanterns()
  await verify_greywood_shelter()
  await verify_kingsroad_canal()
@@ -435,6 +438,81 @@ func verify_market_stall():
  viewport.free();field.free()
  assert(game.save_data("camp")==saved)
  print("PASS: nine Cinderford awning stripes, grounded supports and connected counter, shared map/arena mesh and nine camera views")
+
+func verify_reed_tollhouse():
+ var scenery=Scenery.new();scenery.batching_enabled=false
+ var game=Rules.new();game.chapter=1
+ var saved=game.save_data("camp")
+ var field=Node3D.new();root.add_child(field);scenery.landscape(field,game)
+ var house=field.get_node("ReedTollhouse")
+ assert(house.position==Vector3(12,0,2.5) and game.objective_position()==Vector2i(12,4))
+ var arch=house.get_node("TollPassage")
+ var roof=house.get_node("TollSlateRoof")
+ var gables=house.get_node("OfficeGables")
+ assert(gables.mesh==ReedTollhouse.gable_mesh())
+ for x in [-.96,-.48,0,.48,.96]:
+  var local_x=x/roof.scale.x
+  var underside=barrel_hit(roof.mesh,Vector3(local_x,0,0),Vector3.UP)
+  assert(underside!=null)
+  var pitch=ReedTollhouse.RIDGE-absf(x)*Roof.SLOPE/roof.scale.x
+  assert(is_equal_approx((roof.transform*underside).y,pitch),"The timber gables fit the actual slate roof")
+ var bounds=func(node):return node.global_transform*node.mesh.get_aabb()
+ for foothold in house.find_children("TollFooting*","MeshInstance3D",false,false):
+  var box=bounds.call(foothold)
+  assert(box.position.y<0 and box.end.y>0)
+  assert(not box.has_point(Vector3(12,0,2.5)) and box.end.z<3.08)
+ for eye in [Vector3(0,.65,2),Vector3(.32,1.00,2),Vector3(-.32,1.00,2)]:
+  for child in house.get_children():
+   var inverse=child.transform.affine_inverse()
+   var local_eye=inverse*eye
+   var direction=inverse.basis*Vector3.FORWARD
+   var faces=child.mesh.get_faces()
+   for i in range(0,faces.size(),3):
+    assert(Geometry3D.ray_intersects_triangle(local_eye,direction,faces[i],faces[i+1],faces[i+2])==null,
+     "The stone passage stays open through the building")
+ var crown=Vector3(0,1.40,2)-arch.position
+ assert(barrel_hit(arch.mesh,crown,Vector3.FORWARD)!=null,"The opening is topped by real arch masonry")
+ var viewport=SubViewport.new();viewport.render_target_update_mode=SubViewport.UPDATE_DISABLED;root.add_child(viewport)
+ var camera=Camera3D.new();viewport.add_child(camera);camera.current=true
+ var focus=Vector3(6.5,0,4.5)
+ camera.projection=Camera3D.PROJECTION_ORTHOGONAL;camera.size=16
+ camera.position=focus+Vector3(2.5,22,11.5);camera.look_at(focus);camera.h_offset=2
+ var sizes=[Vector2i(1024,640),Vector2i(1280,720),Vector2i(1440,900)]
+ for size in sizes:
+  viewport.size=size;await process_frame
+  var sign_view=camera.unproject_position(house.get_node("TollSign").global_position)
+  assert(Rect2(Vector2.ZERO,Vector2(size)).grow(-12).has_point(sign_view))
+ camera.projection=Camera3D.PROJECTION_PERSPECTIVE;camera.h_offset=0
+ var center=Vector3(35,0,0)
+ for sample in [[Vector2i(11,4),Vector2i(12,4),1.0,false],[Vector2i(12,5),Vector2i(12,4),-1.0,true],
+  [Vector2i(7,2),Vector2i(6,2),1.0,false],[Vector2i(6,2),Vector2i(7,2),-1.0,true]]:
+  var a=sample[0];var b=sample[1]
+  var context=scenery.combat_context(game,{"x":a.x,"y":a.y},{"x":b.x,"y":b.y},sample[2])
+  assert(context.has("tollhouse_x") and context.landmarks.size()==2)
+  var arena=Node3D.new();root.add_child(arena);scenery.battle_landscape(arena,center,context)
+  var backdrop=arena.get_node("ReedTollhouse")
+  var props=[backdrop.get_node("TollSlateRoof"),backdrop.get_node("TollPassage"),backdrop.get_node("OfficeGables")]
+  assert(props[0].mesh==roof.mesh and props[1].mesh==arch.mesh and props[2].mesh==gables.mesh)
+  assert(bounds.call(props[0]).end.z<RiverBank.ARENA_FAR_START+.10 and is_zero_approx(backdrop.position.y))
+  var occluders=[]
+  for neighbor in arena.get_children():
+   if not str(neighbor.name).begins_with("ArenaTree") and not str(neighbor.name).begins_with("ArenaLandmark"):continue
+   for part in neighbor.find_children("*","MeshInstance3D",true,false):
+    occluders.append(bounds.call(part))
+  var frame=CombatCamera.frame_pair(center+Vector3.LEFT*1.6,center+Vector3.RIGHT*1.6,"wide",false,sample[3])
+  camera.position=frame.anchor;camera.fov=frame.lens;camera.look_at(frame.focus)
+  var sign_point=backdrop.get_node("TollSign").global_position
+  assert(not occluders.any(func(box):return box.intersects_segment(camera.global_position,sign_point)!=null),
+   "The mapped towers and far-bank trees leave a line to the tollhouse sign")
+  for size in sizes:
+   viewport.size=size;await process_frame
+   var sign_view=camera.unproject_position(sign_point)
+   var open=Rect2(Vector2(12,12),Vector2(size)-Vector2(24,164))
+   assert(open.has_point(sign_view),"The tollhouse sign remains in the playable frame")
+  arena.free()
+ viewport.free();field.free()
+ assert(game.save_data("camp")==saved)
+ print("PASS: Reed Crossing's shared open stone passage and fitted slate roof in 15 tactical and arena projections")
 
 func verify_trail_lanterns():
  var scenery=Scenery.new();scenery.batching_enabled=false

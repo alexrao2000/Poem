@@ -1,5 +1,7 @@
 # Poem development
 
+Reed Crossing’s timber tollhouse has an open stone arch, slate roof and gold scales. The tactical map places it beside the eastern objective. Nearby 3D fights frame it across the river with both crossing towers.
+
 The Debug report previews the next retry with reset pressure enabled. It uses the same restart and deployment rules on a copy of the battle. Each enemy’s projected tile, stats and tonics are compared with the corresponding deployment at pressure zero.
 
 The forecast says “Downed if hits land” when the projected first fall would put an ally at death’s door. Enemies and ordinary falls retain the existing warning.

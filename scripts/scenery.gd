@@ -19,6 +19,7 @@ const SanctuaryPlinth=preload("res://scripts/sanctuary_plinth.gd")
 const TrailLanterns=preload("res://scripts/trail_lanterns.gd")
 const GreywoodShelter=preload("res://scripts/greywood_shelter.gd")
 const CinderfordMarket=preload("res://scripts/cinderford_market.gd")
+const ReedTollhouse=preload("res://scripts/reed_tollhouse.gd")
 const MAX_CACHED_CYLINDERS=256
 const ROAD_CANAL_NEAR=-5.0
 const ROAD_CANAL_FAR=-13.0
@@ -387,6 +388,8 @@ func landmark(parent,p,kind,roof_variant=-1,map_site=Vector2.INF):
   Fountain.build(parent,p,water_material())
  elif kind=="tower":
   var tower=mesh(parent,Fortification.tower(),p,Vector3.ONE,Fortification.material());tower.name="FortifiedTower"
+ elif kind=="tollhouse":
+  ReedTollhouse.build(self,parent,p,.82)
  elif kind=="belfry":
   abbey_belfry(parent,p+Vector3(0,-.13,-1.31),1.0)
  elif kind=="spire":
@@ -496,15 +499,21 @@ func combat_context(game,a,b,screen_direction=1.0) -> Dictionary:
  var near_water=theme in ["road","harbor"] and nearby_channel(game,midpoint)
  var harbor_quayside=theme=="harbor" and tile!="=" and near_water
  var candidates=[]
+ var tollhouse_x=INF
  for item in game.info().get("landmarks",[]):
   if theme=="harbor" and item.kind=="boat" and tile!="=" and not harbor_quayside:continue
   var site=Vector2(item.position[0],item.position[1])
   var delta=site-midpoint
   if delta.length()>8:continue
+  if item.kind=="tollhouse":
+   tollhouse_x=clampf(delta.dot(axis)*2.2-6.3,-10,-4)
+   continue
   candidates.append({"kind":item.kind,"map_site":site,"roof_variant":Architecture.variant_at(Vector3(site.x,0,site.y)),"distance":delta.length(),"x":clampf(delta.dot(axis)*2.2,-11,11),"z":-7-clampf(absf(delta.dot(depth))*1.8,0,10)})
  candidates.sort_custom(func(left,right):return left.distance<right.distance)
- return {"chapter":game.chapter,"environment":theme,"terrain":tile,
+ var context={"chapter":game.chapter,"environment":theme,"terrain":tile,
   "landmarks":candidates.slice(0,2),"road_canal":theme=="road" and near_water,"harbor_quay":harbor_quayside}
+ if is_finite(tollhouse_x):context.tollhouse_x=tollhouse_x
+ return context
 
 func transfer_landmark_motion(source: Node3D,destination: Node3D,theme: String):
  if theme=="village":
@@ -779,6 +788,8 @@ func battle_landscape(parent,center,context={}):
     var reed=ground_cover.plant(parent,{"kind":2,"position":position,"height":.28+(index%3)*.045,"yaw":index*2.399})
     reed.name="ArenaBankReed"
  var backdrop=context.get("landmarks",[])
+ var tollhouse=Vector3(context.get("tollhouse_x",INF),0,RiverBank.ARENA_FAR_START-1.9)
+ if is_finite(tollhouse.x):ReedTollhouse.build(self,parent,center+tollhouse,2.50)
  if theme in ["village","river","road","forest","harbor"]:
   var base=-.06 if theme=="forest" and not continuous_floor else 0.0
   var tree_line=RiverBank.ARENA_FAR_START-1 if river else -8.0
@@ -797,7 +808,9 @@ func battle_landscape(parent,center,context={}):
    CinderfordMarket.build(self,parent,center+Vector3(1.25,0,-4.05),1.4)
   elif not harbor_quayside:
    for i in range(28 if theme=="forest" or tile=="f" else 17):
-    battle_tree(parent,center+Vector3(-20+(i*11)%41,base,tree_line-(i%4)*3),i*83,2.6+(i%3)*.25,theme)
+    var site=Vector3(-20+(i*11)%41,base,tree_line-(i%4)*3)
+    if absf(site.x-tollhouse.x)<4.7 and absf(site.z-tollhouse.z)<3.4:continue
+    battle_tree(parent,center+site,i*83,2.6+(i%3)*.25,theme)
  parent.set_meta("backdrop_count",backdrop.size())
  var mechanism=center+Vector3(0,0,-12 if theme=="engine" else -10)
  var belfry_lateral=-5.7

@@ -46,7 +46,7 @@ rect(g,0,2,4,2,'p');rect(g,7,2,9,2,'p');rect(g,7,7,12,7,'p');rect(g,10,2,10,7,'#
 rect(g,11,3,13,5,'p');put(g,[(3,1),(8,6)],'+');put(g,[(1,0),(2,0),(8,0),(12,0),(2,7),(3,8),(8,4),(12,9)],'f')
 save(g,[12,4],west,[enemy(12,4,'Knight'),enemy(8,2,'Ranger'),enemy(9,7,'Corsair'),enemy(11,6,'Vanguard','sentry'),enemy(8,3,'Arcanist','sentry'),enemy(4,7,'Corsair')],
      'Choose the northern bridge for speed or the southern approach for cover. Tarin’s magic cuts through the tollhouse knight’s armor. Any ally can seize the marked gate.',
-     [{'kind':'tower','position':[10,1]},{'kind':'tower','position':[10,8]}])
+     [{'kind':'tower','position':[10,1]},{'kind':'tower','position':[10,8]},{'kind':'tollhouse','position':[12,2.5]}])
 # Greywood: a refuge with three approach lanes; enemies enter from two sides.
 g=blank('f');rect(g,0,4,13,5,'.');rect(g,3,1,4,8,'.');rect(g,9,0,10,9,'.');rect(g,1,3,5,6,'.')
 put(g,[(2,4),(8,7)],'+');put(g,[(6,1),(6,2),(7,7),(7,8)],'#')
