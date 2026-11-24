@@ -1,6 +1,8 @@
 extends Node
 ## Continuous low three-quarter shots stay on one side of the combat axis.
 
+const MIN_SHOT_ASPECT = 1.4
+
 var camera: Camera3D
 var anchor=Vector3.ZERO
 var focus=Vector3.ZERO
@@ -80,9 +82,15 @@ func impact(critical=false,direction=1.0):
  impact_motion.tween_property(self,"shake_offset",Vector2(-strength*.45,-.008),.045)
  impact_motion.tween_property(self,"shake_offset",Vector2.ZERO,.08)
 
+static func anchor_for_view(shot_anchor: Vector3, shot_focus: Vector3, viewport_size: Vector2) -> Vector3:
+ if viewport_size.x<=0 or viewport_size.x>=viewport_size.y*MIN_SHOT_ASPECT:return shot_anchor
+ # Keep the same lens and look angle while making room beside both fighters.
+ return shot_focus+(shot_anchor-shot_focus)*(viewport_size.y*MIN_SHOT_ASPECT/viewport_size.x)
+
 func apply_frame():
  if not is_instance_valid(camera):return
- camera.position=anchor+Vector3(shake_offset.x,shake_offset.y,0)
+ var fitted_anchor=anchor_for_view(anchor,focus,camera.get_viewport().get_visible_rect().size)
+ camera.position=fitted_anchor+Vector3(shake_offset.x,shake_offset.y,0)
  camera.look_at(focus);camera.fov=lens
 
 func _process(_dt):apply_frame()

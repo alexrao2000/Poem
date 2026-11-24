@@ -1,6 +1,7 @@
 extends SceneTree
 const Director=preload("res://scripts/combat_camera.gd")
 const Transition=preload("res://scripts/combat_transition.gd")
+const Shutdown=preload("helpers/game_shutdown.gd")
 func _initialize():call_deferred("run")
 func run():
  var camera=Camera3D.new();root.add_child(camera);camera.position=Vector3(35,10,10)
@@ -42,6 +43,7 @@ func run():
  assert(camera.transform==stopped,"Stopped director cannot overwrite tactical camera restoration")
  director.queue_free();camera.queue_free();await process_frame
  await verify_roster_framing()
+ await verify_live_portrait()
  var host=Control.new();root.add_child(host);host.size=Vector2(1440,900)
  var veil=Transition.new();veil.configure(host)
  var previous=0.0
@@ -132,9 +134,10 @@ func verify_roster_framing():
        var final_frame=Director.frame_pair(actor.position,other,"wide",separation==4,actor.mounted or partner_mounted)
        for step in range(5):
         var entrance_frame=Director.entrance_frame(final_frame,step*.25)
-        view.position=entrance_frame.anchor;view.look_at(entrance_frame.focus);view.fov=entrance_frame.lens
-        for size_value in [Vector2i(1024,640),Vector2i(1280,720),Vector2i(1440,900)]:
+        for size_value in [Vector2i(720,640),Vector2i(720,960),Vector2i(1024,640),Vector2i(1280,720),Vector2i(1440,900)]:
          viewport.size=size_value
+         view.position=Director.anchor_for_view(entrance_frame.anchor,entrance_frame.focus,Vector2(size_value))
+         view.look_at(entrance_frame.focus);view.fov=entrance_frame.lens
          host.size=Vector2(size_value)
          var height=1.25 if actor.mounted or partner_mounted else .95
          var pair=(actor.position+other)*.5+Vector3.UP*height
@@ -147,9 +150,10 @@ func verify_roster_framing():
          entrance_samples+=1
      for partner_mounted in [false,true]:
       var frame=Director.frame_pair(actor.position,other,"windup" if phase=="critical_windup" else "impact" if phase=="critical_hit" else phase,separation==4,actor.mounted or partner_mounted)
-      view.position=frame.anchor;view.look_at(frame.focus);view.fov=frame.lens
-      for size_value in [Vector2i(1024,640),Vector2i(1280,720),Vector2i(1440,900)]:
+      for size_value in [Vector2i(720,640),Vector2i(720,960),Vector2i(1024,640),Vector2i(1280,720),Vector2i(1440,900)]:
        viewport.size=size_value
+       view.position=Director.anchor_for_view(frame.anchor,frame.focus,Vector2(size_value))
+       view.look_at(frame.focus);view.fov=frame.lens
        assert(viewport.get_visible_rect().size==Vector2(size_value),"Projection uses actual test viewport dimensions")
        for point in points:
         var screen=view.unproject_position(point)
@@ -165,3 +169,40 @@ func verify_roster_framing():
  assert(strongest_subject_shade<=.18,"At its strongest the vignette keeps the roster’s heads and soles in its clear area: %s"%strongest_subject_shade)
  viewport.queue_free();await process_frame
  print("PASS: ",samples," recruit/enemy/commander head/sole layouts with five gaze orientations and ",entrance_samples," descending entrance layouts, both sides, mixed mounts, melee/ranged gaps and stronger foreground framing")
+
+func verify_live_portrait():
+ var viewport=SubViewport.new();viewport.size=Vector2i(1024,640);viewport.render_target_update_mode=SubViewport.UPDATE_DISABLED
+ root.add_child(viewport)
+ var app=load("res://main.tscn").instantiate();app.settings_path="";app.save_path="/private/tmp/poem-portrait-combat-%d.json"%Time.get_ticks_usec()
+ viewport.add_child(app);await process_frame
+ app.game.start_battle();app.make_map();app.show_battle()
+ var attacker=app.game.living("player").filter(func(unit):return unit.id=="sera")[0]
+ var target=app.game.living("enemy")[0]
+ attacker.x=6;attacker.y=4;target.x=8;target.y=4
+ app.refresh_pieces()
+ var events=app.game.combat(attacker,target);assert(not events.is_empty())
+ var tactical=app.map_navigation.capture_view()
+ var saved=app.game.save_data("battle").duplicate(true)
+ var rng=app.game.rng.state
+ var reached=[0]
+ var verify_resize=func():
+  while not app.ui.has_node("CombatHUD"):await process_frame
+  var director=app.stage.get_children().filter(func(child):return child is Director)[0]
+  for size_value in [Vector2i(720,960),Vector2i(720,640),Vector2i(1440,900)]:
+   viewport.size=size_value;await process_frame;await process_frame
+   var expected=Director.anchor_for_view(director.anchor,director.focus,Vector2(size_value))+Vector3(director.shake_offset.x,director.shake_offset.y,0)
+   assert(app.camera.position.is_equal_approx(expected) and is_equal_approx(app.camera.fov,director.lens))
+   if size_value.x>=size_value.y*Director.MIN_SHOT_ASPECT:
+    assert(Director.anchor_for_view(director.anchor,director.focus,Vector2(size_value))==director.anchor,"Wide displays retain the original authored shot")
+   else:
+    assert(expected.distance_to(director.focus)>director.anchor.distance_to(director.focus),"Narrow views pull back along the lens while retaining its field of view")
+    for fighter in director.subjects:
+     var plain=Rect2(Vector2(24,88),Vector2(size_value.x-48,size_value.y-248))
+     assert(plain.has_point(app.camera.unproject_position(fighter.socket_position("gaze"))),"Both actual faces stay inside the clear portrait frame")
+   reached[0]+=1
+ verify_resize.call()
+ await app.cinematic(attacker,target,events)
+ assert(reached[0]==3 and app.map_navigation.capture_view()==tactical,"Resizing an active arena preserves the exact saved tactical camera")
+ assert(app.game.save_data("battle")==saved and app.game.rng.state==rng,"Camera resize cannot change campaign state")
+ await Shutdown.dispose(app);viewport.queue_free();await process_frame
+ print("PASS: narrow arena framing updates during a real ranged exchange and restores the exact tactical camera")
