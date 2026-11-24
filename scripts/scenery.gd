@@ -32,6 +32,7 @@ const StarfallChart=preload("res://scripts/starfall_chart.gd")
 const StarfallTerrain=preload("res://scripts/starfall_terrain.gd")
 const AqueductWheel=preload("res://scripts/aqueduct_waterwheel.gd")
 const ReddeepCart=preload("res://scripts/reddeep_slag_cart.gd")
+const ReddeepWorks=preload("res://scripts/reddeep_works.gd")
 const EngineConduits=preload("res://scripts/sun_engine_conduits.gd")
 const MAX_CACHED_CYLINDERS=256
 const HOUSE_SCALE=1.2
@@ -90,6 +91,7 @@ var batching_enabled=true
 var batcher=preload("res://scripts/static_batch.gd").new()
 var ground_cover=GroundCover.new()
 var conifer_crowns=ConiferCrowns.new()
+var reddeep_works=ReddeepWorks.new()
 var unit_block=BoxMesh.new()
 var leaf_card=QuadMesh.new()
 var planes: Dictionary={}
@@ -351,7 +353,9 @@ func landscape(parent,game):
  var outer_paint=ground_material(0) if theme=="abbey" else ground_paint
  if theme=="observatory":
   StarfallTerrain.build_map(self,parent,Vector3(center.x,-.15,center.y),board)
- else:ground(parent,Vector3(center.x,-.15,center.y),Vector2.ONE*extent,0,outer_paint)
+ else:
+  if theme=="furnace":outer_paint=ReddeepWorks.ash(self)
+  ground(parent,Vector3(center.x,-.15,center.y),Vector2.ONE*extent,0,outer_paint)
  var building_cells={}
  for item in game.info().get("landmarks",[]):
   if item.has("footprint"):
@@ -412,7 +416,9 @@ func landscape(parent,game):
  if theme=="road":KingsroadHoist.build(self,parent,KingsroadHoist.MAP_SITE,KingsroadHoist.MAP_SCALE,-.16)
  if theme=="aqueduct":AqueductWheel.new().build(self,parent,AqueductWheel.MAP_SITE,AqueductWheel.MAP_SCALE,-.28)
  if theme=="castle":Fortification.build_map_gate(self,parent)
- if theme=="furnace":ReddeepCart.build(self,parent,ReddeepCart.MAP_SITE,ReddeepCart.MAP_SCALE)
+ if theme=="furnace":
+  ReddeepCart.build(self,parent,ReddeepCart.MAP_SITE,ReddeepCart.MAP_SCALE)
+  reddeep_works.fringe(self,parent,board)
  if theme=="forest":TrailLanterns.roadside(parent)
  if theme in ["village","river","forest","road","castle"]:
   var base=-.15 if theme=="forest" else 0.0
@@ -786,7 +792,7 @@ func harbor_quay(parent: Node3D,center: Vector3,surface: int):
   cylinder(parent,foot,.40,.085,Color("514c45"),.07).name="QuayBollard"
   cylinder(parent,foot+Vector3.UP*.205,.075,.12,Color("82725b"),.095).name="QuayBollardCap"
 
-func reddeep_gantry(parent: Node3D,center: Vector3,backdrop: Array):
+func reddeep_gantry(parent: Node3D,center: Vector3,backdrop: Array) -> Node3D:
  var depth=-11.5
  for item in backdrop:
   if item.kind=="furnace":depth=minf(depth,item.z-2.3)
@@ -817,6 +823,7 @@ func reddeep_gantry(parent: Node3D,center: Vector3,backdrop: Array):
   block(gantry,Vector3(x,2.69,0),Vector3(.28,.09,.11),edge).name="HoistHookBlock"
   block(gantry,Vector3(x-.04,2.57,0),Vector3(.075,.18,.078),iron).name="HoistHook"
   block(gantry,Vector3(x+.02,2.49,0),Vector3(.16,.063,.078),iron).name="HoistToe"
+ return gantry
 
 func sun_engine(parent: Node3D,anchor: Vector3,scale_value=1.0):
  var chamber=Node3D.new();chamber.name="SunEngineChamber";chamber.position=anchor
@@ -1004,7 +1011,8 @@ func battle_landscape(parent,center,context={}):
  if theme=="furnace":
   if backdrop.is_empty():
    for x in [-5,5]:furnace(parent,center+Vector3(x,0,-8),2.1)
-  reddeep_gantry(parent,center,backdrop)
+  var gantry=reddeep_gantry(parent,center,backdrop)
+  reddeep_works.build(self,parent,gantry.position+Vector3(0,-.06,-4.3),Vector3(1.68,1,1))
   if context.get("slag_cart",false):
    ReddeepCart.build(self,parent,center+ReddeepCart.ARENA_SITE,ReddeepCart.ARENA_SCALE,ReddeepCart.ARENA_YAW)
  if theme=="engine":

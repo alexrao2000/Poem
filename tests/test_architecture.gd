@@ -1000,12 +1000,54 @@ func verify_reddeep_furnaces():
  scenery.battle_landscape(fallback,center,{"environment":"furnace"})
  var extra=fallback.find_children("FurnaceHearth*","Node3D",false,false)
  assert(extra.size()==2 and extra.all(func(hearth):return hearth.position.z==center.z-8 and hearth.scale.is_equal_approx(Vector3.ONE*2.1)))
+ verify_reddeep_service_sheds(map,arena,fallback,game.board_size())
  await verify_reddeep_gantry(arena,center,staged)
  await verify_reddeep_gantry(fallback,center,extra)
  assert(game.rng.state==rng_state)
  map.queue_free();arena.queue_free();fallback.queue_free();await process_frame
  print("PASS: two Reddeep map hearths, arched fireboxes, connected grates, open chimney flues and actual arena counterparts")
  print("PASS: five planted Reddeep gantry supports, four crossed spans, two connected hoists and twelve wide-shot projections")
+
+func verify_reddeep_service_sheds(field: Node3D, arena: Node3D, fallback: Node3D, size: Vector2i):
+ var board=Rect2(Vector2(-.5,-.5),Vector2(size))
+ var apron=field.get_child(0) as MeshInstance3D
+ assert(apron.material_override is StandardMaterial3D and apron.position.y<0)
+ for part in field.find_children("ReddeepCoping*","MeshInstance3D",false,false)+field.find_children("ReddeepSlagPile*","MeshInstance3D",false,false):
+  var bbox=part.transform*part.mesh.get_aabb()
+  assert(not board.intersects(Rect2(Vector2(bbox.position.x,bbox.position.z),Vector2(bbox.size.x,bbox.size.z))))
+  assert(bbox.position.y<apron.position.y and bbox.end.y>apron.position.y)
+ var material: StandardMaterial3D
+ var triangular_roof: ArrayMesh
+ for site in [field,arena,fallback]:
+  var sheds=site.get_node("ReddeepServiceSheds")
+  var bounds=func(part):return sheds.transform*part.transform*part.mesh.get_aabb()
+  var walls=sheds.find_children("ReddeepServiceWall*","MeshInstance3D",false,false)
+  var roofs=sheds.find_children("ReddeepIronRoof*","MeshInstance3D",false,false)
+  var gables=sheds.find_children("ReddeepGable*","MeshInstance3D",false,false)
+  var lights=sheds.find_children("ReddeepVentLight*","MeshInstance3D",false,false)
+  assert([walls.size(),roofs.size(),gables.size(),lights.size()]==[4,8,8,24])
+  if material==null:material=lights[0].material_override
+  if triangular_roof==null:triangular_roof=gables[0].mesh
+  assert(material.emission_enabled and material.emission_energy_multiplier<1.0)
+  assert(gables.all(func(part):return part.mesh==triangular_roof))
+  assert(lights.all(func(part):return part.material_override==material))
+  var edge=-.5 if site==field else site.get_node("ReddeepGantry").position.z-3.5
+  for index in walls.size():
+   assert(bounds.call(walls[index]).end.z<edge)
+   assert(bounds.call(roofs[index*2]).intersects(bounds.call(gables[index*2])))
+   assert(bounds.call(roofs[index*2+1]).intersects(bounds.call(gables[index*2])))
+ var scenery=Scenery.new()
+ var game=Rules.new();game.chapter=9
+ var cached_field=Node3D.new();root.add_child(cached_field);scenery.landscape(cached_field,game)
+ var cached_arena=Node3D.new();root.add_child(cached_arena)
+ scenery.battle_landscape(cached_arena,Vector3(35,0,0),{"environment":"furnace"})
+ var field_batches=cached_field.get_node("ReddeepServiceSheds").get_children()
+ var arena_batches=cached_arena.get_node("ReddeepServiceSheds").get_children()
+ assert(field_batches.size()==arena_batches.size() and field_batches.size()<=7)
+ for index in field_batches.size():
+  assert(field_batches[index].mesh==arena_batches[index].mesh and field_batches[index].material_override==arena_batches[index].material_override)
+ cached_field.free();cached_arena.free()
+ print("PASS: shared Reddeep service sheds, eight iron roof slopes and 24 warm vents beyond the board and both gantry layouts")
 
 func verify_reddeep_cart():
  var scenery=Scenery.new();scenery.batching_enabled=false
