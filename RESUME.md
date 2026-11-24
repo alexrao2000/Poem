@@ -6,9 +6,13 @@ This checkpoint describes the current development branch and supersedes the earl
 
 ### Latest state
 
+The tactical map and close-up combat share ten spark meshes and one guard mesh. Each effect retains its own material and fade. All 13 surface-array cases matched exactly. The median for 624 mesh requests fell from 15.43 ms to 0.46 ms in separate headless processes running both packages. This measures mesh construction and lookup. Eight focused suites, four packed checks, 72 matched chapter outcomes and both ZIP checks passed. See `build/review/contact-mesh-profile.json`.
+
 Chapter data now places the route seals. All twelve original coordinates match the previous build. A fourteen-chapter layout fixture tested an extra destination, a corner seal and a reached-chapter list for overlapping markers. Keyboard focus moves back to the selected seal when a wider layout separates the markers. Eight focused suites, the final focus rerun, 72 matched chapter outcomes, packed route and trial checks and both ZIP checks passed.
 
 Campaign data now defines the chapter indices of section starts. The same boundaries drive rally points, relief scenes, memorials, checkpoint validation and the route, War Council and Debug displays. An uneven-section fixture tested a lord retry, relief, an exact save round trip and named losses. Eight focused suites, 72 matched chapter outcomes, packed trial and route checks, an exact older ending save in both packs and both ZIP checks passed.
+
+The shipped section boundaries reproduced all 998 earlier saves through 15 battles and 470 actions on the same committed-loss route. The map authoring script retained the twelve authored seal positions and three section starts in a separate scratch round trip. See `build/review/authored-sections-replay.json` and `build/review/verification/authored-data-roundtrip.log`.
 
 The clean `92d4558` checkout passed all 383 registered engine suites and four offline checks. All test sources and logs match their recorded digests. The terrain generator used installed Pillow and the score check used the verified local sample cache. The recorded dependency errors and passing reruns are in `build/review/full-current-state.json`.
 

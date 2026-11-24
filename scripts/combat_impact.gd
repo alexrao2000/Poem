@@ -14,6 +14,8 @@ var elemental: Node3D
 var amount: FloatingText
 var motion: Tween
 static var glow_texture: GradientTexture2D
+static var guard_geometry: ArrayMesh
+static var burst_geometry={}
 
 func configure(point: Vector3,event: Dictionary,view: Camera3D,spell="",ground=null):
  name="CombatImpact";position=point;camera=view
@@ -76,6 +78,7 @@ static func ribbon(surface: SurfaceTool,start: Vector2,end: Vector2,width: float
  for p in points:surface.set_color(color);surface.add_vertex(Vector3(p.x,p.y,0))
 
 static func guard_mesh() -> ArrayMesh:
+ if guard_geometry!=null:return guard_geometry
  var surface=SurfaceTool.new();surface.begin(Mesh.PRIMITIVE_TRIANGLES)
  for ring in [[.34,.025,12,1.12],[.24,.014,8,.80]]:
   for side in [-1,1]:
@@ -88,11 +91,15 @@ static func guard_mesh() -> ArrayMesh:
     var outer_b=Vector2(cos(b)*side,sin(b))*ring[0]
     for point in [inner_a,outer_a,outer_b,inner_a,outer_b,inner_b]:
      surface.set_color(Color("d9edf2") if ring[2]==12 else Color("91bdcc"));surface.add_vertex(Vector3(point.x,point.y,0))
- return surface.commit()
+ guard_geometry=surface.commit()
+ return guard_geometry
 
 static func burst_mesh(critical: bool,spell="") -> ArrayMesh:
- var surface=SurfaceTool.new();surface.begin(Mesh.PRIMITIVE_TRIANGLES)
  var colors={"core":Color("ffe1a0"),"accent":Color("ffab3f")} if spell.is_empty() else Spell.palette(spell)
+ var forks=int(critical)*2+int(spell=="thunder")
+ var key=Vector3i(colors.core.to_rgba32(),colors.accent.to_rgba32(),forks)
+ if burst_geometry.has(key):return burst_geometry[key]
+ var surface=SurfaceTool.new();surface.begin(Mesh.PRIMITIVE_TRIANGLES)
  for i in range(14 if critical else 9):
   var angle=i*2.39996
   var direction=Vector2(cos(angle),sin(angle))
@@ -105,7 +112,9 @@ static func burst_mesh(critical: bool,spell="") -> ArrayMesh:
     var next=direction*(.14+j*.21)+side*sin(j*4.3+i)*.11
     ribbon(surface,previous,next,.018,colors.core);previous=next
     if j==3:ribbon(surface,previous,previous+direction*.22+side*.18,.012,colors.accent)
- return surface.commit()
+ var mesh=surface.commit()
+ burst_geometry[key]=mesh
+ return mesh
 
 func _process(_dt):
  if is_instance_valid(plane) and is_instance_valid(camera) and plane.global_position.distance_to(camera.global_position)>.01:

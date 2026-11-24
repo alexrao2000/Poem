@@ -2,6 +2,7 @@ extends SceneTree
 const Actor=preload("res://scripts/fighter_actor.gd")
 const Trail=preload("res://scripts/combat_trail.gd")
 const Impact=preload("res://scripts/combat_impact.gd")
+const MapImpact=preload("res://scripts/map_impact.gd")
 const Projectile=preload("res://scripts/combat_projectile.gd")
 const Blades=preload("res://scripts/weapon_blades.gd")
 const HitStop=preload("res://scripts/combat_hit_stop.gd")
@@ -136,6 +137,10 @@ func run():
  await create_timer(.35).timeout
  for effect in impacts:assert(effect.get_ref()==null,"Impact geometry and number release together")
  var blocked=Impact.new();root.add_child(blocked);blocked.configure(Vector3.ZERO,{"hit":true,"damage":0,"crit":false},camera)
+ var map_guard=MapImpact.new();root.add_child(map_guard)
+ map_guard.contact(Vector3.ZERO,camera,{"hit":true,"damage":0,"crit":false}).pause()
+ assert(blocked.guard.mesh==map_guard.guard.mesh,"Map and arena guard rings share immutable geometry")
+ assert(blocked.guard.material_override!=map_guard.guard.material_override)
  assert(blocked.amount.text=="NO DAMAGE" and blocked.burst==null,"Armor stopping a hit has a distinct label without damaging sparks")
  assert(blocked.glow.mesh.size.x==.5,"Blocked contact uses a restrained glint")
  assert(blocked.guard!=null and blocked.guard.get_parent()==blocked.plane and blocked.elemental==null,"Zero damage uses camera-facing guard rings without damaging spell effects")
@@ -148,7 +153,27 @@ func run():
  assert(blocked.guard.scale.x>.65 and blocked.guard.scale.x<1.25 and blocked.guard.material_override.albedo_color.a>0)
  blocked.motion.custom_step(.13)
  assert(is_zero_approx(blocked.guard.material_override.albedo_color.a) and blocked.amount.modulate.a>0,"Guard rings fade before the result text")
+ assert(map_guard.guard.material_override.albedo_color.a==1,"Fading one guard leaves the other guard visible")
+ map_guard.free()
  blocked.queue_free()
+ var shapes={}
+ for critical in [false,true]:
+  for spell in ["","ember","gale","thunder","neutral"]:
+   var spark=Impact.burst_mesh(critical,spell)
+   assert(spark==Impact.burst_mesh(critical,spell))
+   shapes[spark]=true
+  for index in 24:assert(Impact.burst_mesh(critical,"fallback_"+str(index))==Impact.burst_mesh(critical,"neutral"))
+ assert(shapes.size()==10,"Each distinct contact palette and critical shape is reused")
+ var event={"hit":true,"damage":21,"crit":true}
+ var map_sparks=MapImpact.new();root.add_child(map_sparks)
+ var close_sparks=Impact.new();root.add_child(close_sparks)
+ map_sparks.contact(Vector3.ZERO,camera,event,"gale").pause()
+ close_sparks.configure(Vector3.ZERO,event,camera,"gale");close_sparks.motion.pause()
+ assert(map_sparks.burst.mesh==close_sparks.burst.mesh and map_sparks.burst.material_override!=close_sparks.burst.material_override)
+ close_sparks.motion.custom_step(.29)
+ assert(is_zero_approx(close_sparks.burst.material_override.albedo_color.a) and map_sparks.burst.material_override.albedo_color.a==1)
+ close_sparks.free();map_sparks.free()
+ print("PASS: ten shared spark shapes and a guard mesh, fallback reuse, independent tactical and close-up fades")
  camera.queue_free()
  var fighters=load("res://scripts/fighters.gd").new();var rules=load("res://scripts/rules.gd").new()
  var stage=Node3D.new();root.add_child(stage)
