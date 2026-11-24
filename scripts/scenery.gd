@@ -1,6 +1,7 @@
 extends RefCounted
 const MapSurface=preload("res://scripts/map_surface.gd")
 const RiverBank=preload("res://scripts/river_bank.gd")
+const RiverChain=preload("res://scripts/river_chain.gd")
 const MapGround=preload("res://scripts/map_ground.gd")
 const WindCloth=preload("res://scripts/wind_cloth.gd")
 const Architecture=preload("res://scripts/architecture.gd")
@@ -347,6 +348,7 @@ func landscape(parent,game):
  # Authored landmarks communicate the chapter instead of a repeated village frame.
  for item in game.info().get("landmarks",[]):
   landmark(parent,Vector3(item.position[0],0,item.position[1]),item.kind)
+ if theme=="river":RiverChain.build(self,parent,Vector3(4.32,0,4.52),Vector3(6.68,0,4.52),.44,.25,.105)
  if theme=="village":village_mill(parent,MILL_MAP_SITE,.69)
  if theme=="forest":TrailLanterns.roadside(parent)
  if theme in ["village","river","forest","road","castle"]:
@@ -759,6 +761,9 @@ func battle_landscape(parent,center,context={}):
   if wooden_floor:arena_deck(parent,center)
   elif theme=="aqueduct":aqueduct_parapet(parent,center)
  if river:
+  var chain_near=-2.02 if wooden_floor else RiverBank.ARENA_NEAR_START+.50
+  var chain_far=RiverBank.ARENA_FAR_START-.65
+  RiverChain.build(self,parent,center+Vector3(-5.4,0,chain_near),center+Vector3(-5.4,0,chain_far),1.18,.76,.29)
   var far_ground=ground(parent,center+Vector3(0,0,RiverBank.ARENA_FAR_START-14.5),Vector2(RiverBank.ARENA_WIDTH,29),0)
   far_ground.name="ArenaFarBankGround"
   mesh(parent,RiverBank.arena_strip(true),center,Vector3.ONE,ground_material(0)).name="ArenaFarBank"

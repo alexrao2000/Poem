@@ -92,7 +92,7 @@ func run():
  surface_geometry()
  verify_bridge_support(Scenery.new())
  verify_arena_ground()
- verify_river_arena()
+ await verify_river_arena()
  verify_water_styles()
  verify_ridges()
  await verify_pass_escarpment()
@@ -565,12 +565,45 @@ func verify_river_arena():
  var origin=Vector3(35,.65,0)
  var context=scenery.combat_context(game,{"x":9,"y":4},{"x":10,"y":4})
  assert(context.landmarks.size()==2)
+ var field=Node3D.new();root.add_child(field);scenery.landscape(field,game)
+ var field_chain=field.get_node("CrossingChain")
+ var field_middle=verify_crossing_chain(field_chain,0,-.07)
+ var field_shape=field_chain.get_node("IronLinks").multimesh.mesh
+ for plinth in field_chain.find_children("ChainPlinth*","MeshInstance3D",false,false):
+  var bounds=plinth.global_transform*plinth.mesh.get_aabb()
+  assert(bounds.end.x<4.5 or bounds.position.x>6.5,"Both map plinths stand outside the channel")
+ var viewport=SubViewport.new();viewport.render_target_update_mode=SubViewport.UPDATE_DISABLED;root.add_child(viewport)
+ var camera=Camera3D.new();viewport.add_child(camera);camera.current=true
+ var director=preload("res://scripts/combat_camera.gd")
+ var sizes=[Vector2i(1024,640),Vector2i(1280,720),Vector2i(1440,900)]
+ var board_center=Vector3((game.board_size().x-1)*.5,0,(game.board_size().y-1)*.5)
+ camera.projection=Camera3D.PROJECTION_ORTHOGONAL;camera.size=maxf(16,game.board_size().x+2)
+ camera.position=board_center+Vector3(2.5,22,11.5);camera.look_at(board_center);camera.h_offset=2.0
+ for dimensions in sizes:
+  viewport.size=dimensions;await process_frame
+  assert(Rect2(Vector2.ZERO,Vector2(dimensions)).grow(-12).has_point(camera.unproject_position(field_middle)))
+ camera.projection=Camera3D.PROJECTION_PERSPECTIVE;camera.h_offset=0
  for tile in [".","f","h","p","="]:
   var arena=Node3D.new();root.add_child(arena)
   context.terrain=tile
   scenery.battle_landscape(arena,origin,context)
   var bridge=tile=="="
   var water=arena.get_node("ArenaWater")
+  var chain=arena.get_node("CrossingChain")
+  var middle=verify_crossing_chain(chain,origin.y,water.position.y)
+  assert(chain.get_node("IronLinks").multimesh.mesh==field_shape,"The field and close-up use the same iron links")
+  var footing=chain.find_children("ChainPlinth*","MeshInstance3D",false,false)
+  var near=footing[0].global_transform*footing[0].mesh.get_aabb()
+  var far=footing[1].global_transform*footing[1].mesh.get_aabb()
+  assert(near.position.z>origin.z+(-2.49 if bridge else RiverBank.ARENA_NEAR_START))
+  assert(far.end.z<origin.z+RiverBank.ARENA_FAR_START)
+  if tile in [".","="]:
+   var frame=director.frame_pair(origin+Vector3.LEFT*1.6,origin+Vector3.RIGHT*1.6,"wide",false,bridge)
+   camera.position=frame.anchor;camera.fov=frame.lens;camera.look_at(frame.focus)
+   for size in sizes:
+    viewport.size=size;await process_frame
+    var screen=camera.unproject_position(middle)
+    assert(Rect2(12,12,size.x-24,size.y*.71-12).has_point(screen),"The chain arcs across the river behind the fighters")
   var far_ground=arena.get_node("ArenaFarBankGround")
   assert(arena.get_node("ArenaFarBank").mesh==RiverBank.arena_strip(true))
   assert(is_equal_approx(far_ground.position.z+far_ground.mesh.size.y*.5,RiverBank.ARENA_FAR_START))
@@ -595,8 +628,43 @@ func verify_river_arena():
   for index in landmarks.size():
    assert(is_equal_approx(landmarks[index].position.x-origin.x,context.landmarks[index].x),"Planted towers retain their horizontal map relation")
   arena.free()
+ viewport.free();field.free()
  assert(game.rng.state==before,"The river stage leaves the combat roll unchanged")
  print("PASS: two grounded Reed Crossing banks, 14 planted reeds, preserved bridge and water levels, and map-relative towers on dry ground")
+ print("PASS: Reed Crossing’s interleaved iron links join both shore posts, clear the water and fit nine tactical and arena projections")
+
+func verify_crossing_chain(chain: Node3D,grade: float,water: float) -> Vector3:
+ var batch=chain.get_node("IronLinks")
+ var instances=batch.multimesh
+ var anchors=chain.find_children("ChainAnchor*","MeshInstance3D",false,false)
+ var posts=chain.find_children("ChainPost*","MeshInstance3D",false,false)
+ var plinths=chain.find_children("ChainPlinth*","MeshInstance3D",false,false)
+ assert([anchors.size(),posts.size(),plinths.size()]==[2,2,2])
+ var local_bounds=func(node):return node.transform*node.mesh.get_aabb()
+ for index in 2:
+  var foot=plinths[index].global_transform*plinths[index].mesh.get_aabb()
+  assert(foot.position.y<grade and foot.end.y>grade)
+  assert(local_bounds.call(plinths[index]).intersects(local_bounds.call(posts[index])))
+  assert(local_bounds.call(posts[index]).intersects(local_bounds.call(anchors[index])))
+ var data=instances.buffer
+ assert(instances.instance_count>=12 and instances.instance_count<=48 and data.size()==instances.instance_count*12)
+ var previous=AABB();var previous_up=Vector3.ZERO;var middle=Vector3.ZERO
+ for index in instances.instance_count:
+  var offset=index*12
+  var basis=Basis(Vector3(data[offset],data[offset+4],data[offset+8]),
+   Vector3(data[offset+1],data[offset+5],data[offset+9]),Vector3(data[offset+2],data[offset+6],data[offset+10]))
+  var position=Vector3(data[offset+3],data[offset+7],data[offset+11])
+  var bound=Transform3D(basis,position)*instances.mesh.get_aabb()
+  assert(basis.determinant()>0 and instances.custom_aabb.encloses(bound))
+  assert(chain.global_position.y+bound.position.y>water)
+  if index>0:
+   assert(bound.intersects(previous) and absf(basis.y.normalized().dot(previous_up))<.13,"Neighboring links overlap and turn through a quarter turn")
+  if index==0:assert(local_bounds.call(anchors[0]).has_point(position))
+  if index==instances.instance_count-1:assert(local_bounds.call(anchors[1]).has_point(position))
+  if index==instances.instance_count/2:middle=chain.to_global(position)
+  previous=bound;previous_up=basis.y.normalized()
+ assert(middle.y<anchors[0].global_position.y and middle.y<anchors[1].global_position.y)
+ return middle
 
 func verify_water_styles():
  var scenery=Scenery.new()

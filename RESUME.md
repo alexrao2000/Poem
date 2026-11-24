@@ -6,6 +6,8 @@ This checkpoint describes the current development branch and supersedes the earl
 
 ### Latest state
 
+Reed Crossing’s chain runs between two grounded stone posts in the tactical map and close-up arena. One shared iron mesh supplies the alternating links. Nine projections checked the tactical view, dry-bank arena and deck arena. Eight focused suites, both exports, terrain and batching in both packs, and archive integrity passed. Assembled rendering remains unreviewed.
+
 Starfall’s map and 3D arena share a night sky with a sparse field of stars and faint clouds. Seven focused suites, including a complete Starfall exchange and the return to daytime on chapter change, passed. Both exports produced the same sky bytes as the source. The daytime panorama also matches the preceding package byte for byte. Packed atmosphere and presentation and both archive checks passed. See `build/review/starfall-cover-study.png` for a source texture study. Assembled gameplay rendering remains unreviewed.
 
 The fresh-settings Hard replay at `1cf9967` reached the ending after 13 battles, 96 turns and 429 player actions. All 879 snapshots matched the earlier Quick Map run. Both revised figures and the field ambience loaded in all 458 3D exchanges, including the new belfry in 28 and the beacons and crosswind in 37. All 24 recruits remained available at the ending. See `build/review/fresh-profile-revised-route.html`.

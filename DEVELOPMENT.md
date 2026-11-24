@@ -1,5 +1,7 @@
 # Poem development
 
+Reed Crossing’s iron chain sags across the water between two stone posts. The tactical map and close-up arena use the same link mesh with alternating orientations.
+
 Starfall has a sparse field of stars above its clouds. The tactical map and combat arena share the night texture. Other chapters use the same cloud panorama as before.
 
 Fresh preferences and Restore defaults select the revised 3D roster. Saved model choices carry forward, and settings files that predate the model selector use the original set. Options offers both sets.
