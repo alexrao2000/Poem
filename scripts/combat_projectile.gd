@@ -7,6 +7,12 @@ extends Node3D
 const Spell=preload("res://scripts/combat_spell.gd")
 const WeaponBlades=preload("res://scripts/weapon_blades.gd")
 const ARROW_LENGTH=.72
+const DEFAULT_WAKE={"span":.28,"width":.11,"opacity":.45}
+const ELEMENTAL_WAKES={
+ "ember":{"span":.22,"width":.135,"opacity":.52},
+ "gale":{"span":.35,"width":.16,"opacity":.38},
+ "thunder":{"span":.18,"width":.072,"opacity":.58},
+}
 var origin=Vector3.ZERO
 var destination=Vector3.ZERO
 var arc=0.0
@@ -17,6 +23,7 @@ var spell=""
 var body: Node3D
 var wake: MeshInstance3D
 var wake_color=Color.WHITE
+var wake_shape=DEFAULT_WAKE
 var motion: Tween
 var launch_up=Vector3.UP
 var visual_scale=1.0
@@ -56,6 +63,7 @@ func launch(from: Vector3,to: Vector3,weapon: String,duration=.23,spell_id="",ap
   halo.material_override.albedo_texture=preload("res://scripts/combat_impact.gd").radial_texture()
   halo.material_override.albedo_color.a=.35;halo.material_override.billboard_mode=BaseMaterial3D.BILLBOARD_ENABLED;halo.material_override.billboard_keep_scale=true
   wake=MeshInstance3D.new();wake.name="SpellWake";wake_color=colors.wake
+  wake_shape=ELEMENTAL_WAKES.get(spell,DEFAULT_WAKE)
   var surface=StandardMaterial3D.new();surface.shading_mode=BaseMaterial3D.SHADING_MODE_UNSHADED
   surface.transparency=BaseMaterial3D.TRANSPARENCY_ALPHA;surface.blend_mode=BaseMaterial3D.BLEND_MODE_ADD
   surface.cull_mode=BaseMaterial3D.CULL_DISABLED;surface.vertex_color_use_as_albedo=true;surface.vertex_color_is_srgb=true;surface.disable_fog=true
@@ -99,20 +107,21 @@ func _process(_dt):
  if wake!=null:update_wake(direction.normalized())
 
 func update_wake(direction: Vector3):
- var span=minf(progress,.28)
+ var span=minf(progress,wake_shape.span)
  if span<.0001:wake.hide();return
  var up=Vector3.UP-direction*direction.dot(Vector3.UP)
  if up.length_squared()<.001:up=Vector3.RIGHT-direction*direction.dot(Vector3.RIGHT)
  up=up.normalized();var axes=[up,direction.cross(up).normalized()]
  var surface=SurfaceTool.new();surface.begin(Mesh.PRIMITIVE_TRIANGLES);var count=0
+ var width=wake_shape.width*visual_scale;var opacity=wake_shape.opacity
  for step in range(8):
   var t0=step/8.0;var t1=(step+1)/8.0
   var a=point_at(progress-span*t0);var b=point_at(progress-span*t1)
-  var width0=.11*visual_scale*(1-t0);var width1=.11*visual_scale*(1-t1)
+  var width0=width*(1-t0);var width1=width*(1-t1)
   for axis in axes:
    for side in [-1,1]:
     var points=[to_local(a),to_local(a+axis*width0*side),to_local(b+axis*width1*side),to_local(b)]
-    var alpha=[.45*pow(1-t0,1.3),0.0,0.0,.45*pow(1-t1,1.3)]
+    var alpha=[opacity*pow(1-t0,1.3),0.0,0.0,opacity*pow(1-t1,1.3)]
     for triangle in [[0,1,2],[0,2,3]]:
      if (points[triangle[1]]-points[triangle[0]]).cross(points[triangle[2]]-points[triangle[0]]).length_squared()<1e-15:continue
      for index in triangle:
