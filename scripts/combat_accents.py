@@ -37,11 +37,26 @@ def levelup(sample_rate=22050):
     return sound*np.clip((.72-t)/.06, 0, 1)
 
 
+def approach(sample_rate=22050):
+    duration = .38
+    elapsed = np.arange(round(duration * sample_rate)) / sample_rate
+    progress = elapsed / duration
+    noise = np.random.default_rng(42161).normal(size=len(elapsed))
+    soft = np.hanning(27)
+    bright = np.hanning(7)
+    low_air = np.convolve(noise, soft / soft.sum(), mode="same")
+    high_air = np.convolve(noise, bright / bright.sum(), mode="same") - low_air
+    envelope = np.sin(np.pi * progress) ** 2 * (.42 + .58 * progress)
+    sweep = np.sin(2 * np.pi * (210 * elapsed + 1300 * elapsed ** 2)) * .025
+    return ((.31 - .13 * progress) * low_air + (.055 + .21 * progress) * high_air + sweep) * envelope
+
+
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--effect", choices=["guard", "cutin", "levelup", "all"], default="all")
+    effects = {"guard": guard, "cutin": cutin, "levelup": levelup, "approach": approach}
+    parser.add_argument("--effect", choices=[*effects, "all"], default="all")
     args = parser.parse_args()
-    for name, generate in {"guard": guard, "cutin": cutin, "levelup": levelup}.items():
+    for name, generate in effects.items():
         if args.effect not in [name, "all"]:
             continue
         output = Path(__file__).resolve().parent.parent / f"assets/audio/{name}.wav"

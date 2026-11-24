@@ -1,5 +1,7 @@
 # Poem development
 
+A short original cue starts as the tactical sprites enlarge on the way into a 3D fight. The cue follows the Effects setting and ends during the zoom. [Audio generator](scripts/combat_accents.py)
+
 Starfall and the Sun Engine reuse baked ring and globe geometry. A comparison of 36 repeated mechanisms used eleven mesh resources for 144 placements. Their transforms, vertices, materials and bounds match the earlier build. Every mechanism keeps its own animation and core color.
 
 The campaign experiment ledger shares its preparation lines with the war council and adds the actual enemy stat bonuses. Earned credits, dispatches and scenes stay reachable after their experiment switches are turned off.

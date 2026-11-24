@@ -192,7 +192,7 @@ func setup_audio():
 	add_child(field_audio)
 	score_director=ScoreDirector.new();add_child(score_director);score_director.configure(preferences.volume_db("music"))
 	music=score_director.player;score=score_director.score
-	for effect in ["select","swing","hit","critical","heal","magic","phase","guard","cutin","levelup"]:
+	for effect in ["select","swing","hit","critical","heal","magic","phase","guard","cutin","levelup","approach"]:
 		sfx_streams[effect]=load("res://assets/audio/"+effect+".wav")
 	for family in ["sword","axe","lance","bow","ember","gale","thunder"]:
 		sfx_streams["release_"+family]=load("res://assets/audio/release_"+family+".wav")
@@ -1267,6 +1267,7 @@ func cinematic(a,b,events,initial_hp={},challenge: Dictionary={}):
 	var horizon=environment.sky.sky_material.sky_horizon_color
 	var veil=CombatTransition.new();veil.configure(ui,func():return camera.unproject_position(focus),horizon)
 	veil.conceal()
+	play_sfx("approach")
 	var push=map_navigation.approach_combat(focus)
 	await push.finished
 	if veil.motion.is_running():await veil.motion.finished

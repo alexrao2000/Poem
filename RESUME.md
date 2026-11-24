@@ -6,6 +6,8 @@ This checkpoint describes the current development branch and supersedes the earl
 
 ### Latest state
 
+The tactical zoom into a 3D battle now starts with a 0.38-second original sound. Five live transitions checked that it begins while the sprites are still on the map and follows Effects mute. Two Quick Map exchanges kept their existing sound effects. Ten focused suites, source PCM regeneration, both exports, map exchanges in both packs and archive integrity passed. Listening remains unreviewed.
+
 The clockwork rings and cores now reuse baked geometry. Thirty-six paired mechanisms kept exact arrays, materials, transforms and bounds with eleven resources for 144 placements. Median warm configuration time was 622 to 30 microseconds in the exported Web pack during the headless benchmark. Eight focused suites, both exports, clockwork and geometry comparisons in both packs, and archive integrity passed.
 
 The campaign experiment ledger shares the war council’s preparation lines and shows the next deployment’s actual enemy bonuses. Earlier credits, dispatches and scene replays stay reachable after the rules are turned off. Eighteen headless layouts at 1024 and 1440 pixels checked wrapping, keyboard return, and the completed archive. Eight focused suites, both exports, the trial suite in both packs and archive integrity passed. Rendered appearance remains unreviewed.

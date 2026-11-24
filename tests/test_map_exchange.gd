@@ -18,6 +18,7 @@ var skip_arena=false
 var expected_facings={}
 var saw_facing=false
 var saw_entry_motion=false
+var saw_entry_cue=false
 var expected_focus=Vector3.ZERO
 var staged_pair=[]
 var projected_order=[]
@@ -37,7 +38,7 @@ func setup():
  app.pieces.visibility_changed.connect(watch_return)
  app.ui.child_entered_tree.connect(watch_ui)
  app.stage.child_entered_tree.connect(watch_arena)
- saw_contact=false;saw_return=false;saw_reward=false;saw_facing=false;saw_entry_motion=false
+ saw_contact=false;saw_return=false;saw_reward=false;saw_facing=false;saw_entry_motion=false;saw_entry_cue=false
  return [a,b,spare]
 
 func run():
@@ -51,6 +52,8 @@ func run():
  for case in ["defeat","counter","survive","heal","skip"]:
   root.size=dimensions[case_index%dimensions.size()];case_index+=1;await process_frame
   var pair=setup();var a=pair[0];var b=pair[1];mode="arena";app.busy=true;app.preferences.values.combat="all"
+  app.preferences.values.effects=0 if case=="skip" else 1
+  app.apply_audio_preferences()
   a.x=origins[case].x;a.y=origins[case].y
   b.x=a.x+directions[case][0].x;b.y=a.y+directions[case][0].y;app.refresh_pieces()
   lost_id="";skip_arena=case=="skip";var initial={a.id:a.hp,b.id:b.hp};var events=[]
@@ -73,11 +76,12 @@ func run():
   await app.cinematic(a,b,events,initial)
   assert(app.music_transition==returning_mix and app.score.get_sync_stream_volume(0)>-20,"Calm is already returning by the end of the camera pullback")
   assert(app.music.get_stream_playback()==score_playback,"Return mixing keeps the same decoded playhead")
-  assert(saw_return and saw_facing and saw_entry_motion,"Field departure, moving arena reveal and return were observed for "+case)
+  assert(saw_return and saw_facing and saw_entry_motion and saw_entry_cue,"Field departure, cue, moving arena reveal and return were observed for "+case)
   assert(app.map_navigation.capture_view()==tactical_view,"Actual combat restores the complete panned/offset tactical view")
   assert(app.game.save_data("battle")==saved and app.game.rng.state==rng,"Field synchronization only presents resolved outcomes")
   app.busy=false
  assert(matching_nameplates==5 and mirrored_reveals>0,"Actual left/right nameplates match every arena entry, including a reversed pair")
+ app.preferences.values.effects=1;app.apply_audio_preferences()
  for case in ["enemy_kill","enemy_counter"]:
   var pair=setup();var a=pair[0];var b=pair[1];mode="map";app.preferences.values.combat="map"
   if case=="enemy_kill":
@@ -86,12 +90,16 @@ func run():
    b.hp=1;b.speed=0;b.defense=0;a.speed=50;a.pow=100;a.defense=30;lost_id=b.id
   app.refresh_pieces()
   app.end_turn();old_visual=app.unit_nodes[lost_id]
-  while app.busy:await process_frame
+  while app.busy:
+   assert(app.sfx_players.all(func(voice):return not voice.playing or voice.stream!=app.sfx_streams.approach),
+    "Quick Map attacks have no arena approach cue")
+   await process_frame
   assert(saw_contact,"Resolved enemy turn still presents the defeated unit's actual map reaction: "+case)
   assert(not app.unit_nodes.has(lost_id),"Defeated map figure disappears after feedback")
   if case=="enemy_counter":assert(saw_reward,"Counterattack XP begins after field synchronization")
  mode="";await Shutdown.dispose(app);await process_frame
  print("PASS: five raised/flat map handoffs at three sizes with sprite-to-fighter and nameplate side continuity, exact view restoration, score fade during moving arena returns (defeat/counter/survival/heal/skip), actual enemy kill/counter map reactions, 25 coordinated sprite exits and teardown, updated health before XP, and unchanged resolved state")
+ print("PASS: five arena approach cues start during the tactical zoom, follow Effects mute and stay out of Quick Map combat")
  quit()
 
 func watch_return():
@@ -145,6 +153,15 @@ func watch_arena(node):
  await process_frame;app.skip_combat=true
 
 func watch_ui(node):
+ if mode=="arena" and node.name=="CombatTransition":
+  await process_frame
+  var cue=app.sfx_streams.approach
+  assert(cue is AudioStreamWAV and cue.mix_rate==22050 and not cue.stereo and absf(cue.get_length()-.38)<.001)
+  var playing=app.sfx_players.filter(func(voice):return voice.playing and voice.stream==cue)
+  assert(playing.size()==1 and app.pieces.visible and not app.stage.visible,"The cue plays once during the live tactical zoom")
+  assert(playing[0].volume_db==app.preferences.volume_db("effects"))
+  saw_entry_cue=true
+  return
  if mode=="arena" and node.name=="CombatHUD":
   await process_frame
   assert(node.order==projected_order,"HUD shows each combatant on their projected side")
