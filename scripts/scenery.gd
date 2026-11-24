@@ -29,6 +29,7 @@ const ABBEY_GROVE_SITES=[
 ]
 const KingsroadHoist=preload("res://scripts/kingsroad_hoist.gd")
 const StarfallChart=preload("res://scripts/starfall_chart.gd")
+const StarfallTerrain=preload("res://scripts/starfall_terrain.gd")
 const AqueductWheel=preload("res://scripts/aqueduct_waterwheel.gd")
 const ReddeepCart=preload("res://scripts/reddeep_slag_cart.gd")
 const EngineConduits=preload("res://scripts/sun_engine_conduits.gd")
@@ -348,7 +349,9 @@ func landscape(parent,game):
  var ground_paint=MapGround.material(game,atlas)
  var theme=game.info().get("environment","village")
  var outer_paint=ground_material(0) if theme=="abbey" else ground_paint
- ground(parent,Vector3(center.x,-.15,center.y),Vector2.ONE*extent,0,outer_paint)
+ if theme=="observatory":
+  StarfallTerrain.build_map(self,parent,Vector3(center.x,-.15,center.y),board)
+ else:ground(parent,Vector3(center.x,-.15,center.y),Vector2.ONE*extent,0,outer_paint)
  var building_cells={}
  for item in game.info().get("landmarks",[]):
   if item.has("footprint"):
@@ -880,7 +883,10 @@ func battle_landscape(parent,center,context={}):
     KingsroadHoist.build(self,parent,center+Vector3(-3.68,0,ROAD_CANAL_NEAR+.69),1.48,1.02)
   else:ground(parent,center,Vector2(70,70),0,paint).name="ArenaGround"
  else:
-  ground(parent,center-Vector3(0,.06,0),Vector2(70,70),3 if stone else 0)
+  if theme=="observatory":
+   StarfallTerrain.build_arena(self,parent,center-Vector3(0,.065,0))
+   ground(parent,center+Vector3(0,-.06,5.0),Vector2(70,42),3).name="ObservatoryTerrace"
+  else:ground(parent,center-Vector3(0,.06,0),Vector2(70,70),3 if stone else 0)
   if not wooden_floor:ground(parent,center,Vector2(24,6),surface)
  var water_level=-.055 if wooden_floor else RiverBank.ARENA_WATER_LEVEL
  if river or theme=="aqueduct" or wooden_floor:

@@ -10,6 +10,7 @@ const RiverBank=preload("res://scripts/river_bank.gd")
 const MapGround=preload("res://scripts/map_ground.gd")
 const SanctuaryPlinth=preload("res://scripts/sanctuary_plinth.gd")
 const PassEscarpment=preload("res://scripts/pass_escarpment.gd")
+const StarfallTerrain=preload("res://scripts/starfall_terrain.gd")
 func _initialize():call_deferred("run")
 func surface_geometry():
  var scenery=Scenery.new();var parent=Node3D.new();root.add_child(parent)
@@ -129,6 +130,7 @@ func run():
  await verify_river_arena()
  verify_water_styles()
  verify_ridges()
+ verify_starfall_terrain()
  await verify_pass_escarpment()
  verify_rocks()
  var game=Rules.new();var seen={}
@@ -306,7 +308,7 @@ func verify_ridges():
    signatures.append(signature)
  var scenery=Scenery.new();scenery.batching_enabled=false
  var skylines={}
- for theme in ["mountain","road","forest","river","village","harbor","castle"]:
+ for theme in ["mountain","road","forest","river","village","observatory","harbor","castle"]:
   var stage=Node3D.new();root.add_child(stage);var center=Vector3(35,0,0)
   scenery.battle_landscape(stage,center,{"environment":theme})
   var layers=stage.get_children().filter(func(node):return node.name.begins_with("ArenaRidge"))
@@ -319,7 +321,7 @@ func verify_ridges():
     var framed=layer.transform*layer.mesh.get_aabb()
     var level=center.y if theme in MapGround.CONTINUOUS_ARENAS else center.y-.06
     assert(is_equal_approx(framed.position.y,level) and framed.end.z<=center.z-26,"The landscape maintains the ground seam and the fighting lane's clearance")
-    assert(layer.mesh==ridges.mesh(index,theme=="mountain") and layer.material_override==ridges.material(index,theme))
+    assert(layer.mesh==ridges.mesh(index,theme in ["mountain","observatory"]) and layer.material_override==ridges.material(index,theme))
     assert(layer.material_override.albedo_color==look.near.lerp(look.distant,index*.15),"Each layer takes its place-specific color")
     assert(layer.material_override.vertex_color_use_as_albedo and layer.cast_shadow==GeometryInstance3D.SHADOW_CASTING_SETTING_OFF)
     assert(is_equal_approx(layer.position.x-center.x,look.offset*(index+1)) and is_equal_approx(layer.scale.y,look.height))
@@ -330,11 +332,50 @@ func verify_ridges():
     var themed_surface=ridges.material(index,theme)
     assert(stage.get_children().any(func(node):return node is MeshInstance3D and node.material_override==themed_surface),"The authored palette survives actual scenery batching")
   stage.free()
- assert(skylines.size()==5 and game.rng.state==rng,"Distant landscape generation consumes no campaign random state")
+ assert(skylines.size()==6 and game.rng.state==rng,"Distant landscape generation consumes no campaign random state")
  for index in 3:
   assert(skylines.river[index]<skylines.road[index] and skylines.road[index]<skylines.village[index])
   assert(skylines.village[index]<skylines.forest[index] and skylines.forest[index]<skylines.mountain[index])
- print("PASS: five natural arena skylines with distinct heights and palettes, planted boundaries, shared meshes and independent campaign RNG")
+  assert(skylines.observatory[index]<skylines.mountain[index])
+ print("PASS: six arena skylines with distinct heights and palettes, planted boundaries, shared meshes and independent campaign RNG")
+
+func verify_starfall_terrain():
+ var game=Rules.new();game.chapter=8
+ var saved=game.save_data("camp").duplicate(true)
+ var scenery=Scenery.new();scenery.batching_enabled=false
+ var field=Node3D.new();root.add_child(field);scenery.landscape(field,game)
+ var floor=field.get_node("StarfallSlateApron")
+ var rim=field.find_children("StarfallBrokenSlate*","MeshInstance3D",false,false)
+ var rock=field.find_children("StarfallScree*","MeshInstance3D",false,false)
+ var board=Rect2(Vector2(-.5,-.5),Vector2(game.board_size()))
+ var foundation=field.get_node("ObservatoryFoundations")
+ var ledge=foundation.transform*foundation.mesh.get_aabb()
+ assert(is_equal_approx(ledge.end.y,-.015) and ledge.position.y<floor.position.y)
+ assert(Rect2(Vector2(ledge.position.x,ledge.position.z),Vector2(ledge.size.x,ledge.size.z)).encloses(board))
+ assert(rim.size()==3 and rock.size()==8 and floor.mesh==StarfallTerrain.apron())
+ for part in rim+rock:
+  var bounds=part.transform*part.mesh.get_aabb()
+  assert(not board.intersects(Rect2(Vector2(bounds.position.x,bounds.position.z),Vector2(bounds.size.x,bounds.size.z))))
+  assert(bounds.position.y<=floor.position.y+.0001 and bounds.end.y>floor.position.y+.10)
+ var stage=Node3D.new();root.add_child(stage)
+ var center=Vector3(35,0,0)
+ var context=scenery.combat_context(game,{"x":9,"y":1},{"x":10,"y":1})
+ scenery.battle_landscape(stage,center,context)
+ var apron=stage.get_node("StarfallSlateApron")
+ var close_rim=stage.get_node("StarfallBrokenSlate")
+ var terrace=stage.get_node("ObservatoryTerrace")
+ assert(apron.mesh==floor.mesh and apron.material_override==floor.material_override and close_rim.mesh==rim[0].mesh)
+ var arena_bounds=close_rim.transform*close_rim.mesh.get_aabb()
+ assert(arena_bounds.end.z<center.z-15.5 and is_equal_approx(arena_bounds.position.y,apron.position.y))
+ var terrace_edge=terrace.position.z-terrace.mesh.size.y*.5
+ assert(absf(terrace_edge-arena_bounds.end.z)<.35 and terrace.position.y>apron.position.y)
+ assert(stage.find_children("StarfallScree*","MeshInstance3D",false,false).size()==7)
+ scenery.batcher.combine(field);scenery.batcher.combine(stage)
+ for group in [field,stage]:
+  assert(group.get_children().any(func(part):return part is MeshInstance3D and part.material_override==StarfallTerrain.material()))
+ assert(game.save_data("camp")==saved)
+ field.free();stage.free()
+ print("PASS: shared Starfall slate and rocks stay rooted outside the playable board and close-up fighting lane")
 
 func verify_pass_escarpment():
  var game=Rules.new();game.chapter=6

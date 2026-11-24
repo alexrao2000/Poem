@@ -15,6 +15,7 @@ const LANDSCAPES={
  "abbey":{"height":.86,"offset":-2.0,"near":Color("69735e"),"distant":Color("98a29a")},
  "road":{"height":.79,"offset":5.0,"near":Color("7a7b61"),"distant":Color("a2a590")},
  "mountain":{"height":1.0,"offset":0.0,"near":Color("626d73"),"distant":Color("8e9ea6")},
+ "observatory":{"height":.76,"offset":-4.5,"near":Color("3f475e"),"distant":Color("748098")},
 }
 static var meshes={}
 static var materials={}
@@ -68,7 +69,7 @@ static func build(parent: Node3D,center: Vector3,theme: String):
  var look=LANDSCAPES[theme]
  for layer in range(3):
   var ridge=MeshInstance3D.new();ridge.name="ArenaRidge"+str(layer)
-  ridge.mesh=mesh(layer,theme=="mountain")
+  ridge.mesh=mesh(layer,theme in ["mountain","observatory"])
   ridge.material_override=material(layer,theme)
   ridge.scale.y=look.height
   ridge.position=center+Vector3(look.offset*(layer+1),.06*(look.height-1),0)
