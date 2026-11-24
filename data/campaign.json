@@ -845,7 +845,7 @@
       "title": "The Silent Bell",
       "place": "Hallow Abbey",
       "route_position": [0.40, 0.32],
-      "score_theme": "standard",
+      "score_theme": "abbey",
       "objective": "boss",
       "boss": "Prior Ash",
       "intro": "The abbey bell has been melted for the regent’s engine. Esme and Rook will help us silence its overseer.",

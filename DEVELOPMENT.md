@@ -1,5 +1,7 @@
 # Poem development
 
+Hallow Abbey plays “Vespers for the Empty Tower,” a 32-bar Calm and Ablaze pair in three at 88 BPM. The Music Room lists it for Chapter 04.
+
 Staff light carries the equipped crystal's color on the map and in close-up. The recovery glow and HP cue use one palette for all four staffs.
 
 The four healing staffs now use upright brass settings and faceted crystals that follow the existing item icons. The launch point is the center of the crystal for both model sets.

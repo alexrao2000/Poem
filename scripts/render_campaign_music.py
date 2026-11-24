@@ -54,15 +54,31 @@ THEMES = [
                  [(77,0,1),(81,1,1),(84,2,1.5),(81,3.5,.5)],[(79,0,2),(76,2,1),(72,3,1)],
                  [(74,0,1),(79,1,1),(82,2,1),(81,3,1)],[(77,0,1),(81,1,1),(74,2,1.75)],
                  [(77,0,1),(82,1,1),(86,2,1.5),(84,3.5,.5)],[(84,0,1.5),(79,1.5,.5),(76,2,1),(79,3,1)],
-                 [(81,0,1),(76,1,1),(73,2,1.5),(76,3.5,.5)],[(74,0,3.5)]])
+                 [(81,0,1),(76,1,1),(73,2,1.5),(76,3.5,.5)],[(74,0,3.5)]]),
+    dict(id='abbey', title='Vespers for the Empty Tower', bpm=88, beats_per_bar=3, seed=30617,
+         harp_pattern=(0,2,1,0,1,2),
+         chords=[(55,58,62),(51,55,58),(48,52,55),(50,54,57),
+                 (55,58,62),(53,57,60),(51,55,58),(50,54,57),
+                 (48,52,55),(57,60,64),(53,57,60),(55,58,62),
+                 (51,55,58),(48,52,55),(50,54,57),(55,58,62)],
+         melody=[[(67,0,1),(74,1,.75),(70,1.75,1.25)],[(67,0,1.75),(70,2,.75)],
+                 [(72,0,1),(76,1,1),(74,2,.75)],[(69,0,.75),(66,1,1.5)],
+                 [(67,0,1),(74,1,.5),(77,1.5,.5),(74,2,1)],[(72,0,1.25),(69,1.25,.75),(65,2,.75)],
+                 [(67,0,1),(70,1,1.75)],[(69,0,1),(66,1,1),(62,2,.75)],
+                 [(72,0,1),(76,1,.75),(79,1.75,1.25)],[(81,0,1.75),(76,2,.75)],
+                 [(77,0,1),(72,1,.5),(74,1.5,.5),(72,2,.75)],[(70,0,1),(67,1,1.75)],
+                 [(67,0,.75),(70,.75,.75),(75,1.5,1.5)],[(76,0,1),(72,1,1),(67,2,.75)],
+                 [(69,0,.75),(74,.75,.75),(66,1.5,1.25)],[(67,0,2.5)]])
 ]
 
 
 def render(theme,bank):
-    beat_seconds=60/theme['bpm'];frames=round(BARS*4*beat_seconds*RATE)
+    beats = theme.get('beats_per_bar', 4)
+    beat_seconds=60/theme['bpm'];frames=round(BARS*beats*beat_seconds*RATE)
     results={}
     default_pattern=(0,2,1,2,0,1,2,1) if theme['id']=='road' else (0,1,2,1,2,1,0,2)
     pattern=theme.get('harp_pattern',default_pattern)
+    downbeats, accents = ((0, 2), (1, 3)) if beats == 4 else ((0,), (1, 2))
     for mode in ('calm','ablaze'):
         rng=np.random.default_rng(theme['seed'])
         track=np.zeros((frames,2),dtype=np.float64);intense=mode=='ablaze'
@@ -83,19 +99,19 @@ def render(theme,bank):
             else:sound=(np.sin(2*np.pi*(52*t+1.8*(1-np.exp(-t*25))))+.2*np.sin(2*np.pi*87*t))*np.exp(-t*11)*.25
             place(sound*(1-np.exp(-t*1500)),beat,.15 if accent else -.15)
         for bar in range(BARS):
-            chord=theme['chords'][bar%16];start=bar*4
-            for i,pitch in enumerate(chord):note(pitch,start,4.2,'strings',.12 if intense else .1,(i-1)*.4)
+            chord=theme['chords'][bar%16];start=bar*beats
+            for i,pitch in enumerate(chord):note(pitch,start,beats+.2,'strings',.12 if intense else .1,(i-1)*.4)
             for step,degree in enumerate(pattern):note(chord[degree]+12,start+step*.5,.85,'harp',.07 if intense else .12,-.4)
             for pitch,offset,length in theme['melody'][bar%16]:
                 note(pitch,start+offset,length*.94,'strings' if intense else 'flute',.23 if intense else .2,.12)
                 if bar>=16 and bar%4 in (2,3):note(pitch-12,start+offset,length*.9,'horn' if intense else 'harp',.09,-.25)
             if intense:
-                for step in range(8):note(chord[0]-12 if step%2==0 else chord[0]-5,start+step*.5,.44,'bass',.19,.05)
-                for beat in (0,2):percussion(start+beat)
-                for beat in (1,3):percussion(start+beat,True)
-                if bar%4==3:percussion(start+3.5,True)
+                for step in range(beats*2):note(chord[0]-12 if step%2==0 else chord[0]-5,start+step*.5,.44,'bass',.19,.05)
+                for beat in downbeats:percussion(start+beat)
+                for beat in accents:percussion(start+beat,True)
+                if bar%4==3:percussion(start+beats-.5,True)
                 for pitch in chord:note(pitch+12,start,1.4,'horn',.1,-.3)
-            else:note(chord[0]-12,start,3.8,'bass',.13,-.15)
+            else:note(chord[0]-12,start,beats-.2,'bass',.13,-.15)
         dry=track.copy()
         for delay,gain in ((.071,.14),(.137,.10),(.223,.07),(.337,.045)):
             track+=np.roll(dry,round(delay*RATE),axis=0)[:,::-1]*gain
@@ -109,6 +125,7 @@ def render(theme,bank):
         print(theme['title'],mode,f'{frames/RATE:.2f}s',metrics,flush=True)
     profile=dict(id=theme['id'],title=theme['title'])
     if 'first_chapter' in theme:profile['first_chapter']=theme['first_chapter']
+    if beats!=4:profile['beats_per_bar']=beats
     profile.update(bpm=theme['bpm'],bars=BARS,frames=frames,sample_rate=RATE,channels=2,arrangements=results,
                    composition_sha256=hashlib.sha256(json.dumps([theme['chords'],theme['melody']]).encode()).hexdigest())
     return profile

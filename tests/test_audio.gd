@@ -29,25 +29,26 @@ func run():
  assert(app.sfx_streams.levelup.get_length()>.71 and app.sfx_streams.levelup.get_length()<.73,"Level-up bell ends within the stat reveal")
  await verify_themes(app)
  await verify_authored_themes(app)
- await verify_finale_exchange(app)
+ await verify_chapter_exchange(app,3,"standard","abbey",Vector2i(11,4),Vector2i(12,4))
+ await verify_chapter_exchange(app,11,"dawnless","sun_engine",Vector2i(9,2),Vector2i(10,2))
  await verify_quick_battles(app)
  await Shutdown.dispose(app);await process_frame
- print("PASS: four exact Calm/Ablaze pairs, 12 chapter mappings, compensated arrangement curve and seamless reversal, continuous combat mixing, bounded theme crossfades, mute/interruption and independent effects")
+ print("PASS: five exact Calm/Ablaze pairs, 12 chapter mappings, compensated arrangement curve and seamless reversal, continuous combat mixing, bounded theme crossfades, mute/interruption and independent effects")
  quit()
 
 func verify_themes(app):
  var director=app.score_director
- assert(director.profiles.size()==4)
+ assert(director.profiles.size()==5)
  for profile in director.profiles:
   var pair=director.make_pair(profile)
   var calm=pair.get_sync_stream(0);var ablaze=pair.get_sync_stream(1)
   assert(calm.stereo and ablaze.stereo and calm.mix_rate==profile.sample_rate and ablaze.mix_rate==profile.sample_rate,"Every theme uses the same stereo sample format")
   assert(roundi(calm.get_length()*calm.mix_rate)==profile.frames and roundi(ablaze.get_length()*ablaze.mix_rate)==profile.frames,"Paired arrangements have exactly the declared PCM frame count")
   for stream in [calm,ablaze]:assert(stream.loop_mode==AudioStreamWAV.LOOP_FORWARD and stream.loop_begin==0 and stream.loop_end==profile.frames,"Each independent stream loops on the shared frame boundary")
-  assert(absf(calm.get_length()-float(profile.bars)*4*60/profile.bpm)<1.0/profile.sample_rate,"Actual audio duration matches the composition's bar/tempo timeline")
+  assert(absf(calm.get_length()-float(profile.bars)*profile.get("beats_per_bar",4)*60/profile.bpm)<1.0/profile.sample_rate,"Actual audio duration matches the composition's meter and tempo")
   for stream in [calm,ablaze]:verify_decoded_loop(stream)
  for chapter in range(12):
-  var theme="sun_engine" if chapter==11 else ["standard","road","dawnless"][chapter/4]
+  var theme={3:"abbey",11:"sun_engine"}.get(chapter,["standard","road","dawnless"][chapter/4])
   assert(app.campaign_score_profile(chapter).id==theme)
  assert(director.profile_for(11).id=="dawnless","An explicit finale theme does not change the catalog default")
  var roster=app.game.roster.duplicate(true);var rng=app.game.rng.state
@@ -105,17 +106,17 @@ func verify_authored_themes(app):
  await process_frame
  print("PASS: authored chapter themes select their actual paired streams, reuse the live decoder across distant chapters and fall back for omitted or unknown IDs")
 
-func verify_finale_exchange(app):
- app.game.chapter=10;app.select_score_theme()
+func verify_chapter_exchange(app,chapter: int,previous_theme: String,theme: String,ally_tile: Vector2i,foe_tile: Vector2i):
+ app.game.chapter=chapter-1;app.select_score_theme()
  app.music.play(8.0)
  var outgoing=app.music;var previous_decoder=outgoing.get_stream_playback()
- assert(app.score_director.current_id=="dawnless" and previous_decoder!=null)
- app.game.chapter=11;app.game.start_battle()
+ assert(app.score_director.current_id==previous_theme and previous_decoder!=null)
+ app.game.chapter=chapter;app.game.start_battle()
  var ally=app.game.living("player")[0]
  var foe=app.game.living("enemy")[0]
- ally.x=9;ally.y=2;foe.x=10;foe.y=2
+ ally.x=ally_tile.x;ally.y=ally_tile.y;foe.x=foe_tile.x;foe.y=foe_tile.y
  app.make_map();app.show_battle()
- assert(app.score_director.current_id=="sun_engine")
+ assert(app.score_director.current_id==theme)
  assert(app.score_director.outgoing==outgoing and outgoing.get_stream_playback()==previous_decoder)
  await create_timer(.52).timeout
  assert(app.score_director.outgoing==null and app.music.playing)
@@ -141,7 +142,7 @@ func verify_finale_exchange(app):
  await create_timer(.52).timeout
  assert(app.score==pair and voice.get_stream_playback()==decoder and voice.get_playback_position()>12.0)
  assert(is_zero_approx(app.score_director.arrangement_blend) and app.game.save_data("battle")==state)
- print("PASS: a full Sun Engine exchange blends the finale to Ablaze and back on the same synchronized decoder")
+ print("PASS: a full %s exchange switches to Ablaze and back on the same synchronized decoder"%theme)
 
 func verify_arrangement_curve(app):
  var director=app.score_director;var pair=app.score

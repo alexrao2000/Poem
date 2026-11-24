@@ -94,6 +94,31 @@
         }
       },
       "composition_sha256": "9be6099b430d039f95f3377d2f19c2c400ab7e431d28e74f29a801d6286c94bc"
+    },
+    {
+      "id": "abbey",
+      "title": "Vespers for the Empty Tower",
+      "beats_per_bar": 3,
+      "bpm": 88,
+      "bars": 32,
+      "frames": 1443273,
+      "sample_rate": 22050,
+      "channels": 2,
+      "arrangements": {
+        "calm": {
+          "path": "res://assets/audio/abbey-calm.wav",
+          "peak": 0.627621547324213,
+          "rms": 0.12,
+          "boundary_step": 0.001985510291144004
+        },
+        "ablaze": {
+          "path": "res://assets/audio/abbey-ablaze.wav",
+          "peak": 0.8699999999999999,
+          "rms": 0.13973516650324175,
+          "boundary_step": 0.010980128815322291
+        }
+      },
+      "composition_sha256": "2334c9439077155e9fb8ea5fc30128cdd88090c658a7b8c99cb606430eb828bc"
     }
   ]
 }
