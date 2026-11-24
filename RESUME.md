@@ -6,7 +6,7 @@ This checkpoint describes the current development branch and supersedes the earl
 
 ### Latest state
 
-The frozen regression reached 238 passing suites at `1cf9967` before a slash fixture looked for the Original rig in a fresh Revised profile. Five procedural-rig fixtures now select Original explicitly. The resumed run retains the same runtime and the first 238 test sources. Its fixture hashes and original failure are recorded locally. The latest playable packages use the Cinderford checkpoint below.
+The frozen regression reached 238 passing suites at `1cf9967` before a slash fixture looked for the Original rig in a fresh Revised profile. Six procedural-rig fixtures now select Original explicitly, including the locomotion skip watcher. The resumed run retains the same runtime and the first 238 test sources. The fixture hashes and both initial failures are recorded locally. The latest playable packages use the Cinderford checkpoint below.
 
 Cinderford’s rust-and-linen market stall sits west of the fountain and behind the fighters in the close-up arena. A software mesh study exposed rails protruding through the cloth, so the final rails follow its pitch underneath. Nine camera views, live scenery batches, eight focused suites, three fitting reruns and both exports passed. Architecture and ambience checks passed in both packs, and their isolated canopy arrays match the source byte for byte. All 72 automated chapter outcomes match the earlier runs. See `build/review/cinderford-greywood-canopy-study.png`. Rendered gameplay remains unreviewed.
 

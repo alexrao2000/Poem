@@ -113,7 +113,7 @@ func run():
  assert(Fighters.Actor.approach_duration(3)>Fighters.Actor.approach_duration(.5) and Fighters.Actor.approach_duration(100)<=.65,"Longer approaches get bounded extra travel time")
  assert(game.rng.state==state,"Locomotion uses no gameplay randomness")
  stage.queue_free();await process_frame;await process_frame
- var app=load("res://main.tscn").instantiate();app.settings_path="";app.save_path="/private/tmp/poem-locomotion-test.json"
+ var app=load("res://main.tscn").instantiate();app.settings_path="";app.preferences.values.character_models="current";app.save_path="/private/tmp/poem-locomotion-test.json"
  root.add_child(app);await process_frame;app.game.start_battle();app.make_map();app.show_battle()
  var a=app.game.units[0];var b=app.game.living("enemy")[0];a.x=8;a.y=4;b.x=9;b.y=4
  var saved=app.game.save_data("battle").duplicate(true);var camera=app.camera.transform
