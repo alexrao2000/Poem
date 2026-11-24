@@ -6,6 +6,8 @@ This checkpoint describes the current development branch and supersedes the earl
 
 ### Latest state
 
+Windscar Pass now has low crosswind that drifts across the battlefield and grows wider mid-gust. It uses fourteen instances on the map and twenty-four in the arena. At seven sample times, the other twenty-two map and arena configurations produced exactly the same instance buffers in source and both packages. Seven focused suites, both exports, packed atmosphere and presentation, and archive integrity passed. Rendered appearance remains unreviewed.
+
 Windscar Pass has two stone ridge beacons with separate flame motion in the tactical map and combat arena. The map placements were moved forward after the first projection clipped them at the top of the overview. Three tactical and six arena projections checked their final framing. A complete and a skipped battle checked both phase handoffs, with exact campaign and RNG comparisons. Nine focused suites, four final placement reruns, both exports, terrain and combat transitions in both packs, and archive integrity passed. Rendered appearance remains unreviewed.
 
 Hold Z during a 3D fight in Debug mode to view it at half speed. Three headless layouts checked the hint, and live full and skipped exchanges checked the Fast toggle, focus loss, exact clock restoration, unchanged battle state and continuous music. Ten focused source suites, a final playback rerun, both exports, both playback suites in each pack and archive integrity passed.

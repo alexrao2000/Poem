@@ -28,6 +28,14 @@ func run():
      var earlier=a.particle_position(state,.25)
      var later=a.particle_position(state,.75)
      assert(later.y<earlier.y and later.x>earlier.x and later.z==earlier.z and state.life<1.11,"Rain falls quickly along one wind direction")
+   elif theme=="mountain":
+    assert(a.kind=="wind" and a.cloud.multimesh.instance_count==(24 if arena else 14))
+    assert(a.cloud.material_override.albedo_texture!=null and a.cloud.multimesh.mesh is QuadMesh)
+    for state in a.states:
+     var earlier=a.particle_position(state,.25);var later=a.particle_position(state,.75)
+     assert(is_equal_approx(later.x-earlier.x,a.extent.x*.32))
+     assert(absf(later.y-earlier.y)<=.36001 and maxf(later.y,earlier.y)<=1.19)
+     assert(state.life>=3.6 and state.life<=5.6)
    elif theme=="road":assert(a.kind=="leaves" and a.cloud.multimesh.mesh is ArrayMesh)
    elif theme in ["furnace","engine"]:assert(a.kind=="embers" and a.cloud.material_override.blend_mode==BaseMaterial3D.BLEND_MODE_ADD)
    for state in a.states:
@@ -48,6 +56,10 @@ func run():
     assert(a.cloud.multimesh.custom_aabb.encloses(bounds),"Actual uploaded instance geometry stays within the culling volume")
     assert(basis.determinant()>0 and basis.orthonormalized().determinant()>.99,"Packed rows retain a valid rotated/scaled basis")
     assert(buffer[offset+15]>=0 and buffer[offset+15]<=.7,"Uploaded opacity remains restrained")
+    if a.kind=="wind":
+     var reach=basis.x.length()/basis.y.length()
+     assert(reach>=7.4 and reach<=10.3,"Wind uses quiet horizontal wisps with a smoothly changing length")
+     assert(position.y<1.2 and buffer[offset+15]<=.27001)
    host.hide();var elapsed=a.elapsed;var held=a.cloud.multimesh.buffer;a._process(1)
    assert(a.elapsed==elapsed and a.cloud.multimesh.buffer==held,"Hidden map/arena atmosphere suspends updates")
    host.show();a._process(.1);assert(a.elapsed>elapsed)
@@ -70,7 +82,7 @@ func run():
   var reference=weakref(atmosphere);map.queue_free();arena.queue_free();await process_frame
   assert(reference.get_ref()==null,"Leaving a chapter releases its instanced atmosphere")
  host.queue_free();await process_frame
- print("PASS: seamless deterministic cloud panorama, cached cover, horizon/zenith continuity, theme contrast; twelve chapter atmospheres, 24 map/arena configurations, bounded rain streaks and other instances, deterministic motion, hidden suspension, fade loops and cleanup")
+ print("PASS: seamless deterministic cloud panorama, cached cover, horizon/zenith continuity, theme contrast; twelve chapter atmospheres, 24 map/arena configurations, bounded rain streaks, low Windscar crosswind and other instances, deterministic motion, hidden suspension, fade loops and cleanup")
  quit()
 
 func verify_clouds():

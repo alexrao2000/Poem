@@ -1,6 +1,6 @@
 extends Node3D
 # Sparse chapter atmosphere uses one instanced mesh and a private seed. Greywood
-# rain falls in slanted streaks on both the map and the close-up battlefield.
+# rain and Windscar’s low crosswind appear on the map and in the arena.
 const THEMES=["village","river","forest","abbey","road","harbor","mountain","aqueduct","observatory","furnace","castle","engine"]
 static var rain_streak: ArrayMesh
 var kind="dust"
@@ -14,6 +14,7 @@ func configure(theme: String,dimensions: Vector3,arena=false,seed_value=0):
  name="AmbientDrift";extent=dimensions
  match theme:
   "forest":kind="rain"
+  "mountain":kind="wind"
   "road":kind="leaves"
   "furnace","engine":kind="embers"
   "observatory":kind="aether"
@@ -43,6 +44,11 @@ func configure(theme: String,dimensions: Vector3,arena=false,seed_value=0):
   if kind=="rain":
    color=Color("d2e4ef").lerp(Color("c5d3df"),random.randf())
    states.append({"x":random.randf_range(-.42,.42),"z":random.randf_range(-.42,.42),"phase":random.randf(),"life":random.randf_range(.66,1.10),"scale":random.randf_range(.76,1.1),"color":color})
+  elif kind=="wind":
+   color=Color("d3e0e1").lerp(Color("a4babf"),random.randf())
+   states.append({"x":random.randf_range(-.14,.14),"z":random.randf_range(-.35,.35),"phase":random.randf(),
+    "life":random.randf_range(3.6,5.6),"scale":random.randf_range(.11,.19),"height":random.randf_range(.26,.83),
+    "spin":random.randf_range(-2,2),"color":color})
   else:
    color=color.lerp(Color("efdab3"),random.randf_range(0,.25))
    states.append({"x":random.randf_range(-.23,.23),"z":random.randf_range(-.35,.35),"phase":random.randf(),"life":random.randf_range(7,12) if kind=="leaves" else random.randf_range(5,9),"spin":random.randf_range(-2,2),"scale":random.randf_range(.09,.14) if kind=="leaves" else random.randf_range(.04,.075),"color":color})
@@ -69,16 +75,25 @@ static func rain_mesh() -> ArrayMesh:
 func particle_position(state: Dictionary,phase: float) -> Vector3:
  if kind=="rain":
   return Vector3((state.x+(phase-.5)*.044)*extent.x,.15+(1-phase)*(extent.y-.3),state.z*extent.z)
+ if kind=="wind":
+  var lift=.18+.18*sin(phase*TAU+state.spin)
+  return Vector3((state.x+(phase-.5)*.64)*extent.x,state.height+lift,(state.z+.064*sin(phase*TAU))*extent.z)
  var height=(1-phase) if kind=="leaves" else phase
  return Vector3((state.x+(phase-.5)*.42)*extent.x,.15+height*(extent.y-.3),(state.z+sin(phase*TAU+state.spin)*.08)*extent.z)
 
 func update_particles():
+ var opacity=.23 if kind=="rain" else .7 if kind=="leaves" else .65 if kind=="embers" else .35
+ if kind=="wind":opacity=.27
  for i in range(states.size()):
   var state=states[i];var phase=fposmod(state.phase+elapsed/state.life,1)
   var rotation=Vector3(phase*TAU+state.spin,phase*TAU*state.spin,state.spin) if kind=="leaves" else Vector3.ZERO
-  var basis=Basis.from_euler(rotation).scaled(Vector3.ONE*state.scale);var point=particle_position(state,phase)
+  var dimensions=Vector3.ONE*state.scale
+  if kind=="wind":
+   var stretch=5.2+sin(phase*PI)*2.0
+   dimensions*=Vector3(stretch,.70,1)
+  var basis=Basis.from_euler(rotation).scaled(dimensions);var point=particle_position(state,phase)
   var color=state.color
-  color.a=smoothstep(0,.12,phase)*(1-smoothstep(.82,1,phase))*(.23 if kind=="rain" else .7 if kind=="leaves" else .65 if kind=="embers" else .35)
+  color.a=smoothstep(0,.12,phase)*(1-smoothstep(.82,1,phase))*opacity
   # MultiMesh's public bulk format is three matrix rows plus RGBA. One upload
   # also remains inspectable under the headless renderer's limited readback.
   for row in range(3):

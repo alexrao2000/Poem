@@ -1,5 +1,7 @@
 # Poem development
 
+Low, pale gusts cross Windscar Pass in the tactical map and arena. The gusts use the same instanced effect budget as the previous dust, fading before they loop.
+
 Windscar Pass has two stone beacons on the ridge. Their independent flames carry their shape through the cut into the arena and back to the tactical map.
 
 Debug mode supports half-speed 3D playback while holding Z. Releasing it restores the previously selected speed. The music keeps its normal pitch and playhead.
