@@ -19,6 +19,44 @@ func watch(node):
 func animate(banner,done):
  await banner.play(func():return false);done[0]=true
 
+class QuietTactics extends "res://scripts/tactics.gd":
+ func plan(game,unit):return {"position":game.pos(unit),"target":"","action":"wait"}
+
+func verify_terrain_recovery():
+ root.size=Vector2i(1440,900)
+ app.game.new_campaign();app.game.action_saves=true;app.game.start_battle()
+ var first=app.game.living("player")[0];var second=app.game.living("player")[1]
+ var foe=app.game.living("enemy")[0]
+ first.x=3;first.y=3;first.hp=10
+ second.x=10;second.y=7;second.hp=second.max_hp-2
+ foe.x=12;foe.y=8
+ app.game.units=[first,second,foe];app.tactics=QuietTactics.new()
+ app.make_map();app.show_battle();await process_frame
+ var rng=app.game.rng.state
+ app.end_turn()
+ var labels=[]
+ var deadline=Time.get_ticks_msec()+10000
+ while labels.size()<2 and Time.get_ticks_msec()<deadline and app.busy:
+  await process_frame
+  labels=app.ui.find_children("TerrainRecoveryCue*","Label",false,false)
+ assert(labels.size()==2 and app.busy and app.game.phase=="player" and app.game.turn==2)
+ var saved=load("res://scripts/rules.gd").new()
+ assert(saved.load_game(app.save_path)=="battle" and saved.turn==2 and saved.phase=="player")
+ assert(saved.rng.state==rng and saved.living("player")[0].hp==16 and saved.living("player")[1].hp==second.max_hp)
+ var texts={}
+ for label in labels:
+  texts[label.get_meta("unit_id")]=label.text
+  assert(app.map_navigation.safe_rect().encloses(label.get_global_rect()))
+ assert(texts=={first.id:"+6",second.id:"+2"},"The committed, capped gains are the figures shown in the map")
+ var camera=app.camera.transform
+ var skip=InputEventKey.new();skip.pressed=true;skip.keycode=KEY_TAB;app._input(skip)
+ while app.busy:await process_frame
+ await process_frame
+ assert(app.ui.find_children("TerrainRecoveryCue*","Label",false,false).is_empty())
+ assert(app.pieces.find_children("MapHeal*","Node3D",false,false).is_empty())
+ assert(app.camera.transform==camera and app.game.rng.state==rng,"Skipping passive recovery restores control without moving the camera or using RNG")
+ print("PASS: simultaneous committed sanctuary gains, capped amounts, visible map cues, Skip and cleanup")
+
 func run():
  var host=Control.new();root.add_child(host)
  for viewport_size in [Vector2(1024,640),Vector2(1280,720),Vector2(1440,900)]:
@@ -96,6 +134,7 @@ func run():
   assert(app.screen=="result" and app.game.turn==1 and app.game.phase=="enemy" and app.game.rng.state==state,"Terminal checkpoint resumes exactly without rerolling or advancing turns")
   for index in range(health.size()):assert(app.game.units[index].hp==health[index],"Reload cannot add terrain healing after the terminal action")
  assert(actual_resizes==8,"Live enemy/player ribbons and both terminal enemy phases reflow during their actual turn sequence")
+ await verify_terrain_recovery()
  for player in app.sfx_players:player.stop()
  app.music.stop();await create_timer(.15).timeout;await Shutdown.dispose(app);await process_frame
  print("PASS: phase ribbon layouts, 18 live size changes, six entrance/hold/exit resizes, eight actual turn resizes, deployment/terminal turn ordering, input locks, skip isolation and cleanup")

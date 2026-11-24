@@ -1,5 +1,7 @@
 # Poem development
 
+Sanctuary recovery shows each gained HP amount and a brief glow at the start of the new player phase. The app shows the cue after the checkpoint commits, groups simultaneous recoveries, and accepts Tab to clear the feedback.
+
 The tactical help strip fits its current instruction and uses the same navy palette as the chapter plates. The close-up combat fade and streaks take color from the chapter’s sky. Camera framing and opacity follow the existing handoff.
 
 Tactical bridges have two full-length stringers, four piles and two crossbeams beneath their boards. Both bridge orientations meet the walkable height and extend through the waterline.

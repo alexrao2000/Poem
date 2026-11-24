@@ -1144,12 +1144,17 @@ func end_turn(resuming=false):
 		refresh_pieces()
 		if game.result()!="":break
 	if await check_result():busy=false;return
+	var recovery_before={}
+	for unit in game.units:
+		if unit.hp>0 and unit.hp<unit.max_hp:recovery_before[unit.id]=unit.hp
 	game.next_player_turn();update_side();refresh_pieces();highlight()
 	if not checkpoint_action("player_phase"):return
 	if await check_result():busy=false;return
 	var allies=game.living("player")
 	if not allies.is_empty():await frame_map_action([allies[0]])
-	await announce_phase("player");busy=false;update_side()
+	await announce_phase("player")
+	await show_terrain_recovery(recovery_before)
+	busy=false;update_side()
 	persist_campaign("battle")
 
 func selected_model_builders() -> Array:
@@ -2718,6 +2723,50 @@ func map_combat_feedback(events: Array):
 		if victim!=null and (event.remaining>0 or wounded):victim.finish_move()
 	refresh_pieces()
 
+func map_recovery_label(recipient,cue_text: String,font_size: int) -> Label:
+	var label=Label.new();label.text=cue_text
+	label.add_theme_font_size_override("font_size",font_size)
+	label.add_theme_color_override("font_color",Color("b4efd1"))
+	label.add_theme_color_override("font_outline_color",Color("263e36"))
+	label.add_theme_constant_override("outline_size",5)
+	label.mouse_filter=Control.MOUSE_FILTER_IGNORE
+	ui.add_child(label)
+	label.position=camera.unproject_position(map_position(game.pos(recipient))+Vector3.UP*1.1)-Vector2(label.get_minimum_size().x*.5,20)
+	return label
+
+func show_terrain_recovery(previous_hp: Dictionary):
+	var safe=map_navigation.safe_rect()
+	var rows={}
+	var labels: Array[Label]=[]
+	var effects: Array[Node3D]=[]
+	for unit in game.units:
+		var gain=int(unit.hp)-int(previous_hp.get(unit.id,unit.hp))
+		if gain<=0:continue
+		var tile=game.pos(unit)
+		var ground=map_position(tile)
+		var anchor=camera.unproject_position(ground+Vector3.UP*1.1)
+		var row=int(rows.get(tile,0))
+		if not safe.grow(-28).has_point(anchor-Vector2(0,row*23)):continue
+		var label=map_recovery_label(unit,"+"+str(gain),20)
+		label.name="TerrainRecoveryCue";label.set_meta("unit_id",unit.id)
+		label.position.y-=row*23
+		rows[tile]=row+1;labels.append(label)
+		if row==0:
+			var effect=preload("res://scripts/map_heal.gd").new();pieces.add_child(effect)
+			var contact=ground+camera.global_basis.y*.55
+			effect.cast(contact,contact,ground,false)
+			effects.append(effect)
+	if labels.is_empty():return
+	play_sfx("heal");skip_combat=false
+	var fade=create_tween().set_parallel(true)
+	for label in labels:
+		fade.tween_property(label,"position:y",maxf(safe.position.y+3,label.position.y-17),.46)
+		fade.tween_property(label,"modulate:a",0.0,.30).set_delay(.16)
+	await combat_wait(fade)
+	for label in labels:label.queue_free()
+	for effect in effects:
+		if is_instance_valid(effect):effect.queue_free()
+
 func map_heal_feedback(healer,recipient,amount: int,revived=false):
 	var cue_text=("Revived · +" if revived else "+")+str(amount)
 	var actor=unit_nodes.get(healer.id);var patient=unit_nodes.get(recipient.id)
@@ -2734,9 +2783,7 @@ func map_heal_feedback(healer,recipient,amount: int,revived=false):
 	var recovery=preload("res://scripts/map_heal.gd").new();pieces.add_child(recovery)
 	recovery.cast(healer_point,recipient_point,map_position(game.pos(recipient)),healer.id!=recipient.id)
 	await recovery.arrived
-	var text_label=Label.new();text_label.name="MapRecoveryCue";ui.add_child(text_label);text_label.text=cue_text
-	text_label.add_theme_font_size_override("font_size",28);text_label.add_theme_color_override("font_color",Color("b4efd1"));text_label.add_theme_color_override("font_outline_color",Color("263e36"));text_label.add_theme_constant_override("outline_size",5);text_label.mouse_filter=Control.MOUSE_FILTER_IGNORE
-	text_label.position=camera.unproject_position(map_position(game.pos(recipient))+Vector3.UP*1.1)-Vector2(text_label.get_minimum_size().x*.5,20)
+	var text_label=map_recovery_label(recipient,cue_text,28);text_label.name="MapRecoveryCue"
 	if patient!=null:patient.recover_health(float(recipient.hp)/maxf(1,recipient.max_hp),revived)
 	var bloom=create_tween().set_parallel(true)
 	bloom.tween_property(text_label,"position:y",text_label.position.y-22,.35);bloom.tween_property(text_label,"modulate:a",0.0,.35)
