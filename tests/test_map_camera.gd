@@ -148,6 +148,21 @@ func fitted_map_home():
  viewport.size=Vector2i(720,640);await process_frame
  assert(nav.at_home() and nav.capture_view()!=desktop)
  check_home_edges(camera,board)
+ var commands=app.side.get_parent().get_global_rect()
+ var terrain=app.terrain_card.get_global_rect()
+ for unit in app.game.units:
+  var figure=app.unit_nodes[unit.id]
+  var bounds=figure.screen_bounds(camera)
+  assert(not commands.intersects(bounds) and not terrain.intersects(bounds),"Home keeps both armies clear of the narrow tactical panels")
+  var position=app.game.pos(unit)
+  assert(app.map_tile_at(camera.unproject_position(app.map_position(position)))==position,"The visible narrow Home tiles still pick exactly")
+ var foe=app.game.living("enemy")[0]
+ var aim=app.unit_nodes[foe.id].screen_bounds(camera).get_center()
+ for pressed in [true,false]:
+  var click=InputEventMouseButton.new();click.button_index=MOUSE_BUTTON_LEFT;click.pressed=pressed;click.position=aim
+  viewport.push_input(click,true)
+ assert(app.selected==foe,"A real pointer click reaches the previously hidden enemy")
+ app.cancel_selection()
  var anchor=viewport.get_visible_rect().get_center()
  nav.zoom(3,anchor);await nav.motion.finished
  nav.begin_drag(anchor);nav.drag(anchor+Vector2(25,20));nav.dragging=false
@@ -161,8 +176,33 @@ func fitted_map_home():
  nav.zoom(-100,anchor);await nav.motion.finished
  assert(is_equal_approx(camera.size,fitted.size*1.5),"Zoom-out respects the fitted portrait home size")
  assert(app.game.save_data("battle")==battle)
+ await verify_forecast_opening(app,viewport)
  await Shutdown.dispose(app);viewport.queue_free();await process_frame
  print("PASS: %d complete default map views, live Home resizing, exact manual framing and fitted portrait zoom bounds"%layouts)
+
+func verify_forecast_opening(app,viewport: SubViewport):
+ viewport.size=Vector2i(720,640);await process_frame
+ var ally=app.game.living("player")[0];var foe=app.game.living("enemy")[0]
+ for pair in [[ally,Vector2i(2,3)],[foe,Vector2i(3,3)]]:
+  var occupant=app.game.at(pair[1]);var origin=app.game.pos(pair[0])
+  if occupant!=null and occupant!=pair[0]:occupant.x=origin.x;occupant.y=origin.y
+  pair[0].x=pair[1].x;pair[0].y=pair[1].y
+ app.refresh_pieces();app.map_camera()
+ var home=app.map_navigation.capture_view()
+ var saved=app.game.save_data("battle").duplicate(true)
+ app.click_tile(app.game.pos(ally));app.click_tile(app.game.pos(foe))
+ assert(app.target==foe and app.map_navigation.at_home())
+ for size in [Vector2i(720,640),Vector2i(720,960),Vector2i(720,640)]:
+  viewport.size=size;await process_frame;await process_frame
+  var opening=app.forecast_panel.map_opening(app.terrain_card.get_rect().end.y)
+  var pair=[app.unit_nodes[ally.id],app.unit_nodes[foe.id]]
+  var formation=app.map_navigation.combat_bounds(pair)
+  assert(opening.grow(1).encloses(formation),
+   "In a narrow forecast at %s, both map sprites (%s) fit between the portraits (%s)"%[size,formation,opening])
+ app.cancel_selection()
+ assert(app.forecast_panel==null and app.map_navigation.capture_view()==home)
+ assert(app.game.save_data("battle")==saved)
+ print("PASS: a narrow forecast keeps both tactical sprites clear across resizes and restores the exact Home view on dismissal")
 
 func resized_combat_return():
  var viewport=SubViewport.new();viewport.size=Vector2i(1440,900);viewport.render_target_update_mode=SubViewport.UPDATE_DISABLED

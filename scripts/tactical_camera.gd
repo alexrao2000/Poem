@@ -3,6 +3,8 @@ extends RefCounted
 # Bounds keep the board recoverable; stopping cancels every pending camera tween
 # before cinematic ownership changes. This helper never changes simulation state.
 const COMBAT_SIZE=5.0
+const NARROW_MAP_WIDTH=1000.0
+const NARROW_MAP_ASPECT=1.30
 
 var camera: Camera3D
 var board=Vector2i(14,10)
@@ -18,23 +20,34 @@ func configure(value: Camera3D,dimensions: Vector2i):
  eye_offset=camera.position-Vector3((board.x-1)*.5,0,(board.y-1)*.5)
  home_view=capture_view()
 
+static func needs_map_clearance(size: Vector2) -> bool:
+ return size.x<maxf(NARROW_MAP_WIDTH,size.y*NARROW_MAP_ASPECT)
+
 static func fit_home(view: Camera3D,dimensions: Vector2i):
  var viewport=view.get_viewport().get_visible_rect()
  var margin=minf(20,minf(viewport.size.x,viewport.size.y)*.10)
  var frame=viewport.grow(-margin)
+ # Keep the Home view clear of the terrain readout and command panel on narrow screens.
+ var open_map=Rect2(viewport.position+Vector2(22,240),viewport.size-Vector2(365,320))
+ if needs_map_clearance(viewport.size) and open_map.size.x>=200 and open_map.size.y>=160:
+  frame=open_map
  if not frame.has_area():return
  var corners=[Vector3(-.5,0,-.5),Vector3(dimensions.x-.5,0,-.5),
   Vector3(-.5,0,dimensions.y-.5),Vector3(dimensions.x-.5,0,dimensions.y-.5)]
- var bounds=board_bounds(view,corners)
+ fit_projection(view,frame,func():return board_bounds(view,corners))
+
+static func fit_projection(view: Camera3D,frame: Rect2,measure: Callable):
+ var bounds: Rect2=measure.call()
  var fit=bounds.size/frame.size
  var expansion=maxf(fit.x,fit.y)
  if expansion>1.0:
   view.size*=expansion*1.001
-  bounds=board_bounds(view,corners)
+  bounds=measure.call()
  var half=bounds.size*.5
  var middle=bounds.get_center()
  var offset=middle.clamp(frame.position+half,frame.end-half)-middle
- var reference=viewport.size.y if view.keep_aspect==Camera3D.KEEP_HEIGHT else viewport.size.x
+ var viewport_size=view.get_viewport().get_visible_rect().size
+ var reference=viewport_size.y if view.keep_aspect==Camera3D.KEEP_HEIGHT else viewport_size.x
  var units_per_pixel=view.size/reference
  # Camera offsets move the projection opposite its horizontal camera axis.
  view.h_offset-=offset.x*units_per_pixel

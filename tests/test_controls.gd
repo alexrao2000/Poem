@@ -68,7 +68,7 @@ func run():
  var old=app.cursor_tile;key.keycode=KEY_UP;app._input(key);assert(app.cursor_tile.y==maxi(0,old.y-1))
  app.game.start_battle();app.make_map();app.show_battle();unit=app.game.units[0];enemy=app.game.living("enemy")[0]
  place_duel(app,unit,enemy)
- for dimensions in [Vector2(1024,640),Vector2(1280,720),Vector2(1440,900)]:
+ for dimensions in [Vector2(720,640),Vector2(720,960),Vector2(1024,640),Vector2(1280,720),Vector2(1440,900)]:
   app.ui.set_anchors_and_offsets_preset(Control.PRESET_TOP_LEFT);app.ui.size=dimensions
   for state in ["company","unit","forecast","enemy"]:
    app.selected=null if state=="company" else enemy if state=="enemy" else unit
@@ -88,8 +88,11 @@ func run():
    var help=app.battle_hint.get_parent()
    var hint_font=app.battle_hint.get_theme_font("font")
    var hint_width=hint_font.get_string_size(app.battle_hint.text,HORIZONTAL_ALIGNMENT_LEFT,-1,app.battle_hint.get_theme_font_size("font_size")).x
-   assert(app.battle_hint.get_line_count()==1 and hint_width<=app.battle_hint.size.x,"Full contextual guidance fits the compact help plate")
-   assert(help.size.x<=ceilf(hint_width+36) and help.get_global_rect().end.x<=frame.position.x-18,"The help plate leaves the rest of the lower map visible")
+   assert(app.battle_hint.get_line_count()==1 and hint_width<=app.battle_hint.size.x,
+    "Full tactical guidance fits at %s in %s state. Text width %s, hint %s, commands %s."%[
+     dimensions,state,hint_width,help.get_global_rect(),frame])
+   assert(help.size.x<=ceilf(hint_width+36) and not help.get_global_rect().intersects(frame.grow(12)),
+    "The help plate fits its text clear of the commands")
   app.selected=unit;app.target=enemy;app.update_side()
   var saved=app.game.save_data("battle").duplicate(true);var selection=app.selected;var position=app.camera.transform
   app.show_battle_menu();await process_frame;await process_frame

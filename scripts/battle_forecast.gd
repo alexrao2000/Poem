@@ -168,6 +168,12 @@ func label(parent: Control,text: String,font_size: int,color=Color("303c48")) ->
  var node=Label.new();node.text=text;node.add_theme_font_size_override("font_size",font_size);node.add_theme_color_override("font_color",color)
  node.autowrap_mode=TextServer.AUTOWRAP_OFF;node.text_overrun_behavior=TextServer.OVERRUN_TRIM_ELLIPSIS;node.tooltip_text=text;node.mouse_filter=Control.MOUSE_FILTER_IGNORE;parent.add_child(node);return node
 
+func map_opening(terrain_bottom: float) -> Rect2:
+ var first=records[0];var second=records[1]
+ var minimum=Vector2(first.portrait.position.x+first.portrait.size.x+8,terrain_bottom+8)
+ var maximum=Vector2(second.portrait.position.x-8,first.card.position.y-8)
+ return Rect2(minimum,(maximum-minimum).max(Vector2.ZERO))
+
 func arrange():
  if strike_order!=null:
   strike_order.position=Vector2(22,size.y-104);strike_order.size=Vector2(size.x-ORDER_RESERVE,32)

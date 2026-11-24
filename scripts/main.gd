@@ -376,7 +376,18 @@ func map_camera():
 	camera.look_at(center)
 	camera.h_offset=2.0;camera.v_offset=0.0
 	TacticalCamera.fit_home(camera,dimensions)
+	fit_home_forecast()
 	map_navigation.configure(camera,dimensions)
+
+func fit_home_forecast():
+	if not is_instance_valid(forecast_panel) or selected==null or target==null:return
+	if not TacticalCamera.needs_map_clearance(camera.get_viewport().get_visible_rect().size):return
+	if not unit_nodes.has(selected.id) or not unit_nodes.has(target.id):return
+	var terrain_bottom=terrain_card.get_rect().end.y if is_instance_valid(terrain_card) else 218.0
+	var opening=forecast_panel.map_opening(terrain_bottom)
+	if opening.size.x<40 or opening.size.y<32:return
+	var first=unit_nodes[selected.id];var second=unit_nodes[target.id]
+	TacticalCamera.fit_projection(camera,opening,func():return first.screen_bounds(camera).merge(second.screen_bounds(camera)))
 
 func resize_map_home():
 	if screen=="battle" and not busy and map_navigation.at_home():map_camera()
@@ -735,6 +746,7 @@ func show_battle():
 	objective_label=battle_header.objective;status=battle_header.status
 	var panel=PanelContainer.new();panel.set_anchors_and_offsets_preset(Control.PRESET_TOP_RIGHT);panel.offset_left=-325;panel.offset_right=-22;panel.offset_top=118;panel.offset_bottom=118;panel.custom_minimum_size.x=303;ui.add_child(panel)
 	side=VBoxContainer.new();side.add_theme_constant_override("separation",5);panel.add_child(side)
+	panel.resized.connect(arrange_battle_hint)
 	var bottom=PanelContainer.new();bottom.name="BattleHelp";ui.add_child(bottom)
 	bottom.set_anchors_and_offsets_preset(Control.PRESET_BOTTOM_LEFT)
 	bottom.offset_left=22;bottom.offset_right=480;bottom.offset_top=-64;bottom.offset_bottom=-22
@@ -750,7 +762,8 @@ func show_battle():
 func update_side():
 	if is_instance_valid(objective_label):objective_label.text=battle_objective_text()
 	tracked_threats.prune(game)
-	if is_instance_valid(forecast_panel):ui.remove_child(forecast_panel);forecast_panel.queue_free()
+	var had_forecast=is_instance_valid(forecast_panel)
+	if had_forecast:ui.remove_child(forecast_panel);forecast_panel.queue_free()
 	forecast_panel=null
 	for n in side.get_children():side.remove_child(n);n.queue_free()
 	var phase_text="TURN %d  /  %s"%[game.turn,game.phase.to_upper()]
@@ -807,6 +820,7 @@ func update_side():
 			for unit in [selected,target]:
 				var face=portraits.get_forecast_portrait(unit);faces.append(face if face!=null else map_catalog.preview_sprite(unit))
 			forecast_panel=BattleForecast.new();forecast_panel.configure(ui,game,selected,target,faces)
+			forecast_panel.resized.connect(resize_map_home)
 			var target_id=target.id
 			forecast_panel.track_target(func():
 				if not unit_nodes.has(target_id):return Vector2(-1000,-1000)
@@ -865,18 +879,16 @@ func update_side():
 			elif game.units.any(func(unit):return game.DeathDoor.can_rescue(game,selected,unit)):battle_hint.text="Blue: move · Gold: rescue · Enter: act · Esc: undo"
 			if game.DeathDoor.downed(selected):battle_hint.text="Needs help: select a nearby ally for Rescue & triage, or heal with a staff."
 			if selected.get("moved",false):battle_hint.text=battle_hint.text.trim_prefix("Blue: move · ")
+			if target!=null:battle_hint.text="Enter: confirm attack · Esc: undo"
 			if game.action_saves:battle_hint.text=battle_hint.text.replace("Esc: undo","Esc: deselect")
 		if drop_mode:battle_hint.text="Gold: drop ally · Arrows / Enter: choose · Esc / right-click: cancel drop"
 	arrange_battle_side()
+	if not busy and (had_forecast or target!=null) and TacticalCamera.needs_map_clearance(camera.get_viewport().get_visible_rect().size) and map_navigation.at_home():
+		map_camera()
 
 func arrange_battle_side():
 	if not is_instance_valid(side) or not is_instance_valid(ui) or screen not in ["battle","battle_menu"]:return
-	if is_instance_valid(battle_hint):
-		var help=battle_hint.get_parent()
-		var padding=help.get_theme_stylebox("panel").get_minimum_size().x
-		var font=battle_hint.get_theme_font("font")
-		var width=font.get_string_size(battle_hint.text,HORIZONTAL_ALIGNMENT_LEFT,-1,battle_hint.get_theme_font_size("font_size")).x
-		help.offset_right=help.offset_left+minf(ceilf(width+padding),maxf(1,ui.size.x-365))
+	arrange_battle_hint()
 	var compact=ui.size.y<760
 	var theme=Theme.new();theme.default_font_size=17
 	for state in ["normal","hover","pressed","disabled"]:
@@ -888,6 +900,17 @@ func arrange_battle_side():
 	for portrait in side.find_children("UnitPortrait","TextureRect",true,false):portrait.custom_minimum_size=Vector2(76,84) if compact else Vector2(90,100)
 	# Minimum size is recalculated after the contents and compact theme settle.
 	side.get_parent().call_deferred("reset_size")
+
+func arrange_battle_hint():
+	if not is_instance_valid(side) or not is_instance_valid(battle_hint):return
+	var help=battle_hint.get_parent()
+	var panel=side.get_parent()
+	var padding=help.get_theme_stylebox("panel").get_minimum_size().x
+	var font=battle_hint.get_theme_font("font")
+	var width=font.get_string_size(battle_hint.text,HORIZONTAL_ALIGNMENT_LEFT,-1,battle_hint.get_theme_font_size("font_size")).x
+	var below_commands=panel.position.y+panel.size.y+12<=help.position.y
+	var reserved=44 if TacticalCamera.needs_map_clearance(ui.size) and below_commands else 365
+	help.offset_right=help.offset_left+minf(ceilf(width+padding),maxf(1,ui.size.x-reserved))
 
 func show_battle_menu():
 	if screen!="battle" or busy or game.phase!="player":return
