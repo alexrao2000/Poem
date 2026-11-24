@@ -49,6 +49,7 @@ const CombatHeal=preload("res://scripts/combat_heal.gd")
 const CombatProjectile=preload("res://scripts/combat_projectile.gd")
 const CombatCamera=preload("res://scripts/combat_camera.gd")
 const CombatHUD=preload("res://scripts/combat_hud.gd")
+const CombatCaption=preload("res://scripts/combat_caption.gd")
 const Commanders=preload("res://scripts/commanders.gd")
 const CombatTransition=preload("res://scripts/combat_transition.gd")
 const ProgressReward=preload("res://scripts/progress_reward.gd")
@@ -1312,9 +1313,7 @@ func cinematic(a,b,events,initial_hp={},challenge: Dictionary={}):
 		var triangle=0 if events[0].has("healing") else snapshot.triangle if not snapshot.is_empty() else game.forecast(unit,opponent).triangle
 		entries.append({"unit":unit,"hp":displayed_hp[unit.id],"portrait":portraits.get_unit_portrait(unit),"class_name":game.class_name_for(unit),"weapon":game.item_for(unit).name,"weapon_id":game.item_for(unit).id,"triangle":triangle,"forecast":snapshot,"health_max":events[0].get("health_limits",{}).get(unit.id,snapshot.get("max_hp",unit.max_hp))})
 	var banner=CombatHUD.new();banner.configure(ui,entries);banner.reveal()
-	var caption=Label.new();caption.name="CombatCaption";caption.set_anchors_and_offsets_preset(Control.PRESET_TOP_WIDE);caption.offset_top=36;caption.horizontal_alignment=HORIZONTAL_ALIGNMENT_CENTER
-	caption.add_theme_font_size_override("font_size",30);caption.add_theme_color_override("font_color",Color("f7edce"));caption.add_theme_color_override("font_outline_color",Color("373d42"));caption.add_theme_constant_override("outline_size",7)
-	caption.hide();ui.add_child(caption)
+	var caption=CombatCaption.new();caption.configure(ui)
 
 	var finished_exchange=false
 	var dodge: Tween
@@ -1343,7 +1342,7 @@ func cinematic(a,b,events,initial_hp={},challenge: Dictionary={}):
 			play_sfx("heal");displayed_hp[event.target]=mini(recipient.max_hp,displayed_hp[event.target]+event.healing)
 			banner.set_health(event.target,int(displayed_hp[event.target]))
 			if event.get("revived",false):
-				whom.pose("revive",.45);caption.text="REVIVED · ACTION SPENT";caption.show()
+				whom.pose("revive",.45);caption.show_line("REVIVED · ACTION SPENT","revival")
 			director.shot(who.position,whom.position,"impact",true,mounted,.24)
 			if not await combat_wait(healing_motion):
 				if is_instance_valid(recovery):recovery.queue_free()
@@ -1448,7 +1447,8 @@ func cinematic(a,b,events,initial_hp={},challenge: Dictionary={}):
 				departure=preload("res://scripts/combat_defeat.gd").new();stage.add_child(departure);departure.begin(whom)
 			var finish=preload("res://scripts/combat_finish.gd").new();stage.add_child(finish)
 			var line=finish.quote_for(unit,fighters.profiles)
-			caption.text=fallen.name+" · NEEDS RESCUE" if rescuable else unit.name+(" — "+line if not line.is_empty() else "");caption.show()
+			var finish_line=fallen.name+" · NEEDS RESCUE" if rescuable else unit.name+(" — "+line if not line.is_empty() else "")
+			caption.show_line(finish_line,"rescue" if rescuable else "finish")
 			director.shot(who.position,whom.position,"wide" if rescuable else "finish",is_ranged,mounted if rescuable else unit.job=="Rider",.28,unit.weapon)
 			await finish.play(who,func():return skip_combat,.95 if not line.is_empty() else .60)
 			if departure!=null:departure.finish();departure.queue_free()

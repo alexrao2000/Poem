@@ -3,6 +3,7 @@ extends SceneTree
 ## full 3D finish. Actual actions retain their committed casualty and RNG state.
 const Rules=preload("res://scripts/rules.gd")
 const Director=preload("res://scripts/combat_camera.gd")
+const Caption=preload("res://scripts/combat_caption.gd")
 const Shutdown=preload("helpers/game_shutdown.gd")
 func _initialize():call_deferred("run")
 func canonical(data):return JSON.parse_string(JSON.stringify(data))
@@ -44,6 +45,7 @@ func run():
       assert(departure==null and figure.visible and figure.pose_name=="down","Rescuable bodies remain visible through the finish without the defeat fade")
       var caption=app.ui.get_node("CombatCaption")
       assert(caption.visible and caption.text==patient.name+" · NEEDS RESCUE")
+      assert(caption.plate.bg_color==Caption.PALETTES.rescue.background)
       assert(Rect2(Vector2.ZERO,Vector2(viewport.size)).encloses(caption.get_global_rect()))
       var director=app.stage.get_children().filter(func(node):return node is Director)[0]
       if not director.movement.is_running():

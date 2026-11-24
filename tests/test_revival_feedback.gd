@@ -3,6 +3,7 @@ const Rules=preload("res://scripts/rules.gd")
 const Door=preload("res://scripts/death_door.gd")
 const Heal=preload("res://scripts/combat_heal.gd")
 const Director=preload("res://scripts/combat_camera.gd")
+const Caption=preload("res://scripts/combat_caption.gd")
 const Shutdown=preload("helpers/game_shutdown.gd")
 func _initialize():call_deferred("run")
 func canonical(data):return JSON.parse_string(JSON.stringify(data))
@@ -77,6 +78,7 @@ func run():
    if hud!=null and sample[0]!="normal" and is_zero_approx(hud.records[patient.id].meter.value):saw_zero=true
    if caption!=null and caption.visible:
     assert(arrived and caption.text=="REVIVED · ACTION SPENT","Revival is announced only after staff light arrives")
+    assert(caption.plate.bg_color==Caption.PALETTES.revival.background)
     assert(Rect2(Vector2.ZERO,Vector2(sample[3])).encloses(caption.get_global_rect()))
     assert(caption.size.x>=caption.get_minimum_size().x)
     if hud!=null:assert(not caption.get_global_rect().intersects(hud.records[patient.id].plate.get_global_rect()))

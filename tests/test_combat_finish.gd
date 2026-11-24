@@ -3,6 +3,7 @@ const Fighters=preload("res://scripts/fighters.gd")
 const Rules=preload("res://scripts/rules.gd")
 const Director=preload("res://scripts/combat_camera.gd")
 const Finish=preload("res://scripts/combat_finish.gd")
+const Caption=preload("res://scripts/combat_caption.gd")
 const Shutdown=preload("helpers/game_shutdown.gd")
 var observed=[]
 var skip_finish=false
@@ -18,7 +19,9 @@ func watch_finish(node):
  var actors=app.stage.get_children().filter(func(child):return child is Fighters.Actor and not child.is_queued_for_deletion())
  var standing=actors.filter(func(actor):return actor.pose_name in ["victory_flourish","victory"])
  assert(standing.size()==1 and actors.any(func(actor):return actor.pose_name=="down"),"Only the surviving fighter finishes while the defeated actor stays down")
- assert(app.ui.get_node("CombatCaption").visible and app.ui.get_node("CombatCaption").text==expected_caption,"The confirmed survivor receives their own finishing line, with a name-only enemy fallback")
+ var caption=app.ui.get_node("CombatCaption")
+ assert(caption.visible and caption.text==expected_caption,"The confirmed survivor receives their own finishing line, with a name-only enemy fallback")
+ assert(caption.plate.bg_color==Caption.PALETTES.finish.background)
  for actor in actors:
   if actor.mounted and actor.pose_name=="down":
    assert(is_equal_approx(actor.bones.LeftLeg.rotation.x,.85) and is_equal_approx(actor.bones.RightLeg.rotation.x,.85),"Defeated rider retains the seated leg orientation")
@@ -36,23 +39,45 @@ func watch_finish(node):
   assert(is_instance_valid(departure) and standing[0].visible,"Defeated actor disappears while the survivor is still finishing")
   completed_departures+=1
 
+func verify_caption(caption: Label,parent_width: float):
+ var plate=caption.get_theme_stylebox("normal") as StyleBoxFlat
+ var font=caption.get_theme_font("font")
+ var font_size=caption.get_theme_font_size("font_size")
+ var rect=caption.get_rect()
+ var line_width=font.get_string_size(caption.text,HORIZONTAL_ALIGNMENT_CENTER,-1,font_size).x
+ assert(line_width+plate.get_minimum_size().x<=rect.size.x+.01,"Complete caption fits inside its side margins")
+ assert(rect.position.x>=22 and rect.end.x<=parent_width-22 and rect.end.y<=88,"Caption stays above the common combat action area")
+ assert(is_equal_approx(rect.get_center().x,parent_width*.5) and caption.get_visible_line_count()==1)
+ var background=Color.WHITE.lerp(plate.bg_color,plate.bg_color.a).srgb_to_linear().get_luminance()
+ var foreground=caption.get_theme_color("font_color").srgb_to_linear().get_luminance()
+ assert((foreground+.05)/(background+.05)>=4.5,"Contrast remains readable over the brightest scene background")
+
 func _initialize():call_deferred("run")
 func run():
  var painter=Fighters.new();painter.batching_enabled=false
  var rules=Rules.new();var viewport=SubViewport.new();viewport.size=Vector2i(1280,720);root.add_child(viewport)
  var world=Node3D.new();viewport.add_child(world)
  var camera=Camera3D.new();world.add_child(camera);camera.current=true
- var samples=0;var lines=[]
+ var samples=0;var lines=[];var caption_layouts=0
+ var host=Control.new();root.add_child(host)
+ var caption=Caption.new();caption.configure(host)
  for recruit in rules.roster:
   var unit=recruit.duplicate(true);unit.team="player"
   var line=Finish.quote_for(unit,painter.profiles)
   assert(not line.is_empty() and line not in lines,"Every recruit has an individual original finishing line")
   lines.append(line)
-  var label=Label.new();label.add_theme_font_size_override("font_size",30);label.text=unit.name+" — "+line;root.add_child(label)
-  assert(label.get_minimum_size().x<1024-48,"Name and full line fit the narrowest supported combat caption with outline margins")
-  label.queue_free()
+  caption.show_line(unit.name+" — "+line,"finish")
+  for width in [720,960,1280,1440]:
+   host.size=Vector2(width,540);await process_frame
+   verify_caption(caption,width);caption_layouts+=1
   unit.team="enemy";assert(Finish.quote_for(unit,painter.profiles).is_empty(),"Enemy IDs cannot borrow recruit dialogue")
  assert(Finish.quote_for({"id":"unknown","team":"player"},painter.profiles).is_empty(),"Old/custom saves keep a name-only fallback")
+ for kind in ["rescue","revival"]:
+  caption.show_line("Lord Regent’s Guard · NEEDS RESCUE" if kind=="rescue" else "REVIVED · ACTION SPENT",kind)
+  for width in [720,960,1280,1440]:
+   host.size=Vector2(width,540);await process_frame
+   verify_caption(caption,width);caption_layouts+=1
+ host.queue_free();await process_frame
  for recruit in rules.roster:
   for direction in [-1,1]:
    var unit=recruit.duplicate(true);unit.team="player"
@@ -118,5 +143,5 @@ func run():
  assert(completed_departures==3,"Normal, counter and mounted defeats finish their fade before returning to the map")
  assert(mounted_losses==1 and app.game.save_data("battle")==saved and app.game.rng.state==rng,"Actual mounted defeat retains its seating constraints and changes no resolved result")
  await Shutdown.dispose(app);await process_frame
- print("PASS: %d finishing camera layouts, 24 original caption fits, enemy/custom fallbacks, 96 planted flourish/rest poses, resolved kills/counters, no false finishes, Tab interruption and complete map restoration"%samples)
+ print("PASS: %d finishing camera layouts, %d readable finish/rescue/revival caption layouts, enemy/custom fallbacks, 96 planted flourish/rest poses, resolved kills/counters, no false finishes, Tab interruption and complete map restoration"%[samples,caption_layouts])
  quit()

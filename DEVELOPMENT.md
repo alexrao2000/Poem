@@ -1,5 +1,7 @@
 # Poem development
 
+Finishing quotes, rescue calls and staff revivals use compact caption panels above the 3D action. The panels size to the line, with navy, amber or green accents for the three outcomes. [Godot 4.5 Label documentation](https://docs.godotengine.org/en/4.5/classes/class_label.html#class-label-theme-style-normal)
+
 Reddeep’s close-up foundry has an iron gantry with four crossed spans and two suspended hoists behind the furnaces. Five stone footings seat the posts. Close-ups with mapped hearths and fallback hearths use the same structure.
 
 Static batching reads each shared source mesh once per build and uses Godot’s packed-array transforms for positions and normals. The first exact comparison covered 14,713 placements from 2,857 distinct source surfaces across the 12 maps and 12 arena fixtures. All 1,077 finished mesh batches matched byte for byte. [Godot 4.5 Transform3D documentation](https://docs.godotengine.org/en/4.5/classes/class_transform3d.html#class-transform3d-operator-mul-packedvector3array)
