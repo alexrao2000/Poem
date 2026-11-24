@@ -1,5 +1,7 @@
 # Poem development
 
+The war council shows the rally point when section restarts apply. It shows enemy pressure, held tonics and the raider head start when reset pressure applies. The preparation lines wrap inside the existing briefing column.
+
 Two spillways pour from the Old Aqueduct’s upper channel into the pool behind the fighting lane. Both ribbons share the same curved mesh and flowing material. Each joins its stone lip and reaches the pool at the height used by that arena.
 
 Crimson standards hang from brass rails on either side of the Crown Approach gate. Their upper edges meet the rails, and the cloth uses two independent wind phases.

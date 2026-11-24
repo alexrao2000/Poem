@@ -134,6 +134,45 @@ func inspect(app):
     parent=parent.get_parent()
    if not clipped:assert(Rect2(Vector2.ZERO,dimensions).grow(1).encloses(node.get_global_rect()),"Experiment controls fit: "+app.screen)
 
+func verify_council_preparation(app):
+ for dimensions in [Vector2(1024,640),Vector2(1440,900)]:
+  for sample in [
+   [false,false,false,false,0,[]],
+   [false,false,false,true,0,[]],
+   [false,true,false,false,0,[]],
+   [true,true,false,false,0,["Section 2 · Rally point Chapter 05"]],
+   [false,true,true,true,0,["Enemy pressure 0 / 10 · 2 held tonics per enemy"]],
+   [false,false,true,true,1,["Enemy pressure 1 / 10 · 1 held tonic per enemy","Raiders may advance before deployment."]],
+   [true,true,true,true,10,["Section 2 · Rally point Chapter 05","Enemy pressure 10 / 10 · 0 held tonics per enemy","Raiders may advance before deployment."]],
+   [false,false,false,true,3,[]],
+   ]:
+   app.game.new_campaign(sample[0]);app.game.chapter=5;app.game.story_seen=["opening_5"]
+   app.game.trials.flags.section_restarts=sample[1];app.game.trials.flags.reset_pressure=sample[2]
+   app.game.trials.flags.hard_campaign=sample[3];app.game.trials.pressure=sample[4]
+   var campaign=app.game.save_data("camp").duplicate(true)
+   app.show_camp()
+   app.ui.set_anchors_and_offsets_preset(Control.PRESET_TOP_LEFT);app.ui.size=dimensions
+   await process_frame;await process_frame
+   var panel=app.ui.find_child("CampaignPreparation",true,false)
+   var expected=sample[5]
+   if expected.is_empty():assert(panel==null,"Inactive rules have no preparation line")
+   else:
+    assert(panel!=null and panel.visible and panel.get_child_count()==expected.size())
+    var scroll=panel.get_parent().get_parent() as ScrollContainer
+    scroll.ensure_control_visible(panel);await process_frame
+    assert(scroll.get_global_rect().grow(1).encloses(panel.get_global_rect()),
+     "The preparation panel can scroll fully into view")
+    for index in expected.size():
+     var line: Label=panel.get_child(index)
+     assert(line.text==expected[index] and line.focus_mode==Control.FOCUS_NONE)
+     assert(line.get_visible_line_count()==line.get_line_count())
+     assert(line.get_rect().end.x<=panel.size.x+.1 and line.get_rect().end.y<=panel.size.y+.1,
+      "Wrapped preparation lines fit the council column")
+   var action=app.ui.find_children("*","Button",true,false).filter(func(node):return node.text=="Campaign experiments & legacy supplies")
+   assert(action.size()==(1 if app.game.trials.flags.values().has(true) else 0))
+   assert(app.screen=="camp" and app.game.save_data("camp")==campaign,"Reading preparation leaves campaign state intact")
+ print("PASS: 16 actual war council layouts distinguish active rally points, prepared enemy supplies and inactive campaign rules")
+
 func run():
  var redundant=Rules.new();redundant.new_campaign(true);redundant.chapter=5;redundant.trials.flags.death_legacies=true;redundant.start_battle()
  for id in ["oren","sera","ivo"]:fall(redundant,id)
@@ -144,6 +183,7 @@ func run():
  root.size=Vector2i(1440,900)
  var app=load("res://main.tscn").instantiate();app.settings_path="";app.save_path="/private/tmp/poem-trials-ui.json"
  root.add_child(app);await process_frame
+ await verify_council_preparation(app)
  app.game.new_campaign(true);app.game.story_seen=["opening_0"];app.show_camp();app.show_options("camp")
  for key in app.game.trials.flags:app.ui.find_child(key,true,false).button_pressed=true
  await inspect(app)

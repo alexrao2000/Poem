@@ -6,6 +6,8 @@ This checkpoint describes the current development branch and supersedes the earl
 
 ### Latest state
 
+The war council now distinguishes an active section rally point from enemy pressure. The briefing shows the actual number of held tonics and explains when raiders may advance. Sixteen headless layouts at 1024 and 1440 pixels exercised independent flags, zero and capped pressure, wrapping, scrolling and the campaign action. Eight focused suites, both exports, campaign-trial checks in both packs and archive integrity passed. Rendered appearance remains unreviewed.
+
 Two spillways now pour from the Old Aqueduct’s channel into its arena pool. The two ribbons share one mesh, meet the stone lips and land at the actual dry or bridge arena water height. Six projected wide shots kept a spillway clear of the HUD. Eight focused suites, both exports, architecture in both packs and archive integrity passed. Rendered appearance remains unreviewed.
 
 The Hard recoverable routes at `324f9a3` matched all 879 canonical save digests across Quick Map and All 3D Battles. Both ran 13 battles in 96 turns and 429 player actions. Lyra’s first defeat raised pressure to one. The planned Chapter 6 retreat stayed in Chapter 6 and raised pressure to two. Both routes recorded 28 staff revivals, six recovering deployments, ten distinct unit-turn attack bonus observations and all 24 recruits at the ending. The 3D route opened 458 arenas, played 14 exchanges through, and kept the field decoder in eight environments. See `build/review/recoverable-presentation.html`. Rendered appearance, listening quality and human difficulty remain unreviewed.

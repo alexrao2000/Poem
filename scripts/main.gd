@@ -495,7 +495,19 @@ func show_camp():
 	var briefing=scrolling_column(left)
 	label_in(briefing,game.info().intro,21)
 	if game.trials.flags.values().has(true):
-		label_in(briefing,"Section %d / 3 · Reset pressure %d / 10"%[int(game.chapter/4)+1,game.trials.pressure],18,GOLD)
+		var preparation: Array[String]=[]
+		if game.permadeath and game.trials.flags.section_restarts:
+			var rally=game.trials.section_start(game.chapter)
+			preparation.append("Section %d · Rally point Chapter %02d"%[int(rally/4)+1,rally+1])
+		if game.trials.flags.reset_pressure:
+			var enemies=game.trials.enemy_modifiers(game.chapter)
+			var stock=int(enemies.held_tonics)
+			preparation.append("Enemy pressure %d / 10 · %d held tonic%s per enemy"%[game.trials.pressure,stock,"" if stock==1 else "s"])
+			if enemies.raiders_advance:preparation.append("Raiders may advance before deployment.")
+		if not preparation.is_empty():
+			var conditions=VBoxContainer.new();conditions.name="CampaignPreparation"
+			conditions.add_theme_constant_override("separation",4);briefing.add_child(conditions)
+			for line in preparation:label_in(conditions,line,16,GOLD)
 		button_in(briefing,"Campaign experiments & legacy supplies",show_campaign_trials)
 	label_in(briefing,game.info().get("tactical_brief",""),18,Color("6f6c5e"))
 	if game.trials.flags.hard_campaign and not game.info().get("hard_brief","").is_empty():
