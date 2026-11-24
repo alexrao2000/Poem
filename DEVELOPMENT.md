@@ -1,5 +1,7 @@
 # Poem development
 
+Cinderford’s market stall uses one striped canvas mesh in the tactical map and 3D arena. Four seated posts carry the rails, and two side rails support the counter.
+
 The keyboard cursor moves its existing mesh while browsing tiles. The movement and enemy threat layers stay in place, and the route and terrain card follow the destination.
 
 The movement search reads a tile’s cost and occupant once per search and uses a forward queue index. The cache lives within one query, so the next search sees any move, rescue or terrain change.
@@ -318,8 +320,6 @@ Debug now offers four fresh, seeded experiment starters with rule summaries and 
 Deployment cards now show the actual next-deployment tonic supply: two normally and one during recovery. Locked recruits and memorials show no deployable stock. Camp help describes the 12 HP tonic effect and points to starting health/supplies. The company suite verifies all twelve recruit states, recovery expiry/toggle behavior, actual deployment agreement and card bounds at three sizes. Company, 567 menu layouts and experiments pass, followed by both local exports, packed-resource smoke and ZIP integrity. The registry remains 351; this is focused coverage, not a new complete run.
 
 Working title: **Poem**. The repository, application identifier, save folder and new transfer codes use Poem. Earlier transfer codes remain importable.
-
-Current status: **active after the user resumed development**. Keep building in this chat until asked to stop. Do not schedule work. Awakening/Fates-like presentation remains the priority alongside the existing full roster, campaign and independent experiments. Keep local builds; the authorized public remote is [alexrao2000/Poem](https://github.com/alexrao2000/Poem). No hosting deployment is requested.
 
 ## Current checkpoint · 2026-11-21
 
@@ -647,9 +647,7 @@ The opening-town fountain now has two shaped stone basins, inset animated water 
 
 Dialogue now uses a compact blue/ivory speaker nameplate and a small pulsing ready diamond. The action says “Reveal text” while typing and changes to “Continue” as soon as the line is complete; instant text still advances in one press. Prompt motion suspends when hidden, and all 885 story/support layouts retain their readable text and controls.
 
-The last delivered local browser/macOS checkpoint passed all 60 automated suites, five complete campaign simulations (60 chapter victories), model-catalog validation and an exported-resource-pack smoke check. These are runtime, geometry and layout checks, not a rendered review of the latest game. Full human balance and listening reviews remain outstanding. Routine non-destructive commits and private pushes are authorized.
-
-The user explicitly allowed local browser testing, but the subsequent tool retry still returned a saved/managed permission denial. Localhost, the Quaternius asset site and native Codex access were blocked. Do not circumvent these denials with another browser surface, native game capture, raw browser/CDP access or alternate asset hosts. No Quaternius models have been acquired. Earlier screenshots and another chat's native workshop captures do not verify the current campaign visuals.
+That browser and macOS checkpoint passed all 60 automated suites, five complete campaign simulations with 60 chapter victories, model-catalog validation and an exported-resource check. Rendered appearance, human balance and listening remained outstanding at that checkpoint.
 
 Castle combat now frames the fighters with an open arched gatehouse, recessed iron portcullis, raised battlements and six wall buttresses. The old center column is removed to leave the entrance visible. Geometry rays verify the opening and all twelve arena batches preserve their source geometry; rendered review remains pending.
 
@@ -709,8 +707,6 @@ These are reference links only. Do not copy Nintendo assets into the game or rep
 Make real implemented improvements, then inspect gameplay screenshots and run relevant tests before committing/pushing. Keep a concise checkpoint here with honest limitations and the next task. Do not repeatedly claim completion of the overall game. No unsolicited hosting, public releases or new conversations.
 
 Promotion update: 16 data-driven advanced paths (two per base class), level-10 eligibility, permanent choice preview/confirmation and saved stat gains. Base job still drives weapons/art; promoted titles appear throughout UI. Hit/crit and staff-healing bonuses feed real forecasts, actions and AI. Legacy saves need no migration. All eleven suites and both exports pass, including 60 chapter victories across three baseline seeds and both promotion branches. Browser visual inspection remains unavailable. Procedural models do not yet have separate promoted outfits.
-
-User standing authorization: routine non-destructive commits and pushes to the private repository are authorized; do not ask for permission again unless destructive. Browser access to both localhost and the Quaternius itch.io asset site has been denied; no downloads or alternate-route attempts.
 
 Support update: authored 36 original camp conversations (192 lines), 12 partnerships covering all 24 characters. Separate support module tracks per-pair points/ranks, once-per-turn earning with three-point chapter cap, chapter-gated reading and replay. Ranks grant nearby Hit/Avoid, with +1 damage at A. Optional save field migrates legacy saves. Camp and dossiers indicate ready scenes. All twelve suites and both exports pass. The two promoted campaign simulations also activate earned support ranks. Browser visual verification remains blocked.
 

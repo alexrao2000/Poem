@@ -6,6 +6,10 @@ This checkpoint describes the current development branch and supersedes the earl
 
 ### Latest state
 
+Cinderford’s rust-and-linen market stall sits west of the fountain and behind the fighters in the close-up arena. A software mesh study exposed rails protruding through the cloth, so the final rails follow its pitch underneath. Nine camera views, live scenery batches, eight focused suites, three fitting reruns and both exports passed. Architecture and ambience checks passed in both packs, and their isolated canopy arrays match the source byte for byte. All 72 automated chapter outcomes match the earlier runs. See `build/review/cinderford-greywood-canopy-study.png`. Rendered gameplay remains unreviewed.
+
+The exported `2da6f7b` Hard campaign after the movement and cursor updates reached the ending in 13 attempts, 96 turns and 429 legal player actions. All 879 saved snapshots matched the earlier Quick Map route. Both revised figures and both audio decoders remained available in all 458 exchanges. The Greywood refuge appeared in 23 nearby fights, and all 24 recruits remained available at the ending. See `build/review/cursor-3d-route.html`. Rendered gameplay and human difficulty remain unreviewed.
+
 Keyboard navigation now keeps the cursor’s animation and the existing movement and threat overlays. The route and terrain card still update. In 1,152 headless steps across twelve chapters, all cursor and terrain tiles and route vertices matched the prior pack. Movement layer rebuilds went from 1,152 to zero. Median CPU time for 48 steps with enemy danger shown fell from 410 ms to 12 ms in both packs. Nine focused suites, the final controls rerun, both exports, packaged controls and picking, and archive integrity passed. See `build/review/cursor-overlays-comparison.json` for timings. Rendered gameplay remains unreviewed.
 
 Movement searches now reuse each visited tile’s cost and occupancy during a query. The previous Web pack, updated source and both new packs produced identical ordered ranges and 9,665 sampled paths across 26 scenarios, including ordinary and Hard deployments, downed allies and carriers, and a larger 64-unit board. The headless median for the campaign-only set fell from 230 ms to 66 ms in both new packs. Eleven focused suites, both exports, movement, crowded rescue and campaign in both packs, and archive integrity passed. All 72 automated chapter outcomes match the earlier runs. See `build/review/movement-search-comparison.json` for the separate campaign and larger-board timings.
@@ -431,8 +435,6 @@ Critical javelin anticipation: revised Knights and Riders add a late 8 cm backsw
 
 The notes below are historical checkpoints. Prefer the active checkpoint above when an older status or suite count differs.
 
-Resumed at the user's request on 2026-11-04. Continue development in this chat until the user asks to stop. No scheduled work is requested.
-
 ## Resume here
 
 Read this file, the current `DEVELOPMENT.md` checkpoint, and the latest sections of `docs/art-direction.md`. Run the user's Marble sync and read its three indexes as instructed in AGENTS.md. Check Git status before editing; preserve unrelated changes. Resume improving resemblance to Awakening/Fates, with particular attention to complete scenes and animation rather than accumulating isolated geometry details.
@@ -467,16 +469,9 @@ The earlier elbow change replaces spherical metal elbows on armored outfits with
 
 Prior completed work includes five class cloak cuts and exposed ranger quivers, enemy/commander camera headroom, repeatable outfit-viewer actions, pale damage/hit/critical rows with immutable pre-exchange forecasts, shaped horse head/body/neck, world-planted infantry/cavalry movement, and a descending arena entrance.
 
-## Project and authorization
+## Project and local builds
 
-- Working title: **Poem**. Godot 4.5.1 / GDScript, local browser and macOS builds.
-- Active worktree: `/Users/alexr/.codex/worktrees/combat-presentation/fe-clone`, branch `codex/combat-presentation`.
-- Primary checkout: `/Users/alexr/Poem`, branch `main`.
-- Public remote: https://github.com/alexrao2000/Poem . The user explicitly authorized keeping it public and pushing on 2026-11-04. Nondestructive commits/pushes are authorized.
-- Keep game local. No Sites/Vercel/public hosting, purchases or schedules.
-- Preserve primary stash `Preserve shared workshop edits before combined presentation integration`.
-- No subagents unless subsequently authorized by applicable instructions.
-- Use `open -g` for launching applications; preserve focus.
+**Poem** uses Godot 4.5.1 and GDScript. The build script supports local browser and macOS archives. [Poem source](https://github.com/alexrao2000/Poem).
 
 The campaign has 24 recruits, eight classes, twelve chapters, sixteen promotions and 36 supports. The default test runner has 76 suites. Current rigid roster count is 1,774 source meshes / 1,057 joint batches plus three dynamic reins (the elbow guards now share the existing armor vertex format). Map totals last measured 13,554 sources / 616 batches plus cloth/atmosphere. Do not confuse historical counts in the development log with these current totals.
 
@@ -495,11 +490,11 @@ GODOT_BIN=/private/tmp/ashen-godot/Godot.app/Contents/MacOS/Godot scripts/build_
 
 `build_local.sh` runs the full default suite. The final focused release used `/private/tmp/poem-export-verified.sh`, a temporary helper omitting the already-run test suite; it is not required for future work. Keep sources unchanged during a test/export pipeline. Test logs are `build/logs/<suite>.log`; temporary final-run logs are `/private/tmp/poem-elbow-final-tests.log` and `/private/tmp/poem-elbow-final-release.log`.
 
-Local distributables: `/Users/alexr/Poem/build/native/Poem.zip`, `/Users/alexr/Poem/build/Poem-Web.zip`, and `/Users/alexr/Poem/build/web/`. They are generated and ignored by Git. Serve the extracted web build using the repository's local workflow; do not publish it.
+The build produces `build/native/Poem.zip`, `build/Poem-Web.zip` and `build/web/`. Git ignores these outputs. The README describes how to run the extracted browser build locally.
 
 ## Outstanding review and useful next work
 
-1. Assembled visual review, audio listening and browser FPS measurement remain outstanding. The user authorized local browser testing, but previous tool-level saved/managed denials blocked `http://127.0.0.1:8060`, Quaternius itch.io and native Codex access. Do not bypass those denials through another browser, raw CDP, alternate asset host, or headless assembled-game capture. If the approved surface becomes available, inspect actual map → combat → return flows first.
+1. Rendered map-to-combat transitions, audible playback and browser frame rates still need direct review.
 2. Compare complete presentation against the already-inspected Awakening/Fates references: readable map sprites on terrain, restrained camera motion, character silhouette/materials, pale stat rows and calm/Ablaze transitions. Prior geometry-only checks cannot establish visual fidelity.
 3. The model catalog remains empty; combat characters are procedural. Locally downloaded CC0 Quaternius assets are now being assembled as described above. Do not claim they are enabled in gameplay yet.
 4. The viewer now includes a continuous Run / trot action using the combat gait. Six focused suites verify full outfit framing, input/cancellation, authored clips and movement.
@@ -519,8 +514,6 @@ Reference images previously inspected, if their temporary paths still exist: `/p
 - `clear_world()` and `reset_ui()` replace roots; reconnect watchers after setup. Await a frame before inspecting a newly-added configured actor.
 - Stop audio and allow its shutdown drain before freeing game fixtures.
 - Use exact promotion IDs from Rules, not guessed IDs.
-
-Delivery procedure: stage explicit files, commit on the worktree branch, fast-forward the primary checkout, push `main` and `codex/combat-presentation`, then copy web/native packages into the primary checkout. Outside-root Git operations need the tool's escalation review, but the user's authorization is already present. Do not force-push or disturb the unrelated stash.
 
 Latest source-rig verification: `/private/tmp/poem-source-model-tests.log` (70 source poses and adapter checks), four passing Python assembler checks. An isolated textured software pose study `/private/tmp/poem-duelist-asset-study.png` is unchanged after compaction (SHA256 `5943ba9a42db44c24606c64758be23f3dcb7f9e768b1bf924df867ff01f3848a`). The temporary study script uses the bundled runtime Python (Pillow/NumPy); it is not assembled-game capture. Binary buffers now total 3.8 MB; imported textures cap at 1024 with mipmaps. Next weapon fitting: source hand palm center is roughly (-.025,.075,0) female / (-.032,.100,-.004) male in hand_r local space; blade points +Z locally (original procedural weapon points -Z, so rotate Y by PI). These offsets are implemented in the debug study wrappers. Attack rotates rapidly around .4–.5 seconds; its forward-crossing endpoint is mapped at .433 s.
 

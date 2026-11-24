@@ -18,6 +18,7 @@ const RuinedColumns=preload("res://scripts/ruined_columns.gd")
 const SanctuaryPlinth=preload("res://scripts/sanctuary_plinth.gd")
 const TrailLanterns=preload("res://scripts/trail_lanterns.gd")
 const GreywoodShelter=preload("res://scripts/greywood_shelter.gd")
+const CinderfordMarket=preload("res://scripts/cinderford_market.gd")
 const MAX_CACHED_CYLINDERS=256
 const ROAD_CANAL_NEAR=-5.0
 const ROAD_CANAL_FAR=-13.0
@@ -350,7 +351,9 @@ func landscape(parent,game):
  for item in game.info().get("landmarks",[]):
   landmark(parent,Vector3(item.position[0],0,item.position[1]),item.kind)
  if theme=="river":RiverChain.build(self,parent,Vector3(4.32,0,4.52),Vector3(6.68,0,4.52),.44,.25,.105)
- if theme=="village":village_mill(parent,MILL_MAP_SITE,.69)
+ if theme=="village":
+  village_mill(parent,MILL_MAP_SITE,.69)
+  CinderfordMarket.build(self,parent,Vector3(1.5,0,2.5),.58)
  if theme=="forest":TrailLanterns.roadside(parent)
  if theme in ["village","river","forest","road","castle"]:
   var base=-.15 if theme=="forest" else 0.0
@@ -791,6 +794,7 @@ func battle_landscape(parent,center,context={}):
     if item.kind in ["house","warehouse"]:house_sites.append(Vector2(item.x,item.z))
    village_trees(parent,center,house_sites)
    village_mill(parent,center+village_mill_site(house_sites),1.55)
+   CinderfordMarket.build(self,parent,center+Vector3(1.25,0,-4.05),1.4)
   elif not harbor_quayside:
    for i in range(28 if theme=="forest" or tile=="f" else 17):
     battle_tree(parent,center+Vector3(-20+(i*11)%41,base,tree_line-(i%4)*3),i*83,2.6+(i%3)*.25,theme)

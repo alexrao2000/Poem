@@ -1,6 +1,7 @@
 extends SceneTree
 const Field=preload("res://scripts/field_audio.gd")
 const GreywoodShelter=preload("res://scripts/greywood_shelter.gd")
+const CinderfordMarket=preload("res://scripts/cinderford_market.gd")
 const Shutdown=preload("helpers/game_shutdown.gd")
 
 func _initialize():call_deferred("run")
@@ -112,17 +113,10 @@ func verify_combat_voice(app,chapter: int,theme: String,point: Vector2i) -> Audi
   if app.stage.visible:break
   await process_frame
  assert(app.stage.visible and app.field_audio.player.stream==ambience and app.field_audio.player.get_stream_playback()==decoder)
+ if theme=="village":
+  verify_canopy_batches(app,"CinderfordMarketStall",CinderfordMarket.canvas_mesh(),CinderfordMarket.paint())
  if theme=="forest":
-  var canvas=GreywoodShelter.canvas_shape()
-  for landscape in [app.world,app.stage]:
-   var shelter=landscape.find_child("GreywoodShelter",true,false)
-   assert(shelter!=null)
-   var canvas_batches=landscape.get_children().filter(func(node):
-    return node is MeshInstance3D and node.material_override==GreywoodShelter.paint())
-   assert(canvas_batches.size()==1 and canvas_batches[0].mesh.surface_get_array_len(0)==canvas.surface_get_array_len(0))
-   var expected=shelter.global_transform*canvas.get_aabb()
-   assert((canvas_batches[0].global_transform*canvas_batches[0].mesh.get_aabb()).is_equal_approx(expected),
-    "The live Greywood cut retains the refuge canvas after scenery is batched")
+  verify_canopy_batches(app,"GreywoodShelter",GreywoodShelter.canvas_shape(),GreywoodShelter.paint())
  if theme=="road":
   var canal_material=app.scenery.water_material("road")
   assert(app.stage.get_children().any(func(node):return node is MeshInstance3D and node.material_override==canal_material),
@@ -151,3 +145,14 @@ func verify_combat_voice(app,chapter: int,theme: String,point: Vector2i) -> Audi
  app.selected=previous_selection
  app.update_side();app.highlight()
  return decoder
+
+func verify_canopy_batches(app,name: String,canvas: Mesh,material: Material):
+ for landscape in [app.world,app.stage]:
+  var prop=landscape.find_child(name,true,false)
+  assert(prop!=null)
+  var batches=landscape.get_children().filter(func(node):
+   return node is MeshInstance3D and node.material_override==material)
+  assert(batches.size()==1 and batches[0].mesh.surface_get_array_len(0)==canvas.surface_get_array_len(0))
+  var expected=prop.global_transform*canvas.get_aabb()
+  assert((batches[0].global_transform*batches[0].mesh.get_aabb()).is_equal_approx(expected),
+   "A live cut retains the canvas after scenery is batched")
