@@ -494,16 +494,10 @@ func show_camp():
 	label_in(left,game.info().place.to_upper(),17,Color("79755f"))
 	var briefing=scrolling_column(left)
 	label_in(briefing,game.info().intro,21)
-	if game.trials.flags.values().has(true):
-		var preparation: Array[String]=[]
-		if game.permadeath and game.trials.flags.section_restarts:
-			var rally=game.trials.section_start(game.chapter)
-			preparation.append("Section %d · Rally point Chapter %02d"%[int(rally/4)+1,rally+1])
-		if game.trials.flags.reset_pressure:
-			var enemies=game.trials.enemy_modifiers(game.chapter)
-			var stock=int(enemies.held_tonics)
-			preparation.append("Enemy pressure %d / 10 · %d held tonic%s per enemy"%[game.trials.pressure,stock,"" if stock==1 else "s"])
-			if enemies.raiders_advance:preparation.append("Raiders may advance before deployment.")
+	var trials=game.trials
+	var trial_history=trials.credits>0 or not trials.purchases.is_empty() or not trials.events.is_empty() or not trials.read_scenes.is_empty()
+	if trials.flags.values().has(true) or trial_history:
+		var preparation=CampaignSettings.preparation_lines(game)
 		if not preparation.is_empty():
 			var conditions=VBoxContainer.new();conditions.name="CampaignPreparation"
 			conditions.add_theme_constant_override("separation",4);briefing.add_child(conditions)
@@ -2554,13 +2548,23 @@ func close_debug_encounters():
 func show_campaign_trials():
 	screen="campaign_trials";reset_ui()
 	var frame=menu_panel(880);var panel=scrolling_column(frame)
-	label_in(panel,"COMPANY MEMORIES" if game.completed else "CAMPAIGN EXPERIMENTS",18,GOLD)
-	label_in(panel,"Section %d · Pressure %d / 10"%[int(game.chapter/4)+1,game.trials.pressure],34,GOLD)
-	label_in(panel,"Legacy supply credits: %d"%game.trials.credits,22)
+	label_in(panel,"Company memories" if game.completed else "Campaign experiments",34,GOLD).name="CampaignTrialsTitle"
+	var legacy_enabled=not game.completed and game.permadeath and game.trials.flags.death_legacies
 	if not game.completed:
+		var lines=CampaignSettings.preparation_lines(game)
 		var preparation=game.trials.enemy_modifiers(game.chapter)
-		label_in(panel,"Next deployment · enemies gain %d HP, %d attack, %d speed and %d defense. Held tonics: %d. Raiders %s."%[preparation.max_hp,preparation.pow,preparation.speed,preparation.defense,preparation.held_tonics,"advance before the battle" if preparation.raiders_advance else "start at their usual positions"],19)
-	if not game.completed and game.trials.flags.death_legacies and game.permadeath:
+		var gains: PackedStringArray=[]
+		for stat in [["max_hp","HP"],["pow","attack"],["speed","speed"],["defense","defense"]]:
+			var value=int(preparation[stat[0]])
+			if value>0:gains.append("+%d %s"%[value,stat[1]])
+		if not gains.is_empty():lines.append("Enemy bonuses for the next deployment · "+", ".join(gains))
+		if not lines.is_empty():
+			var summary=VBoxContainer.new();summary.name="TrialPreparation"
+			summary.add_theme_constant_override("separation",4);panel.add_child(summary)
+			for line in lines:label_in(summary,line,19)
+		if legacy_enabled or game.trials.credits>0 or not game.trials.purchases.is_empty():
+			label_in(panel,"Legacy supply credits · %d"%game.trials.credits,22).name="LegacyCredits"
+	if legacy_enabled:
 		for stock in game.trials.LEGACY_STOCK:
 			var item=game.equipment.filter(func(entry):return entry.id==stock.id)[0]
 			var bought=stock.id in game.trials.purchases
@@ -2571,12 +2575,12 @@ func show_campaign_trials():
 			,not game.trials.can_buy(game,stock.id))
 			stock_button.name="LegacyStock_"+stock.id;stock_button.icon=WeaponIcons.get_item_icon(item.id,item.kind);stock_button.add_theme_constant_override("icon_max_width",24)
 	label_in(panel,"Company dispatches",24,GOLD)
-	if game.trials.events.is_empty():label_in(panel,"No experiment events yet. Change the rules in Options, or test them in Debug mode.",19)
+	if game.trials.events.is_empty():label_in(panel,"No dispatches recorded.",19)
 	for event in game.trials.events:label_in(panel,event,19)
-	if not game.trials.read_scenes.is_empty():label_in(panel,"Company memories",24,GOLD)
+	if not game.trials.read_scenes.is_empty():label_in(panel,"Recorded scenes",24,GOLD)
 	for id in game.trials.read_scenes:
 		button_in(panel,"Replay · "+game.trials.SCENE_TITLES.get(id,id.replace("_"," ").capitalize()),func():show_dialogue(game.trials.scenes[id],show_campaign_trials,"support"))
-	button_in(frame,"Return to epilogue" if game.completed else "Return to war council",show_ending if game.completed else show_camp)
+	button_in(frame,"Return to epilogue" if game.completed else "Return to war council",show_ending if game.completed else show_camp).name="TrialsReturn"
 
 func show_tile_units(tile: Vector2i):
 	screen="tile_units";reset_ui()

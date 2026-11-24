@@ -49,3 +49,15 @@ static func snapshot(game) -> Dictionary:
  var values={"permadeath":game.permadeath}
  for setting in SWITCHES:values[setting.key]=enabled(game,setting.key)
  return values
+
+static func preparation_lines(game) -> Array[String]:
+ var lines: Array[String]=[]
+ if game.permadeath and game.trials.flags.section_restarts:
+  var rally=game.trials.section_start(game.chapter)
+  lines.append("Section %d · Rally point Chapter %02d"%[int(rally/4)+1,rally+1])
+ if game.trials.flags.reset_pressure:
+  var enemies=game.trials.enemy_modifiers(game.chapter)
+  var stock=int(enemies.held_tonics)
+  lines.append("Enemy pressure %d / 10 · %d held tonic%s per enemy"%[game.trials.pressure,stock,"" if stock==1 else "s"])
+  if enemies.raiders_advance:lines.append("Raiders may advance before deployment.")
+ return lines

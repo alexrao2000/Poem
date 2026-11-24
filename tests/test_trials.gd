@@ -173,6 +173,68 @@ func verify_council_preparation(app):
    assert(app.screen=="camp" and app.game.save_data("camp")==campaign,"Reading preparation leaves campaign state intact")
  print("PASS: 16 actual war council layouts distinguish active rally points, prepared enemy supplies and inactive campaign rules")
 
+func verify_trial_ledger(app):
+ var cases=[
+  {"expected":[]},
+  {"flags":["reset_pressure"],"expected":["Enemy pressure 0 / 10 · 2 held tonics per enemy"]},
+  {"flags":["hard_campaign"],"expected":["Enemy bonuses for the next deployment · +11 HP, +4 attack, +2 speed, +1 defense"]},
+  {"flags":["section_restarts"],"permadeath":true,"expected":["Section 2 · Rally point Chapter 05"]},
+  {"flags":["section_restarts"],"pressure":7,"expected":[]},
+  {"flags":["reset_pressure","hard_campaign"],"pressure":1,"expected":[
+   "Enemy pressure 1 / 10 · 1 held tonic per enemy","Raiders may advance before deployment.",
+   "Enemy bonuses for the next deployment · +13 HP, +5 attack, +2 speed, +1 defense",
+  ]},
+  {"flags":["death_legacies"],"permadeath":true,"stock":true,"expected":[]},
+  {"credits":2,"expected":[]},
+  {"flags":["reset_pressure","hard_campaign","section_restarts","death_legacies"],"permadeath":true,
+   "pressure":2,"credits":1,"completed":true,"expected":[]},
+ ]
+ for dimensions in [Vector2(1024,640),Vector2(1440,900)]:
+  for sample in cases:
+   app.game.new_campaign(sample.get("permadeath",false));app.game.chapter=5
+   for flag in sample.get("flags",[]):app.game.trials.flags[flag]=true
+   app.game.trials.pressure=sample.get("pressure",0);app.game.trials.credits=sample.get("credits",0)
+   app.game.completed=sample.get("completed",false)
+   app.game.story_seen=["opening_5"]
+   if app.game.completed:
+    app.game.trials.earned_scenes=["relief_4"];app.game.trials.read_scenes=["relief_4"]
+    app.game.trials.events=["The abbey kept the company record."]
+   var campaign=app.game.save_data("camp").duplicate(true)
+   if not app.game.completed and app.game.trials.credits>0:
+    app.show_camp()
+    var open=app.ui.find_children("*","Button",true,false).filter(func(button):return button.text=="Campaign experiments & legacy supplies")
+    assert(open.size()==1,"Disabling experiments retains access to past gains from the war council")
+    open[0].pressed.emit()
+   else:app.show_campaign_trials()
+   app.ui.set_anchors_and_offsets_preset(Control.PRESET_TOP_LEFT);app.ui.size=dimensions
+   await process_frame;await process_frame
+   var title=app.ui.find_child("CampaignTrialsTitle",true,false)
+   assert(title.text==("Company memories" if app.game.completed else "Campaign experiments"))
+   var summary=app.ui.find_child("TrialPreparation",true,false)
+   if sample.expected.is_empty():assert(summary==null)
+   else:
+    assert(summary!=null and summary.get_child_count()==sample.expected.size())
+    var scroll=summary.get_parent().get_parent() as ScrollContainer
+    scroll.ensure_control_visible(summary);await process_frame
+    assert(scroll.get_global_rect().grow(1).encloses(summary.get_global_rect()))
+    for index in sample.expected.size():
+     var line: Label=summary.get_child(index)
+     assert(line.text==sample.expected[index] and line.focus_mode==Control.FOCUS_NONE and line.get_visible_line_count()==line.get_line_count())
+     assert(line.get_rect().end.x<=summary.size.x+.1 and line.get_rect().end.y<=summary.size.y+.1)
+   var stock=sample.get("stock",false)
+   var coins=app.ui.find_child("LegacyCredits",true,false)
+   assert((coins!=null)==(not app.game.completed and (stock or app.game.trials.credits>0)))
+   assert(app.ui.find_children("LegacyStock_*","Button",true,false).size()==(app.game.trials.LEGACY_STOCK.size() if stock else 0))
+   if app.game.completed:
+    assert(app.ui.find_children("*","Button",true,false).any(func(button):return button.text=="Replay · Relief at the abbey"))
+    assert(app.ui.find_children("*","Label",true,false).any(func(label):return label.text=="The abbey kept the company record."))
+   var back=app.ui.find_child("TrialsReturn",true,false)
+   assert(back.text==("Return to epilogue" if app.game.completed else "Return to war council"))
+   assert(Rect2(Vector2.ZERO,dimensions).grow(1).encloses(back.get_global_rect()))
+   back.grab_focus();await process_frame;assert(root.gui_get_focus_owner()==back)
+   assert(app.screen=="campaign_trials" and app.game.save_data("camp")==campaign)
+ print("PASS: 18 campaign experiment layouts show applicable preparation, earned credits, epilogue history and keyboard return")
+
 func run():
  var redundant=Rules.new();redundant.new_campaign(true);redundant.chapter=5;redundant.trials.flags.death_legacies=true;redundant.start_battle()
  for id in ["oren","sera","ivo"]:fall(redundant,id)
@@ -184,6 +246,7 @@ func run():
  var app=load("res://main.tscn").instantiate();app.settings_path="";app.save_path="/private/tmp/poem-trials-ui.json"
  root.add_child(app);await process_frame
  await verify_council_preparation(app)
+ await verify_trial_ledger(app)
  app.game.new_campaign(true);app.game.story_seen=["opening_0"];app.show_camp();app.show_options("camp")
  for key in app.game.trials.flags:app.ui.find_child(key,true,false).button_pressed=true
  await inspect(app)

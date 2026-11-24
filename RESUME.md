@@ -6,6 +6,10 @@ This checkpoint describes the current development branch and supersedes the earl
 
 ### Latest state
 
+The campaign experiment ledger shares the war council’s preparation lines and shows the next deployment’s actual enemy bonuses. Earlier credits, dispatches and scene replays stay reachable after the rules are turned off. Eighteen headless layouts at 1024 and 1440 pixels checked wrapping, keyboard return, and the completed archive. Eight focused suites, both exports, the trial suite in both packs and archive integrity passed. Rendered appearance remains unreviewed.
+
+The exported Hard recoverable replay at `92505b9` matched all 879 checkpoints from the earlier Quick Map campaign. It finished 13 battles in 96 turns, with 429 legal player actions, 28 staff revivals and all 24 recruits available. All 458 exchanges kept their ambience decoder, with all twelve environments covered. See `build/review/all-fields-hard-route.html`. Rendered appearance, listening and human difficulty remain unreviewed.
+
 Starfall’s armillary now sits above a grounded stone dais and brass meridian dial. Both versions clear the full moving ring volume. Six close-up columns sit in the stone floor, with clear dial projections in eighteen mapped, mirrored and fallback wide shots. Nine focused suites, both exports, clockwork checks in both packs and archive integrity passed. Rendered appearance remains unreviewed.
 
 Ten portrait imports reduced the browser data pack from 109.4 MB to 97.5 MB. All alpha pixels match, and the largest mean RGB difference across 68 measured portrait crops is 1.85 of 255 levels. Fifteen focused suites, both exports, pixel comparisons and critical, dialogue and forecast suites in both packs, and archive integrity passed. See `build/review/portrait-atlases-measurements.json`. Rendered appearance remains unreviewed.

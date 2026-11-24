@@ -1,5 +1,9 @@
 # Poem development
 
+The campaign experiment ledger shares its preparation lines with the war council and adds the actual enemy stat bonuses. Earned credits, dispatches and scenes stay reachable after their experiment switches are turned off.
+
+The exported Hard recoverable replay at `92505b9` matched all 879 saved snapshots from the earlier Quick Map campaign. All 458 3D exchanges retained their battlefield ambience across twelve chapters and returned to the same score playhead.
+
 Starfall’s armillary now has a stepped stone dais with a twelve-mark brass dial in both the tactical map and 3D battle scene. Six columns frame the close-up while leaving the dial visible in the middle.
 
 High-quality import compression for ten portrait sheets reduced the browser data pack from 109.4 MB to 97.5 MB. Imported alpha matches exactly. The largest mean RGB error across 68 roster, dialogue, enemy and commander crops is 1.85 of 255 levels. [Godot 4.5 texture importer](https://docs.godotengine.org/en/4.5/classes/class_resourceimportertexture.html#class-resourceimportertexture-property-compress-mode)
