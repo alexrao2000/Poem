@@ -6,6 +6,8 @@ Development resumed on “go”. Continue in this chat until the user asks to st
 
 ### Latest state
 
+Kingsroad now has an original eight-second stereo ambience loop for its canal. The decoder stays active through a real canal-side 3D exchange and the tactical menus. All eight PCM payloads match their source WAVs in the editor import and both local packs. The seven previous WAVs regenerate byte for byte. Seven focused suites, both exports, field continuity and PCM checks in both packs, and archive integrity passed. Listening quality remains unreviewed.
+
 Compact colored panels now carry 3D finishing quotes, rescue calls and staff revivals. All 104 text layouts fit between 720 and 1440 pixels wide, with readable contrast over a bright background and clear space below for combat action. Actual falls, revivals, finishes and Skip use the new panel. Nine focused suites, both local exports, finish/rescue/revival checks in both packs, and archive integrity passed. Rendered appearance remains unreviewed.
 
 Reddeep’s 3D arena now places a crossed iron gantry and two suspended hoists behind its furnaces. Five supports seat on stone footings, the diagonal braces join both horizontal chords, and the hanging chains reach their hooks. Twelve projected scenes kept a hoist clear of the hearths and HUD. Eight focused suites, both exports, architecture in both packs and archive integrity passed. Rendered appearance remains unreviewed.

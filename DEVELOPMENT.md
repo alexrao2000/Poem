@@ -1,5 +1,7 @@
 # Poem development
 
+Kingsroad has an original eight-second stereo canal ambience loop. The same field voice continues from the tactical road through 3D combat and tactical menus. It follows the Effects volume alongside the separate Calm and Ablaze score. Godot imports the field loop as 16-bit PCM. [Godot 4.5 WAV importer documentation](https://docs.godotengine.org/en/4.5/classes/class_resourceimporterwav.html#class-resourceimporterwav-property-compress-mode)
+
 Finishing quotes, rescue calls and staff revivals use compact caption panels above the 3D action. The panels size to the line, with navy, amber or green accents for the three outcomes. [Godot 4.5 Label documentation](https://docs.godotengine.org/en/4.5/classes/class_label.html#class-label-theme-style-normal)
 
 Reddeep’s close-up foundry has an iron gantry with four crossed spans and two suspended hoists behind the furnaces. Five stone footings seat the posts. Close-ups with mapped hearths and fallback hearths use the same structure.

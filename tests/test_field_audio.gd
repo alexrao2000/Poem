@@ -59,8 +59,8 @@ func run():
  viewport.add_child(app);await process_frame
  assert(not app.field_audio.player.playing,"Title has no battlefield audio")
  var active_decoder: AudioStreamPlayback
- for field_case in [[2,"forest",4],[3,"abbey",3],[6,"mountain",3],[9,"furnace",3],[11,"engine",10]]:
-  active_decoder=await verify_combat_voice(app,field_case[0],field_case[1],field_case[2])
+ for field_case in [[2,"forest",4,4],[3,"abbey",3,4],[4,"road",8,3],[6,"mountain",3,4],[9,"furnace",3,4],[11,"engine",10,4]]:
+  active_decoder=await verify_combat_voice(app,field_case[0],field_case[1],field_case[2],field_case[3])
  app.preferences.values.music=0
  app.apply_audio_preferences()
  assert(app.field_audio.player.get_stream_playback()==active_decoder)
@@ -76,15 +76,15 @@ func run():
  assert(not app.field_audio.player.playing and app.field_audio.player.stream==null)
  await Shutdown.dispose(app)
  viewport.queue_free();await process_frame
- print("PASS: seven eight-second stereo loops, bounded one-voice fades, rapid retargeting and mute, combat and tactical menu continuity in five chapters, score and save isolation")
+ print("PASS: eight eight-second stereo loops, bounded one-voice fades, rapid retargeting and mute, combat and tactical menu continuity in six chapters, score and save isolation")
  quit()
 
-func verify_combat_voice(app,chapter: int,theme: String,x: int) -> AudioStreamPlayback:
+func verify_combat_voice(app,chapter: int,theme: String,x: int,y: int) -> AudioStreamPlayback:
  app.game.chapter=chapter
  app.game.start_battle()
  var ally=app.game.living("player")[0]
  var foe=app.game.living("enemy")[1]
- ally.x=x;ally.y=4;foe.x=x+1;foe.y=4
+ ally.x=x;ally.y=y;foe.x=x+1;foe.y=y
  app.make_map();app.show_battle()
  await settle(app.field_audio)
  verify_voice(app.field_audio,theme)
@@ -103,6 +103,10 @@ func verify_combat_voice(app,chapter: int,theme: String,x: int) -> AudioStreamPl
   if app.stage.visible:break
   await process_frame
  assert(app.stage.visible and app.field_audio.player.stream==ambience and app.field_audio.player.get_stream_playback()==decoder)
+ if theme=="road":
+  var canal_material=app.scenery.water_material("road")
+  assert(app.stage.get_children().any(func(node):return node is MeshInstance3D and node.material_override==canal_material),
+   "The Kingsroad decoder persists in the actual canal backdrop")
  app.ui.get_node("CombatPlayback").request_skip()
  for frame in range(180):
   if not app.ui.has_node("CombatPlayback"):break
