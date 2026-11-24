@@ -1,5 +1,7 @@
 # Poem development
 
+The tactical help strip fits its current instruction and uses the same navy palette as the chapter plates. The close-up combat fade and streaks take color from the chapter’s sky. Camera framing and opacity follow the existing handoff.
+
 Tactical bridges have two full-length stringers, four piles and two crossbeams beneath their boards. Both bridge orientations meet the walkable height and extend through the waterline.
 
 Broadleaf foliage shares one quad during normal map and arena construction. Across forty-eight scene builds, the count fell from 13,056 quad resources to one. The 13,056 leaf cards keep their placements and UVs. The largest measured position difference was under four millionths of a unit, and the largest normal difference was under 0.007 degrees.

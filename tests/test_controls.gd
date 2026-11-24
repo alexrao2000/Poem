@@ -65,7 +65,11 @@ func run():
      "The selected unit's name keeps one readable line above its class")
     assert(font.get_string_size(identity.text,HORIZONTAL_ALIGNMENT_LEFT,-1,font_size).x<=identity.size.x)
    for child in app.side.get_children():assert(child.get_global_rect().end.y<=frame.end.y-10,"Every action remains inside its panel without scrolling")
-   assert(app.battle_hint.get_line_count()==1,"Contextual map hint stays on one line")
+   var help=app.battle_hint.get_parent()
+   var hint_font=app.battle_hint.get_theme_font("font")
+   var hint_width=hint_font.get_string_size(app.battle_hint.text,HORIZONTAL_ALIGNMENT_LEFT,-1,app.battle_hint.get_theme_font_size("font_size")).x
+   assert(app.battle_hint.get_line_count()==1 and hint_width<=app.battle_hint.size.x,"Full contextual guidance fits the compact help plate")
+   assert(help.size.x<=ceilf(hint_width+36) and help.get_global_rect().end.x<=frame.position.x-18,"The help plate leaves the rest of the lower map visible")
   app.selected=unit;app.target=enemy;app.update_side()
   var saved=app.game.save_data("battle").duplicate(true);var selection=app.selected;var position=app.camera.transform
   app.show_battle_menu();await process_frame;await process_frame

@@ -6,6 +6,10 @@ Development resumed on “go”. Continue in this chat until the user asks to st
 
 ### Latest state
 
+The tactical help plate now sizes to its actual instruction. The move into 3D combat and the return to the map use a tint from the current chapter horizon. Nine focused suites, both local exports, two packed checks and archive integrity passed. The checks cover the compact layout, twelve chapter tint palettes, 54 sprite zooms and the actual arena return. Rendered appearance remains unreviewed.
+
+The exported release at `3d36acf` completed all twelve chapters with All 3D Battles and the optional revised models. It recorded 309 arena handoffs and returns, twelve full exchanges at Fast ×2, 297 normal skips and two revised models in every arena. The score decoder survived each transition. The ambience decoder stayed continuous in 175 exchanges across seven fields. The 62 turns, 298 player actions, 652 exact save comparisons, ten promotions, nine supports and final 24 recruits matched the ordinary Quick map run. See `build/review/full-cinematic-campaign.html`.
+
 Tactical bridges now have a planted timber underframe, with two beams running beneath all seven boards and four piles below the waterline. Both orientations keep the same walking surface for sprites, terrain picking and range overlays. Eight focused suites, both local exports, packaged terrain in both builds and archive integrity passed. Rendered appearance remains unreviewed.
 
 Normal scenery batching now builds broadleaf foliage from one shared quad. Forty-eight scene builds retained 13,056 cards, 484 batches and 52,224 measured vertices. UVs and atlas regions matched exactly. The maximum position difference was under four millionths of a unit, and the biggest normal angle change was under 0.007 degrees. The unbatched wind path retains native card sizing. Seven focused suites, both exports, packaged batching and geometry comparison, and archive integrity passed.

@@ -662,8 +662,12 @@ func show_battle():
 	objective_label=battle_header.objective;status=battle_header.status
 	var panel=PanelContainer.new();panel.set_anchors_and_offsets_preset(Control.PRESET_TOP_RIGHT);panel.offset_left=-325;panel.offset_right=-22;panel.offset_top=118;panel.offset_bottom=118;panel.custom_minimum_size.x=303;ui.add_child(panel)
 	side=VBoxContainer.new();side.add_theme_constant_override("separation",5);panel.add_child(side)
-	var bottom=PanelContainer.new();bottom.set_anchors_and_offsets_preset(Control.PRESET_BOTTOM_WIDE);bottom.offset_left=22;bottom.offset_right=-343;bottom.offset_top=-64;bottom.offset_bottom=-22;ui.add_child(bottom)
-	battle_hint=label_in(bottom,"",14)
+	var bottom=PanelContainer.new();bottom.name="BattleHelp";ui.add_child(bottom)
+	bottom.set_anchors_and_offsets_preset(Control.PRESET_BOTTOM_LEFT)
+	bottom.offset_left=22;bottom.offset_right=480;bottom.offset_top=-64;bottom.offset_bottom=-22
+	bottom.add_theme_stylebox_override("panel",box(Color("192e3d")))
+	battle_hint=label_in(bottom,"",14,Color("eddfbd"))
+	battle_hint.autowrap_mode=TextServer.AUTOWRAP_OFF;battle_hint.text_overrun_behavior=TextServer.OVERRUN_TRIM_WORD_ELLIPSIS
 	terrain_card=TerrainCard.new();terrain_card.configure(ui)
 	var inspected=game.pos(selected) if selected!=null else game.pos(game.living("player")[0]) if not game.living("player").is_empty() else Vector2i.ZERO
 	terrain_card.inspect(game,cursor_tile if cursor_visible else inspected)
@@ -790,6 +794,12 @@ func update_side():
 
 func arrange_battle_side():
 	if not is_instance_valid(side) or not is_instance_valid(ui) or screen not in ["battle","battle_menu"]:return
+	if is_instance_valid(battle_hint):
+		var help=battle_hint.get_parent()
+		var padding=help.get_theme_stylebox("panel").get_minimum_size().x
+		var font=battle_hint.get_theme_font("font")
+		var width=font.get_string_size(battle_hint.text,HORIZONTAL_ALIGNMENT_LEFT,-1,battle_hint.get_theme_font_size("font_size")).x
+		help.offset_right=help.offset_left+minf(ceilf(width+padding),maxf(1,ui.size.x-365))
 	var compact=ui.size.y<760
 	var theme=Theme.new();theme.default_font_size=17
 	for state in ["normal","hover","pressed","disabled"]:
@@ -1242,7 +1252,8 @@ func cinematic(a,b,events,initial_hp={},challenge: Dictionary={}):
 	interface_audio.watch_navigation(playback.skip_button)
 	# Skip disables its button first, so acknowledge the one-shot request itself.
 	playback.skip_requested.connect(func():interface_audio.cue("back");skip_combat=true)
-	var veil=CombatTransition.new();veil.configure(ui,func():return camera.unproject_position(focus))
+	var horizon=environment.sky.sky_material.sky_horizon_color
+	var veil=CombatTransition.new();veil.configure(ui,func():return camera.unproject_position(focus),horizon)
 	veil.conceal()
 	var push=map_navigation.approach_combat(focus)
 	await push.finished

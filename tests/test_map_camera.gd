@@ -64,10 +64,22 @@ func visible_combat_zoom():
  assert(count==54 and not FileAccess.file_exists(app.save_path) and not FileAccess.file_exists(app.save_path+".debug"))
  await Shutdown.dispose(app);viewport.queue_free();await process_frame
 
+func verify_transition_palette(app):
+ var inks={}
+ for chapter in app.CHAPTER_LIGHTING.values():
+  var horizon=Color(chapter.horizon)
+  var veil=Transition.new();veil.configure(app.ui,Callable(),horizon)
+  assert(veil.ink.a==1 and veil.ink.get_luminance()<.19)
+  assert(veil.cool_streak!=Transition.COOL_STREAK and veil.warm_streak!=Transition.WARM_STREAK)
+  inks[veil.ink]=true
+  veil.free()
+ assert(inks.size()==12,"The transition palette distinguishes all twelve chapter horizons")
+
 func run():
  await visible_combat_zoom()
  var app=load("res://main.tscn").instantiate();app.settings_path="";app.save_path="/private/tmp/poem-map-camera.json"
  root.add_child(app);await process_frame
+ verify_transition_palette(app)
  app.game.start_battle();app.make_map();app.show_battle()
  var nav=app.map_navigation;var camera=app.camera;var home=camera.transform;var anchor=Vector2(600,400)
  var ground=nav.ground_at(anchor);nav.zoom(2,anchor);await nav.motion.finished
@@ -139,9 +151,15 @@ func run():
  app.busy=false;app._unhandled_input(wheel);await create_timer(.035).timeout
  camera.position+=Vector3(3,0,-2)
  var prior=camera.transform;var size=camera.size;var rng=app.game.rng.state
- var handoff=[false];var restored=[false]
+ var handoff=[false];var restored=[false];var checked_tint=[false]
+ var horizon=app.environment.sky.sky_material.sky_horizon_color
+ var expected_ink=Transition.INK.lerp(horizon.darkened(.81),.52)
  var observe_return=func():
   if app.ui.get_node_or_null("CombatPlayback")!=null:check_details(app,false)
+  var veil=app.ui.get_node_or_null("CombatTransition")
+  if veil!=null:
+   assert(veil.ink.is_equal_approx(expected_ink),"The actual map and arena fade keep the battlefield's dusk tint")
+   checked_tint[0]=true
   if app.stage.visible:handoff[0]=true
   elif handoff[0] and not restored[0]:
    restored[0]=true
@@ -150,7 +168,7 @@ func run():
  process_frame.connect(observe_return)
  var a=app.game.units[0];var b=app.game.living("enemy")[0];a.x=8;a.y=4;b.x=9;b.y=4
  await app.cinematic(a,b,[{"actor":a.id,"target":b.id,"damage":1,"remaining":19,"hit":true,"crit":false}],{a.id:20,b.id:20})
- process_frame.disconnect(observe_return);assert(restored[0],"Real cinematic exercised the close map handoff")
+ process_frame.disconnect(observe_return);assert(restored[0] and checked_tint[0],"Real cinematic exercised the tinted map handoff")
  check_details(app,true)
  await create_timer(.2).timeout
  assert(camera.transform.is_equal_approx(prior) and is_equal_approx(camera.size,size),"Interrupted map zoom cannot overwrite arena or restored view")
