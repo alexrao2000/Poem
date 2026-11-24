@@ -4,6 +4,7 @@ extends Control
 signal chapter_selected(index: int)
 const MAP=preload("res://assets/art/campaign-valley-v1.png")
 const POINTS=[Vector2(.18,.64),Vector2(.25,.61),Vector2(.23,.38),Vector2(.40,.32),Vector2(.52,.53),Vector2(.74,.73),Vector2(.83,.49),Vector2(.71,.31),Vector2(.55,.14),Vector2(.73,.20),Vector2(.82,.22),Vector2(.90,.10)]
+const SEAL_SIZE=36.0
 var markers: Array[Button]=[]
 var current=0
 var selected=0
@@ -11,6 +12,7 @@ var complete=false
 var section_starts=false
 var clock=0.0
 var map_rect=Rect2()
+var seal_scale=1.0
 
 func configure(chapters: Array,index: int,finished=false,show_sections=false):
  current=clampi(index,0,POINTS.size()-1);selected=current;complete=finished;section_starts=show_sections
@@ -36,11 +38,22 @@ func select_chapter(index: int):
  selected=index;queue_redraw();chapter_selected.emit(index)
 
 func arrange():
- var available=(size-Vector2(48,64)).max(Vector2.ONE)
+ var available=(size-Vector2(32 if size.x<500 else 48,64)).max(Vector2.ONE)
  var scale_value=minf(available.x/MAP.get_width(),available.y/MAP.get_height())
  var extent=MAP.get_size()*scale_value;map_rect=Rect2((size-extent)*.5,extent)
+ var clearance=SEAL_SIZE+1
  for i in range(markers.size()):
-  markers[i].position=point(i)-Vector2(18,18);markers[i].size=Vector2(36,36)
+  for previous in range(i):
+   var gap=(point(i)-point(previous)).abs()
+   clearance=minf(clearance,maxf(gap.x,gap.y))
+ var hit_size=clampf(floorf(clearance-1),24,SEAL_SIZE)
+ var target=Vector2.ONE*hit_size
+ seal_scale=hit_size/SEAL_SIZE
+ var font_size=roundi(8+6*seal_scale)
+ for i in range(markers.size()):
+  markers[i].add_theme_font_size_override("font_size",font_size)
+  markers[i].position=point(i)-target*.5
+  markers[i].size=target
  queue_redraw()
 
 func point(index: int) -> Vector2:
@@ -64,17 +77,19 @@ func _draw():
    var pos=a.lerp(b,t)+side*sin(t*PI)
    draw_circle(pos,2.0 if reached else 1.1,color)
  for i in range(markers.size()):
-  var center=point(i);var reached=i<=current or complete
+  draw_set_transform(point(i),0,Vector2.ONE*seal_scale)
+  var reached=i<=current or complete
   if section_starts and i%4==0 and reached:
-   var corners=PackedVector2Array([center+Vector2(0,-20),center+Vector2(20,0),center+Vector2(0,20),center+Vector2(-20,0),center+Vector2(0,-20)])
+   var corners=PackedVector2Array([Vector2(0,-20),Vector2(20,0),Vector2(0,20),Vector2(-20,0),Vector2(0,-20)])
    draw_polyline(corners,Color("f5dc94") if i==int(current/4)*4 and not complete else Color("a88b55"),2,true)
-  draw_circle(center+Vector2(0,2),15,Color(0.18,.13,.08,.35))
-  draw_circle(center,14,Color("a8864b") if reached else Color("99927e"))
-  draw_circle(center,11.5,Color("354e60") if i==current else Color("66523b") if reached else Color("746e60"))
-  if i==selected:draw_arc(center,17,0,TAU,40,Color("f5dc94"),2,true)
+  draw_circle(Vector2(0,2),15,Color(0.18,.13,.08,.35))
+  draw_circle(Vector2.ZERO,14,Color("a8864b") if reached else Color("99927e"))
+  draw_circle(Vector2.ZERO,11.5,Color("354e60") if i==current else Color("66523b") if reached else Color("746e60"))
+  if i==selected:draw_arc(Vector2.ZERO,17,0,TAU,40,Color("f5dc94"),2,true)
   if i==current and not complete:
    var pulse=Color("f5dc94");pulse.a=.35+.22*sin(clock*2.2)
-   draw_arc(center,20,0,TAU,48,pulse,2,true)
-   var pole=center+Vector2(0,-17)
+   draw_arc(Vector2.ZERO,20,0,TAU,48,pulse,2,true)
+   var pole=Vector2(0,-17)
    draw_line(pole,pole+Vector2(0,-24),Color("51412c"),2,true)
    draw_colored_polygon(PackedVector2Array([pole+Vector2(0,-24),pole+Vector2(16,-21),pole+Vector2(12,-13),pole+Vector2(0,-15)]),Color("f1dfb5"))
+ draw_set_transform(Vector2.ZERO)

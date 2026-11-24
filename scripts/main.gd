@@ -645,6 +645,12 @@ func show_campaign_route():
 	if sectioned:route_hint="Diamonds mark section starts."+(" The chronicle is complete." if game.completed else " Your current retreat point is Chapter %02d."%(game.trials.section_start(game.chapter)+1))
 	var legend=label_in(frame,route_hint,15,Color("766e5e"));legend.name="RouteLegend"
 	button_in(frame,"Return to war council",show_camp)
+	var fit_route=func():
+		var compact=ui.size.x<960
+		details.custom_minimum_size.x=212 if compact else 260
+		row.add_theme_constant_override("separation",16 if compact else 20)
+	ui.resized.connect(fit_route)
+	fit_route.call()
 
 func objective_text(chapter: Dictionary={}) -> String:
 	if chapter.is_empty():chapter=game.info()

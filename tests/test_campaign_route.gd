@@ -8,7 +8,7 @@ func run():
  for chapter in range(12):app.game.story_seen.append("opening_"+str(chapter))
  app.game.permadeath=true;app.game.trials.flags.section_restarts=true
  var count=0
- for dimensions in [Vector2(1024,640),Vector2(1280,720),Vector2(1440,900)]:
+ for dimensions in [Vector2(720,640),Vector2(768,900),Vector2(900,640),Vector2(959,640),Vector2(960,640),Vector2(1024,640),Vector2(1280,720),Vector2(1440,900)]:
   for chapter in range(12):
    app.game.chapter=chapter
    var roster=app.game.roster.duplicate(true);var deployed=app.game.deployed.duplicate();var seen=app.game.story_seen.duplicate()
@@ -28,8 +28,12 @@ func run():
     if node.is_visible_in_tree() and not clipped:assert(Rect2(Vector2.ZERO,dimensions).grow(1).encloses(node.get_global_rect()),"Route details, legend and return control fit the requested viewport")
    var bounds=Rect2(Vector2.ZERO,route.size)
    assert(bounds.encloses(route.map_rect) and absf(route.map_rect.size.x/route.map_rect.size.y-1.5)<.001,"Map fits without stretching or cropping")
+   var reading=app.ui.find_child("RouteObjective",true,false).get_parent().get_parent()
+   assert(reading.size.x>=212 and reading.size.y>=160,"Compact briefing retains its reading area")
    for index in range(12):
     var marker=route.markers[index]
+    assert(marker.size.x>=23.999 and marker.size.y>=23.999,"Chapter %d seal at %s retains a usable hit target, got %s"%[index+1,dimensions,marker.size])
+    assert(marker.get_rect().get_center().is_equal_approx(route.point(index)),"The seal and its hit target share a center")
     assert(bounds.encloses(marker.get_rect()),"Chapter marker stays on the map control")
     for other in range(index):assert(not marker.get_rect().intersects(route.markers[other].get_rect()),"Neighboring chapter hit targets never overlap: viewport %s, control %s, map %s"%[dimensions,route.size,route.map_rect])
     if index==chapter:assert(bounds.encloses(Rect2(route.point(index)-Vector2(20,41),Vector2(40,61))),"Current standard and pulse stay inside the display")
@@ -61,6 +65,25 @@ func run():
  var route=app.ui.find_child("CampaignRoute",true,false)
  assert(not "Current retreat point" in route.markers[8].tooltip_text and "complete" in app.ui.find_child("RouteLegend",true,false).text)
  assert(route.markers.all(func(marker):return not marker.disabled),"Completed campaign can review every briefing")
+ var completed_state=app.game.save_data("camp").duplicate(true)
+ var viewport=app.get_viewport()
+ viewport.size=Vector2i(1440,900)
+ route.markers[0].grab_focus()
+ app.ui.set_anchors_and_offsets_preset(Control.PRESET_TOP_LEFT);app.ui.size=Vector2(720,640)
+ await process_frame;await process_frame
+ assert(viewport.gui_get_focus_owner()==route.markers[0] and route.markers[0].size.x<36,"Focused markers survive live shrink")
+ for pressed in [true,false]:
+  var key=InputEventKey.new();key.keycode=KEY_ENTER;key.pressed=pressed;viewport.push_input(key,true)
+ assert(route.selected==0,"Keyboard opens the focused compact briefing")
+ for index in range(1,12):
+  var click_point=route.markers[index].get_global_rect().get_center()
+  for pressed in [true,false]:
+   var mouse=InputEventMouseButton.new();mouse.position=click_point;mouse.button_index=MOUSE_BUTTON_LEFT;mouse.pressed=pressed;viewport.push_input(mouse,true)
+  assert(route.selected==index,"Pointer opens exactly the chosen compact briefing")
+ app.ui.size=Vector2(1440,900)
+ await process_frame;await process_frame
+ assert(route.selected==11 and route.markers[11].size.x==36,"Live expansion retains the selected briefing")
+ assert(app.game.save_data("camp")==completed_state,"Navigation never changes the completed campaign")
  await Shutdown.dispose(app);await process_frame
- print("PASS: ",count," campaign route layouts, all twelve chapter markers, locked briefing protection, real button selection, read-only campaign state and Escape return")
+ print("PASS: ",count," campaign route layouts, all twelve chapter markers selectable at 720, live focus and reflow, locked briefing protection, read-only campaign state and Escape return")
  quit()
