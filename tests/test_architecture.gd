@@ -5,6 +5,7 @@ const Scenery=preload("res://scripts/scenery.gd")
 const Rules=preload("res://scripts/rules.gd")
 const HarborBoat=preload("res://scripts/harbor_boat.gd")
 const HarborNet=preload("res://scripts/harbor_net.gd")
+const HarborSignal=preload("res://scripts/harbor_signal.gd")
 const CombatCamera=preload("res://scripts/combat_camera.gd")
 const CinderfordMarket=preload("res://scripts/cinderford_market.gd")
 const ReedTollhouse=preload("res://scripts/reed_tollhouse.gd")
@@ -1453,6 +1454,17 @@ func verify_harbor_quay():
  var field=Node3D.new();root.add_child(field);scenery.landscape(field,game)
  var map_rack=field.get_node("HarborNetRack")
  var map_net=map_rack.get_node("HangingNet")
+ var map_signal=field.get_node("HarborSignal")
+ var map_frame=map_signal.get_node("SignalFrame")
+ var map_lens=map_signal.get_node("SignalLens")
+ var frame_points=map_frame.mesh.surface_get_arrays(0)[Mesh.ARRAY_VERTEX]
+ assert(map_frame.mesh==HarborSignal.frame_shape() and frame_points.size()<=720 and frame_points.size()%3==0)
+ assert(map_lens.position==HarborSignal.LENS_CENTER and map_lens.material_override.emission_enabled)
+ assert(map_lens.cast_shadow==GeometryInstance3D.SHADOW_CASTING_SETTING_OFF)
+ var signal_bounds=map_frame.global_transform*map_frame.mesh.get_aabb()
+ assert(signal_bounds.position.y<0 and signal_bounds.end.y>1.1 and signal_bounds.end.z<4.50)
+ for x in [signal_bounds.position.x,signal_bounds.end.x]:
+  assert(game.terrain(Vector2i(roundi(x),roundi(map_signal.position.z)))=="p","The signal stands on the paved quay")
  verify_harbor_net(map_rack,map_net)
  for footing in map_rack.find_children("NetRackFoot*","MeshInstance3D",false,false):
   var edge=footing.global_transform*footing.mesh.get_aabb()
@@ -1478,11 +1490,14 @@ func verify_harbor_quay():
   viewport.size=dimensions;await process_frame
   var map_line=map_rack.to_global(Vector3(0,1.10,.08))
   assert(Rect2(Vector2.ZERO,Vector2(dimensions)).grow(-12).has_point(camera.unproject_position(map_line)))
+  assert(Rect2(Vector2.ZERO,Vector2(dimensions)).grow(-12).has_point(camera.unproject_position(map_lens.global_position)))
  camera.projection=Camera3D.PROJECTION_PERSPECTIVE;camera.h_offset=0
  for context in [near,mirror,inland,pier]:
   var arena=Node3D.new();root.add_child(arena);scenery.battle_landscape(arena,center,context)
   var rack=arena.get_node_or_null("HarborNetRack")
   assert((rack!=null)==context.harbor_quay,"Only shore fights carry the rack into the arena")
+  var beacon=arena.get_node_or_null("HarborSignal")
+  assert((beacon!=null)==context.harbor_quay,"The quay signal is visible in shore fights")
   var water=arena.get_node_or_null("ArenaWater")
   var deck=arena.get_node_or_null("ArenaDeck")
   var floor=arena.get_node_or_null("ArenaGround")
@@ -1503,6 +1518,11 @@ func verify_harbor_quay():
    var rim=coping.transform*coping.mesh.get_aabb()
    assert(is_equal_approx(land.position.z,sea.end.z),"Paving and sea meet at the quay")
    assert(face.intersects(rim) and face.position.y<sea.position.y and face.end.y>sea.position.y)
+   var frame=beacon.get_node("SignalFrame")
+   var lens=beacon.get_node("SignalLens")
+   var signal_footing=frame.global_transform*frame.mesh.get_aabb()
+   assert(frame.mesh==map_frame.mesh and lens.mesh==map_lens.mesh and lens.material_override==map_lens.material_override)
+   assert(signal_footing.position.y<center.y and signal_footing.position.z>rim.end.z,"The signal’s support is embedded in the land behind the coping")
    var net=rack.get_node("HangingNet")
    assert(net.mesh==map_net.mesh and net.material_override==map_net.material_override)
    for footing in rack.find_children("NetRackFoot*","MeshInstance3D",false,false):
@@ -1534,11 +1554,13 @@ func verify_harbor_quay():
      assert(bollards.any(func(post):return safe.has_point(camera.unproject_position(post.global_position))))
      assert(safe.has_point(camera.unproject_position(rack.to_global(Vector3(0,1.10,.13)))),
       "The rack and suspended ropes remain in the frame above the health plates")
+     assert(safe.has_point(camera.unproject_position(lens.global_position)),"The signal lens is in frame above the health plates")
   arena.free()
  viewport.free();field.free()
  assert(game.rng.state==before)
  print("PASS: Glass Harbor separates inland ground, a planted stone quay and timber piers, with twelve waterfront projections")
  print("PASS: Glass Harbor’s shared 316-triangle net, attached floats, grounded rack and fifteen map and arena projections")
+ print("PASS: Glass Harbor’s signal shares %d frame triangles and a warm insert across fifteen shoreline projections"%(frame_points.size()/3))
 
 func verify_harbor_net(rack: Node3D,net: MeshInstance3D):
  var shape=HarborNet.shape()

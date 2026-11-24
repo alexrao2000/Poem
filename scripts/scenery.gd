@@ -14,6 +14,7 @@ const ConiferCrowns=preload("res://scripts/conifer_crowns.gd")
 const BarrelVisuals=preload("res://scripts/barrel_visuals.gd")
 const HarborBoat=preload("res://scripts/harbor_boat.gd")
 const HarborNet=preload("res://scripts/harbor_net.gd")
+const HarborSignal=preload("res://scripts/harbor_signal.gd")
 const ArenaRidges=preload("res://scripts/arena_ridges.gd")
 const PassEscarpment=preload("res://scripts/pass_escarpment.gd")
 const RuinedColumns=preload("res://scripts/ruined_columns.gd")
@@ -415,7 +416,9 @@ func landscape(parent,game):
  if theme=="abbey":
   AbbeyMosaic.build(self,parent,AbbeyMosaic.MAP_SITE,1.0)
   abbey_grove(parent,Vector3(center.x-.5,-.15,-2.25),1.0,.84)
- if theme=="harbor":HarborNet.build(self,parent,HarborNet.MAP_SITE,HarborNet.MAP_SCALE)
+ if theme=="harbor":
+  HarborNet.build(self,parent,HarborNet.MAP_SITE,HarborNet.MAP_SCALE)
+  HarborSignal.build(self,parent,HarborSignal.MAP_SITE,HarborSignal.MAP_SCALE)
  if theme=="road":KingsroadHoist.build(self,parent,KingsroadHoist.MAP_SITE,KingsroadHoist.MAP_SCALE,-.16)
  if theme=="aqueduct":AqueductWheel.new().build(self,parent,AqueductWheel.MAP_SITE,AqueductWheel.MAP_SCALE,-.28)
  if theme=="castle":Fortification.build_map_gate(self,parent)
@@ -819,6 +822,7 @@ func harbor_quay(parent: Node3D,center: Vector3,surface: int):
  block(parent,edge-Vector3.UP*.20,Vector3(70,.42,.40),detail_material(3)).name="QuayWall"
  block(parent,edge+Vector3.UP*.04,Vector3(70,.12,.52),Color("9d9e8e")).name="QuayCoping"
  HarborNet.build(self,parent,center+HarborNet.ARENA_SITE,HarborNet.ARENA_SCALE)
+ HarborSignal.build(self,parent,center+HarborSignal.ARENA_SITE,HarborSignal.ARENA_SCALE)
  for x in [-9,-4.5,0,4.5,9]:
   var foot=edge+Vector3(x,.27,.08)
   cylinder(parent,foot,.40,.085,Color("514c45"),.07).name="QuayBollard"
