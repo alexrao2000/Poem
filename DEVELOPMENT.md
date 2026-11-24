@@ -1,5 +1,7 @@
 # Poem development
 
+Tactical bridges have two full-length stringers, four piles and two crossbeams beneath their boards. Both bridge orientations meet the walkable height and extend through the waterline.
+
 Broadleaf foliage shares one quad during normal map and arena construction. Across forty-eight scene builds, the count fell from 13,056 quad resources to one. The 13,056 leaf cards keep their placements and UVs. The largest measured position difference was under four millionths of a unit, and the largest normal difference was under 0.007 degrees.
 
 Hallow Abbey, Windscar Pass and Starfall share a low ruined foundation, two chipped piers and loose masonry. The fourteen closed courses fit in one reusable mesh for both the tactical map and close-up arena.

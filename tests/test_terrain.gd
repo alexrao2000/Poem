@@ -30,6 +30,39 @@ func surface_geometry():
   assert(vertex.y>=heights.call(Vector2i(cell,0))+.0569,"Route ramps clear the higher side at tile boundaries")
  parent.free()
 
+func verify_bridge_support(scenery):
+ var anchor=Node3D.new();root.add_child(anchor)
+ for vertical in [false,true]:
+  var origin=Vector3(4,.12,6)
+  scenery.bridge(anchor,origin,vertical)
+  var bridge=anchor.get_child(anchor.get_child_count()-1)
+  var expected=PI*.5 if vertical else 0.0
+  assert(is_equal_approx(bridge.rotation.y,expected))
+  var boards=bridge.find_children("BridgePlank*","MeshInstance3D",false,false)
+  var stringers=bridge.find_children("BridgeStringer*","MeshInstance3D",false,false)
+  var piles=bridge.find_children("BridgePile*","MeshInstance3D",false,false)
+  var crossbeams=bridge.find_children("BridgeCrossbeam*","MeshInstance3D",false,false)
+  assert([boards.size(),stringers.size(),piles.size(),crossbeams.size()]==[7,2,4,2])
+  var bounds=func(mesh):return mesh.transform*mesh.mesh.get_aabb()
+  for board in boards:
+   var plank=bounds.call(board)
+   assert(is_equal_approx(plank.end.y,MapSurface.BRIDGE_HEIGHT))
+   for stringer in stringers:
+    var beam=bounds.call(stringer)
+    assert(beam.intersects(plank) and beam.position.y<-.07 and beam.end.y>-.07)
+  for crossbeam in crossbeams:
+   assert(stringers.all(func(beam):return bounds.call(crossbeam).intersects(bounds.call(beam))))
+   var supports=piles.filter(func(pile):return bounds.call(crossbeam).intersects(bounds.call(pile)))
+   assert(supports.size()==2)
+  for pile in piles:
+   var post=bounds.call(pile)
+   assert(post.position.y<-.2 and post.end.y>-.07 and post.end.y<0)
+  for board in boards:
+   var envelope=board.global_transform*board.mesh.get_aabb()
+   assert(is_equal_approx(envelope.end.y,origin.y+MapSurface.BRIDGE_HEIGHT))
+ anchor.free()
+ print("PASS: both tactical bridge orientations seat all seven boards on two stringers, four piles and two crossbeams across the waterline")
+
 func verify_sanctuary(plinth: MeshInstance3D):
  var bounds=plinth.transform*plinth.mesh.get_aabb()
  var height=MapSurface.height_for("+")
@@ -57,6 +90,7 @@ func verify_sanctuary(plinth: MeshInstance3D):
 
 func run():
  surface_geometry()
+ verify_bridge_support(Scenery.new())
  verify_arena_ground()
  verify_river_arena()
  verify_water_styles()

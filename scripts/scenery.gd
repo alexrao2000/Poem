@@ -233,6 +233,13 @@ func bridge(parent,p,vertical=false):
  for z in [-.43,.43]:
   block(root,Vector3(0,.25,z),Vector3(1,.07,.055),Color("665747"))
   for x in [-.4,.4]:block(root,Vector3(x,.16,z),Vector3(.065,.4,.065),Color("655444"))
+ var supports=building_material(BuildingFinish.OAK)
+ for z in [-.27,.27]:
+  block(root,Vector3(0,-.061,z),Vector3(1,.12,.11),supports).name="BridgeStringer"
+  for x in [-.36,.36]:
+   block(root,Vector3(x,-.145,z),Vector3(.105,.21,.115),supports).name="BridgePile"
+ for x in [-.36,.36]:
+  block(root,Vector3(x,-.11,0),Vector3(.115,.10,.68),supports).name="BridgeCrossbeam"
 
 func sanctuary(parent,p):
  mesh(parent,SanctuaryPlinth.mesh(),p,Vector3.ONE,SanctuaryPlinth.material()).name="SanctuaryPlinth"
