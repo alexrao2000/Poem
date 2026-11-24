@@ -16,6 +16,7 @@ var outer: Node3D
 var inner: Node3D
 var core: MeshInstance3D
 var core_material: StandardMaterial3D
+var conduit_light: StandardMaterial3D
 var core_color=Color.WHITE
 
 func configure(kind: String,radius=1.1,core_radius=.55):
@@ -32,7 +33,12 @@ func configure(kind: String,radius=1.1,core_radius=.55):
   if cores.size()<MAX_CORE_SHAPES:cores[core_radius]=globe
  core_material=StandardMaterial3D.new();core_color=Color("ffe3a0") if theme=="engine" else Color("5b859c")
  core_material.albedo_color=core_color;core_material.roughness=.65
- if theme=="engine":core_material.shading_mode=BaseMaterial3D.SHADING_MODE_UNSHADED
+ if theme=="engine":
+  core_material.shading_mode=BaseMaterial3D.SHADING_MODE_UNSHADED
+  conduit_light=StandardMaterial3D.new()
+  conduit_light.albedo_color=Color("cba16c")
+  conduit_light.emission_enabled=true
+  conduit_light.emission=Color("ffcb79")
  core=piece(self,globe,Vector3.ZERO,core_material)
  update_motion()
 
@@ -70,6 +76,7 @@ func update_motion():
   var breath=sin(angle*24)
   core.scale=Vector3.ONE*(1+breath*.02)
   core_material.albedo_color=core_color.lerp(Color.WHITE,.04+breath*.04)
+  conduit_light.emission_energy_multiplier=.48+breath*.20
 
 func _process(dt):
  if core==null or not is_visible_in_tree():return

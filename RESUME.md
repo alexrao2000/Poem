@@ -6,6 +6,8 @@ This checkpoint describes the current development branch and supersedes the earl
 
 ### Latest state
 
+The Sun Engine’s two conduits carry its pulse from the tactical map into 3D combat and back. Their footings sit in the basin, and the metal ducts connect to the foundation. The 560-triangle assembly adds no scene lights. Three tactical projections, eighteen arena projections, eight focused suites, 72 matched chapter outcomes, matching packed geometry, packed clockwork and presentation and both ZIP checks passed. The new Debug transfer code opened a full revised fight by the basin in both packs. See `build/review/sun-conduits-study.png` and `build/review/playtest/README.md`. Rendered gameplay remains unreviewed.
+
 Commander captions keep their portrait and full line clear of the Quick Map unit sidebar at 720 logical pixels. All 24 lines passed in both modes at six sizes, including a live resize. Eight focused suites, real player 3D and enemy Quick Map actions, 72 matched chapter outcomes, two packed suites per platform and both ZIP checks passed. Rendered gameplay remains unreviewed.
 
 Battlefield particles carry their existing phase from the tactical map into the arena and back. Each close-up retains the field’s seeded particles and adds a denser local layer. All twelve battlefields passed matched particle and buffer checks at three sampled times. Greywood’s rain passed both a full 3D exchange and a Skip. Eight focused suites, 72 matched chapter outcomes, atmosphere and presentation in both packs and both ZIP checks passed. Rendered gameplay remains unreviewed.

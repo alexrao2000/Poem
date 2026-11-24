@@ -26,6 +26,7 @@ const KingsroadHoist=preload("res://scripts/kingsroad_hoist.gd")
 const StarfallChart=preload("res://scripts/starfall_chart.gd")
 const AqueductWheel=preload("res://scripts/aqueduct_waterwheel.gd")
 const ReddeepCart=preload("res://scripts/reddeep_slag_cart.gd")
+const EngineConduits=preload("res://scripts/sun_engine_conduits.gd")
 const MAX_CACHED_CYLINDERS=256
 const ROAD_CANAL_NEAR=-5.0
 const ROAD_CANAL_FAR=-13.0
@@ -772,6 +773,7 @@ func sun_engine(parent: Node3D,anchor: Vector3,scale_value=1.0):
   block(chamber,Vector3(x,2.83,0),Vector3(.14,.16,2.07),bronze).name="EngineBrace"
  var orbit=preload("res://scripts/clockwork_orbit.gd").new();chamber.add_child(orbit)
  orbit.position=Vector3.UP*3.45;orbit.configure("engine",1.875,1.2)
+ EngineConduits.build(self,chamber,orbit.conduit_light)
 
 func sun_engine_basin(parent: Node3D,anchor: Vector3):
  var water=plane_shape(Vector2(11.5,7.5))

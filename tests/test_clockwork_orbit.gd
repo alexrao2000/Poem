@@ -4,6 +4,7 @@ extends SceneTree
 const StarfallChart=preload("res://scripts/starfall_chart.gd")
 const Orbit=preload("res://scripts/clockwork_orbit.gd")
 const Scenery=preload("res://scripts/scenery.gd")
+const EngineConduits=preload("res://scripts/sun_engine_conduits.gd")
 const Rules=preload("res://scripts/rules.gd")
 const Encounters=preload("res://scripts/debug_encounters.gd")
 const Shutdown=preload("helpers/game_shutdown.gd")
@@ -25,6 +26,7 @@ func run():
     vertices.append({"mesh":mesh,"points":arrays[Mesh.ARRAY_VERTEX]})
    assert(triangles<4000)
    var first=[orbit.outer.transform,orbit.inner.transform,orbit.core.transform,orbit.core_material.albedo_color]
+   var glow=orbit.conduit_light.emission_energy_multiplier if theme=="engine" else 0.0
    for frame in 73:
     orbit.elapsed=Orbit.PERIOD*frame/72.0;orbit.update_motion()
     assert(is_equal_approx(orbit.outer.basis.determinant(),1) and is_equal_approx(orbit.inner.basis.determinant(),1))
@@ -32,8 +34,10 @@ func run():
      var transform=orbit.global_transform.affine_inverse()*item.mesh.global_transform
      for point in item.points:assert((transform*point).length()<radius*1.15,"Every moving vertex remains inside the mechanism's reserved radius")
     assert(orbit.core.scale.x>=.9799 and orbit.core.scale.x<=1.0201)
+    if theme=="engine":assert(orbit.conduit_light.emission_energy_multiplier>=.27999 and orbit.conduit_light.emission_energy_multiplier<=.68001)
     samples+=1
    assert(orbit.outer.transform.is_equal_approx(first[0]) and orbit.inner.transform.is_equal_approx(first[1]) and orbit.core.transform.is_equal_approx(first[2]) and orbit.core_material.albedo_color.is_equal_approx(first[3]),"A bounded clock loops without a pose or pulse discontinuity")
+   if theme=="engine":assert(is_equal_approx(orbit.conduit_light.emission_energy_multiplier,glow))
    orbit.elapsed=0;orbit.update_motion();orbit._process(1)
    assert(orbit.outer.transform!=first[0] and orbit.inner.transform!=first[1],"The rings move independently")
    var held=[orbit.elapsed,orbit.outer.transform,orbit.inner.transform,orbit.core_material.albedo_color]
@@ -42,6 +46,7 @@ func run():
    host.show();orbit._process(.1);assert(orbit.elapsed>held[0])
    var neighbor=Orbit.new();host.add_child(neighbor);neighbor.configure(theme,radius,.55)
    assert(neighbor.core_material!=orbit.core_material and neighbor.elapsed==0,"Each instance owns its pulse material and clock")
+   if theme=="engine":assert(neighbor.conduit_light!=orbit.conduit_light)
    var nearby=neighbor.find_children("*","MeshInstance3D",true,false)
    for index in 3:assert(nearby[index].mesh==meshes[index].mesh and nearby[index]!=meshes[index])
    assert((neighbor.core.mesh==orbit.core.mesh)==(radius==1.1),"Identical core dimensions use one sphere")
@@ -78,6 +83,12 @@ func run():
    var map_shaft=landmarks[0].get_parent().get_node("EnginePylonShaft")
    var arena_shaft=backdrops[0].get_parent().get_node("EnginePylonShaft")
    assert(map_shaft.mesh==arena_shaft.mesh and map_shaft.material_override==arena_shaft.material_override,"Map and close-up chamber share structure and finish")
+   var map_cells=verify_conduits(landmarks[0],-.07,Rect2(4.5,2.5,5,4))
+   var area=Rect2(Vector2(basin.position.x,basin.position.z)-basin.mesh.size*.5,basin.mesh.size)
+   var arena_cells=verify_conduits(backdrops[0],basin.position.y,area)
+   assert(map_cells[0].mesh==arena_cells[0].mesh and landmarks[0].conduit_light!=backdrops[0].conduit_light)
+   await verify_conduit_projections(map_cells,true)
+   await verify_conduit_projections(arena_cells,false)
   else:
    verify_meridian(landmarks[0],-.15,1.1)
    verify_meridian(backdrops[0],-.06,1.54)
@@ -102,6 +113,16 @@ func run():
    verify_meridian(other,-.06,1.54)
    await verify_meridian_wide(mirrored,Vector3(35,0,0))
    mirrored.queue_free()
+  else:
+   var mirror=Node3D.new();host.add_child(mirror)
+   var reversed=scenery.combat_context(game,{"x":10,"y":row},{"x":11,"y":row},-1.0)
+   scenery.battle_landscape(mirror,Vector3(35,0,0),reversed)
+   for landscape in [fallback,mirror]:
+    var pool=landscape.get_node("EngineBasinWater")
+    var area=Rect2(Vector2(pool.position.x,pool.position.z)-pool.mesh.size*.5,pool.mesh.size)
+    var cells=verify_conduits(landscape.find_child("ClockworkOrbit",true,false),pool.position.y,area)
+    await verify_conduit_projections(cells,false)
+   mirror.queue_free()
   world.queue_free();arena.queue_free();fallback.queue_free();await process_frame
  game.chapter=saved.chapter;assert(game.save_data("camp")==saved and game.rng.state==random)
  host.queue_free();await process_frame
@@ -109,6 +130,7 @@ func run():
  print("PASS: %d moving geometry samples, one arena mechanism per landmark, four grounded Sun Engine pylons with ring clearance, hidden-clock suspension and actual normal/Skip cleanup"%samples)
  print("PASS: Starfall's grounded meridian dais and brass dial clear the moving rings, with planted columns and eighteen wide-shot projections")
  print("PASS: Starfall’s shared etched chart, grounded supports and eighteen wide-shot readings of the tilted slate")
+ print("PASS: the Sun Engine’s two grounded conduits connect to its base and frame their pulse through three tactical and eighteen arena projections")
  quit()
 
 func verify_clockwork_cache_boundaries(host: Node3D):
@@ -147,6 +169,65 @@ func verify_chamber(orbit: Node3D,ground_height: float):
   var bounds=part.transform*part.mesh.get_aabb()
   var nearest=orbit.position.clamp(bounds.position,bounds.end)
   assert(nearest.distance_to(orbit.position)>1.875*1.15,"Stationary containment stays outside the full swept ring volume")
+
+func verify_conduits(orbit: Node3D,waterline: float,pool: Rect2) -> Array:
+ var chamber=orbit.get_parent()
+ var assembly=chamber.get_node("SunEngineConduits")
+ var cells=assembly.find_children("ConduitCell*","MeshInstance3D",false,false)
+ var footings=assembly.find_children("ConduitFooting*","MeshInstance3D",false,false)
+ var ducts=assembly.find_children("ConduitDuct*","MeshInstance3D",false,false)
+ var braces=assembly.find_children("ConduitCage*","MeshInstance3D",false,false)
+ assert(cells.size()==2 and footings.size()==2 and ducts.size()==4 and braces.size()==8)
+ assert(cells[0].mesh==cells[1].mesh and cells.all(func(cell):return cell.material_override==orbit.conduit_light))
+ assert(assembly.find_children("*","Light3D",true,false).is_empty(),"The glow needs no extra scene lights")
+ for part in assembly.get_children():
+  var bounds=part.global_transform*part.mesh.get_aabb()
+  assert(pool.encloses(Rect2(bounds.position.x,bounds.position.z,bounds.size.x,bounds.size.z)),"Conduits stay inside the pool and clear of the walkable paving")
+  var local=part.transform*part.mesh.get_aabb()
+  assert(orbit.position.distance_to(orbit.position.clamp(local.position,local.end))>1.875*1.15)
+ var foundation=chamber.get_node("EngineFoundation")
+ var base=foundation.transform*foundation.mesh.get_aabb()
+ for index in 2:
+  var footing=footings[index].global_transform*footings[index].mesh.get_aabb()
+  assert(footing.position.y<waterline and footing.end.y>waterline)
+  var previous=footings[index].transform*footings[index].mesh.get_aabb()
+  for prefix in ["ConduitFitting","ConduitLowerCollar","ConduitCell","ConduitUpperCollar","ConduitCap"]:
+   var part=assembly.find_children(prefix+"*","MeshInstance3D",false,false)[index]
+   var shape=part.transform*part.mesh.get_aabb()
+   assert(previous.intersects(shape),"The footing, collar, crystal and cap meet along one vertical cell")
+   previous=shape
+  var elbow=assembly.find_children("ConduitElbow*","MeshInstance3D",false,false)[index]
+  var joint=elbow.transform*elbow.mesh.get_aabb()
+  var external=ducts[index*2].transform*ducts[index*2].mesh.get_aabb()
+  var internal=ducts[index*2+1].transform*ducts[index*2+1].mesh.get_aabb()
+  assert(external.intersects(joint) and internal.intersects(joint) and internal.intersects(base))
+ return cells
+
+func verify_conduit_projections(cells: Array,tactical: bool):
+ var viewport=SubViewport.new();viewport.render_target_update_mode=SubViewport.UPDATE_DISABLED;root.add_child(viewport)
+ var camera=Camera3D.new();viewport.add_child(camera);camera.current=true
+ for mounted in ([false] if tactical else [false,true]):
+  if tactical:
+   var middle=Vector3(6.5,0,4.5)
+   camera.projection=Camera3D.PROJECTION_ORTHOGONAL;camera.size=16.0;camera.h_offset=2.0
+   camera.position=middle+Vector3(2.5,22,11.5);camera.look_at(middle)
+  else:
+   var center=Vector3(35,0,0)
+   var shot=CombatCamera.frame_pair(center+Vector3.LEFT*1.6,center+Vector3.RIGHT*1.6,"wide",false,mounted)
+   camera.position=shot.anchor;camera.fov=shot.lens;camera.look_at(shot.focus)
+  for dimensions in [Vector2i(1024,640),Vector2i(1280,720),Vector2i(1440,900)]:
+   viewport.size=dimensions;await process_frame
+   var safe=Rect2(22,118,dimensions.x-367,dimensions.y-198) if tactical else Rect2(20,20,dimensions.x-40,dimensions.y-174)
+   var readable=0
+   for cell in cells:
+    var bounds=Rect2(camera.unproject_position(cell.global_position),Vector2.ZERO)
+    for corner in 8:
+     var position=cell.to_global(cell.mesh.get_aabb().get_endpoint(corner))
+     assert(not camera.is_position_behind(position))
+     bounds=bounds.expand(camera.unproject_position(position))
+    if safe.encloses(bounds) and bounds.size.y>=(6 if tactical else 13):readable+=1
+   assert(readable>=(2 if tactical else 1),"The glowing cells project clear of the HUD at %s, tactical %s, mounted %s"%[dimensions,tactical,mounted])
+ viewport.queue_free();await process_frame
 
 func verify_meridian(orbit: Node3D,ground_height: float,radius: float):
  var dais=orbit.get_parent().get_node("ObservatoryDais")
@@ -252,12 +333,24 @@ func scenes():
      var faces=landscape.get_children().filter(func(node):return node is MeshInstance3D and node.material_override==StarfallChart.Masonry.material())
      assert(faces.size()==1 and faces[0].mesh.surface_get_array_len(0)==StarfallChart.star_chart().surface_get_array_len(0),
       "The engraved slate appears in the batched tactical and combat landscapes")
+   else:
+    assert(is_equal_approx(map_orbit.conduit_light.emission_energy_multiplier,arena_orbit.conduit_light.emission_energy_multiplier))
+    for field in [[app.world,map_orbit],[app.stage,arena_orbit]]:
+     var light=field[1].conduit_light
+     var glass=field[0].get_children().filter(func(node):return node is MeshInstance3D and node.material_override==light)
+     var vertices=0
+     for batch in glass:
+      assert(batch.get_meta("static_batch",false))
+      vertices+=batch.mesh.surface_get_array_len(0)
+     assert(glass.size() in [1,2] and vertices==EngineConduits.collar.surface_get_arrays(0)[Mesh.ARRAY_VERTEX].size()*2,
+      "Both glowing cells retain their exact geometry in the spatial scenery batches")
    transfers.entry=arena_orbit.elapsed
   var on_return=func():
    if app.stage.visible or app.world.visible:return
    var arena_orbit=app.stage.find_child("ClockworkOrbit",true,false)
    assert(is_equal_approx(map_orbit.elapsed,arena_orbit.elapsed) and arena_orbit.elapsed>transfers.entry)
    assert(map_orbit.inner.rotation.is_equal_approx(arena_orbit.inner.rotation))
+   if chapter==11:assert(is_equal_approx(map_orbit.conduit_light.emission_energy_multiplier,arena_orbit.conduit_light.emission_energy_multiplier))
    transfers.returned=true
   app.world.visibility_changed.connect(on_entry)
   app.stage.visibility_changed.connect(on_return)
