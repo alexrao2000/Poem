@@ -17,6 +17,7 @@ func run():
  await verify_ruined_columns()
  await verify_village_groves()
  await verify_trail_lanterns()
+ await verify_kingsroad_canal()
  await verify_cart()
  await verify_barrels()
  var colors=[]
@@ -283,6 +284,62 @@ func verify_trail_lanterns():
  world.queue_free();stage.queue_free();viewport.queue_free();await process_frame
  assert(game.save_data("camp")==before,"Lamp placement never touches the campaign or RNG")
  print("PASS: six Greywood roadside fixtures, five reused arena lanterns, four shared map batches, no extra lights and six unoccluded wide-shot projections")
+
+func verify_kingsroad_canal():
+ var scenery=Scenery.new();scenery.batching_enabled=false
+ var game=Rules.new();game.chapter=4;var rng=game.rng.state
+ var normal=scenery.combat_context(game,{"x":9,"y":4},{"x":9,"y":3})
+ var mirrored=scenery.combat_context(game,{"x":9,"y":4},{"x":9,"y":3},-1.0)
+ var dry=scenery.combat_context(game,{"x":12,"y":0},{"x":13,"y":0})
+ var deck=scenery.combat_context(game,{"x":4,"y":1},{"x":5,"y":1})
+ assert(normal.road_canal and mirrored.road_canal and not dry.road_canal)
+ assert(deck.road_canal and deck.terrain=="=")
+ var center=Vector3(35,0,0)
+ var viewport=SubViewport.new();viewport.render_target_update_mode=SubViewport.UPDATE_DISABLED;root.add_child(viewport)
+ var camera=Camera3D.new();viewport.add_child(camera);camera.current=true
+ for context in [normal,mirrored,dry,deck]:
+  var stage=Node3D.new();root.add_child(stage);scenery.battle_landscape(stage,center,context)
+  var water=stage.get_node_or_null("KingsroadCanalWater")
+  if context==dry:
+   assert(water==null and stage.get_node("ArenaGround").mesh.size==Vector2(70,70))
+  elif context==deck:
+   assert(water==null and stage.has_node("ArenaWater") and stage.has_node("ArenaDeck"))
+  else:
+   assert(water!=null and water.material_override==scenery.water_material("road"))
+   var near_bank=stage.get_node("ArenaGround")
+   var far_bank=stage.get_node("KingsroadFarBank")
+   var near_bounds=near_bank.transform*near_bank.mesh.get_aabb()
+   var far_bounds=far_bank.transform*far_bank.mesh.get_aabb()
+   var water_bounds=water.transform*water.mesh.get_aabb()
+   assert(near_bank.material_override==far_bank.material_override)
+   assert(near_bounds.position.z==water_bounds.end.z and far_bounds.end.z==water_bounds.position.z,"Land and water share both exact channel edges")
+   assert(near_bounds.position.z<=-5.0 and is_zero_approx(near_bounds.position.y) and is_zero_approx(far_bounds.position.y))
+   var revetments=stage.find_children("CanalRevetment*","MeshInstance3D",false,false)
+   var caps=stage.find_children("CanalCoping*","MeshInstance3D",false,false)
+   assert(revetments.size()==2 and caps.size()==2)
+   var wall_bounds=[]
+   for index in 2:
+    var wall=revetments[index].transform*revetments[index].mesh.get_aabb()
+    var cap=caps[index].transform*caps[index].mesh.get_aabb()
+    assert(wall.intersects(cap) and wall.position.y<water.position.y and wall.end.y>water.position.y)
+    wall_bounds.append(wall.merge(cap))
+   for anchor in stage.find_children("ArenaLandmark*","Node3D",false,false):
+    var tower=anchor.get_node_or_null("FortifiedTower")
+    if tower!=null:assert((tower.global_transform*tower.mesh.get_aabb()).end.z<=far_bounds.end.z,"Mapped tower remains planted on the far bank")
+   for mounted in [false,true]:
+    var shot=CombatCamera.frame_pair(center+Vector3.LEFT*1.6,center+Vector3.RIGHT*1.6,"wide",false,mounted)
+    camera.position=shot.anchor;camera.fov=shot.lens;camera.look_at(shot.focus)
+    for dimensions in [Vector2i(1024,640),Vector2i(1280,720),Vector2i(1440,900)]:
+     viewport.size=dimensions;await process_frame
+     var safe=Rect2(Vector2(20,20),Vector2(dimensions)-Vector2(40,174))
+     var wet=center+Vector3(-3,water.position.y,-8.4)
+     assert(safe.has_point(camera.unproject_position(wet)) and not camera.is_position_behind(wet))
+     assert(wall_bounds.all(func(wall):return wall.intersects_segment(camera.global_position,wet)==null),
+      "The wide shot sees the water surface above the near coping")
+  stage.queue_free();await process_frame
+ viewport.queue_free();await process_frame
+ assert(game.rng.state==rng)
+ print("PASS: Kingsroad channel follows actual terrain, exact split banks and waterline, existing bridge/deck and dry cases, planted towers and twelve wide-shot projections")
 
 func verify_aqueduct_gallery():
  var scenery=Scenery.new();scenery.batching_enabled=false

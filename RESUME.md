@@ -6,6 +6,8 @@ Development resumed on “go”. Continue in this chat until the user asks to st
 
 ### Latest state
 
+Kingsroad now frames the canal in 3D when the tactical engagement is near water. The two stone banks meet the measured water edges, and mapped towers sit securely on the far bank. Twelve projected mounted and unmounted shots see the water above the near coping. Dry fights keep their field and bridge fights keep their deck. Nine focused suites, both local exports, architecture in both packs and archive integrity passed. Rendered appearance remains unreviewed.
+
 Greywood now carries its lantern road from the tactical map into the rainy 3D arena. Six map fixtures sit beside the road, and five close-up fixtures use the same two shared meshes. The map batches their two materials into four static groups. Six unmounted and mounted wide-shot projections each kept at least two lantern windows clear of trees and the HUD. Eight focused suites, both local exports, architecture in both packs and archive integrity passed. Rendered appearance remains unreviewed.
 
 The 3D battle HUD gives weapons, forecasts and HP separate rows on narrow logical canvases. All 24 recruit portraits and the opposing plate fit at six widths from 720 to 1440 pixels. Every weapon name fits with a matchup arrow at the narrow and wide breakpoint checks. A live 3D exchange resized to 720 pixels during Fast ×2 and accepted Skip in the new layout. Ten focused suites, the live-resize repeat, both exports, layout and pointer checks in both packs, and archive integrity passed. Rendered appearance remains unreviewed.

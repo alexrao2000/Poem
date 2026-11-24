@@ -1,5 +1,7 @@
 # Poem development
 
+Kingsroad’s close-up arena shows a canal when the fight is within two tiles of the tactical water. A pair of stone retaining walls separates the dry fighting lane from the far bank and its towers. Bridge fights use their timber deck.
+
 Greywood’s lantern road now has six warm paper fixtures among the trees. The rainy close-up arena uses five larger versions of the same timber, iron and brass geometry behind the fighting lane. Emissive paper gives the windows their warm color, and both fixture materials are statically batched.
 
 The 3D combat HUD uses a compact layout in narrow windows. The weapon line gets the full space beside a smaller portrait, the forecast spans both columns, and HP numbers sit beside the pips. Fast and Skip stay in the gap between the nameplates. Resizing keeps the current HP, forecast and playback speed during an exchange.

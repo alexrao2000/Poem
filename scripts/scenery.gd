@@ -17,6 +17,9 @@ const RuinedColumns=preload("res://scripts/ruined_columns.gd")
 const SanctuaryPlinth=preload("res://scripts/sanctuary_plinth.gd")
 const TrailLanterns=preload("res://scripts/trail_lanterns.gd")
 const MAX_CACHED_CYLINDERS=256
+const ROAD_CANAL_NEAR=-5.0
+const ROAD_CANAL_FAR=-13.0
+const ROAD_CANAL_LEVEL=-.11
 # Left and right roadside groves lead into a lower, more distant orchard.
 const VILLAGE_TREES=[
  {"position":Vector2(-15.7,-8.8),"scale":2.3},
@@ -438,7 +441,17 @@ func combat_context(game,a,b,screen_direction=1.0) -> Dictionary:
   if delta.length()>8:continue
   candidates.append({"kind":item.kind,"roof_variant":Architecture.variant_at(Vector3(item.position[0],0,item.position[1])),"distance":delta.length(),"x":clampf(delta.dot(axis)*2.2,-11,11),"z":-7-clampf(absf(delta.dot(depth))*1.8,0,10)})
  candidates.sort_custom(func(left,right):return left.distance<right.distance)
- return {"chapter":game.chapter,"environment":game.info().get("environment","village"),"terrain":game.terrain(game.pos(b)),"landmarks":candidates.slice(0,2)}
+ var theme=game.info().get("environment","village")
+ return {"chapter":game.chapter,"environment":theme,"terrain":game.terrain(game.pos(b)),
+  "landmarks":candidates.slice(0,2),"road_canal":theme=="road" and nearby_channel(game,midpoint)}
+
+func nearby_channel(game,midpoint: Vector2) -> bool:
+ var nearest=Vector2i(midpoint.round())
+ for y in range(nearest.y-2,nearest.y+3):
+  for x in range(nearest.x-2,nearest.x+3):
+   if midpoint.distance_squared_to(Vector2(x,y))<=4 and game.terrain(Vector2i(x,y))=="~":
+    return true
+ return false
 
 func battle_tree(parent,point,seed_value,scale_value,theme=""):
  var group=Node3D.new();group.name="ArenaTree";group.position=point;group.scale=Vector3.ONE*scale_value;parent.add_child(group,true)
@@ -499,6 +512,18 @@ func aqueduct_parapet(parent: Node3D,center: Vector3):
  block(parent,center+Vector3(0,.19,-2.81),Vector3(23.6,.40,.33),masonry).name="AqueductParapet"
  block(parent,center+Vector3(0,.425,-2.81),Vector3(23.7,.12,.44),Color("b7b9a8")).name="ArenaRailing"
 
+func kingsroad_canal(parent: Node3D,center: Vector3,paint: Material):
+ var near_length=35.0-ROAD_CANAL_NEAR
+ var far_length=35.0+ROAD_CANAL_FAR
+ ground(parent,center+Vector3(0,0,(35.0+ROAD_CANAL_NEAR)*.5),Vector2(70,near_length),0,paint).name="ArenaGround"
+ ground(parent,center+Vector3(0,0,(ROAD_CANAL_FAR-35.0)*.5),Vector2(70,far_length),0,paint).name="KingsroadFarBank"
+ var water=plane_shape(Vector2(70.0,ROAD_CANAL_NEAR-ROAD_CANAL_FAR))
+ var midpoint=(ROAD_CANAL_NEAR+ROAD_CANAL_FAR)*.5
+ mesh(parent,water,center+Vector3(0,ROAD_CANAL_LEVEL,midpoint),Vector3.ONE,water_material("road")).name="KingsroadCanalWater"
+ for depth in [ROAD_CANAL_NEAR,ROAD_CANAL_FAR]:
+  block(parent,center+Vector3(0,-.13,depth),Vector3(70,.34,.40),detail_material(3)).name="CanalRevetment"
+  block(parent,center+Vector3(0,.06,depth),Vector3(70,.10,.54),Color("9a9a88")).name="CanalCoping"
+
 func sun_engine(parent: Node3D,anchor: Vector3,scale_value=1.0):
  var chamber=Node3D.new();chamber.name="SunEngineChamber";chamber.position=anchor
  chamber.scale=Vector3.ONE*scale_value;parent.add_child(chamber)
@@ -536,12 +561,14 @@ func battle_landscape(parent,center,context={}):
  var stone=theme in ["abbey","aqueduct","observatory","castle","engine","furnace"]
  var wooden_floor=theme=="harbor" or tile=="="
  var continuous_floor=not wooden_floor and theme in MapGround.CONTINUOUS_ARENAS
+ var road_canal=theme=="road" and not wooden_floor and context.get("road_canal",false)
  var surface=maxi(0,MapGround.surface_for(tile,theme))
  parent.set_meta("arena_surface",surface)
  var river=theme=="river"
  if continuous_floor:
   var paint=MapGround.arena_material(surface,center,atlas) if surface!=0 else null
-  ground(parent,center,Vector2(70,70),0,paint).name="ArenaGround"
+  if road_canal:kingsroad_canal(parent,center,paint)
+  else:ground(parent,center,Vector2(70,70),0,paint).name="ArenaGround"
  else:
   ground(parent,center-Vector3(0,.06,0),Vector2(70,70),3 if stone else 0)
   if not wooden_floor:ground(parent,center,Vector2(24,6),surface)
@@ -569,6 +596,7 @@ func battle_landscape(parent,center,context={}):
  if theme in ["village","river","road","forest","harbor"]:
   var base=-.06 if theme=="forest" and not continuous_floor else 0.0
   var tree_line=RiverBank.ARENA_FAR_START-1 if river else -8.0
+  if road_canal:tree_line=ROAD_CANAL_FAR-1.8
   var house_sites=[]
   if theme!="forest" and backdrop.is_empty():
    for i in range(3):
@@ -587,6 +615,7 @@ func battle_landscape(parent,center,context={}):
  for item in backdrop:
   var depth=RiverBank.ARENA_FAR_START-1.5+(item.z+7)*.7 if river else item.z
   if theme=="aqueduct":depth=minf(depth,-11.0)
+  if road_canal:depth=minf(depth,ROAD_CANAL_FAR-1.8)
   if theme=="abbey":depth=minf(depth,-13.0)
   if theme=="mountain":depth=maxf(depth,-9.6)
   if item.kind==theme and theme in ["engine","observatory"]:
