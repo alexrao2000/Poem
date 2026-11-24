@@ -47,14 +47,22 @@ func run():
  var original_attributes=var_to_bytes(shape.surface_get_arrays(0))
  for i in range(2):
   var mesh=MeshInstance3D.new();mesh.mesh=shape;mesh.material_override=shared;mesh.scale=Vector3(2,3,4);mesh.position.x=i;parent.add_child(mesh)
+ var other_paint=StandardMaterial3D.new()
+ var moved=MeshInstance3D.new();moved.mesh=shape;moved.material_override=other_paint
+ moved.position=Vector3(-12,0,8);moved.scale=Vector3(2,3,4);parent.add_child(moved)
+ var moved_points=moved.global_transform*shape.surface_get_arrays(0)[Mesh.ARRAY_VERTEX]
  var before=signature(world);var batch=Batch.new();var stats=batch.combine(world);var after=signature(world)
- assert(stats.sources==2 and stats.batches==1)
+ assert(stats.sources==3 and stats.batches==2)
  assert(var_to_bytes(shape.surface_get_arrays(0))==original_attributes,"Reusing a source surface leaves its template attributes intact")
  assert(before.triangles==after.triangles and before.vertices==after.vertices and before.sum.is_equal_approx(after.sum),"Batch preserves geometry and hierarchy transforms")
  var baked=world.get_children().filter(func(child):return child is MeshInstance3D)[0]
  var normals=baked.mesh.surface_get_arrays(0)[Mesh.ARRAY_NORMAL]
  assert(normals[0].distance_to(Vector3(.5,1.0/3,.25).normalized())<.0005,"Nonuniform scales use inverse-transpose normals")
  assert(baked.material_override==shared,"Material identity preserved")
+ var translated=world.get_children().filter(func(child):return child is MeshInstance3D and child.material_override==other_paint)[0]
+ var translated_arrays=translated.mesh.surface_get_arrays(0)
+ assert(translated_arrays[Mesh.ARRAY_VERTEX]==moved_points and translated_arrays[Mesh.ARRAY_NORMAL][0]==normals[0])
+ print("PASS: repeated basis retains exact translated vertices and normals across materials and spatial batches")
  var dynamic=MeshInstance3D.new();dynamic.mesh=BoxMesh.new();dynamic.material_override=shared;dynamic.set_meta("dynamic",true);world.add_child(dynamic)
  assert(batch.combine(world).sources==0 and is_instance_valid(dynamic) and dynamic.get_parent()==world,"Explicitly dynamic and already-batched meshes are left intact")
  world.queue_free();await process_frame

@@ -29,16 +29,18 @@ func combine(root: Node3D,spatial=true) -> Dictionary:
    var surface=SurfaceTool.new();surface.begin(Mesh.PRIMITIVE_TRIANGLES);surface.set_material(material)
    groups[key]={"surface":surface,"material":material,"shadow":node.cast_shadow,"layers":node.layers,"cull_margin":0.0}
   groups[key].cull_margin=maxf(groups[key].cull_margin,node.extra_cull_margin)
-  var orientation=source_surface.orientations.get(transform.basis)
-  if orientation==null:
-   orientation=orient_surface(source_surface.attributes,transform.basis)
+  # Reuse the rotated and scaled mesh across translated copies.
+  var baked=source_surface.orientations.get(transform.basis) as ArrayMesh
+  if baked==null:
+   var attributes=orient_surface(source_surface.attributes,transform.basis)
+   var rotation_and_scale=Transform3D(transform.basis,Vector3.ZERO)
+   attributes[Mesh.ARRAY_VERTEX]=rotation_and_scale*attributes[Mesh.ARRAY_VERTEX]
+   baked=ArrayMesh.new()
+   baked.add_surface_from_arrays(Mesh.PRIMITIVE_TRIANGLES,attributes)
    if source_surface.orientations.size()<MAX_ORIENTATIONS_PER_MESH:
-    source_surface.orientations[transform.basis]=orientation
-  var arrays=orientation.duplicate()
-  var points: PackedVector3Array=transform*arrays[Mesh.ARRAY_VERTEX]
-  arrays[Mesh.ARRAY_VERTEX]=points;vertices+=points.size()
-  var baked=ArrayMesh.new();baked.add_surface_from_arrays(Mesh.PRIMITIVE_TRIANGLES,arrays)
-  groups[key].surface.append_from(baked,0,Transform3D.IDENTITY)
+    source_surface.orientations[transform.basis]=baked
+  vertices+=source_surface.attributes[Mesh.ARRAY_VERTEX].size()
+  groups[key].surface.append_from(baked,0,Transform3D(Basis.IDENTITY,transform.origin))
   node.get_parent().remove_child(node);node.queue_free();merged_sources+=1
  for group in groups.values():
   var node=MeshInstance3D.new();node.name="StaticScenery";node.mesh=group.surface.commit();node.material_override=group.material
