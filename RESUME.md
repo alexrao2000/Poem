@@ -6,6 +6,8 @@ This checkpoint describes the current development branch and supersedes the earl
 
 ### Latest state
 
+The outfit viewer shows the recruit’s animated map sprite beside their portrait and close-up 3D fighter. It uses the same atlas and foot pivots as the tactical map. Model swaps retain the sprite identity, rotation, zoom and action. Thirty-two viewer layouts covered 720–1440 logical pixels. Nine focused suites, four packed checks, 72 matched chapter outcomes and both ZIP checks passed. The viewer was checked headlessly.
+
 River geometry samples each grid point once for tactical shorelines and both arena banks. All 56 sampled cases preserve their vertices, UVs, normals and indices. In separate headless processes, median generation for 54 tactical requests fell from 12.61 ms to 6.03–6.07 ms. Two cold arena banks fell from 2.08 ms to 1.16 ms. Eight focused suites, four packed checks, 72 matched chapter outcomes and both ZIP checks passed. See `build/review/river-grid-profile.json`.
 
 Scenery batching reuses the scaled and rotated mesh when identical pieces appear at different positions. All 24 production map and arena assemblies match exactly in source and both exports. The headless study counted 10,163 temporary meshes across those assemblies, down from 15,009. The sum of the 24 case medians fell from 202.34 ms to 196.20 ms for the batching step. Eight focused suites, four packed checks, 72 matched chapter outcomes and both ZIP checks passed. See `build/review/translated-scenery-batches.json`.

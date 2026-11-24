@@ -28,12 +28,7 @@ var tactical_details_visible=true
 func configure(source: RefCounted,unit: Dictionary,facing="south",carried_name="",shared_count=0):
  unit_id=unit.id;team=unit.team;spent=unit.acted;downed=unit.get("downed",false)
  hp_ratio=clampf(float(unit.hp)/maxf(1,unit.max_hp),0,1)
- var individual="recruit."+unit.id
- var enemy="enemy."+unit.job.to_lower()
- var chosen="unit."+unit.job.to_lower()
- if team=="player" and source.assets.has(individual):chosen=individual
- elif team=="enemy" and source.assets.has(enemy):chosen=enemy
- setup(source,chosen)
+ setup(source,source.asset_id_for(unit))
  sprite.pixel_size=TACTICAL_PIXEL_SIZE;sprite.no_depth_test=true;sprite.render_priority=2
  if contact_mesh==null:
   contact_mesh=PlaneMesh.new();contact_mesh.size=Vector2(.58,.40)
@@ -155,9 +150,9 @@ func update_frame():
  if spent and catalog.has_method("spent_frame_texture"):
   sprite.texture=catalog.spent_frame_texture(visual_id,player.frame_index())
  else:sprite.texture=catalog.frame_texture(visual_id,player.frame_index())
- var density=player.asset.get("source_pixel_scale",0)
- if density>0:sprite.scale=Vector3(density,density,1)
  var frame=player.asset.frames[player.frame_index()]
+ var scale_value=catalog.frame_scale(player.asset,frame)
+ sprite.scale=Vector3(scale_value.x,scale_value.y,1)
  sprite.flip_h=player.facing=="west" and player.asset.get("right_facing_frames",[]).any(func(value):return int(value)==player.frame_index())
  sprite.offset=Vector2(frame.pivot_px[0]-frame.rect[2] if sprite.flip_h else -frame.pivot_px[0],frame.pivot_px[1]-frame.rect[3])
 

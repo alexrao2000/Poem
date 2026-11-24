@@ -45,6 +45,18 @@ func add_supplement(path: String,prefix: String,issues: Array[String]) -> bool:
  assets.merge(extra.assets);textures.merge(extra.textures)
  return true
 
+func asset_id_for(unit: Dictionary) -> String:
+ var individual="recruit."+unit.id
+ var enemy="enemy."+unit.job.to_lower()
+ if unit.team=="player" and assets.has(individual):return individual
+ if unit.team=="enemy" and assets.has(enemy):return enemy
+ return "unit."+unit.job.to_lower()
+
+func frame_scale(asset: Dictionary, frame: Dictionary) -> Vector2:
+ var density: float=asset.get("source_pixel_scale",0)
+ if density>0:return Vector2(density,density)
+ return Vector2(asset.logical_frame_px[0],asset.logical_frame_px[1])/Vector2(frame.rect[2],frame.rect[3])
+
 func spent_frame_texture(id: String,index: int) -> Texture2D:
  var original=frame_texture(id,index)
  if original==null:return null

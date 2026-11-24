@@ -5,6 +5,7 @@ const EquipmentComparison=preload("res://scripts/equipment_comparison.gd")
 const Portraits = preload("res://scripts/portraits.gd")
 const WeaponIcons=preload("res://scripts/weapon_icons.gd")
 const MapUnit=preload("res://scripts/campaign_map_unit.gd")
+const PreviewMapSprite=preload("res://scripts/preview_map_sprite.gd")
 const ActionRange=preload("res://scripts/action_range.gd")
 const MapOverlay=preload("res://scripts/map_overlay.gd")
 const MapSurface=preload("res://scripts/map_surface.gd")
@@ -1862,12 +1863,18 @@ func show_model_view(unit,on_close=Callable(),model_spec: Dictionary={},model_ch
 	preview_actor.rotation.y=PI-.35
 	var panel=menu_panel(310,true)
 	label_in(panel,"DEBUG / MODEL STUDY" if not model_spec.is_empty() else "TRAINING / OUTFIT PREVIEW" if preview_return.is_valid() else "COMPANY / PREVIEW",15,GOLD);label_in(panel,unit.name,38)
-	var portrait=TextureRect.new();portrait.texture=portraits.get_portrait(unit.id)
-	var size_portrait=func():portrait.custom_minimum_size=Vector2(220,150 if ui.size.y<760 else 220)
-	ui.resized.connect(size_portrait);size_portrait.call()
-	portrait.expand_mode=TextureRect.EXPAND_IGNORE_SIZE;portrait.stretch_mode=TextureRect.STRETCH_KEEP_ASPECT_CENTERED;panel.add_child(portrait)
-	if not model_spec.is_empty():
-		portrait.hide()
+	if model_spec.is_empty():
+		var artwork=HBoxContainer.new();artwork.add_theme_constant_override("separation",12);panel.add_child(artwork)
+		var portrait=TextureRect.new();portrait.texture=portraits.get_portrait(unit.id)
+		var size_portrait=func():portrait.custom_minimum_size.y=150 if ui.size.y<760 else 220
+		ui.resized.connect(size_portrait);size_portrait.call()
+		portrait.size_flags_horizontal=Control.SIZE_EXPAND_FILL
+		portrait.expand_mode=TextureRect.EXPAND_IGNORE_SIZE;portrait.stretch_mode=TextureRect.STRETCH_KEEP_ASPECT_CENTERED;artwork.add_child(portrait)
+		var swatch=VBoxContainer.new();swatch.size_flags_vertical=Control.SIZE_SHRINK_CENTER
+		swatch.add_theme_constant_override("separation",4);artwork.add_child(swatch)
+		var sprite_preview=PreviewMapSprite.new();sprite_preview.name="PreviewMapSprite";sprite_preview.configure(map_catalog,actor_data);swatch.add_child(sprite_preview)
+		label_in(swatch,"Map sprite",15,GOLD).horizontal_alignment=HORIZONTAL_ALIGNMENT_CENTER
+	else:
 		var identity_hint="Original enemy face, class headgear, colors and imperial cloak." if model_spec.has("study_enemy_class") else "Imported body with the recruit’s original face, hair, expressions and colors."
 		if model_spec.has("study_commander"):identity_hint="Commander study: original face, armor colors and insignia."
 		label_in(panel,identity_hint if model_spec.get("styled",false) else "Quaternius source rig with Poem equipment. Campaign characters are unchanged.",17)
