@@ -111,8 +111,39 @@ func run():
  world=Node3D.new();root.add_child(world);scenery.battle_landscape(world,Vector3(35,.7,0),{"environment":"road","terrain":"="})
  verify_deck(world,Vector3(35,.7,0));world.queue_free();await process_frame
  assert(total_batches<total_sources*.6,"Static mesh submissions reduced by at least forty percent")
+ verify_arena_grove_cache()
  print("PASS: 12 maps and 12 arenas retain vertices, triangles, UVs and transforms; correct scaled normals, four conifer atlas regions and grounded woodland/pass trees; ",total_sources," meshes → ",total_batches," batches")
  quit()
+
+func verify_arena_grove_cache():
+ var scenery=Scenery.new();var game=Rules.new()
+ var before=game.save_data("camp").duplicate(true)
+ var context=scenery.combat_context(game,{"x":2,"y":3},{"x":3,"y":3})
+ var first=Node3D.new();var second=Node3D.new()
+ root.add_child(first);root.add_child(second)
+ var center=Vector3(35,0,0)
+ scenery.battle_landscape(first,center,context);scenery.battle_landscape(second,center,context)
+ var initial=first.get_node("ArenaGrove").get_children()
+ var reused=second.get_node("ArenaGrove").get_children()
+ assert(initial.size()==reused.size() and initial.size()>3 and scenery.arena_groves.size()==1)
+ for index in initial.size():
+  var old=initial[index];var copy=reused[index]
+  assert(old!=copy and old.mesh==copy.mesh and old.material_override==copy.material_override)
+  assert(old.global_transform==copy.global_transform and old.cast_shadow==copy.cast_shadow)
+  assert(old.layers==copy.layers and old.extra_cull_margin==copy.extra_cull_margin)
+ for n in range(1,Scenery.ARENA_GROVE_CACHE_LIMIT+1):
+  var translated=Node3D.new();root.add_child(translated)
+  scenery.battle_landscape(translated,center+Vector3(n,0,0),context)
+  var tree=translated.get_node("ArenaGrove").get_child(0)
+  assert(tree.mesh!=initial[0].mesh and tree.material_override==initial[0].material_override)
+  assert(scenery.arena_groves.size()<=Scenery.ARENA_GROVE_CACHE_LIMIT)
+  translated.free()
+ var rebuilt=Node3D.new();root.add_child(rebuilt);scenery.battle_landscape(rebuilt,center,context)
+ var last=rebuilt.get_node("ArenaGrove").get_child(0)
+ assert(last.mesh!=initial[0].mesh and last.mesh.surface_get_arrays(0)==initial[0].mesh.surface_get_arrays(0))
+ assert(game.save_data("camp")==before)
+ first.free();second.free();rebuilt.free()
+ print("PASS: repeated arena groves reuse mesh and materials with independent nodes, preserve their wind placement and rebuild exact geometry after eviction")
 
 func verify_leaf_cards(scenery):
  var original=Node3D.new();root.add_child(original)

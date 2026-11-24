@@ -33,6 +33,7 @@ const StarfallTerrain=preload("res://scripts/starfall_terrain.gd")
 const AqueductWheel=preload("res://scripts/aqueduct_waterwheel.gd")
 const ReddeepCart=preload("res://scripts/reddeep_slag_cart.gd")
 const ReddeepWorks=preload("res://scripts/reddeep_works.gd")
+const ARENA_GROVE_CACHE_LIMIT=4
 const EngineConduits=preload("res://scripts/sun_engine_conduits.gd")
 const MAX_CACHED_CYLINDERS=256
 const HOUSE_SCALE=1.2
@@ -92,6 +93,7 @@ var batcher=preload("res://scripts/static_batch.gd").new()
 var ground_cover=GroundCover.new()
 var conifer_crowns=ConiferCrowns.new()
 var reddeep_works=ReddeepWorks.new()
+var arena_groves: Dictionary={}
 var unit_block=BoxMesh.new()
 var leaf_card=QuadMesh.new()
 var planes: Dictionary={}
@@ -656,11 +658,40 @@ func battle_tree(parent,point,seed_value,scale_value,theme=""):
  tree(group,Vector3.ZERO,seed_value,theme)
 
 func village_trees(parent: Node3D,center: Vector3,house_sites: Array):
+ var sites=[]
  for index in VILLAGE_TREES.size():
   var tree_site=VILLAGE_TREES[index];var position=tree_site.position
   if house_sites.any(func(site):return absf(position.x-site.x)<4.7 and position.y>site.y-4.5):
    continue
-  battle_tree(parent,center+Vector3(position.x,0,position.y),index*83,tree_site.scale,"village")
+  sites.append([center+Vector3(position.x,0,position.y),index*83,tree_site.scale])
+ arena_grove(parent,sites,"village")
+
+func arena_grove(parent: Node3D,sites: Array,theme: String):
+ if not batching_enabled:
+  for site in sites:battle_tree(parent,site[0],site[1],site[2],theme)
+  return
+ if sites.is_empty():return
+ var grove=Node3D.new();grove.name="ArenaGrove";parent.add_child(grove)
+ # A repeat fight reuses the baked foliage while its shader evaluates wind at each world position.
+ var key=[theme,sites]
+ var cached=arena_groves.get(key)
+ if cached!=null:
+  for surface in cached:
+   var branch=mesh(grove,surface.mesh,Vector3.ZERO,Vector3.ONE,surface.material)
+   branch.set_meta("static_batch",true)
+   branch.cast_shadow=surface.shadow;branch.layers=surface.layers;branch.extra_cull_margin=surface.cull_margin
+  return
+ for site in sites:battle_tree(grove,site[0],site[1],site[2],theme)
+ batcher.combine(grove)
+ var surfaces=[]
+ for child in grove.get_children():
+  if child is MeshInstance3D:
+   surfaces.append({"mesh":child.mesh,"material":child.material_override,"shadow":child.cast_shadow,
+    "layers":child.layers,"cull_margin":child.extra_cull_margin})
+  elif child.get_child_count()==0:
+   grove.remove_child(child);child.queue_free()
+ if arena_groves.size()>=ARENA_GROVE_CACHE_LIMIT:arena_groves.erase(arena_groves.keys()[0])
+ arena_groves[key]=surfaces
 
 func arena_deck(parent: Node3D,center: Vector3):
  var deck=building_material(BuildingFinish.DECK_WOOD)
@@ -941,10 +972,12 @@ func battle_landscape(parent,center,context={}):
    village_mill(parent,center+village_mill_site(house_sites),1.55)
    CinderfordMarket.build(self,parent,center+Vector3(1.25,0,-4.05),1.4)
   elif not harbor_quayside:
+   var sites=[]
    for i in range(28 if theme=="forest" or tile=="f" else 17):
     var site=Vector3(-20+(i*11)%41,base,tree_line-(i%4)*3)
     if absf(site.x-tollhouse.x)<4.7 and absf(site.z-tollhouse.z)<3.4:continue
-    battle_tree(parent,center+site,i*83,2.6+(i%3)*.25,theme)
+    sites.append([center+site,i*83,2.6+(i%3)*.25])
+   arena_grove(parent,sites,theme)
  parent.set_meta("backdrop_count",backdrop.size())
  var mechanism=center+Vector3(0,0,-12 if theme=="engine" else -10)
  var belfry_lateral=-5.7
