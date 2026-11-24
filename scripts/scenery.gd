@@ -33,6 +33,7 @@ const HOUSE_SCALE=1.2
 const VILLAGE_HOUSE_BACKDROP_SCALE=1.7
 const ROAD_CANAL_NEAR=-5.0
 const ROAD_CANAL_FAR=-13.0
+const MAP_WATER_LEVEL=-.07
 const ROAD_CANAL_LEVEL=-.11
 const HARBOR_QUAY_EDGE=-5.4
 const HARBOR_QUAY_LEVEL=-.11
@@ -126,6 +127,17 @@ func water_material(theme="") -> ShaderMaterial:
   for parameter in style:m.set_shader_parameter(parameter,style[parameter])
   materials[key]=m
  return materials[key]
+
+func add_river_foam(parent: Node3D,position: Vector3,shape: ArrayMesh,arena=false):
+ if shape==null:return
+ var key="river_foam_arena" if arena else "river_foam_map"
+ if not materials.has(key):
+  var paint=ShaderMaterial.new();paint.shader=preload("res://assets/shaders/river_foam.gdshader")
+  paint.set_shader_parameter("flow_direction",Vector2.RIGHT if arena else Vector2.DOWN)
+  paint.set_shader_parameter("foam_depth",RiverBank.FOAM_DEPTH)
+  materials[key]=paint
+ var foam=mesh(parent,shape,position,Vector3.ONE,materials[key]);foam.name="RiverFoam"
+ foam.cast_shadow=GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
 
 func building_material(finish: int) -> ShaderMaterial:
  var key="building"+str(finish)
@@ -341,17 +353,18 @@ func landscape(parent,game):
  if theme in ["village","river"]:
   var water=water_material(theme)
   var river=plane_shape(Vector2(2 if theme=="river" else 1,extent))
-  mesh(parent,river,Vector3(5.5 if theme=="river" else 7,-.07,center.y),Vector3.ONE,water)
+  mesh(parent,river,Vector3(5.5 if theme=="river" else 7,MAP_WATER_LEVEL,center.y),Vector3.ONE,water)
  for y in range(board.y):
   for x in range(board.x):
    var t=game.terrain(Vector2i(x,y));var p=Vector3(x,0,y)
    if t in ["~","="]:
     var water=water_material(theme)
-    var water_cell=mesh(parent,plane_shape(Vector2.ONE),p-Vector3(0,.07,0),Vector3.ONE,water);water_cell.name="MapWater"
+    var water_cell=mesh(parent,plane_shape(Vector2.ONE),p+Vector3.UP*MAP_WATER_LEVEL,Vector3.ONE,water);water_cell.name="MapWater"
     if theme in MapGround.NATURAL and t=="~":
      var bank=RiverBank.build(game,Vector2i(x,y))
      if bank!=null:
       var shore=mesh(parent,bank,p,Vector3.ONE,ground_paint);shore.name="RiverBank"
+     if theme=="river":add_river_foam(parent,p,RiverBank.foam_strip(bank,MAP_WATER_LEVEL))
     elif t=="~":
      for direction in [Vector2i.LEFT,Vector2i.RIGHT,Vector2i.UP,Vector2i.DOWN]:
       if game.terrain(Vector2i(x,y)+direction) not in ["~","=","#"]:
@@ -866,8 +879,10 @@ func battle_landscape(parent,center,context={}):
   var far_ground=ground(parent,center+Vector3(0,0,RiverBank.ARENA_FAR_START-14.5),Vector2(RiverBank.ARENA_WIDTH,29),0)
   far_ground.name="ArenaFarBankGround"
   mesh(parent,RiverBank.arena_strip(true),center,Vector3.ONE,ground_material(0)).name="ArenaFarBank"
+  add_river_foam(parent,center,RiverBank.arena_foam_strip(true,water_level),true)
   if not wooden_floor:
    mesh(parent,RiverBank.arena_strip(false),center,Vector3.ONE,ground_material(surface)).name="ArenaNearBank"
+   add_river_foam(parent,center,RiverBank.arena_foam_strip(false,water_level),true)
    for index in range(14):
     var column=7+(index*7)%27
     var x=(float(column)/RiverBank.ARENA_COLUMNS-.5)*RiverBank.ARENA_WIDTH

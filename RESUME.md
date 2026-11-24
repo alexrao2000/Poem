@@ -6,11 +6,15 @@ This checkpoint describes the current development branch and supersedes the earl
 
 ### Latest state
 
+Reed Crossing now has animated foam along its existing shoreline triangles. The tactical map and both arena banks show the same kind of moving edge. Deck fights retain the far bank’s foam at the deck’s water level. Both packages match the 512 map and 480 arena triangles and material parameters from the actual crossing encounter. Eight focused suites, four packed checks, 72 matched chapter outcomes and both ZIP checks passed. See the [crossing study](build/review/reed-crossing-foam.png) and `build/review/river-foam.json`. The study uses software projection and simplified lighting.
+
 The Sun Engine now plays “The Light We Keep,” an original 32-bar theme at 112 BPM. Its Calm and Ablaze arrangements share 1,512,000 frames and a 68.57-second loop. A full 3D exchange reached Ablaze and returned to Calm on the same decoder. All eight complete decoded loops match across source and both data packs, and the six earlier loops match their previous files. Both fresh renders matched exactly. Eight focused suites, four packed checks, the offline score check, 72 matched chapter outcomes and both ZIP checks passed. See `build/review/sun-engine-score.json`. Listening review remains open.
 
 The frozen `bfb2f22` checkout passed all 383 registered engine suites and four offline checks. Its source, ordered test results and all recorded log digests matched. See `build/review/current-package-regression/full-current-state.json`.
 
 Pursuit uses one reverse movement search per unit. The earlier target order still decides ties. All 145 benchmark plans and 6,018 tactical queries match the earlier build. Across the twelve shipped maps, the summed headless planning medians fell from 377.87 ms to 104.27–105.10 ms. Four plans on the 144-unit stress board fell from 7.81 seconds to 89.54–90.02 ms. Eight focused suites, four packed checks, 72 matched chapter outcomes and both ZIP checks passed. See `build/review/ai-pursuit-profile.json`.
+
+The full Quick Map replay at `b1a3af9` matched all 998 previous committed-loss saves, including both section retreats, Lyra’s defeat and retry, and all three memorials. The older ending save also loaded exactly in the macOS data pack. See `build/review/pursuit-campaign-state.json`.
 
 Cinderford’s seven cottage chimneys now emit smoke on the tactical map and in nearby close-ups. The houses keep the same plume phase through the cut and return. The close-up roofline has more headroom and adjacent eaves have a gap in the scene. Fifty phase samples, all three smoke projections, eight focused suites, four packed checks, 72 matched chapter outcomes and both ZIP checks passed. See the [three-stage Cinderford study](build/review/cinderford-chimney-smoke.png) and `build/review/chimney-smoke.json`. The study uses simplified software lighting.
 

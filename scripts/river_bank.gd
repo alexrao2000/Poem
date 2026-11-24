@@ -10,8 +10,11 @@ const ARENA_ROWS=8
 const ARENA_NEAR_START=-3.0
 const ARENA_FAR_START=-15.0
 const ARENA_WATER_LEVEL=-.025
+const FOAM_DEPTH=.047
+const FOAM_HEIGHT_ABOVE_WATER=.0015
 
 static var arena_strips: Dictionary={}
+static var arena_foam: Dictionary={}
 
 static func nearby_land(game,cell: Vector2i) -> Array:
  var result=[];var board=game.board_size()
@@ -74,3 +77,29 @@ static func arena_strip(far_bank: bool) -> ArrayMesh:
    uv.append(Vector2(point.x,point.z))
  arena_strips[far_bank]=grid_mesh(vertices,uv,ARENA_COLUMNS,ARENA_ROWS,not far_bank)
  return arena_strips[far_bank]
+
+static func foam_strip(bank: ArrayMesh,water_level: float) -> ArrayMesh:
+ # Interpolate the bank's height on the exact triangles used by the shore.
+ var arrays=bank.surface_get_arrays(0)
+ var vertices=arrays[Mesh.ARRAY_VERTEX]
+ var indices=arrays[Mesh.ARRAY_INDEX]
+ var surface=SurfaceTool.new();surface.begin(Mesh.PRIMITIVE_TRIANGLES)
+ surface.set_normal(Vector3.UP)
+ var faces=0
+ for offset in range(0,indices.size(),3):
+  var a=vertices[indices[offset]]
+  var b=vertices[indices[offset+1]]
+  var c=vertices[indices[offset+2]]
+  if minf(a.y,minf(b.y,c.y))>water_level or maxf(a.y,maxf(b.y,c.y))<water_level-FOAM_DEPTH:continue
+  for point in [a,b,c]:
+   surface.set_uv(Vector2(water_level-point.y,0))
+   surface.add_vertex(Vector3(point.x,water_level+FOAM_HEIGHT_ABOVE_WATER,point.z))
+  faces+=1
+ if faces==0:return null
+ surface.index()
+ return surface.commit()
+
+static func arena_foam_strip(far_bank: bool,water_level: float) -> ArrayMesh:
+ var key=Vector2(1 if far_bank else 0,water_level)
+ if not arena_foam.has(key):arena_foam[key]=foam_strip(arena_strip(far_bank),water_level)
+ return arena_foam[key]

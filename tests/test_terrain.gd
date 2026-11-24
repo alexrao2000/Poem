@@ -605,6 +605,13 @@ func verify_river_arena():
  var context=scenery.combat_context(game,{"x":9,"y":4},{"x":10,"y":4})
  assert(context.landmarks.size()==2)
  var field=Node3D.new();root.add_child(field);scenery.landscape(field,game)
+ var banks={}
+ for bank in field.find_children("RiverBank*","MeshInstance3D",false,false):banks[bank.position]=bank.mesh
+ var field_foam=field.find_children("RiverFoam*","MeshInstance3D",false,false)
+ assert(not field_foam.is_empty())
+ for foam in field_foam:
+  assert(banks.has(foam.position))
+  verify_foam_strip(foam,banks[foam.position],Scenery.MAP_WATER_LEVEL,Vector2.DOWN)
  var field_chain=field.get_node("CrossingChain")
  var field_middle=verify_crossing_chain(field_chain,0,-.07)
  var field_shape=field_chain.get_node("IronLinks").multimesh.mesh
@@ -628,6 +635,14 @@ func verify_river_arena():
   scenery.battle_landscape(arena,origin,context)
   var bridge=tile=="="
   var water=arena.get_node("ArenaWater")
+  var level=water.position.y-origin.y
+  var foam=arena.find_children("RiverFoam*","MeshInstance3D",false,false)
+  assert(foam.size()==(1 if bridge else 2))
+  for index in foam.size():
+   var far_bank=index==0
+   var cached_level=-.055 if bridge else RiverBank.ARENA_WATER_LEVEL
+   assert(foam[index].position==origin and foam[index].mesh==RiverBank.arena_foam_strip(far_bank,cached_level))
+   verify_foam_strip(foam[index],RiverBank.arena_strip(far_bank),level,Vector2.RIGHT)
   var chain=arena.get_node("CrossingChain")
   var middle=verify_crossing_chain(chain,origin.y,water.position.y)
   assert(chain.get_node("IronLinks").multimesh.mesh==field_shape,"The field and close-up use the same iron links")
@@ -671,6 +686,29 @@ func verify_river_arena():
  assert(game.rng.state==before,"The river stage leaves the combat roll unchanged")
  print("PASS: two grounded Reed Crossing banks, 14 planted reeds, preserved bridge and water levels, and map-relative towers on dry ground")
  print("PASS: Reed Crossing’s interleaved iron links join both shore posts, clear the water and fit nine tactical and arena projections")
+ print("PASS: Reed Crossing foam matches the source shoreline triangles on the map and in five arena floor configurations")
+
+func verify_foam_strip(foam: MeshInstance3D,bank: ArrayMesh,level: float,flow: Vector2):
+ assert(foam.cast_shadow==GeometryInstance3D.SHADOW_CASTING_SETTING_OFF)
+ var paint=foam.material_override
+ assert(paint.shader.resource_path=="res://assets/shaders/river_foam.gdshader")
+ assert(paint.get_shader_parameter("flow_direction")==flow and is_equal_approx(paint.get_shader_parameter("foam_depth"),RiverBank.FOAM_DEPTH))
+ var source=bank.surface_get_arrays(0)
+ var vertices=source[Mesh.ARRAY_VERTEX]
+ var heights={}
+ for point in vertices:heights[Vector2(point.x,point.z)]=point.y
+ var strip=foam.mesh.surface_get_arrays(0)
+ var points=strip[Mesh.ARRAY_VERTEX]
+ var samples=strip[Mesh.ARRAY_TEX_UV]
+ var indices=strip[Mesh.ARRAY_INDEX]
+ assert(not points.is_empty())
+ for i in points.size():
+  var point=points[i]
+  assert(is_equal_approx(point.y,level+RiverBank.FOAM_HEIGHT_ABOVE_WATER))
+  assert(is_equal_approx(samples[i].x,level-heights[Vector2(point.x,point.z)]))
+ for offset in range(0,indices.size(),3):
+  var a=samples[indices[offset]].x;var b=samples[indices[offset+1]].x;var c=samples[indices[offset+2]].x
+  assert(maxf(a,maxf(b,c))>=-.00001 and minf(a,minf(b,c))<=RiverBank.FOAM_DEPTH+.00001)
 
 func verify_crossing_chain(chain: Node3D,grade: float,water: float) -> Vector3:
  var batch=chain.get_node("IronLinks")
