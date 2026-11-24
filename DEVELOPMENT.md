@@ -1,5 +1,7 @@
 # Poem development
 
+Debug can remember one experiment checkpoint and restore its battle or war council with the same rules, units and combat seed. Restores are written to the Debug slot and recorded in the trace.
+
 Hallow Abbey’s chipped stone rosette sits flush with the tactical courtyard and appears behind the fighters in nearby stone-floor encounters. The arena turns the inlay to match the engagement direction.
 
 The Calm and Ablaze crossfade compensates for the measured midpoint dip. Combat and the Music Room use the same gain curve and reverse a fade from its current balance.

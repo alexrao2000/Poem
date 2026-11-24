@@ -16,6 +16,7 @@ var revised_knight=false
 var revised_rider=false
 var revised_enemies=false
 var checkpoint: Dictionary={}
+var experiment_checkpoint: Dictionary={}
 var return_screen="title"
 var trace=preload("res://scripts/debug_trace.gd").new()
 
@@ -29,12 +30,30 @@ func begin(game,screen: String,revised_models=false):
 
 func end(game) -> String:
  if not active:return return_screen
- if game.restore_save(checkpoint).is_empty():return return_screen
- game.roster=checkpoint.roster.duplicate(true);game.units=checkpoint.units.duplicate(true)
- active=false;checkpoint.clear()
+ if _restore_checkpoint(game,checkpoint).is_empty():return return_screen
+ active=false;checkpoint.clear();experiment_checkpoint.clear()
  for field in MODEL_FLAGS:set(field,false)
  trace.clear()
  return return_screen
+
+func capture_experiment(game,stage: String) -> bool:
+ if not active or stage not in ["battle","camp"]:return false
+ var snapshot=game.save_data(stage).duplicate(true)
+ if not game.valid_save(snapshot):return false
+ experiment_checkpoint={"snapshot":snapshot,"seed":combat_seed}
+ return true
+
+func restore_experiment(game) -> String:
+ if not active or experiment_checkpoint.is_empty():return ""
+ var stage=_restore_checkpoint(game,experiment_checkpoint.snapshot)
+ if not stage.is_empty():combat_seed=experiment_checkpoint.seed
+ return stage
+
+func _restore_checkpoint(game,snapshot: Dictionary) -> String:
+ var stage=game.restore_save(snapshot)
+ if not stage.is_empty() and stage==snapshot.stage:
+  game.roster=snapshot.roster.duplicate(true);game.units=snapshot.units.duplicate(true)
+ return stage
 
 func observe(game,stage: String,reason: String,persistence: String):
  if active:trace.observe(game,stage,reason,persistence)

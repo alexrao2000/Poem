@@ -93,6 +93,21 @@ func verify_retry_previews():
    assert(unit.id==expected.id and [unit.x,unit.y]==expected.after.position)
    assert(unit.hp==expected.after.hp and g.attack_power(unit)==expected.after.attack and unit.held_tonics==expected.after.held_tonics)
 
+func verify_experiment_checkpoint():
+ var g=Rules.new();g.new_campaign(false)
+ var session=Session.new();var original=g.save_data("camp").duplicate(true)
+ assert(not session.capture_experiment(g,"camp") and session.restore_experiment(g)=="")
+ session.begin(g,"camp")
+ assert(session.set_combat_seed(g,221) and session.capture_experiment(g,"camp"))
+ var branch=g.save_data("camp").duplicate(true)
+ assert(not session.capture_experiment(g,"ending"))
+ session.load_chapter(g,7);assert(session.set_combat_seed(g,333))
+ assert(g.chapter==7 and session.restore_experiment(g)=="camp")
+ assert(session.combat_seed==221 and g.save_data("camp")==branch)
+ session.load_chapter(g,2);assert(session.restore_experiment(g)=="camp" and g.save_data("camp")==branch)
+ assert(session.end(g)=="camp" and g.save_data("camp")==original)
+ assert(session.experiment_checkpoint.is_empty(),"Leaving Debug discards the experiment checkpoint and restores the original")
+
 func verify_retry_table(app,preview: Dictionary):
  press(app,"Compare enemies")
  assert(app.screen=="debug_retry_deployment")
@@ -123,6 +138,7 @@ func verify_retry_table(app,preview: Dictionary):
 func run():
  verify_debug_casualties()
  verify_retry_previews()
+ verify_experiment_checkpoint()
  var rules=Rules.new();rules.new_campaign(true);rules.start_battle()
  var session=Session.new();var original=rules.save_data("battle").duplicate(true)
  session.load_chapter(rules,11);session.heal(rules);session.revive(rules);session.reset_battle(rules)
@@ -228,12 +244,29 @@ func run():
  var patient=app.game.units.filter(func(unit):return unit.id=="oren")[0]
  assert(app.screen=="battle" and app.game.DeathDoor.downed(patient) and patient.bleed_turns==2)
  app.show_debug_tools("battle");await inspect(app)
+ var saved_point=app.game.save_data("battle").duplicate(true)
+ var trace_at_capture=app.debug_session.trace.report()
+ var disk_at_capture=FileAccess.get_file_as_string(app.save_path+".debug")
+ var restore_button=app.ui.find_children("*","Button",true,false).filter(func(button):return button.text=="Restore experiment checkpoint")[0]
+ assert(restore_button.disabled)
+ press(app,"Save experiment checkpoint");await inspect(app)
+ assert(app.ui.find_child("ExperimentCheckpointStatus",true,false).text.contains("Chapter 12 · Turn 1"))
+ assert(app.debug_session.trace.report()==trace_at_capture and FileAccess.get_file_as_string(app.save_path+".debug")==disk_at_capture)
  casualty_choice=app.ui.find_child("DebugCasualty",true,false)
  for index in range(casualty_choice.item_count):assert(casualty_choice.get_item_metadata(index)!="oren","Downed allies are excluded from the lethal-hit selector")
  app.ui.find_child("DebugBleedTurns",true,false).value=1;press(app,"Set rescue countdown")
  assert(app.screen=="battle" and patient.bleed_turns==1 and app.unit_nodes[patient.id].rescue_marker.get_meta("turns")==1)
  assert(app.side.get_node("EndPlayerPhase").text=="End phase · 1 will fall","Countdown experiments update the live tactical warning")
  assert(loaded.load_game(app.save_path+".debug")=="battle" and loaded.units.filter(func(unit):return unit.id=="oren")[0].bleed_turns==1 and FileAccess.get_file_as_string(app.save_path)==disk,"The exact countdown persists only in the debug slot")
+ app.show_debug_tools("battle")
+ app.ui.find_child("DebugSeed",true,false).value=712;press(app,"Apply seed to next rolls")
+ press(app,"Restore experiment checkpoint");await process_frame
+ assert(app.screen=="battle" and app.game.save_data("battle")==saved_point and app.debug_session.combat_seed==309)
+ assert(app.unit_nodes["oren"].rescue_marker.get_meta("turns")==2,"Restoring recreates the earlier rescue countdown on the map")
+ assert(loaded.load_game(app.save_path+".debug")=="battle" and loaded.units.filter(func(unit):return unit.id=="oren")[0].bleed_turns==2)
+ var restored_trace=app.debug_session.trace.report().entries[-1]
+ assert(restored_trace.reason=="restore_experiment_checkpoint" and restored_trace.persistence=="written")
+ assert(FileAccess.get_file_as_string(app.save_path)==disk)
  app.show_debug_tools("battle");press(app,"Return to preparation");assert(app.screen=="camp" and app.game.units.is_empty())
  var back_state=app.game.save_data("camp").duplicate(true)
  app.show_debug_tools("camp");escape_key(true);assert(app.screen=="debug_tools")
@@ -248,7 +281,7 @@ func run():
  app.show_options("camp");app.ui.find_child("Permadeath",true,false).button_pressed=false;app.close_options()
  assert(loaded.load_game(app.save_path)=="camp" and not loaded.permadeath,"Permadeath can be changed and saved outside debug as requested")
  await Shutdown.dispose(app);await process_frame
- print("PASS: opt-in debug controls, exact retry deployment previews, four retry table layouts, twelve-chapter chooser, heal/revive/reset, separate save slot, unsaved checkpoint restoration, guarded actions and live permadeath toggle persistence")
+ print("PASS: opt-in debug controls, repeatable experiment checkpoints, exact retry deployment previews, four retry table layouts, twelve-chapter chooser, heal/revive/reset, separate save slot, unsaved checkpoint restoration, guarded actions and live permadeath toggle persistence")
  quit()
 
 func escape_key(echo=false):

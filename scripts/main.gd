@@ -2241,6 +2241,20 @@ func show_debug_tools(return_to: String):
 		if debug_session.set_combat_seed(game,seed_input.value):persist_campaign("battle" if options_return=="battle" else "camp",true,"set_seed");show_notice("Combat seed applied. Chapter loads and clean resets reuse it."))
 	label_in(panel,"The same seed, rules and actions reproduce the same rolls. Clean resets reuse this seed; penalty retreats follow the campaign’s restart rules.",16)
 	button_in(panel,"View experiment report",show_debug_report)
+	var saved_test=debug_session.experiment_checkpoint
+	var checkpoint_detail="Save this position to replay it during this Debug session."
+	if not saved_test.is_empty():
+		var snapshot=saved_test.snapshot
+		var stage="Turn %d · %s phase"%[snapshot.turn,snapshot.phase.capitalize()] if snapshot.stage=="battle" else "War council"
+		checkpoint_detail="Experiment checkpoint · Chapter %02d · %s · Seed %d"%[snapshot.chapter+1,stage,saved_test.seed]
+	label_in(panel,checkpoint_detail,16).name="ExperimentCheckpointStatus"
+	var checkpoint_actions=HBoxContainer.new();checkpoint_actions.add_theme_constant_override("separation",12);panel.add_child(checkpoint_actions)
+	button_in(checkpoint_actions,"Save experiment checkpoint",func():
+		if debug_session.capture_experiment(game,"battle" if options_return=="battle" else "camp"):
+			show_debug_tools(options_return);show_notice("Experiment checkpoint saved.")
+		else:show_notice("Experiment checkpoint unavailable for this position.")
+	).size_flags_horizontal=Control.SIZE_EXPAND_FILL
+	button_in(checkpoint_actions,"Restore experiment checkpoint",restore_debug_experiment,saved_test.is_empty()).size_flags_horizontal=Control.SIZE_EXPAND_FILL
 	button_in(panel,"Choose an experiment setup",show_debug_experiments)
 	button_in(panel,"Stage a combat encounter",show_debug_encounters)
 	button_in(panel,"Replay dialogue",show_debug_dialogue).name="DebugDialogueScenes"
@@ -2323,6 +2337,13 @@ func show_debug_tools(return_to: String):
 	commander_choice.selected=game.chapter;panel.add_child(commander_choice)
 	button_in(panel,"View commander rig",func():show_commander_model_view(commander_choice.selected)).name="ViewCommanderStudy"
 	button_in(frame,"Return to Options",func():show_options(options_return))
+
+func restore_debug_experiment():
+	var stage=debug_session.restore_experiment(game)
+	if stage.is_empty():return
+	persist_campaign(stage,true,"restore_experiment_checkpoint")
+	if stage=="battle":await resume_saved_battle()
+	else:show_camp()
 
 func show_debug_report():
 	if not debug_session.active:return

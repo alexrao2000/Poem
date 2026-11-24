@@ -110,6 +110,11 @@ func run():
   consequences(loaded,app.debug_session,id)
  app.preferences.values.combat="map";app.preferences.values.auto_end=false
  app.show_debug_experiments();app.ui.find_child("StartExperiment_last_rescue",true,false).pressed.emit();await process_frame;await process_frame
+ var branch_point=canonical(app.game.save_data("battle"))
+ app.show_debug_tools("battle");press(app,"Save experiment checkpoint");press(app,"Restore experiment checkpoint")
+ await settle(app);saved_setup(app)
+ assert(app.screen=="battle" and canonical(app.game.save_data("battle"))==branch_point)
+ assert(app.debug_session.trace.report().entries[-1].reason=="restore_experiment_checkpoint")
  var patient=unit(app.game,"oren");var carrier=unit(app.game,"lyra");var healer=unit(app.game,"ivo")
  app.click_tile(app.game.pos(carrier));app.click_tile(app.game.pos(patient));assert(app.screen=="triage")
  press(app,"Rescue Oren");await settle(app);saved_setup(app)
@@ -141,11 +146,13 @@ func run():
  app._unhandled_input(click);assert(app.screen=="triage")
  press(app,"Heal carried Oren");await settle(app);saved_setup(app)
  assert(patient.hp>0 and patient.acted and not app.game.DeathDoor.downed(patient) and patient.get("carried_by","").is_empty() and "oren" not in app.game.lost_ids())
- app.show_debug_experiments();app.ui.find_child("StartExperiment_last_rescue",true,false).pressed.emit();await process_frame;await process_frame
+ app.show_debug_tools("battle");press(app,"Restore experiment checkpoint");await settle(app);saved_setup(app)
+ assert(app.screen=="battle" and canonical(app.game.save_data("battle"))==branch_point,
+  "Rescue and abandonment start from the same exact checkpoint, including the RNG")
  app.end_turn();await settle(app);saved_setup(app)
  assert("oren" in app.game.lost_ids() and app.game.turn==2 and FileAccess.get_file_as_string(app.save_path)==disk,"The contrasting actual end-phase path commits the loss only in the Debug slot")
  app.show_options("battle");app.ui.find_child("DebugMode",true,false).button_pressed=false
  assert(not app.debug_session.active and app.game.save_data("camp")==live and FileAccess.get_file_as_string(app.save_path)==disk)
  await Shutdown.dispose(app);await process_frame
- print("PASS: five deterministic experiment starters, five-seed rescue/bleed-out branches, carrier badge triage and exact map targets, actual rescue/enemy phase/carry movement/revival and abandoned-patient checkpoints, three-size menus, separate saves, traces and exact campaign restoration")
+ print("PASS: five deterministic experiment starters, five-seed rescue/bleed-out branches, carrier badge triage and exact map targets, checkpointed rescue and loss branches, three-size menus, separate saves, traces and exact campaign restoration")
  quit()
