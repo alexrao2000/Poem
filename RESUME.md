@@ -6,6 +6,10 @@ This checkpoint describes the current development branch and supersedes the earl
 
 ### Latest state
 
+The battle forecast now distinguishes a rescuable ally at death’s door from an ordinary fall. Thirty layouts cover both rules, permitted counters, follow-ups and enemy slots. Eight focused suites, both exports, packaged forecast and controls, and archive integrity passed. Rendered gameplay remains unreviewed.
+
+The exported Cinderford checkpoint `59da60c` passed a Hard campaign with permanent losses, action saves, legacy supplies, reset pressure and section restarts. The run reached the ending after 15 attempts and 470 player actions, with 998 exact disk checks. Both planned section rewinds and the natural lord retry retained the expected losses. The 17 permanent losses and all battle outcomes match the previous route. The two newer legacy purchases add two saves and spend four credits, and both carried through the later rewind. See `build/review/current-classic-route.html`.
+
 The frozen regression reached 238 passing suites at `1cf9967` before a slash fixture looked for the Original rig in a fresh Revised profile. Six procedural-rig fixtures now select Original explicitly, including the locomotion skip watcher. The resumed run retains the same runtime and the first 238 test sources. The fixture hashes and both initial failures are recorded locally. The latest playable packages use the Cinderford checkpoint below.
 
 Cinderford’s rust-and-linen market stall sits west of the fountain and behind the fighters in the close-up arena. A software mesh study exposed rails protruding through the cloth, so the final rails follow its pitch underneath. Nine camera views, live scenery batches, eight focused suites, three fitting reruns and both exports passed. Architecture and ambience checks passed in both packs, and their isolated canopy arrays match the source byte for byte. All 72 automated chapter outcomes match the earlier runs. See `build/review/cinderford-greywood-canopy-study.png`. Rendered gameplay remains unreviewed.

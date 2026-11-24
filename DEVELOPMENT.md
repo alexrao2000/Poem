@@ -1,5 +1,7 @@
 # Poem development
 
+The forecast says “Downed if hits land” when the projected first fall would put an ally at death’s door. Enemies and ordinary falls retain the existing warning.
+
 The slash, locomotion, infantry stride, mounted stride, gaze and finishing fixtures explicitly select Original models for measurements of the procedural rigs. Revised model fixtures continue to exercise the default roster.
 
 Cinderford’s market stall uses one striped canvas mesh in the tactical map and 3D arena. Four seated posts carry the rails, and two side rails support the counter.

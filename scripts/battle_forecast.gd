@@ -6,7 +6,7 @@ const MatchupMarker=preload("res://scripts/weapon_matchup.gd")
 const Icons=preload("res://scripts/weapon_icons.gd")
 const HUD=preload("res://scripts/combat_hud.gd")
 const FONT=preload("res://assets/fonts/CormorantGaramond.ttf")
-const FALL_LABEL_WIDTH=134.0
+const FALL_LABEL_WIDTH=144.0
 var records=[]
 var strike_order: OrderStrip
 var target_anchor: Callable
@@ -145,7 +145,8 @@ func configure(parent: Control,rules,a: Dictionary,b: Dictionary,faces: Array):
   var fallen=strike_order.ordinary_hit_fall(a,b,attack,counter)
   for record in records:
    if record.unit==fallen:
-    record.fall=label(record.card,"Falls if hits land",14,Color("8b3a40"))
+    var notice="Downed if hits land" if rules.death_door and not record.card.enemy else "Falls if hits land"
+    record.fall=label(record.card,notice,14,Color("8b3a40"))
     record.fall.name="FallForecast"
     record.fall.horizontal_alignment=HORIZONTAL_ALIGNMENT_RIGHT
  resized.connect(arrange);arrange()

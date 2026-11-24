@@ -162,7 +162,9 @@ func verify_fall_warning():
  var cases=[
   {"name":"healthy pair","expected":"","lead":0},
   {"name":"counter reaches zero","expected":a.id,"lead":0,"ally_hits":1},
+  {"name":"counter opens death’s door","expected":a.id,"lead":0,"ally_hits":1,"death_door":true,"notice":"Downed if hits land"},
   {"name":"first strike ends exchange","expected":b.id,"lead":0,"ally_hits":1,"foe_hits":1},
+  {"name":"enemy falls with death’s door enabled","expected":b.id,"lead":0,"foe_hits":1,"death_door":true},
   {"name":"player follow-up reaches zero","expected":b.id,"lead":4,"foe_hits":2},
   {"name":"enemy follow-up reaches zero","expected":a.id,"lead":-4,"ally_hits":2},
   {"name":"only a critical could reach zero","expected":"","lead":0,"foe_hits":2},
@@ -170,6 +172,7 @@ func verify_fall_warning():
   {"name":"out of range","expected":"","lead":0,"foe_hits":1,"distance":2},
  ]
  for sample in cases:
+  game.death_door=sample.get("death_door",false)
   for unit in [a,b]:
    unit.hp=100;unit.max_hp=100;unit.defense=0;unit.resistance=0;unit.pow=6
    unit.item="iron_sword";unit.weapon="sword";unit.reach=1
@@ -187,11 +190,11 @@ func verify_fall_warning():
     assert((record.fall!=null)==(record.unit==sample.expected),sample.name)
     if record.fall==null:continue
     var notice=record.fall
-    assert(notice.text=="Falls if hits land" and notice.mouse_filter==Control.MOUSE_FILTER_IGNORE)
+    assert(notice.text==sample.get("notice","Falls if hits land") and notice.mouse_filter==Control.MOUSE_FILTER_IGNORE)
     assert(Rect2(Vector2.ZERO,record.card.size).encloses(notice.get_rect()))
     assert(not notice.get_rect().intersects(record.note.get_rect()) and not notice.get_rect().intersects(record.meter.get_rect()))
     assert(notice.get_theme_font("font").get_string_size(notice.text,HORIZONTAL_ALIGNMENT_LEFT,-1,14).x<=notice.size.x)
   assert(game.save_data("battle")==before and game.rng.state==rng)
   panel.free()
  host.free()
- print("PASS: 24 conditional fall layouts, ordinary-hit threshold, both follow-ups, no counter, out-of-range, and exact campaign/RNG isolation")
+ print("PASS: 30 conditional fall layouts, death's door, ordinary-hit threshold, both follow-ups, no counter, out-of-range, and exact campaign/RNG isolation")
