@@ -6,6 +6,8 @@ This checkpoint describes the current development branch and supersedes the earl
 
 ### Latest state
 
+The frozen regression reached 238 passing suites at `1cf9967` before a slash fixture looked for the Original rig in a fresh Revised profile. Five procedural-rig fixtures now select Original explicitly. The resumed run retains the same runtime and the first 238 test sources. Its fixture hashes and original failure are recorded locally. The latest playable packages use the Cinderford checkpoint below.
+
 Cinderford’s rust-and-linen market stall sits west of the fountain and behind the fighters in the close-up arena. A software mesh study exposed rails protruding through the cloth, so the final rails follow its pitch underneath. Nine camera views, live scenery batches, eight focused suites, three fitting reruns and both exports passed. Architecture and ambience checks passed in both packs, and their isolated canopy arrays match the source byte for byte. All 72 automated chapter outcomes match the earlier runs. See `build/review/cinderford-greywood-canopy-study.png`. Rendered gameplay remains unreviewed.
 
 The exported `2da6f7b` Hard campaign after the movement and cursor updates reached the ending in 13 attempts, 96 turns and 429 legal player actions. All 879 saved snapshots matched the earlier Quick Map route. Both revised figures and both audio decoders remained available in all 458 exchanges. The Greywood refuge appeared in 23 nearby fights, and all 24 recruits remained available at the ending. See `build/review/cursor-3d-route.html`. Rendered gameplay and human difficulty remain unreviewed.

@@ -1,5 +1,7 @@
 # Poem development
 
+The slash, infantry stride, mounted stride, gaze and finishing fixtures explicitly select Original models for measurements of the procedural rigs. Revised model fixtures continue to exercise the default roster.
+
 Cinderford’s market stall uses one striped canvas mesh in the tactical map and 3D arena. Four seated posts carry the rails, and two side rails support the counter.
 
 The keyboard cursor moves its existing mesh while browsing tiles. The movement and enemy threat layers stay in place, and the route and terrain card follow the destination.

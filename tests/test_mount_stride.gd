@@ -66,7 +66,7 @@ func run():
     assert(lowest>-.001 and lowest<.02,"Full cavalry outfit, equipment and horse stay above the floor with planted hooves")
    outfits+=1;actor.queue_free();await process_frame
  stage.queue_free();await process_frame
- var app=load("res://main.tscn").instantiate();app.settings_path="";app.save_path="/private/tmp/poem-mounted-stride.json";root.add_child(app);await process_frame
+ var app=load("res://main.tscn").instantiate();app.settings_path="";app.preferences.values.character_models="current";app.save_path="/private/tmp/poem-mounted-stride.json";root.add_child(app);await process_frame
  app.game.start_battle();var a=app.game.units[0];var b=app.game.living("enemy")[0]
  a.job="Rider";a.weapon="lance";a.item="iron_lance";a.x=8;a.y=4;b.x=9;b.y=4
  app.make_map();app.show_battle();app.busy=true;app.stage.child_entered_tree.connect(watch_approach)

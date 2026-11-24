@@ -45,7 +45,7 @@ func run():
  verify_upper_body(painter,rules,stage)
  assert(rules.rng.state==rng,"Stride and clothing checks consume no campaign randomness")
  stage.free()
- var app=load("res://main.tscn").instantiate();app.settings_path="";app.save_path="/private/tmp/poem-stride-test.json";root.add_child(app);await process_frame
+ var app=load("res://main.tscn").instantiate();app.settings_path="";app.preferences.values.character_models="current";app.save_path="/private/tmp/poem-stride-test.json";root.add_child(app);await process_frame
  app.game.start_battle();app.make_map();app.show_battle();app.busy=true
  var a=app.game.units[0];var b=app.game.living("enemy")[0];a.x=8;a.y=4;b.x=9;b.y=4
  var saved=app.game.save_data("battle").duplicate(true);rng=app.game.rng.state;var view=app.camera.transform

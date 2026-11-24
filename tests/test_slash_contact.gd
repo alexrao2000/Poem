@@ -74,7 +74,7 @@ func run():
    assert(actor.bones.Weapon.global_transform.is_finite() and actor.bones.Elbow.position==elbow_position,"Unreachable external targets clamp to reach without NaNs or stretched arms")
    actor.queue_free();await process_frame
  stage.queue_free();await process_frame
- var app=load("res://main.tscn").instantiate();app.settings_path="";app.save_path="/private/tmp/poem-slash-contact-save.json";root.add_child(app);await process_frame
+ var app=load("res://main.tscn").instantiate();app.settings_path="";app.preferences.values.character_models="current";app.save_path="/private/tmp/poem-slash-contact-save.json";root.add_child(app);await process_frame
  app.game.start_battle();app.make_map();app.show_battle();app.busy=true
  app.stage.child_entered_tree.connect(watch_contact)
  var a=app.game.units[0];var b=app.game.living("enemy")[0];a.x=8;a.y=4;b.x=9;b.y=4

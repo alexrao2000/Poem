@@ -119,7 +119,7 @@ func run():
    assert(silhouettes[0].distance_to(silhouettes[1])>.15,"Flourish settles visibly into the final held stance")
    actor.queue_free();await process_frame
  viewport.queue_free();await process_frame
- var app=load("res://main.tscn").instantiate();app.settings_path="";app.save_path="/private/tmp/poem-finish-test.json";root.add_child(app);await process_frame
+ var app=load("res://main.tscn").instantiate();app.settings_path="";app.preferences.values.character_models="current";app.save_path="/private/tmp/poem-finish-test.json";root.add_child(app);await process_frame
  app.game.start_battle();app.make_map();app.show_battle();app.busy=true
  app.stage.child_entered_tree.connect(watch_finish)
  var a=app.game.units[0];var b=app.game.living("enemy")[0];a.x=8;a.y=4;b.x=9;b.y=4

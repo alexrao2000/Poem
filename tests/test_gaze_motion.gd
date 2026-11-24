@@ -55,7 +55,7 @@ func run():
  actor.gaze_motion.update("idle",1.0)
  assert(actor.gaze_motion.rotation.length()<.0001,"Removing the weakly held target settles the neck safely")
  stage.queue_free();await process_frame
- var app=load("res://main.tscn").instantiate();app.settings_path="";app.save_path="/private/tmp/poem-gaze-test.json";root.add_child(app);await process_frame
+ var app=load("res://main.tscn").instantiate();app.settings_path="";app.preferences.values.character_models="current";app.save_path="/private/tmp/poem-gaze-test.json";root.add_child(app);await process_frame
  app.game.start_battle();app.make_map();app.show_battle()
  var a=app.game.units[0];var b=app.game.living("enemy")[0];a.x=8;a.y=4;b.x=9;b.y=4
  var saved=app.game.save_data("battle").duplicate(true);rng=app.game.rng.state
