@@ -1,5 +1,6 @@
 extends RefCounted
 # The simulation has no scene, rendering, or audio dependencies.
+# The movement search caches step costs per cell, with zero for blocked cells.
 var content: Dictionary
 var equipment: Array
 var promotions: Array
@@ -207,17 +208,27 @@ func distance(a: Dictionary,b: Dictionary) -> int:
 func reachable(u: Dictionary) -> Dictionary:
 	var start = pos(u)
 	var costs = {start:0}
+	var step_costs = {}
+	var allowance = movement_allowance(u)
 	var queue = [start]
-	while not queue.is_empty():
-		var p = queue.pop_front()
+	var next = 0
+	while next < queue.size():
+		var p = queue[next]
+		next += 1
 		for d in [Vector2i.LEFT,Vector2i.RIGHT,Vector2i.UP,Vector2i.DOWN]:
 			var q: Vector2i = p+d
-			var tile = terrain(q)
-			if tile in ["#","~"]: continue
-			var other = at(q)
-			if other!=null and other.team!=u.team: continue
-			var cost = costs[p]+terrain_profile(q).move
-			if cost<=movement_allowance(u) and (not costs.has(q) or cost<costs[q]):
+			var step_cost: int = step_costs.get(q,-1)
+			if step_cost < 0:
+				var tile = terrain(q)
+				step_cost = 0
+				if tile not in ["#","~"]:
+					var other = at(q)
+					if other==null or other.team==u.team:
+						step_cost = TERRAIN_PROFILES.get(tile,TERRAIN_PROFILES["."]).move
+				step_costs[q] = step_cost
+			if step_cost == 0: continue
+			var cost = costs[p]+step_cost
+			if cost<=allowance and (not costs.has(q) or cost<costs[q]):
 				costs[q]=cost
 				queue.append(q)
 	return costs
