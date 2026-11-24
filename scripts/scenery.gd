@@ -15,6 +15,7 @@ const BarrelVisuals=preload("res://scripts/barrel_visuals.gd")
 const HarborBoat=preload("res://scripts/harbor_boat.gd")
 const HarborNet=preload("res://scripts/harbor_net.gd")
 const HarborSignal=preload("res://scripts/harbor_signal.gd")
+const HarborBreakwater=preload("res://scripts/harbor_breakwater.gd")
 const ArenaRidges=preload("res://scripts/arena_ridges.gd")
 const PassEscarpment=preload("res://scripts/pass_escarpment.gd")
 const RuinedColumns=preload("res://scripts/ruined_columns.gd")
@@ -443,6 +444,7 @@ func landscape(parent,game):
  elif theme in ["harbor","aqueduct"]:
   var sea=plane_shape(Vector2(55,35))
   mesh(parent,sea,Vector3(7,-.12,26),Vector3.ONE,water_material(theme))
+  if theme=="harbor":HarborBreakwater.build(self,parent,HarborBreakwater.MAP_SITE,HarborBreakwater.MAP_SCALE,PI)
 
  ground_cover.add_map(parent,game,building_cells)
  if batching_enabled:batcher.combine(parent)
@@ -945,6 +947,8 @@ func battle_landscape(parent,center,context={}):
   var water_surface=mesh(parent,plane,center+Vector3(0,water_level,water_depth),Vector3.ONE,water);water_surface.name="ArenaWater"
   if wooden_floor:arena_deck(parent,center)
   elif theme=="aqueduct":aqueduct_parapet(parent,center)
+ if theme=="harbor" and (harbor_quayside or wooden_floor):
+  HarborBreakwater.build(self,parent,center+HarborBreakwater.ARENA_SITE+Vector3.UP*(water_level if wooden_floor else HARBOR_QUAY_LEVEL),1.0,0.0)
  if river:
   var chain_near=-2.02 if wooden_floor else RiverBank.ARENA_NEAR_START+.50
   var chain_far=RiverBank.ARENA_FAR_START-.65

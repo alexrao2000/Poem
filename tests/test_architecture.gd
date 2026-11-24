@@ -6,6 +6,7 @@ const Rules=preload("res://scripts/rules.gd")
 const HarborBoat=preload("res://scripts/harbor_boat.gd")
 const HarborNet=preload("res://scripts/harbor_net.gd")
 const HarborSignal=preload("res://scripts/harbor_signal.gd")
+const HarborBreakwater=preload("res://scripts/harbor_breakwater.gd")
 const CombatCamera=preload("res://scripts/combat_camera.gd")
 const CinderfordMarket=preload("res://scripts/cinderford_market.gd")
 const ReedTollhouse=preload("res://scripts/reed_tollhouse.gd")
@@ -1454,6 +1455,11 @@ func verify_harbor_quay():
  var field=Node3D.new();root.add_child(field);scenery.landscape(field,game)
  var map_rack=field.get_node("HarborNetRack")
  var map_net=map_rack.get_node("HangingNet")
+ var map_breakwater=field.get_node("HarborBreakwater")
+ var outer_wall=map_breakwater.global_transform*map_breakwater.mesh.get_aabb()
+ assert(outer_wall.position.z>game.board_size().y+1.0 and outer_wall.position.y<-.12 and outer_wall.end.y>-.12)
+ assert(map_breakwater.mesh==HarborBreakwater.shape())
+ verify_harbor_breakwater(map_breakwater.mesh)
  var map_signal=field.get_node("HarborSignal")
  var map_frame=map_signal.get_node("SignalFrame")
  var map_lens=map_signal.get_node("SignalLens")
@@ -1498,9 +1504,15 @@ func verify_harbor_quay():
   assert((rack!=null)==context.harbor_quay,"Only shore fights carry the rack into the arena")
   var beacon=arena.get_node_or_null("HarborSignal")
   assert((beacon!=null)==context.harbor_quay,"The quay signal is visible in shore fights")
+  var harbor_wall=arena.get_node_or_null("HarborBreakwater")
   var water=arena.get_node_or_null("ArenaWater")
   var deck=arena.get_node_or_null("ArenaDeck")
   var floor=arena.get_node_or_null("ArenaGround")
+  assert((harbor_wall!=null)==(water!=null),"The outer harbor is visible from the quay and piers")
+  if harbor_wall!=null:
+   assert(harbor_wall.mesh==map_breakwater.mesh and harbor_wall.cast_shadow==GeometryInstance3D.SHADOW_CASTING_SETTING_OFF)
+   assert(is_equal_approx(harbor_wall.position.y,water.position.y))
+   assert((harbor_wall.transform*harbor_wall.mesh.get_aabb()).end.z<center.z-16)
   if context==inland:
    assert(water==null and deck==null and floor.mesh.size==Vector2(70,70))
    assert(is_equal_approx(floor.position.y,center.y) and floor.material_override.get_shader_parameter("blend_edges"))
@@ -1555,12 +1567,32 @@ func verify_harbor_quay():
      assert(safe.has_point(camera.unproject_position(rack.to_global(Vector3(0,1.10,.13)))),
       "The rack and suspended ropes remain in the frame above the health plates")
      assert(safe.has_point(camera.unproject_position(lens.global_position)),"The signal lens is in frame above the health plates")
+     for head in [Vector3(-4,.64,1.2),Vector3(4,.64,1.8)]:
+      assert(safe.has_point(camera.unproject_position(harbor_wall.to_global(head))),"The two breakwater heads leave a visible passage")
   arena.free()
  viewport.free();field.free()
  assert(game.rng.state==before)
  print("PASS: Glass Harbor separates inland ground, a planted stone quay and timber piers, with twelve waterfront projections")
  print("PASS: Glass Harbor’s shared 316-triangle net, attached floats, grounded rack and fifteen map and arena projections")
  print("PASS: Glass Harbor’s signal shares %d frame triangles and a warm insert across fifteen shoreline projections"%(frame_points.size()/3))
+
+func verify_harbor_breakwater(shape: ArrayMesh):
+ var attributes=shape.surface_get_arrays(0)
+ var points=attributes[Mesh.ARRAY_VERTEX];var normals=attributes[Mesh.ARRAY_NORMAL]
+ var edges={};var volume=0.0
+ assert(points.size()/3==352)
+ for index in range(0,points.size(),3):
+  var a=points[index];var b=points[index+1];var c=points[index+2]
+  var cross=(b-a).cross(c-a)
+  assert(cross.length_squared()>1e-9 and cross.normalized().dot(normals[index])<-.999)
+  volume-=a.dot(b.cross(c))/6.0
+  for point in [a,b,c]:assert(absf(point.x)>3.5,"Both stone arms stop short of the open approach")
+  for pair in [[a,b],[b,c],[c,a]]:
+   var first=str(pair[0]);var second=str(pair[1])
+   var key=first+"/"+second if first<second else second+"/"+first
+   edges[key]=edges.get(key,0)+1
+ assert(volume>30 and edges.values().all(func(count):return count==2),"Both arms form closed shore silhouettes")
+ print("PASS: one 352-triangle breakwater, closed stone arms and an open entrance in the harbor water")
 
 func verify_harbor_net(rack: Node3D,net: MeshInstance3D):
  var shape=HarborNet.shape()
