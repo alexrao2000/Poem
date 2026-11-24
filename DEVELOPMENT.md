@@ -1,5 +1,14 @@
 # Poem development
 
+The campaign benchmark has explicit Hard profiles for the combined permanent-loss and recoverable-loss experiments. Use `--retreat-chapter` for each scripted retreat you want to exercise. A reached retreat records the preserved loss and purchase ledgers, enemy statistics, remaining tonics and advanced raider positions. The runner uses the existing legal planner and in-memory campaigns.
+
+```sh
+python3 scripts/benchmark_experiments.py \
+  --profile hard_permanent_all --profile hard_recoverable_all \
+  --retreat-chapter 6 --carry-patients \
+  --output build/review/combined-hard-with-carry.json
+```
+
 Hallow Abbey’s combat scene uses a six-arch arcade on a low stone walk. Seven footings, shafts and capitals support the arches and continuous coping. The mapped abbey landmarks sit behind the arcade. An original eight-second wind loop follows the same chapter from the tactical board through menus and 3D combat.
 
 The tactical sidebar gives the selected unit’s name one visible line above their class. A long commander name can use smaller type to fit, and the tooltip keeps the full name. All 111 measured layouts fit across the tested window sizes.

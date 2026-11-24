@@ -10,7 +10,9 @@ const PROFILES=[
  {"id":"hard_legacy","name":"Hard · permanent + legacies","permadeath":true,"door":false,"flags":["hard_campaign","death_legacies"]},
  {"id":"hard_sections","name":"Hard · permanent + sections","permadeath":true,"door":false,"flags":["hard_campaign","section_restarts"]},
  {"id":"hard_pressure","name":"Hard · permanent + reset pressure","permadeath":true,"door":false,"flags":["hard_campaign","reset_pressure"]},
- {"id":"hard_committed","name":"Hard · permanent + sections/pressure/legacies","permadeath":true,"door":false,"flags":["hard_campaign","section_restarts","reset_pressure","death_legacies"]}
+ {"id":"hard_committed","name":"Hard · permanent + sections/pressure/legacies","permadeath":true,"door":false,"flags":["hard_campaign","section_restarts","reset_pressure","death_legacies"]},
+ {"id":"hard_permanent_all","name":"Hard · permanent losses, sections and pressure","permadeath":true,"door":true,"flags":["hard_campaign","death_legacies","section_restarts","reset_pressure"]},
+ {"id":"hard_recoverable_all","name":"Hard · recovery, sacrifice and pressure","permadeath":false,"door":true,"flags":["hard_campaign","sacrifice_cost","reset_pressure"]},
 ]
 var output_path=""
 var report={"source":"unrecorded","source_dirty":true,"complete":false,"profiles":PROFILES,"seeds":[472019,17,309,2026,8675309],"method":"Rules-layer matched-seed comparison, not an app UI run. Same existing legal Tactics planner on both teams; action saves flag on, but no disk persistence exercised. Highest-level deployment with one healer, mandatory Lyra first when the selected rules require it. Ordinary earned first-branch promotions and available support conversations. Default equipment retained; eligible legacy purchases are recorded but not equipped by this heuristic. No carrying strategy. At most two retries, 18 battles and 50 player turns per battle. No altered stats, forced outcomes or balance edits. Five seeds do not establish human difficulty or statistical certainty.","runs":[]}
@@ -21,6 +23,8 @@ func _initialize():
   push_error("Expected output path, source revision, clean/dirty marker and optional configuration JSON");quit(2);return
  output_path=args[0];report.source=args[1];report.source_dirty=args[2]!="clean"
  report.requested_equipment=[];report.carry_patients=false
+ report.retreat_chapters=[]
+ report.profiles=PROFILES.slice(0,9)
  if args.size()==4:
   var configuration=JSON.parse_string(args[3]);assert(configuration is Dictionary)
   report.profiles=[]
@@ -30,10 +34,13 @@ func _initialize():
   for seed_value in configuration.seeds:report.seeds.append(str(seed_value).to_int())
   report.requested_equipment=configuration.equipment
   report.carry_patients=configuration.get("carry_patients",false)
+  report.retreat_chapters=configuration.get("retreat_chapters",[]).map(func(chapter):return int(chapter))
  if not report.requested_equipment.is_empty():
   report.method=report.method.replace("Default equipment retained; eligible legacy purchases are recorded but not equipped by this heuristic.","Requested items replace compatible recruits' equipment during preparation only when ordinary equip rules allow them; unavailable items leave the current loadout in place. Eligible legacy purchases follow the existing fixed stock order. Loadout changes and every deployment's actual items are recorded. This is an explicit loadout experiment, not an optimal-equipment policy.")
  if report.carry_patients:
   report.method=report.method.replace("No carrying strategy.","In death’s door profiles, standing allies can rescue patients on their last phase when no ready healer can reach them. Carriers seek healing range while accounting for enemy reach. The report counts rescues, carried revivals, paused phase endings and bleed-outs.")
+ if not report.retreat_chapters.is_empty():
+  report.method+=" Each requested chapter triggers one deliberate retreat before its first action if reached. The next deployment is compared with a pressure-free copy of the same camp."
  report.method=report.method.replace("Five seeds do not establish human difficulty or statistical certainty.","This bounded seed sample does not establish human difficulty or statistical certainty.")
  call_deferred("run")
 func checkpoint():
@@ -148,6 +155,49 @@ func begin_enemy_phase(game,battle):
    assert(not game.DeathDoor.downed(unit) and unit.hp==0)
    battle.bleed_outs+=1
    battle.patient_events.append({"event":"bleed_out","turn":game.turn,"patient":unit.id})
+func compare_preparation(game,unprepared,modifiers: Dictionary) -> Dictionary:
+ var shifts=[];var pressure=game.trials.pressure if game.trials.flags.reset_pressure else 0
+ var baselines={}
+ for enemy in unprepared.living("enemy"):baselines[enemy.id]=enemy
+ var enemies=game.living("enemy")
+ assert(enemies.size()==baselines.size())
+ for enemy in enemies:
+  var prior=baselines[enemy.id]
+  assert(enemy.max_hp==mini(game.STAT_CAPS.max_hp,prior.max_hp+2*pressure))
+  assert(enemy.pow==mini(game.STAT_CAPS.pow,prior.pow+pressure) and enemy.hp==enemy.max_hp)
+  assert(enemy.get("held_tonics",0)==modifiers.held_tonics)
+  assert(enemy.get("reset_supplies_spent",0)==mini(2,pressure))
+  if game.pos(enemy)!=unprepared.pos(prior):
+   assert(enemy.get("raider",false))
+   shifts.append({"id":enemy.id,"from":[prior.x,prior.y],"to":[enemy.x,enemy.y]})
+ return {"enemies":enemies.size(),"raider_shifts":shifts,"tonics":modifiers.held_tonics}
+
+func deploy_for_experiment(game,record) -> bool:
+ prepare(game,record)
+ var pending=record.planned_retreats.back() if not record.planned_retreats.is_empty() else {}
+ var unprepared=null
+ if not pending.is_empty() and not pending.has("prepared"):
+  unprepared=Rules.new()
+  var stage=unprepared.restore_save(game.save_data("camp"))
+  assert(stage=="camp")
+  unprepared.trials.flags.reset_pressure=false
+  unprepared.start_battle()
+ game.start_battle()
+ if unprepared!=null:
+  assert(game.chapter+1==pending.to and game.trials.pressure==pending.pressure)
+  pending.prepared=compare_preparation(game,unprepared,pending.modifiers)
+ var chapter=game.chapter+1
+ if chapter not in report.retreat_chapters or record.planned_retreats.any(func(event):return event.from==chapter):return true
+ var preview=game.trials.restart_preview(game)
+ var prior_losses=game.lost_ids()
+ var purchases=game.trials.purchases.duplicate()
+ var restarted=game.trials.restart(game)
+ assert(restarted and game.chapter==preview.chapter and game.trials.pressure==preview.pressure and game.units.is_empty())
+ assert(prior_losses.all(func(id):return id in game.lost_ids()) and purchases==game.trials.purchases)
+ record.planned_retreats.append({"from":chapter,"to":game.chapter+1,"pressure":game.trials.pressure,
+  "preserved_losses":prior_losses,"preserved_purchases":purchases,"modifiers":preview.enemies})
+ return false
+
 func run():
  var started=Time.get_ticks_msec()
  report.source_files={}
@@ -157,10 +207,10 @@ func run():
    var game=Rules.new();game.new_campaign(profile.permadeath);game.action_saves=true;game.death_door=profile.door
    for flag in profile.flags:game.trials.flags[flag]=true
    game.rng.seed=seed_value;var planner=Tactics.new()
-   var record={"profile":profile.id,"seed":seed_value,"completed":false,"stop":"","retries":0,"promotions":0,"support_reads":0,"loadout_changes":[],"battles":[],"permanent_losses":[],"volunteers":[],"purchases":[],"credits":0}
+   var record={"profile":profile.id,"seed":seed_value,"completed":false,"stop":"","retries":0,"promotions":0,"support_reads":0,"loadout_changes":[],"battles":[],"permanent_losses":[],"volunteers":[],"purchases":[],"credits":0,"planned_retreats":[]}
    report.runs.append(record)
    while not game.completed and record.battles.size()<18:
-    prepare(game,record);game.start_battle()
+    if not deploy_for_experiment(game,record):continue
     var recovering=game.living("player").filter(func(unit):return unit.get("recovering",false)).map(func(unit):return unit.id)
     var battle={
      "chapter":game.chapter+1,"pressure":game.trials.pressure,"deployment":game.deployed.duplicate(),
