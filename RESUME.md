@@ -6,6 +6,8 @@ This checkpoint describes the current development branch and supersedes the earl
 
 ### Latest state
 
+The covered arena cut now waits for a fresh frame before starting the camera push and reveal. A cold committed-loss replay exposed a build frame long enough to consume nearly all of the Fast ×2 reveal. The separate 160 ms stall fixture now retains the moving camera and the vignette. Eight focused suites, four packed checks, 72 matched chapter outcomes and both ZIP checks passed. See `build/review/arena-frame-timing.json` for the headless timing evidence.
+
 Starfall’s night cover now includes the five-star group engraved on its observatory chart. The daytime texture and its mipmaps match the earlier build. The night cover changes 93 base-level pixels around the five new points. All five project inside the measured sky and clear scenery in 144 arena entrance layouts. Eight focused suites, four packed checks, exact texture and projection matches, 72 matched chapter outcomes and both ZIP checks passed. See `build/review/starfall-constellation-study.png` for the sky-only software comparison and `build/review/starfall-constellation.json` for the measurements. Assembled rendering remains unreviewed.
 
 Home fits the battlefield on narrow displays and on boards of different shapes. Twenty tested views contained every outer corner with at least 18 logical pixels to spare. Seven views fit before the change and match their earlier projections exactly. Live resizing refits Home and preserves deliberate pans and zooms. Eight focused suites, four packed checks, all 20 matching packaged projections, 72 matched chapter outcomes and both ZIP checks passed. See `build/review/map-home-framing.json`.

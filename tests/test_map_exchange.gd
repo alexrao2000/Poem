@@ -19,6 +19,7 @@ var expected_facings={}
 var saw_facing=false
 var saw_entry_motion=false
 var saw_entry_cue=false
+var slow_arena_setup=false
 var map_reveals=0
 var arena_reveals=0
 var expected_focus=Vector3.ZERO
@@ -59,6 +60,8 @@ func run():
  for case in ["defeat","counter","survive","heal","skip"]:
   root.size=dimensions[case_index%dimensions.size()];case_index+=1;await process_frame
   var pair=setup();var a=pair[0];var b=pair[1];mode="arena";app.busy=true;app.preferences.values.combat="all"
+  slow_arena_setup=case=="counter"
+  app.preferences.values.combat_speed="fast" if slow_arena_setup else "normal"
   app.world.get_node("CinderfordMill/MillRotor").rotation.z=.85+case_index*.3
   app.preferences.values.effects=0 if case=="skip" else 1
   app.apply_audio_preferences()
@@ -211,25 +214,31 @@ func verify_field():
 
 func watch_arena(node):
  if mode=="arena" and node is Director:
+  if slow_arena_setup:OS.delay_msec(160)
   await process_frame
+  var veil=app.ui.get_node("CombatTransition")
+  while veil.visible and not veil.revealing:await process_frame
   var opening=node.subjects
   assert(opening.size()==2)
   var first_left=node.camera.unproject_position(opening[0].global_position).x<node.camera.unproject_position(opening[1].global_position).x
   assert(first_left==(projected_order[0]==staged_pair[0]),"Both fighters appear on the same screen sides as their map sprites")
   if not first_left:mirrored_reveals+=1
-  var veil=app.ui.get_node("CombatTransition");var previous=node.camera.position
+  var previous=node.camera.position
   var advances=0
-  var shaded=false
+  var peak_shade=0.0
   var reveal_height=1.25 if opening[0].mounted or opening[1].mounted else .95
   while veil.visible and veil.progress>0:
    if node.camera.position.distance_to(previous)>.00001:advances+=1
    assert(node.camera.position.is_equal_approx(node.anchor),"Entrance applies camera motion during the current reveal frame")
    var target=(opening[0].global_position+opening[1].global_position)*.5+Vector3.UP*reveal_height
    verify_reveal_focus(veil,node.camera.unproject_position(target))
-   if veil.shade_alpha()>.15:shaded=true
+   peak_shade=maxf(peak_shade,veil.shade_alpha())
    previous=node.camera.position;await process_frame
   saw_entry_motion=advances>=2
-  if shaded:arena_reveals+=1
+  if slow_arena_setup:
+   assert(saw_entry_motion and peak_shade>.15,"Fast ×2 still shows the staged entrance after a slow arena build")
+   print("PASS: Fast ×2 reveal after a 160 ms arena build stall, %.3f peak shade and %d moving frames"%[peak_shade,advances])
+  if peak_shade>.15:arena_reveals+=1
   return
  if mode!="arena" or not skip_arena or not node is Actor:return
  await process_frame;app.skip_combat=true

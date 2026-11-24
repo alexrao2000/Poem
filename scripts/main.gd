@@ -1380,6 +1380,10 @@ func cinematic(a,b,events,initial_hp={},challenge: Dictionary={}):
 	if events[0].get("revived",false):defender.pose("down",.01)
 	var director=CombatCamera.new();stage.add_child(director);director.configure(camera,[actor,defender])
 	var mounted=a.job=="Rider" or b.job=="Rider"
+	# The next frame owns the time spent building the arena. Keep the cut
+	# covered through that frame so it cannot advance either entrance tween.
+	await get_tree().process_frame
+	await get_tree().process_frame
 	director.enter(actor.position,defender.position,ranged,mounted)
 	var reveal_height=1.25 if mounted else .95
 	await veil.reveal(.22,func():return camera.unproject_position((actor.global_position+defender.global_position)*.5+Vector3.UP*reveal_height)).finished
