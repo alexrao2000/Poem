@@ -12,6 +12,7 @@ const GroundCover=preload("res://scripts/ground_cover.gd")
 const ConiferCrowns=preload("res://scripts/conifer_crowns.gd")
 const BarrelVisuals=preload("res://scripts/barrel_visuals.gd")
 const HarborBoat=preload("res://scripts/harbor_boat.gd")
+const HarborNet=preload("res://scripts/harbor_net.gd")
 const ArenaRidges=preload("res://scripts/arena_ridges.gd")
 const PassEscarpment=preload("res://scripts/pass_escarpment.gd")
 const RuinedColumns=preload("res://scripts/ruined_columns.gd")
@@ -357,6 +358,7 @@ func landscape(parent,game):
   village_mill(parent,MILL_MAP_SITE,.69)
   CinderfordMarket.build(self,parent,Vector3(1.5,0,2.5),.58)
  if theme=="abbey":AbbeyMosaic.build(self,parent,AbbeyMosaic.MAP_SITE,1.0)
+ if theme=="harbor":HarborNet.build(self,parent,HarborNet.MAP_SITE,HarborNet.MAP_SCALE)
  if theme=="forest":TrailLanterns.roadside(parent)
  if theme in ["village","river","forest","road","castle"]:
   var base=-.15 if theme=="forest" else 0.0
@@ -680,6 +682,7 @@ func harbor_quay(parent: Node3D,center: Vector3,surface: int):
  var edge=center+Vector3(0,0,HARBOR_QUAY_EDGE)
  block(parent,edge-Vector3.UP*.20,Vector3(70,.42,.40),detail_material(3)).name="QuayWall"
  block(parent,edge+Vector3.UP*.04,Vector3(70,.12,.52),Color("9d9e8e")).name="QuayCoping"
+ HarborNet.build(self,parent,center+HarborNet.ARENA_SITE,HarborNet.ARENA_SCALE)
  for x in [-9,-4.5,0,4.5,9]:
   var foot=edge+Vector3(x,.27,.08)
   cylinder(parent,foot,.40,.085,Color("514c45"),.07).name="QuayBollard"

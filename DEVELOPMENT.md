@@ -1,5 +1,7 @@
 # Poem development
 
+Glass Harbor’s shore has a wooden drying rack with a sagging fishing net and four attached cork floats. Nearby quay fights use the same woven mesh.
+
 Options can start every 3D exchange at normal or double speed. The in-battle Fast control overrides the setting for that exchange.
 
 Debug can remember one experiment checkpoint and restore its battle or war council with the same rules, units and combat seed. Restores are written to the Debug slot and recorded in the trace.

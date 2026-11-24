@@ -4,6 +4,7 @@ const Roof=preload("res://scripts/architecture.gd")
 const Scenery=preload("res://scripts/scenery.gd")
 const Rules=preload("res://scripts/rules.gd")
 const HarborBoat=preload("res://scripts/harbor_boat.gd")
+const HarborNet=preload("res://scripts/harbor_net.gd")
 const CombatCamera=preload("res://scripts/combat_camera.gd")
 const CinderfordMarket=preload("res://scripts/cinderford_market.gd")
 const ReedTollhouse=preload("res://scripts/reed_tollhouse.gd")
@@ -1169,6 +1170,15 @@ func verify_mooring(piece: MeshInstance3D,water_level: float):
 func verify_harbor_quay():
  var scenery=Scenery.new();scenery.batching_enabled=false
  var game=Rules.new();game.chapter=5;var before=game.rng.state
+ var field=Node3D.new();root.add_child(field);scenery.landscape(field,game)
+ var map_rack=field.get_node("HarborNetRack")
+ var map_net=map_rack.get_node("HangingNet")
+ verify_harbor_net(map_rack,map_net)
+ for footing in map_rack.find_children("NetRackFoot*","MeshInstance3D",false,false):
+  var edge=footing.global_transform*footing.mesh.get_aabb()
+  assert(edge.position.y<0 and edge.end.y>0 and edge.position.z>4.10 and edge.end.z<4.5)
+  var point=footing.global_position
+  assert(game.terrain(Vector2i(roundi(point.x),roundi(point.z)))=="p")
  var near_a={"x":5,"y":4};var near_b={"x":6,"y":4}
  var near=scenery.combat_context(game,near_a,near_b)
  var mirror=scenery.combat_context(game,near_a,near_b,-1)
@@ -1180,8 +1190,19 @@ func verify_harbor_quay():
  var center=Vector3(35,.4,2)
  var viewport=SubViewport.new();viewport.render_target_update_mode=SubViewport.UPDATE_DISABLED;root.add_child(viewport)
  var camera=Camera3D.new();viewport.add_child(camera);camera.current=true
+ var dimensions_to_check=[Vector2i(1024,640),Vector2i(1280,720),Vector2i(1440,900)]
+ var anchor=Vector3(6.5,0,4.5)
+ camera.projection=Camera3D.PROJECTION_ORTHOGONAL;camera.size=16
+ camera.position=anchor+Vector3(2.5,22,11.5);camera.look_at(anchor);camera.h_offset=2
+ for dimensions in dimensions_to_check:
+  viewport.size=dimensions;await process_frame
+  var map_line=map_rack.to_global(Vector3(0,1.10,.08))
+  assert(Rect2(Vector2.ZERO,Vector2(dimensions)).grow(-12).has_point(camera.unproject_position(map_line)))
+ camera.projection=Camera3D.PROJECTION_PERSPECTIVE;camera.h_offset=0
  for context in [near,mirror,inland,pier]:
   var arena=Node3D.new();root.add_child(arena);scenery.battle_landscape(arena,center,context)
+  var rack=arena.get_node_or_null("HarborNetRack")
+  assert((rack!=null)==context.harbor_quay,"Only shore fights carry the rack into the arena")
   var water=arena.get_node_or_null("ArenaWater")
   var deck=arena.get_node_or_null("ArenaDeck")
   var floor=arena.get_node_or_null("ArenaGround")
@@ -1202,6 +1223,11 @@ func verify_harbor_quay():
    var rim=coping.transform*coping.mesh.get_aabb()
    assert(is_equal_approx(land.position.z,sea.end.z),"Paving and sea meet at the quay")
    assert(face.intersects(rim) and face.position.y<sea.position.y and face.end.y>sea.position.y)
+   var net=rack.get_node("HangingNet")
+   assert(net.mesh==map_net.mesh and net.material_override==map_net.material_override)
+   for footing in rack.find_children("NetRackFoot*","MeshInstance3D",false,false):
+    var edge=footing.global_transform*footing.mesh.get_aabb()
+    assert(edge.position.y<center.y and edge.end.y>center.y and edge.position.z>rim.end.z)
    var bollards=arena.find_children("QuayBollard*","MeshInstance3D",false,false)
    assert(bollards.size()==10)
    for index in range(0,bollards.size(),2):
@@ -1220,16 +1246,41 @@ func verify_harbor_quay():
    for mounted in [false,true]:
     var shot=CombatCamera.frame_pair(center+Vector3.LEFT*1.6,center+Vector3.RIGHT*1.6,"wide",false,mounted)
     camera.position=shot.anchor;camera.fov=shot.lens;camera.look_at(shot.focus)
-    for dimensions in [Vector2i(1024,640),Vector2i(1280,720),Vector2i(1440,900)]:
+    for dimensions in dimensions_to_check:
      viewport.size=dimensions;await process_frame
      var safe=Rect2(Vector2(20,20),Vector2(dimensions)-Vector2(40,174))
      var wet=center+Vector3(0,Scenery.HARBOR_QUAY_LEVEL,-8)
      assert(safe.has_point(camera.unproject_position(wet)) and rim.intersects_segment(camera.global_position,wet)==null,"The wide shot sees water above the coping")
      assert(bollards.any(func(post):return safe.has_point(camera.unproject_position(post.global_position))))
+     assert(safe.has_point(camera.unproject_position(rack.to_global(Vector3(0,1.10,.13)))),
+      "The rack and suspended ropes remain in the frame above the health plates")
   arena.free()
- viewport.free()
+ viewport.free();field.free()
  assert(game.rng.state==before)
  print("PASS: Glass Harbor separates inland ground, a planted stone quay and timber piers, with twelve waterfront projections")
+ print("PASS: Glass Harbor’s shared 316-triangle net, attached floats, grounded rack and fifteen map and arena projections")
+
+func verify_harbor_net(rack: Node3D,net: MeshInstance3D):
+ var shape=HarborNet.shape()
+ assert(net.mesh==shape and net.material_override.cull_mode==BaseMaterial3D.CULL_DISABLED)
+ var arrays=shape.surface_get_arrays(0)
+ var points=arrays[Mesh.ARRAY_VERTEX];var normals=arrays[Mesh.ARRAY_NORMAL]
+ assert(points.size()==948)
+ for i in range(0,points.size(),3):
+  var cross=(points[i+1]-points[i]).cross(points[i+2]-points[i])
+  assert(cross.length()>.0001 and cross.normalized().dot(normals[i])<-.999)
+ var hole=HarborNet.site_at(.025,.5/HarborNet.ROWS)
+ var thread=HarborNet.site_at(0,0).lerp(HarborNet.site_at(.1,1.0/HarborNet.ROWS),.5)
+ assert(barrel_hit(shape,hole+Vector3.BACK,Vector3.FORWARD)==null)
+ assert(barrel_hit(shape,thread+Vector3.BACK,Vector3.FORWARD)!=null)
+ var floats=rack.find_children("CorkFloat*","MeshInstance3D",false,false)
+ assert(floats.size()==4)
+ var knots=[1,3,6,8]
+ for index in floats.size():
+  var cord=HarborNet.site_at(float(knots[index])/HarborNet.COLUMNS,1.0/HarborNet.ROWS)
+  var float_knot=floats[index].transform.affine_inverse()*cord
+  assert(absf(float_knot.y)<.0375 and Vector2(float_knot.x,float_knot.z).length()<.029,
+   "Every float seats on a woven junction")
 
 func verify_towers():
  var masonry=preload("res://scripts/fortification.gd")

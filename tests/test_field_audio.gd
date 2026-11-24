@@ -2,6 +2,7 @@ extends SceneTree
 const Field=preload("res://scripts/field_audio.gd")
 const Architecture=preload("res://scripts/architecture.gd")
 const ReedTollhouse=preload("res://scripts/reed_tollhouse.gd")
+const HarborNet=preload("res://scripts/harbor_net.gd")
 const GreywoodShelter=preload("res://scripts/greywood_shelter.gd")
 const CinderfordMarket=preload("res://scripts/cinderford_market.gd")
 const Shutdown=preload("helpers/game_shutdown.gd")
@@ -122,6 +123,8 @@ func verify_combat_voice(app,chapter: int,theme: String,point: Vector2i) -> Audi
   verify_prop_batches(app,"ReedTollhouse",Architecture.roof(),Architecture.material(),roof_transform)
  if theme=="forest":
   verify_prop_batches(app,"GreywoodShelter",GreywoodShelter.canvas_shape(),GreywoodShelter.paint())
+ if theme=="harbor":
+  verify_prop_batches(app,"HarborNetRack",HarborNet.shape(),HarborNet.material())
  if theme=="road":
   var canal_material=app.scenery.water_material("road")
   assert(app.stage.get_children().any(func(node):return node is MeshInstance3D and node.material_override==canal_material),
