@@ -24,6 +24,7 @@ const SanctuaryPlinth=preload("res://scripts/sanctuary_plinth.gd")
 const TrailLanterns=preload("res://scripts/trail_lanterns.gd")
 const GreywoodShelter=preload("res://scripts/greywood_shelter.gd")
 const CinderfordMarket=preload("res://scripts/cinderford_market.gd")
+const CinderfordStream=preload("res://scripts/cinderford_stream.gd")
 const ReedTollhouse=preload("res://scripts/reed_tollhouse.gd")
 const AbbeyMosaic=preload("res://scripts/abbey_mosaic.gd")
 const ABBEY_GROVE_SITES=[
@@ -371,10 +372,12 @@ func landscape(parent,game):
    var area=item.footprint
    for y in range(area[1],area[1]+area[3]):
     for x in range(area[0],area[0]+area[2]):building_cells[Vector2i(x,y)]=true
- if theme in ["village","river"]:
+ if theme=="village":
+  CinderfordStream.build(self,parent,game,extent,MAP_WATER_LEVEL)
+ elif theme=="river":
   var water=water_material(theme)
-  var river=plane_shape(Vector2(2 if theme=="river" else 1,extent))
-  mesh(parent,river,Vector3(5.5 if theme=="river" else 7,MAP_WATER_LEVEL,center.y),Vector3.ONE,water)
+  var river=plane_shape(Vector2(2,extent))
+  mesh(parent,river,Vector3(5.5,MAP_WATER_LEVEL,center.y),Vector3.ONE,water)
  for y in range(board.y):
   for x in range(board.x):
    var t=game.terrain(Vector2i(x,y));var p=Vector3(x,0,y)
@@ -432,11 +435,15 @@ func landscape(parent,game):
   reddeep_works.fringe(self,parent,board)
  if theme=="forest":TrailLanterns.roadside(parent)
  if theme in ["village","river","forest","road","castle"]:
-  var base=-.15 if theme=="forest" else 0.0
+  var base=-.15 if theme in ["forest","village"] else 0.0
   var far_spread=(board.x+9)/23.0
   var near_spread=(board.x+7)/21.0
-  for i in range(22):tree(parent,Vector3(-4+((i*7)%23)*far_spread,base,-3-(i%3)*1.3),i*23,theme)
-  for i in range(12):tree(parent,Vector3(-3+((i*13)%21)*near_spread,base,board.y+2+i%3),i*11,theme)
+  for i in range(22):
+   var point=Vector3(-4+((i*7)%23)*far_spread,base,-3-(i%3)*1.3)
+   tree(parent,CinderfordStream.tree_position(game,point) if theme=="village" else point,i*23,theme)
+  for i in range(12):
+   var point=Vector3(-3+((i*13)%21)*near_spread,base,board.y+2+i%3)
+   tree(parent,CinderfordStream.tree_position(game,point) if theme=="village" else point,i*11,theme)
  elif theme=="mountain":
   var slope=PassEscarpment.build(parent,Vector3((game.board_size().x-1)*.5,-.15,-2.1),Vector3(.72,.66,.77))
   pass_beacons(parent,slope,false)

@@ -12,6 +12,7 @@ const SanctuaryPlinth=preload("res://scripts/sanctuary_plinth.gd")
 const PassEscarpment=preload("res://scripts/pass_escarpment.gd")
 const StarfallTerrain=preload("res://scripts/starfall_terrain.gd")
 const AqueductReservoir=preload("res://scripts/aqueduct_reservoir.gd")
+const CinderfordStream=preload("res://scripts/cinderford_stream.gd")
 func _initialize():call_deferred("run")
 func surface_geometry():
  var scenery=Scenery.new();var parent=Node3D.new();root.add_child(parent)
@@ -126,6 +127,7 @@ func verify_perimeter():
 func run():
  surface_geometry()
  verify_perimeter()
+ verify_cinderford_stream()
  await verify_aqueduct_reservoir()
  verify_bridge_support(Scenery.new())
  verify_arena_ground()
@@ -973,3 +975,67 @@ func verify_aqueduct_reservoir():
  assert(game.save_data("camp")==before and game.rng.state==rng)
  camera_view.free();map.free();larger.free()
  print("PASS: Old Aqueduct's sloped reservoir banks join the field without blocking tile centers, scale to larger maps and reuse four ground meshes")
+
+func verify_cinderford_stream():
+ var game=Rules.new()
+ var state=game.save_data("camp")
+ var scenery=Scenery.new();scenery.batching_enabled=false
+ var map=Node3D.new();root.add_child(map);scenery.landscape(map,game)
+ var stream=map.get_node("CinderfordStream")
+ var outer_paint=map.get_child(0).material_override
+ var grass=scenery.ground_material(0)
+ for parameter in ["wang_texture","wang_scale"]:
+  assert(grass.get_shader_parameter(parameter)==outer_paint.get_shader_parameter(parameter),
+   "The grassy shoulders use the same paint and scale as the meadow")
+ var reaches=stream.find_children("StreamReach*","MeshInstance3D",false,false)
+ var banks=stream.find_children("StreamBank*","MeshInstance3D",false,false)
+ var shoulders=stream.find_children("StreamShoulder*","MeshInstance3D",false,false)
+ var map_water=map.find_children("MapWater*","MeshInstance3D",false,false)
+ assert(reaches.size()==2 and banks.size()==4 and shoulders.size()==4 and map_water.size()==10)
+ for tile in map_water:
+  assert(is_equal_approx(tile.position.y,Scenery.MAP_WATER_LEVEL))
+  assert(tile.material_override==scenery.water_material("village"))
+ var board=game.board_size()
+ for reach in reaches:
+  var direction=-1 if reach.position.z<0 else 1
+  assert(reach.material_override==scenery.water_material("village"))
+  assert(reach.cast_shadow==GeometryInstance3D.SHADOW_CASTING_SETTING_OFF)
+  var points=reach.mesh.surface_get_arrays(0)[Mesh.ARRAY_VERTEX]
+  var z=CinderfordStream.edge(board,direction)
+  var seam=[]
+  var x_range=Vector2(INF,-INF)
+  for vertex in points:
+   var point=reach.to_global(vertex)
+   assert(direction*(point.z-z)>=0 and is_equal_approx(point.y,Scenery.MAP_WATER_LEVEL),
+    "The visible stream remains outside the board at the original waterline")
+   if is_equal_approx(point.z,z):seam.append(point.x)
+   x_range.x=minf(x_range.x,point.x);x_range.y=maxf(x_range.y,point.x)
+  seam.sort()
+  assert(seam==[6.5,7.5] and x_range.y-x_range.x>2.4,"Both mouths meet the existing tile before widening")
+  for distance in [3.0,4.3,5.6]:
+   var cross=CinderfordStream.section(distance,direction)
+   var root_point=Vector3(cross.x,-.15,z+direction*distance)
+   var clear=CinderfordStream.tree_position(game,root_point)
+   assert(absf(clear.x-cross.x)>=cross.y+CinderfordStream.TREE_CLEARANCE-.0001)
+  var shore_sections=banks.filter(func(bank):return bank.position.z==reach.position.z)
+  assert(shore_sections.size()==2)
+  for bank in shore_sections:
+   assert(bank.material_override==scenery.ground_material(2))
+   assert(bank.cast_shadow==GeometryInstance3D.SHADOW_CASTING_SETTING_OFF)
+   var envelope=bank.global_transform*bank.mesh.get_aabb()
+   assert(envelope.position.y<Scenery.MAP_WATER_LEVEL and envelope.end.y>Scenery.MAP_WATER_LEVEL)
+   assert((envelope.end.z<=z+.0001 if direction<0 else envelope.position.z>=z-.0001))
+ for shoulder in shoulders:
+  assert(shoulder.material_override==scenery.ground_material(0) and shoulder.cast_shadow==GeometryInstance3D.SHADOW_CASTING_SETTING_OFF)
+ var dry=game.info().map.duplicate()
+ var north=dry[0]
+ dry[0]=north.substr(0,7)+"."+north.substr(8)
+ game.info().map=dry
+ var shortened=Node3D.new();root.add_child(shortened);scenery.landscape(shortened,game)
+ var shortened_reaches=shortened.get_node("CinderfordStream").find_children("StreamReach*","MeshInstance3D",false,false)
+ assert(shortened_reaches.size()==1 and shortened_reaches[0].mesh==reaches[1].mesh,
+  "A rebuild retains the same geometry at the remaining mouth")
+ dry[0]=north
+ assert(game.save_data("camp")==state,"The stream changes no campaign state")
+ map.free();shortened.free()
+ print("PASS: both Cinderford stream mouths match the playable waterline and follow raised banks beyond the grid")

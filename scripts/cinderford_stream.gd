@@ -1,0 +1,84 @@
+extends RefCounted
+## The stream keeps its authored width through town and meanders beyond the grid.
+
+const RiverBank = preload("res://scripts/river_bank.gd")
+const CHANNEL_COLUMN = 7
+const ROWS = 48
+const VEGETATION_EDGE = Vector2(.25,-.029)
+const WET_SHORE = [Vector2(-.07,-.126), Vector2(.14,-.043), VEGETATION_EDGE]
+const GRASS_SHOULDER = [VEGETATION_EDGE, Vector2(.54,-.055),
+ Vector2(.84,-.108), Vector2(1.12,-.151)]
+const TREE_CLEARANCE = 1.95
+static var cached_length = 0.0
+static var meshes: Dictionary = {}
+
+static func section(distance: float,direction: int) -> Vector2:
+ var phase = .7 if direction < 0 else -.9
+ var bend = sin(distance*.36+phase)*1.25+sin(distance*.15-phase)*.83
+ var spread = .18+.15*sin(distance*.38+phase)
+ var transition = smoothstep(0,5,distance)
+ return Vector2(CHANNEL_COLUMN+bend*transition,.5+spread*transition)
+
+static func open_end(game,direction: int) -> bool:
+ var row = 0 if direction < 0 else game.board_size().y-1
+ return game.terrain(Vector2i(CHANNEL_COLUMN,row)) in ["~","="]
+
+static func edge(board: Vector2i,direction: int) -> float:
+ return -.5 if direction < 0 else board.y-.5
+
+static func shape(length: float,direction: int,shore: int,water_level: float,profile: Array = []) -> ArrayMesh:
+ if length != cached_length:
+  cached_length = length
+  meshes.clear()
+ var key = [direction,shore,water_level,profile]
+ if meshes.has(key):return meshes[key]
+ var points = PackedVector3Array()
+ var uv = PackedVector2Array()
+ for row in ROWS+1:
+  var distance = length*float(row)/ROWS
+  var z = direction*distance
+  var cross = section(distance,direction)
+  if shore == 0:
+   points.append(Vector3(cross.x-cross.y,water_level,z))
+   points.append(Vector3(cross.x+cross.y,water_level,z))
+   uv.append(Vector2(0,distance))
+   uv.append(Vector2(1,distance))
+  else:
+   for grade in profile:
+    var y = lerpf(-.151,grade.y,smoothstep(0,1.2,distance))
+    var x = cross.x+shore*(cross.y+grade.x)
+    points.append(Vector3(x,y,z))
+    uv.append(Vector2(x,z))
+ var columns = 1 if shore == 0 else profile.size()-1
+ var reverse = direction < 0 if shore == 0 else direction*shore < 0
+ var result = RiverBank.grid_mesh(points,uv,columns,ROWS,reverse)
+ meshes[key] = result
+ return result
+
+static func build(scenery,parent: Node3D,game,extent: float,water_level: float):
+ var stream = Node3D.new()
+ stream.name = "CinderfordStream"
+ parent.add_child(stream)
+ var board = game.board_size()
+ for direction: int in [-1,1]:
+  if not open_end(game,direction):continue
+  var origin = Vector3(0,0,edge(board,direction))
+  var water = scenery.mesh(stream,shape(extent*.53,direction,0,water_level),origin,Vector3.ONE,scenery.water_material("village"))
+  water.name = "StreamReach"
+  water.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+  for shore in [-1,1]:
+   var bank = scenery.mesh(stream,shape(extent*.53,direction,shore,water_level,WET_SHORE),origin,Vector3.ONE,scenery.ground_material(2))
+   bank.name = "StreamBank"
+   bank.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+   var shoulder = scenery.mesh(stream,shape(extent*.53,direction,shore,water_level,GRASS_SHOULDER),origin,Vector3.ONE,scenery.ground_material(0))
+   shoulder.name = "StreamShoulder"
+   shoulder.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+
+static func tree_position(game,point: Vector3) -> Vector3:
+ var direction = -1 if point.z < 0 else 1
+ if not open_end(game,direction):return point
+ var cross = section(absf(point.z-edge(game.board_size(),direction)),direction)
+ var offset = point.x-cross.x
+ if absf(offset)<cross.y+TREE_CLEARANCE:
+  point.x += (cross.y+TREE_CLEARANCE)*(1 if offset>=0 else -1)
+ return point
