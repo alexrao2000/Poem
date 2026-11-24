@@ -242,6 +242,30 @@
         }
       },
       "composition_sha256": "ab34abbddd9c182e81098d9751a3c82d43af0db5657300a054d7df16d1675bb2"
+    },
+    {
+      "id": "crown",
+      "title": "The Gates Unanswered",
+      "bpm": 105,
+      "bars": 32,
+      "frames": 1612800,
+      "sample_rate": 22050,
+      "channels": 2,
+      "arrangements": {
+        "calm": {
+          "path": "res://assets/audio/crown-calm.wav",
+          "peak": 0.6094761355907591,
+          "rms": 0.12,
+          "boundary_step": 0.00744999950455269
+        },
+        "ablaze": {
+          "path": "res://assets/audio/crown-ablaze.wav",
+          "peak": 0.8700000000000001,
+          "rms": 0.1329698287413344,
+          "boundary_step": 0.008508058069454965
+        }
+      },
+      "composition_sha256": "756eccb0ece5694a8eab091760dfdc8d8fa4957622a9e7175521a924545ef24f"
     }
   ]
 }

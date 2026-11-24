@@ -24,7 +24,7 @@ manifest = bank.manifest
 assert next(e['root'] for e in manifest['samples'] if e['path'].endswith('KSHarp_C5_mf.wav')) == 72, 'Harp octave labels differ from other instruments'
 catalog = json.loads((ROOT / 'assets/audio/themes.json').read_text())
 assert [profile['id'] for profile in catalog['profiles']] == [
-    'standard', 'road', 'dawnless', 'sun_engine', 'abbey', 'starfall', 'greywood', 'glass_harbor', 'windscar', 'aqueduct',
+    'standard', 'road', 'dawnless', 'sun_engine', 'abbey', 'starfall', 'greywood', 'glass_harbor', 'windscar', 'aqueduct', 'crown',
 ]
 for profile in catalog['profiles']:
     beats = profile.get('beats_per_bar', 4)
