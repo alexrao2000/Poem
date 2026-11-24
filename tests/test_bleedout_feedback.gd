@@ -20,7 +20,10 @@ func run():
  var cases=["permanent","recoverable","lord","multiple","carried","next_phase","skip","save_failure"];var count=0
  for kind in cases:
   viewport.size=[Vector2i(1024,640),Vector2i(1280,720),Vector2i(1440,900)][count%3];await process_frame
-  app.game.new_campaign(kind!="recoverable");app.game.death_door=true;app.game.action_saves=true;app.game.start_battle()
+  app.game.new_campaign(kind!="recoverable");app.game.death_door=true;app.game.action_saves=true
+  app.game.trials.flags.death_legacies=kind in ["permanent","multiple"]
+  app.game.trials.flags.sacrifice_cost=kind in ["recoverable","multiple"]
+  app.game.start_battle()
   var lord=app.game.units.filter(func(u):return u.id=="lyra")[0];var patient=app.game.units.filter(func(u):return u.id=="oren")[0];var second=app.game.units.filter(func(u):return u.id=="ivo")[0];var enemy=app.game.living("enemy")[0]
   lord.x=2;lord.y=3;patient.x=3;patient.y=3;second.x=4;second.y=3;enemy.x=12;enemy.y=7
   if kind=="lord":patient=lord
@@ -58,9 +61,15 @@ func run():
      if kind=="skip" and not skipped:
       var key=InputEventKey.new();key.keycode=KEY_TAB;key.pressed=true;app._input(key);skipped=true
    for card in app.ui.get_children().filter(func(node):return node is Card and node.visible):
-    cards[card.heading.text]=true;card.dismissed=true
+    cards[card.heading.text]=card.consequences.text if card.consequences!=null else ""
+    card.dismissed=true
   assert(not app.busy and observed.size()==expected_count,"Every expired patient gets one map departure: "+kind)
   assert(cards.size()==(0 if skipped else expected_count),"Casualty captions: "+str([kind,cards,expected_count,skipped]))
+  if kind=="permanent":assert(cards["Oren · LAST WORDS"]=="Legacy credit +1 · Faye joins early")
+  elif kind=="recoverable":assert(cards["Oren · WITHDRAWING"]=="Allies gain +2 attack · Recovery on redeployment")
+  elif kind=="multiple":
+   assert(cards["Oren · LAST WORDS"]=="Legacy credit +1 · Faye joins early · Allies gain +2 attack")
+   assert(cards["Ivo · LAST WORDS"]=="Legacy credit +1","The second loss does not reannounce the same attack boost")
   assert(app.game.rng.state==rng and not app.stage.visible)
   if not will_fall:
    assert(app.game.DeathDoor.downed(patient) and patient.bleed_turns==1 and not app.game.roster.filter(func(u):return u.id==patient.id)[0].fallen)
@@ -71,5 +80,5 @@ func run():
    assert(canonical(app.game.save_data("battle"))==outcome,"Interrupted departure resumes without repeated countdown or casualty")
   count+=1
  await Shutdown.dispose(app);viewport.queue_free();await process_frame
- print("PASS: %d actual phase endings across three viewports; permanent/recoverable/lord/multiple losses, carried and next-phase exclusions, durable-before-fade state, keyboard Skip, interrupted reload and failed-save retry"%count)
+ print("PASS: %d actual phase endings across three viewports, exact credit and sacrifice feedback, permanent/recoverable/lord/multiple losses, carried and next-phase exclusions, durable-before-fade state, keyboard Skip, interrupted reload and failed-save retry"%count)
  quit()

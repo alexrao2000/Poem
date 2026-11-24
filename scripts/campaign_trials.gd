@@ -53,15 +53,22 @@ func capture_section(game):
  checkpoint=snapshot.save_data("camp").duplicate(true)
  checkpoint.erase("trials");checkpoint.version=5;checkpoint.units=[];checkpoint.phase="player";checkpoint.turn=1
 
-func record_losses(game):
+func record_losses(game) -> Dictionary:
+ var consequences={}
  for unit in game.units:
   if unit.team!="player" or unit.hp>0 or game.DeathDoor.downed(unit):continue
   if flags.sacrifice_cost and int(injuries.get(unit.id,-1))<game.chapter+1:
    injuries[unit.id]=game.chapter+1
-   for ally in game.living("player"):ally.resolve_until=game.turn+1
+   var opening=false
+   for ally in game.living("player"):
+    if int(ally.get("resolve_until",-1))<game.turn+1:opening=true
+    ally.resolve_until=game.turn+1
+   if opening or not game.permadeath:consequences[unit.id]={"opening":opening,"recovering":not game.permadeath}
    log_event(unit.name+" buys an opening: surviving allies gain +2 attack through the next player turn. The fallen ally needs a chapter to recover fully.")
   if not flags.death_legacies or not game.permadeath or unit.id=="lyra" or losses.has(unit.id):continue
   losses[unit.id]=game.chapter;credits+=1
+  var outcome=consequences.get(unit.id,{})
+  outcome.legacy_credit=true;consequences[unit.id]=outcome
   queue_scene("memorial_"+str(section_start(game.chapter)))
   log_event(unit.name+" is lost. Their last request brings one legacy supply credit to the company.")
   var volunteer="faye" if losses.size()==1 else "noor" if losses.size()==3 else ""
@@ -69,7 +76,9 @@ func record_losses(game):
    var recruits=game.roster.filter(func(recruit):return recruit.id==volunteer)
    if not recruits.is_empty() and not recruits[0].get("fallen",false) and recruits[0].join>game.chapter:
     volunteers.append(volunteer);queue_scene("volunteer_"+volunteer)
+    outcome.volunteer=recruits[0].name
     log_event(recruits[0].name+" answers the company's loss and arrives ahead of the planned rendezvous.")
+ return consequences
 
 func enemy_modifiers(chapter: int,pressure_override: int=-1) -> Dictionary:
  var extra=(pressure if pressure_override<0 else clampi(pressure_override,0,10)) if flags.reset_pressure else 0

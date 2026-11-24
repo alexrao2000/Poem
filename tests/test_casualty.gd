@@ -4,10 +4,15 @@ const Rules=preload("res://scripts/rules.gd")
 const Shutdown=preload("helpers/game_shutdown.gd")
 var cards=0
 var sequence_done=false
+var observed_effects=""
 
 func _initialize():call_deferred("run")
 func watch(node):
- if node.name=="CasualtyCard":cards+=1
+ if node.name!="CasualtyCard":return
+ cards+=1
+ await process_frame
+ var effects=node.get_node_or_null("Consequences")
+ observed_effects=effects.text if effects!=null else ""
 
 func run():
  var app=load("res://main.tscn").instantiate();app.settings_path="";app.save_path="/private/tmp/poem-casualty-test.json";root.add_child(app);await process_frame
@@ -37,25 +42,44 @@ func run():
     card.queue_free();layouts+=1
    unit.team="enemy";assert(Card.quote_for(rules,unit).is_empty(),"Enemy IDs cannot borrow recruit lines")
  assert(Card.quote_for(rules,{"team":"player","id":"unknown"}).is_empty(),"Unknown recruits skip unavailable dialogue")
+ for dimensions in [Vector2(720,480),Vector2(1024,640),Vector2(1280,720),Vector2(1440,900)]:
+  host.size=dimensions
+  var unit=rules.roster[1]
+  var card=Card.new()
+  card.configure(host,unit,app.portraits.get_portrait(unit.id),"death",Card.lines[unit.id].death,
+   {"legacy_credit":true,"volunteer":"Faye","opening":true})
+  await process_frame;await process_frame
+  assert(Rect2(Vector2.ZERO,dimensions).encloses(card.get_global_rect()))
+  assert(card.consequences.get_line_count()<=card.consequences.get_visible_line_count())
+  assert(card.consequences.get_global_rect().end.y<card.prompt.global_position.y)
+  assert(card.get_global_rect().encloses(card.prompt.get_global_rect()))
+  card.queue_free()
  host.queue_free()
  for kind in ["death","retreat","downed"]:
-  app.game.new_campaign(kind!="retreat");app.game.death_door=kind=="downed";app.game.start_battle()
+  app.game.new_campaign(kind!="retreat");app.game.death_door=kind=="downed"
+  app.game.trials.flags.death_legacies=true;app.game.trials.flags.sacrifice_cost=kind!="death"
+  app.game.start_battle()
   app.preferences.values.combat="all" if kind=="retreat" else "map"
   var ally=app.game.units[1];var enemy=app.game.living("enemy")[0]
   ally.x=8;ally.y=4;ally.hp=1;ally.defense=0;ally.speed=0;enemy.x=9;enemy.y=4;enemy.pow=255;enemy.speed=255
   app.game.phase="enemy";app.make_map();app.show_battle();app.busy=true
   app.ui.child_entered_tree.connect(watch);var before_cards=cards
   var events=app.game.combat(enemy,ally);assert(ally.hp==0)
+  var actual=events[0].get("casualty_effects",{})
+  if kind=="death":assert(actual=={"legacy_credit":true,"volunteer":"Faye"})
+  elif kind=="retreat":assert(actual=={"opening":true,"recovering":true})
+  else:assert(actual.is_empty(),"A rescuable unit has not earned a loss reward")
   var snapshot=app.game.save_data("battle").duplicate(true)
   await app.cinematic(enemy,ally,events,{enemy.id:enemy.hp,ally.id:1});await process_frame
   assert(cards==before_cards+1 and app.ui.get_node_or_null("CasualtyCard")==null,"A real exchange presents one casualty card and releases it")
+  assert(observed_effects=={"death":"Legacy credit +1 · Faye joins early","retreat":"Allies gain +2 attack · Recovery on redeployment","downed":""}[kind])
   assert(app.game.save_data("battle")==snapshot,"Dialogue cannot alter casualties, actions or RNG")
   app.skip_combat=true;await app.present_casualties(events)
   assert(cards==before_cards+1,"Skipped exchanges cannot reintroduce casualty dialogue")
   app.busy=false
  await verify_keyboard(app)
  await Shutdown.dispose(app);await process_frame
- print("PASS: 216 casualty portrait layouts, all roster outcome lines, lord/enemy fallbacks, skip cleanup, real quick/3D exchange isolation and one-line Enter/Space continuation with held-key suppression")
+ print("PASS: 216 casualty portrait layouts, four consequence layouts, actual legacy/volunteer/opening feedback and downed exclusion, lord/enemy fallbacks, skip cleanup, quick/3D isolation and Enter/Space continuation")
  quit()
 
 func run_sequence(app,events):

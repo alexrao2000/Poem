@@ -6,6 +6,8 @@ This checkpoint describes the current development branch and supersedes the earl
 
 ### Latest state
 
+Casualty cards show the consequence earned by the resolved strike or phase ending. The card can name a legacy credit, an early volunteer, the allied attack bonus and recovery on redeployment. Four added layouts span 720 to 1440 pixels, and simultaneous losses announce the shared attack opening once. Ten focused suites, both exports, three packed suites per build and ZIP integrity passed. Seventy-two campaign-rule samples reproduced the previous combat outcomes and exact save hashes, and source and both exports produced identical effect records. The shown interface was checked headlessly.
+
 Glass Harbor’s drying rack carries a sagging 316-triangle net and four cork floats on the tactical shore and in nearby quay fights. Fifteen projections checked the framing, and the fitting tests kept the ropes joined and the feet seated. The source, Web and macOS mesh arrays match. Nine focused suites, both exports, packaged architecture and field audio, and ZIP integrity passed. All 72 campaign outcomes matched. A new Debug transfer code played a full revised fight by the quay in both packs. See `build/review/harbor-net-study.png` and `build/review/playtest/README.md`. Rendered gameplay remains unreviewed.
 
 **Starting 3D battle speed** in Options saves Normal or Fast ×2 on the device. The in-battle Fast button still overrides the individual exchange. The setting keeps the score’s decoder and pitch and restores the previous presentation clock and tactical view. Older preference files start at Normal. Eight focused suites, packed preferences and both playback suites in each export, and archive integrity passed. Rendered gameplay remains unreviewed.

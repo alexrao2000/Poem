@@ -8,6 +8,8 @@ Debug opens with campaign controls first. The fixed **Campaign experiments** and
 
 Use **Save experiment checkpoint** to remember the current war council or battle position and chosen combat seed. **Restore experiment checkpoint** returns to that position so you can try another action, loadout or retreat. The saved point is reusable during the current Debug session. Each restore writes to the Debug slot and appears in the experiment report.
 
+The casualty card names the effects earned by that loss. Legacy awards show the credit and any volunteer who joins early. A sacrifice can show the company’s attack bonus and recovery on redeployment. A downed recruit keeps the rescue cue while their countdown is active.
+
 The debug seed control accepts whole numbers from 0 through 2147483647. **Apply seed to next rolls** changes the sandbox’s random stream immediately. Loading a chapter, clean-resetting a battle or reviving/resetting the company reuses that seed; ordinary penalty retreats follow the campaign’s restart rules. The same seed, settings and sequence of actions reproduce the same results.
 
 **Test pressure and reset battle** accepts pressure 0–10, enables enemy preparation and rebuilds the current chapter using the selected seed. It keeps other trial switches and the consequence ledger. Load the chapter first, then choose pressure; a fresh-roster chapter load clears earlier consequences. The company experiment panel and debug report show the stat bonuses, held tonics and raider advance that will apply on the next deployment.

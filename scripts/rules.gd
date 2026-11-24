@@ -321,11 +321,13 @@ func use_tonic(u: Dictionary) -> bool:
 	u.hp=mini(u.max_hp,u.hp+12);u[key]-=1;u.acted=true
 	return true
 
-func begin_enemy_phase():
-	DeathDoor.end_player_phase(self);commit_casualties()
+func begin_enemy_phase() -> Dictionary:
+	DeathDoor.end_player_phase(self)
+	var consequences=commit_casualties()
 	phase="enemy"
 	for u in living("enemy"):
 		u.acted=false;u.moved=false;u.erase("move_origin")
+	return consequences
 
 func can_attack(a: Dictionary,b: Dictionary) -> bool:
 	var d = distance(a,b)
@@ -363,7 +365,10 @@ func combat(a: Dictionary,b: Dictionary) -> Array:
 		if f.double: result.append(strike(a,b))
 		elif attack_speed(b)-attack_speed(a)>=4 and can_attack(b,a): result.append(strike(b,a))
 	a.acted = true
-	commit_casualties()
+	var consequences=commit_casualties()
+	for event in result:
+		if event.remaining<=0 and consequences.has(event.target):
+			event.casualty_effects=consequences[event.target]
 	for u in [a,b]:
 		if u.team=="player" and u.hp>0:
 			award_xp(u,45 if (b.hp<=0 if u==a else a.hp<=0) else 25)
@@ -433,14 +438,15 @@ func next_player_turn():
 		var recovery=terrain_profile(pos(u)).heal
 		if u.hp>0 and recovery>0:u.hp=mini(u.max_hp,u.hp+recovery)
 
-func commit_casualties():
-	trials.record_losses(self)
-	if not permadeath or not (action_saves or trials.flags.section_restarts or trials.flags.death_legacies):return
+func commit_casualties() -> Dictionary:
+	var consequences=trials.record_losses(self)
+	if not permadeath or not (action_saves or trials.flags.section_restarts or trials.flags.death_legacies):return consequences
 	for unit in units:
 		if unit.team!="player" or unit.id=="lyra" or unit.hp>0 or DeathDoor.downed(unit):continue
 		for recruit in roster:
 			if recruit.id==unit.id:
 				recruit.fallen=true;recruit.fallen_chapter=chapter;recruit.hp=0;deployed.erase(unit.id)
+	return consequences
 
 const SAVE_VERSION=6
 

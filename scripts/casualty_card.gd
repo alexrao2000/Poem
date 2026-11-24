@@ -9,6 +9,7 @@ var motion: Tween
 var face: TextureRect
 var heading: Label
 var line: Label
+var consequences: Label
 var prompt: Label
 const ACCENTS={"downed":Color("725629"),"retreat":Color("3e626b"),"death":Color("8c4545")}
 
@@ -56,7 +57,7 @@ static func quote_for(game,unit: Dictionary) -> String:
  if unit.get("team","")!="player":return ""
  return lines.get(unit.get("id",""),{}).get(mode_for(game,unit),"")
 
-func configure(parent: Control,unit: Dictionary,portrait: Texture2D,mode: String,quote: String):
+func configure(parent: Control,unit: Dictionary,portrait: Texture2D,mode: String,quote: String,effects: Dictionary={}):
  name="CasualtyCard";z_index=30;mouse_filter=Control.MOUSE_FILTER_STOP
  parent.add_child(self)
  var accent=ACCENTS.get(mode,ACCENTS.retreat)
@@ -70,19 +71,38 @@ func configure(parent: Control,unit: Dictionary,portrait: Texture2D,mode: String
  line=Label.new();line.name="Quote";line.autowrap_mode=TextServer.AUTOWRAP_WORD_SMART;line.vertical_alignment=VERTICAL_ALIGNMENT_CENTER
  line.size=Vector2(minf(760,parent.size.x-370)-(158 if portrait!=null else 32),80);line.text=quote
  line.add_theme_font_size_override("font_size",24);line.add_theme_color_override("font_color",Color("343c49"));line.mouse_filter=Control.MOUSE_FILTER_IGNORE;add_child(line)
- prompt=Label.new();prompt.text="Click / Enter / Space: continue · Tab: skip";prompt.add_theme_font_size_override("font_size",14);prompt.add_theme_color_override("font_color",Color("736754"));prompt.mouse_filter=Control.MOUSE_FILTER_IGNORE;add_child(prompt)
+ if not effects.is_empty():
+  var details=[]
+  if effects.get("legacy_credit",false):details.append("Legacy credit +1")
+  if effects.has("volunteer"):details.append(effects.volunteer+" joins early")
+  if effects.get("opening",false):details.append("Allies gain +2 attack")
+  if effects.get("recovering",false):details.append("Recovery on redeployment")
+  consequences=Label.new();consequences.name="Consequences";consequences.text=" · ".join(details)
+  consequences.autowrap_mode=TextServer.AUTOWRAP_WORD_SMART;consequences.mouse_filter=Control.MOUSE_FILTER_IGNORE
+  consequences.add_theme_font_size_override("font_size",14);consequences.add_theme_color_override("font_color",accent);add_child(consequences)
+ prompt=Label.new();prompt.add_theme_font_size_override("font_size",14);prompt.add_theme_color_override("font_color",Color("736754"));prompt.mouse_filter=Control.MOUSE_FILTER_IGNORE;add_child(prompt)
  parent.resized.connect(arrange);arrange()
 
 func arrange():
  var viewport_size=get_parent().size
- size=Vector2(minf(760,viewport_size.x-370),164)
- position=Vector2(22,viewport_size.y-size.y-82)
+ var card_width=minf(760,viewport_size.x-370)
  var left=142.0 if face!=null else 16.0
- var width=size.x-left-16
+ var width=card_width-left-16
+ var extra_height=0.0
+ if consequences!=null:
+  consequences.position=Vector2(left,132);consequences.size.x=width
+  var line_height=consequences.get_theme_font("font").get_height(14)+consequences.get_theme_constant("line_spacing")
+  consequences.size.y=ceilf(maxi(1,consequences.get_line_count())*line_height)
+  extra_height=consequences.size.y+6
+ size=Vector2(card_width,164+extra_height)
+ position=Vector2(22,viewport_size.y-size.y-82)
  if face!=null:face.position=Vector2(16,16);face.size=Vector2(110,132)
  heading.position=Vector2(left,14);heading.size=Vector2(width-28,26)
  line.position=Vector2(left,44);line.size=Vector2(width,80)
- prompt.position=Vector2(left,132);prompt.size=Vector2(width,20)
+ var help="Click, Enter or Space to continue · Tab to skip"
+ var help_width=prompt.get_theme_font("font").get_string_size(help,HORIZONTAL_ALIGNMENT_LEFT,-1,14).x
+ prompt.text=help if help_width<=width else "Enter or Space · Tab to skip"
+ prompt.position=Vector2(left,132+extra_height);prompt.size=Vector2(width,20)
 
 func _gui_input(event):
  if event is InputEventMouseButton and event.pressed and event.button_index==MOUSE_BUTTON_LEFT:

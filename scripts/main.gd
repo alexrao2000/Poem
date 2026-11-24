@@ -1114,11 +1114,12 @@ func end_turn(resuming=false):
 	if not resuming:
 		var bleeding=game.units.filter(func(unit):return game.DeathDoor.downed(unit)).map(func(unit):return unit.id)
 		var had_downed=game.units.any(func(unit):return game.DeathDoor.downed(unit))
-		game.begin_enemy_phase()
+		var consequences=game.begin_enemy_phase()
 		if not checkpoint_action("enemy_phase"):return
 		var losses=[]
 		for unit in game.units:
-			if unit.id in bleeding and not game.DeathDoor.downed(unit):losses.append({"target":unit.id,"remaining":0,"hit":true})
+			if unit.id in bleeding and not game.DeathDoor.downed(unit):
+				losses.append({"target":unit.id,"remaining":0,"hit":true,"casualty_effects":consequences.get(unit.id,{})})
 		skip_combat=false;await map_bleedout_feedback(losses)
 		if had_downed:refresh_pieces();highlight()
 		await present_casualties(losses)
@@ -1514,7 +1515,8 @@ func present_casualties(events: Array):
 		var unit=casualties[0];var quote=Card.quote_for(game,unit)
 		if quote.is_empty():continue
 		shown.append(unit.id)
-		var card=Card.new();card.configure(ui,unit,portraits.get_portrait(unit.id),Card.mode_for(game,unit),quote)
+		var card=Card.new()
+		card.configure(ui,unit,portraits.get_portrait(unit.id),Card.mode_for(game,unit),quote,event.get("casualty_effects",{}))
 		await card.play(func():return skip_combat)
 		card.queue_free()
 		if skip_combat:return

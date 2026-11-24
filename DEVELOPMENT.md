@@ -1,5 +1,7 @@
 # Poem development
 
+Casualty cards name the legacy credit, early recruit or sacrifice effect earned by that loss. The rules supply the details on the resolved strike or phase ending.
+
 Glass Harbor’s shore has a wooden drying rack with a sagging fishing net and four attached cork floats. Nearby quay fights use the same woven mesh.
 
 Options can start every 3D exchange at normal or double speed. The in-battle Fast control overrides the setting for that exchange.
