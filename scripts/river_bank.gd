@@ -33,14 +33,26 @@ static func height_at(point: Vector2,land: Array) -> float:
 static func build(game,cell: Vector2i) -> ArrayMesh:
  var land=nearby_land(game,cell)
  if land.is_empty():return null
+ var vertices=PackedVector3Array();var uv=PackedVector2Array()
+ for y in range(STEPS+1):
+  for x in range(STEPS+1):
+   var local=Vector2(x,y)/STEPS-Vector2.ONE*.5
+   var point=Vector2(cell)+local
+   vertices.append(Vector3(local.x,height_at(point,land),local.y))
+   uv.append(point)
+ return grid_mesh(vertices,uv,STEPS,STEPS)
+
+static func grid_mesh(vertices: PackedVector3Array,uv: PackedVector2Array,columns: int,rows: int,reverse=false) -> ArrayMesh:
  var surface=SurfaceTool.new();surface.begin(Mesh.PRIMITIVE_TRIANGLES);surface.set_smooth_group(0)
- for y in range(STEPS):
-  for x in range(STEPS):
-   for corner in [Vector2i(0,0),Vector2i(1,0),Vector2i(1,1),Vector2i(0,0),Vector2i(1,1),Vector2i(0,1)]:
-    var local=Vector2(x+corner.x,y+corner.y)/STEPS-Vector2.ONE*.5
-    var point=Vector2(cell)+local
-    surface.set_uv(point)
-    surface.add_vertex(Vector3(local.x,height_at(point,land),local.y))
+ var stride=columns+1
+ var corners=[0,stride+1,1,0,stride,stride+1] if reverse else [0,1,stride+1,0,stride+1,stride]
+ for row in range(rows):
+  for column in range(columns):
+   var start=row*stride+column
+   for offset in corners:
+    var index=start+offset
+    surface.set_uv(uv[index])
+    surface.add_vertex(vertices[index])
  surface.generate_normals();surface.index()
  return surface.commit()
 
@@ -53,20 +65,12 @@ static func arena_point(x: float,depth: float,far_bank: bool) -> Vector3:
 
 static func arena_strip(far_bank: bool) -> ArrayMesh:
  if arena_strips.has(far_bank):return arena_strips[far_bank]
- var surface=SurfaceTool.new()
- surface.begin(Mesh.PRIMITIVE_TRIANGLES)
- surface.set_smooth_group(0)
- var corners=[Vector2i.ZERO,Vector2i.RIGHT,Vector2i.ONE,Vector2i.DOWN]
- var winding=[0,1,2,0,2,3] if far_bank else [0,2,1,0,3,2]
- for row in range(ARENA_ROWS):
-  for column in range(ARENA_COLUMNS):
-   for index in winding:
-    var sample=corners[index]+Vector2i(column,row)
-    var x=(float(sample.x)/ARENA_COLUMNS-.5)*ARENA_WIDTH
-    var point=arena_point(x,float(sample.y)/ARENA_ROWS,far_bank)
-    surface.set_uv(Vector2(point.x,point.z))
-    surface.add_vertex(point)
- surface.generate_normals()
- surface.index()
- arena_strips[far_bank]=surface.commit()
+ var vertices=PackedVector3Array();var uv=PackedVector2Array()
+ for row in range(ARENA_ROWS+1):
+  for column in range(ARENA_COLUMNS+1):
+   var x=(float(column)/ARENA_COLUMNS-.5)*ARENA_WIDTH
+   var point=arena_point(x,float(row)/ARENA_ROWS,far_bank)
+   vertices.append(point)
+   uv.append(Vector2(point.x,point.z))
+ arena_strips[far_bank]=grid_mesh(vertices,uv,ARENA_COLUMNS,ARENA_ROWS,not far_bank)
  return arena_strips[far_bank]

@@ -191,6 +191,8 @@ func run():
     var bank=RiverBank.build(game,cell)
     if bank==null:continue
     banks+=1;var arrays=bank.surface_get_arrays(0)
+    assert(arrays[Mesh.ARRAY_VERTEX].size()==pow(RiverBank.STEPS+1,2))
+    assert(arrays[Mesh.ARRAY_INDEX].size()==RiverBank.STEPS*RiverBank.STEPS*6)
     for vertex in arrays[Mesh.ARRAY_VERTEX]:
      assert(vertex.y>=RiverBank.BED_HEIGHT-.0001 and vertex.y<=.0001,"Shore stays below walkable terrain and above the river bed")
      var point=Vector2(vertex.x+x,vertex.z+y).snapped(Vector2.ONE*.00001)
@@ -202,6 +204,7 @@ func run():
     for normal in arrays[Mesh.ARRAY_NORMAL]:assert(normal.y>.5,"Bank lighting normals face above the water")
   assert(game.rng.state==state,"Shore generation does not consume gameplay randomness")
  assert(banks>10 and exposed>100,"Campaign water includes visible sloped shore geometry")
+ print("PASS: sampled shoreline grids preserve their vertices, joined edges and upward lighting normals")
  for chapter in range(12):
   game.chapter=chapter;game.start_battle()
   var a=game.units[0].duplicate(true);var b=game.living("enemy")[0].duplicate(true)
@@ -572,6 +575,7 @@ func verify_river_arena():
   var vertices=data[Mesh.ARRAY_VERTEX]
   var normals=data[Mesh.ARRAY_NORMAL]
   var triangles=data[Mesh.ARRAY_INDEX]
+  assert(vertices.size()==(RiverBank.ARENA_COLUMNS+1)*(RiverBank.ARENA_ROWS+1))
   assert(triangles.size()==RiverBank.ARENA_COLUMNS*RiverBank.ARENA_ROWS*6)
   var dry_edge=RiverBank.ARENA_FAR_START if far_bank else RiverBank.ARENA_NEAR_START
   var dry_points=0
@@ -580,6 +584,7 @@ func verify_river_arena():
   var shore_max=-INF
   for index in vertices.size():
    var point=vertices[index]
+   assert(data[Mesh.ARRAY_TEX_UV][index].is_equal_approx(Vector2(point.x,point.z)))
    assert(normals[index].y>.94 and point.y<=0 and point.y>=RiverBank.BED_HEIGHT-.0001,"Slopes have upward normals and bounded depth")
    if is_zero_approx(point.y):
     assert(is_equal_approx(point.z,dry_edge),"Every dry edge point meets the adjacent level floor")

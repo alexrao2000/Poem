@@ -6,6 +6,8 @@ This checkpoint describes the current development branch and supersedes the earl
 
 ### Latest state
 
+River geometry samples each grid point once for tactical shorelines and both arena banks. All 56 sampled cases preserve their vertices, UVs, normals and indices. In separate headless processes, median generation for 54 tactical requests fell from 12.61 ms to 6.03–6.07 ms. Two cold arena banks fell from 2.08 ms to 1.16 ms. Eight focused suites, four packed checks, 72 matched chapter outcomes and both ZIP checks passed. See `build/review/river-grid-profile.json`.
+
 Scenery batching reuses the scaled and rotated mesh when identical pieces appear at different positions. All 24 production map and arena assemblies match exactly in source and both exports. The headless study counted 10,163 temporary meshes across those assemblies, down from 15,009. The sum of the 24 case medians fell from 202.34 ms to 196.20 ms for the batching step. Eight focused suites, four packed checks, 72 matched chapter outcomes and both ZIP checks passed. See `build/review/translated-scenery-batches.json`.
 
 Chapter data can override its environment’s lighting palette, including the sky and horizon colors, key light, ambient level and haze. The fixtures carry an authored Starfall palette through the tactical view, the combat veil and the arena. Invalid values inherit the environment defaults. All 24 shipped configurations match the earlier release. The map author retains custom lighting alongside the score, route and rally settings. Eight focused suites, four packed checks, 72 matched chapter outcomes and both ZIP checks passed. See `build/review/authored-lighting-palettes.json`.
