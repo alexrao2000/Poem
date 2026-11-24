@@ -163,4 +163,18 @@ func verify_star_cover():
     assert(y>=13 and y<night.get_height()/2-14,"Stars stay away from the zenith seam and horizon fade")
     quarters[x/(night.get_width()/4)]+=1
  assert(quarters.all(func(count):return count>22 and count<83),"Bright stars spread quietly around the panorama")
+ var chart_pixels={}
+ var day=CloudSky.texture().get_image()
+ var group=CloudSky.Chart.CONSTELLATIONS[0]
+ for index in group:
+  var pixel=CloudSky.chart_star_pixel(index)
+  assert(not chart_pixels.has(pixel));chart_pixels[pixel]=true
+  var star=night.get_pixelv(pixel)
+  var pigment=Color("f2e4c6") if index==1 else Color("d5e3f7")
+  assert(star.a>=.90 and Color(star,1).is_equal_approx(pigment))
+  assert(night.get_pixelv(pixel+Vector2i(0,2)).a>night.get_pixelv(pixel+Vector2i(0,3)).a,
+   "Each authored point has a soft edge")
+  assert(Color(day.get_pixelv(pixel),1)==Color.WHITE,"The chapter's stars appear only on the night cover")
+ assert(chart_pixels.size()==5)
+ print("PASS: five chart stars use the engraved pattern, warm and cool cores and quiet outer glow")
  print("PASS: the deterministic Starfall cover scatters dim stars across four sectors and preserves the horizon and longitude seams")
