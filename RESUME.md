@@ -1,10 +1,12 @@
 # Poem — development handoff
 
-## Active checkpoint · 2026-11-23
+## Active checkpoint · 2026-11-24
 
 This checkpoint describes the current development branch and supersedes the earlier notes below.
 
 ### Latest state
+
+Static scenery now reuses transformed normals and tangents for repeated mesh rotations and scales. Across twelve maps and twelve arenas, all 1,293 output surfaces matched exactly. The headless median for batching all 24 scenes went from 242 ms to 211 ms in the Web pack and 216 ms in the macOS pack. Eight focused suites, both exports, packed batching and terrain checks, and archive integrity passed. See `build/review/static-orientations-comparison.json` for the source comparison. Browser frame rates remain unmeasured.
 
 The browser splash is 740,155 bytes smaller. Its lossless WebP decodes to the exact original 1536 × 1024 pixels from the Godot export. Repacking twice produced the same HTML and WebP, the loader tests passed, and the Web game data and macOS archive match the Reed Crossing runtime checkpoint `a14ce85`. See `build/review/web-splash-comparison.json`. Browser rendering and load timing remain unreviewed.
 
