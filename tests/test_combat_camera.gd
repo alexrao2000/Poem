@@ -16,6 +16,19 @@ func run():
      assert(frame.focus.x>=a.x and frame.focus.x<=b.x,"Camera tracks within combat pair")
      assert(frame.lens>=45 and frame.lens<=50,"Controlled lens avoids wide-angle distortion")
  var wide=Director.frame_pair(a,b,"wide",true,false)
+ var blade_a=Vector3(33.4,0,0);var blade_b=Vector3(36.6,0,0)
+ var melee=Director.frame_pair(blade_a,blade_b,"wide",false,false,"sword",true)
+ var ranged_pair=Director.frame_pair(blade_a,blade_b,"wide",true)
+ var mounted_pose=Director.frame_pair(blade_a,blade_b,"wide",false,true)
+ assert(melee.lens==ranged_pair.lens and melee.anchor.distance_to(melee.focus)<ranged_pair.anchor.distance_to(ranged_pair.focus))
+ assert(mounted_pose==Director.frame_pair(blade_a,blade_b,"wide",false,true,"sword",true))
+ assert(Director.frame_pair(blade_a,blade_b,"windup",false,false,"sword",true)==Director.frame_pair(blade_a,blade_b,"windup",true))
+ var heights=[]
+ for pair_frame in [ranged_pair,melee]:
+  camera.position=pair_frame.anchor;camera.look_at(pair_frame.focus);camera.fov=pair_frame.lens
+  heights.append(camera.unproject_position(blade_b).distance_to(camera.unproject_position(blade_b+Vector3.UP)))
+ assert(heights[1]>heights[0]*1.10,"The closer shot makes infantry melee players larger without changing the lens")
+ print("PASS: grounded melee reads at a larger scale while mounted and ranged framing retain their clearance")
  var entrance=director.enter(a,b,true,false,1);entrance.pause()
  var start=camera.position
  assert(start.is_equal_approx(Director.entrance_frame(wide,0).anchor),"Arena reveal begins slightly higher and wider than the combat composition")

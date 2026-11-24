@@ -2,6 +2,7 @@ extends Node
 ## Continuous low three-quarter shots stay on one side of the combat axis.
 
 const MIN_SHOT_ASPECT = 1.4
+const MELEE_RADIUS = 4.78
 
 var camera: Camera3D
 var anchor=Vector3.ZERO
@@ -11,17 +12,21 @@ var shake_offset=Vector2.ZERO
 var movement: Tween
 var impact_motion: Tween
 var subjects=[]
+var close_melee_pair=false
 
 func configure(value: Camera3D,actors: Array=[]):
  subjects=actors.duplicate()
+ close_melee_pair=not subjects.is_empty() and subjects.all(func(actor):return is_instance_valid(actor) and actor.get("kind") in ["sword","axe"])
  camera=value;anchor=camera.position;focus=camera.position-camera.basis.z;lens=camera.fov
  camera.projection=Camera3D.PROJECTION_PERSPECTIVE;camera.h_offset=0;camera.v_offset=0
 
-static func frame_pair(attacker: Vector3,defender: Vector3,phase: String,_ranged: bool,mounted=false,weapon="") -> Dictionary:
+static func frame_pair(attacker: Vector3,defender: Vector3,phase: String,ranged: bool,mounted=false,weapon="",close_melee=false) -> Dictionary:
  var midpoint=(attacker+defender)*.5
  var height=2.90 if mounted else 2.08
  var separation=attacker.distance_to(defender)
- var distance=maxf(7.35 if mounted else 5.4,separation*1.25)
+ # Leave room for the raised weapon during anticipation, then close on contact.
+ var infantry_radius=MELEE_RADIUS if close_melee and not ranged and phase!="windup" else 5.4
+ var distance=maxf(7.35 if mounted else infantry_radius,separation*1.25)
  var aim=midpoint+Vector3(0,height,0)
  var fov=48.0
  if phase=="finish":
@@ -38,7 +43,7 @@ static func frame_pair(attacker: Vector3,defender: Vector3,phase: String,_ranged
  return {"anchor":aim+Vector3(sin(.57)*distance,.85,cos(.57)*distance),"focus":aim,"lens":fov}
 
 func frame_for(attacker: Vector3,defender: Vector3,phase: String,ranged: bool,mounted=false,weapon="") -> Dictionary:
- var frame=frame_pair(attacker,defender,phase,ranged,mounted,weapon);var padding=1.0
+ var frame=frame_pair(attacker,defender,phase,ranged,mounted,weapon,close_melee_pair);var padding=1.0
  for subject in subjects:
   if is_instance_valid(subject) and subject.has_method("camera_padding_for"):padding=maxf(padding,subject.camera_padding_for(phase))
  frame.anchor=frame.focus+(frame.anchor-frame.focus)*padding
