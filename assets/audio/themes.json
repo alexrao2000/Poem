@@ -119,6 +119,31 @@
         }
       },
       "composition_sha256": "2334c9439077155e9fb8ea5fc30128cdd88090c658a7b8c99cb606430eb828bc"
+    },
+    {
+      "id": "starfall",
+      "title": "The Turning Sky",
+      "beats_per_bar": 5,
+      "bpm": 128,
+      "bars": 32,
+      "frames": 1653750,
+      "sample_rate": 22050,
+      "channels": 2,
+      "arrangements": {
+        "calm": {
+          "path": "res://assets/audio/starfall-calm.wav",
+          "peak": 0.6271253919287781,
+          "rms": 0.12,
+          "boundary_step": 0.011243869269912457
+        },
+        "ablaze": {
+          "path": "res://assets/audio/starfall-ablaze.wav",
+          "peak": 0.87,
+          "rms": 0.14034790533532812,
+          "boundary_step": 0.00489246228896735
+        }
+      },
+      "composition_sha256": "10a7f48a7fb12be294fc96158e078286c8215890bc25d33cea4c082afa6dc001"
     }
   ]
 }

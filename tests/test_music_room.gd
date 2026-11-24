@@ -48,8 +48,8 @@ func run():
   if act_running:assert(not act_fade.is_running())
   if battle_running:assert(not battle_fade.is_running())
   await inspect(app)
-  var chooser=app.ui.find_child("MusicRoomTheme",true,false);assert(chooser.item_count==5 and chooser.has_focus())
-  var assigned=["Chapters 01–03","Chapters 05–08","Chapters 09–11","Chapter 12","Chapter 04"]
+  var chooser=app.ui.find_child("MusicRoomTheme",true,false);assert(chooser.item_count==6 and chooser.has_focus())
+  var assigned=["Chapters 01–03","Chapters 05–08","Chapters 10–11","Chapter 12","Chapter 04","Chapter 09"]
   for index in range(chooser.item_count):
    chooser.select(index);chooser.item_selected.emit(index)
    var voice=preview.director.player;var pair=preview.director.score
@@ -89,7 +89,7 @@ func run():
  muted.select_theme(2);await create_timer(.5).timeout;assert(muted.director.player.volume_db<=-79)
  assert(app.ui.find_children("*","Label",true,false).any(func(label):return label.text.begins_with("Music volume: 0%")))
  muted.select_arrangement(true)
- for index in [0,1,3,4,0,2]:
+ for index in [0,1,3,4,5,0,2]:
   muted.select_theme(index)
   assert(muted.ablaze and muted.director.score.get_sync_stream_volume(1)==0,"New themes retain the chosen arrangement")
   assert(muted.director.get_child_count()<=2,"Rapid selection retains at most the current and outgoing preview voice")
@@ -98,7 +98,7 @@ func run():
  assert(interrupted.get_ref()==null and not app.music.stream_paused,"Closing during simultaneous theme/arrangement fades releases the room and restores the campaign")
  await verify_authored_labels(app)
  await Shutdown.dispose(app);await process_frame
- print("PASS: five-theme music room, continuous Calm/Ablaze switching, bounded crossfades, twenty layout checks, muted preview, guarded navigation and playing/paused/stopped/fading campaign restoration without state changes")
+ print("PASS: six-theme music room, continuous Calm/Ablaze switching, bounded crossfades, twenty layout checks, muted preview, guarded navigation and playing/paused/stopped/fading campaign restoration without state changes")
  quit()
 
 func verify_authored_labels(app):

@@ -118,9 +118,9 @@ func run():
  for element in ["ember","gale","thunder"]:assert(app.sfx_streams["impact_"+element].get_length()>.37,"Packaged spells include their elemental contact sound")
  for family in ["sword","axe","lance","bow","ember","gale","thunder"]:assert(app.sfx_streams["release_"+family].get_length()>.13,"Packaged combat includes every original weapon/element release cue")
  for job in app.CLASSES:assert(app.map_catalog.assets.has("enemy."+job.to_lower()),"Release includes every dedicated enemy class atlas")
- for chapter in [0,3,4,8,11]:
+ for chapter in [0,3,4,8,9,11]:
   app.game.chapter=chapter;app.game.start_battle();app.make_map();app.show_battle();await process_frame
-  var theme={3:"abbey",11:"sun_engine"}.get(chapter,["standard","road","dawnless"][chapter/4])
+  var theme={3:"abbey",8:"starfall",11:"sun_engine"}.get(chapter,["standard","road","dawnless"][chapter/4])
   assert(app.score_director.current_id==theme,"Export includes every chapter's assigned score pair")
   assert(app.unit_nodes.size()==app.game.units.size(),"Packaged maps instantiate every living actor")
   for y in range(app.game.board_size().y):

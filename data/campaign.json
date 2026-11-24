@@ -1562,7 +1562,7 @@
       "title": "A Borrowed Sun",
       "place": "Starfall",
       "route_position": [0.55, 0.14],
-      "score_theme": "dawnless",
+      "score_theme": "starfall",
       "objective": "boss",
       "boss": "Astrologer Sen",
       "intro": "Noor has calculated the cost: the engine will burn the valley to sustain the capital. Galen opens a path through the monastery.",

@@ -30,15 +30,16 @@ func run():
  await verify_themes(app)
  await verify_authored_themes(app)
  await verify_chapter_exchange(app,3,"standard","abbey",Vector2i(11,4),Vector2i(12,4))
+ await verify_chapter_exchange(app,8,"road","starfall",Vector2i(9,1),Vector2i(10,1))
  await verify_chapter_exchange(app,11,"dawnless","sun_engine",Vector2i(9,2),Vector2i(10,2))
  await verify_quick_battles(app)
  await Shutdown.dispose(app);await process_frame
- print("PASS: five exact Calm/Ablaze pairs, 12 chapter mappings, compensated arrangement curve and seamless reversal, continuous combat mixing, bounded theme crossfades, mute/interruption and independent effects")
+ print("PASS: six exact Calm/Ablaze pairs, 12 chapter mappings, compensated arrangement curve and seamless reversal, continuous combat mixing, bounded theme crossfades, mute/interruption and independent effects")
  quit()
 
 func verify_themes(app):
  var director=app.score_director
- assert(director.profiles.size()==5)
+ assert(director.profiles.size()==6)
  for profile in director.profiles:
   var pair=director.make_pair(profile)
   var calm=pair.get_sync_stream(0);var ablaze=pair.get_sync_stream(1)
@@ -48,7 +49,7 @@ func verify_themes(app):
   assert(absf(calm.get_length()-float(profile.bars)*profile.get("beats_per_bar",4)*60/profile.bpm)<1.0/profile.sample_rate,"Actual audio duration matches the composition's meter and tempo")
   for stream in [calm,ablaze]:verify_decoded_loop(stream)
  for chapter in range(12):
-  var theme={3:"abbey",11:"sun_engine"}.get(chapter,["standard","road","dawnless"][chapter/4])
+  var theme={3:"abbey",8:"starfall",11:"sun_engine"}.get(chapter,["standard","road","dawnless"][chapter/4])
   assert(app.campaign_score_profile(chapter).id==theme)
  assert(director.profile_for(11).id=="dawnless","An explicit finale theme does not change the catalog default")
  var roster=app.game.roster.duplicate(true);var rng=app.game.rng.state
@@ -74,7 +75,7 @@ func verify_themes(app):
  app.preferences.values.music=1;app.apply_audio_preferences();assert(app.music.volume_db==-12)
  app.game.chapter=4;app.show_camp();assert(director.current_id=="road","Camp/dialogue entry selects the new act before its opening scene")
  if app.screen=="dialogue":app.finish_dialogue()
- app.game.chapter=8;app.game.start_battle();app.make_map();assert(director.current_id=="dawnless","Direct battle/load entry selects the matching act")
+ app.game.chapter=8;app.game.start_battle();app.make_map();assert(director.current_id=="starfall","Direct battle/load entry selects the assigned observatory theme")
  await create_timer(.6).timeout
  assert(director.outgoing==null and app.music.playing,"Battlefield replacement completes its fade with only the new pair playing")
  assert(app.game.rng.state==rng and app.game.roster==roster,"Music changes leave the roster and gameplay RNG untouched")
