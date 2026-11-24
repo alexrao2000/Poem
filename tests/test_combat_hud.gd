@@ -18,7 +18,7 @@ func run():
   regions.append(face.region)
  assert(portraits.get_unit_portrait({"id":"unknown","team":"enemy","job":"Unknown"})==null,"Unknown classes retain the existing fallback")
  var foe={"id":"foe","name":"Imperial gate captain","team":"enemy","job":"Knight","max_hp":999,"weapon":"lance"}
- for viewport_size in [Vector2(1024,640),Vector2(1280,720),Vector2(1440,900)]:
+ for viewport_size in [Vector2(720,540),Vector2(800,600),Vector2(960,600),Vector2(1024,640),Vector2(1280,720),Vector2(1440,900)]:
   host.size=viewport_size
   for recruit in game.roster:
    var unit=recruit.duplicate(true);unit.team="player"
@@ -31,7 +31,7 @@ func run():
    assert(hud.records.foe.portrait.flip_h and not hud.records[unit.id].portrait.flip_h,"Enemy portrait faces inward toward its opponent")
    assert(left.get_rect().end.x<right.position.x,"Nameplates leave the arena center clear")
    for id in hud.records:
-    var r=hud.records[id];var bounds=r.plate.get_rect()
+    var r=hud.records[id];var bounds=r.plate.get_rect();var compact=bounds.size.x<HUD.COMPACT_PLATE_WIDTH
     assert(r.stats.visible and not r.job.visible,"Exchange statistics occupy the existing class row without enlarging the plates")
     for column in r.stats.columns:
      assert(column.title.get_rect().end.x<column.value.position.x and column.value.get_rect().end.x<=r.stats.size.x,"Stat names and values have separate bounded columns")
@@ -44,10 +44,20 @@ func run():
     assert(r.stats.columns[0].value.text==("999×2" if id==unit.id else "—"),"Doubled damage and unavailable counters have explicit values")
     var icon_path="res://assets/ui/items/"+game.item_for(unit).id+".svg" if id==unit.id else "res://assets/ui/weapons/lance.svg"
     assert(r.icon.texture!=null and r.icon.texture.resource_path==icon_path,"Actual item records use individual art; category-only synthetic records retain a family icon")
-    assert(bounds.position.x>=0 and bounds.end.x<=host.size.x and bounds.end.y<=host.size.y,"Nameplates fit desktop viewport")
+    assert(bounds.position.x>=0 and bounds.end.x<=host.size.x and bounds.end.y<=host.size.y,"Nameplates fit the viewport")
     for child in r.plate.get_children():
-     assert(child.position.x>=0 and child.position.y>=0 and child.get_rect().end.x<=r.plate.size.x+.1 and child.get_rect().end.y<=r.plate.size.y,"Portrait, labels and health fit nameplate")
-    assert(r.weapon.get_rect().end.x<=r.hp.position.x,"Weapon and health text do not overlap")
+     assert(child.position.x>=0 and child.position.y>=0 and child.get_rect().end.x<=r.plate.size.x+.1 and child.get_rect().end.y<=r.plate.size.y,
+      "Portrait, labels and health fit %s’s plate at %s. %s %s vs %s"%[id,viewport_size,child.name,child.get_rect(),r.plate.size])
+    assert(not r.weapon.get_rect().intersects(r.hp.get_rect()),"Weapon and health text do not overlap")
+    var weapon_font=r.weapon.get_theme_font("font");var weapon_size=r.weapon.get_theme_font_size("font_size")
+    assert(weapon_font.get_string_size(r.weapon.text,HORIZONTAL_ALIGNMENT_LEFT,-1,weapon_size).x<=r.weapon.size.x,
+     "Complete weapon name fits at %s for %s (%s at %d px, %s available)"%[viewport_size,r.weapon.text,
+      weapon_font.get_string_size(r.weapon.text,HORIZONTAL_ALIGNMENT_LEFT,-1,weapon_size).x,weapon_size,r.weapon.size.x])
+    if compact:
+     assert(r.weapon.get_rect().end.y<=r.stats.position.y and r.hp.position.y>=r.stats.get_rect().end.y)
+     assert(r.meter.get_rect().end.x<r.hp.position.x,"Compact plates leave distinct space for health pips and numbers")
+     assert(r.portrait.get_rect().end.y<=r.stats.position.y,"Compact portraits leave the forecast row open")
+    else:assert(r.meter.size.x==r.stats.size.x,"Wide plates retain their full-width health meter")
     var expected=advantage if id==unit.id else -advantage
     assert(r.matchup.advantage==expected and r.matchup.visible==(expected!=0),"Both sides retain their directional weapon matchup, with neutral pairings hidden")
     if r.matchup.visible:
@@ -66,7 +76,7 @@ func run():
  entrance.custom_step(.06)
  var partial=reversed.entrance
  assert(partial>0 and partial<1 and reversed.records.foe.plate.position.x>original[0].x-36,"Entrance moves continuously into its settled layout")
- reversed.set_health(hero.id,hero.hp-3,true);host.size=Vector2(1024,640);await process_frame;reversed.arrange()
+ reversed.set_health(hero.id,hero.hp-3,true);host.size=Vector2(800,600);await process_frame;reversed.arrange()
  assert(reversed.entrance==partial and reversed.records[hero.id].meter.value==hero.hp-3,"Resize and health updates do not restart or overwrite presentation state")
  for id in reversed.records:assert(is_equal_approx(reversed.records[id].plate.modulate.a,partial))
  entrance.custom_step(.2)
@@ -74,6 +84,15 @@ func run():
  for id in reversed.records:
   var plate=reversed.records[id].plate
   assert(plate.position.x>=0 and plate.get_rect().end.x<=host.size.x,"Settled plates fit after an in-flight resize")
+ var arsenal=reversed.records.foe
+ arsenal.matchup.show()
+ for target_width in [720.0,1062.0]:
+  host.size=Vector2(target_width,640)
+  for item in game.equipment:
+   arsenal.weapon.text=item.name;reversed.arrange()
+   var font=arsenal.weapon.get_theme_font("font");var font_size=arsenal.weapon.get_theme_font_size("font_size")
+   assert(font.get_string_size(item.name,HORIZONTAL_ALIGNMENT_LEFT,-1,font_size).x<=arsenal.weapon.size.x,
+    "%s fits alongside a matchup marker at %s pixels"%[item.name,target_width])
  entrance=reversed.reveal();entrance.custom_step(.04)
  var exit_motion=reversed.dismiss(.02);await exit_motion.finished
  assert(reversed.entrance==0 and not entrance.is_valid(),"Dismissal cancels an interrupted entrance")
@@ -92,7 +111,7 @@ func run():
  hud.set_health("foe",0,true);assert(meter.value==0 and meter.trailing==0,"Instant skip state stays consistent")
  hud.set_health("foe",2000,true);assert(meter.value==999,"Presentation caps HP to maximum")
  hud.queue_free();host.queue_free();await process_frame
- print("PASS: 24 combat portraits at three desktop sizes, text bounds, damage/hit/crit snapshot rows, per-point/grouped pip geometry, exact partial fill, active side, mirrored entrance/dismissal, in-flight resize, damage trails and interrupted HP animation")
+ print("PASS: 24 combat portraits at six widths, every weapon in compact and wide text bounds, damage/hit/crit snapshot rows, per-point/grouped pip geometry, exact partial fill, active side, mirrored entrance/dismissal, in-flight resize, damage trails and interrupted HP animation")
  quit()
 
 func verify_segments():

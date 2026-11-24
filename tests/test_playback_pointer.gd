@@ -15,11 +15,20 @@ func click(button: Button):
 func shift(pressed: bool):
  var event=InputEventKey.new();event.keycode=KEY_SHIFT;event.physical_keycode=KEY_SHIFT;event.pressed=pressed
  Input.parse_input_event(event);Input.flush_buffered_events()
+func verify_controls(playback,hud,dimensions: Vector2):
+ for control in [playback.fast_button,playback.skip_button]:
+  assert(control.size.x>=82 and control.size.y>=44 and Rect2(Vector2.ZERO,dimensions).encloses(control.get_global_rect()),"Pointer controls retain usable targets inside all supported viewports")
+  var font=control.get_theme_font("font");var font_size=control.get_theme_font_size("font_size")
+  assert(font.get_string_size(control.text,HORIZONTAL_ALIGNMENT_LEFT,-1,font_size).x+8<=control.size.x,"The full control label fits the compact button width")
+  assert(not control.get_global_rect().intersects(playback.hint.get_global_rect()),"Buttons leave the keyboard hint clear")
+  for record in hud.records.values():assert(not control.get_global_rect().intersects(record.plate.get_global_rect()),"Controls fit between both health plates")
 func watch(node):
  if not node is Playback:return
  await process_frame
  while not app.stage.visible:await process_frame
  while not app.stage.get_children().any(func(actor):return actor.get("pose_name")==("cast_windup" if active_case=="healing" else "windup")):await process_frame
+ var hud=app.ui.get_node("CombatHUD")
+ verify_controls(node,hud,app.ui.size)
  click(node.fast_button);assert(node.accelerated and Engine.time_scale==2.0,"Actual GUI click accelerates the active cinematic")
  var audio=app.interface_audio
  if active_case=="healing":assert(not audio.player.playing,"Muted combat controls stay silent")
@@ -27,6 +36,12 @@ func watch(node):
  if active_case=="focus":
   node.notification(Node.NOTIFICATION_APPLICATION_FOCUS_OUT)
   assert(not node.accelerated and Engine.time_scale==1.0)
+ if active_case=="melee":
+  root.size=Vector2i(720,540)
+  await process_frame;await process_frame
+  assert(hud.size.x==720.0 and node.accelerated and Engine.time_scale==2.0,
+   "Live resize preserves fast-forward. HUD %s, root %s, accelerated %s, time scale %s"%[hud.size,root.size,node.accelerated,Engine.time_scale])
+  verify_controls(node,hud,app.ui.size)
  await create_timer(.08).timeout
  audio.player.stop()
  if active_case=="keyboard":
@@ -83,14 +98,11 @@ func run():
  var rules=load("res://scripts/rules.gd").new();rules.start_battle()
  var entries=[]
  for unit in [rules.units[0],rules.living("enemy")[0]]:entries.append({"unit":unit,"hp":unit.hp,"class_name":unit.job,"weapon":rules.item_for(unit).name})
- for dimensions in [Vector2i(1024,640),Vector2i(1280,720),Vector2i(1440,900)]:
+ for dimensions in [Vector2i(720,540),Vector2i(960,600),Vector2i(1024,640),Vector2i(1280,720),Vector2i(1440,900)]:
   root.size=dimensions;host.size=dimensions;Engine.time_scale=.75
   var playback=Playback.new();playback.configure(host);var skips=[0];playback.skip_requested.connect(func():skips[0]+=1)
   var hud=HUD.new();hud.configure(host,entries);await process_frame;await process_frame
-  for control in [playback.fast_button,playback.skip_button]:
-   assert(control.size.x>=100 and control.size.y>=44 and Rect2(Vector2.ZERO,Vector2(dimensions)).encloses(control.get_global_rect()),"Pointer controls retain usable targets inside all supported viewports")
-   assert(not control.get_global_rect().intersects(playback.hint.get_global_rect()),"Buttons leave the keyboard hint clear")
-   for record in hud.records.values():assert(not control.get_global_rect().intersects(record.plate.get_global_rect()),"Controls fit between both health plates")
+  verify_controls(playback,hud,Vector2(dimensions))
   click(playback.fast_button);assert(playback.pointer_fast and playback.accelerated and Engine.time_scale==1.5)
   shift(true);shift(false);assert(playback.accelerated and Engine.time_scale==1.5,"Releasing Shift does not cancel a pointer speed toggle")
   click(playback.fast_button);assert(not playback.accelerated and Engine.time_scale==.75)
@@ -102,6 +114,9 @@ func run():
   playback.stop();click(playback.fast_button);assert(Engine.time_scale==.75 and not playback.active)
   playback.queue_free();hud.queue_free();await process_frame
  host.queue_free();await process_frame;Engine.time_scale=original_scale
+ # Exercise a resize of the app's logical canvas. A stretched Window can
+ # keep logical dimensions when the OS changes only its display size.
+ root.content_scale_mode=Window.CONTENT_SCALE_MODE_DISABLED
  app=load("res://main.tscn").instantiate();app.settings_path="";app.save_path="/private/tmp/poem-playback-pointer.json";root.add_child(app);await process_frame
  app.game.start_battle();app.make_map();app.show_battle();app.busy=true;app.ui.child_entered_tree.connect(watch)
  var a=app.game.units[0];var b=app.game.living("enemy")[0];a.x=8;a.y=4;b.x=9;b.y=4
@@ -121,5 +136,5 @@ func run():
  app.game.start_battle();app.make_map();app.show_battle();app.busy=true
  await verify_opening_skips()
  await Shutdown.dispose(app);await process_frame
- print("PASS: actual GUI fast/skip clicks, three sizes without HUD overlap, mixed keyboard/pointer ownership, focus loss, one-shot pointer/keyboard cancellation, muted/confirmed interface feedback, four real combat/healing skips, four opening skips without arena construction and exact state/RNG/camera/audio-clock restoration")
+ print("PASS: actual GUI fast/skip clicks, five sizes and live resizing without HUD overlap, mixed keyboard/pointer ownership, focus loss, one-shot pointer/keyboard cancellation, muted/confirmed interface feedback, four real combat/healing skips, four opening skips without arena construction and exact state/RNG/camera/audio-clock restoration")
  quit()

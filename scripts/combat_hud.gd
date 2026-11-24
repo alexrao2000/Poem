@@ -4,10 +4,11 @@ extends Control
 const DISPLAY_FONT=preload("res://assets/fonts/CormorantGaramond.ttf")
 const MatchupMarker=preload("res://scripts/weapon_matchup.gd")
 const Icons=preload("res://scripts/weapon_icons.gd")
+const COMPACT_PLATE_WIDTH=424.0
 var records: Dictionary={}
 var order: Array=[]
 var entrance=1.0:
- set(value):entrance=clampf(value,0,1);arrange()
+ set(value):entrance=clampf(value,0,1);arrange_entrance()
 var entrance_motion: Tween
 
 class HealthMeter extends Control:
@@ -141,23 +142,53 @@ func arrange():
  var width=minf(540,(size.x-margin*2-gap)*.5)
  for i in range(order.size()):
   var r=records[order[i]];var plate=r.plate
-  plate.size=Vector2(width,126);plate.position=Vector2(margin if i==0 else size.x-margin-width,size.y-150)
-  plate.position.x+=(1-entrance)*36*(-1 if i==0 else 1);plate.modulate.a=entrance
-  var face_x=16.0 if i==0 else width-108
-  r.portrait.position=Vector2(face_x,8);r.portrait.size=Vector2(92,110)
-  var text_x=120.0 if i==0 else 28.0;var text_width=width-148
+  var compact=width<COMPACT_PLATE_WIDTH
+  var height=136 if compact else 126
+  plate.size=Vector2(width,height);plate.position.y=size.y-height-24
+  var edge=24.0 if compact else 28.0
+  var portrait_size=Vector2(60,72) if compact else Vector2(92,110)
+  var face_x=16.0 if i==0 else width-16-portrait_size.x
+  r.portrait.position=Vector2(face_x,8);r.portrait.size=portrait_size
+  var portrait_gutter=portrait_size.x+28
+  var text_x=portrait_gutter if i==0 else edge;var text_width=width-portrait_gutter-edge
   if r.portrait.texture==null:
-   text_x=28.0;text_width=width-56
+   text_x=edge;text_width=width-2*edge
+  r.name.add_theme_font_size_override("font_size",24 if compact else 27)
   r.name.position=Vector2(text_x,10);r.name.size=Vector2(text_width,34)
-  r.job.position=Vector2(text_x,44);r.job.size=Vector2(text_width,21)
+  var detail_x=edge if compact else text_x
+  var detail_width=width-2*edge if compact else text_width
+  r.job.position=Vector2(detail_x,80 if compact else 44);r.job.size=Vector2(detail_width,21)
   r.stats.position=r.job.position;r.stats.size=r.job.size;r.stats.arrange()
-  r.icon.position=Vector2(text_x-2,69);r.icon.size=Vector2(24,24)
-  r.matchup.position=Vector2(text_x+26,73);r.matchup.size=Vector2(16,18);r.matchup.queue_redraw()
+  var weapon_y=47.0 if compact else 69.0
+  r.icon.position=Vector2(text_x-2,weapon_y);r.icon.size=Vector2(24,24)
+  r.matchup.position=Vector2(text_x+26,weapon_y+4);r.matchup.size=Vector2(16,18);r.matchup.queue_redraw()
   var matchup_space=20.0 if r.matchup.visible else 0.0
-  r.weapon.position=Vector2(text_x+26+matchup_space,69);r.weapon.size=Vector2(maxf(80,text_width-134-matchup_space),26)
-  r.hp.position=Vector2(text_x+text_width-104,66);r.hp.size=Vector2(104,30)
-  r.meter.position=Vector2(text_x,101);r.meter.size=Vector2(text_width,12)
+  var hp_size=19 if compact else 24
+  var hp_font: Font=r.hp.get_theme_font("font")
+  var max_hp=int(r.meter.maximum)
+  var hp_width=ceilf(hp_font.get_string_size("%d / %d"%[max_hp,max_hp],HORIZONTAL_ALIGNMENT_LEFT,-1,hp_size).x)+2
+  r.hp.add_theme_font_size_override("font_size",hp_size)
+  r.hp.position=Vector2(detail_x+detail_width-hp_width,101 if compact else 66)
+  r.hp.size=Vector2(hp_width,34 if compact else 30)
+  r.weapon.position=Vector2(text_x+26+matchup_space,weapon_y)
+  var weapon_right=text_x+text_width if compact else r.hp.position.x-8
+  r.weapon.size=Vector2(maxf(1,weapon_right-r.weapon.position.x),26)
+  var weapon_font: Font=r.weapon.get_theme_font("font")
+  for font_size in range(17,13,-1):
+   r.weapon.add_theme_font_size_override("font_size",font_size)
+   if weapon_font.get_string_size(r.weapon.text,HORIZONTAL_ALIGNMENT_LEFT,-1,font_size).x<=r.weapon.size.x:break
+  r.meter.position=Vector2(detail_x,112 if compact else 101)
+  r.meter.size=Vector2(maxf(1,detail_width-hp_width-10) if compact else detail_width,12)
   plate.queue_redraw();r.meter.queue_redraw()
+ arrange_entrance()
+
+func arrange_entrance():
+ var margin=clampf(size.x*.035,20,50)
+ for i in range(order.size()):
+  var plate=records[order[i]].plate
+  var x=margin if i==0 else size.x-margin-plate.size.x
+  plate.position.x=x+(1-entrance)*36*(-1 if i==0 else 1)
+  plate.modulate.a=entrance
 
 func reveal(duration=.18) -> Tween:
  if entrance_motion and entrance_motion.is_valid():entrance_motion.kill()

@@ -29,6 +29,7 @@ func configure(parent: Control):
  skip_button=make_button("Skip","SkipCombat",-82)
  skip_button.tooltip_text="Skip this exchange. You can also press Tab."
  skip_button.pressed.connect(request_skip)
+ resized.connect(arrange_buttons);arrange_buttons()
  keyboard_fast=Input.is_key_pressed(KEY_SHIFT);refresh_speed()
 
 func make_button(text: String,node_name: String,top: float) -> Button:
@@ -43,8 +44,13 @@ func make_button(text: String,node_name: String,top: float) -> Button:
  button.add_theme_stylebox_override("focus",focus)
  for state in ["font_color","font_hover_color","font_pressed_color","font_focus_color"]:button.add_theme_color_override(state,Color("fff1d5"))
  add_child(button);button.set_anchors_and_offsets_preset(Control.PRESET_CENTER_BOTTOM)
- button.offset_left=-56;button.offset_right=56;button.offset_top=top;button.offset_bottom=top+44
+ button.offset_top=top;button.offset_bottom=top+44
  return button
+
+func arrange_buttons():
+ var half_width=clampf(size.x*.055,41,56)
+ for button in [fast_button,skip_button]:
+  button.offset_left=-half_width;button.offset_right=half_width
 
 func refresh_speed():
  set_accelerated(pointer_fast or keyboard_fast)
