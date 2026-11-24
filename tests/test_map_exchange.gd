@@ -24,6 +24,9 @@ var staged_pair=[]
 var projected_order=[]
 var mirrored_reveals=0
 var matching_nameplates=0
+var mill_entries=0
+var mill_returns=0
+var entry_rotation=0.0
 var opening_mix: Tween
 var returning_mix: Tween
 
@@ -38,6 +41,8 @@ func setup():
  app.pieces.visibility_changed.connect(watch_return)
  app.ui.child_entered_tree.connect(watch_ui)
  app.stage.child_entered_tree.connect(watch_arena)
+ if not app.stage.visibility_changed.is_connected(watch_mill_return):
+  app.stage.visibility_changed.connect(watch_mill_return)
  saw_contact=false;saw_return=false;saw_reward=false;saw_facing=false;saw_entry_motion=false;saw_entry_cue=false
  return [a,b,spare]
 
@@ -52,6 +57,7 @@ func run():
  for case in ["defeat","counter","survive","heal","skip"]:
   root.size=dimensions[case_index%dimensions.size()];case_index+=1;await process_frame
   var pair=setup();var a=pair[0];var b=pair[1];mode="arena";app.busy=true;app.preferences.values.combat="all"
+  app.world.get_node("CinderfordMill/MillRotor").rotation.z=.85+case_index*.3
   app.preferences.values.effects=0 if case=="skip" else 1
   app.apply_audio_preferences()
   a.x=origins[case].x;a.y=origins[case].y
@@ -81,6 +87,7 @@ func run():
   assert(app.game.save_data("battle")==saved and app.game.rng.state==rng,"Field synchronization only presents resolved outcomes")
   app.busy=false
  assert(matching_nameplates==5 and mirrored_reveals>0,"Actual left/right nameplates match every arena entry, including a reversed pair")
+ assert(mill_entries==5 and mill_returns==5,"All five actual map-to-arena exchanges share the moving windmill in both directions")
  app.preferences.values.effects=1;app.apply_audio_preferences()
  for case in ["enemy_kill","enemy_counter"]:
   var pair=setup();var a=pair[0];var b=pair[1];mode="map";app.preferences.values.combat="map"
@@ -100,11 +107,17 @@ func run():
  mode="";await Shutdown.dispose(app);await process_frame
  print("PASS: five raised/flat map handoffs at three sizes with sprite-to-fighter and nameplate side continuity, exact view restoration, score fade during moving arena returns (defeat/counter/survival/heal/skip), actual enemy kill/counter map reactions, 25 coordinated sprite exits and teardown, updated health before XP, and unchanged resolved state")
  print("PASS: five arena approach cues start during the tactical zoom, follow Effects mute and stay out of Quick Map combat")
+ print("PASS: five tactical and arena windmill handoffs carry the same rotation in both directions")
  quit()
 
 func watch_return():
  if mode!="arena":return
  if not app.pieces.visible:
+  var map_mill=app.world.get_node("CinderfordMill/MillRotor")
+  var arena_mill=app.stage.get_node("CinderfordMill/MillRotor")
+  assert(is_equal_approx(map_mill.rotation.z,arena_mill.rotation.z) and map_mill.rotation.z>1.0)
+  entry_rotation=arena_mill.rotation.z
+  mill_entries+=1
   var center=app.camera.get_viewport().get_visible_rect().size*.5
   var projected=app.camera.unproject_position(expected_focus)
   assert(projected.distance_to(center)<.01,"Zoom centers the actual raised map pair, including bridge/sanctuary heights")
@@ -124,6 +137,14 @@ func watch_return():
  saw_return=true;verify_field()
  for id in expected_facings:
   if app.unit_nodes.has(id):assert(app.unit_nodes[id].player.facing==expected_facings[id],"Surviving map figures retain their facing through the combat return")
+
+func watch_mill_return():
+ if mode!="arena" or app.stage.visible or app.world.visible:return
+ var map_mill=app.world.get_node("CinderfordMill/MillRotor")
+ var arena_mill=app.stage.get_node("CinderfordMill/MillRotor")
+ assert(is_equal_approx(map_mill.rotation.z,arena_mill.rotation.z))
+ assert(not is_equal_approx(arena_mill.rotation.z,entry_rotation),"The arena wheel advanced before passing its angle back")
+ mill_returns+=1
 
 func verify_field():
  for unit in app.game.units:

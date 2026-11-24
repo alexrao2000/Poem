@@ -205,6 +205,23 @@ func scenes():
   var setup=Encounters.start_recruit(app.game,"lyra","",309,"",chapter);assert(not setup.is_empty())
   app.make_map();app.show_battle()
   var a=app.game.units.filter(func(u):return u.id==setup.actor)[0];var b=app.game.units.filter(func(u):return u.id==setup.target)[0]
+  var map_orbit=app.world.find_child("ClockworkOrbit",true,false)
+  map_orbit.elapsed=6.5+chapter;map_orbit.update_motion()
+  var transfers={"entry":0.0,"returned":false}
+  var on_entry=func():
+   if app.world.visible:return
+   var arena_orbit=app.stage.find_child("ClockworkOrbit",true,false)
+   assert(is_equal_approx(map_orbit.elapsed,arena_orbit.elapsed) and map_orbit.elapsed>10.0)
+   assert(is_equal_approx(map_orbit.outer.rotation.y,arena_orbit.outer.rotation.y))
+   transfers.entry=arena_orbit.elapsed
+  var on_return=func():
+   if app.stage.visible or app.world.visible:return
+   var arena_orbit=app.stage.find_child("ClockworkOrbit",true,false)
+   assert(is_equal_approx(map_orbit.elapsed,arena_orbit.elapsed) and arena_orbit.elapsed>transfers.entry)
+   assert(map_orbit.inner.rotation.is_equal_approx(arena_orbit.inner.rotation))
+   transfers.returned=true
+  app.world.visibility_changed.connect(on_entry)
+  app.stage.visibility_changed.connect(on_return)
   var snapshot=app.game.save_data("battle").duplicate(true);var lighting=app.lighting_state();var refs=[];var observations={"frames":0,"moved":false,"initial":0.0}
   var monitor=func():
    if not app.stage.visible:return
@@ -220,7 +237,11 @@ func scenes():
    if playback!=null:playback.fast_button.button_pressed=true
   process_frame.connect(monitor)
   await app.cinematic(a,b,[{"actor":a.id,"target":b.id,"damage":1,"remaining":19,"hit":true,"crit":false}],{a.id:20,b.id:20})
-  process_frame.disconnect(monitor);await process_frame
+  process_frame.disconnect(monitor)
+  app.world.visibility_changed.disconnect(on_entry);app.stage.visibility_changed.disconnect(on_return)
+  await process_frame
+  assert(transfers.entry>10 and transfers.returned,"Both clocks preserve their motion through the normal or skipped cutaway")
   assert(observations.moved and observations.frames>2 and not refs.is_empty() and refs.all(func(ref):return ref.get_ref()==null))
   assert(app.game.save_data("battle")==snapshot and app.lighting_state()==lighting and not app.stage.visible)
  await Shutdown.dispose(app)
+ print("PASS: Starfall and Sun Engine clocks carry angle and phase between tactical maps and actual 3D battles")

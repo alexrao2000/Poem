@@ -1284,6 +1284,7 @@ func cinematic(a,b,events,initial_hp={},challenge: Dictionary={}):
 	var old_lighting=battle_lighting(game.info().get("environment","village"))
 	var arena_context=scenery.combat_context(game,a,b,opening_direction)
 	scenery.battle_landscape(stage,Vector3(35,0,0),arena_context)
+	scenery.transfer_landmark_motion(world,stage,arena_context.environment)
 	world.hide();pieces.hide()
 	var ranged=events[0].has("healing") or game.distance(a,b)>1 or a.weapon in ["bow","magic"] or b.weapon in ["bow","magic"]
 	var spacing=2.0 if ranged else 1.6
@@ -1472,6 +1473,7 @@ func cinematic(a,b,events,initial_hp={},challenge: Dictionary={}):
 	if dodge and dodge.is_valid():dodge.kill()
 	banner.dismiss(.12);caption.hide()
 	veil.show();await veil.conceal(.12,false).finished
+	scenery.transfer_landmark_motion(stage,world,arena_context.environment)
 	banner.queue_free();caption.queue_free()
 	director.stop();director.queue_free()
 	stage.visible=false

@@ -1,5 +1,7 @@
 # Poem development
 
+Cinderford’s windmill, Starfall’s armillary and the Sun Engine carry their angle from the battlefield into the 3D arena. When the map returns, each landmark picks up from the last angle shown in the arena.
+
 Cinderford’s windmill appears on the tactical map and behind the cottages in close-up fights. Four braced cloth sails turn on a shared axle. The close-up chooses among three sites to keep the stone foot and sweeping blades clear of nearby buildings.
 
 A short original cue starts as the tactical sprites enlarge on the way into a 3D fight. The cue follows the Effects setting and ends during the zoom. [Audio generator](scripts/combat_accents.py)

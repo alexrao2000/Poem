@@ -491,6 +491,18 @@ func combat_context(game,a,b,screen_direction=1.0) -> Dictionary:
  return {"chapter":game.chapter,"environment":theme,"terrain":tile,
   "landmarks":candidates.slice(0,2),"road_canal":theme=="road" and near_water,"harbor_quay":harbor_quayside}
 
+func transfer_landmark_motion(source: Node3D,destination: Node3D,theme: String):
+ if theme=="village":
+  var original=source.get_node_or_null("CinderfordMill/MillRotor")
+  var counterpart=destination.get_node_or_null("CinderfordMill/MillRotor")
+  if original!=null and counterpart!=null:counterpart.rotation.z=original.rotation.z
+ elif theme in ["observatory","engine"]:
+  var original=source.find_child("ClockworkOrbit",true,false)
+  var counterpart=destination.find_child("ClockworkOrbit",true,false)
+  if original!=null and counterpart!=null:
+   counterpart.elapsed=original.elapsed
+   counterpart.update_motion()
+
 func nearby_channel(game,midpoint: Vector2) -> bool:
  var nearest=Vector2i(midpoint.round())
  for y in range(nearest.y-2,nearest.y+3):
