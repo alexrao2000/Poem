@@ -6,7 +6,9 @@ Development resumed on “go”. Continue in this chat until the user asks to st
 
 ### Latest state
 
-The benchmark now offers both combined Hard profiles and repeatable `--retreat-chapter` options. Smoke trials exercised Chapter 6 and Chapter 10 in both modes, plus an ordinary Chapter 1 retreat with no enemy preparation. The JSON report records the settings and results.
+The broken columns at Hallow Abbey, Windscar Pass and Starfall now share a low foundation and chipped, staggered masonry. All fourteen courses are closed, and the six map and arena placements use the same mesh. Seven focused suites, both exports, packaged architecture and archive integrity passed. Rendered appearance remains unreviewed.
+
+The benchmark now offers both combined Hard profiles and repeatable `--retreat-chapter` options. The versioned runner exactly reproduced forty-five default and twenty combined outcomes. It also exercised Chapter 6 and Chapter 10 in both loss modes, plus an ordinary Chapter 1 retreat. The local evidence is `build/review/versioned-benchmark-evidence.json`.
 
 Hallow Abbey now has a continuous stone arcade behind its close-up fighting lane. Seven columns stand on a stepped walk and meet six open arches under a continuous coping. Checks covered the open arch interiors, shared geometry, dry and raised arena origins, and six wide-shot projections. An original eight-second wind loop keeps its decoder through the tactical board, 3D combat and both tactical menus. Eleven focused suites, both exports, three packed checks and archive integrity passed. All seven exported field tracks matched source PCM in both packs. Rendered appearance and listening quality remain unreviewed.
 

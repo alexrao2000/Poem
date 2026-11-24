@@ -13,6 +13,7 @@ const BarrelVisuals=preload("res://scripts/barrel_visuals.gd")
 const HarborBoat=preload("res://scripts/harbor_boat.gd")
 const ArenaRidges=preload("res://scripts/arena_ridges.gd")
 const PassEscarpment=preload("res://scripts/pass_escarpment.gd")
+const RuinedColumns=preload("res://scripts/ruined_columns.gd")
 const SanctuaryPlinth=preload("res://scripts/sanctuary_plinth.gd")
 const MAX_CACHED_CYLINDERS=256
 # Left and right roadside groves lead into a lower, more distant orchard.
@@ -376,7 +377,9 @@ func landmark(parent,p,kind,roof_variant=-1):
   var orbit=preload("res://scripts/clockwork_orbit.gd").new();parent.add_child(orbit);orbit.position=p+Vector3(0,1.5,0);orbit.configure(kind)
  elif kind=="furnace":furnace(parent,p)
  elif kind=="ruin":
-  for i in range(3):cylinder(parent,p+Vector3(i*.6,.4+i*.2,0),.8+i*.4,.22,stone)
+  var ruin=mesh(parent,RuinedColumns.mesh(),p,Vector3.ONE,Fortification.material())
+  ruin.name="RuinMasonry"
+  ruin.set_meta("static_batch",true)
 
 func furnace(parent: Node3D,p: Vector3,scale_value=1.0):
  var hearth=Node3D.new();hearth.name="FurnaceHearth";hearth.position=p

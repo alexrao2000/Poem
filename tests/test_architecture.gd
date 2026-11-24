@@ -14,6 +14,7 @@ func run():
  await verify_reddeep_furnaces()
  await verify_aqueduct_gallery()
  await verify_abbey_arcade()
+ await verify_ruined_columns()
  await verify_village_groves()
  await verify_cart()
  await verify_barrels()
@@ -70,6 +71,51 @@ func run():
  await verify_cloth()
  print("PASS: arched castle gate/portcullis, tiered fountain basins/jets, six shared fortified towers, battlement/deck rays, three cached roofs, 204 gable intersections, ",cases," house identities, 14 pinned cloth resources, bounded motion parameters and cleanup")
  quit()
+
+func verify_ruined_columns():
+ var ruin=preload("res://scripts/ruined_columns.gd")
+ var shape=ruin.mesh()
+ assert(shape==ruin.mesh())
+ var arrays=shape.surface_get_arrays(0)
+ var vertices=arrays[Mesh.ARRAY_VERTEX];var normals=arrays[Mesh.ARRAY_NORMAL]
+ var stride=ruin.OUTLINE.size()*12
+ assert(vertices.size()==ruin.COURSES.size()*stride)
+ var bounds=shape.get_aabb()
+ assert(is_zero_approx(bounds.position.y) and bounds.end.y>1 and bounds.end.y<1.05)
+ assert(bounds.position.x>=-.24 and bounds.end.x<1.43 and bounds.size.z<=.521)
+ for start in range(0,vertices.size(),stride):
+  var edges={};var volume=0.0
+  for i in range(start,start+stride,3):
+   var a=vertices[i];var b=vertices[i+1];var c=vertices[i+2]
+   var normal=(b-a).cross(c-a)
+   assert(normal.length_squared()>.00000001 and normal.normalized().dot(normals[i])<-.998)
+   volume-=a.dot(b.cross(c))/6.0
+   for edge in [[a,b],[b,c],[c,a]]:
+    var first=str(edge[0]);var second=str(edge[1])
+    var key=first+"/"+second if first<second else second+"/"+first
+    edges[key]=edges.get(key,0)+1
+  assert(volume>0 and edges.values().all(func(count):return count==2),"Every fractured course is a closed, outward-wound stone")
+ var game=Rules.new();var rng=game.rng.state
+ var scenery=Scenery.new();var chapters=0
+ for chapter in range(12):
+  game.chapter=chapter
+  var sites=game.info().landmarks.filter(func(item):return item.kind=="ruin")
+  if sites.is_empty():continue
+  var snapshot=game.save_data("camp")
+  var site=sites[0].position
+  var map=Node3D.new();root.add_child(map);scenery.landscape(map,game)
+  var mapped=map.get_node("RuinMasonry")
+  assert(mapped.mesh==shape and mapped.position==Vector3(site[0],0,site[1]))
+  var x=clampi(int(site[0]),0,game.board_size().x-2);var y=int(site[1])
+  var context=scenery.combat_context(game,{"x":x,"y":y},{"x":x+1,"y":y})
+  var stage=Node3D.new();root.add_child(stage);scenery.battle_landscape(stage,Vector3(35,0,0),context)
+  var framed=stage.find_child("RuinMasonry",true,false)
+  assert(framed!=null and framed.mesh==shape and framed.material_override==mapped.material_override)
+  assert(framed.global_position.z<-6 and is_zero_approx(framed.global_position.y))
+  assert(game.save_data("camp")==snapshot)
+  map.queue_free();stage.queue_free();await process_frame;chapters+=1
+ assert(chapters==3 and game.rng.state==rng)
+ print("PASS: fourteen closed ruined masonry courses and one shared mesh at all six map and arena placements")
 
 func verify_abbey_arcade():
  var scenery=Scenery.new();scenery.batching_enabled=false
