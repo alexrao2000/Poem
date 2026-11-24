@@ -130,6 +130,7 @@ func run():
 	app.close_model_view();await process_frame
 	assert(app.screen=="dossier" and app.camera.projection==Camera3D.PROJECTION_ORTHOGONAL,"Gallery restores map camera")
 	await verify_starfall_exchange(app)
+	await verify_abbey_banner(app)
 	await verify_aqueduct_exchange(app)
 	await verify_crown_gate_exchange(app)
 	await verify_weather_exchange(app)
@@ -221,6 +222,43 @@ func verify_starfall_exchange(app):
 	assert(app.lighting_state().sky_cover==app.CloudSky.texture())
 	print("PASS: Starfall shares one night cover through a complete exchange and restores the daytime cover on chapter change")
 	print("PASS: authored battlefield lighting follows the map and arena, inherits invalid fields and leaves the campaign unchanged")
+
+func verify_abbey_banner(app):
+	app.game.chapter=3;app.game.start_battle();app.make_map();app.show_battle()
+	var a=app.game.living("player")[0];var b=app.game.living("enemy")[0]
+	a.x=5;a.y=4;b.x=6;b.y=4;app.refresh_pieces()
+	var path="EmptyBelfry/AbbeyBanner"
+	var field=app.world.get_node(path)
+	var state=app.game.save_data("battle").duplicate(true);var rng=app.game.rng.state
+	for skip in [false,true]:
+		field.seek_phase(7.50)
+		var transfer={"entry":-1.0,"returned":-1.0,"skipped":false}
+		var entering=func():
+			if app.world.visible:return
+			var staged=app.stage.get_node(path)
+			assert(staged.cloth.mesh==field.cloth.mesh and staged.phase==field.phase)
+			transfer.entry=staged.phase
+		var returning=func():
+			if app.stage.visible or app.world.visible:return
+			var staged=app.stage.get_node(path)
+			assert(staged.phase==field.phase)
+			assert(staged.material.get_shader_parameter("phase")==field.material.get_shader_parameter("phase"))
+			transfer.returned=field.phase
+		var request=func():
+			if skip and not transfer.skipped and app.stage.visible and app.ui.has_node("CombatHUD"):
+				app.ui.get_node("CombatPlayback").request_skip()
+				transfer.skipped=true
+		app.world.visibility_changed.connect(entering)
+		app.stage.visibility_changed.connect(returning)
+		process_frame.connect(request)
+		await app.cinematic(a,b,[{"actor":a.id,"target":b.id,"damage":1,"remaining":b.hp-1,"hit":true,"crit":false}],{a.id:a.hp,b.id:b.hp})
+		app.world.visibility_changed.disconnect(entering)
+		app.stage.visibility_changed.disconnect(returning)
+		process_frame.disconnect(request)
+		assert(transfer.entry>7.50 and transfer.returned>transfer.entry and transfer.skipped==skip)
+		assert(field.phase>=transfer.returned and app.world.visible and not app.stage.visible)
+	assert(app.game.save_data("battle")==state and app.game.rng.state==rng)
+	print("PASS: Abbey banner preserves the same cloth phase through normal and skipped combat")
 
 func verify_aqueduct_exchange(app):
 	app.game.chapter=7;app.game.start_battle();app.make_map();app.show_battle()

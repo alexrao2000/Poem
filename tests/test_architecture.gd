@@ -88,7 +88,7 @@ func run():
    world.queue_free();arena.queue_free();await process_frame;cases+=1
  assert(cases>0 and game.rng.state==state,"Architecture never consumes gameplay RNG")
  await verify_cloth()
- print("PASS: arched castle gate/portcullis, tiered fountain basins/jets, six shared fortified towers, battlement/deck rays, three cached roofs, 204 gable intersections, ",cases," house identities, 16 pinned map-cloth placements, bounded motion parameters and cleanup")
+ print("PASS: arched castle gate/portcullis, tiered fountain basins/jets, six shared fortified towers, battlement/deck rays, three cached roofs, 204 gable intersections, ",cases," house identities, 17 pinned map-cloth placements, bounded motion parameters and cleanup")
  quit()
 
 func verify_ruined_columns():
@@ -276,6 +276,7 @@ func verify_abbey_belfry():
  var field=Node3D.new();root.add_child(field);scenery.landscape(field,game)
  var belfry=field.get_node("EmptyBelfry")
  verify_belfry_frame(belfry)
+ var field_banner=verify_belfry_banner(belfry)
  var foot=belfry.get_node("BelfryFooting")
  var footprint=foot.global_transform*foot.mesh.get_aabb()
  assert(footprint.end.z<-.5 and footprint.position.y<-.15 and footprint.end.y>-.15)
@@ -300,6 +301,9 @@ func verify_abbey_belfry():
   assert(stage.find_children("EmptyBelfry","Node3D",false,false).size()==1)
   assert(is_equal_approx(arena.position.x,center.x+(2.7 if pair[0].x==10 else -5.7)))
   verify_belfry_frame(arena)
+  var arena_banner=verify_belfry_banner(arena)
+  assert(arena_banner.cloth.mesh==field_banner.cloth.mesh and arena_banner.material!=field_banner.material,
+   "The map and arena reuse the cloth surface and animate their materials independently")
   assert(arena.get_node("BelfryArch").mesh==belfry.get_node("BelfryArch").mesh)
   var step=stage.get_node("AbbeyArcade/ArcadeStep")
   var bounds=step.global_transform*step.mesh.get_aabb()
@@ -310,10 +314,13 @@ func verify_abbey_belfry():
    viewport.size=size;await process_frame
    var screen=camera.unproject_position(arena.to_global(Vector3(0,2.06,.62)))
    assert(Rect2(Vector2.ZERO,Vector2(size)).grow(-12).has_point(screen) and screen.y<size.y*.61,"The empty belfry window frames clear of the bottom HUD")
+   var banner_center=arena_banner.to_global(Vector3(.29,0,0))
+   assert(Rect2(Vector2.ZERO,Vector2(size)).grow(-12).has_point(camera.unproject_position(banner_center)),"The low banner remains inside the wide shot")
   stage.free()
  viewport.free();field.free()
  assert(game.save_data("camp")==saved and game.rng.state==rng)
  print("PASS: Hallow Abbey's empty belfry frames the missing bell in twelve tactical and arena projections")
+ print("PASS: Abbey banner is pinned to a supported rail and stays clear of the belfry wall and open bell bay")
 
 func verify_belfry_frame(tower: Node3D):
  var arches=tower.find_children("BelfryArch*","MeshInstance3D",false,false)
@@ -332,8 +339,32 @@ func verify_belfry_frame(tower: Node3D):
  assert(roof.all(func(slope):return bounds.call(slope).intersects(cornice)) and bounds.call(roof[0]).intersects(bounds.call(roof[1])))
  var yoke=bounds.call(tower.get_node("BelfryYoke"))
  assert(yoke.has_point(Vector3(0,2.43,0)))
- for part in tower.get_children():
+ for part in tower.find_children("*","MeshInstance3D",false,false):
   assert(bounds.call(part).intersects_segment(Vector3(0,2.08,-2),Vector3(0,2.08,2))==null,"No stone or timber fills the bay where the bell hung")
+
+func verify_belfry_banner(tower: Node3D):
+ var banner=tower.get_node("AbbeyBanner")
+ var bounds=func(part):return part.transform*part.mesh.get_aabb()
+ var rail=tower.get_node("BannerRail")
+ var rail_bounds=bounds.call(rail)
+ var trunk=bounds.call(tower.get_node("BelfryTrunk"))
+ var cloth_bounds=banner.transform*banner.cloth.custom_aabb
+ assert(cloth_bounds.position.z>trunk.end.z and cloth_bounds.position.y>trunk.position.y)
+ assert(cloth_bounds.end.y<trunk.end.y and cloth_bounds.size.y>.69)
+ var brackets=tower.find_children("BannerBracket*","MeshInstance3D",false,false)
+ assert(brackets.size()==2)
+ for bracket in brackets:
+  var support=bounds.call(bracket)
+  assert(support.intersects(trunk) and support.intersects(rail_bounds))
+ var arrays=banner.cloth.mesh.surface_get_arrays(0)
+ var pins=0
+ for index in arrays[Mesh.ARRAY_VERTEX].size():
+  if arrays[Mesh.ARRAY_TEX_UV][index].x!=0:continue
+  pins+=1
+  var vertex=banner.transform*arrays[Mesh.ARRAY_VERTEX][index]
+  assert(rail_bounds.has_point(vertex) and is_equal_approx(vertex.y,rail.position.y))
+ assert(pins>0 and banner.material.get_shader_parameter("emblem")==true)
+ return banner
 
 func verify_village_groves():
  var scenery=Scenery.new();scenery.batching_enabled=false
@@ -1332,6 +1363,7 @@ func verify_cloth():
   for row in game.info().map:expected_flags+=row.count("o")
   if game.info().environment=="castle":expected_flags+=2
   for landmark in game.info().landmarks:
+   if landmark.kind=="belfry":expected_flags+=1
    if landmark.kind=="boat":
     expected_sails+=1
     var at=landmark.position;var context=scenery.combat_context(game,{"x":int(at[0])-1,"y":int(at[1])},{"x":int(at[0]),"y":int(at[1])})
@@ -1339,12 +1371,12 @@ func verify_cloth():
     var arena_sails=arena.find_children("*","Node3D",true,false).filter(func(node):return node is Cloth and not node.standard)
     assert(arena_sails.size()==context.landmarks.filter(func(item):return item.kind=="boat").size(),"Nearby boats keep their cloth sails in actual combat backdrops")
     arena.queue_free()
-  assert(pieces.filter(func(piece):return piece.standard).size()==expected_flags and pieces.filter(func(piece):return not piece.standard).size()==expected_sails,"All objective flags, gate standards and boat sails survive scene batching")
+  assert(pieces.filter(func(piece):return piece.standard).size()==expected_flags and pieces.filter(func(piece):return not piece.standard).size()==expected_sails,"All flags, standards, banners and sails survive scene batching")
   flags+=expected_flags;sails+=expected_sails
   var references=pieces.map(func(piece):return weakref(piece));world.queue_free();await process_frame
   for reference in references:assert(reference.get_ref()==null,"Cloth resources release with their map")
- assert(flags==14 and sails==2 and game.rng.state==state,"All campaign cloth is bounded and independent of gameplay RNG")
- assert(shapes.size()==3 and private_materials.size()==16,"Map flags, standards and sails share three shapes and own their own materials")
+ assert(flags==15 and sails==2 and game.rng.state==state,"All campaign cloth is bounded and independent of gameplay RNG")
+ assert(shapes.size()==4 and private_materials.size()==17,"Campaign cloth shares four shapes with private materials for each piece")
  var original_meshes=Cloth.cloth_meshes.duplicate()
  for n in range(Cloth.MAX_CACHED_MESHES+3):
   Cloth.mesh_for(Vector2(3+n*.13,.52),true)

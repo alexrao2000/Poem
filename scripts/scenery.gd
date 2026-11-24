@@ -640,6 +640,10 @@ func transfer_environment_motion(source: Node3D,destination: Node3D,theme: Strin
    var original=source.get_node_or_null(address)
    var counterpart=destination.get_node_or_null(address)
    if original!=null and counterpart!=null:counterpart.seek_phase(original.phase)
+ elif theme=="abbey":
+  var original=source.get_node_or_null("EmptyBelfry/AbbeyBanner")
+  var counterpart=destination.get_node_or_null("EmptyBelfry/AbbeyBanner")
+  if original!=null and counterpart!=null:counterpart.seek_phase(original.phase)
  elif theme=="harbor":
   var flock=destination.get_node_or_null("AmbientDrift/HarborGulls")
   if flock!=null:flock.update_from_clock()
@@ -757,6 +761,13 @@ func abbey_belfry(parent: Node3D,anchor: Vector3,size: float):
  block(tower,Vector3(0,.035,0),Vector3(1.53,.21,1.26),stone).name="BelfryFooting"
  block(tower,Vector3(0,.63,0),Vector3(1.28,1.12,1.03),stone).name="BelfryTrunk"
  block(tower,Vector3(0,1.21,0),Vector3(1.42,.15,1.17),stone).name="BelfrySill"
+ var rod=cylinder(tower,Vector3(0,1.084,.593),.70,.025,Color("836949"))
+ rod.name="BannerRail";rod.rotation.z=PI/2
+ for side in [-1,1]:
+  block(tower,Vector3(side*.319,1.084,.544),Vector3(.066,.070,.139),Color("56514a")).name="BannerBracket"
+ var banner=WindCloth.new();tower.add_child(banner)
+ banner.position=rod.position;banner.rotation.z=-PI/2
+ banner.configure(Vector2(.72,.55),Color("775668"),true,2.85);banner.name="AbbeyBanner"
  for z in [-.44,.44]:
   for x in [-.54,.54]:
    block(tower,Vector3(x,1.853,z),Vector3(.42,1.28,.36),stone).name="BelfryPier"
