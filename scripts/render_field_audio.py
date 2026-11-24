@@ -1,5 +1,9 @@
 #!/usr/bin/env python3
-"""Synthesize seamless stereo ambience beds for the campaign battlefields."""
+"""Synthesize seamless stereo ambience beds for the campaign battlefields.
+
+Whole-cycle swells cross the loop boundary. Brief, windowed stereo accents
+fade well before it.
+"""
 
 import argparse
 from pathlib import Path
@@ -77,6 +81,59 @@ PROFILES = {
         "spread": .19,
         "rms": .044,
     },
+    "village": {
+        "seed": 90137,
+        "bands": [(155, 420, .49), (460, 1210, .39), (1150, 2750, .12)],
+        "swells": 1,
+        "depth": .23,
+        "spread": .36,
+        "rms": .035,
+        "calls": [
+            (1.09, .13, 1900, 425, .10, -.57),
+            (1.29, .16, 2210, -620, .078, -.52),
+            (4.67, .11, 1640, 510, .063, .49),
+            (4.83, .17, 2120, -530, .079, .52),
+        ],
+    },
+    "aqueduct": {
+        "seed": 74093,
+        "bands": [(178, 580, .33), (625, 2080, .51), (1890, 4180, .16)],
+        "swells": 4,
+        "depth": .22,
+        "spread": .46,
+        "rms": .054,
+        "calls": [
+            (.44, .071, 1040, -720, .054, .43),
+            (1.91, .069, 870, -410, .060, -.34),
+            (2.27, .057, 1300, -590, .044, .40),
+            (3.60, .085, 990, -435, .052, -.48),
+            (5.28, .066, 1380, -720, .046, .36),
+            (6.64, .081, 940, -580, .060, -.23),
+            (7.04, .075, 1090, -590, .049, .44),
+        ],
+    },
+    "observatory": {
+        "seed": 64811,
+        "bands": [(52, 154, .64), (292, 442, .25), (1270, 1760, .11)],
+        "swells": 1,
+        "depth": .25,
+        "spread": .22,
+        "rms": .035,
+    },
+    "castle": {
+        "seed": 82531,
+        "bands": [(116, 320, .54), (420, 980, .27), (1590, 3690, .19)],
+        "swells": 3,
+        "depth": .34,
+        "spread": .42,
+        "rms": .043,
+        "rustles": [
+            (.61, .28, 670, 1460, .062, .51),
+            (2.50, .19, 840, 2800, .070, -.53),
+            (4.84, .44, 590, 1880, .064, .39),
+            (6.34, .26, 750, 2240, .074, -.56),
+        ],
+    },
 }
 
 
@@ -100,11 +157,27 @@ def render(profile):
             side = band_noise(random, low, high)
             painted[:, channel] += strength * (center + profile["spread"] * side)
 
-    # Whole cycles keep the swell continuous at the loop point.
     swells = np.sin(PHASES * profile["swells"] - .75)
     secondary = np.sin(PHASES + .2)
     envelope = 1 + profile["depth"] * (.74 * swells + .26 * secondary)
     painted *= envelope[:, None]
+    for start, duration, frequency, bend, strength, pan in profile.get("calls", ()):
+        first = round(start * RATE)
+        elapsed = np.arange(round(duration * RATE)) / RATE
+        progress = elapsed / duration
+        phase = 2 * np.pi * elapsed * (frequency + .5 * bend * progress)
+        call = (np.sin(phase) + .18 * np.sin(phase * 2.01))
+        phrase = strength * call * np.sin(np.pi * progress) ** 2
+        stereo = np.sqrt(np.array([1 - pan, 1 + pan]) * .5)
+        painted[first:first + len(phrase)] += phrase[:, None] * stereo
+    for start, duration, low, high, strength, pan in profile.get("rustles", ()):
+        first = round(start * RATE)
+        count = round(duration * RATE)
+        noise = band_noise(random, low, high)[first:first + count]
+        window = np.sin(np.pi * np.arange(count) / count) ** 2
+        stereo = np.sqrt(np.array([1 - pan, 1 + pan]) * .5)
+        painted[first:first + count] += (strength * noise * window)[:, None] * stereo
+
     painted -= painted.mean(axis=0)
     painted *= profile["rms"] / np.sqrt(np.mean(painted ** 2))
     return np.rint(painted * 32767).astype("<i2")

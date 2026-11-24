@@ -46,7 +46,7 @@ func run():
  await settle(field)
  verify_voice(field,"forest")
  assert(is_equal_approx(field.player.volume_db,-32))
- field.select("castle")
+ field.select("menu")
  await settle(field)
  assert(field.playing_theme.is_empty() and field.player.stream==null and not field.player.playing)
  field.queue_free();await process_frame
@@ -59,8 +59,15 @@ func run():
  viewport.add_child(app);await process_frame
  assert(not app.field_audio.player.playing,"Title has no battlefield audio")
  var active_decoder: AudioStreamPlayback
- for field_case in [[2,"forest",4,4],[3,"abbey",3,4],[4,"road",8,3],[6,"mountain",3,4],[9,"furnace",3,4],[11,"engine",10,4]]:
-  active_decoder=await verify_combat_voice(app,field_case[0],field_case[1],field_case[2],field_case[3])
+ var locations=[
+  Vector2i(8,4),Vector2i(3,4),Vector2i(4,4),Vector2i(3,4),
+  Vector2i(8,3),Vector2i(5,4),Vector2i(3,4),Vector2i(3,4),
+  Vector2i(4,2),Vector2i(3,4),Vector2i(3,4),Vector2i(10,4),
+ ]
+ var themes=app.game.content.chapters.map(func(chapter):return chapter.environment)
+ assert(locations.size()==themes.size() and Field.TRACKS.size()==themes.size())
+ for chapter in locations.size():
+  active_decoder=await verify_combat_voice(app,chapter,themes[chapter],locations[chapter])
  app.preferences.values.music=0
  app.apply_audio_preferences()
  assert(app.field_audio.player.get_stream_playback()==active_decoder)
@@ -76,15 +83,16 @@ func run():
  assert(not app.field_audio.player.playing and app.field_audio.player.stream==null)
  await Shutdown.dispose(app)
  viewport.queue_free();await process_frame
- print("PASS: eight eight-second stereo loops, bounded one-voice fades, rapid retargeting and mute, combat and tactical menu continuity in six chapters, score and save isolation")
+ print("PASS: twelve eight-second stereo loops, bounded one-voice fades, rapid retargeting and mute, combat and tactical menu continuity in all twelve chapters, score and save isolation")
  quit()
 
-func verify_combat_voice(app,chapter: int,theme: String,x: int,y: int) -> AudioStreamPlayback:
+func verify_combat_voice(app,chapter: int,theme: String,point: Vector2i) -> AudioStreamPlayback:
  app.game.chapter=chapter
  app.game.start_battle()
  var ally=app.game.living("player")[0]
  var foe=app.game.living("enemy")[1]
- ally.x=x;ally.y=y;foe.x=x+1;foe.y=y
+ assert(app.game.terrain(point) not in ["#","~"] and app.game.terrain(point+Vector2i.RIGHT) not in ["#","~"])
+ ally.x=point.x;ally.y=point.y;foe.x=point.x+1;foe.y=point.y
  app.make_map();app.show_battle()
  await settle(app.field_audio)
  verify_voice(app.field_audio,theme)

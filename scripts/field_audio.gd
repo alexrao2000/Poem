@@ -1,6 +1,7 @@
 extends Node
 ## The tactical map and its combat arena share one environmental playhead.
 const TRACKS={
+ "village":"res://assets/audio/field-village.wav",
  "river":"res://assets/audio/field-river.wav",
  "forest":"res://assets/audio/field-forest.wav",
  "harbor":"res://assets/audio/field-harbor.wav",
@@ -9,6 +10,9 @@ const TRACKS={
  "furnace":"res://assets/audio/field-furnace.wav",
  "engine":"res://assets/audio/field-engine.wav",
  "abbey":"res://assets/audio/field-abbey.wav",
+ "aqueduct":"res://assets/audio/field-aqueduct.wav",
+ "observatory":"res://assets/audio/field-observatory.wav",
+ "castle":"res://assets/audio/field-castle.wav",
 }
 const LOOP_FRAMES=176400
 const MIX_OFFSET_DB=-14.0

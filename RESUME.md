@@ -6,6 +6,8 @@ This checkpoint describes the current development branch and supersedes the earl
 
 ### Latest state
 
+All twelve battlefields now have original eight-second ambience. The earlier eight loops regenerate byte for byte, and all twelve imported PCM payloads match their sources. Thirteen focused suites, both exports, twelve actual combat and menu transitions in each pack, and archive integrity passed. The same ambience decoder continues through each transition while the score blends to Ablaze. Listening remains unreviewed.
+
 Glass Harbor now has inland, quayside and timber pier combat scenery. The warehouse sits fully on the quay, and the boats sit beyond its wall. Twelve camera projections checked the water and bollards. Two actual mounted exchanges used stone and wood contacts with identical before and after saves and RNG. Nine focused suites, both exports, architecture and contact audio in both packs, and archive integrity passed. Rendered appearance and listening remain unreviewed.
 
 Both Glass Harbor boats now carry four mast stays and fitted deck cleats in the tactical map and close-up arenas. Each cleat meets the hull, and every stay reaches the tapered mast. Seven focused suites, both exports, architecture in both packs and archive integrity passed. Rendered appearance remains unreviewed.

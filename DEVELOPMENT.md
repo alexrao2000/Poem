@@ -1,5 +1,7 @@
 # Poem development
 
+All twelve chapters have original battlefield ambience. Cinderford adds dawn calls, the Old Aqueduct adds droplets, Starfall adds night wind, and Crown Approach adds cloth rustles. The ambience shares one decoder across tactical and 3D scenes and follows the Effects setting.
+
 Glass Harbor’s close-ups follow the tactical tile. Inland fights use the road, waterfront fights overlook a stone quay with fitted bollards, and pier fights keep the timber deck. Hooves and footfalls use the same surface as the stage.
 
 Glass Harbor’s two boats each have four mast stays secured to fitted deck cleats. Map and close-up boats reuse one stay mesh.
