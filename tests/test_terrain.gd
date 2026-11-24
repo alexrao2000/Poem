@@ -537,7 +537,10 @@ func verify_arena_ground():
  verify_arena_paint(scenery)
  for chapter in range(12):
   game.chapter=chapter;var before=game.rng.state
+  var rainy=game.info().environment=="forest"
   var tactical=MapGround.material(game,scenery.atlas)
+  assert((tactical.get_shader_parameter("rain_soaked")==true)==rainy)
+  assert(scenery.ground_material(0).get_shader_parameter("rain_soaked")!=true,"Greywood cannot change the shared dry grass")
   for tile in [0,2]:
    var material=scenery.ground_material(tile)
    assert(material==scenery.ground_material(tile),"Repeated arena terrain retains shared material identity")
@@ -551,6 +554,7 @@ func verify_arena_ground():
    var arena=Node3D.new();root.add_child(arena);scenery.batching_enabled=false
    scenery.battle_landscape(arena,Vector3(35,0,0),{"chapter":chapter,"environment":game.info().environment,"terrain":symbol})
    var natural={};var sheets=0
+   var wet_floor: Material
    for node in arena.get_children():
     if not node is MeshInstance3D or not node.mesh is PlaneMesh:continue
     var paint=node.material_override
@@ -559,6 +563,9 @@ func verify_arena_ground():
      assert(node.position.z+node.mesh.size.y*.5<-11.5,"The garden paint begins beyond the fighting floor")
      continue
     if paint is ShaderMaterial and paint.shader==tactical.shader:sheets+=1
+    if paint is ShaderMaterial and paint.get_shader_parameter("rain_soaked")==true:
+     assert(wet_floor==null and paint.shader==tactical.shader)
+     wet_floor=paint
     if paint is ShaderMaterial and paint.shader==tactical.shader and paint.get_shader_parameter("wang_enabled")==true:
      var kind=0 if paint.get_shader_parameter("blend_edges")==true else paint.get_shader_parameter("natural_surface")
      natural[kind]=paint
@@ -580,6 +587,10 @@ func verify_arena_ground():
    else:
     assert(natural.has(1)==(not wood and expected==2),"Hill combat retains varied dirt at the fighters' feet")
    scenery.batcher.combine(arena)
+   assert((wet_floor!=null)==rainy,"Only Greywood's arena ground gets wet, including the banks below a deck")
+   if rainy:
+    assert(arena.get_children().any(func(node):return node is MeshInstance3D and node.material_override==wet_floor),
+     "Static batching keeps the rain treatment")
    for paint in natural.values():
     var present=false
     for node in arena.get_children():
@@ -588,6 +599,7 @@ func verify_arena_ground():
    count+=1;arena.free()
   assert(game.rng.state==before,"Ground presentation consumes no campaign RNG")
  print("PASS: %d raw/batched arena floors share tactical natural texture variety and scale while preserving stone, deck and water"%count)
+ print("PASS: Greywood alone keeps a rain-soaked material on the map and across all six arena floor layouts")
 
 func verify_arena_paint(scenery):
  var radius=MapGround.ARENA_CONTROL_RADIUS

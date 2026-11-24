@@ -26,7 +26,9 @@ static func control_image(game) -> Image:
 	return control
 
 static func material(game,atlas: Texture2D) -> ShaderMaterial:
-	return blended_material(atlas,ImageTexture.create_from_image(control_image(game)),float(PADDING))
+	var paint=blended_material(atlas,ImageTexture.create_from_image(control_image(game)),float(PADDING))
+	if game.info().get("environment","village")=="forest":paint.set_shader_parameter("rain_soaked",true)
+	return paint
 
 static func arena_control_image(surface: int) -> Image:
 	var size=ARENA_CONTROL_RADIUS*2+Vector2i.ONE

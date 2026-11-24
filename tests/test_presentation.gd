@@ -282,12 +282,20 @@ func verify_crown_gate_exchange(app):
 	assert(app.game.save_data("battle")==state and app.game.rng.state==rng)
 	print("PASS: both Crown Approach standards carry their separate wind phases through a complete 3D exchange")
 
+func wet_ground_material(world: Node3D) -> Material:
+	for mesh in world.find_children("*","MeshInstance3D",true,false):
+		var paint=mesh.material_override
+		if paint is ShaderMaterial and paint.get_shader_parameter("rain_soaked")==true:return paint
+	return null
+
 func verify_weather_exchange(app):
 	app.game.chapter=2;app.game.start_battle();app.make_map();app.show_battle()
 	var a=app.game.living("player")[0];var b=app.game.living("enemy")[0]
 	a.x=7;a.y=4;b.x=8;b.y=4;app.refresh_pieces()
 	var bystander=app.game.living("player")[1]
 	var rain=app.world.get_node("AmbientDrift")
+	var wet_tactical=wet_ground_material(app.world)
+	assert(wet_tactical!=null and wet_tactical.get_shader_parameter("blend_edges")==true)
 	rain.seek_elapsed(7.25)
 	var state=app.game.save_data("battle").duplicate(true)
 	for skip in [false,true]:
@@ -318,6 +326,8 @@ func verify_weather_exchange(app):
 			var arena=app.stage.get_node("AmbientDrift")
 			assert(arena.kind=="rain" and arena.elapsed==rain.elapsed)
 			assert(arena.states.slice(0,rain.states.size())==rain.states)
+			var wet_arena=wet_ground_material(app.stage)
+			assert(wet_arena!=null and wet_arena.shader==wet_tactical.shader)
 			transfer.entry=rain.elapsed
 		var finish=func():
 			if app.stage.visible or app.world.visible:return
@@ -348,6 +358,7 @@ func verify_weather_exchange(app):
 		assert(sprites_restored[0]==3)
 		assert(emphasis.size()==2,"Bystander color moves through intermediate values in both directions")
 		assert(rain.elapsed>=transfer.return and app.world.visible and not app.stage.visible)
+		assert(wet_ground_material(app.world)==wet_tactical,"Returning reuses the original rain-soaked tactical ground")
 		for piece in app.unit_nodes.values():
 			assert(piece.sprite.no_depth_test and is_zero_approx(piece.cutaway_dim),"Normal tactical readability returns for every surviving figure")
 		assert(app.unit_nodes[bystander.id].sprite.modulate==Color.WHITE)

@@ -170,12 +170,13 @@ func material(color: Color) -> StandardMaterial3D:
  materials[key]=m
  return m
 
-func ground_material(tile: int) -> ShaderMaterial:
- var key="ground"+str(tile)
+func ground_material(tile: int,rain_soaked=false) -> ShaderMaterial:
+ var key="ground"+str(tile)+("_rain" if rain_soaked else "")
  if materials.has(key):return materials[key]
  var shader=preload("res://assets/shaders/ground.gdshader")
  var m=ShaderMaterial.new();m.shader=shader;m.set_shader_parameter("atlas_texture",atlas)
  m.set_shader_parameter("quadrant",Vector2((tile%2)*.5,(tile/2)*.5))
+ if rain_soaked:m.set_shader_parameter("rain_soaked",true)
  if tile in [0,2]:
   m.set_shader_parameter("wang_enabled",true)
   m.set_shader_parameter("natural_surface",0 if tile==0 else 1)
@@ -911,10 +912,14 @@ func battle_landscape(parent,center,context={}):
  var surface=maxi(0,MapGround.surface_for(tile,theme))
  parent.set_meta("arena_surface",surface)
  var river=theme=="river"
+ var rain_soaked=theme=="forest"
  if harbor_quayside:
   harbor_quay(parent,center,surface)
  elif continuous_floor:
   var paint=MapGround.arena_material(surface,center,atlas) if surface!=0 else null
+  if rain_soaked:
+   if paint==null:paint=ground_material(0,true)
+   else:paint.set_shader_parameter("rain_soaked",true)
   if road_canal:
    kingsroad_canal(parent,center,paint)
    if context.get("road_hoist",false):
@@ -924,7 +929,9 @@ func battle_landscape(parent,center,context={}):
   if theme=="observatory":
    StarfallTerrain.build_arena(self,parent,center-Vector3(0,.065,0))
    ground(parent,center+Vector3(0,-.06,5.0),Vector2(70,42),3).name="ObservatoryTerrace"
-  else:ground(parent,center-Vector3(0,.06,0),Vector2(70,70),3 if stone else 0)
+  else:
+   var outer_paint=ground_material(0,true) if rain_soaked else null
+   ground(parent,center-Vector3(0,.06,0),Vector2(70,70),3 if stone else 0,outer_paint)
   if not wooden_floor:ground(parent,center,Vector2(24,6),surface)
  var water_level=-.055 if wooden_floor else RiverBank.ARENA_WATER_LEVEL
  if river or theme=="aqueduct" or wooden_floor:
