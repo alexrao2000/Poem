@@ -141,24 +141,48 @@ func run():
 	quit()
 
 func verify_starfall_exchange(app):
-	app.game.chapter=8;app.game.start_battle();app.make_map();app.show_battle()
+	app.game.chapter=8
+	var chapter=app.game.info()
+	chapter.lighting={"sun":"f1cfaa","horizon":"6a7e9b","energy":1.18,"haze":.42,"top":"invalid","ambient":-1}
+	app.game.start_battle();app.make_map();app.show_battle()
 	var night=app.CloudSky.texture(true)
 	var map_lighting=app.lighting_state()
 	assert(map_lighting.sky_cover==night)
+	assert(map_lighting.horizon==Color("6a7e9b") and map_lighting.color==Color("f1cfaa"))
+	assert(is_equal_approx(map_lighting.energy,1.18) and is_equal_approx(map_lighting.fog.fog_density,.42))
+	var base=app.CHAPTER_LIGHTING.observatory
+	assert(map_lighting.top==Color(base.top) and is_equal_approx(map_lighting.ambient,base.ambient),
+		"Invalid fields keep their battlefield defaults")
+	assert(app.battlefield_palette("forest")==app.CHAPTER_LIGHTING.forest)
 	var a=app.game.living("player")[0];var b=app.game.living("enemy")[0]
 	a.x=6;a.y=6;b.x=7;b.y=6;app.refresh_pieces()
-	var observed=[false]
+	var save=app.game.save_data("battle");var rng=app.game.rng.state
+	var observed=[false,false]
 	var watch_arena=func():
+		var veil=app.ui.get_node_or_null("CombatTransition")
+		if veil!=null and veil.visible:
+			assert(veil.ink==app.CombatTransition.INK.lerp(map_lighting.horizon.darkened(.81),.52))
+			observed[1]=true
 		if app.stage.visible and app.ui.has_node("CombatHUD"):
-			assert(app.lighting_state().sky_cover==night and app.environment.fog_enabled)
+			var arena=app.lighting_state()
+			assert(arena.sky_cover==night and app.environment.fog_enabled)
+			assert(arena.horizon==map_lighting.horizon and arena.color==map_lighting.color)
+			assert(is_equal_approx(arena.energy,map_lighting.energy) and arena.fog.fog_density==map_lighting.fog.fog_density)
 			observed[0]=true
 	process_frame.connect(watch_arena)
 	await app.cinematic(a,b,[{"actor":a.id,"target":b.id,"damage":1,"remaining":b.hp-1,"hit":true,"crit":false}],{a.id:a.hp,b.id:b.hp})
 	process_frame.disconnect(watch_arena)
-	assert(observed[0] and app.lighting_state()==map_lighting)
+	assert(observed.all(func(seen):return seen) and app.lighting_state()==map_lighting)
+	assert(app.game.save_data("battle")==save and app.game.rng.state==rng)
+	chapter.lighting="invalid"
+	assert(app.battlefield_palette("observatory")==base)
+	chapter.erase("lighting")
+	app.battle_lighting("observatory",false)
+	assert(app.lighting_state().horizon==Color(base.horizon) and is_equal_approx(app.lighting_state().energy,base.energy))
 	app.battle_lighting("village",false)
 	assert(app.lighting_state().sky_cover==app.CloudSky.texture())
 	print("PASS: Starfall shares one night cover through a complete exchange and restores the daytime cover on chapter change")
+	print("PASS: authored battlefield lighting follows the map and arena, inherits invalid fields and leaves the campaign unchanged")
 
 func verify_aqueduct_exchange(app):
 	app.game.chapter=7;app.game.start_battle();app.make_map();app.show_battle()

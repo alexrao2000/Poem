@@ -1604,13 +1604,28 @@ func lighting_state() -> Dictionary:
 	for field in FOG_FIELDS:fog[field]=environment.get(field)
 	return {"energy":sunlight.light_energy,"color":sunlight.light_color,"ambient":environment.ambient_light_energy,"top":sky.sky_top_color,"horizon":sky.sky_horizon_color,"ground":sky.ground_horizon_color,"clouds":sky.sky_cover_modulate,"sky_cover":sky.sky_cover,"fog":fog}
 
+func battlefield_palette(theme: String) -> Dictionary:
+	var palette=CHAPTER_LIGHTING.get(theme,{})
+	if palette.is_empty() or theme!=game.info().get("environment","village"):return palette
+	var authored=game.info().get("lighting",{})
+	if not authored is Dictionary or authored.is_empty():return palette
+	var result=palette.duplicate()
+	for key in ["sun","top","horizon"]:
+		var color=authored.get(key)
+		if color is String and Color.html_is_valid(color):result[key]=color
+	for key in ["energy","ambient","haze"]:
+		var amount=authored.get(key)
+		if (amount is int or amount is float) and is_finite(amount) and amount>=0:
+			result[key]=float(amount)
+	return result
+
 func battle_lighting(theme: String,arena=true) -> Dictionary:
 	var old=lighting_state()
 	if not default_lighting.is_empty():restore_lighting(default_lighting)
 	var sky=environment.sky.sky_material
 	sky.sky_cover=CloudSky.texture(theme=="observatory")
 	sky.sky_cover_modulate=CloudSky.tint(theme)
-	var palette=CHAPTER_LIGHTING.get(theme,{})
+	var palette=battlefield_palette(theme)
 	if not palette.is_empty():
 		sunlight.light_color=Color(palette.sun)
 		sunlight.light_energy=palette.energy

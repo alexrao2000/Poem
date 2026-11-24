@@ -228,6 +228,8 @@ Each chapter’s `route_position` places its seal on the illustrated route. Coor
 
 Each chapter’s `score_theme` selects a Calm/Ablaze pair by ID from [themes.json](assets/audio/themes.json). Chapters can share a theme across section boundaries. An omitted or unknown ID uses the catalog’s `first_chapter` defaults. The music room shows the resulting chapter assignments.
 
+A chapter’s optional `lighting` object overrides its environment palette. Use hex colors for `sun`, `top`, and `horizon`, and nonnegative numbers for `energy`, `ambient`, and `haze`. The map and arena share the resulting palette. Omitted or invalid values inherit the environment defaults.
+
 - [author_maps.py](scripts/author_maps.py) authors map geometry, deployment, squads, landmarks, and tactical briefings.
 - [index_sprites.gd](scripts/index_sprites.gd) generates sprite-region metadata from alpha bounds without modifying source images.
 - [package_visuals.py](scripts/package_visuals.py) creates a clean starter project and `build/Reusable2DVisuals.zip` for reuse in another game.
