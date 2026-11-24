@@ -14,6 +14,7 @@ func _initialize():call_deferred("run")
 func run():
  await verify_strike_order()
  await verify_fall_warning()
+ await verify_compact_cards()
  var game=Rules.new();game.chapter=5;game.start_battle();var portraits=Portraits.new()
  var favorable=[["sword","axe"],["axe","lance"],["lance","sword"]]
  for left in ["sword","axe","lance","bow","magic","staff"]:
@@ -81,6 +82,16 @@ func run():
   var anchor=app.forecast_panel.target_cue.position+Vector2(18,46+sin(app.forecast_panel.cue_clock*4)*1.5)
   assert(anchor.distance_to(Vector2(bounds.get_center().x,bounds.position.y))<.01,"Real attack cue tracks the projected target sprite as the map camera pans")
  var attacker=app.selected;var defender=app.target;attacker.x=8;attacker.y=4;defender.x=9;defender.y=4
+ app.ui.set_anchors_and_offsets_preset(Control.PRESET_TOP_LEFT);app.ui.size=Vector2(720,640)
+ await process_frame;await process_frame
+ assert(app.forecast_panel.records[0].card.size.y==234 and app.forecast_panel.records[1].card.get_rect().end.x<app.side.get_parent().position.x,
+  "The active forecast can resize beside the real command panel")
+ for width in [959,960]:
+  app.ui.size=Vector2(width,640);await process_frame;await process_frame
+  assert(app.forecast_panel.strike_order.caption.visible==(width==960))
+ app.ui.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+ await process_frame;await process_frame
+ assert(app.forecast_panel.records[0].card.size.y==214 and app.forecast_panel.strike_order.caption.visible)
  watch_cinematic(app)
  await app.cinematic(attacker,defender,[{"actor":attacker.id,"target":defender.id,"damage":1,"remaining":19,"hit":true,"crit":false}],{attacker.id:20,defender.id:20})
  assert(concealed and app.forecast_panel.visible,"Forecast is concealed during combat and restored with the tactical controls")
@@ -184,7 +195,7 @@ func verify_fall_warning():
   if sample.has("foe_hits"):b.hp=attack.damage*sample.foe_hits
   var before=game.save_data("battle").duplicate(true);var rng=game.rng.state
   var panel=Forecast.new();panel.configure(host,game,a,b,[null,null])
-  for dimensions in [Vector2(1024,640),Vector2(1280,720),Vector2(1440,900)]:
+  for dimensions in [Vector2(720,640),Vector2(768,900),Vector2(840,640),Vector2(1024,640),Vector2(1280,720),Vector2(1440,900)]:
    host.size=dimensions;await process_frame
    for record in panel.records:
     assert((record.fall!=null)==(record.unit==sample.expected),sample.name)
@@ -197,4 +208,44 @@ func verify_fall_warning():
   assert(game.save_data("battle")==before and game.rng.state==rng)
   panel.free()
  host.free()
- print("PASS: 30 conditional fall layouts, death's door, ordinary-hit threshold, both follow-ups, no counter, out-of-range, and exact campaign/RNG isolation")
+ print("PASS: 60 conditional fall layouts, death's door, ordinary-hit threshold, both follow-ups, no counter, out-of-range, and exact campaign/RNG isolation")
+
+func verify_compact_cards():
+ var game=Rules.new();game.chapter=11;game.start_battle()
+ var host=Control.new();root.add_child(host)
+ var a=game.living("player")[0];var b=game.living("enemy")[0]
+ a.x=8;a.y=4;b.y=4
+ a.hp=43;a.max_hp=51;a.pow=45;a.speed=28
+ b.hp=60;b.max_hp=60;b.speed=7;b.defense=6;b.resistance=6
+ b.item="javelin";b.weapon="lance";b.reach=2
+ game.units=[a,b]
+ var layouts=0
+ for item in game.equipment:
+  a.item=item.id;a.weapon=item.kind;a.reach=int(item.max_range)
+  b.x=a.x+int(item.max_range)
+  var attack=game.forecast(a,b)
+  var before=game.save_data("battle").duplicate(true);var rng=game.rng.state
+  host.size=Vector2(720,640)
+  var panel=Forecast.new();panel.configure(host,game,a,b,[null,null])
+  for dimensions in [Vector2(720,640),Vector2(768,900),Vector2(840,640)]:
+   host.size=dimensions;await process_frame;await process_frame
+   for record in panel.records:
+    assert(Rect2(Vector2.ZERO,record.card.size).encloses(record.weapon.get_rect()),item.name)
+    assert(record.weapon.get_line_count()<=record.weapon.get_visible_line_count(),item.name)
+    assert(record.weapon.get_rect().end.y<record.hp.position.y and record.hp.get_rect().end.y<record.meter.position.y,item.name)
+    if record.matchup.visible:assert(record.weapon.get_rect().end.x<record.matchup.position.x)
+    for stat in record.stats:
+     assert(stat.title.get_theme_font("font").get_string_size(stat.title.text,HORIZONTAL_ALIGNMENT_LEFT,-1,stat.title.get_theme_font_size("font_size")).x<=stat.title.size.x)
+   var damage=panel.records[0].stats[0]
+   if attack.double:
+    assert(damage.repeat.visible and damage.value.get_rect().end.x<damage.repeat.position.x)
+    assert(damage.repeat.get_rect().end.x<=damage.title.get_rect().end.x+.1,item.name)
+   var order=panel.strike_order
+   assert(not order.caption.visible)
+   for chip in order.chips:
+    assert(chip.size.x>=68 and chip.get_rect().end.x<order.condition.position.x)
+   layouts+=1
+  assert(game.save_data("battle")==before and game.rng.state==rng)
+  panel.free()
+ host.free()
+ print("PASS: %d compact equipment and follow-up layouts, separate fall rows, full HP labels, and campaign/RNG isolation"%layouts)

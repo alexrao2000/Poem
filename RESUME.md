@@ -6,6 +6,8 @@ This checkpoint describes the current development branch and supersedes the earl
 
 ### Latest state
 
+Narrow battle forecasts wrap weapon names and give casualty warnings their own row. The damage value and follow-up badge stay inside the damage column at 720 pixels. Seventy-two equipment layouts, sixty conditional fall layouts and a live battle resize exercised the compact cards and their 960-pixel breakpoint. Nine focused suites, all 72 matched chapter outcomes, both exports, packed forecast and keyboard controls, and ZIP integrity passed. Rendered gameplay remains unreviewed.
+
 Section memorials read the names recorded in that section’s legacy ledger. Later names appear when the company reopens the memorial, while the original scene still plays once automatically. The final memorial’s wording works before or after the engine falls. The keyboard hints use two short lines in narrow dialogue. Ten focused suites, eight memorial layouts from 720 to 1440 pixels, two packed suites per platform and both ZIP checks passed. Rendered appearance remains unreviewed.
 
 The Hard recoverable campaign at `99b7627` played all 458 3D exchanges at the saved Fast ×2 setting. It reached the ending after 13 battles, 96 turns and 429 player actions with all 24 recruits available. All 879 saved snapshots matched the earlier Quick Map run. The score and field decoders stayed live across every exchange. The route observed 28 staff revivals, four casualty cards with earned effects and 16 fights with the Glass Harbor drying rack. See `build/review/all-scenes-route.html`. Rendered appearance, listening and human difficulty remain unreviewed.
