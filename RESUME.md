@@ -6,6 +6,8 @@ This checkpoint describes the current development branch and supersedes the earl
 
 ### Latest state
 
+Cinderford now has a stone windmill with four turning sails on the tactical map and in the arena. Thirty-six projections kept a sail visible in wide shots. The placement sweep checked cottage clearance in 358 adjacent encounter arrangements, using all three arena sites. Nine focused suites, both exports, architecture and the placement sweep in both packs, and archive integrity passed. Rendered appearance remains unreviewed.
+
 The tactical zoom into a 3D battle now starts with a 0.38-second original sound. Five live transitions checked that it begins while the sprites are still on the map and follows Effects mute. Two Quick Map exchanges kept their existing sound effects. Ten focused suites, source PCM regeneration, both exports, map exchanges in both packs and archive integrity passed. Listening remains unreviewed.
 
 The clockwork rings and cores now reuse baked geometry. Thirty-six paired mechanisms kept exact arrays, materials, transforms and bounds with eleven resources for 144 placements. Median warm configuration time was 622 to 30 microseconds in the exported Web pack during the headless benchmark. Eight focused suites, both exports, clockwork and geometry comparisons in both packs, and archive integrity passed.

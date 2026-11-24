@@ -22,6 +22,10 @@ const ROAD_CANAL_FAR=-13.0
 const ROAD_CANAL_LEVEL=-.11
 const HARBOR_QUAY_EDGE=-5.4
 const HARBOR_QUAY_LEVEL=-.11
+const MILL_MAP_SITE=Vector3(8.25,-.15,-2.85)
+const MILL_ARENA_SITE=Vector3(-9,0,-13)
+const MILL_ALTERNATE_SITE=Vector3(-2,0,-15)
+const MILL_DISTANT_SITE=Vector3(-9,0,-21)
 # Left and right roadside groves lead into a lower, more distant orchard.
 const VILLAGE_TREES=[
  {"position":Vector2(-15.7,-8.8),"scale":2.3},
@@ -339,6 +343,7 @@ func landscape(parent,game):
  # Authored landmarks communicate the chapter instead of a repeated village frame.
  for item in game.info().get("landmarks",[]):
   landmark(parent,Vector3(item.position[0],0,item.position[1]),item.kind)
+ if theme=="village":village_mill(parent,MILL_MAP_SITE,.69)
  if theme=="forest":TrailLanterns.roadside(parent)
  if theme in ["village","river","forest","road","castle"]:
   var base=-.15 if theme=="forest" else 0.0
@@ -717,6 +722,7 @@ func battle_landscape(parent,center,context={}):
    for item in backdrop:
     if item.kind in ["house","warehouse"]:house_sites.append(Vector2(item.x,item.z))
    village_trees(parent,center,house_sites)
+   village_mill(parent,center+village_mill_site(house_sites),1.55)
   elif not harbor_quayside:
    for i in range(28 if theme=="forest" or tile=="f" else 17):
     battle_tree(parent,center+Vector3(-20+(i*11)%41,base,tree_line-(i%4)*3),i*83,2.6+(i%3)*.25,theme)
@@ -775,6 +781,46 @@ func battle_landscape(parent,center,context={}):
  var atmosphere=AmbientDrift.new();parent.add_child(atmosphere);atmosphere.position=center+Vector3(0,0,-3)
  atmosphere.configure(theme,Vector3(28,4,14),true)
  return theme
+
+func village_mill_site(houses: Array) -> Vector3:
+ for site in [MILL_ARENA_SITE,MILL_ALTERNATE_SITE]:
+  if not houses.any(func(house):
+   var x_gap=absf(site.x-house.x)
+   var footprint=x_gap<3.70 and absf(site.z-house.y)<3.50
+   var sail_sweep=x_gap<5.20 and absf(site.z+1.49-house.y)<2.40
+   return footprint or sail_sweep
+  ):
+   return site
+ return MILL_DISTANT_SITE
+
+func village_mill(parent: Node3D,point: Vector3,scale_value: float):
+ var tower=Node3D.new();tower.name="CinderfordMill";tower.position=point
+ tower.scale=Vector3.ONE*scale_value;parent.add_child(tower,true)
+ var plaster=building_material(BuildingFinish.LIME_PLASTER)
+ var oak=building_material(BuildingFinish.OAK)
+ var strap=material(Color("726747"))
+ var tip=material(Color("c6ae84"))
+ var wall=cylinder(tower,Vector3(0,1.29,0),2.72,.76,Color.WHITE,.59)
+ wall.name="MillStoneTower";wall.material_override=plaster
+ cylinder(tower,Vector3(0,.095,0),.30,.82,Color("80776b"),.75).name="MillFoundation"
+ cylinder(tower,Vector3(0,2.62,0),.19,.72,Color("514a42"),.72).name="MillEave"
+ cylinder(tower,Vector3(0,3.11,0),.90,.73,Color("675445"),.075).name="MillRoof"
+ block(tower,Vector3(0,.38,.73),Vector3(.29,.76,.08),oak).name="MillDoor"
+ block(tower,Vector3(0,.785,.73),Vector3(.42,.10,.115),strap).name="MillLintel"
+ var axle=cylinder(tower,Vector3(0,2.22,.69),.49,.092,Color("675445"))
+ axle.name="MillAxle";axle.rotation.x=PI/2
+ var rotor=preload("res://scripts/mill_rotor.gd").new()
+ rotor.name="MillRotor";rotor.position=Vector3(0,2.22,.96);tower.add_child(rotor,true)
+ var hub=cylinder(rotor,Vector3.ZERO,.13,.176,Color("826b4c"))
+ hub.name="MillHub";hub.rotation.x=PI/2
+ for index in 4:
+  var arm=Node3D.new();arm.name="MillArm";rotor.add_child(arm,true)
+  arm.rotation.z=index*PI*.5
+  block(arm,Vector3(0,.84,0),Vector3(.086,1.68,.069),oak).name="MillSpar"
+  block(arm,Vector3(.125,1.095,.011),Vector3(.274,1.15,.032),Color("d6c5a0")).name="MillSail"
+  for y in [.59,1.62]:
+   block(arm,Vector3(.117,y,.03),Vector3(.31,.051,.043),tip).name="MillSailTie"
+ if batching_enabled:batcher.combine(rotor,false)
 
 func barrel(parent,p,scale_value=1.0):
  BarrelVisuals.build(parent,p,scale_value)

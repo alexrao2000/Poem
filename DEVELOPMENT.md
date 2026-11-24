@@ -1,5 +1,7 @@
 # Poem development
 
+Cinderford’s windmill appears on the tactical map and behind the cottages in close-up fights. Four braced cloth sails turn on a shared axle. The close-up chooses among three sites to keep the stone foot and sweeping blades clear of nearby buildings.
+
 A short original cue starts as the tactical sprites enlarge on the way into a 3D fight. The cue follows the Effects setting and ends during the zoom. [Audio generator](scripts/combat_accents.py)
 
 Starfall and the Sun Engine reuse baked ring and globe geometry. A comparison of 36 repeated mechanisms used eleven mesh resources for 144 placements. Their transforms, vertices, materials and bounds match the earlier build. Every mechanism keeps its own animation and core color.

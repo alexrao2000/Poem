@@ -181,10 +181,21 @@ func verify_village_groves():
  var normal=scenery.combat_context(game,near,far)
  var mirrored=scenery.combat_context(game,near,far,-1.0)
  assert(normal.environment=="village" and normal.landmarks.size()==2)
+ assert(scenery.village_mill_site([Vector2(-9,-13)])==Scenery.MILL_ALTERNATE_SITE)
+ assert(scenery.village_mill_site([Vector2(-9,-13),Vector2(-2,-15)])==Scenery.MILL_DISTANT_SITE)
+ var map=Node3D.new();root.add_child(map);scenery.landscape(map,game)
+ var map_mill=map.get_node("CinderfordMill")
+ assert(map_mill.position==Scenery.MILL_MAP_SITE and map_mill.position.z<-.5)
+ verify_mill(map_mill,-.15)
+ map.queue_free();await process_frame
  var viewport=SubViewport.new();viewport.render_target_update_mode=SubViewport.UPDATE_DISABLED;root.add_child(viewport)
  var camera=Camera3D.new();viewport.add_child(camera);camera.current=true
  for context in [normal,mirrored,{"environment":"village","terrain":"p"}]:
   var stage=Node3D.new();root.add_child(stage);scenery.battle_landscape(stage,center,context)
+  var mill=stage.get_node("CinderfordMill")
+  assert(mill.position==center+Scenery.MILL_ARENA_SITE)
+  var rotor=verify_mill(mill,center.y)
+  var sails=rotor.find_children("MillSail","MeshInstance3D",true,false)
   var trees=stage.find_children("ArenaTree*","Node3D",false,false)
   var houses=stage.find_children("House*","Node3D",true,false).filter(func(node):return node.has_node("PlasterWall"))
   var landmarks=context.get("landmarks",[])
@@ -201,6 +212,10 @@ func verify_village_groves():
    for mesh in tree.find_children("*","MeshInstance3D",true,false):
     var bounds=mesh.global_transform*mesh.mesh.get_aabb()
     if bounds.end.z>center.z-20:silhouettes.append(bounds)
+  var mill_obstacles=silhouettes.duplicate()
+  for house in houses:
+   for piece in house.find_children("*","MeshInstance3D",true,false):
+    mill_obstacles.append(piece.global_transform*piece.mesh.get_aabb())
   for mounted in [false,true]:
    var frame=CombatCamera.frame_pair(center+Vector3.LEFT*1.6,center+Vector3.RIGHT*1.6,"wide",false,mounted)
    camera.position=frame.anchor;camera.fov=frame.lens;camera.look_at(frame.focus)
@@ -212,10 +227,67 @@ func verify_village_groves():
      var framed=Rect2(Vector2.ZERO,Vector2(dimensions)).grow(-18).has_point(screen_point)
      return framed and not silhouettes.any(func(bounds):return bounds.intersects_segment(camera.global_position,facade)!=null))
     assert(visible,"One visible house frontage remains clear of every near trunk and canopy")
+    var mill_window=Rect2(Vector2(20,20),Vector2(dimensions)-Vector2(40,174))
+    for phase in [0.0,PI*.25]:
+     rotor.rotation.z=phase
+     assert(sails.any(func(sail):
+      var blade=sail.to_global(Vector3(0,.46,.015))
+      var clear=not mill_obstacles.any(func(bounds):return bounds.intersects_segment(camera.global_position,blade)!=null)
+      return clear and not camera.is_position_behind(blade) and mill_window.has_point(camera.unproject_position(blade))
+     ),"At least one sail clears the settlement in a wide shot")
   stage.queue_free();await process_frame
  viewport.queue_free();await process_frame
+ scenery.batching_enabled=true
+ var batched=Node3D.new();root.add_child(batched);scenery.battle_landscape(batched,center,normal)
+ var rotating=batched.get_node("CinderfordMill/MillRotor")
+ assert(rotating.get_script()!=null)
+ assert(rotating.get_children().any(func(part):return part is MeshInstance3D and part.get_meta("static_batch",false)))
+ var remaining=weakref(rotating);batched.queue_free();await process_frame
+ assert(remaining.get_ref()==null)
  assert(game.rng.state==rng)
  print("PASS: two village groves and distant orchard, clear mapped and fallback house frontage in 18 wide-shot projections")
+ print("PASS: grounded Cinderford mill with four braced moving sails, hidden clock suspension, local batching and 36 wide-shot sail projections")
+
+func verify_mill(mill: Node3D,ground_y: float) -> Node3D:
+ var footing=mill.get_node("MillFoundation")
+ var ground=footing.global_transform*footing.mesh.get_aabb()
+ assert(ground.position.y<ground_y and ground.end.y>ground_y)
+ var fixed=[]
+ for name in ["MillStoneTower","MillEave","MillRoof"]:
+  var node=mill.get_node(name)
+  fixed.append(node.transform*node.mesh.get_aabb())
+ assert(fixed[0].intersects(fixed[1]) and fixed[1].intersects(fixed[2]))
+ var axle=mill.get_node("MillAxle")
+ var shaft=axle.transform*axle.mesh.get_aabb()
+ assert(shaft.intersects(fixed[0]))
+ var rotor=mill.get_node("MillRotor")
+ rotor.set_process(false)
+ var hub=rotor.get_node("MillHub")
+ var joint=(rotor.transform*hub.transform)*hub.mesh.get_aabb()
+ assert(joint.intersects(shaft))
+ var arms=rotor.find_children("MillArm*","Node3D",false,false)
+ assert(arms.size()==4)
+ for index in arms.size():
+  var arm=arms[index]
+  assert(is_zero_approx(wrapf(arm.rotation.z-index*PI*.5,-PI,PI)))
+  var spar=arm.get_node("MillSpar")
+  var sail=arm.get_node("MillSail")
+  var spar_bounds=spar.transform*spar.mesh.get_aabb()
+  var sail_bounds=sail.transform*sail.mesh.get_aabb()
+  assert(sail_bounds.intersects(spar_bounds))
+  var ties=arm.find_children("MillSailTie*","MeshInstance3D",false,false)
+  assert(ties.size()==2)
+  for tie in ties:
+   var bound=tie.transform*tie.mesh.get_aabb()
+   assert(bound.intersects(sail_bounds) and bound.intersects(spar_bounds))
+  for piece in arm.get_children():
+   var blade=(rotor.transform*arm.transform*piece.transform)*piece.mesh.get_aabb()
+   assert(fixed.all(func(bounds):return bounds.end.z<blade.position.z),"The rotor clears the tower and roof through its whole turn")
+ rotor.rotation.z=TAU-.15
+ rotor._process(1.0);assert(is_equal_approx(rotor.rotation.z,.13))
+ mill.hide();rotor._process(5.0);assert(is_equal_approx(rotor.rotation.z,.13))
+ mill.show();rotor.rotation.z=0
+ return rotor
 
 func verify_trail_lanterns():
  var scenery=Scenery.new();scenery.batching_enabled=false
