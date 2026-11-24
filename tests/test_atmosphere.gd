@@ -10,18 +10,22 @@ func run():
  verify_clouds()
  var game=Rules.new();var rng=game.rng.state;var saved=game.save_data("camp").duplicate(true)
  var host=Node3D.new();root.add_child(host)
+ var source_meshes={};var materials={}
  for theme in Drift.THEMES:
   for arena in [false,true]:
    var a=Drift.new();host.add_child(a);a.configure(theme,Vector3(24,4,18),arena,17);a.set_process(false)
    var b=Drift.new();host.add_child(b);b.configure(theme,Vector3(24,4,18),arena,17);b.set_process(false)
    assert(a.states==b.states,"Chapter atmosphere has a reproducible local seed")
+   var mesh=a.cloud.multimesh.mesh;var paint=a.cloud.material_override
+   source_meshes[mesh]=true;materials[paint]=true
+   assert(mesh==b.cloud.multimesh.mesh and paint==b.cloud.material_override and a.cloud.multimesh!=b.cloud.multimesh,
+    "Every repeated atmosphere shares immutable appearance and owns its own instances")
    assert(a.get_child_count()==1 and a.cloud.multimesh.instance_count<=(56 if theme=="forest" else 32),"All drift particles share one bounded instanced mesh")
    assert(a.cloud.cast_shadow==GeometryInstance3D.SHADOW_CASTING_SETTING_OFF and a.find_children("*","Light3D",true,false).is_empty(),"Atmosphere adds no lights or shadows")
    assert(a.cloud.material_override.disable_fog,"Fog cannot reveal fully faded particle quads")
    if a.kind!="leaves":assert(a.cloud.material_override.billboard_keep_scale,"Camera-facing particles retain their small instance scales")
    if theme=="forest":
     assert(a.kind=="rain" and a.cloud.multimesh.instance_count==(56 if arena else 36))
-    var mesh=a.cloud.multimesh.mesh
     var surface=mesh.surface_get_arrays(0)
     assert(surface[Mesh.ARRAY_VERTEX].size()==6 and mesh==b.cloud.multimesh.mesh,"Greywood shares a lightweight rain streak mesh")
     for state in a.states:
@@ -42,9 +46,9 @@ func run():
     for phase in [0.0,.1,.25,.5,.75,.9,1.0]:
      var point=a.particle_position(state,phase)
      assert(a.cloud.multimesh.custom_aabb.has_point(point),"Particle paths remain inside their culling volume throughout a loop")
-   var initial=a.cloud.multimesh.buffer
+   var initial=a.cloud.multimesh.buffer;var untouched=b.cloud.multimesh.buffer
    a._process(.6)
-   assert(a.cloud.multimesh.buffer!=initial,"Visible atmosphere actually uploads changed instance data")
+   assert(a.cloud.multimesh.buffer!=initial and b.cloud.multimesh.buffer==untouched,"Visible atmosphere updates only its own instance data")
    var buffer=a.cloud.multimesh.buffer
    assert(buffer.size()==a.states.size()*16,"Bulk upload contains every matrix and color")
    for i in range(a.states.size()):
@@ -69,6 +73,8 @@ func run():
     a.elapsed=(1-state.phase+phase)*state.life;a.update_particles()
     assert(a.cloud.multimesh.buffer[15]<.01,"Loop boundaries fade before particles recycle")
    a.queue_free();b.queue_free();await process_frame
+ assert(source_meshes.size()==3 and materials.size()==4,"Every chapter's map and arena use three shared meshes and four immutable paints")
+ print("PASS: all 24 atmosphere configurations share three meshes and four materials with private instance buffers")
  assert(game.rng.state==rng and game.save_data("camp")==saved,"Atmosphere never consumes campaign RNG or modifies saves")
  var scenery=Scenery.new()
  for chapter in range(12):

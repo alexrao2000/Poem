@@ -1,5 +1,7 @@
 # Poem development
 
+Weather effects reuse three meshes and four materials across all twelve battlefields. Each map or arena has its own motion and instance data.
+
 Hallow Abbey now has a stone belfry with an empty bay and timber yoke where its bell hung. The same landmark appears in the tactical map and between arcade and fighters in the combat arena.
 
 Low, pale gusts cross Windscar Pass in the tactical map and arena. The gusts use the same instanced effect budget as the previous dust, fading before they loop.

@@ -6,6 +6,8 @@ This checkpoint describes the current development branch and supersedes the earl
 
 ### Latest state
 
+Wind, rain, leaves, embers and other weather effects now reuse three meshes and four materials. The 144-placement comparison previously created 133 meshes and 144 materials. Exact mesh arrays, material settings and seven instance samples per configuration matched across source and both packs. Seven focused suites, both exports, packaged weather and presentation checks, and archive integrity passed.
+
 Hallow Abbey’s stone belfry shows the opening and timber yoke from the chapter’s missing bell. Twelve tactical and arena projections checked the open bay, including both sides of mapped approaches and a distant fallback. The lone landmark-kind change preserved the other campaign data and all 72 matched victory outcomes. Nine focused suites, both exports, architecture and route checks in both packs, and archive integrity passed. Rendered appearance remains unreviewed.
 
 Windscar Pass now has low crosswind that drifts across the battlefield and grows wider mid-gust. It uses fourteen instances on the map and twenty-four in the arena. At seven sample times, the other twenty-two map and arena configurations produced exactly the same instance buffers in source and both packages. Seven focused suites, both exports, packed atmosphere and presentation, and archive integrity passed. Rendered appearance remains unreviewed.

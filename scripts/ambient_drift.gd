@@ -2,7 +2,8 @@ extends Node3D
 # Sparse chapter atmosphere uses one instanced mesh and a private seed. Greywood
 # rain and Windscar’s low crosswind appear on the map and in the arena.
 const THEMES=["village","river","forest","abbey","road","harbor","mountain","aqueduct","observatory","furnace","castle","engine"]
-static var rain_streak: ArrayMesh
+static var unit_quad: QuadMesh
+static var appearances: Dictionary={}
 var kind="dust"
 var extent=Vector3(20,3,16)
 var states: Array=[]
@@ -22,21 +23,11 @@ func configure(theme: String,dimensions: Vector3,arena=false,seed_value=0):
  var count=(26 if arena else 18) if kind=="leaves" else (32 if arena else 22) if kind=="embers" else (24 if arena else 14)
  if kind=="rain":count=56 if arena else 36
  var random=RandomNumberGenerator.new();random.seed=7139+maxi(0,THEMES.find(theme))*4096+int(seed_value)
- var material=StandardMaterial3D.new();material.transparency=BaseMaterial3D.TRANSPARENCY_ALPHA
- material.vertex_color_use_as_albedo=true;material.vertex_color_is_srgb=true;material.cull_mode=BaseMaterial3D.CULL_DISABLED;material.roughness=1;material.disable_fog=true
- var shape: Mesh
- if kind=="leaves":
-  shape=leaf_mesh();material.diffuse_mode=BaseMaterial3D.DIFFUSE_TOON
- else:
-  material.shading_mode=BaseMaterial3D.SHADING_MODE_UNSHADED;material.billboard_mode=BaseMaterial3D.BILLBOARD_ENABLED;material.billboard_keep_scale=true
-  if kind=="rain":shape=rain_mesh()
-  else:
-   var quad=QuadMesh.new();quad.size=Vector2.ONE;shape=quad
-   material.albedo_texture=preload("res://scripts/combat_impact.gd").radial_texture()
-  if kind in ["embers","aether"]:material.blend_mode=BaseMaterial3D.BLEND_MODE_ADD
+ var style=appearance_for(kind)
  cloud=MultiMeshInstance3D.new();cloud.name="DriftInstances";add_child(cloud)
- cloud.cast_shadow=GeometryInstance3D.SHADOW_CASTING_SETTING_OFF;cloud.material_override=material
- var instances=MultiMesh.new();instances.transform_format=MultiMesh.TRANSFORM_3D;instances.use_colors=true;instances.mesh=shape;instances.instance_count=count
+ cloud.cast_shadow=GeometryInstance3D.SHADOW_CASTING_SETTING_OFF;cloud.material_override=style.material
+ var instances=MultiMesh.new();instances.transform_format=MultiMesh.TRANSFORM_3D;instances.use_colors=true
+ instances.mesh=style.mesh;instances.instance_count=count
  instances.custom_aabb=AABB(Vector3(-extent.x*.5,-.2,-extent.z*.5),extent+Vector3(0,.4,0));cloud.multimesh=instances
  instance_buffer.resize(count*16)
  for i in range(count):
@@ -54,6 +45,30 @@ func configure(theme: String,dimensions: Vector3,arena=false,seed_value=0):
    states.append({"x":random.randf_range(-.23,.23),"z":random.randf_range(-.35,.35),"phase":random.randf(),"life":random.randf_range(7,12) if kind=="leaves" else random.randf_range(5,9),"spin":random.randf_range(-2,2),"scale":random.randf_range(.09,.14) if kind=="leaves" else random.randf_range(.04,.075),"color":color})
  update_particles()
 
+static func appearance_for(particle_kind: String) -> Dictionary:
+ var additive=particle_kind in ["embers","aether"]
+ var style="additive" if additive else particle_kind if particle_kind in ["rain","leaves"] else "radial"
+ if appearances.has(style):return appearances[style]
+ var paint=StandardMaterial3D.new();paint.transparency=BaseMaterial3D.TRANSPARENCY_ALPHA
+ paint.vertex_color_use_as_albedo=true;paint.vertex_color_is_srgb=true;paint.cull_mode=BaseMaterial3D.CULL_DISABLED
+ paint.roughness=1;paint.disable_fog=true
+ var shape: Mesh
+ if style=="leaves":
+  shape=leaf_mesh();paint.diffuse_mode=BaseMaterial3D.DIFFUSE_TOON
+ else:
+  paint.shading_mode=BaseMaterial3D.SHADING_MODE_UNSHADED
+  paint.billboard_mode=BaseMaterial3D.BILLBOARD_ENABLED;paint.billboard_keep_scale=true
+  if style=="rain":shape=rain_mesh()
+  else:
+   if unit_quad==null:
+    unit_quad=QuadMesh.new();unit_quad.size=Vector2.ONE
+   shape=unit_quad
+   paint.albedo_texture=preload("res://scripts/combat_impact.gd").radial_texture()
+  if additive:paint.blend_mode=BaseMaterial3D.BLEND_MODE_ADD
+ var appearance={"mesh":shape,"material":paint}
+ appearances[style]=appearance
+ return appearance
+
 static func leaf_mesh() -> ArrayMesh:
  var surface=SurfaceTool.new();surface.begin(Mesh.PRIMITIVE_TRIANGLES)
  var points=[Vector3(-.26,0,0),Vector3(0,.7,0),Vector3(.26,0,0),Vector3(0,-.55,0)]
@@ -62,15 +77,12 @@ static func leaf_mesh() -> ArrayMesh:
  surface.generate_normals();return surface.commit()
 
 static func rain_mesh() -> ArrayMesh:
- if rain_streak!=null:return rain_streak
  var surface=SurfaceTool.new();surface.begin(Mesh.PRIMITIVE_TRIANGLES)
  var corners=[Vector3(-.068,.22,0),Vector3(-.045,.22,0),Vector3(.086,-.21,0),Vector3(.062,-.21,0)]
  for index in [0,1,2,0,2,3]:
   surface.set_color(Color(1,1,1,.10 if index<2 else 1))
   surface.add_vertex(corners[index])
- surface.generate_normals()
- rain_streak=surface.commit()
- return rain_streak
+ surface.generate_normals();return surface.commit()
 
 func particle_position(state: Dictionary,phase: float) -> Vector3:
  if kind=="rain":
