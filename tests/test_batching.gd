@@ -90,10 +90,12 @@ func run():
   print("BATCH chapter ",chapter+1,": ",stats.sources," meshes → ",stats.batches," batches / ",elapsed," ms")
   world.queue_free();await process_frame
  for chapter in range(12):
-  game.chapter=chapter;world=Node3D.new();root.add_child(world);scenery.battle_landscape(world,Vector3(35,0,0),{"environment":game.info().environment})
+  game.chapter=chapter;world=Node3D.new();root.add_child(world)
+  var theme=game.info().environment
+  scenery.battle_landscape(world,Vector3(35,0,0),{"environment":theme,"terrain":"=" if theme=="harbor" else "p"})
   assert(scenery.cylinder_environment==game.info().environment and scenery.cylinders.size()<=Scenery.MAX_CACHED_CYLINDERS,"Arena construction retains a bounded cache for its own environment")
   verify_conifers(world,game.info().environment,true)
-  if game.info().environment=="harbor":verify_deck(world,Vector3(35,0,0))
+  if theme=="harbor":verify_deck(world,Vector3(35,0,0))
   before=signature(world);stats=batch.combine(world);after=signature(world)
   assert(before.vertices==after.vertices and before.triangles==after.triangles,"Combat arenas retain all geometry")
   assert(before.sum.distance_to(after.sum)<maxf(1,before.sum.length()*.000001),"Arena transforms retained")

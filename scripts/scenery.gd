@@ -20,6 +20,8 @@ const MAX_CACHED_CYLINDERS=256
 const ROAD_CANAL_NEAR=-5.0
 const ROAD_CANAL_FAR=-13.0
 const ROAD_CANAL_LEVEL=-.11
+const HARBOR_QUAY_EDGE=-5.4
+const HARBOR_QUAY_LEVEL=-.11
 # Left and right roadside groves lead into a lower, more distant orchard.
 const VILLAGE_TREES=[
  {"position":Vector2(-15.7,-8.8),"scale":2.3},
@@ -447,15 +449,19 @@ func combat_context(game,a,b,screen_direction=1.0) -> Dictionary:
  if axis.is_zero_approx():axis=Vector2.RIGHT
  axis*=screen_direction
  var depth=Vector2(-axis.y,axis.x)
+ var theme=game.info().get("environment","village")
+ var tile=game.terrain(game.pos(b))
+ var near_water=theme in ["road","harbor"] and nearby_channel(game,midpoint)
+ var harbor_quayside=theme=="harbor" and tile!="=" and near_water
  var candidates=[]
  for item in game.info().get("landmarks",[]):
+  if theme=="harbor" and item.kind=="boat" and tile!="=" and not harbor_quayside:continue
   var delta=Vector2(item.position[0],item.position[1])-midpoint
   if delta.length()>8:continue
   candidates.append({"kind":item.kind,"roof_variant":Architecture.variant_at(Vector3(item.position[0],0,item.position[1])),"distance":delta.length(),"x":clampf(delta.dot(axis)*2.2,-11,11),"z":-7-clampf(absf(delta.dot(depth))*1.8,0,10)})
  candidates.sort_custom(func(left,right):return left.distance<right.distance)
- var theme=game.info().get("environment","village")
- return {"chapter":game.chapter,"environment":theme,"terrain":game.terrain(game.pos(b)),
-  "landmarks":candidates.slice(0,2),"road_canal":theme=="road" and nearby_channel(game,midpoint)}
+ return {"chapter":game.chapter,"environment":theme,"terrain":tile,
+  "landmarks":candidates.slice(0,2),"road_canal":theme=="road" and near_water,"harbor_quay":harbor_quayside}
 
 func nearby_channel(game,midpoint: Vector2) -> bool:
  var nearest=Vector2i(midpoint.round())
@@ -556,6 +562,20 @@ func kingsroad_canal(parent: Node3D,center: Vector3,paint: Material):
   block(parent,center+Vector3(0,-.13,depth),Vector3(70,.34,.40),detail_material(3)).name="CanalRevetment"
   block(parent,center+Vector3(0,.06,depth),Vector3(70,.10,.54),Color("9a9a88")).name="CanalCoping"
 
+func harbor_quay(parent: Node3D,center: Vector3,surface: int):
+ var land_depth=35.0-HARBOR_QUAY_EDGE
+ ground(parent,center+Vector3(0,0,HARBOR_QUAY_EDGE+land_depth*.5),Vector2(70,land_depth),surface).name="ArenaGround"
+ var sea=plane_shape(Vector2(70,60))
+ var sea_center=center+Vector3(0,HARBOR_QUAY_LEVEL,HARBOR_QUAY_EDGE-sea.size.y*.5)
+ mesh(parent,sea,sea_center,Vector3.ONE,water_material("harbor")).name="ArenaWater"
+ var edge=center+Vector3(0,0,HARBOR_QUAY_EDGE)
+ block(parent,edge-Vector3.UP*.20,Vector3(70,.42,.40),detail_material(3)).name="QuayWall"
+ block(parent,edge+Vector3.UP*.04,Vector3(70,.12,.52),Color("9d9e8e")).name="QuayCoping"
+ for x in [-9,-4.5,0,4.5,9]:
+  var foot=edge+Vector3(x,.27,.08)
+  cylinder(parent,foot,.40,.085,Color("514c45"),.07).name="QuayBollard"
+  cylinder(parent,foot+Vector3.UP*.205,.075,.12,Color("82725b"),.095).name="QuayBollardCap"
+
 func reddeep_gantry(parent: Node3D,center: Vector3,backdrop: Array):
  var depth=-11.5
  for item in backdrop:
@@ -623,13 +643,16 @@ func battle_landscape(parent,center,context={}):
  var tile=context.get("terrain","p")
  parent.set_meta("terrain",tile)
  var stone=theme in ["abbey","aqueduct","observatory","castle","engine","furnace"]
- var wooden_floor=theme=="harbor" or tile=="="
+ var wooden_floor=tile=="="
  var continuous_floor=not wooden_floor and theme in MapGround.CONTINUOUS_ARENAS
  var road_canal=theme=="road" and not wooden_floor and context.get("road_canal",false)
+ var harbor_quayside=theme=="harbor" and not wooden_floor and context.get("harbor_quay",false)
  var surface=maxi(0,MapGround.surface_for(tile,theme))
  parent.set_meta("arena_surface",surface)
  var river=theme=="river"
- if continuous_floor:
+ if harbor_quayside:
+  harbor_quay(parent,center,surface)
+ elif continuous_floor:
   var paint=MapGround.arena_material(surface,center,atlas) if surface!=0 else null
   if road_canal:kingsroad_canal(parent,center,paint)
   else:ground(parent,center,Vector2(70,70),0,paint).name="ArenaGround"
@@ -637,7 +660,7 @@ func battle_landscape(parent,center,context={}):
   ground(parent,center-Vector3(0,.06,0),Vector2(70,70),3 if stone else 0)
   if not wooden_floor:ground(parent,center,Vector2(24,6),surface)
  var water_level=-.055 if wooden_floor else RiverBank.ARENA_WATER_LEVEL
- if river or theme in ["harbor","aqueduct"] or tile=="=":
+ if river or theme=="aqueduct" or wooden_floor:
   var water=water_material(theme)
   var plane=plane_shape(Vector2(RiverBank.ARENA_WIDTH,60 if wooden_floor else 40))
   var water_depth=-12.0 if wooden_floor else -23.0 if river else -22.0
@@ -662,7 +685,7 @@ func battle_landscape(parent,center,context={}):
   var tree_line=RiverBank.ARENA_FAR_START-1 if river else -8.0
   if road_canal:tree_line=ROAD_CANAL_FAR-1.8
   var house_sites=[]
-  if theme!="forest" and backdrop.is_empty():
+  if theme!="forest" and not harbor_quayside and backdrop.is_empty():
    for i in range(3):
     var site=Vector2(-12+i*11,-17)
     house(parent,center+Vector3(site.x,0,site.y),2.0+i*.2)
@@ -671,22 +694,26 @@ func battle_landscape(parent,center,context={}):
    for item in backdrop:
     if item.kind in ["house","warehouse"]:house_sites.append(Vector2(item.x,item.z))
    village_trees(parent,center,house_sites)
-  else:
+  elif not harbor_quayside:
    for i in range(28 if theme=="forest" or tile=="f" else 17):
     battle_tree(parent,center+Vector3(-20+(i*11)%41,base,tree_line-(i%4)*3),i*83,2.6+(i%3)*.25,theme)
  parent.set_meta("backdrop_count",backdrop.size())
  var mechanism=center+Vector3(0,0,-12 if theme=="engine" else -10)
  for item in backdrop:
   var depth=RiverBank.ARENA_FAR_START-1.5+(item.z+7)*.7 if river else item.z
+  var lateral=item.x
   if theme=="aqueduct":depth=minf(depth,-11.0)
   if road_canal:depth=minf(depth,ROAD_CANAL_FAR-1.8)
   if theme=="abbey":depth=minf(depth,-13.0)
   if theme=="mountain":depth=maxf(depth,-9.6)
+  if harbor_quayside and item.kind=="warehouse":
+   depth=HARBOR_QUAY_EDGE+2.45
+   lateral=maxf(absf(lateral),5.8)*(-1.0 if lateral<0 else 1.0)
   if item.kind==theme and theme in ["engine","observatory"]:
    mechanism.x=center.x+clampf(item.x,-3.8,3.8)
    mechanism.z=minf(mechanism.z,center.z+depth)
    continue
-  var group=Node3D.new();group.name="ArenaLandmark";parent.add_child(group,true);group.position=center+Vector3(item.x,0,depth)
+  var group=Node3D.new();group.name="ArenaLandmark";parent.add_child(group,true);group.position=center+Vector3(lateral,0,depth)
   group.scale=Vector3.ONE*(2.1 if item.kind in ["house","warehouse","tower","spire","arch","furnace"] else 1.4)
   landmark(group,Vector3.ZERO,item.kind,item.get("roof_variant",0))
  if theme in ["village","road"]:

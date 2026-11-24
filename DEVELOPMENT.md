@@ -1,5 +1,7 @@
 # Poem development
 
+Glass Harbor’s close-ups follow the tactical tile. Inland fights use the road, waterfront fights overlook a stone quay with fitted bollards, and pier fights keep the timber deck. Hooves and footfalls use the same surface as the stage.
+
 Glass Harbor’s two boats each have four mast stays secured to fitted deck cleats. Map and close-up boats reuse one stay mesh.
 
 Objective flags, boat sails and gate standards share cloth meshes by size and shape. Each piece still owns its material and wind phase. A 54-placement comparison used three meshes and retained exact vertex data and bounds.

@@ -406,7 +406,7 @@ func verify_arena_ground():
      natural[kind]=paint
      assert(kind in [0,1] and (is_zero_approx(node.position.y) or is_equal_approx(node.position.y,-.06)),"Natural arena painting stays on intact ground sheets at the intended levels")
    var stone=game.info().environment in MapGround.STONE
-   var wood=symbol=="=" or game.info().environment=="harbor"
+   var wood=symbol=="="
    var continuous=not wood and game.info().environment in MapGround.CONTINUOUS_ARENAS
    var expected=maxi(0,MapGround.surface_for(symbol,game.info().environment))
    assert(arena.get_meta("arena_surface")==expected,"Combat retains the selected tactical tile's actual grass, earth or paving instead of replacing a whole chapter with slate")
@@ -571,7 +571,7 @@ func verify_water_styles():
   if crossings>0:samples.append("=")
   for tile in samples:
    var arena=Node3D.new();root.add_child(arena)
-   scenery.battle_landscape(arena,Vector3(35,0,0),{"environment":theme,"terrain":tile})
+   scenery.battle_landscape(arena,Vector3(35,0,0),{"environment":theme,"terrain":tile,"harbor_quay":theme=="harbor" and tile=="."})
    var water=arena.get_node("ArenaWater")
    assert(water.material_override==expected,"A combat cutaway uses its map's exact water resource")
    scenery.batcher.combine(arena)

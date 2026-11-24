@@ -1295,7 +1295,7 @@ func cinematic(a,b,events,initial_hp={},challenge: Dictionary={}):
 	var actor=make_fighter(a,Vector3(35-opening_direction*spacing,0,0))
 	var defender=make_fighter(b,Vector3(35+opening_direction*spacing,0,0))
 	actor.rotation.y=-opening_direction*PI/2;defender.rotation.y=opening_direction*PI/2
-	var contact_terrain="=" if arena_context.environment=="harbor" else arena_context.terrain
+	var contact_terrain=arena_context.terrain
 	for pair in [[actor,a],[defender,b]]:
 		var combatant=pair[0];var job=pair[1].job
 		if combatant.has_signal("travel_contact"):

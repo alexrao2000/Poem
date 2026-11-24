@@ -4,7 +4,7 @@ extends RefCounted
 const PADDING=2
 const NATURAL=["river","forest","mountain","road"]
 const STONE=["abbey","aqueduct","observatory","furnace","castle","engine"]
-const CONTINUOUS_ARENAS=["village","forest","mountain","road"]
+const CONTINUOUS_ARENAS=["village","forest","mountain","road","harbor"]
 const ARENA_CONTROL_RADIUS=Vector2i(16,6)
 const WEIGHTS=[Color(1,0,0,0),Color(0,1,0,0),Color(0,0,1,0),Color(0,0,0,1)]
 static var arena_controls: Dictionary={}

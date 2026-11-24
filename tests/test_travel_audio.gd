@@ -130,12 +130,15 @@ func run():
  app.preferences.values.effects=.5;app.apply_audio_preferences()
  app.game.chapter=5;app.game.start_battle();app.make_map();app.show_battle()
  var a=app.game.units[0];var b=app.game.living("enemy")[0]
- a.job="Rider";a.weapon="lance";a.item="iron_lance";a.x=8;a.y=4;b.x=9;b.y=4
+ a.job="Rider";a.weapon="lance";a.item="iron_lance"
  var arena_cues=[];sound.step_played.connect(func(family):arena_cues.append(family))
- saved=app.game.save_data("battle").duplicate(true);rng=app.game.rng.state
- await app.cinematic(a,b,[{"actor":a.id,"target":b.id,"damage":1,"remaining":19,"hit":true,"crit":false}],{a.id:20,b.id:20})
- assert(not arena_cues.is_empty() and arena_cues.all(func(family):return family=="hoof_wood"),"Actual mounted harbor approach uses hoof contacts on the wooden arena floor")
- assert(app.game.save_data("battle")==saved and app.game.rng.state==rng,"Arena contacts do not change campaign outcomes")
+ for course in [[Vector2i(8,4),Vector2i(9,4),"hoof_hard"],[Vector2i(12,7),Vector2i(12,8),"hoof_wood"]]:
+  a.x=course[0].x;a.y=course[0].y;b.x=course[1].x;b.y=course[1].y
+  app.refresh_pieces();arena_cues.clear()
+  saved=app.game.save_data("battle").duplicate(true);rng=app.game.rng.state
+  await app.cinematic(a,b,[{"actor":a.id,"target":b.id,"damage":1,"remaining":19,"hit":true,"crit":false}],{a.id:20,b.id:20})
+  assert(not arena_cues.is_empty() and arena_cues.all(func(family):return family==course[2]),"Actual mounted harbor approaches match paved and wooden floors")
+  assert(app.game.save_data("battle")==saved and app.game.rng.state==rng,"Arena contacts do not change campaign outcomes")
  await Shutdown.dispose(app);await process_frame
  print("PASS: six original contacts, 84 matching terrain/chapter surfaces, real movement timing, planted final step, mounted map/harbor arena cues, grounded dust/wood suppression, muted visual contacts, isolated voices, volume/mute and unchanged simulation/score")
  quit()

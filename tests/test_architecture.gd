@@ -11,6 +11,7 @@ func run():
  await verify_towers()
  await verify_fountain()
  await verify_harbor_boats()
+ await verify_harbor_quay()
  await verify_reddeep_furnaces()
  await verify_aqueduct_gallery()
  await verify_abbey_arcade()
@@ -730,6 +731,71 @@ func verify_mooring(piece: MeshInstance3D,water_level: float):
   var mast_height=top.y-(mast.position.y-mast_mesh.height*.5)
   var mast_radius=lerpf(mast_mesh.bottom_radius,mast_mesh.top_radius,mast_height/mast_mesh.height)
   assert(mast_height>0 and mast_height<mast_mesh.height and Vector2(line[0].x,line[0].z).length()<mast_radius)
+
+func verify_harbor_quay():
+ var scenery=Scenery.new();scenery.batching_enabled=false
+ var game=Rules.new();game.chapter=5;var before=game.rng.state
+ var near_a={"x":5,"y":4};var near_b={"x":6,"y":4}
+ var near=scenery.combat_context(game,near_a,near_b)
+ var mirror=scenery.combat_context(game,near_a,near_b,-1)
+ var inland=scenery.combat_context(game,{"x":8,"y":1},{"x":9,"y":1})
+ var pier=scenery.combat_context(game,{"x":4,"y":7},{"x":4,"y":8})
+ assert(near.harbor_quay and mirror.harbor_quay and near.terrain=="p")
+ assert(inland.terrain=="p" and not inland.harbor_quay and inland.landmarks.all(func(item):return item.kind!="boat"))
+ assert(pier.terrain=="=" and not pier.harbor_quay)
+ var center=Vector3(35,.4,2)
+ var viewport=SubViewport.new();viewport.render_target_update_mode=SubViewport.UPDATE_DISABLED;root.add_child(viewport)
+ var camera=Camera3D.new();viewport.add_child(camera);camera.current=true
+ for context in [near,mirror,inland,pier]:
+  var arena=Node3D.new();root.add_child(arena);scenery.battle_landscape(arena,center,context)
+  var water=arena.get_node_or_null("ArenaWater")
+  var deck=arena.get_node_or_null("ArenaDeck")
+  var floor=arena.get_node_or_null("ArenaGround")
+  if context==inland:
+   assert(water==null and deck==null and floor.mesh.size==Vector2(70,70))
+   assert(is_equal_approx(floor.position.y,center.y) and floor.material_override.get_shader_parameter("blend_edges"))
+  elif context==pier:
+   assert(deck!=null and water!=null and is_equal_approx(water.position.y,center.y-.055))
+   assert(arena.find_children("HarborHull*","MeshInstance3D",true,false).size()>0)
+  else:
+   assert(deck==null and water!=null and arena.get_meta("arena_surface")==1)
+   assert(floor.material_override==scenery.ground_material(1) and is_equal_approx(floor.position.y,center.y))
+   var land=floor.transform*floor.mesh.get_aabb()
+   var sea=water.transform*water.mesh.get_aabb()
+   var wall=arena.get_node("QuayWall")
+   var coping=arena.get_node("QuayCoping")
+   var face=wall.transform*wall.mesh.get_aabb()
+   var rim=coping.transform*coping.mesh.get_aabb()
+   assert(is_equal_approx(land.position.z,sea.end.z),"Paving and sea meet at the quay")
+   assert(face.intersects(rim) and face.position.y<sea.position.y and face.end.y>sea.position.y)
+   var bollards=arena.find_children("QuayBollard*","MeshInstance3D",false,false)
+   assert(bollards.size()==10)
+   for index in range(0,bollards.size(),2):
+    var post=bollards[index].transform*bollards[index].mesh.get_aabb()
+    var cap=bollards[index+1].transform*bollards[index+1].mesh.get_aabb()
+    assert(post.intersects(rim) and post.intersects(cap),"Every bollard sits in the coping and carries an attached cap")
+   var warehouse=arena.find_children("House","Node3D",true,false)[0].get_node("PlasterWall")
+   var foundation=warehouse.global_transform*warehouse.mesh.get_aabb()
+   assert(foundation.position.z>rim.end.z and is_equal_approx(foundation.position.y,center.y),"The visible warehouse stands fully on the shore")
+   assert(signf(warehouse.global_position.x-center.x)==(1.0 if context==near else -1.0))
+   var boats=arena.find_children("HarborHull*","MeshInstance3D",true,false)
+   assert(not boats.is_empty())
+   for boat in boats:
+    assert((boat.global_transform*boat.mesh.get_aabb()).end.z<sea.end.z)
+    verify_mooring(boat,water.position.y)
+   for mounted in [false,true]:
+    var shot=CombatCamera.frame_pair(center+Vector3.LEFT*1.6,center+Vector3.RIGHT*1.6,"wide",false,mounted)
+    camera.position=shot.anchor;camera.fov=shot.lens;camera.look_at(shot.focus)
+    for dimensions in [Vector2i(1024,640),Vector2i(1280,720),Vector2i(1440,900)]:
+     viewport.size=dimensions;await process_frame
+     var safe=Rect2(Vector2(20,20),Vector2(dimensions)-Vector2(40,174))
+     var wet=center+Vector3(0,Scenery.HARBOR_QUAY_LEVEL,-8)
+     assert(safe.has_point(camera.unproject_position(wet)) and rim.intersects_segment(camera.global_position,wet)==null,"The wide shot sees water above the coping")
+     assert(bollards.any(func(post):return safe.has_point(camera.unproject_position(post.global_position))))
+  arena.free()
+ viewport.free()
+ assert(game.rng.state==before)
+ print("PASS: Glass Harbor separates inland ground, a planted stone quay and timber piers, with twelve waterfront projections")
 
 func verify_towers():
  var masonry=preload("res://scripts/fortification.gd")

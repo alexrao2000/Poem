@@ -6,6 +6,8 @@ This checkpoint describes the current development branch and supersedes the earl
 
 ### Latest state
 
+Glass Harbor now has inland, quayside and timber pier combat scenery. The warehouse sits fully on the quay, and the boats sit beyond its wall. Twelve camera projections checked the water and bollards. Two actual mounted exchanges used stone and wood contacts with identical before and after saves and RNG. Nine focused suites, both exports, architecture and contact audio in both packs, and archive integrity passed. Rendered appearance and listening remain unreviewed.
+
 Both Glass Harbor boats now carry four mast stays and fitted deck cleats in the tactical map and close-up arenas. Each cleat meets the hull, and every stay reaches the tapered mast. Seven focused suites, both exports, architecture in both packs and archive integrity passed. Rendered appearance remains unreviewed.
 
 Flags, sails and gate standards now share cloth meshes by size and shape. Three meshes serve the 54 measured placements with identical vertex data and culling bounds and a private wind material for each piece. The cache holds up to twelve shapes. Six focused suites, both exports, architecture and exact mesh comparisons in both packs, and archive integrity passed.
