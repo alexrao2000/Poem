@@ -1,5 +1,7 @@
 # Poem development
 
+Static batching reads each shared source mesh once per build and uses Godot’s packed-array transforms for positions and normals. The first exact comparison covered 14,713 placements from 2,857 distinct source surfaces across the 12 maps and 12 arena fixtures. All 1,077 finished mesh batches matched byte for byte. [Godot 4.5 Transform3D documentation](https://docs.godotengine.org/en/4.5/classes/class_transform3d.html#class-transform3d-operator-mul-packedvector3array)
+
 Kingsroad’s close-up arena shows a canal when the fight is within two tiles of the tactical water. A pair of stone retaining walls separates the dry fighting lane from the far bank and its towers. Bridge fights use their timber deck.
 
 Greywood’s lantern road now has six warm paper fixtures among the trees. The rainy close-up arena uses five larger versions of the same timber, iron and brass geometry behind the fighting lane. Emissive paper gives the windows their warm color, and both fixture materials are statically batched.

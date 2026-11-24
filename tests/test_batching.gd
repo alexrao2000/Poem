@@ -44,10 +44,12 @@ func run():
  surface.set_normal(Vector3.ONE.normalized());surface.add_vertex(Vector3.ZERO);surface.add_vertex(Vector3.RIGHT);surface.add_vertex(Vector3.UP)
  var parent=Node3D.new();parent.position=Vector3(3,1,2);world.add_child(parent)
  var shape=surface.commit()
+ var original_attributes=var_to_bytes(shape.surface_get_arrays(0))
  for i in range(2):
   var mesh=MeshInstance3D.new();mesh.mesh=shape;mesh.material_override=shared;mesh.scale=Vector3(2,3,4);mesh.position.x=i;parent.add_child(mesh)
  var before=signature(world);var batch=Batch.new();var stats=batch.combine(world);var after=signature(world)
  assert(stats.sources==2 and stats.batches==1)
+ assert(var_to_bytes(shape.surface_get_arrays(0))==original_attributes,"Reusing a source surface leaves its template attributes intact")
  assert(before.triangles==after.triangles and before.vertices==after.vertices and before.sum.is_equal_approx(after.sum),"Batch preserves geometry and hierarchy transforms")
  var baked=world.get_children().filter(func(child):return child is MeshInstance3D)[0]
  var normals=baked.mesh.surface_get_arrays(0)[Mesh.ARRAY_NORMAL]

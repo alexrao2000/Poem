@@ -6,6 +6,8 @@ Development resumed on “go”. Continue in this chat until the user asks to st
 
 ### Latest state
 
+Static batching reuses source surfaces within each build and applies packed transforms to positions and normals. Two comparisons retained exact arrays for all 12 maps, 12 arenas, 1,077 batches and 511,538 submitted vertices. Across 72 paired headless samples each, batching time was 16.3% lower with the prototype and 15.2% lower with the exported script. Twelve focused suites, both exports, scenery and character rig checks in both packs, and archive integrity passed. See `build/review/static-batch-profile.json`.
+
 Kingsroad now frames the canal in 3D when the tactical engagement is near water. The two stone banks meet the measured water edges, and mapped towers sit securely on the far bank. Twelve projected mounted and unmounted shots see the water above the near coping. Dry fights keep their field and bridge fights keep their deck. Nine focused suites, both local exports, architecture in both packs and archive integrity passed. Rendered appearance remains unreviewed.
 
 Greywood now carries its lantern road from the tactical map into the rainy 3D arena. Six map fixtures sit beside the road, and five close-up fixtures use the same two shared meshes. The map batches their two materials into four static groups. Six unmounted and mounted wide-shot projections each kept at least two lantern windows clear of trees and the HUD. Eight focused suites, both local exports, architecture in both packs and archive integrity passed. Rendered appearance remains unreviewed.

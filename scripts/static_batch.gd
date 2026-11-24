@@ -4,35 +4,40 @@ const CHUNK_SIZE=8.0
 
 func combine(root: Node3D,spatial=true) -> Dictionary:
  var sources=[];collect(root,Transform3D.IDENTITY,sources)
- var groups={};var merged_sources=0;var vertices=0
+ var groups={};var surfaces={};var merged_sources=0;var vertices=0
  for source in sources:
   var node=source.node;var shape=node.mesh;var transform=source.transform
   if transform.basis.determinant()<=0 or shape.get_surface_count()!=1:continue
   if shape is ArrayMesh:
    if shape.get_blend_shape_count()>0 or shape.surface_get_primitive_type(0)!=Mesh.PRIMITIVE_TRIANGLES:continue
   elif not shape is PrimitiveMesh or shape is PointMesh:continue
-  var arrays=shape.surface_get_arrays(0).duplicate(true);var format=0
-  for i in range(arrays.size()):
-   if arrays[i]!=null and arrays[i].size()>0:format|=1<<i
+  # Reuse the source attributes for repeated meshes within this build.
+  if not surfaces.has(shape):
+   var attributes=shape.surface_get_arrays(0);var format=0
+   for i in range(attributes.size()):
+    if attributes[i]!=null and attributes[i].size()>0:format|=1<<i
+   surfaces[shape]={"attributes":attributes,"format":format}
+  var source_surface=surfaces[shape]
+  var arrays=source_surface.attributes.duplicate()
   var material=node.material_override if node.material_override!=null else node.get_active_material(0)
   if material==null:continue
   var chunk=Vector2i(floori(transform.origin.x/CHUNK_SIZE),floori(transform.origin.z/CHUNK_SIZE)) if spatial else Vector2i.ZERO
-  var key="%d:%d:%d:%d:%d:%d"%[material.get_instance_id(),format,chunk.x,chunk.y,node.cast_shadow,node.layers]
+  var key="%d:%d:%d:%d:%d:%d"%[material.get_instance_id(),source_surface.format,chunk.x,chunk.y,node.cast_shadow,node.layers]
   if not groups.has(key):
    var surface=SurfaceTool.new();surface.begin(Mesh.PRIMITIVE_TRIANGLES);surface.set_material(material)
    groups[key]={"surface":surface,"material":material,"shadow":node.cast_shadow,"layers":node.layers,"cull_margin":0.0}
   groups[key].cull_margin=maxf(groups[key].cull_margin,node.extra_cull_margin)
-  var points=arrays[Mesh.ARRAY_VERTEX]
-  for i in range(points.size()):points[i]=transform*points[i]
+  var points: PackedVector3Array=transform*arrays[Mesh.ARRAY_VERTEX]
   arrays[Mesh.ARRAY_VERTEX]=points;vertices+=points.size()
   # SurfaceTool.append_from applies the forward basis to normals. Bake the
   # inverse transpose explicitly so stretched foliage keeps correct lighting.
   if arrays[Mesh.ARRAY_NORMAL]!=null:
-   var normals=arrays[Mesh.ARRAY_NORMAL];var normal_basis=transform.basis.inverse().transposed()
-   for i in range(normals.size()):normals[i]=(normal_basis*normals[i]).normalized()
+   var normal_transform=Transform3D(transform.basis.inverse().transposed(),Vector3.ZERO)
+   var normals: PackedVector3Array=normal_transform*arrays[Mesh.ARRAY_NORMAL]
+   for i in range(normals.size()):normals[i]=normals[i].normalized()
    arrays[Mesh.ARRAY_NORMAL]=normals
   if arrays[Mesh.ARRAY_TANGENT]!=null:
-   var tangents=arrays[Mesh.ARRAY_TANGENT]
+   var tangents=arrays[Mesh.ARRAY_TANGENT].duplicate()
    for i in range(0,tangents.size(),4):
     var tangent=(transform.basis*Vector3(tangents[i],tangents[i+1],tangents[i+2])).normalized()
     tangents[i]=tangent.x;tangents[i+1]=tangent.y;tangents[i+2]=tangent.z
