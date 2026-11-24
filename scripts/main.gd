@@ -395,12 +395,24 @@ func refresh_pieces():
 	var previous=unit_nodes.duplicate()
 	for n in pieces.get_children():n.queue_free()
 	sprites.clear();unit_nodes.clear()
-	for u in game.units:
-		if (u.hp<=0 and not game.DeathDoor.downed(u)) or not u.get("carried_by","").is_empty():continue
-		var visual=MapUnit.new();visual.name=str(u.id).validate_node_name();visual.position=map_position(game.pos(u))
-		var passenger=game.DeathDoor.passenger(game,u)
-		var occupants=game.occupants(game.pos(u));var count=occupants.size() if occupants[0].id==u.id else 0
-		pieces.add_child(visual);visual.configure(map_catalog,u,map_facings.get(u.id,"south"),passenger.name if passenger!=null else "",count)
+	var visible_units=[]
+	var passenger_names={}
+	var tile_counts={}
+	for unit in game.units:
+		var carrier=unit.get("carried_by","")
+		if not carrier.is_empty():
+			if not passenger_names.has(carrier):passenger_names[carrier]=unit.name
+			continue
+		if unit.hp<=0 and not game.DeathDoor.downed(unit):continue
+		visible_units.append(unit)
+		var tile=game.pos(unit)
+		tile_counts[tile]=tile_counts.get(tile,0)+1
+	var first_occupants=game.occupied_tiles()
+	for u in visible_units:
+		var tile=game.pos(u)
+		var visual=MapUnit.new();visual.name=str(u.id).validate_node_name();visual.position=map_position(tile)
+		var count=tile_counts[tile] if first_occupants[tile].id==u.id else 0
+		pieces.add_child(visual);visual.configure(map_catalog,u,map_facings.get(u.id,"south"),passenger_names.get(u.id,""),count)
 		var old_visual=previous.get(u.id)
 		if is_instance_valid(old_visual):visual.retain_idle_phase(old_visual)
 		visual.selected=selected!=null and selected.id==u.id

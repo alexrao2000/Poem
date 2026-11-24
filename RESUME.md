@@ -6,13 +6,15 @@ This checkpoint describes the current development branch and supersedes the earl
 
 ### Latest state
 
+Map sprite refresh indexes shared-tile badges and carried allies before rebuilding the figures. All 389 position, texture and badge records match. Across the twelve campaign maps the summed headless refresh medians fell from 17.22 ms to 16.46–16.59 ms. The 169-unit synthetic board fell from 27.76 ms to 18.16–18.24 ms. Eight focused suites, four packed checks, 72 matched chapter outcomes and both ZIP checks passed. See `build/review/tactical-piece-index-profile.json`.
+
 Movement, threat previews and reverse searches use a per-query occupancy lookup. All 5,631 ordered results match in twelve campaign maps and two synthetic stress boards. The summed headless movement medians across the campaign fell from 30.99 ms to 16.46–16.73 ms. On the synthetic 169-unit board, movement fell from 756.68 ms to 57.01–59.59 ms. Ten focused suites, four packed checks, 72 matched chapter outcomes and both ZIP checks passed. See `build/review/tactical-query-profile.json`.
 
 The [local company roster](build/review/company-roster.html) shows the tactical sprites and revised base models of all 24 recruits from `0d6558e`. Its six isolated asset sheets use simplified software lighting.
 
 Weather particles retain fixed color and transform components between updates. The 336 submitted buffers match byte for byte across the earlier build and both exports. A headless sample of 24 clouds over 240 updates fell from 182.07 ms to 88.49–89.44 ms. Eight focused suites, four packed checks, 72 matched chapter outcomes and both ZIP checks passed. See `build/review/particle-buffer-profile.json`.
 
-The current portrait campaign replay uses the exact Web pack from `0d6558e` in a 720 × 960 logical viewport. See `build/review/portrait-cinematics-state.json` for its recorded progress. A separate frozen full-suite run at `bfb2f22` records its progress in `build/review/current-package-regression/full-current-state.json`. The Cinderford asset study shows the four opening tactical sprites and revised models from the same Web pack as the portrait replay. See `build/review/cinderford-sprites-and-models.png` for the isolated software projection.
+The portrait campaign replay reached the ending at `0d6558e` in a 720 × 960 logical viewport. Both fighters’ face and ground anchors and the playback controls fit every one of the 529 arena entrances. It matched all 998 earlier saves through 15 battles and 470 actions, including Lyra’s retry, both planned retreats and all three memorials. See `build/review/portrait-campaign-replay.html`. A separate frozen full-suite run at `bfb2f22` records its progress in `build/review/current-package-regression/full-current-state.json`.
 
 Each moving sword, axe or lance trail reuses one private mesh. All 684 sampled surfaces preserve their geometry, normals, paint and bounds. The headless sample of 72 sweeps fell from 62.20 ms to 48.85–49.00 ms across both exports. Eight focused suites, four packed checks, 72 matched chapter outcomes and both ZIP checks passed. See `build/review/swept-weapon-mesh-profile.json`.
 
