@@ -66,11 +66,16 @@ func run():
   assert(not app.busy and observed.size()==expected_count,"Every expired patient gets one map departure: "+kind)
   assert(cards.size()==(0 if skipped else expected_count),"Casualty captions: "+str([kind,cards,expected_count,skipped]))
   if kind=="permanent":assert(cards["Oren · LAST WORDS"]=="Legacy credit +1 · Faye joins early")
-  elif kind=="recoverable":assert(cards["Oren · WITHDRAWING"]=="Allies gain +2 attack · Recovery on redeployment")
+  elif kind=="recoverable":
+   assert(cards["Oren · WITHDRAWING"]=="Allies gain +2 attack · Recovery on redeployment")
+   assert(app.game.trials.events==["Oren bought an opening. Surviving allies gain +2 attack through the next player turn. They will start deployments during recovery with reduced health and one tonic."])
   elif kind=="multiple":
    assert(cards["Oren · LAST WORDS"]=="Legacy credit +1 · Faye joins early · Allies gain +2 attack")
    assert(cards["Ivo · LAST WORDS"]=="Legacy credit +1 · Maelin joins","Ivo's card names his replacement and omits the attack boost already announced")
    assert(app.game.trials.volunteers==["faye","maelin"],"Both loss rewards are recorded once")
+   var openings=app.game.trials.events.filter(func(event):return "+2 attack" in event)
+   assert(openings==["Oren bought an opening. Surviving allies gain +2 attack through the next player turn."])
+   assert(app.game.trials.events.all(func(event):return "recovery" not in event),"The permanent losses do not advertise recovery")
   assert(app.game.rng.state==rng and not app.stage.visible)
   if not will_fall:
    assert(app.game.DeathDoor.downed(patient) and patient.bleed_turns==1 and not app.game.roster.filter(func(u):return u.id==patient.id)[0].fallen)
@@ -80,6 +85,24 @@ func run():
    assert(app.game.restore_save(interrupted)=="battle");await app.resume_saved_battle()
    assert(canonical(app.game.save_data("battle"))==outcome,"Interrupted departure resumes without repeated countdown or casualty")
   count+=1
+ verify_shared_recovery()
  await Shutdown.dispose(app);viewport.queue_free();await process_frame
  print("PASS: %d actual phase endings across three viewports, exact credit and sacrifice feedback, permanent/recoverable/lord/multiple losses, carried and next-phase exclusions, durable-before-fade state, keyboard Skip, interrupted reload and failed-save retry"%count)
  quit()
+
+func verify_shared_recovery():
+ var game=Rules.new();game.new_campaign(false);game.death_door=true
+ game.trials.flags.sacrifice_cost=true
+ game.start_battle()
+ var allies=game.living("player")
+ for id in ["oren","ivo"]:down(game,allies.filter(func(unit):return unit.id==id)[0])
+ assert(game.trials.events.is_empty(),"Downed patients still have a chance to be rescued")
+ game.begin_enemy_phase()
+ assert(game.trials.events.size()==2)
+ assert(game.trials.events[0].begins_with("Oren bought an opening."))
+ assert(game.trials.events[1]=="Ivo will start deployments during recovery with reduced health and one tonic.")
+ assert(game.commit_casualties().is_empty() and game.trials.events.size()==2,"A repeated checkpoint does not repeat a dispatch")
+ for unit in game.living("player"):assert(unit.resolve_until==game.turn+1)
+ var restored=Rules.new()
+ assert(restored.restore_save(game.save_data("battle"))=="battle" and restored.trials.events==game.trials.events)
+ print("PASS: same-phase recoverable losses carry distinct recovery notices and one attack boost through save and reload")

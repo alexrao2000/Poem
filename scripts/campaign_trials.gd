@@ -99,7 +99,11 @@ func record_losses(game) -> Dictionary:
     if int(ally.get("resolve_until",-1))<game.turn+1:opening=true
     ally.resolve_until=game.turn+1
    if opening or not game.permadeath:consequences[unit.id]={"opening":opening,"recovering":not game.permadeath}
-   log_event(unit.name+" buys an opening: surviving allies gain +2 attack through the next player turn. The fallen ally needs a chapter to recover fully.")
+   var dispatch=unit.name+" bought an opening. Surviving allies gain +2 attack through the next player turn." if opening else ""
+   if not game.permadeath:
+    var subject=" They" if opening else unit.name
+    dispatch+=subject+" will start deployments during recovery with reduced health and one tonic."
+   if not dispatch.is_empty():log_event(dispatch)
   if not flags.death_legacies or not game.permadeath or unit.id=="lyra" or losses.has(unit.id):continue
   losses[unit.id]=game.chapter;credits+=1
   var outcome=consequences.get(unit.id,{})
