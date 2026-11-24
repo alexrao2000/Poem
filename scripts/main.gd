@@ -2829,7 +2829,7 @@ func move_map_cursor(direction: Vector2i):
 	cursor_tile=Vector2i(clampi(cursor_tile.x,0,size.x-1),clampi(cursor_tile.y,0,size.y-1))
 	if cursor_tile!=previous:interface_audio.cue("move")
 	map_navigation.keep_visible(map_position(cursor_tile),terrain_card.get_global_rect() if is_instance_valid(terrain_card) else Rect2())
-	highlight();preview_route(cursor_tile)
+	draw_map_cursor();preview_route(cursor_tile)
 
 func cycle_ready_ally(direction: int):
 	if screen!="battle" or busy or game.phase!="player":return
@@ -2852,7 +2852,12 @@ func activate_map_cursor():
 	highlight()
 
 func draw_map_cursor():
-	preload("res://scripts/tactical_cursor.gd").new().build(markers,map_position(cursor_tile))
+	var cursor=markers.get_node_or_null("MapCursor")
+	var point=map_position(cursor_tile)
+	if cursor==null:
+		preload("res://scripts/tactical_cursor.gd").new().build(markers,point)
+	else:
+		cursor.position=point
 
 func critical_cutin(unit: Dictionary,from_right=null):
 	if skip_combat:return

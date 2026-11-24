@@ -1,5 +1,7 @@
 # Poem development
 
+The keyboard cursor moves its existing mesh while browsing tiles. The movement and enemy threat layers stay in place, and the route and terrain card follow the destination.
+
 The movement search reads a tile’s cost and occupant once per search and uses a forward queue index. The cache lives within one query, so the next search sees any move, rescue or terrain change.
 
 The battle forecast marks the unit that would fall if ordinary hits land in the displayed strike order. The warning follows valid counters and follow-ups and stops at the first fall.

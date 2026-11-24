@@ -23,6 +23,26 @@ func run():
  app.cycle_ready_ally(1);assert(app.selected.id=="oren")
  assert(app.unit_nodes==figures,"Switching between ready allies keeps the existing figures")
  app.selected.acted=true;app.cycle_ready_ally(1);assert(app.selected.id=="lyra","Cycle excludes allies that have acted")
+ app.toggle_danger()
+ var cursor=app.markers.get_node("MapCursor")
+ var range_layer=app.markers.get_node("MovementRange")
+ var danger_layer=app.markers.get_node("DangerRange")
+ var range_mesh=range_layer.mesh;var start=app.cursor_tile;var step=Vector2i.ZERO
+ var reachable=app.game.reachable(app.selected)
+ for direction in [Vector2i.LEFT,Vector2i.RIGHT,Vector2i.UP,Vector2i.DOWN]:
+  if reachable.has(start+direction) and app.game.at(start+direction)==null:step=direction;break
+ assert(step!=Vector2i.ZERO)
+ cursor.clock=.7
+ var before_cursor=app.game.save_data("battle").duplicate(true)
+ app.move_map_cursor(step)
+ assert(app.markers.get_node("MapCursor")==cursor and is_equal_approx(cursor.clock,.7),"Moving the cursor retains its animation clock")
+ assert(cursor.position==app.map_position(start+step) and app.route_preview.get_child_count()==1 and app.terrain_card.tile==start+step)
+ assert(app.markers.get_node("MovementRange")==range_layer and range_layer.mesh==range_mesh,"Selection keeps its existing range overlay as the cursor moves")
+ assert(app.markers.get_node("DangerRange")==danger_layer,"Enemy threat ink is unchanged while browsing destinations")
+ app.move_map_cursor(-step)
+ assert(app.route_preview.get_child_count()==0 and cursor.position==app.map_position(start))
+ assert(app.game.save_data("battle")==before_cursor,"Moving the map cursor leaves the campaign untouched")
+ app.toggle_danger()
  app.move_map_cursor(Vector2i(-100,-100));assert(app.cursor_tile==Vector2i.ZERO,"Cursor clamps to board")
  var before=app.cursor_tile;app.busy=true;app.move_map_cursor(Vector2i.RIGHT);assert(app.cursor_tile==before,"Busy phases ignore cursor movement")
  app.busy=false
@@ -113,5 +133,5 @@ func run():
  for player in app.sfx_players:player.stop()
  app.music.stop();await create_timer(.15).timeout
  await Shutdown.dispose(app);await process_frame
- print("PASS: keyboard cursor bounds, ready-unit cycling, movement undo, wait, forecast confirmation and key routing")
+ print("PASS: keyboard cursor bounds, retained cursor and range meshes, ready-unit cycling, movement undo, wait, forecast confirmation and key routing")
  quit()
