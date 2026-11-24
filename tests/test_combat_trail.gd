@@ -36,8 +36,12 @@ func run():
    assert(matched and absf(far.z-minimum)<.0001,"Swept tip is an actual furthest blade/head vertex, including each equipped width")
    var trail=Trail.new();stage.add_child(trail);assert(trail.follow(actor,look.kind));trail.set_process(false)
    var motion=actor.pose("strike",1)
+   var sweep_mesh: ArrayMesh
    for step in range(16):
     motion.custom_step(1.0/16);actor.apply_constraints();trail.sample()
+    if trail.stroke.mesh!=null:
+     if sweep_mesh==null:sweep_mesh=trail.stroke.mesh
+     assert(trail.stroke.mesh==sweep_mesh and sweep_mesh.get_surface_count()==1,"Every new pose replaces the surface inside the same private sweep mesh")
     var edge=actor.weapon_trail_points()
     if look.kind=="lance" or item=="estoc":
      var tip=actor.bones.Weapon.to_global(actor.trail_edge[1]);var width=.032 if item=="estoc" else .05
@@ -70,5 +74,5 @@ func run():
   assert(app.game.save_data("battle")==saved and app.game.rng.state==rng,"Weapon trails never change resolved combat")
  assert(observed.size()==2 and observed.all(func(reference):return reference.get_ref()==null),"Live slash/thrust cinematics own and release one swept melee trail each")
  await Shutdown.dispose(app);await process_frame
- print("PASS: ",cases," equipped-weapon/facing sweeps, actual transformed endpoints, narrow estoc/lance tip ribbons, bounded nondegenerate ribbons, stationary suppression, fades, fallback and real cinematic lifecycle")
+ print("PASS: ",cases," equipped-weapon/facing sweeps, one private mesh per ribbon, actual transformed endpoints, narrow estoc/lance tip ribbons, bounded nondegenerate ribbons, stationary suppression, fades, fallback and real cinematic lifecycle")
  quit()

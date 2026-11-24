@@ -6,6 +6,8 @@ This checkpoint describes the current development branch and supersedes the earl
 
 ### Latest state
 
+Each moving sword, axe or lance trail reuses one private mesh. All 684 sampled surfaces preserve their geometry, normals, paint and bounds. The headless sample of 72 sweeps fell from 62.20 ms to 48.85–49.00 ms across both exports. Eight focused suites, four packed checks, 72 matched chapter outcomes and both ZIP checks passed. See `build/review/swept-weapon-mesh-profile.json`.
+
 The tactical figures now resume the same idle pose after close-up combat. In the previous build a bystander returned at frame zero. Both combatants and a bystander now retain the exact frame, texture and animation clock in full and skipped fights. Eight focused suites, four packed checks, 72 matched chapter outcomes and both ZIP checks passed. See `build/review/tactical-idle-continuity.json`.
 
 The tactical camera now refits Home when the viewport changes during a fight. Four actual encounters exercised a resize in the arena, an opening Skip, a resize during the map reveal and a manual view. Home matched the fitted board at the new size and retained the saved lens. A deliberate pan and zoom returned exactly. Eight focused suites, four packed checks, 72 matched chapter outcomes and both ZIP checks passed.

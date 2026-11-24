@@ -58,18 +58,35 @@ func sample():
  samples.append(edge)
  if samples.size()>12:samples.pop_front()
  if samples.size()<2:return
- var surface=SurfaceTool.new();surface.begin(Mesh.PRIMITIVE_TRIANGLES);var count=0
+ var vertices=PackedVector3Array()
+ var normals=PackedVector3Array()
+ var colors=PackedColorArray()
  for i in range(1,samples.size()):
   var points4=[samples[i-1][0],samples[i-1][1],samples[i][1],samples[i][0]]
   var strength=float(i)/float(samples.size()-1)
-  var colors=[Color(1,1,1,0),Color(1,1,1,strength*.8),Color(1,1,1,strength),Color(1,1,1,0)]
+  var colors4=[Color(1,1,1,0),Color(1,1,1,strength*.8),Color(1,1,1,strength),Color(1,1,1,0)]
   for corners in [[0,1,2],[0,2,3]]:
    var a=points4[corners[0]];var b=points4[corners[1]];var c=points4[corners[2]]
    var normal=(c-a).cross(b-a)
    if normal.length_squared()<.000000000001:continue
-   for index in corners:surface.set_normal(normal.normalized());surface.set_color(colors[index]);surface.add_vertex(points4[index])
-   count+=1
- if count>0:stroke.mesh=surface.commit();stroke.show()
+   var unit_normal=normal.normalized()
+   for index in corners:
+    vertices.append(points4[index])
+    normals.append(unit_normal)
+    colors.append(colors4[index])
+ if not vertices.is_empty():
+  var arrays=[]
+  arrays.resize(Mesh.ARRAY_MAX)
+  arrays[Mesh.ARRAY_VERTEX]=vertices
+  arrays[Mesh.ARRAY_NORMAL]=normals
+  arrays[Mesh.ARRAY_COLOR]=colors
+  # The moving ribbon has one mesh and its topology follows the visible samples.
+  var mesh=stroke.mesh as ArrayMesh
+  if mesh==null:mesh=ArrayMesh.new()
+  else:mesh.clear_surfaces()
+  mesh.add_surface_from_arrays(Mesh.PRIMITIVE_TRIANGLES,arrays)
+  if stroke.mesh==null:stroke.mesh=mesh
+  stroke.show()
 
 func finish():
  if not sampling:return
