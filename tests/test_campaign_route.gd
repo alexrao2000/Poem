@@ -84,6 +84,22 @@ func run():
  await process_frame;await process_frame
  assert(route.selected==11 and route.markers[11].size.x==36,"Live expansion retains the selected briefing")
  assert(app.game.save_data("camp")==completed_state,"Navigation never changes the completed campaign")
+ app.game.completed=false;app.game.chapter=5
+ app.game.trials.configure_section_starts([0,3,7],app.game.content.chapters.size())
+ app.show_campaign_route();await process_frame;await process_frame
+ route=app.ui.find_child("CampaignRoute",true,false)
+ assert(route.retreat_chapter==3 and "Current retreat point" in route.markers[3].tooltip_text)
+ assert(not "start" in route.markers[4].tooltip_text and route.markers[7].tooltip_text=="Unreached destination")
+ assert("Chapter 04" in app.ui.find_child("RouteLegend",true,false).text)
+ assert(app.ui.find_child("RouteSection",true,false).text=="SECTION 2 · CHAPTERS 04–07")
+ route.select_chapter(2)
+ assert(app.ui.find_child("RouteSection",true,false).text=="SECTION 1 · CHAPTERS 01–03")
+ app.show_camp();await process_frame
+ assert(app.ui.find_children("*","Label",true,false).any(func(label):return label.text=="Section 2 · Rally point Chapter 04"))
+ app.debug_session.begin(app.game,"camp")
+ assert(app.debug_session.report(app.game,"camp").section==2)
+ app.debug_session.end(app.game)
  await Shutdown.dispose(app);await process_frame
  print("PASS: ",count," campaign route layouts, all twelve chapter markers selectable at 720, live focus and reflow, locked briefing protection, read-only campaign state and Escape return")
+ print("PASS: unequal section ranges and reached rally points agree in the route, war council and Debug report")
  quit()

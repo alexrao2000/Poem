@@ -6,6 +6,10 @@ This checkpoint describes the current development branch and supersedes the earl
 
 ### Latest state
 
+Campaign data now defines the chapter indices of section starts. The same boundaries drive rally points, relief scenes, memorials, checkpoint validation and the route, War Council and Debug displays. An uneven-section fixture tested a lord retry, relief, an exact save round trip and named losses. Eight focused suites, 72 matched chapter outcomes, packed trial and route checks, an exact older ending save in both packs and both ZIP checks passed.
+
+The clean `92d4558` checkout passed all 383 registered engine suites and four offline checks. All test sources and logs match their recorded digests. The terrain generator used installed Pillow and the score check used the verified local sample cache. The recorded dependency errors and passing reruns are in `build/review/full-current-state.json`.
+
 Deployment banners use each battlefield’s horizon tint. Seventy-two layouts kept every heading readable between 720 and 1440 logical pixels. The lowest measured text contrast was 4.993 over a bright field. A real Starfall deployment, eight focused suites, 72 matched chapter outcomes, packed chapter and phase checks and both ZIP checks passed. Windscar’s new Debug code verifies both beacon flames and the crosswind through a full revised fight in both packs. The guide now has a checkpoint for every battlefield. See `build/review/playtest/README.md`. Rendered gameplay remains unreviewed.
 
 The tactical chapter and phase plates leave a 40-pixel gap at 720 logical pixels. Debug and save failures share a second line, and the phase plate keeps its 22-pixel right inset. Seventy-two chapter layouts and 72 Debug status layouts passed. Eight focused suites, 72 matched chapter outcomes, packed objectives and Debug checks and both ZIP checks passed. Rendered gameplay remains unreviewed.

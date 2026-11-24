@@ -122,6 +122,45 @@ func rules():
  assert(enemy.hp==13 and enemy.held_tonics==0 and enemy.acted,"Enemies actually spend remaining held tonics after reset preparation")
  for key in ["held_tonics","reset_supplies_spent","resolve_until","raider","recovering"]:
   var malformed=casual.save_data("battle").duplicate(true);malformed.units[0][key]="bad";assert(not casual.valid_save(malformed))
+func verify_authored_section_lengths():
+ var original=Rules.new()
+ assert(original.trials.section_starts==PackedInt32Array([0,4,8]),"The shipped campaign has the original three rally points")
+ var campaign=Rules.new()
+ campaign.new_campaign(true)
+ campaign.action_saves=true
+ var starts=[0,3,7]
+ campaign.trials.configure_section_starts(starts,campaign.content.chapters.size())
+ for id in ["relief_3","memorial_3","retreat_3"]:
+  campaign.trials.scenes[id]=[{"speaker":"lyra","text":"The company regroups."}]
+ campaign.trials.flags.section_restarts=true
+ campaign.trials.flags.reset_pressure=true
+ campaign.trials.flags.death_legacies=true
+ campaign.chapter=2
+ campaign.start_battle()
+ victory(campaign)
+ assert(campaign.chapter==3 and "relief_3" in campaign.trials.earned_scenes)
+ assert(campaign.trials.section_end(2,12)==2 and campaign.trials.section_end(3,12)==6 and campaign.trials.section_end(11,12)==11)
+ campaign.start_battle()
+ assert(campaign.trials.checkpoint.chapter==3)
+ campaign.chapter=5
+ campaign.start_battle()
+ fall(campaign,"oren")
+ fall(campaign,"lyra")
+ assert(campaign.result()=="defeat" and campaign.trials.restart_preview(campaign).chapter==3)
+ assert(campaign.retry_battle() and campaign.chapter==3 and campaign.trials.pressure==1)
+ assert("oren" in campaign.lost_ids() and campaign.trials.credits==1)
+ assert("memorial_3" in campaign.trials.earned_scenes and "retreat_3" in campaign.trials.earned_scenes)
+ assert(campaign.trials.scene_lines(campaign,"memorial_3").any(func(line):return "Oren" in line.text))
+ assert(campaign.trials.events.any(func(line):return "start of section 2" in line))
+ var copied=Rules.new()
+ copied.trials.configure_section_starts(starts,copied.content.chapters.size())
+ copied.trials.scenes=campaign.trials.scenes.duplicate(true)
+ assert(copied.import_code(campaign.export_code("camp"))=="camp")
+ assert(JSON.parse_string(JSON.stringify(copied.save_data("camp")))==JSON.parse_string(JSON.stringify(campaign.save_data("camp"))))
+ var invalid=campaign.save_data("camp").duplicate(true);invalid.trials.checkpoint.chapter=4
+ assert(not copied.valid_save(invalid),"Only authored rally chapters can be restored as section checkpoints")
+ print("PASS: uneven campaign sections drive actual relief, a lord retry, memorials and exact saved rally points")
+
 func inspect(app):
  for dimensions in [Vector2(1024,640),Vector2(1280,720),Vector2(1440,900)]:
   app.ui.set_anchors_and_offsets_preset(Control.PRESET_TOP_LEFT);app.ui.size=dimensions
@@ -242,6 +281,7 @@ func run():
  assert(not redundant.trials.buy(redundant,"longbow") and redundant.save_data("battle")==before_stock,"Normally unlocked equipment cannot consume legacy credits without granting new access")
  legacy_stock()
  rules()
+ verify_authored_section_lengths()
  root.size=Vector2i(1440,900)
  var app=load("res://main.tscn").instantiate();app.settings_path="";app.save_path="/private/tmp/poem-trials-ui.json"
  root.add_child(app);await process_frame

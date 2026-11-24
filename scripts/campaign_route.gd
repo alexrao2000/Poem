@@ -10,19 +10,22 @@ var current=0
 var selected=0
 var complete=false
 var section_starts=false
+var rally_points=PackedInt32Array()
+var retreat_chapter=0
 var clock=0.0
 var map_rect=Rect2()
 var seal_scale=1.0
 
-func configure(chapters: Array,index: int,finished=false,show_sections=false):
- current=clampi(index,0,POINTS.size()-1);selected=current;complete=finished;section_starts=show_sections
+func configure(chapters: Array,index: int,finished=false,rallies=PackedInt32Array(),retreat=0):
+ current=clampi(index,0,POINTS.size()-1);selected=current;complete=finished
+ rally_points=rallies;retreat_chapter=retreat;section_starts=not rally_points.is_empty()
  mouse_filter=Control.MOUSE_FILTER_IGNORE
  size_flags_horizontal=Control.SIZE_EXPAND_FILL;size_flags_vertical=Control.SIZE_EXPAND_FILL
  custom_minimum_size=Vector2(350,240)
  for i in range(POINTS.size()):
   var marker=Button.new();marker.name="Chapter"+str(i+1);marker.text=str(i+1)
   marker.tooltip_text=chapters[i].place+" · "+chapters[i].title if i<=current or complete else "Unreached destination"
-  if section_starts and i%4==0 and (i<=current or complete):marker.tooltip_text+="\nSection %d start%s"%[int(i/4)+1," · Current retreat point" if i==int(current/4)*4 and not complete else ""]
+  if rally_points.has(i) and (i<=current or complete):marker.tooltip_text+="\nSection %d start%s"%[rally_points.find(i)+1," · Current retreat point" if i==retreat_chapter and not complete else ""]
   marker.disabled=i>current and not complete;marker.mouse_default_cursor_shape=Control.CURSOR_POINTING_HAND
   for state in ["normal","hover","pressed","disabled"]:marker.add_theme_stylebox_override(state,StyleBoxEmpty.new())
   var focus=StyleBoxFlat.new();focus.bg_color=Color(0,0,0,0);focus.set_border_width_all(2);focus.border_color=Color("fff0b0");focus.set_corner_radius_all(18)
@@ -79,9 +82,9 @@ func _draw():
  for i in range(markers.size()):
   draw_set_transform(point(i),0,Vector2.ONE*seal_scale)
   var reached=i<=current or complete
-  if section_starts and i%4==0 and reached:
+  if rally_points.has(i) and reached:
    var corners=PackedVector2Array([Vector2(0,-20),Vector2(20,0),Vector2(0,20),Vector2(-20,0),Vector2(0,-20)])
-   draw_polyline(corners,Color("f5dc94") if i==int(current/4)*4 and not complete else Color("a88b55"),2,true)
+   draw_polyline(corners,Color("f5dc94") if i==retreat_chapter and not complete else Color("a88b55"),2,true)
   draw_circle(Vector2(0,2),15,Color(0.18,.13,.08,.35))
   draw_circle(Vector2.ZERO,14,Color("a8864b") if reached else Color("99927e"))
   draw_circle(Vector2.ZERO,11.5,Color("354e60") if i==current else Color("66523b") if reached else Color("746e60"))

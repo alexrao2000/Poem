@@ -39,6 +39,7 @@ var story_seen: Array = []
 
 func _init():
 	content = JSON.parse_string(FileAccess.get_file_as_string("res://data/campaign.json"))
+	trials.configure_section_starts(content.section_starts,content.chapters.size())
 	equipment = JSON.parse_string(FileAccess.get_file_as_string("res://data/equipment.json"))
 	promotions = JSON.parse_string(FileAccess.get_file_as_string("res://data/promotions.json"))
 	rng.seed = 472019

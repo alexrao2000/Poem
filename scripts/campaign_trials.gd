@@ -18,6 +18,16 @@ var purchases: Array=[]
 var credits=0
 var events: Array=[]
 var checkpoint: Dictionary={}
+var section_starts=PackedInt32Array([0])
+
+func configure_section_starts(starts: Array,chapter_count: int):
+ var configured=PackedInt32Array()
+ for start in starts:
+  assert(integer(start,0,chapter_count-1),"Each section starts at a chapter index in the campaign")
+  assert(configured.is_empty() or start>configured[-1],"Section starts must be in chapter order")
+  configured.append(int(start))
+ assert(not configured.is_empty() and configured[0]==0,"The opening chapter starts the first section")
+ section_starts=configured
 
 func reset():
  flags=FLAGS.duplicate();pressure=0;losses.clear();injuries.clear();volunteers.clear();purchases.clear();credits=0;events.clear();checkpoint.clear();earned_scenes.clear();read_scenes.clear()
@@ -52,7 +62,14 @@ func scene_lines(game,id: String) -> Array:
  return lines
 
 func section_start(chapter: int) -> int:
- return int(chapter/4)*4
+ return section_starts[section_index(chapter)]
+
+func section_index(chapter: int) -> int:
+ return maxi(0,section_starts.bsearch(chapter,false)-1)
+
+func section_end(chapter: int,chapter_count: int) -> int:
+ var next=section_index(chapter)+1
+ return section_starts[next]-1 if next<section_starts.size() else chapter_count-1
 
 func log_event(message: String):
  events.append(message)
@@ -154,14 +171,14 @@ func restart(game) -> bool:
     if recruit.id==casualty.id:recruit.fallen=true;recruit.fallen_chapter=casualty.fallen_chapter;recruit.hp=0
   game.deployed=game.available().slice(0,6).map(func(unit):return unit.id)
   queue_scene("retreat_"+str(game.chapter))
-  log_event("The company withdraws to the start of section %d. The fallen remain lost; enemy preparations and legacy supplies remain."%(int(game.chapter/4)+1))
+  log_event("The company withdraws to the start of section %d. The fallen remain lost; enemy preparations and legacy supplies remain."%(section_index(game.chapter)+1))
  else:
   if game.permadeath:game.supports.state=game.battle_supports.duplicate(true)
  game.units.clear();game.turn=1;game.phase="player"
  return true
 
 func arrive(game):
- if not flags.section_restarts or not game.permadeath or game.chapter%4!=0 or game.completed:return
+ if not flags.section_restarts or not game.permadeath or not section_starts.has(game.chapter) or game.completed:return
  queue_scene("relief_"+str(game.chapter))
  var names=[]
  for unit in game.roster:
@@ -236,7 +253,7 @@ func valid(game,data) -> bool:
  if not data.checkpoint is Dictionary:return false
  if not data.checkpoint.is_empty():
   if data.checkpoint.has("trials") or not game.valid_save(data.checkpoint):return false
-  if data.checkpoint.stage!="camp" or not data.checkpoint.units.is_empty() or int(data.checkpoint.chapter)%4!=0:return false
+  if data.checkpoint.stage!="camp" or not data.checkpoint.units.is_empty() or not section_starts.has(int(data.checkpoint.chapter)):return false
  return true
 
 func integer(value,minimum: int,maximum: int) -> bool:
