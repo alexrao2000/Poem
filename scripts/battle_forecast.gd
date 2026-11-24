@@ -1,10 +1,12 @@
 extends Control
 # The forecast compares both units over the battlefield. Values come directly
 # from Rules; the card does not resolve hits, predict RNG, or own confirmation.
+# The fall warning assumes ordinary hits land in the displayed strike order.
 const MatchupMarker=preload("res://scripts/weapon_matchup.gd")
 const Icons=preload("res://scripts/weapon_icons.gd")
 const HUD=preload("res://scripts/combat_hud.gd")
 const FONT=preload("res://assets/fonts/CormorantGaramond.ttf")
+const FALL_LABEL_WIDTH=134.0
 var records=[]
 var strike_order: OrderStrip
 var target_anchor: Callable
@@ -68,6 +70,13 @@ class OrderStrip extends Control:
    if i<planned.size()-1:
     var arrow=text_node("→",Color("685b43"));arrow.horizontal_alignment=HORIZONTAL_ALIGNMENT_CENTER;arrows.append(arrow)
   resized.connect(arrange);arrange()
+ func ordinary_hit_fall(a: Dictionary,b: Dictionary,attack: Dictionary,counter: Dictionary) -> String:
+  var hp={a.id:int(a.hp),b.id:int(b.hp)}
+  for actor in order:
+   var target=b.id if actor==a.id else a.id
+   hp[target]-=int(attack.damage if actor==a.id else counter.damage)
+   if hp[target]<=0:return target
+  return ""
  func arrange():
   if caption==null:return
   caption.position=Vector2(9,3);caption.size=Vector2(50,26)
@@ -129,9 +138,16 @@ func configure(parent: Control,rules,a: Dictionary,b: Dictionary,faces: Array):
   repeat.add_theme_stylebox_override("panel",repeat_style);card.add_child(repeat)
   var multiplier=label(repeat,"×2",14,Color("f5f3d8"));multiplier.horizontal_alignment=HORIZONTAL_ALIGNMENT_CENTER
   stats[0].repeat=repeat
-  records.append({"unit":unit.id,"card":card,"name":heading,"weapon":weapon,"icon":icon,"matchup":matchup,"portrait":portrait,"hp":hp,"caption":caption,"meter":meter,"note":note,"stats":stats})
+  records.append({"unit":unit.id,"card":card,"name":heading,"weapon":weapon,"icon":icon,"matchup":matchup,"portrait":portrait,"hp":hp,"caption":caption,"meter":meter,"note":note,"fall":null,"stats":stats})
  strike_order=OrderStrip.new();add_child(strike_order)
  strike_order.configure(a,b,attack,counter);strike_order.visible=rules.can_attack(a,b)
+ if strike_order.visible:
+  var fallen=strike_order.ordinary_hit_fall(a,b,attack,counter)
+  for record in records:
+   if record.unit==fallen:
+    record.fall=label(record.card,"Falls if hits land",14,Color("8b3a40"))
+    record.fall.name="FallForecast"
+    record.fall.horizontal_alignment=HORIZONTAL_ALIGNMENT_RIGHT
  resized.connect(arrange);arrange()
 
 func label(parent: Control,text: String,font_size: int,color=Color("303c48")) -> Label:
@@ -156,6 +172,10 @@ func arrange():
   r.hp.position=Vector2(48,74);r.hp.size=Vector2(width-62,38)
   r.meter.position=Vector2(14,117);r.meter.size=Vector2(width-28,10)
   r.note.position=Vector2(14,132);r.note.size=Vector2(width-28,25)
+  if r.fall!=null:
+   r.note.size.x-=FALL_LABEL_WIDTH+8
+   r.fall.position=Vector2(width-14-FALL_LABEL_WIDTH,132)
+   r.fall.size=Vector2(FALL_LABEL_WIDTH,25)
   for j in range(3):
    var stat=r.stats[j];var column=(width-28)/3
    stat.title.position=Vector2(14+j*column,164);stat.title.size=Vector2(column,18)

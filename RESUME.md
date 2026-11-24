@@ -6,6 +6,8 @@ This checkpoint describes the current development branch and supersedes the earl
 
 ### Latest state
 
+The paired forecast now marks the first unit that would fall if ordinary hits land in the shown order. Twenty-four layouts checked counters, follow-ups, attacks without a counter, critical-only outcomes and attacks out of range. Forecasting leaves the campaign and RNG untouched. Seven focused suites, both exports, forecast and controls in both packs, and archive integrity passed. Rendered gameplay remains unreviewed.
+
 Greywood’s pitched canvas refuge sits in a clearing with its entrance facing the lantern road. The tactical map and nearby arena use the same source canvas and timber frame. Nine camera projections checked the roofline against the conifers. One actual cut verified the baked canvas on both sides while the forest ambience kept playing. Nine focused suites, both exports, architecture and field audio in both packs, and archive integrity passed. All 72 automated chapter outcomes match the earlier runs. The first checks caught folded-flap normals and a test that looked for individual canvas nodes after batching. Both were corrected. Rendered gameplay remains unreviewed.
 
 The gold movement arrow has rounded bends on flat ground, bridge decks and sanctuaries. Route and range meshes share one material. Nine focused suites, both exports, movement and picking in both packs, and archive integrity passed. The first source run caught a stale footstep test that expected the Original model’s stride while running the Revised model. The corrected test checks both approaches and confirms that all dust clears on return to the map. Rendered gameplay remains unreviewed.

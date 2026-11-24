@@ -1,5 +1,7 @@
 # Poem development
 
+The battle forecast marks the unit that would fall if ordinary hits land in the displayed strike order. The warning follows valid counters and follow-ups and stops at the first fall.
+
 Greywood’s shelter uses one 26-triangle canvas with a roof ridge, closed rear and open front. The nearby arena scales the same prop behind the combat lane. The tent’s new position is the only campaign data edit.
 
 The tactical movement arrow rounds outside corners at the current tile height. Routes and range layers share one vertex-color material. The muted footstep fixture checks the distinct contact counts of the Original and Revised sword approaches.

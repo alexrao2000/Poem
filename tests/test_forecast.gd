@@ -13,6 +13,7 @@ func watch_cinematic(app):
 func _initialize():call_deferred("run")
 func run():
  await verify_strike_order()
+ await verify_fall_warning()
  var game=Rules.new();game.chapter=5;game.start_battle();var portraits=Portraits.new()
  var favorable=[["sword","axe"],["axe","lance"],["lance","sword"]]
  for left in ["sword","axe","lance","bow","magic","staff"]:
@@ -152,3 +153,45 @@ func verify_strike_order():
      forecast.queue_free();await process_frame;cases+=1
  host.queue_free();await process_frame
  print("PASS: %d conditional-order cases, %d three-size layouts and %d actual healthy/lethal exchanges, both initiating teams, ranged counter exclusions, speed thresholds and exact forecast isolation"%[cases,layouts,exchanges])
+
+func verify_fall_warning():
+ var game=Rules.new();game.start_battle()
+ var host=Control.new();root.add_child(host)
+ var a=game.living("player")[0];var b=game.living("enemy")[0]
+ game.units=[a,b]
+ var cases=[
+  {"name":"healthy pair","expected":"","lead":0},
+  {"name":"counter reaches zero","expected":a.id,"lead":0,"ally_hits":1},
+  {"name":"first strike ends exchange","expected":b.id,"lead":0,"ally_hits":1,"foe_hits":1},
+  {"name":"player follow-up reaches zero","expected":b.id,"lead":4,"foe_hits":2},
+  {"name":"enemy follow-up reaches zero","expected":a.id,"lead":-4,"ally_hits":2},
+  {"name":"only a critical could reach zero","expected":"","lead":0,"foe_hits":2},
+  {"name":"staff cannot counter","expected":"","lead":0,"ally_hits":1,"staff":true},
+  {"name":"out of range","expected":"","lead":0,"foe_hits":1,"distance":2},
+ ]
+ for sample in cases:
+  for unit in [a,b]:
+   unit.hp=100;unit.max_hp=100;unit.defense=0;unit.resistance=0;unit.pow=6
+   unit.item="iron_sword";unit.weapon="sword";unit.reach=1
+  a.x=8;a.y=4;b.x=8+sample.get("distance",1);b.y=4
+  a.speed=20+sample.lead;b.speed=20
+  if sample.get("staff",false):b.item="field_staff";b.weapon="staff"
+  var attack=game.forecast(a,b);var counter=game.forecast(b,a)
+  if sample.has("ally_hits"):a.hp=counter.damage*sample.ally_hits
+  if sample.has("foe_hits"):b.hp=attack.damage*sample.foe_hits
+  var before=game.save_data("battle").duplicate(true);var rng=game.rng.state
+  var panel=Forecast.new();panel.configure(host,game,a,b,[null,null])
+  for dimensions in [Vector2(1024,640),Vector2(1280,720),Vector2(1440,900)]:
+   host.size=dimensions;await process_frame
+   for record in panel.records:
+    assert((record.fall!=null)==(record.unit==sample.expected),sample.name)
+    if record.fall==null:continue
+    var notice=record.fall
+    assert(notice.text=="Falls if hits land" and notice.mouse_filter==Control.MOUSE_FILTER_IGNORE)
+    assert(Rect2(Vector2.ZERO,record.card.size).encloses(notice.get_rect()))
+    assert(not notice.get_rect().intersects(record.note.get_rect()) and not notice.get_rect().intersects(record.meter.get_rect()))
+    assert(notice.get_theme_font("font").get_string_size(notice.text,HORIZONTAL_ALIGNMENT_LEFT,-1,14).x<=notice.size.x)
+  assert(game.save_data("battle")==before and game.rng.state==rng)
+  panel.free()
+ host.free()
+ print("PASS: 24 conditional fall layouts, ordinary-hit threshold, both follow-ups, no counter, out-of-range, and exact campaign/RNG isolation")
