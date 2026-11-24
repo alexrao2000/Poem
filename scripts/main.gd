@@ -2339,6 +2339,10 @@ func show_debug_report():
 	summary.append("Recovering next: %d"%game.available().filter(func(unit):return game.trials.deployment_condition(game,unit).recovering).size())
 	summary.append("Pressure: %d"%game.trials.pressure);summary.append("Credits: %d"%game.trials.credits)
 	label_in(panel," · ".join(summary),16).name="DebugReportSummary"
+	if record.has("retry_deployment"):
+		var retry=record.retry_deployment
+		var advances=retry.enemies.filter(func(unit):return unit.before.position!=unit.after.position).size()
+		label_in(panel,"Retry preview · Chapter %02d · Pressure %d · Raider advances %d"%[retry.chapter,retry.pressure,advances],16,GOLD).name="DebugRetryPreview"
 	label_in(panel,"Copy rules, casualties and the last 64 action changes, including RNG and save results. History lasts only for this Debug session; the restore code carries the current position.",19)
 	var report=TextEdit.new();report.name="DebugReport";report.editable=false;report.wrap_mode=TextEdit.LINE_WRAPPING_BOUNDARY
 	report.custom_minimum_size.y=160;report.size_flags_vertical=Control.SIZE_EXPAND_FILL;report.add_theme_font_size_override("font_size",14)

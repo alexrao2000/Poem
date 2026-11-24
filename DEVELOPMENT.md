@@ -1,5 +1,7 @@
 # Poem development
 
+The Debug report previews the next retry with reset pressure enabled. It uses the same restart and deployment rules on a copy of the battle. Each enemy’s projected tile, stats and tonics are compared with the corresponding deployment at pressure zero.
+
 The forecast says “Downed if hits land” when the projected first fall would put an ally at death’s door. Enemies and ordinary falls retain the existing warning.
 
 The slash, locomotion, infantry stride, mounted stride, gaze and finishing fixtures explicitly select Original models for measurements of the procedural rigs. Revised model fixtures continue to exercise the default roster.

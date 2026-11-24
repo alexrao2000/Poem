@@ -1,6 +1,7 @@
 extends RefCounted
 # Debug experiments use a separate save slot. Leaving restores the exact live
 # campaign snapshot, including unsaved progress, rule toggles and RNG state.
+const Rules=preload("res://scripts/rules.gd")
 const MODEL_FLAGS=["revised_vanguard","revised_duelists","revised_caster","revised_warden","revised_corsair","revised_ranger","revised_knight","revised_rider","revised_enemies"]
 
 var combat_seed=472019
@@ -157,4 +158,28 @@ func report(game,stage="battle") -> Dictionary:
  var combatants=[]
  for unit in game.units:
   combatants.append({"id":unit.id,"name":unit.name,"team":unit.team,"class":game.class_name_for(unit),"position":[unit.x,unit.y],"hp":unit.hp,"max_hp":unit.max_hp,"attack":game.attack_power(unit),"defense":unit.defense,"resistance":game.resistance_for(unit),"speed":game.attack_speed(unit),"equipment":unit.item,"level":unit.level,"xp":unit.xp,"acted":unit.acted,"downed":unit.get("downed",false),"bleed_turns":unit.get("bleed_turns",0),"carried_by":unit.get("carried_by",""),"tonics":unit.get("potions",unit.get("held_tonics",0))})
- return {"report_version":2,"recent_actions":trace.report(),"debug":true,"chapter":game.chapter+1,"title":game.info().title,"section":int(game.chapter/4)+1,"turn":game.turn,"phase":game.phase,"outcome":game.result() if stage=="battle" and not game.units.is_empty() else "preparation","settings":settings,"seed_for_new_attempts":combat_seed,"rng_state":str(game.rng.state),"pressure":game.trials.pressure,"next_deployment_enemy_bonuses":game.trials.enemy_modifiers(game.chapter),"casualties":game.lost_ids(true),"legacy_credits":game.trials.credits,"dispatches":game.trials.events.duplicate(),"combatants":combatants,"save_code":game.export_code(stage)}
+ var result={"report_version":2,"recent_actions":trace.report(),"debug":true,"chapter":game.chapter+1,"title":game.info().title,"section":int(game.chapter/4)+1,"turn":game.turn,"phase":game.phase,"outcome":game.result() if stage=="battle" and not game.units.is_empty() else "preparation","settings":settings,"seed_for_new_attempts":combat_seed,"rng_state":str(game.rng.state),"pressure":game.trials.pressure,"next_deployment_enemy_bonuses":game.trials.enemy_modifiers(game.chapter),"casualties":game.lost_ids(true),"legacy_credits":game.trials.credits,"dispatches":game.trials.events.duplicate(),"combatants":combatants,"save_code":game.export_code(stage)}
+ if stage=="battle" and settings.reset_pressure:
+  var preview=retry_deployment(game.save_data("battle"))
+  if not preview.is_empty():result.retry_deployment=preview
+ return result
+
+func retry_deployment(snapshot: Dictionary) -> Dictionary:
+ var retry=Rules.new()
+ if retry.restore_save(snapshot)!="battle" or not retry.trials.restart(retry):return {}
+ var reference=Rules.new()
+ if reference.restore_save(retry.save_data("camp"))!="camp":return {}
+ reference.trials.pressure=0
+ reference.start_battle()
+ retry.start_battle()
+ var baseline={}
+ for enemy in reference.living("enemy"):baseline[enemy.id]=enemy_deployment(reference,enemy)
+ var enemies=[]
+ for enemy in retry.living("enemy"):
+  enemies.append({"id":enemy.id,"name":enemy.name,"raider":enemy.get("raider",false),
+   "before":baseline[enemy.id],"after":enemy_deployment(retry,enemy)})
+ return {"chapter":retry.chapter+1,"pressure":retry.trials.pressure,"reference_pressure":0,"enemies":enemies}
+
+func enemy_deployment(game,enemy: Dictionary) -> Dictionary:
+ return {"position":[enemy.x,enemy.y],"hp":enemy.hp,"attack":game.attack_power(enemy),
+  "speed":game.attack_speed(enemy),"defense":enemy.defense,"held_tonics":enemy.held_tonics}

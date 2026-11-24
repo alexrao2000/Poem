@@ -63,8 +63,39 @@ func verify_debug_casualties():
  assert(not session.set_bleed_turns(g,"oren",2) and not session.fall_unit(g,"oren") and g.save_data("battle")==before,"Paused carried patients cannot be forced into an invalid debug state")
  assert(g.valid_save(g.save_data("battle")))
 
+func verify_retry_previews():
+ for sample in [[false,0,6,1],[false,10,6,10],[true,2,5,3]]:
+  var g=Rules.new();g.new_campaign(sample[0]);g.chapter=4
+  g.trials.flags.section_restarts=sample[0];g.trials.flags.reset_pressure=true;g.trials.flags.hard_campaign=true
+  g.trials.pressure=sample[1];g.start_battle()
+  g.chapter=5;g.start_battle()
+  var session=Session.new();session.begin(g,"battle")
+  var saved=g.save_data("battle").duplicate(true);var history=session.trace.report()
+  var preview=session.report(g).retry_deployment
+  assert(preview.chapter==sample[2] and preview.pressure==sample[3] and preview.reference_pressure==0)
+  assert(not preview.enemies.is_empty())
+  var advances=0
+  for enemy in preview.enemies:
+   assert(enemy.after.hp-enemy.before.hp==2*preview.pressure)
+   assert(enemy.after.attack-enemy.before.attack==preview.pressure)
+   assert(enemy.before.held_tonics==2 and enemy.after.held_tonics==maxi(0,2-preview.pressure))
+   assert(enemy.after.speed==enemy.before.speed and enemy.after.defense==enemy.before.defense)
+   if enemy.before.position!=enemy.after.position:
+    assert(enemy.raider);advances+=1
+  assert(advances>0,"At least one real raider advances under the chosen pressure")
+  assert(session.report(g).retry_deployment==preview and not session.report(g,"camp").has("retry_deployment"))
+  assert(g.save_data("battle")==saved and session.trace.report()==history,"Retry inspection changes no campaign, RNG or trace")
+  assert(g.trials.restart(g));g.start_battle()
+  var deployed=g.living("enemy")
+  assert(deployed.size()==preview.enemies.size())
+  for index in range(deployed.size()):
+   var unit=deployed[index];var expected=preview.enemies[index]
+   assert(unit.id==expected.id and [unit.x,unit.y]==expected.after.position)
+   assert(unit.hp==expected.after.hp and g.attack_power(unit)==expected.after.attack and unit.held_tonics==expected.after.held_tonics)
+
 func run():
  verify_debug_casualties()
+ verify_retry_previews()
  var rules=Rules.new();rules.new_campaign(true);rules.start_battle()
  var session=Session.new();var original=rules.save_data("battle").duplicate(true)
  session.load_chapter(rules,11);session.heal(rules);session.revive(rules);session.reset_battle(rules)
@@ -83,6 +114,7 @@ func run():
  assert(rules.combat(a,b)==outcome and rules.rng.state==state,"A seeded clean reset reproduces the actual exchange and random stream")
  var before_report=rules.save_data("battle").duplicate(true);var report=session.report(rules)
  assert(report.seed_for_new_attempts==17 and report.rng_state==str(state) and report.combatants.size()==rules.units.size() and rules.save_data("battle")==before_report,"Report inspection is read-only")
+ assert(not report.has("retry_deployment"),"Disabled reset pressure leaves the proposed deployment out of the report")
  var replay=Rules.new();assert(replay.import_code(report.save_code)=="battle" and replay.rng.state==state and replay.units[0].hp==a.hp,"Reports carry an exact restorable position")
  for invalid in [-1,11,1.5,"bad"]:assert(not session.test_pressure(rules,invalid))
  assert(session.test_pressure(rules,10) and rules.trials.pressure==10 and rules.trials.flags.reset_pressure and rules.turn==1)
@@ -136,6 +168,16 @@ func run():
  assert(app.screen=="battle" and app.game.trials.pressure==5 and app.game.trials.flags.reset_pressure)
  assert(loaded.load_game(app.save_path+".debug")=="battle" and loaded.trials.pressure==5 and FileAccess.get_file_as_string(app.save_path)==disk,"Pressure changes persist only in debug")
  app.show_debug_tools("battle");await inspect(app)
+ var on_disk=FileAccess.get_file_as_string(app.save_path+".debug")
+ var live_battle=app.game.save_data("battle").duplicate(true)
+ press(app,"View experiment report");await inspect(app)
+ var preview_label=app.ui.find_child("DebugRetryPreview",true,false)
+ assert(preview_label!=null and preview_label.text.begins_with("Retry preview · Chapter 12 · Pressure 6"))
+ var preview=JSON.parse_string(app.ui.find_child("DebugReport",true,false).text).retry_deployment
+ assert(preview.chapter==12 and preview.pressure==6 and preview.enemies.all(func(enemy):return enemy.after.held_tonics==0))
+ assert(app.game.save_data("battle")==live_battle and FileAccess.get_file_as_string(app.save_path+".debug")==on_disk)
+ assert(FileAccess.get_file_as_string(app.save_path)==disk)
+ press(app,"Return to debug tools")
  app.ui.find_child("DebugLevel",true,false).value=20;press(app,"Raise company and reset battle")
  assert(app.screen=="battle" and app.game.available().all(func(unit):return unit.level>=20))
  assert(loaded.load_game(app.save_path+".debug")=="battle" and loaded.roster[0].level==20 and FileAccess.get_file_as_string(app.save_path)==disk,"Training persists only in the debug save")
@@ -176,7 +218,7 @@ func run():
  app.show_options("camp");app.ui.find_child("Permadeath",true,false).button_pressed=false;app.close_options()
  assert(loaded.load_game(app.save_path)=="camp" and not loaded.permadeath,"Permadeath can be changed and saved outside debug as requested")
  await Shutdown.dispose(app);await process_frame
- print("PASS: opt-in debug controls, twelve-chapter chooser, heal/revive/reset, separate save slot, unsaved checkpoint restoration, guarded actions, three layouts and live permadeath toggle persistence")
+ print("PASS: opt-in debug controls, exact retry deployment previews, twelve-chapter chooser, heal/revive/reset, separate save slot, unsaved checkpoint restoration, guarded actions, three layouts and live permadeath toggle persistence")
  quit()
 
 func escape_key(echo=false):

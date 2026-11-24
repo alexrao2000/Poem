@@ -6,6 +6,8 @@ This checkpoint describes the current development branch and supersedes the earl
 
 ### Latest state
 
+The Debug report now previews the actual retry chapter, pressure and number of advancing raiders. Its per-enemy records compare the pressure-zero and retry positions, stats and tonics. Three previews matched actual deployments, including capped pressure and a permanent-loss section rewind. The report preserves the live battle, RNG, trace and both save files. Eight focused suites, the final Debug rerun, both exports, packed Debug and trace suites, and archive integrity passed. Two local playtest codes also passed real Debug imports and revised 3D duels in both packs. See `build/review/playtest/README.md`. Rendered gameplay remains unreviewed.
+
 The battle forecast now distinguishes a rescuable ally at death’s door from an ordinary fall. Thirty layouts cover both rules, permitted counters, follow-ups and enemy slots. Eight focused suites, both exports, packaged forecast and controls, and archive integrity passed. Rendered gameplay remains unreviewed.
 
 The exported Cinderford checkpoint `59da60c` passed a Hard campaign with permanent losses, action saves, legacy supplies, reset pressure and section restarts. The run reached the ending after 15 attempts and 470 player actions, with 998 exact disk checks. Both planned section rewinds and the natural lord retry retained the expected losses. The 17 permanent losses and all battle outcomes match the previous route. The two newer legacy purchases add two saves and spend four credits, and both carried through the later rewind. See `build/review/current-classic-route.html`.
