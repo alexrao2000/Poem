@@ -19,6 +19,8 @@ var expected_facings={}
 var saw_facing=false
 var saw_entry_motion=false
 var saw_entry_cue=false
+var map_reveals=0
+var arena_reveals=0
 var expected_focus=Vector3.ZERO
 var staged_pair=[]
 var projected_order=[]
@@ -88,6 +90,7 @@ func run():
   app.busy=false
  assert(matching_nameplates==5 and mirrored_reveals>0,"Actual left/right nameplates match every arena entry, including a reversed pair")
  assert(mill_entries==5 and mill_returns==5,"All five actual map-to-arena exchanges share the moving windmill in both directions")
+ assert(map_reveals==5 and arena_reveals==5,"All five live exchanges reveal the combat site before the surrounding scenery in both directions, map %d and arena %d"%[map_reveals,arena_reveals])
  app.preferences.values.effects=1;app.apply_audio_preferences()
  for case in ["enemy_kill","enemy_counter"]:
   var pair=setup();var a=pair[0];var b=pair[1];mode="map";app.preferences.values.combat="map"
@@ -109,6 +112,7 @@ func run():
  print("PASS: five raised/flat map handoffs at three sizes with sprite-to-fighter and nameplate side continuity, exact view restoration, score fade during moving arena returns (defeat/counter/survival/heal/skip), actual enemy kill/counter map reactions, 25 coordinated sprite exits and teardown, updated health before XP, and unchanged resolved state")
  print("PASS: five arena approach cues start during the tactical zoom, follow Effects mute and stay out of Quick Map combat")
  print("PASS: five tactical and arena windmill handoffs carry the same rotation in both directions")
+ print("PASS: five arena and five tactical reveals track the projected combat site as the cameras move")
  quit()
 
 func verify_beacon_handoffs():
@@ -177,6 +181,17 @@ func watch_return():
  saw_return=true;verify_field()
  for id in expected_facings:
   if app.unit_nodes.has(id):assert(app.unit_nodes[id].player.facing==expected_facings[id],"Surviving map figures retain their facing through the combat return")
+ await process_frame
+ var shaded=false
+ while is_instance_valid(veil) and veil.progress>0:
+  verify_reveal_focus(veil,app.camera.unproject_position(expected_focus))
+  if not shaded and veil.shade_alpha()>.15:
+   map_reveals+=1;shaded=true
+  await process_frame
+
+func verify_reveal_focus(veil,projected: Vector2):
+ assert(veil.revealing and veil.focal_source.is_valid())
+ assert(veil.projected_focus().distance_to(projected.clamp(veil.size*.10,veil.size*.90))<.01)
 
 func watch_mill_return():
  if mode!="arena" or app.stage.visible or app.world.visible:return
@@ -204,11 +219,17 @@ func watch_arena(node):
   if not first_left:mirrored_reveals+=1
   var veil=app.ui.get_node("CombatTransition");var previous=node.camera.position
   var advances=0
+  var shaded=false
+  var reveal_height=1.25 if opening[0].mounted or opening[1].mounted else .95
   while veil.visible and veil.progress>0:
    if node.camera.position.distance_to(previous)>.00001:advances+=1
    assert(node.camera.position.is_equal_approx(node.anchor),"Entrance applies camera motion during the current reveal frame")
+   var target=(opening[0].global_position+opening[1].global_position)*.5+Vector3.UP*reveal_height
+   verify_reveal_focus(veil,node.camera.unproject_position(target))
+   if veil.shade_alpha()>.15:shaded=true
    previous=node.camera.position;await process_frame
   saw_entry_motion=advances>=2
+  if shaded:arena_reveals+=1
   return
  if mode!="arena" or not skip_arena or not node is Actor:return
  await process_frame;app.skip_combat=true

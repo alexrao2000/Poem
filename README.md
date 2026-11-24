@@ -2,7 +2,7 @@
 
 A playable tactical RPG prototype built with Godot 4.5.1 and GDScript. Lead 24 recruits through a 12-chapter campaign, choose their equipment and promotions, and build relationships between battles.
 
-The campaign uses animated 2D map sprites over textured 3D terrain, with separate 3D combat scenes. Combat zooms enlarge the sprites with tactical indicators hidden, then restore current health and status when map control returns. Browser and macOS exports run locally.
+The campaign uses animated 2D sprites over textured 3D terrain. Combat zooms enlarge the sprites with tactical indicators hidden. The fighters emerge before the surrounding 3D arena, and the return opens on the same spot on the map with updated health and status. Browser and macOS exports run locally.
 
 [Screenshots](#screenshots) · [Play](#play) · [Controls](#controls) · [Campaign guide](#campaign-guide) · [Saves and options](#saves-and-options) · [Development](#development) · [Testing](#testing) · [Builds](#builds) · [Assets and credits](#assets-and-credits)
 

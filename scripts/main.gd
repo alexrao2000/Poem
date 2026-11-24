@@ -1334,7 +1334,7 @@ func cinematic(a,b,events,initial_hp={},challenge: Dictionary={}):
 	if veil.motion.is_running():await veil.motion.finished
 	var close_map_view=map_navigation.capture_view()
 	if skip_combat:
-		await return_to_tactical_map(veil,playback,close_map_view,tactical_view,tactical_controls)
+		await return_to_tactical_map(veil,playback,close_map_view,tactical_view,tactical_controls,focus)
 		return
 	var map_x_a=camera.unproject_position(map_position(game.pos(a))).x
 	var map_x_b=camera.unproject_position(map_position(game.pos(b))).x
@@ -1367,7 +1367,8 @@ func cinematic(a,b,events,initial_hp={},challenge: Dictionary={}):
 	var director=CombatCamera.new();stage.add_child(director);director.configure(camera,[actor,defender])
 	var mounted=a.job=="Rider" or b.job=="Rider"
 	director.enter(actor.position,defender.position,ranged,mounted)
-	await veil.reveal().finished
+	var reveal_height=1.25 if mounted else .95
+	await veil.reveal(.22,func():return camera.unproject_position((actor.global_position+defender.global_position)*.5+Vector3.UP*reveal_height)).finished
 	veil.hide()
 	var displayed_hp={};var entries=[]
 	var arena_order=[a,b] if actor_on_left else [b,a]
@@ -1544,16 +1545,16 @@ func cinematic(a,b,events,initial_hp={},challenge: Dictionary={}):
 		if child not in [actor,defender]:stage.remove_child(child);child.queue_free()
 	stage.process_mode=Node.PROCESS_MODE_DISABLED
 	restore_lighting(old_lighting)
-	await return_to_tactical_map(veil,playback,close_map_view,tactical_view,tactical_controls)
+	await return_to_tactical_map(veil,playback,close_map_view,tactical_view,tactical_controls,focus)
 	await present_casualties(events)
 
-func return_to_tactical_map(veil,playback,close_map_view: Dictionary,tactical_view: Dictionary,tactical_controls: Dictionary):
+func return_to_tactical_map(veil,playback,close_map_view: Dictionary,tactical_view: Dictionary,tactical_controls: Dictionary,focus: Vector3):
 	music_mix(false)
 	refresh_pieces()
 	for visual in unit_nodes.values():visual.set_tactical_details_visible(false)
 	world.show();pieces.show()
 	var pull=map_navigation.return_from_combat(close_map_view,tactical_view,.25)
-	veil.reveal(.25)
+	veil.reveal(.25,func():return camera.unproject_position(focus))
 	await pull.finished
 	if veil.motion.is_running():await veil.motion.finished
 	veil.queue_free();playback.stop();playback.queue_free()
