@@ -6,6 +6,8 @@ This checkpoint describes the current development branch and supersedes the earl
 
 ### Latest state
 
+The ground beyond the battlefield now grows with the board. Wider river strips follow that ground, and woodland behind the playfield stays clear of the authored tiles as maps get deeper. All 40 camera checks found ground under each corner. All 24 shipped batched and unbatched map assemblies match outside the larger perimeter planes. Eight focused suites, four packed checks, 72 matched chapter outcomes and both ZIP checks passed. See `build/review/battlefield-perimeter.json`.
+
 Ember leaves a compact bright trail, Gale opens a longer soft wake, and Thunder cuts a shorter, narrower line. Tactical and 3D projectiles use the same shapes at their respective scales. Forty sampled arrays match across both exports, and unknown spell IDs keep the earlier fallback. Eight focused suites, four packed checks, 72 matched chapter outcomes and both ZIP checks passed. See `build/review/elemental-wake-study.png` for the isolated software comparison and `build/review/elemental-wake-geometry.json` for the geometry evidence. Assembled rendering remains unreviewed.
 
 The covered arena cut now waits for a fresh frame before starting the camera push and reveal. A cold committed-loss replay exposed a build frame long enough to consume nearly all of the Fast ×2 reveal. The separate 160 ms stall fixture now retains the moving camera and the vignette. Eight focused suites, four packed checks, 72 matched chapter outcomes and both ZIP checks passed. See `build/review/arena-frame-timing.json` for the headless timing evidence.

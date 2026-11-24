@@ -88,8 +88,42 @@ func verify_sanctuary(plinth: MeshInstance3D):
  assert(volume>.03 and volume<.06 and edge_uses.values().all(func(uses):return uses==2),"The beveled stone and inlay form a closed mesh")
  assert(is_equal_approx(hit_height,height) and top_paints.size()==6,"The brass ring, stone field and four inlay faces meet the walkable surface")
 
+func verify_perimeter():
+ var game=Rules.new()
+ var scenery=Scenery.new();scenery.batching_enabled=false
+ for fixture in [[2,Vector2i(14,10)],[2,Vector2i(50,14)],[2,Vector2i(18,52)],[1,Vector2i(18,34)]]:
+  var board: Vector2i=fixture[1]
+  game.chapter=fixture[0]
+  var rows=[]
+  for y in board.y:rows.append(".".repeat(board.x))
+  game.info().map=rows;game.info().landmarks=[]
+  var ground_state=game.save_data("camp")
+  var field=Node3D.new();root.add_child(field)
+  scenery.landscape(field,game)
+  var base=field.get_child(0)
+  assert(base.mesh is PlaneMesh and base.position.is_equal_approx(Vector3(board.x*.5,-.15,board.y*.5)))
+  var origin=Vector2(base.position.x,base.position.z)
+  var apron=Rect2(origin-base.mesh.size*.5,base.mesh.size)
+  var battlefield=Rect2(Vector2(-.5,-.5),Vector2(board))
+  assert(apron.encloses(battlefield.grow(24)),"A continuous ground plane extends beyond every battlefield edge")
+  assert(base.mesh.size.x>=72 and base.mesh.size.y>=72,"Even small boards have room for the wide zoomed-out view")
+  if game.info().environment=="forest":
+   var trunks=field.find_children("ConiferTrunk*","MeshInstance3D",false,false)
+   assert(trunks.size()==25)
+   for trunk in trunks:
+    assert(not battlefield.has_point(Vector2(trunk.position.x,trunk.position.z)),
+     "Background trees stay outside the authored tiles")
+  else:
+   var river=field.get_child(1)
+   assert(river.mesh is PlaneMesh and river.mesh.size==Vector2(2,base.mesh.size.y))
+   assert(river.position.is_equal_approx(Vector3(5.5,-.07,base.position.z)))
+  assert(game.save_data("camp")==ground_state)
+  field.free()
+ print("PASS: large battlefield perimeters keep the ground, river and all background trees beyond the authored tiles")
+
 func run():
  surface_geometry()
+ verify_perimeter()
  verify_bridge_support(Scenery.new())
  verify_arena_ground()
  await verify_river_arena()
