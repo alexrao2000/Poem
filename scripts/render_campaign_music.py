@@ -1,9 +1,10 @@
-"""Render two original campaign themes from the existing verified CC0 bank.
+"""Render original campaign themes from the existing verified CC0 bank.
 
 Each 32-bar calm/Ablaze pair shares one event timeline and exact frame count.
 This leaves the first act's score and all short game effects unchanged.
 """
 from pathlib import Path
+import argparse
 import hashlib
 import json
 import wave
@@ -39,13 +40,29 @@ THEMES = [
                  [(83,0,2),(81,2,1),(79,3,1)],[(81,0,1),(78,1,1),(74,2,2)],
                  [(76,0,.75),(79,.75,.25),(84,1,1),(83,2,1),(79,3,1)],[(76,0,2),(71,2,1),(76,3,1)],
                  [(81,0,1),(84,1,1),(83,2,.5),(81,2.5,.5),(76,3,1)],[(79,0,1.5),(76,1.5,.5),(72,2,2)],
-                 [(75,0,1),(78,1,1),(83,2,1),(78,3,1)],[(76,0,3)]])
+                 [(75,0,1),(78,1,1),(83,2,1),(78,3,1)],[(76,0,3)]]),
+    dict(id='sun_engine', title='The Light We Keep', bpm=112, seed=58433,
+         harp_pattern=(0,2,1,2,1,0,2,1),
+         chords=[(50,53,57),(46,50,53),(53,57,60),(48,52,55),
+                 (50,53,57),(55,59,62),(46,50,53),(45,49,52),
+                 (53,57,60),(52,55,60),(55,58,62),(50,53,57),
+                 (46,50,53),(48,52,55),(45,49,52),(50,53,57)],
+         melody=[[(74,0,1.5),(77,1.5,.5),(81,2,1),(79,3,1)],[(77,0,2),(74,2,1),(70,3,1)],
+                 [(72,0,1),(77,1,1),(81,2,1.5),(79,3.5,.5)],[(76,0,1),(79,1,1),(72,2,1.5)],
+                 [(74,0,1),(77,1,1),(81,2,2)],[(83,0,1.5),(81,1.5,.5),(79,2,1),(74,3,1)],
+                 [(77,0,1),(82,1,1),(81,2,1),(77,3,1)],[(76,0,1),(73,1,1),(69,2,1.5)],
+                 [(77,0,1),(81,1,1),(84,2,1.5),(81,3.5,.5)],[(79,0,2),(76,2,1),(72,3,1)],
+                 [(74,0,1),(79,1,1),(82,2,1),(81,3,1)],[(77,0,1),(81,1,1),(74,2,1.75)],
+                 [(77,0,1),(82,1,1),(86,2,1.5),(84,3.5,.5)],[(84,0,1.5),(79,1.5,.5),(76,2,1),(79,3,1)],
+                 [(81,0,1),(76,1,1),(73,2,1.5),(76,3.5,.5)],[(74,0,3.5)]])
 ]
 
 
 def render(theme,bank):
     beat_seconds=60/theme['bpm'];frames=round(BARS*4*beat_seconds*RATE)
     results={}
+    default_pattern=(0,2,1,2,0,1,2,1) if theme['id']=='road' else (0,1,2,1,2,1,0,2)
+    pattern=theme.get('harp_pattern',default_pattern)
     for mode in ('calm','ablaze'):
         rng=np.random.default_rng(theme['seed'])
         track=np.zeros((frames,2),dtype=np.float64);intense=mode=='ablaze'
@@ -68,7 +85,6 @@ def render(theme,bank):
         for bar in range(BARS):
             chord=theme['chords'][bar%16];start=bar*4
             for i,pitch in enumerate(chord):note(pitch,start,4.2,'strings',.12 if intense else .1,(i-1)*.4)
-            pattern=[0,2,1,2,0,1,2,1] if theme['id']=='road' else [0,1,2,1,2,1,0,2]
             for step,degree in enumerate(pattern):note(chord[degree]+12,start+step*.5,.85,'harp',.07 if intense else .12,-.4)
             for pitch,offset,length in theme['melody'][bar%16]:
                 note(pitch,start+offset,length*.94,'strings' if intense else 'flute',.23 if intense else .2,.12)
@@ -91,14 +107,30 @@ def render(theme,bank):
         metrics=dict(peak=float(np.max(np.abs(track))),rms=float(np.sqrt(np.mean(track**2))),boundary_step=float(np.max(np.abs(track[0]-track[-1]))))
         results[mode]=dict(path='res://'+str(output.relative_to(ROOT)),**metrics)
         print(theme['title'],mode,f'{frames/RATE:.2f}s',metrics,flush=True)
-    return dict(id=theme['id'],title=theme['title'],first_chapter=theme['first_chapter'],bpm=theme['bpm'],bars=BARS,frames=frames,sample_rate=RATE,channels=2,arrangements=results,
-                composition_sha256=hashlib.sha256(json.dumps([theme['chords'],theme['melody']]).encode()).hexdigest())
+    profile=dict(id=theme['id'],title=theme['title'])
+    if 'first_chapter' in theme:profile['first_chapter']=theme['first_chapter']
+    profile.update(bpm=theme['bpm'],bars=BARS,frames=frames,sample_rate=RATE,channels=2,arrangements=results,
+                   composition_sha256=hashlib.sha256(json.dumps([theme['chords'],theme['melody']]).encode()).hexdigest())
+    return profile
 
 
 if __name__=='__main__':
+    parser=argparse.ArgumentParser(description=__doc__)
+    parser.add_argument('--theme',choices=[theme['id'] for theme in THEMES])
+    selected=parser.parse_args().theme
     bank=OrchestraSamples(RATE)
-    existing=json.loads((ROOT/'assets/audio/score.json').read_text())
-    profiles=[dict(id='standard',title=existing['title'],first_chapter=0,bpm=existing['bpm'],bars=existing['bars'],frames=existing['frames'],sample_rate=RATE,channels=2,
-                   arrangements={mode:dict(path=f'res://assets/{mode}.wav') for mode in ('calm','ablaze')})]
-    profiles.extend(render(theme,bank) for theme in THEMES)
-    (ROOT/'assets/audio/themes.json').write_text(json.dumps(dict(version=1,source='scripts/render_campaign_music.py',samples='VSCO 2 Community Edition, CC0; see orchestra-sources.json and VSCO-LICENSE.txt',profiles=profiles),indent=2)+'\n')
+    manifest=ROOT/'assets/audio/themes.json'
+    if selected:
+        catalog=json.loads(manifest.read_text())
+        profiles={profile['id']:profile for profile in catalog['profiles']}
+        profiles[selected]=render(next(theme for theme in THEMES if theme['id']==selected),bank)
+        catalog['profiles']=list(profiles.values())
+    else:
+        original=json.loads((ROOT/'assets/audio/score.json').read_text())
+        standard=dict(id='standard',title=original['title'],first_chapter=0,bpm=original['bpm'],bars=original['bars'],
+                      frames=original['frames'],sample_rate=RATE,channels=2,
+                      arrangements={mode:dict(path=f'res://assets/{mode}.wav') for mode in ('calm','ablaze')})
+        catalog=dict(version=1,source='scripts/render_campaign_music.py',
+                     samples='VSCO 2 Community Edition, CC0; see orchestra-sources.json and VSCO-LICENSE.txt',
+                     profiles=[standard]+[render(theme,bank) for theme in THEMES])
+    manifest.write_text(json.dumps(catalog,indent=2)+'\n')

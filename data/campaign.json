@@ -2044,7 +2044,7 @@
       "title": "Dawn Without Kings",
       "place": "The Sun Engine",
       "route_position": [0.90, 0.10],
-      "score_theme": "dawnless",
+      "score_theme": "sun_engine",
       "objective": "boss",
       "boss": "Regent Vael",
       "intro": "The engine feeds on every oath sworn to the crown. Break its keeper’s hold before the valley becomes its fuel.",

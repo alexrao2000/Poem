@@ -70,6 +70,30 @@
         }
       },
       "composition_sha256": "09ea86b567b5102cc9753bca11d96c9ed68e656624eac0cef5b19eaff3fc0efa"
+    },
+    {
+      "id": "sun_engine",
+      "title": "The Light We Keep",
+      "bpm": 112,
+      "bars": 32,
+      "frames": 1512000,
+      "sample_rate": 22050,
+      "channels": 2,
+      "arrangements": {
+        "calm": {
+          "path": "res://assets/audio/sun_engine-calm.wav",
+          "peak": 0.6238571700530139,
+          "rms": 0.12,
+          "boundary_step": 0.0076084621092505356
+        },
+        "ablaze": {
+          "path": "res://assets/audio/sun_engine-ablaze.wav",
+          "peak": 0.87,
+          "rms": 0.13507122638132016,
+          "boundary_step": 0.008185393751567405
+        }
+      },
+      "composition_sha256": "9be6099b430d039f95f3377d2f19c2c400ab7e431d28e74f29a801d6286c94bc"
     }
   ]
 }

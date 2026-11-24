@@ -48,14 +48,14 @@ func run():
   if act_running:assert(not act_fade.is_running())
   if battle_running:assert(not battle_fade.is_running())
   await inspect(app)
-  var chooser=app.ui.find_child("MusicRoomTheme",true,false);assert(chooser.item_count==3 and chooser.has_focus())
-  for index in range(3):
+  var chooser=app.ui.find_child("MusicRoomTheme",true,false);assert(chooser.item_count==4 and chooser.has_focus())
+  var assigned=["Chapters 01–04","Chapters 05–08","Chapters 09–11","Chapter 12"]
+  for index in range(chooser.item_count):
    chooser.select(index);chooser.item_selected.emit(index)
    var voice=preview.director.player;var pair=preview.director.score
    assert(preview.theme_index==index and preview.director.current_id==preview.director.profiles[index].id)
-   var chapter_range="Chapters %02d–%02d"%[index*4+1,index*4+4]
-   assert(app.ui.find_child("MusicRoomDetails",true,false).text.begins_with(chapter_range))
-   assert(not preview.select_theme(-1) and not preview.select_theme(3) and not preview.select_theme(index))
+   assert(app.ui.find_child("MusicRoomDetails",true,false).text.begins_with(assigned[index]))
+   assert(not preview.select_theme(-1) and not preview.select_theme(chooser.item_count) and not preview.select_theme(index))
    voice.seek(12.0);await settle();var position=voice.get_playback_position()
    app.ui.find_child("MusicRoomAblaze",true,false).pressed.emit();await create_timer(.48).timeout
    assert(preview.ablaze and preview.director.player==voice and preview.director.score==pair and voice.pitch_scale==1.0)
@@ -89,7 +89,7 @@ func run():
  muted.select_theme(2);await create_timer(.5).timeout;assert(muted.director.player.volume_db<=-79)
  assert(app.ui.find_children("*","Label",true,false).any(func(label):return label.text.begins_with("Music volume: 0%")))
  muted.select_arrangement(true)
- for index in [0,1,2,0,2]:
+ for index in [0,1,3,0,2]:
   muted.select_theme(index)
   assert(muted.ablaze and muted.director.score.get_sync_stream_volume(1)==0,"New themes retain the chosen arrangement")
   assert(muted.director.get_child_count()<=2,"Rapid selection retains at most the current and outgoing preview voice")
@@ -98,7 +98,7 @@ func run():
  assert(interrupted.get_ref()==null and not app.music.stream_paused,"Closing during simultaneous theme/arrangement fades releases the room and restores the campaign")
  await verify_authored_labels(app)
  await Shutdown.dispose(app);await process_frame
- print("PASS: three-theme music room, continuous Calm/Ablaze switching, bounded crossfades, twenty layout checks, muted preview, guarded navigation and playing/paused/stopped/fading campaign restoration without state changes")
+ print("PASS: four-theme music room, continuous Calm/Ablaze switching, bounded crossfades, twenty layout checks, muted preview, guarded navigation and playing/paused/stopped/fading campaign restoration without state changes")
  quit()
 
 func verify_authored_labels(app):

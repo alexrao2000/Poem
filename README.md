@@ -226,7 +226,7 @@ The `section_starts` list in [campaign.json](data/campaign.json) gives the zero-
 
 Each chapter’s `route_position` places its seal on the illustrated route. Coordinates run from `[0, 0]` at the upper left to `[1, 1]` at the lower right. The route offers a separate reached-chapter list when the seals overlap.
 
-Each chapter’s `score_theme` selects a Calm/Ablaze pair by ID from [themes.json](assets/audio/themes.json). Chapters can share a theme across section boundaries. An omitted or unknown ID uses the catalog’s `first_chapter` defaults. The music room shows the resulting chapter assignments.
+Each chapter’s `score_theme` selects a Calm/Ablaze pair by ID from [themes.json](assets/audio/themes.json). Chapters can share a theme across section boundaries. An omitted or unknown ID uses the catalog’s `first_chapter` defaults. A theme without `first_chapter` plays where a chapter names it explicitly. The music room shows the resulting chapter assignments.
 
 A chapter’s optional `lighting` object overrides its environment palette. Use hex colors for `sun`, `top`, and `horizon`, and nonnegative numbers for `energy`, `ambient`, and `haze`. The map and arena share the resulting palette. Omitted or invalid values inherit the environment defaults.
 
@@ -326,7 +326,7 @@ Run [pack_web.py](scripts/pack_web.py) after every Web export. It compresses the
 
 ## Assets and credits
 
-Story, music composition, raster illustrations, and procedural 3D figures are original prototype work. The score includes three 32-bar stereo themes with calm/Ablaze arrangements sharing a sample timeline, plus separate combat, healing, and phase effects.
+Story, music composition, raster illustrations, and procedural 3D figures are original prototype work. The score includes four 32-bar stereo themes with Calm and Ablaze arrangements sharing a sample timeline, plus separate combat, healing, and phase effects.
 
 - Font license: [SIL Open Font License](assets/fonts/OFL.txt).
 - Instrument recordings: [CC0 license](assets/audio/VSCO-LICENSE.txt), [credits](assets/audio/VSCO-CREDITS.txt), and [source paths and hashes](assets/audio/orchestra-sources.json).

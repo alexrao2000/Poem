@@ -120,7 +120,8 @@ func run():
  for job in app.CLASSES:assert(app.map_catalog.assets.has("enemy."+job.to_lower()),"Release includes every dedicated enemy class atlas")
  for chapter in [0,4,8,11]:
   app.game.chapter=chapter;app.game.start_battle();app.make_map();app.show_battle();await process_frame
-  assert(app.score_director.current_id==["standard","road","dawnless"][chapter/4],"Export includes every act-specific score pair")
+  var theme="sun_engine" if chapter==11 else ["standard","road","dawnless"][chapter/4]
+  assert(app.score_director.current_id==theme,"Export includes every chapter's assigned score pair")
   assert(app.unit_nodes.size()==app.game.units.size(),"Packaged maps instantiate every living actor")
   for y in range(app.game.board_size().y):
    for x in range(app.game.board_size().x):

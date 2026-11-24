@@ -29,14 +29,15 @@ func run():
  assert(app.sfx_streams.levelup.get_length()>.71 and app.sfx_streams.levelup.get_length()<.73,"Level-up bell ends within the stat reveal")
  await verify_themes(app)
  await verify_authored_themes(app)
+ await verify_finale_exchange(app)
  await verify_quick_battles(app)
  await Shutdown.dispose(app);await process_frame
- print("PASS: three exact calm/Ablaze pairs, 12 chapter mappings, compensated arrangement curve and seamless reversal, continuous combat mixing, bounded act crossfades, mute/interruption and independent effects")
+ print("PASS: four exact Calm/Ablaze pairs, 12 chapter mappings, compensated arrangement curve and seamless reversal, continuous combat mixing, bounded theme crossfades, mute/interruption and independent effects")
  quit()
 
 func verify_themes(app):
  var director=app.score_director
- assert(director.profiles.size()==3)
+ assert(director.profiles.size()==4)
  for profile in director.profiles:
   var pair=director.make_pair(profile)
   var calm=pair.get_sync_stream(0);var ablaze=pair.get_sync_stream(1)
@@ -46,7 +47,9 @@ func verify_themes(app):
   assert(absf(calm.get_length()-float(profile.bars)*4*60/profile.bpm)<1.0/profile.sample_rate,"Actual audio duration matches the composition's bar/tempo timeline")
   for stream in [calm,ablaze]:verify_decoded_loop(stream)
  for chapter in range(12):
-  assert(app.campaign_score_profile(chapter).id==["standard","road","dawnless"][chapter/4],"Shipped chapters retain the original pair")
+  var theme="sun_engine" if chapter==11 else ["standard","road","dawnless"][chapter/4]
+  assert(app.campaign_score_profile(chapter).id==theme)
+ assert(director.profile_for(11).id=="dawnless","An explicit finale theme does not change the catalog default")
  var roster=app.game.roster.duplicate(true);var rng=app.game.rng.state
  app.game.chapter=4;app.select_score_theme()
  assert(not app.music.playing and director.outgoing==null,"Loading a later act while stopped never starts unsolicited playback")
@@ -101,6 +104,44 @@ func verify_authored_themes(app):
  app.score_director.stop()
  await process_frame
  print("PASS: authored chapter themes select their actual paired streams, reuse the live decoder across distant chapters and fall back for omitted or unknown IDs")
+
+func verify_finale_exchange(app):
+ app.game.chapter=10;app.select_score_theme()
+ app.music.play(8.0)
+ var outgoing=app.music;var previous_decoder=outgoing.get_stream_playback()
+ assert(app.score_director.current_id=="dawnless" and previous_decoder!=null)
+ app.game.chapter=11;app.game.start_battle()
+ var ally=app.game.living("player")[0]
+ var foe=app.game.living("enemy")[0]
+ ally.x=9;ally.y=2;foe.x=10;foe.y=2
+ app.make_map();app.show_battle()
+ assert(app.score_director.current_id=="sun_engine")
+ assert(app.score_director.outgoing==outgoing and outgoing.get_stream_playback()==previous_decoder)
+ await create_timer(.52).timeout
+ assert(app.score_director.outgoing==null and app.music.playing)
+ app.preferences.values.combat="all"
+ app.preferences.values.combat_speed="fast"
+ app.music.seek(12.0);await process_frame
+ var pair=app.score;var voice=app.music;var decoder=voice.get_stream_playback()
+ assert(decoder!=null)
+ var state=app.game.save_data("battle").duplicate(true)
+ var status={"finished":false,"saw_arena":false,"held_ablaze":false}
+ var events=[{"actor":ally.id,"target":foe.id,"damage":1,"remaining":foe.hp-1,"hit":true,"crit":false}]
+ (func():
+  await app.cinematic(ally,foe,events,{ally.id:ally.hp,foe.id:foe.hp})
+  status.finished=true).call()
+ var deadline=Time.get_ticks_msec()+15000
+ while not status.finished and Time.get_ticks_msec()<deadline:
+  await process_frame
+  assert(app.score==pair and app.music==voice and voice.get_stream_playback()==decoder)
+  if app.stage.visible and app.ui.has_node("CombatHUD"):
+   status.saw_arena=true
+   if absf(pair.get_sync_stream_volume(1))<.01:status.held_ablaze=true
+ assert(status.finished and status.saw_arena and status.held_ablaze)
+ await create_timer(.52).timeout
+ assert(app.score==pair and voice.get_stream_playback()==decoder and voice.get_playback_position()>12.0)
+ assert(is_zero_approx(app.score_director.arrangement_blend) and app.game.save_data("battle")==state)
+ print("PASS: a full Sun Engine exchange blends the finale to Ablaze and back on the same synchronized decoder")
 
 func verify_arrangement_curve(app):
  var director=app.score_director;var pair=app.score

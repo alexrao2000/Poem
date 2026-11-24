@@ -2,7 +2,7 @@ extends Node
 # Re-selecting a theme keeps its synchronized pair and playhead. Theme changes
 # crossfade at most one outgoing pair into the new one.
 const ARRANGEMENT_FADE_SECONDS=.45
-# The three authored pairs have similar partial correlation over a full fade.
+# The paired arrangements share their harmony and part of the instrumentation.
 const ARRANGEMENT_CORRELATION=.38
 const SILENT_GAIN=.001
 var profiles=JSON.parse_string(FileAccess.get_file_as_string("res://assets/audio/themes.json")).profiles
@@ -23,7 +23,7 @@ func profile_for(chapter: int,theme_id: String="") -> Dictionary:
  var chosen=profiles[0]
  for profile in profiles:
   if profile.id==theme_id:return profile
-  if chapter>=int(profile.first_chapter):chosen=profile
+  if profile.has("first_chapter") and chapter>=int(profile.first_chapter):chosen=profile
  return chosen
 
 func make_pair(profile: Dictionary) -> AudioStreamSynchronized:
