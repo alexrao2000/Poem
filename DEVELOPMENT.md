@@ -1,5 +1,7 @@
 # Poem development
 
+Greywood’s lantern road now has six warm paper fixtures among the trees. The rainy close-up arena uses five larger versions of the same timber, iron and brass geometry behind the fighting lane. Emissive paper gives the windows their warm color, and both fixture materials are statically batched.
+
 The 3D combat HUD uses a compact layout in narrow windows. The weapon line gets the full space beside a smaller portrait, the forecast spans both columns, and HP numbers sit beside the pips. Fast and Skip stay in the gap between the nameplates. Resizing keeps the current HP, forecast and playback speed during an exchange.
 
 Sanctuary recovery shows each gained HP amount and a brief glow at the start of the new player phase. The app shows the cue after the checkpoint commits, groups simultaneous recoveries, and accepts Tab to clear the feedback.

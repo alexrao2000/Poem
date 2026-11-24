@@ -15,6 +15,7 @@ const ArenaRidges=preload("res://scripts/arena_ridges.gd")
 const PassEscarpment=preload("res://scripts/pass_escarpment.gd")
 const RuinedColumns=preload("res://scripts/ruined_columns.gd")
 const SanctuaryPlinth=preload("res://scripts/sanctuary_plinth.gd")
+const TrailLanterns=preload("res://scripts/trail_lanterns.gd")
 const MAX_CACHED_CYLINDERS=256
 # Left and right roadside groves lead into a lower, more distant orchard.
 const VILLAGE_TREES=[
@@ -332,6 +333,7 @@ func landscape(parent,game):
  # Authored landmarks communicate the chapter instead of a repeated village frame.
  for item in game.info().get("landmarks",[]):
   landmark(parent,Vector3(item.position[0],0,item.position[1]),item.kind)
+ if theme=="forest":TrailLanterns.roadside(parent)
  if theme in ["village","river","forest","road","castle"]:
   var base=-.15 if theme=="forest" else 0.0
   for i in range(22):tree(parent,Vector3(-4+(i*7)%23,base,-3-(i%3)*1.3),i*23,theme)
@@ -597,6 +599,7 @@ func battle_landscape(parent,center,context={}):
  if theme in ["village","road"]:
   cart(parent,center+Vector3(-6,0,-3.8));fence(parent,center+Vector3(3,0,-4),5.0)
   for i in range(3):barrel(parent,center+Vector3(6+i*.4,0,-4.3),1.0)
+ if theme=="forest":TrailLanterns.fighting_lane(parent,center)
  if theme=="aqueduct":aqueduct_gallery(parent,center)
  if theme=="abbey":abbey_arcade(parent,center+Vector3(0,0,-9.7))
  if theme in ["observatory","castle"]:

@@ -16,6 +16,7 @@ func run():
  await verify_abbey_arcade()
  await verify_ruined_columns()
  await verify_village_groves()
+ await verify_trail_lanterns()
  await verify_cart()
  await verify_barrels()
  var colors=[]
@@ -213,6 +214,75 @@ func verify_village_groves():
  viewport.queue_free();await process_frame
  assert(game.rng.state==rng)
  print("PASS: two village groves and distant orchard, clear mapped and fallback house frontage in 18 wide-shot projections")
+
+func verify_trail_lanterns():
+ var scenery=Scenery.new();scenery.batching_enabled=false
+ var game=Rules.new();game.chapter=2
+ var before=game.save_data("camp").duplicate(true)
+ var world=Node3D.new();root.add_child(world);scenery.landscape(world,game)
+ var lamps=world.find_children("TrailLantern*","Node3D",false,false)
+ assert(lamps.size()==6 and world.find_children("*","Light3D",true,false).is_empty())
+ var frame=lamps[0].get_node("LanternFrame")
+ var paper=lamps[0].get_node("LanternPaper")
+ var frame_shape: ArrayMesh=frame.mesh
+ var bounds=frame_shape.get_aabb()
+ assert(bounds.position.y<0 and bounds.end.y>1.40 and bounds.size.x<.8)
+ var arrays=frame_shape.surface_get_arrays(0)
+ var points=arrays[Mesh.ARRAY_VERTEX];var normals=arrays[Mesh.ARRAY_NORMAL]
+ assert(points.size()/3<300,"The full fixture stays within a fixed low triangle budget")
+ for index in range(0,points.size(),3):
+  var normal=(points[index+1]-points[index]).cross(points[index+2]-points[index]).normalized()
+  assert(normal.dot(normals[index])<-.65,"Closed hardware retains its outward normal")
+ assert(paper.material_override.emission_enabled and paper.cast_shadow==GeometryInstance3D.SHADOW_CASTING_SETTING_OFF)
+ for lamp in lamps:
+  var foot=lamp.to_global(Vector3(-.285,0,0))
+  var tile=Vector2i(roundi(foot.x),roundi(foot.z))
+  assert(not game.terrain(tile) in ["~","=","+","#"])
+  assert(Vector2(foot.x-tile.x,foot.z-tile.y).length()>.35,"Lamp poles sit beside the route, away from unit feet")
+  assert(lamp.get_node("LanternFrame").mesh==frame_shape)
+  assert(lamp.get_node("LanternPaper").mesh==paper.mesh)
+ var stage=Node3D.new();root.add_child(stage)
+ var center=Vector3(35,0,0)
+ var context=scenery.combat_context(game,{"x":2,"y":4},{"x":3,"y":4})
+ scenery.battle_landscape(stage,center,context)
+ var arena_lamps=stage.find_children("TrailLantern*","Node3D",false,false)
+ assert(arena_lamps.size()==5 and stage.find_children("*","Light3D",true,false).is_empty())
+ for lamp in arena_lamps:
+  var housing=lamp.get_node("LanternFrame")
+  var window=lamp.get_node("LanternPaper")
+  assert(housing.mesh==frame_shape and window.mesh==paper.mesh)
+  assert(housing.material_override==frame.material_override and window.material_override==paper.material_override)
+  assert((housing.global_transform*housing.get_aabb()).end.z<-3.7 and is_zero_approx(lamp.global_position.y),
+   "Arena fixtures are planted behind the combat lane")
+ var tree_silhouettes=[]
+ for tree in stage.find_children("ArenaTree*","Node3D",false,false):
+  for tree_part in tree.find_children("*","MeshInstance3D",true,false):
+   var silhouette=tree_part.global_transform*tree_part.get_aabb()
+   if silhouette.end.z>center.z-6.5:tree_silhouettes.append(silhouette)
+ var viewport=SubViewport.new();viewport.render_target_update_mode=SubViewport.UPDATE_DISABLED;root.add_child(viewport)
+ var camera=Camera3D.new();viewport.add_child(camera);camera.current=true
+ for mounted in [false,true]:
+  var shot=CombatCamera.frame_pair(center+Vector3.LEFT*1.6,center+Vector3.RIGHT*1.6,"wide",false,mounted)
+  camera.position=shot.anchor;camera.fov=shot.lens;camera.look_at(shot.focus)
+  for dimensions in [Vector2i(1024,640),Vector2i(1280,720),Vector2i(1440,900)]:
+   viewport.size=dimensions;await process_frame
+   var open_screen=Rect2(Vector2(16,16),Vector2(dimensions)-Vector2(32,164))
+   var fixtures=arena_lamps.filter(func(lamp):
+    var position=lamp.get_node("LanternPaper").global_position
+    var clear=not tree_silhouettes.any(func(silhouette):return silhouette.intersects_segment(camera.global_position,position)!=null)
+    return clear and not camera.is_position_behind(position) and open_screen.has_point(camera.unproject_position(position)))
+   assert(fixtures.size()>=2,"At least two unoccluded lantern windows appear above the HUD in the wide shot")
+ var frame_paint=frame.material_override;var paper_paint=paper.material_override
+ scenery.batcher.combine(world)
+ var frame_batches=world.get_children().filter(func(node):return node is MeshInstance3D and node.material_override==frame_paint)
+ var paper_batches=world.get_children().filter(func(node):return node is MeshInstance3D and node.material_override==paper_paint)
+ assert(frame_batches.size()==2 and paper_batches.size()==2,"Both materials batch into the two spatial groups along the road")
+ var frame_vertices=0
+ for batch in frame_batches:frame_vertices+=batch.mesh.surface_get_array_len(0)
+ assert(frame_vertices==points.size()*lamps.size(),"Batching keeps all six housings and their colored surfaces")
+ world.queue_free();stage.queue_free();viewport.queue_free();await process_frame
+ assert(game.save_data("camp")==before,"Lamp placement never touches the campaign or RNG")
+ print("PASS: six Greywood roadside fixtures, five reused arena lanterns, four shared map batches, no extra lights and six unoccluded wide-shot projections")
 
 func verify_aqueduct_gallery():
  var scenery=Scenery.new();scenery.batching_enabled=false
