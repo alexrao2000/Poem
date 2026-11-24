@@ -95,10 +95,13 @@ func verify_flights(stage):
     for core in shot.body.get_children():
      if core.mesh is SphereMesh:assert(core.material_override.cull_mode==BaseMaterial3D.CULL_BACK,"Orb backfaces do not double the additive core brightness")
      assert(core.material_override.blend_mode==BaseMaterial3D.BLEND_MODE_ADD and core.material_override.albedo_color.a<1 and core.cast_shadow==GeometryInstance3D.SHADOW_CASTING_SETTING_OFF,"Elemental flight glows instead of casting opaque bead shadows")
+    var mesh_id: int
     for progress in [0.0,.025,.12,.5,1.0]:
      shot.progress=progress;shot._process(0)
      assert(shot.global_position.distance_to(shot.point_at(progress))<.00001)
      if progress==0:assert(not shot.wake.visible,"No tail exists before any distance is travelled");continue
+     if progress==.025:mesh_id=shot.wake.mesh.get_instance_id()
+     assert(shot.wake.mesh.get_instance_id()==mesh_id,"The same wake mesh follows the spell throughout flight")
      var arrays=shot.wake.mesh.surface_get_arrays(0);var points=arrays[Mesh.ARRAY_VERTEX];var colors=arrays[Mesh.ARRAY_COLOR]
      assert(shot.wake.visible and points.size()>90 and points.size()<=384,"Continuous crossed wake uses a bounded single surface")
      for i in range(0,points.size(),3):assert((points[i+1]-points[i]).cross(points[i+2]-points[i]).length_squared()>1e-15,"Tapered tail omits collapsed end faces")
@@ -118,6 +121,11 @@ func verify_flights(stage):
      assert(absf(peak-shape.opacity)<.004 and tail and transparent and sides>=4,
       "Wake has the intended width and luminous center, with soft edges and a transparent tail")
      samples+=1
+    var concurrent=Projectile.new();stage.add_child(concurrent)
+    concurrent.launch(target,origin,"magic",1,element).kill()
+    concurrent.progress=.5;concurrent._process(0)
+    assert(concurrent.wake.mesh!=shot.wake.mesh,"Simultaneous spells own separate moving meshes")
+    concurrent.queue_free()
     var reference=weakref(shot.wake);shot.queue_free();await process_frame
     assert(reference.get_ref()==null,"Completing or skipping flight releases its wake")
  print("PASS: %d elemental flight samples, distinct Ember, Gale and Thunder wake profiles, clear fallback, continuous additive geometry, transformed and vertical flights, soft edges and cleanup"%samples)

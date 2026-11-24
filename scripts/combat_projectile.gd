@@ -142,7 +142,8 @@ func update_wake(direction: Vector3):
  var up=Vector3.UP-direction*direction.dot(Vector3.UP)
  if up.length_squared()<.001:up=Vector3.RIGHT-direction*direction.dot(Vector3.RIGHT)
  up=up.normalized();var axes=[up,direction.cross(up).normalized()]
- var surface=SurfaceTool.new();surface.begin(Mesh.PRIMITIVE_TRIANGLES);var count=0
+ var vertices=PackedVector3Array()
+ var colors=PackedColorArray()
  var width=wake_shape.width*visual_scale;var opacity=wake_shape.opacity
  for step in range(8):
   var t0=step/8.0;var t1=(step+1)/8.0
@@ -155,10 +156,23 @@ func update_wake(direction: Vector3):
     for triangle in [[0,1,2],[0,2,3]]:
      if (points[triangle[1]]-points[triangle[0]]).cross(points[triangle[2]]-points[triangle[0]]).length_squared()<1e-15:continue
      for index in triangle:
-      var color=wake_color;color.a=alpha[index];surface.set_color(color);surface.add_vertex(points[index])
-     count+=1
- if count>0:wake.mesh=surface.commit();wake.show()
- else:wake.hide()
+      var color=wake_color
+      color.a=alpha[index]
+      vertices.append(points[index])
+      colors.append(color)
+ if vertices.is_empty():
+  wake.hide()
+  return
+ var arrays=[]
+ arrays.resize(Mesh.ARRAY_MAX)
+ arrays[Mesh.ARRAY_VERTEX]=vertices
+ arrays[Mesh.ARRAY_COLOR]=colors
+ var mesh=wake.mesh as ArrayMesh
+ if mesh==null:mesh=ArrayMesh.new()
+ else:mesh.clear_surfaces()
+ mesh.add_surface_from_arrays(Mesh.PRIMITIVE_TRIANGLES,arrays)
+ if wake.mesh==null:wake.mesh=mesh
+ wake.show()
 
 static func piece(parent: Node3D,mesh: Mesh,color: Color,unlit=false) -> MeshInstance3D:
  var node=MeshInstance3D.new();node.mesh=mesh
