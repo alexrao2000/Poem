@@ -169,6 +169,30 @@
         }
       },
       "composition_sha256": "d2f9723c7a2687d21a27ba0fab8dd6291ce26ab2341ed11b8ef8be15964362af"
+    },
+    {
+      "id": "glass_harbor",
+      "title": "When the Tide Turns",
+      "bpm": 116,
+      "bars": 32,
+      "frames": 1459862,
+      "sample_rate": 22050,
+      "channels": 2,
+      "arrangements": {
+        "calm": {
+          "path": "res://assets/audio/glass_harbor-calm.wav",
+          "peak": 0.5853714329524924,
+          "rms": 0.12,
+          "boundary_step": 0.006408109147568039
+        },
+        "ablaze": {
+          "path": "res://assets/audio/glass_harbor-ablaze.wav",
+          "peak": 0.8535513664163596,
+          "rms": 0.15,
+          "boundary_step": 0.005687668007680002
+        }
+      },
+      "composition_sha256": "9a897fa053f82be498a9a567eb01a71a841e8e2a0769b95598324b0517ebc2ca"
     }
   ]
 }

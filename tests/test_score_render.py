@@ -23,7 +23,9 @@ assert bank.render(60, 1, 'unknown') is None
 manifest = bank.manifest
 assert next(e['root'] for e in manifest['samples'] if e['path'].endswith('KSHarp_C5_mf.wav')) == 72, 'Harp octave labels differ from other instruments'
 catalog = json.loads((ROOT / 'assets/audio/themes.json').read_text())
-assert [profile['id'] for profile in catalog['profiles']] == ['standard', 'road', 'dawnless', 'sun_engine', 'abbey', 'starfall', 'greywood']
+assert [profile['id'] for profile in catalog['profiles']] == [
+    'standard', 'road', 'dawnless', 'sun_engine', 'abbey', 'starfall', 'greywood', 'glass_harbor',
+]
 for profile in catalog['profiles']:
     beats = profile.get('beats_per_bar', 4)
     assert profile['frames'] == round(profile['bars'] * beats * 60 / profile['bpm'] * profile['sample_rate'])
@@ -42,4 +44,4 @@ for profile in catalog['profiles']:
     assert np.mean(np.abs(tracks['calm']-tracks['ablaze'])) > .025, 'Ablaze is a distinct arrangement'
 score = json.loads((ROOT / 'assets/audio/score.json').read_text())
 assert score['frames'] == 1568000 and 'CC0' in score['samples']
-print('PASS: 33 verified orchestral recordings, source pitch mappings, note envelopes and fourteen stereo tracks with measured headroom and loop seams')
+print('PASS: 33 verified orchestral recordings, source pitch mappings, note envelopes and sixteen stereo tracks with measured headroom and loop seams')

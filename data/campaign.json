@@ -1127,7 +1127,7 @@
       "title": "Salt and Embers",
       "place": "Glass Harbor",
       "route_position": [0.74, 0.73],
-      "score_theme": "road",
+      "score_theme": "glass_harbor",
       "objective": "rout",
       "boss": "Admiral Vale",
       "intro": "The harbor is under siege. Vela’s beacon and Dax’s dockworkers can turn the tide if the occupation falls.",
