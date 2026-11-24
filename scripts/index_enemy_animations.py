@@ -11,7 +11,7 @@ from pathlib import Path
 
 import numpy as np
 from PIL import Image
-from index_recruit_animations import separators
+from index_recruit_animations import hoof_span, separators
 
 ROOT = Path(__file__).resolve().parent.parent
 PATH = ROOT / "assets/art/enemy-units-v2.png"
@@ -45,7 +45,10 @@ def main():
             rect = [x, y, end_x - x, end_y - y]
             if not (0 <= pivot[0] <= rect[2] and 0 <= pivot[1] <= rect[3]):
                 raise ValueError("Foot pivot outside frame")
-            frames.append({"rect": rect, "pivot_px": pivot})
+            frame = {"rect": rect, "pivot_px": pivot}
+            if template["id"] == "unit.rider":
+                frame["hoof_span_px"] = hoof_span(mask, rect, pivot)
+            frames.append(frame)
         assets.append({
             "id": template["id"].replace("unit.", "enemy.", 1),
             "kind": "map_unit", "texture": PATH.relative_to(ROOT).as_posix(),

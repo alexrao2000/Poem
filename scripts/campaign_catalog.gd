@@ -42,6 +42,13 @@ func add_supplement(path: String,prefix: String,issues: Array[String]) -> bool:
   for frame in facing_frames:
    if not (frame is int or frame is float) or not is_finite(float(frame)) or frame!=int(frame) or frame<0 or frame>=extra.assets[id].frames.size():
     issues.append(id+": invalid right-facing frame");return false
+  for frame in extra.assets[id].frames:
+   if not frame.has("hoof_span_px"):continue
+   var span=frame.hoof_span_px
+   if not span is Array or span.size()!=2 or not span.all(func(edge):
+    return (edge is int or edge is float) and is_finite(float(edge)) and edge>=0 and edge<frame.rect[2]
+   ) or span[0]>span[1]:
+    issues.append(id+": invalid hoof span");return false
  assets.merge(extra.assets);textures.merge(extra.textures)
  return true
 

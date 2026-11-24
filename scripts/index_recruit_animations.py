@@ -32,6 +32,15 @@ def separators(activity, count, radius):
     return cuts + [length]
 
 
+def hoof_span(mask, rect, pivot):
+    """Measure the hoof cluster near the planted baseline."""
+    x, y, width, height = rect
+    baseline = y + pivot[1]
+    start = max(y, baseline - max(4, round(height * .08)))
+    columns = np.where(mask[start:baseline + 1, x:x + width])[1]
+    return [int(edge) for edge in np.quantile(columns, [.03, .97], method="nearest")]
+
+
 def index_sheet(path, ids, scale):
     image = Image.open(path)
     if image.mode != "RGBA":
@@ -63,7 +72,11 @@ def index_sheet(path, ids, scale):
             pivot = [round((column + .5) * width / 12) - left, baseline - y]
             if not (0 <= pivot[0] <= right - left and 0 <= pivot[1] <= end - y):
                 raise ValueError(f"Invalid foot pivot in {character}, pose {column}")
-            frames.append({"rect": [left, y, right - left, end - y], "pivot_px": pivot})
+            rect = [left, y, right - left, end - y]
+            frame = {"rect": rect, "pivot_px": pivot}
+            if roster[character]["job"] == "Rider":
+                frame["hoof_span_px"] = hoof_span(mask, rect, pivot)
+            frames.append(frame)
         template = classes["unit." + roster[character]["job"].lower()]
         result.append({"id": "recruit." + character, "kind": "map_unit", "texture": path.relative_to(ROOT).as_posix(), "logical_frame_px": [64, 64], "source_pixel_scale": scale, "right_facing_frames": [10], "fallback_visual_id": None, "frames": frames, "clips": copy.deepcopy(template["clips"])})
     return result

@@ -4,6 +4,7 @@ extends "res://visuals/unit_3d.gd"
 # resolution stays in Rules. Owned motion always returns to the original tile.
 
 const TACTICAL_PIXEL_SIZE=1.0/48.0
+const CONTACT_SIZE=Vector2(.58,.40)
 const HEALTH_COLORS=[Color("e87c63"),Color("f2c45e"),Color("acd86b")]
 const CUTAWAY_TINT=Color(.66,.73,.79)
 static var contact_material: StandardMaterial3D
@@ -33,7 +34,7 @@ func configure(source: RefCounted,unit: Dictionary,facing="south",carried_name="
  setup(source,source.asset_id_for(unit))
  sprite.pixel_size=TACTICAL_PIXEL_SIZE;sprite.no_depth_test=true;sprite.render_priority=2
  if contact_mesh==null:
-  contact_mesh=PlaneMesh.new();contact_mesh.size=Vector2(.58,.40)
+  contact_mesh=PlaneMesh.new();contact_mesh.size=CONTACT_SIZE
  marker.mesh=contact_mesh;marker.material_override=shadow_material()
  ring.mesh=selection_mesh();ring.material_override=selection_material();ring.position.y=.072
  ring.cast_shadow=GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
@@ -171,6 +172,29 @@ func update_frame():
  sprite.scale=Vector3(scale_value.x,scale_value.y,1)
  sprite.flip_h=player.facing=="west" and player.asset.get("right_facing_frames",[]).any(func(value):return int(value)==player.frame_index())
  sprite.offset=Vector2(frame.pivot_px[0]-frame.rect[2] if sprite.flip_h else -frame.pivot_px[0],frame.pivot_px[1]-frame.rect[3])
+ if frame.has("hoof_span_px"):
+  update_hoof_shadow(frame,scale_value.x)
+ elif marker.scale!=Vector3.ONE:
+  marker.position=Vector3.UP*.03
+  marker.rotation=Vector3.ZERO
+  marker.scale=Vector3.ONE
+
+func update_hoof_shadow(frame: Dictionary,pixel_scale: float):
+ # Ground the visible hoof span without moving the sprite or its tile anchor.
+ var scale_in_world=pixel_scale*sprite.pixel_size
+ var span=Vector2(frame.hoof_span_px[0],frame.hoof_span_px[1])-Vector2.ONE*float(frame.pivot_px[0])
+ var middle=(span.x+span.y)*.5*scale_in_world
+ if sprite.flip_h:middle=-middle
+ var width=maxf(CONTACT_SIZE.x,(span.y-span.x)*scale_in_world*1.45+.08)
+ var camera=get_viewport().get_camera_3d() if is_inside_tree() else null
+ var right=Vector3.RIGHT
+ if camera!=null:
+  var horizontal=camera.global_basis.x
+  horizontal.y=0
+  if not horizontal.is_zero_approx():right=horizontal.normalized()
+ marker.position=right*middle+Vector3.UP*.03
+ marker.rotation.y=atan2(-right.z,right.x)
+ marker.scale=Vector3(width/CONTACT_SIZE.x,1,1.20)
 
 func face_step(step: Vector2i):
  player.play("move",Player.facing_for_step(step));update_frame()

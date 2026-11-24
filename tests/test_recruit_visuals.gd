@@ -65,6 +65,7 @@ func run():
   var visual_id="recruit."+unit.id;var saved=catalog.assets[visual_id];catalog.assets.erase(visual_id)
   actor=Unit.new();stage.add_child(actor);actor.configure(catalog,unit)
   assert(actor.visual_id=="unit."+unit.job.to_lower(),"Missing recruit artwork falls back to the correct class")
+  assert(actor.marker.position==Vector3.UP*.03 and actor.marker.scale==Vector3.ONE,"Legacy class sprites use the original radial shadow")
   actor.queue_free();catalog.assets[visual_id]=saved
   unit.team="enemy";actor=Unit.new();stage.add_child(actor);actor.configure(catalog,unit)
   assert(actor.visual_id=="enemy."+unit.job.to_lower(),"Enemy figures use army class silhouettes even if an ID matches a recruit")
@@ -84,6 +85,45 @@ func run():
  assert(catalog.assets.keys()==keys and catalog.textures.keys()==textures,"Rejected supplement leaves the active catalog intact")
  assert(not catalog.add_recruits("res://data/campaign.json") and catalog.assets.keys()==keys,"Malformed supplement preserves class fallback")
  assert(catalog.open("res://visuals/units.json") and catalog.recruit_errors.is_empty() and catalog.spent_textures.is_empty(),"Reopening resets supplemental errors and presentation cache")
+ verify_hoof_shadows(catalog,stage,game)
  stage.queue_free();await process_frame
  print("PASS: 24 original recruit identities, 288 isolated poses, stable density/pivots, directional attacks, shared health bars and shadows, cached grayscale states, class/enemy fallbacks and supplemental validation")
  quit()
+
+func verify_hoof_shadows(catalog,stage: Node3D,game):
+ var camera=Camera3D.new();stage.add_child(camera);camera.current=true
+ var count=0;var previously_outside=0
+ var gradient=Unit.shadow_material().albedo_texture.gradient
+ for id in ["bram","una","elian","enemy.rider"]:
+  var rider=game.roster.filter(func(unit):return unit.id==("bram" if id=="enemy.rider" else id))[0].duplicate(true)
+  rider.team="enemy" if id=="enemy.rider" else "player"
+  rider.acted=false
+  var actor=Unit.new();stage.add_child(actor);actor.configure(catalog,rider)
+  var authored=actor.player.asset.duplicate(true)
+  actor.player.asset=authored
+  authored.clips.idle.south.frames=range(authored.frames.size())
+  actor.player.play("idle","south",true)
+  for rotation in [.55,.65]:
+   camera.rotation=Vector3(-.8,rotation,0)
+   var right=camera.global_basis.x
+   for i in range(authored.frames.size()):
+    actor.player.index=i;actor.update_frame()
+    var frame=authored.frames[i]
+    assert(frame.has("hoof_span_px"))
+    var original_radius=Vector2(right.x*Unit.CONTACT_SIZE.x,right.z*Unit.CONTACT_SIZE.y).length()*.5
+    for edge in frame.hoof_span_px:
+     var hoof=(edge-frame.pivot_px[0])*authored.source_pixel_scale*actor.sprite.pixel_size
+     var under_hoof=actor.marker.to_local(right*hoof+Vector3.UP*.03)
+     assert(gradient.sample(absf(under_hoof.x)/(Unit.CONTACT_SIZE.x*.5)).a>.07,
+      "Each measured hoof receives the soft part of the mounted shadow")
+     assert(absf(under_hoof.z)<.00001)
+     if absf(hoof)>original_radius:previously_outside+=1
+    assert(actor.marker.mesh==Unit.contact_mesh and actor.marker.material_override==Unit.shadow_material())
+    count+=1
+  actor.player.play("act","east",true);actor.player.advance(.13);actor.update_frame()
+  var side=actor.marker.position
+  actor.player.play("act","west",true);actor.player.advance(.13);actor.update_frame()
+  assert(actor.sprite.flip_h and (side+actor.marker.position).is_equal_approx(Vector3.UP*.06))
+  actor.queue_free()
+ assert(count==96 and previously_outside>0)
+ print("PASS: %d mounted shadow poses at two camera headings, a mirrored strike and %d formerly unsupported hoof samples"%[count,previously_outside])

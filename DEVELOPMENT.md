@@ -1,5 +1,7 @@
 # Poem development
 
+Mounted map figures use a fitted ground shadow that follows the hoof spread and flips with mirrored attacks.
+
 Hallow Abbey plays “Vespers for the Empty Tower,” a 32-bar Calm and Ablaze pair in three at 88 BPM. The Music Room lists it for Chapter 04.
 
 Staff light carries the equipped crystal's color on the map and in close-up. The recovery glow and HP cue use one palette for all four staffs.
