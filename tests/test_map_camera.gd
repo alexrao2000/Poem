@@ -46,7 +46,8 @@ func visible_combat_zoom():
      app.map_camera();app.camera.size=zoom
      if panned:app.camera.position+=Vector3(1.5,0,-1)
      var original=app.map_navigation.capture_view();var initial=app.unit_nodes[a.id].screen_bounds(app.camera).size.y
-     var approach=app.map_navigation.approach_combat(focus);approach.pause()
+     var subjects=[app.unit_nodes[a.id],app.unit_nodes[b.id]]
+     var approach=app.map_navigation.approach_combat(focus,.42,subjects);approach.pause()
      var veil=Transition.new();veil.configure(app.ui);var fade=veil.conceal();fade.pause()
      approach.custom_step(.42*.5);fade.custom_step(.42*.5)
      assert(veil.cover_alpha()==0 and app.unit_nodes[a.id].screen_bounds(app.camera).size.y>=initial*(1.15 if zoom==8 else 1.45),"The sprite zoom becomes visible before the covering fade starts")
@@ -64,6 +65,43 @@ func visible_combat_zoom():
  assert(count==54 and not FileAccess.file_exists(app.save_path) and not FileAccess.file_exists(app.save_path+".debug"))
  await Shutdown.dispose(app);viewport.queue_free();await process_frame
 
+func offscreen_combat_zoom():
+ var viewport=SubViewport.new();viewport.size=Vector2i(1440,900);viewport.render_target_update_mode=SubViewport.UPDATE_DISABLED;root.add_child(viewport)
+ var app=load("res://main.tscn").instantiate();app.settings_path="";app.save_path="/private/tmp/poem-offscreen-zoom-%d.json"%Time.get_ticks_usec();viewport.add_child(app);await process_frame
+ app.debug_session.begin(app.game,"camp")
+ var count=0;var offscreen=0;var widened=0
+ for sample in [["lyra","iron_sword"],["oren","javelin"],["sera","longbow"]]:
+  var setup=app.debug_session.start_recruit_encounter(app.game,sample[0],"",sample[1],5)
+  app.make_map();app.show_battle();await process_frame
+  var first=app.unit_nodes[setup.actor];var second=app.unit_nodes[setup.target];var subjects=[first,second]
+  var focus=(first.position+second.position)*.5
+  var extent=app.game.board_size();var center=Vector3((extent.x-1)*.5,0,(extent.y-1)*.5)
+  var homes=[Vector3(-1,0,-1),Vector3(extent.x,0,-1),Vector3(-1,0,extent.y),Vector3(extent.x,0,extent.y),center]
+  var saved=app.game.save_data("battle").duplicate(true)
+  for dimensions in [Vector2i(720,640),Vector2i(720,960),Vector2i(1024,640),Vector2i(1440,900)]:
+   viewport.size=dimensions;await process_frame
+   var frame=Rect2(Vector2.ZERO,Vector2(dimensions))
+   for home in homes:
+    app.map_camera();app.camera.size=8.0;app.camera.position+=home-center
+    var initial=app.map_navigation.capture_view()
+    if not frame.encloses(app.map_navigation.combat_bounds(subjects)):offscreen+=1
+    var push=app.map_navigation.approach_combat(focus,.42,subjects);push.pause()
+    assert(app.map_navigation.capture_view()==initial,"The framing check preserves the live starting camera exactly")
+    push.custom_step(.21)
+    assert(frame.encloses(app.map_navigation.combat_bounds(subjects)),"Both sprites are fully visible before concealment at %s from %s with %s"%[dimensions,home,sample[1]])
+    push.custom_step(.211)
+    var settled=app.map_navigation.capture_view()
+    assert(frame.grow(-17).encloses(app.map_navigation.combat_bounds(subjects)),"The final close view has room around both figures")
+    if settled.size>5.0:widened+=1
+    var returning=app.map_navigation.return_from_combat(settled,initial);returning.pause();returning.custom_step(.251)
+    assert(app.map_navigation.capture_view()==initial,"A fitted close view returns to the exact previous map")
+    count+=1
+  assert(app.game.save_data("battle")==saved,"Fitting an offscreen exchange leaves the full save and RNG untouched")
+ assert(count==60 and offscreen==48 and widened==5)
+ assert(not FileAccess.file_exists(app.save_path) and not FileAccess.file_exists(app.save_path+".debug"))
+ await Shutdown.dispose(app);viewport.queue_free();await process_frame
+ print("PASS: sixty combat entries bring both sprites into view before concealment, including forty-eight initially offscreen and five fitted narrow longbow shots")
+
 func verify_transition_palette(app):
  var inks={}
  for chapter in app.CHAPTER_LIGHTING.values():
@@ -77,6 +115,7 @@ func verify_transition_palette(app):
 
 func run():
  await visible_combat_zoom()
+ await offscreen_combat_zoom()
  var app=load("res://main.tscn").instantiate();app.settings_path="";app.save_path="/private/tmp/poem-map-camera.json"
  root.add_child(app);await process_frame
  verify_transition_palette(app)
@@ -149,9 +188,14 @@ func run():
  var wheel=InputEventMouseButton.new();wheel.pressed=true;wheel.button_index=MOUSE_BUTTON_WHEEL_UP;wheel.position=anchor
  app.busy=true;app._unhandled_input(wheel);assert(camera.size==16 and nav.zoom_goal==16,"Busy actions ignore map gestures")
  app.busy=false;app._unhandled_input(wheel);await create_timer(.035).timeout
- camera.position+=Vector3(3,0,-2)
+ camera.size=8.5;camera.position+=Vector3(7.5,0,-5.5)
  var prior=camera.transform;var size=camera.size;var rng=app.game.rng.state
- var handoff=[false];var restored=[false];var checked_tint=[false]
+ var a=app.game.units[0];var b=app.game.living("enemy")[0];a.x=8;a.y=4;b.x=9;b.y=4
+ app.refresh_pieces()
+ var subjects=[app.unit_nodes[a.id],app.unit_nodes[b.id]]
+ var frame=camera.get_viewport().get_visible_rect()
+ assert(not frame.encloses(nav.combat_bounds(subjects)),"The actual exchange starts from a camera panned away from its participants")
+ var handoff=[false];var restored=[false];var checked_tint=[false];var visible_before_cut=[false]
  var horizon=app.environment.sky.sky_material.sky_horizon_color
  var expected_ink=Transition.INK.lerp(horizon.darkened(.81),.52)
  var observe_return=func():
@@ -160,15 +204,17 @@ func run():
   if veil!=null:
    assert(veil.ink.is_equal_approx(expected_ink),"The actual map and arena fade keep the battlefield's dusk tint")
    checked_tint[0]=true
+   if not handoff[0] and veil.progress>=.5 and veil.progress<=.62 and frame.encloses(nav.combat_bounds(subjects)):
+    visible_before_cut[0]=true
   if app.stage.visible:handoff[0]=true
   elif handoff[0] and not restored[0]:
    restored[0]=true
    var pair=Vector3(8.5,0,4);var screen=camera.unproject_position(pair);var middle=camera.get_viewport().get_visible_rect().size*.5
    assert(screen.distance_to(middle)<120 and camera.size<size,"Real arena return reveals a close view around the battle before reaching the saved map framing")
  process_frame.connect(observe_return)
- var a=app.game.units[0];var b=app.game.living("enemy")[0];a.x=8;a.y=4;b.x=9;b.y=4
  await app.cinematic(a,b,[{"actor":a.id,"target":b.id,"damage":1,"remaining":19,"hit":true,"crit":false}],{a.id:20,b.id:20})
- process_frame.disconnect(observe_return);assert(restored[0] and checked_tint[0],"Real cinematic exercised the tinted map handoff")
+ process_frame.disconnect(observe_return)
+ assert(restored[0] and checked_tint[0] and visible_before_cut[0],"Real cinematic finds the offscreen units before cutting and restores the player's view")
  check_details(app,true)
  await create_timer(.2).timeout
  assert(camera.transform.is_equal_approx(prior) and is_equal_approx(camera.size,size),"Interrupted map zoom cannot overwrite arena or restored view")

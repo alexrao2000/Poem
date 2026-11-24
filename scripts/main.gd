@@ -1274,9 +1274,11 @@ func cinematic(a,b,events,initial_hp={},challenge: Dictionary={}):
 		music_mix(false)
 		await present_casualties(events)
 		return
+	var combat_sprites: Array = []
 	for pair in [[a,b],[b,a]]:
 		var visual=unit_nodes.get(pair[0].id)
 		if visual!=null:
+			combat_sprites.append(visual)
 			visual.face_toward(game.pos(pair[1]),game.pos(pair[0]));map_facings[pair[0].id]=visual.player.facing
 	skip_combat=false;music_mix(true)
 	var tactical_view=map_navigation.capture_view()
@@ -1295,7 +1297,7 @@ func cinematic(a,b,events,initial_hp={},challenge: Dictionary={}):
 	var veil=CombatTransition.new();veil.configure(ui,func():return camera.unproject_position(focus),horizon)
 	veil.conceal()
 	play_sfx("approach")
-	var push=map_navigation.approach_combat(focus)
+	var push=map_navigation.approach_combat(focus,.42,combat_sprites)
 	await push.finished
 	if veil.motion.is_running():await veil.motion.finished
 	var close_map_view=map_navigation.capture_view()

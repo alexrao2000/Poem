@@ -2,6 +2,8 @@ extends RefCounted
 # Orthographic navigation preserves the ground under the pointer when zooming.
 # Bounds keep the board recoverable; stopping cancels every pending camera tween
 # before cinematic ownership changes. This helper never changes simulation state.
+const COMBAT_SIZE=5.0
+
 var camera: Camera3D
 var board=Vector2i(14,10)
 var eye_offset=Vector3.ZERO
@@ -19,12 +21,8 @@ func stop():
  dragging=false
  if is_instance_valid(camera):zoom_goal=camera.size
 
-func approach_combat(focus: Vector3,duration=.42) -> Tween:
+func approach_combat(focus: Vector3,duration=.42,subjects: Array=[]) -> Tween:
  stop()
- motion=camera.create_tween().set_parallel(true).set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_IN_OUT)
- motion.tween_property(camera,"size",5.0,duration)
- motion.tween_property(camera,"h_offset",0.0,duration)
- motion.tween_property(camera,"v_offset",0.0,duration)
  # Orbit around a moving look point, keeping the pair centered as the map
  # angle descends. A single owner also makes interruption/restoration exact.
  var rotation=camera.rotation
@@ -33,11 +31,41 @@ func approach_combat(focus: Vector3,duration=.42) -> Tween:
  var heading=Vector3(eye_offset.x,0,eye_offset.z).normalized().rotated(Vector3.UP,.10)
  var destination=(heading*cos(deg_to_rad(38))+Vector3.UP*sin(deg_to_rad(38)))*distance
  var final_rotation=Basis.looking_at(-destination,Vector3.UP).get_euler()
+ var size_goal=COMBAT_SIZE
+ var offscreen=false
+ if not subjects.is_empty():
+  var frame=camera.get_viewport().get_visible_rect()
+  offscreen=not frame.grow(-4).encloses(combat_bounds(subjects))
+  size_goal=fit_combat_zoom(subjects,focus,final_rotation,distance,frame)
+ var start_offset=Vector2(camera.h_offset,camera.v_offset)
+ motion=camera.create_tween().set_parallel(true).set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_IN_OUT)
+ motion.tween_property(camera,"size",size_goal,duration)
  motion.tween_method(func(weight):
+  # Bring an offscreen exchange into view while the map is still uncovered.
+  var pan=1.0-pow(1.0-weight,5.0) if offscreen else weight
   camera.rotation=Vector3(lerp_angle(rotation.x,final_rotation.x,weight),lerp_angle(rotation.y,final_rotation.y,weight),0)
-  camera.position=start_focus.lerp(focus,weight)+camera.basis.z*distance
+  camera.position=start_focus.lerp(focus,pan)+camera.basis.z*distance
+  camera.h_offset=lerpf(start_offset.x,0.0,pan);camera.v_offset=lerpf(start_offset.y,0.0,pan)
  ,0.0,1.0,duration)
  return motion
+
+func combat_bounds(subjects: Array) -> Rect2:
+ var bounds=subjects[0].screen_bounds(camera)
+ for index in range(1,subjects.size()):
+  bounds=bounds.merge(subjects[index].screen_bounds(camera))
+ return bounds
+
+func fit_combat_zoom(subjects: Array,focus: Vector3,angle: Vector3,distance: float,frame: Rect2) -> float:
+ var before=capture_view()
+ camera.rotation=angle;camera.position=focus+camera.basis.z*distance
+ camera.size=COMBAT_SIZE;camera.h_offset=0;camera.v_offset=0
+ var bounds=combat_bounds(subjects)
+ camera.transform=before.transform;camera.size=before.size
+ camera.h_offset=before.h_offset;camera.v_offset=before.v_offset
+ var center=frame.get_center()
+ var extent=(bounds.position-center).abs().max((bounds.end-center).abs())
+ var half_frame=(frame.size*.5-Vector2(18,18)).max(Vector2.ONE)
+ return COMBAT_SIZE*maxf(1,maxf(extent.x/half_frame.x,extent.y/half_frame.y))
 
 func capture_view() -> Dictionary:
  return {"transform":camera.transform,"size":camera.size,"h_offset":camera.h_offset,"v_offset":camera.v_offset,"fov":camera.fov,"projection":camera.projection}
