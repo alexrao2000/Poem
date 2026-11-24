@@ -392,6 +392,7 @@ func make_map():
 	refresh_pieces()
 
 func refresh_pieces():
+	var previous=unit_nodes.duplicate()
 	for n in pieces.get_children():n.queue_free()
 	sprites.clear();unit_nodes.clear()
 	for u in game.units:
@@ -400,6 +401,8 @@ func refresh_pieces():
 		var passenger=game.DeathDoor.passenger(game,u)
 		var occupants=game.occupants(game.pos(u));var count=occupants.size() if occupants[0].id==u.id else 0
 		pieces.add_child(visual);visual.configure(map_catalog,u,map_facings.get(u.id,"south"),passenger.name if passenger!=null else "",count)
+		var old_visual=previous.get(u.id)
+		if is_instance_valid(old_visual):visual.retain_idle_phase(old_visual)
 		visual.selected=selected!=null and selected.id==u.id
 		unit_nodes[u.id]=visual;sprites.append(visual.sprite)
 

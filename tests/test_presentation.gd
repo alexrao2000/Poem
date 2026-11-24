@@ -249,12 +249,28 @@ func verify_weather_exchange(app):
 	app.game.chapter=2;app.game.start_battle();app.make_map();app.show_battle()
 	var a=app.game.living("player")[0];var b=app.game.living("enemy")[0]
 	a.x=7;a.y=4;b.x=8;b.y=4;app.refresh_pieces()
+	var bystander=app.game.living("player")[1]
 	var rain=app.world.get_node("AmbientDrift")
 	rain.seek_elapsed(7.25)
 	var state=app.game.save_data("battle").duplicate(true)
 	for skip in [false,true]:
 		await process_frame
 		var transfer={"entry":-1.0,"return":-1.0,"skipped":false}
+		var idle_phases={}
+		var sprites_restored=[0]
+		var inspect_idle=func():
+			for unit in [a,b,bystander]:
+				var piece=app.unit_nodes[unit.id]
+				if not app.pieces.visible:
+					# Set distinct nonzero positions once the hidden sprite clock pauses.
+					piece.player.play("idle","",true)
+					piece.player.advance(float(piece.player.clip().duration_ms[0])/1000.0+(.02 if unit==bystander else .04))
+					piece.update_frame()
+					idle_phases[unit.id]=[piece.player.index,piece.player.elapsed_ms,piece.sprite.texture,piece.clock]
+				else:
+					assert([piece.player.index,piece.player.elapsed_ms,piece.sprite.texture,piece.clock]==idle_phases[unit.id],
+						"Both combatants and the bystander return at their exact paused tactical pose")
+					sprites_restored[0]+=1
 		var enter=func():
 			if app.world.visible:return
 			var arena=app.stage.get_node("AmbientDrift")
@@ -273,12 +289,16 @@ func verify_weather_exchange(app):
 			transfer.skipped=true
 		app.world.visibility_changed.connect(enter)
 		app.stage.visibility_changed.connect(finish)
+		app.pieces.visibility_changed.connect(inspect_idle)
 		process_frame.connect(handle_skip)
 		await app.cinematic(a,b,[{"actor":a.id,"target":b.id,"damage":1,"remaining":b.hp-1,"hit":true,"crit":false}],{a.id:a.hp,b.id:b.hp})
 		app.world.visibility_changed.disconnect(enter)
 		app.stage.visibility_changed.disconnect(finish)
+		app.pieces.visibility_changed.disconnect(inspect_idle)
 		process_frame.disconnect(handle_skip)
 		assert(transfer.entry>7.25 and transfer.return>transfer.entry and transfer.skipped==skip)
+		assert(sprites_restored[0]==3)
 		assert(rain.elapsed>=transfer.return and app.world.visible and not app.stage.visible)
 	assert(app.game.save_data("battle")==state)
 	print("PASS: Greywood carries the same seeded rain phases into a complete and a skipped 3D exchange, then continues on the map")
+	print("PASS: both combatants and a bystander retain their exact tactical idle phases through full and skipped 3D exchanges")

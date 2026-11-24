@@ -6,6 +6,8 @@ This checkpoint describes the current development branch and supersedes the earl
 
 ### Latest state
 
+The tactical figures now resume the same idle pose after close-up combat. In the previous build a bystander returned at frame zero. Both combatants and a bystander now retain the exact frame, texture and animation clock in full and skipped fights. Eight focused suites, four packed checks, 72 matched chapter outcomes and both ZIP checks passed. See `build/review/tactical-idle-continuity.json`.
+
 The tactical camera now refits Home when the viewport changes during a fight. Four actual encounters exercised a resize in the arena, an opening Skip, a resize during the map reveal and a manual view. Home matched the fitted board at the new size and retained the saved lens. A deliberate pan and zoom returned exactly. Eight focused suites, four packed checks, 72 matched chapter outcomes and both ZIP checks passed.
 
 The frozen authored-route release `724419f` passed all 383 registered engine suites and four offline checks. The verified source, log hashes and ordered results are in `build/review/latest-source-regression/full-current-state.json`.

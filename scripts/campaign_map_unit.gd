@@ -169,6 +169,14 @@ func rest_pose(facing=""):
  if downed:player.skip()
  update_frame()
 
+func retain_idle_phase(previous):
+ if visual_id!=previous.visual_id or player.facing!=previous.player.facing:return
+ if player.state!="idle" or previous.player.state!="idle":return
+ player.index=previous.player.index
+ player.elapsed_ms=previous.player.elapsed_ms
+ clock=previous.clock
+ update_frame()
+
 func settle_reaction():
  if reaction_motion and reaction_motion.is_valid():
   reaction_motion.kill();position=reaction_origin
