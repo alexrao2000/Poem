@@ -32,13 +32,33 @@ func run():
  var patient=app.game.roster[-1];app.game.trials.flags.sacrifice_cost=true;app.game.trials.injuries[patient.id]=11
  app.game.start_battle()
  var returning=app.game.units.filter(func(unit):return unit.id==patient.id)[0]
- for dimensions in [Vector2(1024,640),Vector2(1280,720),Vector2(1440,900)]:
+ var layouts=[Vector2(720,640),Vector2(768,900),Vector2(959,640),Vector2(960,640),Vector2(1024,640),Vector2(1280,720),Vector2(1440,900)]
+ for dimensions in layouts:
   app.show_camp();app.ui.set_anchors_and_offsets_preset(Control.PRESET_TOP_LEFT);app.ui.size=dimensions;await settle()
+  var grid=app.ui.find_child("CompanyCards",true,false)
+  var viewport=Rect2(Vector2.ZERO,dimensions)
+  var roster_scroll=app.ui.find_child("CompanyScroll",true,false)
+  assert(grid.columns==(1 if dimensions.x<960 else 2) and grid.get_child_count()==24)
+  assert(viewport.encloses(roster_scroll.get_global_rect()))
+  var position_button=app.ui.find_child("OpenFormation",true,false)
+  var deploy_button=position_button.get_parent().get_child(0)
+  assert(viewport.encloses(position_button.get_global_rect()) and viewport.encloses(deploy_button.get_global_rect()))
+  for entry in grid.get_children():
+   assert(entry.get_global_rect().end.x<=roster_scroll.get_global_rect().end.x,"Every recruit remains horizontally visible in the roster column")
   var preview=card(app,patient.id)
   assert("RECOVERING" in preview.state_label.text and "%d/%d"%[returning.hp,returning.max_hp] in preview.find_child("DeploymentHealth",true,false).text,"Preparation previews actual reduced starting HP")
   assert("%d tonic"%returning.potions in preview.state_label.tooltip_text and preview.state_label.mouse_filter!=Control.MOUSE_FILTER_IGNORE)
   assert(preview.find_child("DeploymentSupplies",true,false).text=="1 field tonic" and returning.potions==1,"Visible recovery supplies match actual deployment")
   for label in preview.find_children("*","Label",true,false):assert(preview.get_global_rect().grow(1).encloses(label.get_global_rect()),"Recovery information fits the company card at every supported size")
+ var focused=card(app,patient.id).deploy_button
+ focused.grab_focus();await settle()
+ var deployment=app.game.deployed.duplicate()
+ for dimensions in [Vector2(720,640),Vector2(960,640)]:
+  app.ui.size=dimensions;await settle()
+  var roster_scroll=app.ui.find_child("CompanyScroll",true,false)
+  assert(focused.has_focus() and roster_scroll.get_global_rect().grow(1).encloses(focused.get_global_rect()),
+   "The current recruit stays focused and visible when the roster reflows")
+ assert(app.game.deployed==deployment)
  app.show_dossier(patient);await settle()
  assert(app.ui.find_children("*","Label",true,false).any(func(label):return label.text.begins_with("RECOVERY · Next deployment")),"Dossiers explain the same deployment penalty")
  app.game.trials.injuries[patient.id]=10;app.show_camp();await settle()
@@ -68,5 +88,5 @@ func run():
  assert(app.world.visible and app.pieces.visible and app.pieces.process_mode==Node.PROCESS_MODE_INHERIT,"Leaving council restores the previous map state")
  assert(app.game.roster==original and app.game.rng.state==rng,"Preparation presentation never changes progression or combat randomness")
  await Shutdown.dispose(app);await process_frame
- print("PASS: all twelve roster states, deployment/recovery supplies, locked and fallen recruits, six-slot capacity, real add/remove actions, retained scroll/focus, dossier navigation and progression isolation")
+ print("PASS: all twelve roster states, seven council layouts, focus and scroll through reflow, deployment/recovery supplies, locked and fallen recruits, six-slot capacity, real add/remove actions, dossier navigation and progression isolation")
  call_deferred("quit")

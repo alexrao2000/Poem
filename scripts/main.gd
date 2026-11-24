@@ -524,6 +524,24 @@ func show_camp():
 	var cards=GridContainer.new();cards.name="CompanyCards";cards.columns=2
 	cards.add_theme_constant_override("h_separation",10);cards.add_theme_constant_override("v_separation",10)
 	cards.size_flags_horizontal=Control.SIZE_EXPAND_FILL;scroll.add_child(cards)
+	var fit_company=func():
+		var narrow=ui.size.x<960.0
+		var columns=1 if narrow else 2
+		if cards.columns==columns:return
+		cards.columns=columns
+		scroll.custom_minimum_size.x=252 if narrow else 460
+		row.add_theme_constant_override("separation",16 if narrow else 24)
+		for margin in ["margin_left","margin_right"]:shell.add_theme_constant_override(margin,16 if narrow else 28)
+		var focused=ui.get_viewport().gui_get_focus_owner()
+		if focused!=null and cards.is_ancestor_of(focused):
+			var selection=weakref(focused);var roster_view=weakref(scroll)
+			var tree=get_tree()
+			(func():
+				await tree.process_frame
+				await tree.process_frame
+				var current=roster_view.get_ref();var control=selection.get_ref()
+				if current!=null and control!=null and control.has_focus():current.ensure_control_visible(control)).call_deferred()
+	ui.resized.connect(fit_company);fit_company.call()
 	for u in game.roster:
 		var unlocked=game.trials.joined(game,u) and not u.get("fallen",false)
 		var card=preload("res://scripts/company_card.gd").new();cards.add_child(card)

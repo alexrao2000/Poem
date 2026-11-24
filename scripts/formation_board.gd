@@ -32,7 +32,7 @@ func configure(game,art):
   push_error("Formation preview could not restore the preparation state");return
  for unit in game.deployment_units():units[unit.id]=unit.duplicate(true)
  mouse_filter=Control.MOUSE_FILTER_IGNORE;size_flags_horizontal=Control.SIZE_EXPAND_FILL;size_flags_vertical=Control.SIZE_EXPAND_FILL
- custom_minimum_size=Vector2(420,300)
+ custom_minimum_size=Vector2(360,300)
  for index in range(draft.size()):
   var button=Button.new();button.name="StartingSlot"+str(index+1);button.z_index=1;button.toggle_mode=true;button.mouse_default_cursor_shape=Control.CURSOR_POINTING_HAND
   for state in ["normal","hover","pressed","focus"]:
@@ -106,17 +106,20 @@ func refresh():
 func arrange():
  if chapter.is_empty():return
  var dimensions=Vector2(chapter.map[0].length(),chapter.map.size())
- cell_size=minf((size.x-24)/dimensions.x,(size.y-24)/dimensions.y)
+ var compact=size.x<420.0
+ var inset=4.0 if compact else 12.0
+ var gutter=.5 if compact else 1.0
+ cell_size=minf((size.x-2*inset)/dimensions.x,(size.y-2*inset)/dimensions.y)
  map_rect=Rect2((size-dimensions*cell_size)*.5,dimensions*cell_size)
  for index in range(slots.size()):
   var point=chapter.deployment_positions[index]
-  slots[index].position=map_rect.position+Vector2(point[0],point[1])*cell_size+Vector2.ONE
-  slots[index].size=Vector2.ONE*(cell_size-2)
+  slots[index].position=map_rect.position+Vector2(point[0],point[1])*cell_size+Vector2.ONE*gutter
+  slots[index].size=Vector2.ONE*(cell_size-2*gutter)
   var warning=slots[index].get_node("ThreatBadge");warning.position=Vector2(maxf(0,slots[index].size.x-warning.get_minimum_size().x-2),0)
  for index in range(foes.size()):
   var point=enemy_markers[index].position
-  foes[index].position=map_rect.position+Vector2(point[0],point[1])*cell_size+Vector2.ONE
-  foes[index].size=Vector2.ONE*(cell_size-2)
+  foes[index].position=map_rect.position+Vector2(point[0],point[1])*cell_size+Vector2.ONE*gutter
+  foes[index].size=Vector2.ONE*(cell_size-2*gutter)
  queue_redraw()
 
 func _draw():

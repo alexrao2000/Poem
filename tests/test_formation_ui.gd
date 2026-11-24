@@ -11,7 +11,7 @@ func run():
  var app=load("res://main.tscn").instantiate();app.settings_path="";app.save_path="/private/tmp/poem-formation-ui-%d.json"%Time.get_ticks_usec();viewport.add_child(app);await process_frame
  app.preferences.values.combat="map";app.preferences.values.auto_end=false
  var layouts=0;var inspections=0;var jobs={};var staff=0;var warnings=0
- for dimensions in [Vector2i(1024,640),Vector2i(1280,720),Vector2i(1440,900)]:
+ for dimensions in [Vector2i(720,640),Vector2i(1024,640),Vector2i(1280,720),Vector2i(1440,900)]:
   viewport.size=dimensions;await process_frame
   for chapter in range(12):
    app.game.new_campaign(true);app.game.chapter=chapter;app.game.deployed=app.game.available().slice(0,6).map(func(unit):return unit.id)
@@ -41,6 +41,7 @@ func run():
      assert(Rect2(Vector2.ZERO,slot.size).encloses(badge.get_rect()) and "possible enemy attack" in slot.tooltip_text);warnings+=1
 
    var inspector=app.ui.find_child("FormationInspector",true,false);var selector=app.ui.find_child("FormationEnemyChoice",true,false)
+   assert(Rect2(Vector2.ZERO,Vector2(dimensions)).encloses(selector.get_global_rect()))
    var enemies=board.preview_rules.living("enemy");assert(board.foes.size()==enemies.size() and selector.item_count==enemies.size()+1)
    for index in range(enemies.size()):
     var enemy=enemies[index];board.foes[index].pressed.emit();await process_frame
