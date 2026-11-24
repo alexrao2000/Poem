@@ -6,6 +6,8 @@ This checkpoint describes the current development branch and supersedes the earl
 
 ### Latest state
 
+Ten portrait imports reduced the browser data pack from 109.4 MB to 97.5 MB. All alpha pixels match, and the largest mean RGB difference across 68 measured portrait crops is 1.85 of 255 levels. Fifteen focused suites, both exports, pixel comparisons and critical, dialogue and forecast suites in both packs, and archive integrity passed. See `build/review/portrait-atlases-measurements.json`. Rendered appearance remains unreviewed.
+
 All twelve battlefields now have original eight-second ambience. The earlier eight loops regenerate byte for byte, and all twelve imported PCM payloads match their sources. Thirteen focused suites, both exports, twelve actual combat and menu transitions in each pack, and archive integrity passed. The same ambience decoder continues through each transition while the score blends to Ablaze. Listening remains unreviewed.
 
 Glass Harbor now has inland, quayside and timber pier combat scenery. The warehouse sits fully on the quay, and the boats sit beyond its wall. Twelve camera projections checked the water and bollards. Two actual mounted exchanges used stone and wood contacts with identical before and after saves and RNG. Nine focused suites, both exports, architecture and contact audio in both packs, and archive integrity passed. Rendered appearance and listening remain unreviewed.
