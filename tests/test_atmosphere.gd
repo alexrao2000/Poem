@@ -54,6 +54,12 @@ func run():
    assert(buffer.size()==a.states.size()*16,"Bulk upload contains every matrix and color")
    for i in range(a.states.size()):
     var offset=i*16
+    for channel in [12,13,14]:
+     assert(buffer[offset+channel]==initial[offset+channel],"Particle color remains fixed while its opacity changes")
+    if a.kind!="leaves":
+     for channel in [0,1,2,4,5,6,8,9,10]:
+      if a.kind=="wind" and channel==0:continue
+      assert(buffer[offset+channel]==initial[offset+channel],"Only tumbling leaves and the width of wind wisps animate their transform bases")
     var basis=Basis(Vector3(buffer[offset],buffer[offset+4],buffer[offset+8]),Vector3(buffer[offset+1],buffer[offset+5],buffer[offset+9]),Vector3(buffer[offset+2],buffer[offset+6],buffer[offset+10]))
     var position=Vector3(buffer[offset+3],buffer[offset+7],buffer[offset+11])
     var transform=Transform3D(basis,position)
@@ -75,7 +81,7 @@ func run():
     assert(a.cloud.multimesh.buffer[15]<.01,"Loop boundaries fade before particles recycle")
    a.queue_free();b.queue_free();await process_frame
  assert(source_meshes.size()==3 and materials.size()==4,"Every chapter's map and arena use three shared meshes and four immutable paints")
- print("PASS: all 24 atmosphere configurations share three meshes and four materials with private instance buffers")
+ print("PASS: all 24 atmosphere configurations share three meshes and four materials with private instance buffers and stable paint and basis channels")
  assert(game.rng.state==rng and game.save_data("camp")==saved,"Atmosphere never consumes campaign RNG or modifies saves")
  var scenery=Scenery.new()
  for chapter in range(12):

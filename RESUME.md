@@ -6,6 +6,10 @@ This checkpoint describes the current development branch and supersedes the earl
 
 ### Latest state
 
+Weather particles retain fixed color and transform components between updates. The 336 submitted buffers match byte for byte across the earlier build and both exports. A headless sample of 24 clouds over 240 updates fell from 182.07 ms to 88.49–89.44 ms. Eight focused suites, four packed checks, 72 matched chapter outcomes and both ZIP checks passed. See `build/review/particle-buffer-profile.json`.
+
+The current portrait campaign replay uses the exact Web pack from `0d6558e` in a 720 × 960 logical viewport. See `build/review/portrait-cinematics-state.json` for its recorded progress. A separate frozen full-suite run at `bfb2f22` records its progress in `build/review/current-package-regression/full-current-state.json`. The Cinderford asset study shows the four opening tactical sprites and revised models from the same Web pack as the portrait replay. See `build/review/cinderford-sprites-and-models.png` for the isolated software projection.
+
 Each moving sword, axe or lance trail reuses one private mesh. All 684 sampled surfaces preserve their geometry, normals, paint and bounds. The headless sample of 72 sweeps fell from 62.20 ms to 48.85–49.00 ms across both exports. Eight focused suites, four packed checks, 72 matched chapter outcomes and both ZIP checks passed. See `build/review/swept-weapon-mesh-profile.json`.
 
 The tactical figures now resume the same idle pose after close-up combat. In the previous build a bystander returned at frame zero. Both combatants and a bystander now retain the exact frame, texture and animation clock in full and skipped fights. Eight focused suites, four packed checks, 72 matched chapter outcomes and both ZIP checks passed. See `build/review/tactical-idle-continuity.json`.

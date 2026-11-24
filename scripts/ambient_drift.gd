@@ -43,6 +43,14 @@ func configure(theme: String,dimensions: Vector3,arena=false,seed_value=0):
   else:
    color=color.lerp(Color("efdab3"),random.randf_range(0,.25))
    states.append({"x":random.randf_range(-.23,.23),"z":random.randf_range(-.35,.35),"phase":random.randf(),"life":random.randf_range(7,12) if kind=="leaves" else random.randf_range(5,9),"spin":random.randf_range(-2,2),"scale":random.randf_range(.09,.14) if kind=="leaves" else random.randf_range(.04,.075),"color":color})
+  # Color and most transform components stay fixed for the life of the cloud.
+  var offset=i*16
+  var fixed_scale=Vector3.ONE*states[i].scale
+  if kind=="wind":fixed_scale*=Vector3(1,.70,1)
+  write_basis(offset,Basis.from_euler(Vector3.ZERO).scaled(fixed_scale))
+  instance_buffer[offset+12]=color.r
+  instance_buffer[offset+13]=color.g
+  instance_buffer[offset+14]=color.b
  update_particles()
 
 static func appearance_for(particle_kind: String) -> Dictionary:
@@ -98,21 +106,28 @@ func update_particles():
  if kind=="wind":opacity=.27
  for i in range(states.size()):
   var state=states[i];var phase=fposmod(state.phase+elapsed/state.life,1)
-  var rotation=Vector3(phase*TAU+state.spin,phase*TAU*state.spin,state.spin) if kind=="leaves" else Vector3.ZERO
-  var dimensions=Vector3.ONE*state.scale
-  if kind=="wind":
-   var stretch=5.2+sin(phase*PI)*2.0
-   dimensions*=Vector3(stretch,.70,1)
-  var basis=Basis.from_euler(rotation).scaled(dimensions);var point=particle_position(state,phase)
-  var color=state.color
-  color.a=smoothstep(0,.12,phase)*(1-smoothstep(.82,1,phase))*opacity
-  # MultiMesh's public bulk format is three matrix rows plus RGBA. One upload
-  # also remains inspectable under the headless renderer's limited readback.
-  for row in range(3):
-   var offset=i*16+row*4
-   instance_buffer[offset]=basis.x[row];instance_buffer[offset+1]=basis.y[row];instance_buffer[offset+2]=basis.z[row];instance_buffer[offset+3]=point[row]
-  instance_buffer[i*16+12]=color.r;instance_buffer[i*16+13]=color.g;instance_buffer[i*16+14]=color.b;instance_buffer[i*16+15]=color.a
+  var offset=i*16
+  if kind=="leaves":
+   var rotation=Vector3(phase*TAU+state.spin,phase*TAU*state.spin,state.spin)
+   write_basis(offset,Basis.from_euler(rotation).scaled(Vector3.ONE*state.scale))
+  elif kind=="wind":
+   var dimensions=Vector3.ONE*state.scale
+   dimensions*=Vector3(5.2+sin(phase*PI)*2.0,.70,1)
+   instance_buffer[offset]=dimensions.x
+  var point=particle_position(state,phase)
+  instance_buffer[offset+3]=point.x
+  instance_buffer[offset+7]=point.y
+  instance_buffer[offset+11]=point.z
+  instance_buffer[offset+15]=smoothstep(0,.12,phase)*(1-smoothstep(.82,1,phase))*opacity
  cloud.multimesh.buffer=instance_buffer
+
+func write_basis(offset: int,basis: Basis):
+ # MultiMesh's bulk layout stores each transform in three rows before RGBA.
+ for row in range(3):
+  var start=offset+row*4
+  instance_buffer[start]=basis.x[row]
+  instance_buffer[start+1]=basis.y[row]
+  instance_buffer[start+2]=basis.z[row]
 
 func seek_elapsed(value: float):
  elapsed=value
