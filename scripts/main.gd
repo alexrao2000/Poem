@@ -1224,17 +1224,20 @@ func commander_challenge(attacker: Dictionary,defender,events: Array) -> Diction
 	return Commanders.take_challenge(attacker,defender,game.info().boss,game.story_seen)
 
 func commander_caption(challenge: Dictionary,on_map: bool) -> Control:
+	var host=ui
+	var right_inset=343 if on_map else 22
 	var frame=CenterContainer.new()
 	frame.name="CommanderChallenge"
 	frame.mouse_filter=Control.MOUSE_FILTER_IGNORE
-	ui.add_child(frame)
+	host.add_child(frame)
 	frame.set_anchors_and_offsets_preset(Control.PRESET_TOP_WIDE)
 	frame.offset_left=22
-	frame.offset_right=-343 if on_map else -22
+	frame.offset_right=-right_inset
 	frame.offset_top=112 if on_map else 34
 	frame.offset_bottom=frame.offset_top
 	var card=PanelContainer.new()
-	card.add_theme_stylebox_override("panel",box(Color("312832ee")))
+	var card_style=box(Color("312832ee"))
+	card.add_theme_stylebox_override("panel",card_style)
 	card.mouse_filter=Control.MOUSE_FILTER_IGNORE
 	frame.add_child(card)
 	var row=HBoxContainer.new()
@@ -1250,12 +1253,17 @@ func commander_caption(challenge: Dictionary,on_map: bool) -> Control:
 	portrait.mouse_filter=Control.MOUSE_FILTER_IGNORE
 	row.add_child(portrait)
 	var text=VBoxContainer.new()
-	text.custom_minimum_size.x=322
 	text.alignment=BoxContainer.ALIGNMENT_CENTER
 	text.mouse_filter=Control.MOUSE_FILTER_IGNORE
 	row.add_child(text)
 	label_in(text,challenge.unit.name,15,Color("e9cf9c")).name="Speaker"
 	label_in(text,challenge.line,19,Color("faf2dd")).name="ChallengeLine"
+	var horizontal_insets=22+right_inset+card_style.get_minimum_size().x+portrait.custom_minimum_size.x+row.get_theme_constant("separation")
+	var fit=func():text.custom_minimum_size.x=clampf(host.size.x-horizontal_insets,1,322)
+	host.resized.connect(fit)
+	frame.tree_exiting.connect(func():
+		if is_instance_valid(host) and host.resized.is_connected(fit):host.resized.disconnect(fit))
+	fit.call()
 	return frame
 
 func present_commander_challenge(challenge: Dictionary,on_map: bool):

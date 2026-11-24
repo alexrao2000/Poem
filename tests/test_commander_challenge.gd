@@ -62,7 +62,7 @@ func run():
   assert(Commanders.take_challenge(named,boss,"Different commander",[]).is_empty())
   assert(Commanders.take_challenge(boss,decoy,rules.info().boss,[]).is_empty())
  var layouts=0
- for dimensions in [Vector2i(1024,640),Vector2i(1280,720),Vector2i(1440,900)]:
+ for dimensions in [Vector2i(720,640),Vector2i(768,900),Vector2i(900,640),Vector2i(1024,640),Vector2i(1280,720),Vector2i(1440,900)]:
   viewport.size=dimensions;await process_frame
   for utterance in utterances:
    for on_map in [false,true]:
@@ -75,6 +75,17 @@ func run():
     var safe_region=Rect2(22,110 if on_map else 22,dimensions.x-(365 if on_map else 44),140)
     assert(safe_region.encloses(caption.get_child(0).get_global_rect()),"Both modes fit the whole card without covering the tactical unit panel")
     caption.free();layouts+=1
+
+ var live=app.commander_caption(utterances[0],true)
+ await process_frame;await process_frame
+ var wide=live.get_child(0).size.x
+ viewport.size=Vector2i(720,640);await process_frame;await process_frame
+ assert(live.get_child(0).size.x<wide and Rect2(22,110,355,140).encloses(live.get_child(0).get_global_rect()))
+ assert(live.find_child("ChallengeLine",true,false).text==utterances[0].line)
+ viewport.size=Vector2i(1440,900);await process_frame;await process_frame
+ assert(live.get_child(0).size.x==wide,"Live reflow restores the original caption proportions")
+ live.free()
+ viewport.size=Vector2i(1280,720);await process_frame
 
  app.preferences.values.combat="all";app.preferences.values.auto_end=false
  var fighters=prepare(app,false)
@@ -101,11 +112,13 @@ func run():
  assert(app.persist_campaign("battle"))
  normal_disk=FileAccess.get_file_as_string(app.save_path)
  app.debug_session.begin(app.game,"battle")
+ viewport.size=Vector2i(720,640);await process_frame
  fighters=prepare(app,true)
  app.preferences.values.combat="map"
  app.end_turn(true)
  caption=await wait_for_caption(app)
  assert(not app.stage.visible and app.world.visible and caption.find_child("ChallengeLine",true,false).text==Commanders.profile(fighters[1]).challenge.opponents.lyra)
+ assert(Rect2(22,110,355,140).encloses(caption.get_child(0).get_global_rect()),"The actual narrow Quick Map caption clears the unit panel")
  verify_commit(app,normal_disk,true)
  app._input(tab)
  while app.busy:await process_frame
@@ -115,5 +128,5 @@ func run():
  assert(app.game.story_seen==normal_save.story_seen and FileAccess.get_file_as_string(app.save_path)==normal_disk)
  await Shutdown.dispose(app)
  viewport.queue_free();await process_frame
- print("PASS: 24 commander lines, 144 mode/viewport captions, genuine player 3D and enemy Quick battles, durable before presentation, skip/restore and Debug isolation")
+ print("PASS: 24 commander lines, 288 mode/viewport captions, live resize through 720, genuine player 3D and enemy Quick battles, durable before presentation, skip/restore and Debug isolation")
  quit()
