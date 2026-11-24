@@ -5,6 +5,7 @@ extends Node3D
 const Spell=preload("res://scripts/combat_spell.gd")
 const SpellBurst=preload("res://scripts/combat_spell_burst.gd")
 const FloatingText=preload("res://scripts/combat_text.gd")
+const CONTACT_FADE_DURATION=.19
 var camera: Camera3D
 var plane: Node3D
 var burst: MeshInstance3D
@@ -51,10 +52,26 @@ func configure(point: Vector3,event: Dictionary,view: Camera3D,spell="",ground=n
    var floor_point=point-Vector3.UP*1.1 if ground==null else ground
    elemental=SpellBurst.new();add_child(elemental)
    elemental.begin(spell,floor_point,point.y-floor_point.y,event.crit,accent_material())
+  if not blocked and (event.crit or elemental!=null):
+   cast_contact_light(glow.material_override.albedo_color,event.crit)
   motion.tween_property(glow,"scale",Vector3.ONE*1.3,.2).from(Vector3.ONE*.4)
   motion.tween_property(glow.material_override,"albedo_color:a",0.0,.18).set_delay(.035)
  _process(0)
  motion.chain().tween_callback(queue_free)
+
+func cast_contact_light(color: Color,critical: bool):
+ var light=OmniLight3D.new();light.name="ContactLight"
+ light.light_color=color.lerp(Color.WHITE,.3)
+ light.light_energy=.76 if critical else .46
+ light.omni_range=2.55 if critical else 2.2
+ light.light_specular=0.0;light.light_volumetric_fog_energy=0.0
+ light.light_bake_mode=Light3D.BAKE_DISABLED;light.shadow_enabled=false
+ add_child(light)
+ light.global_position=global_position+Vector3.UP*.1
+ if is_instance_valid(camera):
+  light.global_position+=global_position.direction_to(camera.global_position)*.30
+ motion.tween_property(light,"light_energy",0.0,CONTACT_FADE_DURATION).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
+ motion.tween_callback(light.queue_free).set_delay(CONTACT_FADE_DURATION)
 
 static func accent_material() -> StandardMaterial3D:
  var material=StandardMaterial3D.new();material.shading_mode=BaseMaterial3D.SHADING_MODE_UNSHADED

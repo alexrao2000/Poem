@@ -122,6 +122,9 @@ func run():
   var effect=Impact.new();root.add_child(effect);effect.configure(Vector3(2,1,0),event,camera);impacts.append(weakref(effect))
   assert(effect.amount.text==(str(event.damage) if event.hit else "MISS"),"Impact numbers reflect the resolved event")
   assert(effect.guard==null,"Damaging hits and misses never display a guard ring")
+  var contact_light=effect.get_node_or_null("ContactLight")
+  assert((contact_light!=null)==event.crit,"Only a physical critical hit casts local light")
+  if contact_light!=null:assert(contact_light.light_color.is_equal_approx(Color("ffca76").lerp(Color.WHITE,.3)))
   if event.hit:
    var vertices=effect.burst.mesh.surface_get_arrays(0)[Mesh.ARRAY_VERTEX].size()
    if event.crit:assert(vertices>normal_vertices,"Critical adds angular forks to the spark burst")
@@ -133,6 +136,7 @@ func run():
  await create_timer(.35).timeout
  for reference in impacts:
   var effect=reference.get_ref();assert(effect!=null and effect.amount.modulate.a>0,"Damage remains readable after the initial flash")
+  assert(not effect.has_node("ContactLight"),"The brief lighting clears first")
   if effect.glow!=null:assert(effect.glow.material_override.albedo_color.a==0,"Bright contact fades promptly")
  await create_timer(.35).timeout
  for effect in impacts:assert(effect.get_ref()==null,"Impact geometry and number release together")

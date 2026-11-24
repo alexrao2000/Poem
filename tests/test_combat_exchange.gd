@@ -61,6 +61,7 @@ func watch_block(node):
  var actors=node.get_parent().get_children().filter(func(child):return child is Actor and not child.is_queued_for_deletion())
  blocked_poses.append(actors.map(func(actor):return actor.pose_name))
  assert(node.amount.text=="NO DAMAGE" and node.burst==null and node.guard!=null,"Real blocked combat selects the restrained effect")
+ assert(not node.has_node("ContactLight"),"A blocked strike casts no light")
  var shields=actors.filter(func(actor):return actor.pose_name=="guard" and actor.bones.has("Shield"))
  if not shields.is_empty():
   var defender=shields[0]
@@ -93,6 +94,9 @@ func watch_miss(node):
  if node is Projectile:
   await process_frame
   record.destination=node.destination;record.travel_end=node.travel_end
+ else:
+  await process_frame
+  assert(not node.has_node("ContactLight"),"A missed strike casts no light")
 
 func watch_spell(node):
  if node is Projectile:
@@ -107,6 +111,7 @@ func watch_spell(node):
   await process_frame
   contact_colors.append(node.glow.material_override.albedo_color)
   assert(node.elemental!=null,"Confirmed folio damage creates a distinct spatial impact")
+  assert(node.has_node("ContactLight"),"A real spell contact illuminates the nearby scene")
   contact_shapes.append(node.elemental.spell)
   var actors=node.get_parent().get_children().filter(func(child):return child is Actor and child.pose_name in ["hit","critical_hit"])
   assert(actors.size()==1 and node.elemental.global_position.distance_to(actors[0].global_position)<.001,"Elemental impact rises from the actual recipient floor")
@@ -206,6 +211,7 @@ func run():
   await app.cinematic(a,b,[{"actor":a.id,"target":b.id,"damage":1,"remaining":19,"hit":true,"crit":false}],{a.id:20,b.id:20})
   assert(sound_cues==["approach","release_"+folio,"impact_"+folio],"Each spell follows the approach cue with its own launch and contact sounds")
   assert(not app.stage.has_node("CombatCharge"),"Completed spell removes the anticipation effect")
+  assert(app.stage.find_child("ContactLight",true,false)==null,"Returning to the map leaves no contact light")
   assert(app.game.save_data("battle")==saved and app.game.rng.state==rng,"Folio presentation never changes spell results")
  assert(spells==["ember","gale","thunder"],"Real cinematic carries equipment identity through flight")
  assert(contact_shapes==spells,"All three elements carry through gathering, flight and contact")
@@ -220,6 +226,7 @@ func run():
  for contact in [{"hit":true,"damage":1,"crit":false},{"hit":true,"damage":3,"crit":true},{"hit":true,"damage":0,"crit":false},{"hit":false,"damage":0,"crit":false}]:
   sound_cues.clear();contact.merge({"actor":a.id,"target":b.id,"remaining":17})
   await app.map_combat_feedback([contact])
+  assert(app.stage.find_child("ContactLight",true,false)==null,"Quick Map keeps its existing callouts")
   var expected=["swing"] if not contact.hit else ["guard"] if contact.damage<=0 else ["impact_thunder","critical"] if contact.crit else ["impact_thunder"]
   assert(sound_cues==expected,"Map combat shares elemental damage sounds while preserving guard and miss cues")
  assert(app.game.save_data("battle")==critical_saved and app.game.rng.state==critical_rng,"Compact elemental feedback never changes the already-resolved result")

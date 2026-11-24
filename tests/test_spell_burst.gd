@@ -39,10 +39,29 @@ func run():
     assert(is_zero_approx(previous_alpha),"Effect fades completely before deletion")
     effect.queue_free();await process_frame
   for event in [{"hit":true,"damage":3,"crit":false},{"hit":true,"damage":8,"crit":true},{"hit":true,"damage":0,"crit":false},{"hit":false,"damage":0,"crit":false}]:
-   var effect=Impact.new();root.add_child(effect);effect.configure(Vector3(0,1.1,0),event,camera,folio,Vector3.ZERO);effect.motion.kill()
+   var effect=Impact.new();stage.add_child(effect);effect.configure(Vector3(0,1.1,0),event,camera,folio,Vector3.ZERO);effect.motion.pause()
    assert((effect.elemental!=null)==(event.hit and event.damage>0),"Only confirmed damaging spells create an elemental burst; guards and misses stay restrained")
+   var light=effect.get_node_or_null("ContactLight")
+   assert((light!=null)==(effect.elemental!=null),"Damaging spells alone spill light onto the close-up scene")
    if effect.elemental!=null:
+    assert(light is OmniLight3D and not light.shadow_enabled and light.light_bake_mode==Light3D.BAKE_DISABLED)
+    assert(light.light_specular==0 and light.light_volumetric_fog_energy==0)
+    var expected_color=effect.glow.material_override.albedo_color.lerp(Color.WHITE,.3)
+    assert(light.light_color.is_equal_approx(expected_color),"Cast light follows the existing spell glow")
+    assert(is_equal_approx(light.omni_range,2.55 if event.crit else 2.2))
+    var expected_position=effect.global_position+Vector3.UP*.1+effect.global_position.direction_to(camera.global_position)*.30
+    assert(light.global_position.is_equal_approx(expected_position),"Light remains at local contact under a transformed parent")
+    var energy=light.light_energy
+    assert(is_equal_approx(energy,.76 if event.crit else .46))
+    for frame in 9:
+     effect.motion.custom_step(.018)
+     assert(light.light_energy>0 and light.light_energy<energy,"Contact light falls smoothly after its peak")
+     energy=light.light_energy
+    var light_ref=weakref(light)
+    effect.motion.custom_step(.04)
+    assert(is_zero_approx(light.light_energy))
     var reference=weakref(effect.elemental);effect.elemental._process(Burst.DURATION+.01);await process_frame
+    assert(light_ref.get_ref()==null and effect.amount.modulate.a>0,"The light is removed while the damage text is still readable")
     assert(reference.get_ref()==null and is_instance_valid(effect.amount),"Element clears promptly while the readable damage number can finish")
    effect.queue_free();await process_frame
  assert(triangles.ember!=triangles.gale and triangles.gale!=triangles.thunder,"Element geometries differ beyond recoloring")
@@ -51,6 +70,7 @@ func run():
  assert(reference.get_ref()==null,"Skipping or clearing the arena removes its active effect immediately")
  camera.queue_free();await process_frame
  print("PASS: %s elemental triangles; %d infantry/mounted/critical animation samples, closed timing, transformed ground anchoring, event gating and cleanup"%[triangles,samples])
+ print("PASS: six elemental contact lights fade, stay localized and clear before the damage text")
  quit()
 
 func verify_flights(stage):
