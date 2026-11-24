@@ -6,6 +6,8 @@ This checkpoint describes the current development branch and supersedes the earl
 
 ### Latest state
 
+Hallow Abbey’s worn stone rosette lies flush with four courtyard tiles and appears in nearby stone-floor exchanges. The arena turns it with the engagement direction. Nine projections, an alternate deck check and both packed architecture checks passed. The map and arena mesh arrays match in source and both exports. A local Debug save enters a full revised fight with the inlay present on both sides of the cut. Eight focused suites, the final fitting rerun, packed field audio and ZIP checks passed, and all 72 chapter outcomes matched. See `build/review/abbey-mosaic-study.png` and `build/review/playtest/README.md`. Assembled gameplay rendering remains unreviewed.
+
 The Calm and Ablaze blend now uses one compensated gain curve in combat and the Music Room. Across 477 decoded windows, the three aggregate midpoint errors went from a 1.57–1.66 dB dip to within 0.05 dB of the reference level. Reversing a fade keeps its exact starting gain and live decoder. Seven focused suites, both exports, packed audio and Music Room checks, and ZIP integrity passed. The decoded measurements match in source and both packs. See `build/review/score-crossfade-source-decode.json`. Listening quality remains unreviewed.
 
 **Compare enemies** in the Debug report opens the retry deployment table. It shows which enemies would move, gain stats or spend held tonics, with pressure-zero and retry values. Four layouts from 720 to 1440 pixels passed. Keyboard and button navigation preserved the campaign, RNG, trace and both save slots. Eight focused suites, both exports, packed Debug and trace checks, and archive integrity passed. The table’s assembled rendering remains unreviewed.

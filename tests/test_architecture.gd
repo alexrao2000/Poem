@@ -8,6 +8,7 @@ const CombatCamera=preload("res://scripts/combat_camera.gd")
 const CinderfordMarket=preload("res://scripts/cinderford_market.gd")
 const ReedTollhouse=preload("res://scripts/reed_tollhouse.gd")
 const RiverBank=preload("res://scripts/river_bank.gd")
+const AbbeyMosaic=preload("res://scripts/abbey_mosaic.gd")
 func _initialize():call_deferred("run")
 func run():
  await verify_gate()
@@ -19,6 +20,7 @@ func run():
  await verify_aqueduct_gallery()
  await verify_abbey_arcade()
  await verify_abbey_belfry()
+ await verify_abbey_mosaic()
  await verify_ruined_columns()
  await verify_village_groves()
  await verify_market_stall()
@@ -179,6 +181,68 @@ func verify_abbey_arcade():
  viewport.queue_free();await process_frame
  assert(game.save_data("camp")==snapshot)
  print("PASS: seven seated abbey piers, six open arches in shared stone, planted walk and six camera projections")
+
+func verify_abbey_mosaic():
+ var scenery=Scenery.new();scenery.batching_enabled=false
+ var game=Rules.new();game.chapter=3
+ var saved=game.save_data("camp")
+ var field=Node3D.new();root.add_child(field);scenery.landscape(field,game)
+ var inlay=field.get_node("AbbeyFloorMosaic")
+ var shape=AbbeyMosaic.shape()
+ assert(inlay.mesh==shape and inlay.position==AbbeyMosaic.MAP_SITE)
+ var arrays=shape.surface_get_arrays(0)
+ var points=arrays[Mesh.ARRAY_VERTEX];var normals=arrays[Mesh.ARRAY_NORMAL]
+ assert(points.size()==426 and inlay.cast_shadow==GeometryInstance3D.SHADOW_CASTING_SETTING_OFF)
+ for index in range(0,points.size(),3):
+  var cross=(points[index+1]-points[index]).cross(points[index+2]-points[index])
+  assert(cross.y<-.00001 and normals[index].dot(Vector3.UP)>.9999)
+  for offset in 3:
+   var world=inlay.to_global(points[index+offset])
+   assert(is_equal_approx(world.y,.004) and game.terrain(Vector2i(roundi(world.x),roundi(world.z)))=="p")
+ var missing=AbbeyMosaic.point(.81,TAU*6.5/32)+Vector3.UP
+ var intact=AbbeyMosaic.point(.81,TAU*5.5/32)+Vector3.UP
+ assert(barrel_hit(shape,missing,Vector3.DOWN)==null and barrel_hit(shape,intact,Vector3.DOWN)!=null)
+ var viewport=SubViewport.new();viewport.render_target_update_mode=SubViewport.UPDATE_DISABLED;root.add_child(viewport)
+ var camera=Camera3D.new();viewport.add_child(camera);camera.current=true
+ var anchor=Vector3(6.5,0,4.5)
+ camera.projection=Camera3D.PROJECTION_ORTHOGONAL;camera.size=16
+ camera.position=anchor+Vector3(2.5,22,11.5);camera.look_at(anchor);camera.h_offset=2
+ var sizes=[Vector2i(1024,640),Vector2i(1280,720),Vector2i(1440,900)]
+ for size in sizes:
+  viewport.size=size;await process_frame
+  assert(Rect2(Vector2.ZERO,Vector2(size)).grow(-12).has_point(camera.unproject_position(inlay.global_position)))
+ camera.projection=Camera3D.PROJECTION_PERSPECTIVE;camera.h_offset=0
+ var origin=Vector3(35,.6,0)
+ for step in [Vector2i.RIGHT,Vector2i.DOWN]:
+  var target=Vector2i(5,4)+step
+  var context=scenery.combat_context(game,{"x":5,"y":4},{"x":target.x,"y":target.y})
+  var stage=Node3D.new();root.add_child(stage);scenery.battle_landscape(stage,origin,context)
+  var arena=stage.get_node("AbbeyFloorMosaic")
+  assert(arena.mesh==shape and arena.material_override==inlay.material_override)
+  assert(is_equal_approx(arena.rotation.y,0.0 if step==Vector2i.RIGHT else PI/2))
+  var box=arena.global_transform*shape.get_aabb()
+  assert(box.end.z<0 and box.position.z> -3 and is_equal_approx(box.position.y,origin.y+.004),
+   "The inlay is held flush within the arena’s stone lane, behind the fighter footing")
+  var frame=CombatCamera.frame_pair(origin+Vector3.LEFT*1.6,origin+Vector3.RIGHT*1.6,"wide",false,step==Vector2i.DOWN)
+  camera.position=frame.anchor;camera.fov=frame.lens;camera.look_at(frame.focus)
+  for size in sizes:
+   viewport.size=size;await process_frame
+   var inside=Rect2(Vector2(12,12),Vector2(size)-Vector2(24,164))
+   assert(inside.has_point(camera.unproject_position(arena.global_position)))
+  scenery.batcher.combine(stage)
+  var batches=stage.get_children().filter(func(node):return node is MeshInstance3D and node.material_override==inlay.material_override)
+  assert(batches.size()==1 and batches[0].mesh.surface_get_array_len(0)==points.size())
+  assert(batches[0].mesh.get_aabb().is_equal_approx(box),"The inlay survives static batching with its exact seated position")
+  stage.free()
+ var distant=scenery.combat_context(game,{"x":1,"y":4},{"x":2,"y":4})
+ assert(not distant.has("mosaic_yaw"))
+ var deck=scenery.combat_context(game,{"x":5,"y":4},{"x":6,"y":4});deck.terrain="="
+ var alternate=Node3D.new();root.add_child(alternate);scenery.battle_landscape(alternate,origin,deck)
+ assert(not alternate.has_node("AbbeyFloorMosaic") and alternate.has_node("ArenaRailing"))
+ alternate.free()
+ viewport.free();field.free()
+ assert(game.save_data("camp")==saved)
+ print("PASS: worn 142-triangle Hallow Abbey floor mosaic, shared geometry with oriented arena placement and nine clear projections")
 
 func verify_abbey_belfry():
  var scenery=Scenery.new();scenery.batching_enabled=false

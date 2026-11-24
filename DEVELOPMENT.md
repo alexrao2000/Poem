@@ -1,5 +1,7 @@
 # Poem development
 
+Hallow Abbey’s chipped stone rosette sits flush with the tactical courtyard and appears behind the fighters in nearby stone-floor encounters. The arena turns the inlay to match the engagement direction.
+
 The Calm and Ablaze crossfade compensates for the measured midpoint dip. Combat and the Music Room use the same gain curve and reverse a fade from its current balance.
 
 The Debug report’s Compare enemies view shows the next retry deployment row by row. It marks changed tiles, stats and tonic counts and keeps the report’s copy and restore controls one step away.

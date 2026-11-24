@@ -20,6 +20,7 @@ const TrailLanterns=preload("res://scripts/trail_lanterns.gd")
 const GreywoodShelter=preload("res://scripts/greywood_shelter.gd")
 const CinderfordMarket=preload("res://scripts/cinderford_market.gd")
 const ReedTollhouse=preload("res://scripts/reed_tollhouse.gd")
+const AbbeyMosaic=preload("res://scripts/abbey_mosaic.gd")
 const MAX_CACHED_CYLINDERS=256
 const ROAD_CANAL_NEAR=-5.0
 const ROAD_CANAL_FAR=-13.0
@@ -355,6 +356,7 @@ func landscape(parent,game):
  if theme=="village":
   village_mill(parent,MILL_MAP_SITE,.69)
   CinderfordMarket.build(self,parent,Vector3(1.5,0,2.5),.58)
+ if theme=="abbey":AbbeyMosaic.build(self,parent,AbbeyMosaic.MAP_SITE,1.0)
  if theme=="forest":TrailLanterns.roadside(parent)
  if theme in ["village","river","forest","road","castle"]:
   var base=-.15 if theme=="forest" else 0.0
@@ -513,6 +515,8 @@ func combat_context(game,a,b,screen_direction=1.0) -> Dictionary:
  var context={"chapter":game.chapter,"environment":theme,"terrain":tile,
   "landmarks":candidates.slice(0,2),"road_canal":theme=="road" and near_water,"harbor_quay":harbor_quayside}
  if is_finite(tollhouse_x):context.tollhouse_x=tollhouse_x
+ if theme=="abbey" and tile=="p" and midpoint.distance_to(Vector2(AbbeyMosaic.MAP_SITE.x,AbbeyMosaic.MAP_SITE.z))<=3.0:
+  context.mosaic_yaw=atan2(axis.y,axis.x)
  return context
 
 func transfer_landmark_motion(source: Node3D,destination: Node3D,theme: String):
@@ -843,6 +847,8 @@ func battle_landscape(parent,center,context={}):
  if theme=="abbey":
   abbey_arcade(parent,center+Vector3(0,0,-9.7))
   abbey_belfry(parent,center+Vector3(belfry_lateral,0,-6.5),1.35)
+  if context.has("mosaic_yaw") and tile=="p":
+   AbbeyMosaic.build(self,parent,center+AbbeyMosaic.ARENA_SITE,AbbeyMosaic.ARENA_SCALE,context.mosaic_yaw)
  if theme=="castle":
   Fortification.build_castle_wall(self,parent,center+Vector3(0,0,-9))
  elif theme=="observatory":
