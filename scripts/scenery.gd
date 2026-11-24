@@ -24,6 +24,7 @@ const ReedTollhouse=preload("res://scripts/reed_tollhouse.gd")
 const AbbeyMosaic=preload("res://scripts/abbey_mosaic.gd")
 const KingsroadHoist=preload("res://scripts/kingsroad_hoist.gd")
 const StarfallChart=preload("res://scripts/starfall_chart.gd")
+const AqueductWheel=preload("res://scripts/aqueduct_waterwheel.gd")
 const MAX_CACHED_CYLINDERS=256
 const ROAD_CANAL_NEAR=-5.0
 const ROAD_CANAL_FAR=-13.0
@@ -367,6 +368,7 @@ func landscape(parent,game):
  if theme=="abbey":AbbeyMosaic.build(self,parent,AbbeyMosaic.MAP_SITE,1.0)
  if theme=="harbor":HarborNet.build(self,parent,HarborNet.MAP_SITE,HarborNet.MAP_SCALE)
  if theme=="road":KingsroadHoist.build(self,parent,KingsroadHoist.MAP_SITE,KingsroadHoist.MAP_SCALE,-.16)
+ if theme=="aqueduct":AqueductWheel.new().build(self,parent,AqueductWheel.MAP_SITE,AqueductWheel.MAP_SCALE,-.28)
  if theme=="forest":TrailLanterns.roadside(parent)
  if theme in ["village","river","forest","road","castle"]:
   var base=-.15 if theme=="forest" else 0.0
@@ -543,6 +545,10 @@ func transfer_landmark_motion(source: Node3D,destination: Node3D,theme: String):
   if original!=null and counterpart!=null:
    counterpart.elapsed=original.elapsed
    counterpart.update_motion()
+ elif theme=="aqueduct":
+  var original=source.get_node_or_null("AqueductWaterwheel")
+  var counterpart=destination.get_node_or_null("AqueductWaterwheel")
+  if original!=null and counterpart!=null:counterpart.seek_phase(original.phase)
  elif theme=="harbor":
   var originals=boat_sails(source)
   var counterparts=boat_sails(destination)
@@ -651,6 +657,7 @@ func aqueduct_gallery(parent: Node3D,center: Vector3,water_height: float):
   fall.name="AqueductSpill";fall.cast_shadow=GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
  var shelf=ground(parent,center+Vector3(0,0,-26),Vector2(32,32),3)
  shelf.name="AqueductFarWalk"
+ AqueductWheel.new().build(self,parent,gallery.position+Vector3(-6,water_height,1.18),1.15,0.0)
 
 static func spill_point(u: float,t: float) -> Vector3:
  return Vector3((u-.5)*(1.0+.40*t),1.0-pow(t,1.42),.18*t+.82*pow(t,.75))

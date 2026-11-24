@@ -11,6 +11,7 @@ const ReedTollhouse=preload("res://scripts/reed_tollhouse.gd")
 const RiverBank=preload("res://scripts/river_bank.gd")
 const AbbeyMosaic=preload("res://scripts/abbey_mosaic.gd")
 const KingsroadHoist=preload("res://scripts/kingsroad_hoist.gd")
+const AqueductWheel=preload("res://scripts/aqueduct_waterwheel.gd")
 func _initialize():call_deferred("run")
 func run():
  await verify_gate()
@@ -830,11 +831,28 @@ func verify_aqueduct_gallery():
  camera.position=frame.anchor;camera.fov=frame.lens;camera.look_at(frame.focus)
  var spill_shape=Scenery.aqueduct_spill_mesh()
  var spill_material=preload("res://scripts/fountain.gd").stream_material()
+ var mounted_frame=CombatCamera.frame_pair(center+Vector3.LEFT*1.6,center+Vector3.RIGHT*1.6,"wide",false,true)
+ var field=Node3D.new();root.add_child(field);scenery.landscape(field,game)
+ var map_wheel=field.get_node("AqueductWaterwheel")
+ assert(map_wheel.position==AqueductWheel.MAP_SITE)
+ assert(game.terrain(Vector2i(roundi(map_wheel.position.x),roundi(map_wheel.position.z)))=="~")
+ inspect_aqueduct_wheel(map_wheel,-.07)
  for terrain in ["p","="]:
   context.terrain=terrain
   var arena=Node3D.new();root.add_child(arena);scenery.battle_landscape(arena,center,context)
   var gallery=arena.get_node("AqueductGallery")
   var water=arena.get_node("ArenaWater")
+  var wheel=arena.get_node("AqueductWaterwheel")
+  inspect_aqueduct_wheel(wheel,water.global_position.y)
+  assert(is_equal_approx(wheel.position.x,gallery.position.x-6))
+  assert(is_equal_approx(wheel.position.z,gallery.position.z+1.18))
+  map_wheel.seek_phase(1.27);scenery.transfer_landmark_motion(field,arena,"aqueduct")
+  assert(is_equal_approx(wheel.rotor.rotation.x,map_wheel.rotor.rotation.x))
+  wheel._process(.5);scenery.transfer_landmark_motion(arena,field,"aqueduct")
+  assert(is_equal_approx(map_wheel.phase,1.27+.5*AqueductWheel.TURN_RATE))
+  wheel.hide();wheel._process(1.0)
+  assert(is_equal_approx(wheel.phase,map_wheel.phase),"A hidden wheel suspends motion")
+  wheel.show()
   var footings=gallery.find_children("GalleryFooting*","MeshInstance3D",false,false)
   var piers=gallery.find_children("GalleryPier*","MeshInstance3D",false,false)
   var capitals=gallery.find_children("GalleryCapital*","MeshInstance3D",false,false)
@@ -894,10 +912,44 @@ func verify_aqueduct_gallery():
     var flowing=fall.to_global(Scenery.spill_point(.5,.42))
     return not camera.is_position_behind(flowing) and safe.has_point(camera.unproject_position(flowing))),
     "A spillway is visible above the HUD in every wide shot")
+   var wheel_top=wheel.to_global(Vector3(.46,AqueductWheel.AXLE_HEIGHT+.91,-.14))
+   assert(not camera.is_position_behind(wheel_top) and safe.has_point(camera.unproject_position(wheel_top)),
+    "The feeding wheel stays in shot above the combat HUD")
+   camera.position=mounted_frame.anchor;camera.fov=mounted_frame.lens;camera.look_at(mounted_frame.focus)
+   assert(not camera.is_position_behind(wheel_top) and safe.has_point(camera.unproject_position(wheel_top)))
+   camera.position=frame.anchor;camera.fov=frame.lens;camera.look_at(frame.focus)
   arena.queue_free();await process_frame
- viewport.queue_free();await process_frame
+ field.queue_free();viewport.queue_free();await process_frame
  print("PASS: six planted aqueduct spans, connected channel coping, dry and deck foregrounds, grounded map landmarks and six projected wide shots")
  print("PASS: two Aqueduct spillways share the same mesh and meet their stone lips and both pool heights in six wide shots")
+ print("PASS: the shared Aqueduct waterwheel wets both rims, connects ten paddles and its axle, fits twelve wide shots and transfers phase between landscapes")
+
+func inspect_aqueduct_wheel(wheel: Node3D,waterline: float):
+ wheel.set_process(false);wheel.seek_phase(0.0)
+ assert(is_equal_approx(wheel.position.y,waterline))
+ var rims=wheel.rotor.find_children("WheelRim*","MeshInstance3D",false,false)
+ var paddles=wheel.rotor.find_children("WheelPaddle*","MeshInstance3D",false,false)
+ var spokes=wheel.rotor.find_children("WheelSpoke*","MeshInstance3D",false,false)
+ assert(rims.size()==2 and paddles.size()==10 and spokes.size()==12)
+ for rim in rims:
+  var bounds=rim.global_transform*rim.mesh.get_aabb()
+  assert(rim.mesh==AqueductWheel.rim() and bounds.position.y<waterline and bounds.end.y>waterline+1.0)
+ for index in paddles.size():
+  var paddle=paddles[index]
+  assert(is_equal_approx(paddle.position.length(),.99) and is_equal_approx(paddle.rotation.x,index*TAU/10))
+  var slab=paddle.transform*paddle.mesh.get_aabb()
+  assert(rims.all(func(rim):return slab.intersects(rim.transform*rim.mesh.get_aabb())))
+ var axle=wheel.rotor.get_node("WheelAxle")
+ var axle_bounds=axle.global_transform*axle.mesh.get_aabb()
+ var bearings=wheel.find_children("WheelBearing*","MeshInstance3D",false,false)
+ var feet=wheel.find_children("WheelFooting*","MeshInstance3D",false,false)
+ var piers=wheel.find_children("WheelPier*","MeshInstance3D",false,false)
+ assert(bearings.size()==2 and feet.size()==2 and piers.size()==2)
+ for side in 2:
+  var base=feet[side].global_transform*feet[side].mesh.get_aabb()
+  var pier=piers[side].global_transform*piers[side].mesh.get_aabb()
+  var bearing=bearings[side].global_transform*bearings[side].mesh.get_aabb()
+  assert(base.position.y<waterline and base.intersects(pier) and pier.intersects(bearing) and bearing.intersects(axle_bounds))
 
 func verify_reddeep_furnaces():
  var scenery=Scenery.new();scenery.batching_enabled=false

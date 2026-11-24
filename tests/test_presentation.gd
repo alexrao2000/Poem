@@ -130,6 +130,7 @@ func run():
 	app.close_model_view();await process_frame
 	assert(app.screen=="dossier" and app.camera.projection==Camera3D.PROJECTION_ORTHOGONAL,"Gallery restores map camera")
 	await verify_starfall_exchange(app)
+	await verify_aqueduct_exchange(app)
 	app.show_ending()
 	await process_frame
 	await Shutdown.dispose(app)
@@ -156,3 +157,31 @@ func verify_starfall_exchange(app):
 	app.battle_lighting("village",false)
 	assert(app.lighting_state().sky_cover==app.CloudSky.texture())
 	print("PASS: Starfall shares one night cover through a complete exchange and restores the daytime cover on chapter change")
+
+func verify_aqueduct_exchange(app):
+	app.game.chapter=7;app.game.start_battle();app.make_map();app.show_battle()
+	var a=app.game.living("player")[0];var b=app.game.living("enemy")[0]
+	a.x=5;a.y=5;b.x=6;b.y=5;app.refresh_pieces()
+	var map_wheel=app.world.get_node("AqueductWaterwheel")
+	map_wheel.seek_phase(1.04)
+	var progress={"entry":0.0,"returned":false}
+	var entering=func():
+		if app.world.visible:return
+		var wheel=app.stage.get_node("AqueductWaterwheel")
+		assert(wheel.rotor.get_child_count()<=2,"The moving rims, spokes and paddles are batched locally")
+		assert(is_equal_approx(wheel.phase,map_wheel.phase) and is_equal_approx(wheel.rotor.rotation.x,map_wheel.rotor.rotation.x))
+		progress.entry=wheel.phase
+	var returning=func():
+		if app.stage.visible or app.world.visible:return
+		var wheel=app.stage.get_node("AqueductWaterwheel")
+		assert(is_equal_approx(wheel.phase,map_wheel.phase) and not is_equal_approx(wheel.phase,progress.entry))
+		progress.returned=true
+	app.world.visibility_changed.connect(entering)
+	app.stage.visibility_changed.connect(returning)
+	var snapshot=app.game.save_data("battle").duplicate(true);var rng=app.game.rng.state
+	await app.cinematic(a,b,[{"actor":a.id,"target":b.id,"damage":1,"remaining":b.hp-1,"hit":true,"crit":false}],{a.id:a.hp,b.id:b.hp})
+	app.world.visibility_changed.disconnect(entering)
+	app.stage.visibility_changed.disconnect(returning)
+	assert(progress.entry>1 and progress.returned and app.world.visible and not app.stage.visible)
+	assert(app.game.save_data("battle")==snapshot and app.game.rng.state==rng)
+	print("PASS: the Aqueduct waterwheel retains its motion through a complete combat cut and return without changing the campaign")
