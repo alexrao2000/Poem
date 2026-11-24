@@ -59,7 +59,7 @@ func run():
  viewport.add_child(app);await process_frame
  assert(not app.field_audio.player.playing,"Title has no battlefield audio")
  var active_decoder: AudioStreamPlayback
- for field_case in [[2,"forest",4],[6,"mountain",3],[9,"furnace",3],[11,"engine",10]]:
+ for field_case in [[2,"forest",4],[3,"abbey",3],[6,"mountain",3],[9,"furnace",3],[11,"engine",10]]:
   active_decoder=await verify_combat_voice(app,field_case[0],field_case[1],field_case[2])
  app.preferences.values.music=0
  app.apply_audio_preferences()
@@ -76,7 +76,7 @@ func run():
  assert(not app.field_audio.player.playing and app.field_audio.player.stream==null)
  await Shutdown.dispose(app)
  viewport.queue_free();await process_frame
- print("PASS: six eight-second stereo loops, bounded one-voice fades, rapid retargeting and mute, combat and tactical menu continuity in four chapters, score and save isolation")
+ print("PASS: seven eight-second stereo loops, bounded one-voice fades, rapid retargeting and mute, combat and tactical menu continuity in five chapters, score and save isolation")
  quit()
 
 func verify_combat_voice(app,chapter: int,theme: String,x: int) -> AudioStreamPlayback:

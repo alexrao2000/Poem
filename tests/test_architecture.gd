@@ -13,6 +13,7 @@ func run():
  await verify_harbor_boats()
  await verify_reddeep_furnaces()
  await verify_aqueduct_gallery()
+ await verify_abbey_arcade()
  await verify_village_groves()
  await verify_cart()
  await verify_barrels()
@@ -69,6 +70,59 @@ func run():
  await verify_cloth()
  print("PASS: arched castle gate/portcullis, tiered fountain basins/jets, six shared fortified towers, battlement/deck rays, three cached roofs, 204 gable intersections, ",cases," house identities, 14 pinned cloth resources, bounded motion parameters and cleanup")
  quit()
+
+func verify_abbey_arcade():
+ var scenery=Scenery.new();scenery.batching_enabled=false
+ var game=Rules.new();game.chapter=3
+ var snapshot=game.save_data("camp")
+ var context=scenery.combat_context(game,{"x":6,"y":8},{"x":6,"y":7})
+ assert(context.environment=="abbey" and not context.landmarks.is_empty())
+ var viewport=SubViewport.new();viewport.render_target_update_mode=SubViewport.UPDATE_DISABLED;root.add_child(viewport)
+ var camera=Camera3D.new();viewport.add_child(camera);camera.current=true
+ for terrain in ["p","="]:
+  var center=Vector3(35,0 if terrain=="p" else .7,0)
+  context.terrain=terrain
+  var stage=Node3D.new();root.add_child(stage);scenery.battle_landscape(stage,center,context)
+  var arcade=stage.get_node("AbbeyArcade")
+  var walk=arcade.get_node("ArcadeWalk")
+  var step=arcade.get_node("ArcadeStep")
+  var coping=arcade.get_node("ArcadeCoping")
+  var rim=arcade.get_node("ArcadeCornice")
+  var bounds=func(mesh):return mesh.transform*mesh.mesh.get_aabb()
+  assert(is_equal_approx(bounds.call(walk).position.y,-.06) and bounds.call(walk).intersects(bounds.call(step)))
+  assert(bounds.call(coping).intersects(bounds.call(rim)) and arcade.position.z+bounds.call(step).end.z<-5.5)
+  var bases=arcade.find_children("ArcadeFooting*","MeshInstance3D",false,false)
+  var shafts=arcade.find_children("ArcadeShaft*","MeshInstance3D",false,false)
+  var capitals=arcade.find_children("ArcadeCapital*","MeshInstance3D",false,false)
+  var abaci=arcade.find_children("ArcadeAbacus*","MeshInstance3D",false,false)
+  var spans=arcade.find_children("MasonryArch*","MeshInstance3D",false,false)
+  assert([bases.size(),shafts.size(),capitals.size(),abaci.size(),spans.size()]==[7,7,7,7,6])
+  for index in 7:
+   var stack=[walk,bases[index],shafts[index],capitals[index],abaci[index]]
+   for layer in range(stack.size()-1):
+    assert(bounds.call(stack[layer]).intersects(bounds.call(stack[layer+1])),"Every column connects its walk, footing, shaft and capital")
+  for index in spans.size():
+   var span=spans[index]
+   assert(span.mesh==spans[0].mesh and bounds.call(span).intersects(bounds.call(coping)))
+   assert(bounds.call(span).intersects(bounds.call(abaci[index])) and bounds.call(span).intersects(bounds.call(abaci[index+1])))
+  var tiles=spans[0].mesh.surface_get_arrays(0)[Mesh.ARRAY_VERTEX]
+  var crown_hit=false
+  for i in range(0,tiles.size(),3):
+   assert(Geometry3D.ray_intersects_triangle(Vector3(.08,.85,2),Vector3.FORWARD,tiles[i],tiles[i+1],tiles[i+2])==null)
+   if Geometry3D.ray_intersects_triangle(Vector3(.08,1.82,2),Vector3.FORWARD,tiles[i],tiles[i+1],tiles[i+2])!=null:crown_hit=true
+  assert(crown_hit,"The arch keeps an open interior beneath real crown masonry")
+  for landmark in stage.find_children("ArenaLandmark*","Node3D",false,false):
+   assert(landmark.position.z<=-13.0 and landmark.position.y==center.y,"The mapped abbey ruins sit behind the arcade")
+  var frame=CombatCamera.frame_pair(center+Vector3.LEFT*1.6,center+Vector3.RIGHT*1.6,"wide",false)
+  camera.position=frame.anchor;camera.fov=frame.lens;camera.look_at(frame.focus)
+  for dimensions in [Vector2i(1024,640),Vector2i(1280,720),Vector2i(1440,900)]:
+   viewport.size=dimensions;await process_frame
+   var arch=spans[1].to_global(Vector3(.4,1.85,0))
+   assert(Rect2(Vector2.ZERO,Vector2(dimensions)).grow(-10).has_point(camera.unproject_position(arch)),"A masonry crown fits the wide shot")
+  stage.queue_free();await process_frame
+ viewport.queue_free();await process_frame
+ assert(game.save_data("camp")==snapshot)
+ print("PASS: seven seated abbey piers, six open arches in shared stone, planted walk and six camera projections")
 
 func verify_village_groves():
  var scenery=Scenery.new();scenery.batching_enabled=false

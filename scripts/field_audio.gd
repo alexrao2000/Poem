@@ -7,6 +7,7 @@ const TRACKS={
  "mountain":"res://assets/audio/field-mountain.wav",
  "furnace":"res://assets/audio/field-furnace.wav",
  "engine":"res://assets/audio/field-engine.wav",
+ "abbey":"res://assets/audio/field-abbey.wav",
 }
 const LOOP_FRAMES=176400
 const MIX_OFFSET_DB=-14.0

@@ -6,6 +6,8 @@ Development resumed on “go”. Continue in this chat until the user asks to st
 
 ### Latest state
 
+Hallow Abbey now has a continuous stone arcade behind its close-up fighting lane. Seven columns stand on a stepped walk and meet six open arches under a continuous coping. Checks covered the open arch interiors, shared geometry, dry and raised arena origins, and six wide-shot projections. An original eight-second wind loop keeps its decoder through the tactical board, 3D combat and both tactical menus. Eleven focused suites, both exports, three packed checks and archive integrity passed. All seven exported field tracks matched source PCM in both packs. Rendered appearance and listening quality remain unreviewed.
+
 Selected allies and enemies now show their names above their class in the tactical sidebar. The preceding package gave all 111 measured names a one-pixel label. All 111 exported layouts now fit a full line, including long commander names at all three tested sizes.
 
 The village arena now uses two roadside groves and a distant orchard. The split canopy leaves a view into the settlement. Eighteen opening camera projections cover mapped and fallback houses at three sizes with infantry and mounted framing. Eleven focused suites, both local exports, packed architecture and name checks, and archive integrity passed. Rendered appearance remains unreviewed.

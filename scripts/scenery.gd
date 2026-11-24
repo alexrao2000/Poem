@@ -447,6 +447,21 @@ func arena_railing(parent: Node3D,center: Vector3,depth: float,width: float):
   block(parent,center+Vector3(x,.54,depth),Vector3(.13,1.1,.13),Color("72624f")).name="ArenaRailPost"
  block(parent,center+Vector3(0,.7,depth),Vector3(width,.12,.10),Color("8e7c60")).name="ArenaRailing"
 
+func abbey_arcade(parent: Node3D,anchor: Vector3):
+ var arcade=Node3D.new();arcade.name="AbbeyArcade";arcade.position=anchor
+ parent.add_child(arcade)
+ var stone=detail_material(3)
+ block(arcade,Vector3(0,.07,0),Vector3(25.6,.26,2.68),stone).name="ArcadeWalk"
+ block(arcade,Vector3(0,.03,1.55),Vector3(25.6,.18,.46),stone).name="ArcadeStep"
+ for x in range(-12,13,4):
+  block(arcade,Vector3(x,.31,0),Vector3(.94,.24,.93),stone).name="ArcadeFooting"
+  cylinder(arcade,Vector3(x,1.67,0),2.56,.32,Color("a6a596"),.28).name="ArcadeShaft"
+  block(arcade,Vector3(x,3.04,0),Vector3(.71,.25,.78),Color("99998a")).name="ArcadeCapital"
+  block(arcade,Vector3(x,3.17,0),Vector3(.82,.12,.92),stone).name="ArcadeAbacus"
+  if x<12:arch_span(arcade,Vector3(x+2,3.15,0),1.6,.42,.82)
+ block(arcade,Vector3(0,5.23,0),Vector3(25.6,.34,.82),stone).name="ArcadeCoping"
+ block(arcade,Vector3(0,5.43,0),Vector3(25.8,.10,1.06),Color("b7b3a0")).name="ArcadeCornice"
+
 func aqueduct_gallery(parent: Node3D,center: Vector3):
  var gallery=Node3D.new();gallery.name="AqueductGallery";gallery.position=center+Vector3(0,0,-8.4);parent.add_child(gallery)
  var masonry=detail_material(3)
@@ -554,6 +569,7 @@ func battle_landscape(parent,center,context={}):
  for item in backdrop:
   var depth=RiverBank.ARENA_FAR_START-1.5+(item.z+7)*.7 if river else item.z
   if theme=="aqueduct":depth=minf(depth,-11.0)
+  if theme=="abbey":depth=minf(depth,-13.0)
   if theme=="mountain":depth=maxf(depth,-9.6)
   if item.kind==theme and theme in ["engine","observatory"]:
    mechanism.x=center.x+clampf(item.x,-3.8,3.8)
@@ -566,13 +582,12 @@ func battle_landscape(parent,center,context={}):
   cart(parent,center+Vector3(-6,0,-3.8));fence(parent,center+Vector3(3,0,-4),5.0)
   for i in range(3):barrel(parent,center+Vector3(6+i*.4,0,-4.3),1.0)
  if theme=="aqueduct":aqueduct_gallery(parent,center)
- if theme in ["abbey","observatory","castle"]:
+ if theme=="abbey":abbey_arcade(parent,center+Vector3(0,0,-9.7))
+ if theme in ["observatory","castle"]:
   for x in ([] if theme=="castle" else range(-12,13,4)):
    cylinder(parent,center+Vector3(x,1.8,-5),3.6,.32,Color("9e9d8d"))
    cylinder(parent,center+Vector3(x,.12,-5),.24,.5,Color("7f8178"))
    cylinder(parent,center+Vector3(x,3.5,-5),.3,.48,Color("c2bea7"))
-   if theme=="abbey" and x<12:
-    arch_span(parent,center+Vector3(x+2,3.55,-5),1.65,.35,.8)
   if theme=="castle":
    Fortification.build_castle_wall(self,parent,center+Vector3(0,0,-9))
   elif theme=="observatory":

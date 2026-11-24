@@ -1,5 +1,7 @@
 # Poem development
 
+Hallow Abbey’s combat scene uses a six-arch arcade on a low stone walk. Seven footings, shafts and capitals support the arches and continuous coping. The mapped abbey landmarks sit behind the arcade. An original eight-second wind loop follows the same chapter from the tactical board through menus and 3D combat.
+
 The tactical sidebar gives the selected unit’s name one visible line above their class. A long commander name can use smaller type to fit, and the tooltip keeps the full name. All 111 measured layouts fit across the tested window sizes.
 
 The village close-up frames the lane with two roadside groves and a distant orchard. Nearby trees leave space around mapped cottages and the fallback settlement. In eighteen projected opening shots, at least one house frontage remains in frame and clear of the near trees.
