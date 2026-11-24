@@ -1,5 +1,7 @@
 # Poem development
 
+Starfall and the Sun Engine reuse baked ring and globe geometry. A comparison of 36 repeated mechanisms used eleven mesh resources for 144 placements. Their transforms, vertices, materials and bounds match the earlier build. Every mechanism keeps its own animation and core color.
+
 The campaign experiment ledger shares its preparation lines with the war council and adds the actual enemy stat bonuses. Earned credits, dispatches and scenes stay reachable after their experiment switches are turned off.
 
 The exported Hard recoverable replay at `92505b9` matched all 879 saved snapshots from the earlier Quick Map campaign. All 458 3D exchanges retained their battlefield ambience across twelve chapters and returned to the same score playhead.

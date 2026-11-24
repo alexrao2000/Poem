@@ -6,6 +6,8 @@ This checkpoint describes the current development branch and supersedes the earl
 
 ### Latest state
 
+The clockwork rings and cores now reuse baked geometry. Thirty-six paired mechanisms kept exact arrays, materials, transforms and bounds with eleven resources for 144 placements. Median warm configuration time was 622 to 30 microseconds in the exported Web pack during the headless benchmark. Eight focused suites, both exports, clockwork and geometry comparisons in both packs, and archive integrity passed.
+
 The campaign experiment ledger shares the war council’s preparation lines and shows the next deployment’s actual enemy bonuses. Earlier credits, dispatches and scene replays stay reachable after the rules are turned off. Eighteen headless layouts at 1024 and 1440 pixels checked wrapping, keyboard return, and the completed archive. Eight focused suites, both exports, the trial suite in both packs and archive integrity passed. Rendered appearance remains unreviewed.
 
 The exported Hard recoverable replay at `92505b9` matched all 879 checkpoints from the earlier Quick Map campaign. It finished 13 battles in 96 turns, with 429 legal player actions, 28 staff revivals and all 24 recruits available. All 458 exchanges kept their ambience decoder, with all twelve environments covered. See `build/review/all-fields-hard-route.html`. Rendered appearance, listening and human difficulty remain unreviewed.

@@ -41,7 +41,13 @@ func run():
    host.show();orbit._process(.1);assert(orbit.elapsed>held[0])
    var neighbor=Orbit.new();host.add_child(neighbor);neighbor.configure(theme,radius,.55)
    assert(neighbor.core_material!=orbit.core_material and neighbor.elapsed==0,"Each instance owns its pulse material and clock")
+   var nearby=neighbor.find_children("*","MeshInstance3D",true,false)
+   for index in 3:assert(nearby[index].mesh==meshes[index].mesh and nearby[index]!=meshes[index])
+   assert((neighbor.core.mesh==orbit.core.mesh)==(radius==1.1),"Identical core dimensions use one sphere")
+   assert(neighbor.outer!=orbit.outer and neighbor.inner!=orbit.inner and neighbor.core!=orbit.core)
+   assert(neighbor.outer.get_meta("batch_stats")==orbit.outer.get_meta("batch_stats"))
    orbit.queue_free();neighbor.queue_free();await process_frame
+ verify_clockwork_cache_boundaries(host)
  var game=Rules.new();var saved=game.save_data("camp").duplicate(true);var random=game.rng.state
  var scenery=Scenery.new();scenery.batching_enabled=false
  for chapter in [8,11]:
@@ -101,6 +107,21 @@ func run():
  print("PASS: %d moving geometry samples, one arena mechanism per landmark, four grounded Sun Engine pylons with ring clearance, hidden-clock suspension and actual normal/Skip cleanup"%samples)
  print("PASS: Starfall's grounded meridian dais and brass dial clear the moving rings, with planted columns and eighteen wide-shot projections")
  quit()
+
+func verify_clockwork_cache_boundaries(host: Node3D):
+ var before_rings=Orbit.rings.duplicate()
+ var before_cores=Orbit.cores.duplicate()
+ for index in Orbit.MAX_RING_SHAPES+3:
+  var orbit=Orbit.new();host.add_child(orbit)
+  orbit.configure("observatory",2+.13*index,.8+.08*index)
+  assert(orbit.outer.get_child_count()==2 and orbit.inner.get_child_count()==1)
+  orbit.free()
+ assert(Orbit.rings.size()==Orbit.MAX_RING_SHAPES)
+ assert(Orbit.cores.size()==Orbit.MAX_CORE_SHAPES)
+ assert(before_rings.keys().all(func(key):return Orbit.rings[key]==before_rings[key]))
+ assert(before_cores.keys().all(func(key):return Orbit.cores[key]==before_cores[key]))
+ Orbit.rings=before_rings;Orbit.cores=before_cores
+ print("PASS: repeated clockwork shares immutable rings and cores with bounded caches and independent transforms")
 
 func verify_chamber(orbit: Node3D,ground_height: float):
  var chamber=orbit.get_parent()
