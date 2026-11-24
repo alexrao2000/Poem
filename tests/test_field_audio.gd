@@ -5,6 +5,7 @@ const ReedTollhouse=preload("res://scripts/reed_tollhouse.gd")
 const HarborNet=preload("res://scripts/harbor_net.gd")
 const GreywoodShelter=preload("res://scripts/greywood_shelter.gd")
 const CinderfordMarket=preload("res://scripts/cinderford_market.gd")
+const KingsroadHoist=preload("res://scripts/kingsroad_hoist.gd")
 const Shutdown=preload("helpers/game_shutdown.gd")
 
 func _initialize():call_deferred("run")
@@ -129,6 +130,13 @@ func verify_combat_voice(app,chapter: int,theme: String,point: Vector2i) -> Audi
   var canal_material=app.scenery.water_material("road")
   assert(app.stage.get_children().any(func(node):return node is MeshInstance3D and node.material_override==canal_material),
    "The Kingsroad decoder persists in the actual canal backdrop")
+  var brass=app.scenery.material(KingsroadHoist.BRASS)
+  var ring_vertices=KingsroadHoist.ring_shape().surface_get_arrays(0)[Mesh.ARRAY_VERTEX].size()
+  for landscape in [app.world,app.stage]:
+   assert(landscape.has_node("KingsroadCargoHoist"))
+   var hardware=landscape.get_children().filter(func(node):return node is MeshInstance3D and node.material_override==brass)
+   assert(hardware.size()==1 and hardware[0].mesh.surface_get_array_len(0)==2*ring_vertices,
+    "The wheel and lifting eye survive the batched tactical-to-combat transition")
  app.ui.get_node("CombatPlayback").request_skip()
  for frame in range(180):
   if not app.ui.has_node("CombatPlayback"):break

@@ -10,6 +10,7 @@ const CinderfordMarket=preload("res://scripts/cinderford_market.gd")
 const ReedTollhouse=preload("res://scripts/reed_tollhouse.gd")
 const RiverBank=preload("res://scripts/river_bank.gd")
 const AbbeyMosaic=preload("res://scripts/abbey_mosaic.gd")
+const KingsroadHoist=preload("res://scripts/kingsroad_hoist.gd")
 func _initialize():call_deferred("run")
 func run():
  await verify_gate()
@@ -728,14 +729,27 @@ func verify_kingsroad_canal():
  var mirrored=scenery.combat_context(game,{"x":9,"y":4},{"x":9,"y":3},-1.0)
  var dry=scenery.combat_context(game,{"x":12,"y":0},{"x":13,"y":0})
  var deck=scenery.combat_context(game,{"x":4,"y":1},{"x":5,"y":1})
+ var distant=scenery.combat_context(game,{"x":4,"y":3},{"x":5,"y":3})
  assert(normal.road_canal and mirrored.road_canal and not dry.road_canal)
  assert(deck.road_canal and deck.terrain=="=")
+ assert(normal.road_hoist and mirrored.road_hoist and distant.road_canal and not distant.road_hoist)
+ var field=Node3D.new();root.add_child(field);scenery.landscape(field,game)
+ var map_hoist=field.get_node("KingsroadCargoHoist")
+ assert(map_hoist.position==KingsroadHoist.MAP_SITE and map_hoist.scale==Vector3.ONE*KingsroadHoist.MAP_SCALE)
+ inspect_hoist(map_hoist,2.5,1.5)
+ var mast=map_hoist.get_node("HoistMast")
+ var mast_bounds=mast.global_transform*mast.mesh.get_aabb()
+ assert(not mast_bounds.has_point(Vector3(9,mast_bounds.get_center().y,3)),"The crane leaves the adjacent tactical cell center open")
+ field.queue_free();await process_frame
  var center=Vector3(35,0,0)
  var viewport=SubViewport.new();viewport.render_target_update_mode=SubViewport.UPDATE_DISABLED;root.add_child(viewport)
  var camera=Camera3D.new();viewport.add_child(camera);camera.current=true
- for context in [normal,mirrored,dry,deck]:
+ for context in [normal,mirrored,dry,deck,distant]:
   var stage=Node3D.new();root.add_child(stage);scenery.battle_landscape(stage,center,context)
   var water=stage.get_node_or_null("KingsroadCanalWater")
+  var hoist=stage.get_node_or_null("KingsroadCargoHoist")
+  assert((hoist!=null)==(context==normal or context==mirrored))
+  if hoist!=null:inspect_hoist(hoist,Scenery.ROAD_CANAL_NEAR,Scenery.ROAD_CANAL_FAR)
   if context==dry:
    assert(water==null and stage.get_node("ArenaGround").mesh.size==Vector2(70,70))
   elif context==deck:
@@ -772,10 +786,37 @@ func verify_kingsroad_canal():
      assert(safe.has_point(camera.unproject_position(wet)) and not camera.is_position_behind(wet))
      assert(wall_bounds.all(func(wall):return wall.intersects_segment(camera.global_position,wet)==null),
       "The wide shot sees the water surface above the near coping")
+     if hoist!=null:
+      var head=hoist.to_global(KingsroadHoist.BOOM_TIP)
+      var eye=hoist.get_node("HoistEye").global_position
+      assert(not camera.is_position_behind(head) and safe.has_point(camera.unproject_position(head)))
+      assert(safe.has_point(camera.unproject_position(eye)))
+      var visible=absf(camera.unproject_position(head).x-camera.unproject_position(hoist.get_node("HoistMast").global_position).x)
+      assert(visible>=24,"The projecting crane arm can be read in the wide shot")
   stage.queue_free();await process_frame
  viewport.queue_free();await process_frame
  assert(game.rng.state==rng)
- print("PASS: Kingsroad channel follows actual terrain, exact split banks and waterline, existing bridge/deck and dry cases, planted towers and twelve wide-shot projections")
+ print("PASS: Kingsroad channel follows actual terrain, exact split banks and waterline, existing bridge/deck and dry cases, planted towers, the anchored cargo hoist and eighteen wide-shot projections")
+
+func inspect_hoist(hoist: Node3D,bank: float,far_bank: float):
+ var footing=hoist.get_node("HoistFooting")
+ var cap=hoist.get_node("HoistCap")
+ var post=hoist.get_node("HoistMast")
+ var base=footing.global_transform*footing.mesh.get_aabb()
+ var top=cap.global_transform*cap.mesh.get_aabb()
+ var upright=post.global_transform*post.mesh.get_aabb()
+ var pulley=hoist.get_node("HoistPulley")
+ var eye=hoist.get_node("HoistEye")
+ assert(base.position.y<0 and base.position.z>=bank and base.intersects(top) and top.intersects(upright))
+ assert(eye.global_position.z<bank and eye.global_position.z>far_bank and eye.global_position.y>.5)
+ assert(is_equal_approx(eye.global_position.z,pulley.global_position.z))
+ var chain=hoist.find_children("HoistChainLink*","MeshInstance3D",false,false)
+ assert(chain.size()==9 and chain.all(func(link):return link.mesh==KingsroadHoist.ring_shape()))
+ var previous=pulley.global_transform*pulley.mesh.get_aabb()
+ for link in chain+[eye]:
+  var box=link.global_transform*link.mesh.get_aabb()
+  assert(previous.intersects(box),"The chain reaches the pulley, overlaps its neighboring links and holds the lifting eye")
+  previous=box
 
 func verify_aqueduct_gallery():
  var scenery=Scenery.new();scenery.batching_enabled=false

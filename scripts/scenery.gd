@@ -22,6 +22,7 @@ const GreywoodShelter=preload("res://scripts/greywood_shelter.gd")
 const CinderfordMarket=preload("res://scripts/cinderford_market.gd")
 const ReedTollhouse=preload("res://scripts/reed_tollhouse.gd")
 const AbbeyMosaic=preload("res://scripts/abbey_mosaic.gd")
+const KingsroadHoist=preload("res://scripts/kingsroad_hoist.gd")
 const MAX_CACHED_CYLINDERS=256
 const ROAD_CANAL_NEAR=-5.0
 const ROAD_CANAL_FAR=-13.0
@@ -359,6 +360,7 @@ func landscape(parent,game):
   CinderfordMarket.build(self,parent,Vector3(1.5,0,2.5),.58)
  if theme=="abbey":AbbeyMosaic.build(self,parent,AbbeyMosaic.MAP_SITE,1.0)
  if theme=="harbor":HarborNet.build(self,parent,HarborNet.MAP_SITE,HarborNet.MAP_SCALE)
+ if theme=="road":KingsroadHoist.build(self,parent,KingsroadHoist.MAP_SITE,KingsroadHoist.MAP_SCALE,-.16)
  if theme=="forest":TrailLanterns.roadside(parent)
  if theme in ["village","river","forest","road","castle"]:
   var base=-.15 if theme=="forest" else 0.0
@@ -516,6 +518,8 @@ func combat_context(game,a,b,screen_direction=1.0) -> Dictionary:
  candidates.sort_custom(func(left,right):return left.distance<right.distance)
  var context={"chapter":game.chapter,"environment":theme,"terrain":tile,
   "landmarks":candidates.slice(0,2),"road_canal":theme=="road" and near_water,"harbor_quay":harbor_quayside}
+ if context.road_canal:
+  context.road_hoist=midpoint.distance_to(Vector2(KingsroadHoist.MAP_SITE.x,KingsroadHoist.MAP_SITE.z))<=3.5
  if is_finite(tollhouse_x):context.tollhouse_x=tollhouse_x
  if theme=="abbey" and tile=="p" and midpoint.distance_to(Vector2(AbbeyMosaic.MAP_SITE.x,AbbeyMosaic.MAP_SITE.z))<=3.0:
   context.mosaic_yaw=atan2(axis.y,axis.x)
@@ -766,7 +770,10 @@ func battle_landscape(parent,center,context={}):
   harbor_quay(parent,center,surface)
  elif continuous_floor:
   var paint=MapGround.arena_material(surface,center,atlas) if surface!=0 else null
-  if road_canal:kingsroad_canal(parent,center,paint)
+  if road_canal:
+   kingsroad_canal(parent,center,paint)
+   if context.get("road_hoist",false):
+    KingsroadHoist.build(self,parent,center+Vector3(-3.68,0,ROAD_CANAL_NEAR+.69),1.48,1.02)
   else:ground(parent,center,Vector2(70,70),0,paint).name="ArenaGround"
  else:
   ground(parent,center-Vector3(0,.06,0),Vector2(70,70),3 if stone else 0)
