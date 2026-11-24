@@ -1,5 +1,7 @@
 # Poem development
 
+Hallow Abbey’s grass and grove extend beyond the courtyard on the tactical map. The same trees frame the open arcade in close-up, with three low ridges on the horizon.
+
 Mounted map figures use a fitted ground shadow that follows the hoof spread and flips with mirrored attacks.
 
 Hallow Abbey plays “Vespers for the Empty Tower,” a 32-bar Calm and Ablaze pair in three at 88 BPM. The Music Room lists it for Chapter 04.

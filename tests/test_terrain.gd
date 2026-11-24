@@ -513,6 +513,10 @@ func verify_arena_ground():
    for node in arena.get_children():
     if not node is MeshInstance3D or not node.mesh is PlaneMesh:continue
     var paint=node.material_override
+    if node.name=="AbbeyGardenLawn":
+     assert(game.info().environment=="abbey" and paint==scenery.ground_material(0))
+     assert(node.position.z+node.mesh.size.y*.5<-11.5,"The garden paint begins beyond the fighting floor")
+     continue
     if paint is ShaderMaterial and paint.shader==tactical.shader:sheets+=1
     if paint is ShaderMaterial and paint.shader==tactical.shader and paint.get_shader_parameter("wang_enabled")==true:
      var kind=0 if paint.get_shader_parameter("blend_edges")==true else paint.get_shader_parameter("natural_surface")

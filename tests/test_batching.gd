@@ -185,10 +185,10 @@ func verify_conifer_atlas():
 
 func verify_conifers(world: Node3D,theme: String,arena: bool):
  var crowns=world.find_children("ConiferCrown*","MeshInstance3D",true,false)
- if theme not in ["forest","mountain"]:
-  assert(crowns.is_empty(),"Conifers are limited to Greywood and Windscar Pass")
+ if theme not in ["forest","mountain","abbey"]:
+  assert(crowns.is_empty(),"Conifers appear in Greywood, the Abbey grove and Windscar Pass")
   return
- assert(crowns.size()>=(21 if theme=="forest" else 7))
+ assert(crowns.size()>={"forest":21,"mountain":7,"abbey":8}[theme])
  var slope=world.get_node_or_null("PassEscarpment") as MeshInstance3D
  var variants={}
  for crown in crowns:
@@ -208,11 +208,14 @@ func verify_conifers(world: Node3D,theme: String,arena: bool):
     var hit=Geometry3D.ray_intersects_triangle(ray,Vector3.DOWN,slope.to_global(vertices[i]),slope.to_global(vertices[i+1]),slope.to_global(vertices[i+2]))
     if hit!=null:hit_height=maxf(hit_height,hit.y)
    assert(absf(hit_height-crown.global_position.y)<.001,"Windscar fir roots meet the actual rock slope")
+  elif theme=="abbey":
+   assert(is_equal_approx(crown.global_position.y,-.025 if arena else -.15))
+   assert(crown.global_position.z<(-15 if arena else -2.5),"Abbey trees stay on the garden ground behind the courtyard")
   elif arena:
    assert(is_zero_approx(crown.global_position.y) and crown.global_position.z<=-8,"The fighting lane stays clear and the trunks start on the arena ground")
   else:
    assert(is_zero_approx(crown.global_position.y) or is_equal_approx(crown.global_position.y,-.15),"Woodland trees stand on the map or extended ground")
- assert(variants.size()==2 and variants.has(0 if theme=="forest" else 2) and variants.has(1 if theme=="forest" else 3))
+ assert(variants.size()==2 and variants.has(2 if theme=="mountain" else 0) and variants.has(3 if theme=="mountain" else 1))
 
 func verify_deck(world: Node3D,center: Vector3):
  var planks=world.find_children("ArenaDeck*","MeshInstance3D",true,false)

@@ -23,6 +23,10 @@ const GreywoodShelter=preload("res://scripts/greywood_shelter.gd")
 const CinderfordMarket=preload("res://scripts/cinderford_market.gd")
 const ReedTollhouse=preload("res://scripts/reed_tollhouse.gd")
 const AbbeyMosaic=preload("res://scripts/abbey_mosaic.gd")
+const ABBEY_GROVE_SITES=[
+ Vector2(-7.9,-1.54),Vector2(-5.4,-.60),Vector2(-2.7,-1.70),Vector2(-1.05,-.43),
+ Vector2(1.65,-1.50),Vector2(4.65,-.85),Vector2(6.85,-1.50),Vector2(8.15,-.55),
+]
 const KingsroadHoist=preload("res://scripts/kingsroad_hoist.gd")
 const StarfallChart=preload("res://scripts/starfall_chart.gd")
 const AqueductWheel=preload("res://scripts/aqueduct_waterwheel.gd")
@@ -342,8 +346,9 @@ func landscape(parent,game):
  var center=Vector2(board)*.5
  var extent=maxf(72,64*maxf(board.x/14.0,board.y/10.0))
  var ground_paint=MapGround.material(game,atlas)
- ground(parent,Vector3(center.x,-.15,center.y),Vector2.ONE*extent,0,ground_paint)
  var theme=game.info().get("environment","village")
+ var outer_paint=ground_material(0) if theme=="abbey" else ground_paint
+ ground(parent,Vector3(center.x,-.15,center.y),Vector2.ONE*extent,0,outer_paint)
  var building_cells={}
  for item in game.info().get("landmarks",[]):
   if item.has("footprint"):
@@ -397,7 +402,9 @@ func landscape(parent,game):
  if theme=="village":
   village_mill(parent,MILL_MAP_SITE,.69)
   CinderfordMarket.build(self,parent,Vector3(1.5,0,2.5),.58)
- if theme=="abbey":AbbeyMosaic.build(self,parent,AbbeyMosaic.MAP_SITE,1.0)
+ if theme=="abbey":
+  AbbeyMosaic.build(self,parent,AbbeyMosaic.MAP_SITE,1.0)
+  abbey_grove(parent,Vector3(center.x-.5,-.15,-2.25),1.0,.84)
  if theme=="harbor":HarborNet.build(self,parent,HarborNet.MAP_SITE,HarborNet.MAP_SCALE)
  if theme=="road":KingsroadHoist.build(self,parent,KingsroadHoist.MAP_SITE,KingsroadHoist.MAP_SCALE,-.16)
  if theme=="aqueduct":AqueductWheel.new().build(self,parent,AqueductWheel.MAP_SITE,AqueductWheel.MAP_SCALE,-.28)
@@ -675,6 +682,17 @@ func abbey_arcade(parent: Node3D,anchor: Vector3):
  block(arcade,Vector3(0,5.23,0),Vector3(25.6,.34,.82),stone).name="ArcadeCoping"
  block(arcade,Vector3(0,5.43,0),Vector3(25.8,.10,1.06),Color("b7b3a0")).name="ArcadeCornice"
 
+func abbey_grove(parent: Node3D,anchor: Vector3,spacing: float,size: float):
+ # The same staggered tree line frames the map and the open arcade.
+ for index in range(ABBEY_GROVE_SITES.size()):
+  var site=ABBEY_GROVE_SITES[index]
+  var tree_group=Node3D.new()
+  tree_group.name="AbbeyGardenTree"
+  tree_group.position=anchor+Vector3(site.x,0,site.y)*spacing
+  tree_group.scale=Vector3(.64,1.28,.64)*size
+  parent.add_child(tree_group,true)
+  conifer(tree_group,Vector3.ZERO,index*137,"forest")
+
 func abbey_belfry(parent: Node3D,anchor: Vector3,size: float):
  var tower=Node3D.new();tower.name="EmptyBelfry";tower.position=anchor
  tower.scale=Vector3.ONE*size;parent.add_child(tower)
@@ -950,6 +968,8 @@ func battle_landscape(parent,center,context={}):
  if theme=="forest":TrailLanterns.fighting_lane(parent,center)
  if theme=="aqueduct":aqueduct_gallery(parent,center,water_level)
  if theme=="abbey":
+  ground(parent,center+Vector3(0,-.025,-55.6),Vector2(170,88),0).name="AbbeyGardenLawn"
+  abbey_grove(parent,center+Vector3(0,-.025,-14.6),1.85,2.24)
   abbey_arcade(parent,center+Vector3(0,0,-9.7))
   abbey_belfry(parent,center+Vector3(belfry_lateral,0,-6.5),1.35)
   if context.has("mosaic_yaw") and tile=="p":

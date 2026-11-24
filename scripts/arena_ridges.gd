@@ -12,6 +12,7 @@ const LANDSCAPES={
  "village":{"height":1.0,"offset":0.0,"near":Color("617466"),"distant":Color("869394")},
  "river":{"height":.61,"offset":4.0,"near":Color("526a63"),"distant":Color("8a9e9a")},
  "forest":{"height":1.12,"offset":-3.0,"near":Color("455e5a"),"distant":Color("79908e")},
+ "abbey":{"height":.86,"offset":-2.0,"near":Color("69735e"),"distant":Color("98a29a")},
  "road":{"height":.79,"offset":5.0,"near":Color("7a7b61"),"distant":Color("a2a590")},
  "mountain":{"height":1.0,"offset":0.0,"near":Color("626d73"),"distant":Color("8e9ea6")},
 }

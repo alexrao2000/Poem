@@ -138,6 +138,10 @@ func verify_abbey_arcade():
  var scenery=Scenery.new();scenery.batching_enabled=false
  var game=Rules.new();game.chapter=3
  var snapshot=game.save_data("camp")
+ var map=Node3D.new();root.add_child(map);scenery.landscape(map,game)
+ var mapped_trees=map.find_children("AbbeyGardenTree*","Node3D",false,false)
+ assert(mapped_trees.size()==8 and mapped_trees.all(func(tree):return tree.position.z<-2.5 and tree.position.y<0),
+  "The Abbey grove stays beyond the playable courtyard")
  var context=scenery.combat_context(game,{"x":6,"y":8},{"x":6,"y":7})
  assert(context.environment=="abbey" and not context.landmarks.is_empty())
  var viewport=SubViewport.new();viewport.render_target_update_mode=SubViewport.UPDATE_DISABLED;root.add_child(viewport)
@@ -147,6 +151,19 @@ func verify_abbey_arcade():
   context.terrain=terrain
   var stage=Node3D.new();root.add_child(stage);scenery.battle_landscape(stage,center,context)
   var arcade=stage.get_node("AbbeyArcade")
+  var garden=stage.get_node("AbbeyGardenLawn")
+  var staged_trees=stage.find_children("AbbeyGardenTree*","Node3D",false,false)
+  assert(staged_trees.size()==mapped_trees.size() and garden.position.y<center.y)
+  var lawn=garden.transform*garden.mesh.get_aabb()
+  assert(lawn.end.z<arcade.position.z-1.8 and lawn.position.z<-90.0,"The grass starts beyond the arcade and extends under the far hills")
+  for index in staged_trees.size():
+   var tree=staged_trees[index]
+   assert(tree.position.y==garden.position.y and tree.position.z<arcade.position.z-4.5)
+   assert(tree.get_node("ConiferCrown").mesh==mapped_trees[index].get_node("ConiferCrown").mesh,
+    "The same garden tree silhouettes frame the map and the arena")
+  var ridges=stage.find_children("ArenaRidge*","MeshInstance3D",false,false)
+  assert(ridges.size()==3 and ridges.all(func(ridge):return ridge.mesh.get_aabb().end.z<=-26.0),
+   "All three distant hills sit beyond the planted garden")
   var walk=arcade.get_node("ArcadeWalk")
   var step=arcade.get_node("ArcadeStep")
   var coping=arcade.get_node("ArcadeCoping")
@@ -183,9 +200,10 @@ func verify_abbey_arcade():
    var arch=spans[1].to_global(Vector3(.4,1.85,0))
    assert(Rect2(Vector2.ZERO,Vector2(dimensions)).grow(-10).has_point(camera.unproject_position(arch)),"A masonry crown fits the wide shot")
   stage.queue_free();await process_frame
- viewport.queue_free();await process_frame
+ map.queue_free();viewport.queue_free();await process_frame
  assert(game.save_data("camp")==snapshot)
  print("PASS: seven seated abbey piers, six open arches in shared stone, planted walk and six camera projections")
+ print("PASS: eight shared Abbey trees, grass beyond the arcade and three continuous hills in both floor setups")
 
 func verify_abbey_mosaic():
  var scenery=Scenery.new();scenery.batching_enabled=false

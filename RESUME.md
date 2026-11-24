@@ -6,6 +6,8 @@ This checkpoint describes the current development branch and supersedes the earl
 
 ### Latest state
 
+Hallow Abbey’s stone court now opens onto grass and eight shared garden trees. Three distant ridges are visible through the open arcade in the close-up. The original rosette and empty belfry remain the main landmarks. See the [Abbey garden comparison](build/review/hallow-abbey-garden-comparison.png), with simplified software lighting, and `build/review/abbey-garden-checks.json`.
+
 Mounted map shadows follow the visible hoof span in all 48 poses of Bram, Una, Elian and the Crown cavalry. West strikes mirror their shadow offset. The four figures share the existing shadow mesh and material, and their sprite sheets, pivot positions and animation clips match the previous build. See the [mounted comparison](build/review/hoof-shadow-study.png) and `build/review/hoof-shadow-checks.json`.
 
 Hallow Abbey has an original 32-bar theme in three, “Vespers for the Empty Tower.” The Calm and Ablaze loops are 65.45 seconds long and share 1,443,273 frames at 22,050 Hz. The Abbey mosaic starter reaches Ablaze and returns to Calm on its existing decoder. Both new tracks reproduce byte for byte, and all eight earlier decoded tracks match the previous build. See `build/review/abbey-score-checks.json` and the [Abbey starter](build/review/playtest/hallow-abbey-mosaic.txt).
