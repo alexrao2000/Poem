@@ -6,6 +6,10 @@ This checkpoint describes the current development branch and supersedes the earl
 
 ### Latest state
 
+Starfall has a tilted slate chart beside the armillary on the tactical map and in 3D fights. Sixteen stars are etched with three original constellations. The timber posts and braces meet their stone footings, and eighteen wide shots retain a clear view of the chart. Eight focused suites, matching source and packed geometry, all 72 matched chapter outcomes, both local exports and their clockwork and presentation suites passed. A new Debug code enters a full revised observatory fight in both packs. See `build/review/starfall-chart-study.png` and `build/review/playtest/README.md`. Rendered gameplay remains unreviewed.
+
+The full committed-loss replay at `657df70` reached the ending after 15 battles and 470 actions. Lyra read all three section memorials. The run matched 998 exact saves to the earlier replay, including both planned rewinds, one leader defeat and all 17 permanent losses. See `build/review/memorial-route.html`.
+
 Narrow battle forecasts wrap weapon names and give casualty warnings their own row. The damage value and follow-up badge stay inside the damage column at 720 pixels. Seventy-two equipment layouts, sixty conditional fall layouts and a live battle resize exercised the compact cards and their 960-pixel breakpoint. Nine focused suites, all 72 matched chapter outcomes, both exports, packed forecast and keyboard controls, and ZIP integrity passed. Rendered gameplay remains unreviewed.
 
 Section memorials read the names recorded in that section’s legacy ledger. Later names appear when the company reopens the memorial, while the original scene still plays once automatically. The final memorial’s wording works before or after the engine falls. The keyboard hints use two short lines in narrow dialogue. Ten focused suites, eight memorial layouts from 720 to 1440 pixels, two packed suites per platform and both ZIP checks passed. Rendered appearance remains unreviewed.

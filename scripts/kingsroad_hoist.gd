@@ -19,15 +19,15 @@ static func build(scenery,parent: Node3D,site: Vector3,size: float,yaw: float):
  scenery.block(hoist,Vector3(0,1.093,0),Vector3(.27,1.72,.26),oak).name="HoistMast"
  for y in [.31,1.72]:
   scenery.block(hoist,Vector3(0,y,0),Vector3(.29,.095,.28),iron).name="HoistCollar"
- beam(scenery,hoist,"HoistArm",Vector3(0,1.88,.12),BOOM_TIP,.183,.177,oak)
- beam(scenery,hoist,"HoistBrace",Vector3(0,.87,-.09),Vector3(0,2.00,-.94),.106,.10,oak)
+ scenery.timber_span(hoist,Vector3(0,1.88,.12),BOOM_TIP,Vector2(.183,.177),oak).name="HoistArm"
+ scenery.timber_span(hoist,Vector3(0,.87,-.09),Vector3(0,2.00,-.94),Vector2(.106,.10),oak).name="HoistBrace"
  var wheel_center=Vector3(-.224,1.255,.040)
  var axle=scenery.cylinder(hoist,Vector3(-.156,wheel_center.y,wheel_center.z),.17,.082,Color("494a43"))
  axle.rotation.z=PI*.5;axle.name="HoistAxle"
  var rim=scenery.mesh(hoist,ring_shape(),wheel_center,Vector3(.295,.105,.295),brass)
  rim.rotation.z=PI*.5;rim.name="HoistHandwheel"
  for direction in [Vector3.UP,Vector3.BACK]:
-  beam(scenery,hoist,"HoistSpoke",wheel_center-direction*.249,wheel_center+direction*.249,.050,.049,oak)
+  scenery.timber_span(hoist,wheel_center-direction*.249,wheel_center+direction*.249,Vector2(.050,.049),oak).name="HoistSpoke"
  var grip=scenery.cylinder(hoist,wheel_center+Vector3(-.078,.189,.174),.16,.047,Color("654934"),.043)
  grip.rotation.z=PI*.5;grip.name="HoistGrip"
  var pulley_center=BOOM_TIP-Vector3.UP*.114
@@ -39,11 +39,6 @@ static func build(scenery,parent: Node3D,site: Vector3,size: float,yaw: float):
   link.name="HoistChainLink"
  var eye=scenery.mesh(hoist,ring_shape(),pulley_center-Vector3.UP*.916,Vector3(.079,.055,.107),brass)
  eye.rotation.x=PI*.5;eye.name="HoistEye"
-
-static func beam(scenery,parent: Node3D,label: String,first: Vector3,last: Vector3,width: float,depth: float,paint: Material):
- var timber=scenery.block(parent,(first+last)*.5,Vector3(width,first.distance_to(last),depth),paint)
- timber.quaternion=Quaternion(Vector3.UP,(last-first).normalized())
- timber.name=label
 
 static func ring_shape() -> TorusMesh:
  if ring==null:

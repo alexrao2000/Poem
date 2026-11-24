@@ -1,6 +1,7 @@
 extends SceneTree
 ## Validate moving source geometry, local batching, clock isolation and actual
 ## scene teardown. These checks do not evaluate rendered color or appearance.
+const StarfallChart=preload("res://scripts/starfall_chart.gd")
 const Orbit=preload("res://scripts/clockwork_orbit.gd")
 const Scenery=preload("res://scripts/scenery.gd")
 const Rules=preload("res://scripts/rules.gd")
@@ -80,6 +81,7 @@ func run():
   else:
    verify_meridian(landmarks[0],-.15,1.1)
    verify_meridian(backdrops[0],-.06,1.54)
+   verify_starfall_chart(world,-.15)
    await verify_meridian_wide(arena,Vector3(35,0,0))
   scenery.batcher.combine(world);scenery.batcher.combine(arena)
   for node in landmarks+backdrops:
@@ -106,6 +108,7 @@ func run():
  await scenes()
  print("PASS: %d moving geometry samples, one arena mechanism per landmark, four grounded Sun Engine pylons with ring clearance, hidden-clock suspension and actual normal/Skip cleanup"%samples)
  print("PASS: Starfall's grounded meridian dais and brass dial clear the moving rings, with planted columns and eighteen wide-shot projections")
+ print("PASS: Starfall’s shared etched chart, grounded supports and eighteen wide-shot readings of the tilted slate")
  quit()
 
 func verify_clockwork_cache_boundaries(host: Node3D):
@@ -171,6 +174,7 @@ func verify_meridian(orbit: Node3D,ground_height: float,radius: float):
 
 func verify_meridian_wide(arena: Node3D,center: Vector3):
  var dais=arena.get_node("ObservatoryDais")
+ var chart=verify_starfall_chart(arena,-.06)
  var shafts=arena.find_children("ObservatoryColumnShaft*","MeshInstance3D",false,false)
  var bases=arena.find_children("ObservatoryColumnBase*","MeshInstance3D",false,false)
  var capitals=arena.find_children("ObservatoryColumnCapital*","MeshInstance3D",false,false)
@@ -196,7 +200,36 @@ func verify_meridian_wide(arena: Node3D,center: Vector3):
     var clear=not silhouettes.any(func(pillar):return pillar.intersects_segment(camera.global_position,point)!=null)
     return clear and not camera.is_position_behind(point) and safe.has_point(camera.unproject_position(point))
    ),"At least one bronze rim point stays clear of the columns and HUD")
+   var samples=[Vector3(-.64,.14,.062),Vector3(.025,.258,.062),Vector3(.58,.236,.062)]
+   assert(samples.any(func(sample):
+    var point=chart.to_global(sample)
+    var clear=not silhouettes.any(func(pillar):return pillar.intersects_segment(camera.global_position,point)!=null)
+    return clear and not camera.is_position_behind(point) and safe.has_point(camera.unproject_position(point))
+   ),"At least one engraved constellation remains visible beside the armillary")
  viewport.queue_free();await process_frame
+
+func verify_starfall_chart(landscape: Node3D,ground_height: float) -> Node3D:
+ var lectern=landscape.get_node("StarfallChartLectern")
+ var slate=lectern.get_node("InclinedChart")
+ var base=slate.get_node("SlateChart")
+ var face=slate.get_node("EngravedStars")
+ assert(face.mesh==StarfallChart.star_chart() and face.mesh.surface_get_array_len(0)==684)
+ assert(face.position.z>base.scale.z*.5 and face.position.z<=base.scale.z*.5+.004)
+ assert((slate.global_basis.z.normalized()).dot(Vector3.UP)>.6)
+ var rails=slate.find_children("ChartRail*","MeshInstance3D",false,false)
+ assert(rails.size()==4)
+ var slab=base.global_transform*base.mesh.get_aabb()
+ var support=lectern.find_children("ChartPost*","MeshInstance3D",false,false)
+ var braces=lectern.find_children("ChartBrace*","MeshInstance3D",false,false)
+ var feet=lectern.find_children("ChartFooting*","MeshInstance3D",false,false)
+ assert(support.size()==2 and feet.size()==2 and braces.size()==2)
+ for index in 2:
+  var foot=feet[index].global_transform*feet[index].mesh.get_aabb()
+  var post=support[index].global_transform*support[index].mesh.get_aabb()
+  var brace=braces[index].global_transform*braces[index].mesh.get_aabb()
+  assert(foot.position.y<ground_height and foot.end.y>ground_height and foot.intersects(post) and post.intersects(slab))
+  assert(foot.intersects(brace) and slab.intersects(brace),"The rear brace connects the same footing to the underside of the board")
+ return slate
 
 func scenes():
  var app=load("res://main.tscn").instantiate();app.settings_path="";app.save_path="/private/tmp/poem-clockwork-%d.json"%Time.get_ticks_usec();root.add_child(app);await process_frame
@@ -213,6 +246,12 @@ func scenes():
    var arena_orbit=app.stage.find_child("ClockworkOrbit",true,false)
    assert(is_equal_approx(map_orbit.elapsed,arena_orbit.elapsed) and map_orbit.elapsed>10.0)
    assert(is_equal_approx(map_orbit.outer.rotation.y,arena_orbit.outer.rotation.y))
+   if chapter==8:
+    for landscape in [app.world,app.stage]:
+     assert(landscape.has_node("StarfallChartLectern"))
+     var faces=landscape.get_children().filter(func(node):return node is MeshInstance3D and node.material_override==StarfallChart.Masonry.material())
+     assert(faces.size()==1 and faces[0].mesh.surface_get_array_len(0)==StarfallChart.star_chart().surface_get_array_len(0),
+      "The engraved slate appears in the batched tactical and combat landscapes")
    transfers.entry=arena_orbit.elapsed
   var on_return=func():
    if app.stage.visible or app.world.visible:return

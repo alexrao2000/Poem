@@ -23,6 +23,7 @@ const CinderfordMarket=preload("res://scripts/cinderford_market.gd")
 const ReedTollhouse=preload("res://scripts/reed_tollhouse.gd")
 const AbbeyMosaic=preload("res://scripts/abbey_mosaic.gd")
 const KingsroadHoist=preload("res://scripts/kingsroad_hoist.gd")
+const StarfallChart=preload("res://scripts/starfall_chart.gd")
 const MAX_CACHED_CYLINDERS=256
 const ROAD_CANAL_NEAR=-5.0
 const ROAD_CANAL_FAR=-13.0
@@ -161,6 +162,11 @@ func mesh(parent: Node3D,shape: Mesh,p: Vector3,scale_value: Vector3,m: Material
 
 func block(parent,p,size,paint):
  return mesh(parent,unit_block,p,size,paint if paint is Material else material(paint))
+
+func timber_span(parent: Node3D,first: Vector3,last: Vector3,section: Vector2,paint: Material) -> MeshInstance3D:
+ var span=block(parent,(first+last)*.5,Vector3(section.x,first.distance_to(last),section.y),paint)
+ span.quaternion=Quaternion(Vector3.UP,(last-first).normalized())
+ return span
 
 func plane_shape(size: Vector2) -> PlaneMesh:
  if not planes.has(size):
@@ -424,6 +430,7 @@ func landmark(parent,p,kind,roof_variant=-1,map_site=Vector2.INF):
   sun_engine(parent,p+Vector3.DOWN*.06,.46)
  elif kind=="observatory":
   observatory(parent,p)
+  StarfallChart.build(self,parent,p+Vector3(-1.94,-.15,.27),.66)
  elif kind=="furnace":furnace(parent,p)
  elif kind=="ruin":
   var ruin=mesh(parent,RuinedColumns.mesh(),p,Vector3.ONE,Fortification.material())
@@ -867,6 +874,8 @@ func battle_landscape(parent,center,context={}):
    cylinder(parent,center+Vector3(x,.11,-5),.38,.5,Color("7f8178")).name="ObservatoryColumnBase"
    cylinder(parent,center+Vector3(x,3.5,-5),.3,.48,Color("c2bea7")).name="ObservatoryColumnCapital"
   observatory(parent,mechanism,true)
+  var chart_side=-1.0 if mechanism.x>=center.x else 1.0
+  StarfallChart.build(self,parent,mechanism+Vector3(chart_side*3.23,-.06,1.72),1.52)
  if ArenaRidges.LANDSCAPES.has(theme):
   ArenaRidges.build(parent,center+Vector3.UP*.06 if continuous_floor else center,theme)
   if theme=="mountain":
