@@ -24,6 +24,7 @@ var chapter: int = 0
 var turn: int = 1
 var phase: String = "player"
 var roster: Array = []
+var recruit_templates: Dictionary = {}
 var units: Array = []
 var deployed: Array = []
 var formation_order: Array = []
@@ -39,6 +40,8 @@ var story_seen: Array = []
 
 func _init():
 	content = JSON.parse_string(FileAccess.get_file_as_string("res://data/campaign.json"))
+	for template in content.roster:recruit_templates[template.id]=template
+	for legacy in content.legacy_recruits:recruit_templates[legacy.unit.id]=legacy.unit
 	trials.configure_section_starts(content.section_starts,content.chapters.size())
 	equipment = JSON.parse_string(FileAccess.get_file_as_string("res://data/equipment.json"))
 	promotions = JSON.parse_string(FileAccess.get_file_as_string("res://data/promotions.json"))
@@ -57,18 +60,24 @@ func new_campaign(permadeath_enabled=false):
 	supports.state.clear();battle_supports.clear()
 	rng.seed = 472019
 	roster = content.roster.duplicate(true)
-	for u in roster:
-		u.fallen=false;u.fallen_chapter=-1
-		u.level = 1+int(u.join)
-		u.xp = 0
-		u.hp += int(u.join)*2
-		u.pow += int(u.join)
-		u.defense += int(u.join)/2
-		u.resistance += int(u.join)/2
-		u.max_hp = u.hp
-		normalize_equipment(u)
+	for u in roster:initialize_recruit(u)
 	deployed = ["lyra", "oren", "sera", "ivo"]
 	formation_order.clear()
+
+func initialize_recruit(unit: Dictionary):
+	unit.fallen=false;unit.fallen_chapter=-1
+	var training=int(unit.join)
+	unit.level=1+training;unit.xp=0
+	unit.hp+=training*2;unit.pow+=training
+	unit.defense+=training/2;unit.resistance+=training/2
+	unit.max_hp=unit.hp
+	normalize_equipment(unit)
+
+func enlist_legacy_recruit(template: Dictionary):
+	if roster.any(func(unit):return unit.id==template.id):return
+	var unit=template.duplicate(true)
+	initialize_recruit(unit)
+	roster.append(unit)
 
 func available() -> Array:
 	return roster.filter(func(u): return trials.joined(self,u) and not u.get("fallen",false))
@@ -533,7 +542,7 @@ func valid_save(data) -> bool:
 	if data.phase not in ["player","enemy"] or data.stage not in ["camp","battle","ending"]:return false
 	if not data.completed is bool or not data.rng is String or not data.rng.is_valid_int():return false
 	if not supports.valid_state(data.get("supports",{})) or not supports.valid_state(data.get("battle_supports",{})):return false
-	if not data.roster is Array or data.roster.size()!=content.roster.size():return false
+	if not data.roster is Array or data.roster.size()<content.roster.size() or data.roster.size()>recruit_templates.size():return false
 	if not data.units is Array or not data.deployed is Array or not data.get("story_seen",[]) is Array:return false
 	if data.units.size()>64 or data.get("story_seen",[]).size()>128:return false
 	for flag in data.get("story_seen",[]):
@@ -541,13 +550,18 @@ func valid_save(data) -> bool:
 	var ids={}
 	for unit in data.roster:
 		if not valid_unit(unit,false) or ids.has(unit.id):return false
-		var originals=content.roster.filter(func(original):return original.id==unit.id)
-		if originals.is_empty():return false
+		var original=recruit_templates.get(unit.id,{})
+		if original.is_empty():return false
 		if not unit.get("bio") is String or unit.bio.length()>2000:return false
-		if not (unit.get("join") is int or unit.get("join") is float) or unit.join!=originals[0].join:return false
+		if not (unit.get("join") is int or unit.get("join") is float) or unit.join!=original.join:return false
 		if unit.get("fallen",false):
 			if unit.hp!=0 or unit.id=="lyra":return false
 		ids[unit.id]=unit
+	if content.roster.any(func(unit):return not ids.has(unit.id)):return false
+	if int(data.version)>=6:
+		var volunteers=data.trials.get("volunteers",[])
+		for legacy in content.legacy_recruits:
+			if ids.has(legacy.unit.id)!=(legacy.unit.id in volunteers):return false
 	var deployment_ids={}
 	for id in data.deployed:
 		if not id is String or not ids.has(id) or deployment_ids.has(id):return false

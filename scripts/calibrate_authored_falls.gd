@@ -42,7 +42,8 @@ func run():
    for id in spec.get("campaign_characters",[spec.study_character]):entries["recruit:"+id]=[spec,id]
  for key in entries:
   var spec=entries[key][0].duplicate(true);spec.appearance="Identity"
-  var unit=rules.roster.filter(func(value):return value.id==entries[key][1])[0].duplicate(true);unit.team="enemy" if key.begins_with("enemy:") else "player";unit.item=spec.supported_items[0]
+  var unit=rules.recruit_templates[entries[key][1]].duplicate(true);rules.initialize_recruit(unit)
+  unit.team="enemy" if key.begins_with("enemy:") else "player";unit.item=spec.supported_items[0]
   if key.begins_with("enemy:"):unit.id=key;unit.job=spec.study_enemy_class
   var models=load("res://scripts/combat_models.gd").new("");models.catalog={"characters":{unit.id:spec}}
   var actor=models.build(world,unit,Vector3.ZERO);assert(actor!=null and models.issues.is_empty(),str(models.issues));await process_frame;actor.set_process(false)

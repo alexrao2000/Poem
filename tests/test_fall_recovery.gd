@@ -16,7 +16,8 @@ func run():
  for entry in entries:
   var spec=entry[0].duplicate(true)
   if entry[2]:spec.appearance="Identity"
-  var unit=rules.roster.filter(func(value):return value.id==entry[1])[0].duplicate(true);unit.team="enemy" if spec.has("study_enemy_class") else "player";unit.item=spec.supported_items[0]
+  var unit=rules.recruit_templates[entry[1]].duplicate(true);rules.initialize_recruit(unit)
+  unit.team="enemy" if spec.has("study_enemy_class") else "player";unit.item=spec.supported_items[0]
   if unit.team=="enemy":unit.id="fall_recovery_enemy";unit.job=spec.study_enemy_class
   var models=Models.new("");models.catalog={"characters":{unit.id:spec}}
   var actor=models.build(world,unit,Vector3(35,.65,0));assert(actor!=null and models.issues.is_empty());await process_frame;actor.set_process(false)

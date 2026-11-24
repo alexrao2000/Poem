@@ -18,7 +18,8 @@ func run():
   var spec=spec_source.duplicate(true);spec.appearance="Identity"
   for id in spec.get("campaign_characters",[spec.study_character]):
    for promotion in [""]+spec.get("supported_promotions",[]):
-    var unit=rules.roster.filter(func(value):return value.id==id)[0].duplicate(true);unit.team="player";unit.promotion=promotion
+    var unit=rules.recruit_templates[id].duplicate(true);rules.initialize_recruit(unit)
+    unit.team="player";unit.promotion=promotion
     var models=Models.new("");models.catalog={"characters":{id:spec}}
     var actor=models.build(world,unit,Vector3(35,.65,0));assert(actor!=null and models.issues.is_empty());await process_frame;actor.set_process(false)
     var rig=actor.model.get_node("Rig/Armature/Skeleton3D");var mapping=actor.poses.down;var expected=[]

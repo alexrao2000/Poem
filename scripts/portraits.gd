@@ -4,6 +4,7 @@ extends RefCounted
 const Commanders=preload("res://scripts/commanders.gd")
 const ORDER=["lyra","oren","sera","ivo","mara","tarin","nell","bram","esme","rook","faye","cassian","vela","dax","una","silas","petra","ari","noor","galen","yuna","hale","elian","rhea"]
 const ENEMY_CLASSES=["Vanguard","Knight","Ranger","Arcanist","Warden","Rider","Corsair","Duelist"]
+const INDIVIDUAL_PORTRAITS={"maelin":"res://assets/portraits/maelin-v1.png"}
 var textures: Dictionary={}
 var expression_textures: Dictionary={}
 var dialogue_regions=JSON.parse_string(FileAccess.get_file_as_string("res://data/dialogue_portraits.json"))
@@ -62,6 +63,9 @@ func get_unit_portrait(unit: Dictionary) -> Texture2D:
 
 func get_portrait(id: String) -> Texture2D:
  if textures.has(id):return textures[id]
+ if INDIVIDUAL_PORTRAITS.has(id):
+  textures[id]=load(INDIVIDUAL_PORTRAITS[id])
+  return textures[id]
  var index=ORDER.find(id)
  if index<0:return null
  var path="res://assets/portraits/company-"+["a","b","c","d"][index/6]+".png"

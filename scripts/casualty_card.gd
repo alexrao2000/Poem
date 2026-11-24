@@ -75,6 +75,7 @@ func configure(parent: Control,unit: Dictionary,portrait: Texture2D,mode: String
   var details=[]
   if effects.get("legacy_credit",false):details.append("Legacy credit +1")
   if effects.has("volunteer"):details.append(effects.volunteer+" joins early")
+  if effects.has("replacement"):details.append(effects.replacement+" joins")
   if effects.get("opening",false):details.append("Allies gain +2 attack")
   if effects.get("recovering",false):details.append("Recovery on redeployment")
   consequences=Label.new();consequences.name="Consequences";consequences.text=" · ".join(details)

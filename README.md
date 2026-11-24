@@ -1,6 +1,6 @@
 # Poem
 
-A playable tactical RPG prototype built with Godot 4.5.1 and GDScript. Lead 24 recruits through a 12-chapter campaign, choose their equipment and promotions, and build relationships between battles.
+A playable tactical RPG prototype built with Godot 4.5.1 and GDScript. Lead 24 recruits through a 12-chapter campaign, choose their equipment and promotions, and build relationships between battles. The death legacies experiment can enlist Maelin, a hospice Warden, after a permanent Warden loss.
 
 The campaign uses animated 2D sprites over textured 3D terrain. Combat zooms enlarge the sprites with tactical indicators hidden. The fighters emerge before the surrounding 3D arena, and the return opens on the same spot on the map with updated health and status. Browser and macOS exports run locally.
 

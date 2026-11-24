@@ -1,4 +1,23 @@
 {
+  "maelin": {
+    "title": "The hospice road",
+    "biography": "Maelin keeps a spare bed and a pot of broth at a hospice above the flood line. During the occupation she walked a circuit of nearby villages with splints, clean linen, and a book of addresses. She takes up the fallen Warden's unfinished rounds when the company brings word that they will not return.",
+    "note": "Ties a red thread around each clean bundle so it can be found by feel.",
+    "ending": "Maelin reopened the hospice and taught its apprentices the long route between villages, so a blocked road would never leave a patient alone.",
+    "appearance": {
+      "skin": "aa7757",
+      "hair": "422c28",
+      "hair_style": "side_braid",
+      "hair_fringe": "parted",
+      "face_shape": "angular",
+      "cloth": "a75d4d",
+      "cape": "ded0b7",
+      "slender": true
+    },
+    "critical_quote": "Clear a path.",
+    "finish_quote": "Let me get to them.",
+    "growth_quote": "I can make the next round."
+  },
   "lyra": {
     "title": "A standard without a throne",
     "biography": "Lyra grew up repairing nets and reading histories borrowed from a teacher who never asked for them back. A distant connection to the old royal household made her useful to people with ambitions; the river evacuation made those ambitions seem very small. She is most decisive when the choice concerns someone else, and least comfortable when others ask what she wants.",

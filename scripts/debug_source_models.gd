@@ -8,7 +8,8 @@ var identities: Dictionary={}
 
 func _init(study_ids: Array):
  var studies=JSON.parse_string(FileAccess.get_file_as_string("res://data/model_studies.json"))
- var roster=JSON.parse_string(FileAccess.get_file_as_string("res://data/campaign.json")).roster
+ var campaign=JSON.parse_string(FileAccess.get_file_as_string("res://data/campaign.json"))
+ var roster=campaign.roster+campaign.legacy_recruits.map(func(legacy):return legacy.unit)
  models.catalog={"characters":{}}
  for key in study_ids:
   var spec=studies[key].duplicate(true);spec.appearance="Identity"

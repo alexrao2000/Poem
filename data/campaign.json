@@ -1,4 +1,25 @@
 {
+  "legacy_recruits": [
+    {
+      "after_loss_job": "Warden",
+      "unit": {
+        "id": "maelin",
+        "name": "Maelin",
+        "job": "Warden",
+        "bio": "A hospice keeper who follows the people her fellow Wardens could not bring home.",
+        "color": "#bd775f",
+        "join": 2,
+        "hp": 21,
+        "pow": 5,
+        "defense": 4,
+        "speed": 7,
+        "move": 5,
+        "weapon": "staff",
+        "reach": 1,
+        "resistance": 7
+      }
+    }
+  ],
   "section_starts": [0, 4, 8],
   "roster": [
     {

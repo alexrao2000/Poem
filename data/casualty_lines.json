@@ -8,6 +8,7 @@
   "nell": {"downed":"There's a way out. I just need a little help.","retreat":"The message gets through. Even if I have to crawl.","death":"One last delivery... don't let it go unanswered."},
   "bram": {"downed":"Easy, girl. Stay with me. Someone will come.","retreat":"We're going home, girl. Just a little farther.","death":"Take care of her... she knows the road home."},
   "esme": {"downed":"I haven't finished the verse. Please... stay.","retreat":"My voice is failing. I'll find it again at camp.","death":"Sing their names... and mine, if you remember."},
+  "maelin": {"downed":"My bag is still here. Find the red thread.","retreat":"Take me back to the hospice. I'll walk the road again.","death":"There are addresses in the bag. Please keep the rounds."},
   "rook": {"downed":"I won't run. Just... don't leave me here.","retreat":"This time I'm coming back. You have my word.","death":"Tell them... I stayed this time."},
   "faye": {"downed":"Follow my tracks. I haven't gone far.","retreat":"I'll take the old path. Meet me beyond the trees.","death":"The path goes on... even where I cannot."},
   "cassian": {"downed":"No titles now. I need your help.","retreat":"My pride can wait. The company cannot.","death":"No crown was worth... what you gave me."},

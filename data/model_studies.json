@@ -806,6 +806,10 @@
     "study_character": "esme",
     "study_label": "female Warden",
     "study_title": "Warden \u00b7 Esme",
+    "campaign_characters": [
+      "esme",
+      "maelin"
+    ],
     "supported_promotions": [
       "luminary",
       "wayfarer"

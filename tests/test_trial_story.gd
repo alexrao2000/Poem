@@ -2,6 +2,7 @@ extends SceneTree
 # Earned scenes survive section rewinds. They are read once during camp arrival,
 # can be replayed as memories, and remain isolated with the debug save state.
 const Rules=preload("res://scripts/rules.gd")
+const Imported=preload("res://scripts/imported_fighter.gd")
 const Shutdown=preload("helpers/game_shutdown.gd")
 func _initialize():call_deferred("run")
 func inspect_fixed(app):
@@ -17,11 +18,11 @@ func inspect_fixed(app):
    if not clipped:assert(Rect2(Vector2.ZERO,dimensions).grow(1).encloses(node.get_global_rect()),"Epilogue and archive controls fit: "+app.screen)
 
 func run():
- var game=Rules.new();var count=0;var ids=game.roster.map(func(unit):return unit.id)
+ var game=Rules.new();var count=0;var ids=game.recruit_templates.keys()
  for scene in game.trials.scenes.values():
   for line in scene:
    assert(line.speaker in ids and line.text.length()>20 and line.text.length()<500);count+=1
- assert(count==31)
+ assert(count==35)
  game.trials.queue_scene("relief_4");game.trials.queue_scene("relief_4")
  assert(game.trials.earned_scenes.size()==1 and game.trials.next_scene(game).size()==5)
  assert(game.trials.next_scene(game).is_empty())
@@ -87,8 +88,9 @@ func run():
  app.show_campaign_trials();app.ui.find_children("*","Button",true,false).filter(func(button):return button.text=="Return to epilogue")[0].pressed.emit()
  assert(app.screen=="ending","The archive return button also preserves the completed route")
  await verify_section_roll(app)
+ await verify_legacy_warden(app)
  await Shutdown.dispose(app);await process_frame
- print("PASS: 31 original trial-story lines, section memorial roll of names, live and archive playback, one-time arrivals, saved read state, deceased volunteer guard and debug restoration")
+ print("PASS: 35 original trial-story lines, section memorial roll of names, live and archive playback, one-time arrivals, saved read state, deceased volunteer guard and debug restoration")
  quit()
 
 func verify_section_roll(app):
@@ -119,3 +121,80 @@ func verify_section_roll(app):
    assert(app.dialogue_portrait.texture==app.portraits.get_dialogue_portrait("lyra","concerned"))
  app.finish_dialogue()
  assert(app.game.save_data("ending")==projected)
+
+func verify_legacy_warden(app):
+ var game=app.game
+ for flags in [[false,true],[true,false]]:
+  game.new_campaign(flags[0]);game.trials.flags.death_legacies=flags[1]
+  game.start_battle();game.units[3].hp=0;game.commit_casualties()
+  assert(game.roster.size()==24 and "maelin" not in game.trials.volunteers)
+ game.new_campaign(true)
+ game.story_seen=["opening_0"]
+ game.trials.flags.death_legacies=true;game.trials.flags.section_restarts=true
+ game.action_saves=true;game.death_door=true;game.start_battle()
+ var warden=game.units[3];assert(warden.id=="ivo")
+ warden.hp=0;game.DeathDoor.fall(game,warden);game.commit_casualties()
+ assert(game.roster.size()==24 and game.trials.losses.is_empty())
+ game.begin_enemy_phase();game.next_player_turn();game.begin_enemy_phase()
+ assert(game.lost_ids()==["ivo"] and game.trials.credits==1 and "maelin" in game.trials.volunteers)
+ assert(game.units.all(func(unit):return unit.id!="maelin"),"The volunteer joins for the next deployment")
+ var shifted=game.save_data("battle").duplicate(true)
+ assert(app.persist_campaign("battle"))
+ var resumed=Rules.new();assert(resumed.load_game(app.save_path)=="battle" and resumed.import_code(game.export_code("battle"))=="battle")
+ assert(resumed.trials.volunteers==game.trials.volunteers)
+ assert(JSON.parse_string(JSON.stringify(resumed.roster))==JSON.parse_string(JSON.stringify(game.roster)),
+  "Every saved role, statistic and identity survives transfer")
+ var forged=shifted.duplicate(true);forged.trials.volunteers.erase("maelin")
+ assert(not resumed.valid_save(forged),"An optional recruit and its enlistment must agree")
+ forged=shifted.duplicate(true);forged.trials.losses={"oren":0}
+ assert(not resumed.valid_save(forged),"An unrelated loss cannot justify this Warden")
+ assert(game.trials.restart(game) and game.roster.size()==25 and "maelin" in game.trials.volunteers)
+ var recruit=game.available().filter(func(record):return record.id=="maelin")[0]
+ assert(recruit.name=="Maelin" and recruit.job=="Warden" and recruit.item=="field_staff")
+ assert(game.trials.earned_scenes.count("volunteer_maelin")==1)
+ game.trials.flags.death_legacies=false
+ assert(game.available().has(recruit),"Enlistment persists when the experiment is disabled")
+ game.story_seen=["opening_0"];app.show_camp()
+ for _index in 3:
+  if app.dialogue_lines[0].speaker=="maelin":break
+  app.finish_dialogue()
+ assert(app.screen=="dialogue" and app.dialogue_lines[0].speaker=="maelin")
+ var portrait=app.portraits.get_portrait("maelin")
+ assert(portrait!=null and app.dialogue_portrait.texture==portrait and app.dialogue_speaker_name("maelin")=="Maelin")
+ assert(resumed.load_game(app.save_path)=="camp" and "volunteer_maelin" in resumed.trials.read_scenes)
+ app.finish_dialogue()
+ while app.screen=="dialogue":app.finish_dialogue()
+ assert(app.screen=="camp" and app.ui.find_child("Company_maelin",true,false)!=null)
+ game.deployed=["lyra","maelin"];game.start_battle();app.make_map();app.show_battle()
+ var medic=game.living("player").filter(func(record):return record.id=="maelin")[0]
+ var patient=game.living("player").filter(func(record):return record.id=="lyra")[0]
+ medic.x=4;medic.y=3;patient.x=5;patient.y=3;patient.hp-=6
+ app.refresh_pieces()
+ var saw_model={"seen":false}
+ var inspect=func():
+  if is_instance_valid(app.reward_panel):app.reward_panel.request_continue()
+  if not app.stage.visible:return
+  for node in app.stage.get_children():
+   if node is Imported and node.model.get_meta("character_identity","")=="maelin":saw_model.seen=true
+ process_frame.connect(inspect)
+ assert(game.can_heal(medic,patient))
+ app.preferences.values.auto_end=false;app.preferences.values.combat="all"
+ app.click_tile(game.pos(medic));app.click_tile(game.pos(patient))
+ var deadline=Time.get_ticks_msec()+12000
+ while app.busy and Time.get_ticks_msec()<deadline:await process_frame
+ process_frame.disconnect(inspect)
+ assert(not app.busy and saw_model.seen and app.unit_nodes.has("maelin") and patient.hp==patient.max_hp and medic.acted)
+ game.chapter=4;game.award_xp(recruit,123);game.start_battle()
+ assert(game.trials.checkpoint.roster.any(func(record):return record.id=="maelin" and record.level==4))
+ assert(resumed.import_code(game.export_code("battle"))=="battle" and resumed.trials.restart(resumed))
+ assert(resumed.roster.filter(func(record):return record.id=="maelin" and record.level==4).size()==1,
+  "A later section preserves her training at its checkpoint")
+ medic=game.living("player").filter(func(record):return record.id=="maelin")[0]
+ game.trials.flags.death_legacies=true;game.death_door=false
+ medic.hp=0;game.commit_casualties()
+ assert(game.lost_ids()==["ivo","maelin"] and game.trials.credits==2)
+ assert(game.trials.restart(game) and game.roster.size()==25 and game.trials.earned_scenes.count("volunteer_maelin")==1)
+ assert(game.available().all(func(record):return record.id!="maelin"))
+ assert(resumed.import_code(game.export_code("camp"))=="camp" and "maelin" in resumed.lost_ids(),
+  "Her eventual permanent loss also survives a rewind")
+ print("PASS: permanent Warden loss alone enlists Maelin exactly once, preserves the recruit across disk, transfer and section rewind, and deploys her with a portrait and revised staff model")

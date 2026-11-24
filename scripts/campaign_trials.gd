@@ -5,7 +5,7 @@ extends RefCounted
 
 const FLAGS={"section_restarts":false,"reset_pressure":false,"hard_campaign":false,"death_legacies":false,"sacrifice_cost":false}
 const LEGACY_STOCK=[{"id":"tempered_sword","cost":1,"losses":1},{"id":"war_hammer","cost":2,"losses":2},{"id":"longbow","cost":3,"losses":3},{"id":"rally_lance","cost":2,"losses":2},{"id":"vigil_staff","cost":2,"losses":2}]
-const SCENE_TITLES={"relief_4":"Relief at the abbey","relief_8":"Relief at the monastery","retreat_0":"Regrouping at Cinderford","retreat_4":"Return to the abbey","retreat_8":"Return to Starfall","volunteer_faye":"Faye answers the call","volunteer_noor":"Noor leaves the observatory","memorial_0":"Names in the company book","memorial_4":"The abbey record","memorial_8":"The monastery bell"}
+const SCENE_TITLES={"relief_4":"Relief at the abbey","relief_8":"Relief at the monastery","retreat_0":"Regrouping at Cinderford","retreat_4":"Return to the abbey","retreat_8":"Return to Starfall","volunteer_faye":"Faye answers the call","volunteer_noor":"Noor leaves the observatory","volunteer_maelin":"The hospice road","memorial_0":"Names in the company book","memorial_4":"The abbey record","memorial_8":"The monastery bell"}
 var scenes: Dictionary=JSON.parse_string(FileAccess.get_file_as_string("res://data/campaign_trial_scenes.json"))
 var earned_scenes: Array=[]
 var read_scenes: Array=[]
@@ -113,6 +113,12 @@ func record_losses(game) -> Dictionary:
     volunteers.append(volunteer);queue_scene("volunteer_"+volunteer)
     outcome.volunteer=recruits[0].name
     log_event(recruits[0].name+" answers the company's loss and arrives ahead of the planned rendezvous.")
+  for legacy in game.content.legacy_recruits:
+   var recruit=legacy.unit
+   if legacy.after_loss_job!=unit.job or recruit.id in volunteers:continue
+   volunteers.append(recruit.id);game.enlist_legacy_recruit(recruit);queue_scene("volunteer_"+recruit.id)
+   outcome.replacement=recruit.name
+   log_event(recruit.name+" takes up "+unit.name+"'s rounds and joins the company.")
  return consequences
 
 func enemy_modifiers(chapter: int,pressure_override: int=-1) -> Dictionary:
@@ -166,6 +172,8 @@ func restart(game) -> bool:
   if game.restore_save(checkpoint)!="camp":return false
   game.trials.from_data(preserved)
   game.permadeath=permanent;game.action_saves=actions;game.death_door=door
+  for legacy in game.content.legacy_recruits:
+   if legacy.unit.id in volunteers:game.enlist_legacy_recruit(legacy.unit)
   for casualty in deaths:
    for recruit in game.roster:
     if recruit.id==casualty.id:recruit.fallen=true;recruit.fallen_chapter=casualty.fallen_chapter;recruit.hp=0
@@ -218,8 +226,8 @@ func valid(game,data) -> bool:
  for key in FLAGS:
   if not data.flags.get(key) is bool:return false
  for key in ["pressure","credits"]:
-  if not integer(data[key],0,10 if key=="pressure" else game.content.roster.size()):return false
- var ids=game.content.roster.map(func(unit):return unit.id)
+  if not integer(data[key],0,10 if key=="pressure" else game.recruit_templates.size()):return false
+ var ids=game.recruit_templates.keys()
  for key in ["losses","injuries"]:
   if not data[key] is Dictionary or data[key].size()>ids.size():return false
   for id in data[key]:
@@ -233,6 +241,10 @@ func valid(game,data) -> bool:
    if not id is String or id in seen:return false
    if id not in (ids if key=="volunteers" else LEGACY_STOCK.map(func(stock):return stock.id)):return false
    seen.append(id)
+ for legacy in game.content.legacy_recruits:
+  if legacy.unit.id in data.volunteers:
+   var qualifying=data.losses.keys().any(func(id):return id!=legacy.unit.id and game.recruit_templates[id].job==legacy.after_loss_job)
+   if not qualifying:return false
  var spent=0
  for id in data.purchases:
   var stock=LEGACY_STOCK.filter(func(item):return item.id==id)[0]

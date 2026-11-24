@@ -13,7 +13,8 @@ func run():
   if exemplar.job!=arguments[1]:continue
   for id in study.get("campaign_characters",[study.study_character]):
    for path in rules.promotions.filter(func(value):return value.base==arguments[1]):
-    var unit=rules.roster.filter(func(value):return value.id==id)[0].duplicate(true);unit.team="player";unit.promotion=path.id;unit.item=study.supported_items[0]
+    var unit=rules.recruit_templates[id].duplicate(true);rules.initialize_recruit(unit)
+    unit.team="player";unit.promotion=path.id;unit.item=study.supported_items[0]
     var spec=study.duplicate(true);spec.appearance="Identity"
     var models=load("res://scripts/combat_models.gd").new("");models.catalog={"characters":{unit.id:spec}}
     var actor=models.build(world,unit,Vector3.ZERO);assert(actor!=null and models.issues.is_empty(),str(models.issues));await process_frame;actor.set_process(false)

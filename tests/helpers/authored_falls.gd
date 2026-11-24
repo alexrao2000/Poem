@@ -11,12 +11,13 @@ func run():
    if study.study_enemy_class==job:entries["enemy:"+job]=[study,study.study_character]
   else:
    for id in study.get("campaign_characters",[study.study_character]):
-    var recruit=rules.roster.filter(func(value):return value.id==id)[0]
+    var recruit=rules.recruit_templates[id]
     if recruit.job==job:entries["recruit:"+id]=[study,id]
  var count=0;var lowest=INF
  for key in entries:
   var spec=entries[key][0].duplicate(true);spec.appearance="Identity"
-  var unit=rules.roster.filter(func(value):return value.id==entries[key][1])[0].duplicate(true);unit.item=spec.supported_items[0];unit.team="enemy" if key.begins_with("enemy:") else "player"
+  var unit=rules.recruit_templates[entries[key][1]].duplicate(true);rules.initialize_recruit(unit)
+  unit.item=spec.supported_items[0];unit.team="enemy" if key.begins_with("enemy:") else "player"
   if unit.team=="enemy":unit.id=key;unit.job=job
   var raw=load(spec.scene).instantiate();var source=raw.get_node(NodePath(spec.player)).get_animation("Death01");var path=NodePath("Armature/Skeleton3D:root")
   var source_track=source.find_track(path,Animation.TYPE_POSITION_3D);var source_keys=[]
@@ -46,7 +47,8 @@ func run():
   if source_track>=0:
    for index in range(source_keys.size()):assert(source.track_get_key_value(source_track,index)==source_keys[index])
   actor.queue_free();raw.free();await process_frame
- assert(entries.size()==4,"Every infantry class includes its three recruits and anonymous enemy")
+ var reserves=rules.content.legacy_recruits.filter(func(legacy):return legacy.unit.job==job)
+ assert(entries.size()==4+reserves.size(),"Every infantry class includes its recruits and anonymous enemy")
  world.queue_free();await process_frame
  print("PASS: ",job," ",count," complete falling outfits, minimum ",lowest," m, continuous private root support, native/direct attachments and unchanged source clips")
  quit()
