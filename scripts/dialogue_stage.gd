@@ -52,7 +52,7 @@ func configure(next_line: Callable,skip_scene: Callable,show_history=Callable())
 	speech=Label.new();speech.autowrap_mode=TextServer.AUTOWRAP_WORD_SMART
 	speech.size_flags_vertical=Control.SIZE_EXPAND_FILL;column.add_child(speech)
 	var controls=HBoxContainer.new();controls.add_theme_constant_override("separation",12);column.add_child(controls)
-	hint=Label.new();hint.text="Space / Enter: continue   ·   Escape: skip"
+	hint=Label.new()
 	hint.add_theme_font_size_override("font_size",15);hint.size_flags_horizontal=Control.SIZE_EXPAND_FILL;controls.add_child(hint)
 	for entry in [["Skip scene",skip_scene],["History [H]",show_history],["Continue  >",next_line]]:
 		var button=Button.new();button.text=entry[0];button.custom_minimum_size.y=42
@@ -70,7 +70,8 @@ func refresh_prompt():
 	ready_indicator.visible=ready_to_continue
 	next_button.text="Continue  >" if ready_to_continue else "Reveal text"
 	next_button.tooltip_text="Go to the next line" if ready_to_continue else "Show the rest of this line"
-	hint.text="Space / Enter: continue   ·   Escape: skip" if ready_to_continue else "Space / Enter: reveal   ·   Escape: skip"
+	var action="continue" if ready_to_continue else "reveal"
+	hint.text=("Enter · %s\nEsc · skip" if size.x<840 else "Space / Enter: %s   ·   Escape: skip")%action
 	if not ready_to_continue:ready_clock=0;ready_indicator.modulate.a=1
 
 func _process(delta):
@@ -81,6 +82,7 @@ func _process(delta):
 
 func arrange():
 	if not is_instance_valid(panel):return
+	refresh_prompt()
 	var compact=size.y<760
 	var margin=32.0 if compact else 56.0
 	var height=240.0 if compact else 230.0

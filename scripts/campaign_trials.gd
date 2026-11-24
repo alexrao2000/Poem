@@ -30,8 +30,26 @@ func next_scene(game) -> Array:
   if id in read_scenes:continue
   read_scenes.append(id)
   if id.begins_with("volunteer_") and id.trim_prefix("volunteer_") in game.lost_ids():continue
-  return scenes[id].duplicate(true)
+  return scene_lines(game,id)
  return []
+
+func scene_lines(game,id: String) -> Array:
+ var lines=scenes[id].duplicate(true)
+ if not id.begins_with("memorial_"):return lines
+ var start=int(id.trim_prefix("memorial_"))
+ var names: Array[String]=[]
+ for recruit in game.roster:
+  if losses.has(recruit.id) and section_start(int(losses[recruit.id]))==start:names.append(recruit.name)
+ var insert_at=1
+ for offset in range(0,names.size(),4):
+  var group=names.slice(offset,offset+4)
+  var last=group.pop_back()
+  var listed=last if group.is_empty() else ", ".join(group)+" and "+last
+  var text="Write down %s. I want the news to come from us."%listed
+  if offset>0:text="There is room for %s on this page as well."%listed
+  lines.insert(insert_at,{"speaker":"lyra","expression":"concerned","text":text})
+  insert_at+=1
+ return lines
 
 func section_start(chapter: int) -> int:
  return int(chapter/4)*4

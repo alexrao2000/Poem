@@ -38,12 +38,16 @@ func run():
   var memorial="memorial_"+str(chapter)
   assert(memorial in mourning.trials.earned_scenes,"Terminal legacy loss earns the memorial for its section")
   var next=mourning.trials.next_scene(mourning)
-  assert(next.size()==3 and next.all(func(line):return line.speaker=="lyra"),"Memorial precedes volunteer arrival and uses a surviving speaker")
+  assert(next.size()==4 and next.all(func(line):return line.speaker=="lyra"),"Memorial precedes volunteer arrival and uses a surviving speaker")
+  assert(patient.name in next[1].text and next[1].expression=="concerned")
   var other=mourning.units[2];other.hp=0;mourning.commit_casualties()
   assert(mourning.trials.earned_scenes.count(memorial)==1,"Later losses cannot repeat a section memorial")
   assert(mourning.trials.restart(mourning))
   var restored=Rules.new();assert(restored.import_code(mourning.export_code("camp"))=="camp")
   assert(memorial in restored.trials.read_scenes and restored.trials.earned_scenes.count(memorial)==1,"Memorial read state survives retreat and save transfer")
+  var replay=restored.trials.scene_lines(restored,memorial)
+  assert(replay.size()==4 and patient.name in replay[1].text and other.name in replay[1].text,
+   "The section record includes later committed losses without queuing a second scene")
  var returning=Rules.new();returning.trials.flags.death_legacies=true;returning.start_battle();returning.units[1].hp=0;returning.commit_casualties()
  assert(returning.trials.earned_scenes.is_empty(),"Returning casualties do not trigger permanent-loss memorials")
  root.size=Vector2i(1440,900)
@@ -65,19 +69,53 @@ func run():
  app.game.units[1].hp=0;app.game.commit_casualties()
  for enemy in app.game.living("enemy"):enemy.hp=0
  assert(app.game.result()=="victory");app.game.finish_chapter();app.make_map();app.show_ending()
- assert(app.screen=="dialogue" and app.dialogue_lines.size()==3 and "monastery bell" in app.dialogue_lines[0].text,"A final-battle memorial is presented before the epilogue")
+ assert(app.screen=="dialogue" and app.dialogue_lines.size()==4 and "monastery bell" in app.dialogue_lines[0].text,"A final-battle memorial is presented before the epilogue")
+ var memorial_name=app.game.units[1].name
+ assert(memorial_name in app.dialogue_lines[1].text and app.dialogue_lines[1].expression=="concerned")
  assert(loaded.load_game(app.save_path)=="ending" and "memorial_8" in loaded.trials.read_scenes,"Final memorial read state is saved as a completed campaign")
  app.finish_dialogue();assert(app.screen=="ending");await inspect_fixed(app)
  app.ui.find_children("*","Button",true,false).filter(func(button):return button.text=="Company memories")[0].pressed.emit()
  assert(app.screen=="campaign_trials" and not app.ui.find_children("*","Button",true,false).any(func(button):return button.text.begins_with("Secure ·")),"Completed archives do not reopen the legacy shop")
  await inspect_fixed(app)
  var replay_memorial=app.ui.find_children("*","Button",true,false).filter(func(button):return button.text=="Replay · The monastery bell")[0]
- var completed=app.game.save_data("ending").duplicate(true);replay_memorial.pressed.emit();app.finish_dialogue()
+ var completed=app.game.save_data("ending").duplicate(true);replay_memorial.pressed.emit()
+ assert(app.screen=="dialogue" and memorial_name in app.dialogue_lines[1].text)
+ app.finish_dialogue()
  assert(app.screen=="campaign_trials" and app.game.save_data("ending")==completed,"Archived memorial replay leaves the completed campaign unchanged")
  var escape=InputEventKey.new();escape.pressed=true;escape.keycode=KEY_ESCAPE;app._unhandled_input(escape)
  assert(app.screen=="ending" and app.game.completed,"Escape from the completed archive returns to the epilogue, not deployment")
  app.show_campaign_trials();app.ui.find_children("*","Button",true,false).filter(func(button):return button.text=="Return to epilogue")[0].pressed.emit()
  assert(app.screen=="ending","The archive return button also preserves the completed route")
+ await verify_section_roll(app)
  await Shutdown.dispose(app);await process_frame
- print("PASS: 31 original trial-story lines, relief/retreat/volunteer/memorial scenes, one-time arrivals, saved read state, deceased volunteer guard, archive replay and debug restoration")
+ print("PASS: 31 original trial-story lines, section memorial roll of names, live and archive playback, one-time arrivals, saved read state, deceased volunteer guard and debug restoration")
  quit()
+
+func verify_section_roll(app):
+ var sample=Rules.new();sample.new_campaign(true);sample.chapter=8
+ sample.trials.flags.death_legacies=true
+ var ids=["oren","sera","ivo","mara","tarin","nell","faye"]
+ for id in ids:sample.trials.losses[id]=8
+ sample.trials.losses.bram=5
+ sample.trials.injuries.esme=9
+ var before=sample.save_data("camp").duplicate(true)
+ var lines=sample.trials.scene_lines(sample,"memorial_8")
+ assert(lines.size()==5 and "Oren, Sera, Ivo and Mara" in lines[1].text and "Tarin, Nell and Faye" in lines[2].text)
+ assert(not lines.any(func(line):return "Bram" in line.text or "Esme" in line.text),"Only committed names in this section enter the roll")
+ assert(sample.save_data("camp")==before and sample.trials.scenes.memorial_8.size()==3)
+ var projected=app.game.save_data("ending").duplicate(true)
+ app.show_dialogue(lines,app.show_ending,"support",8)
+ for size in [Vector2(720,640),Vector2(720,900),Vector2(1024,640),Vector2(1440,900)]:
+  app.ui.set_anchors_and_offsets_preset(Control.PRESET_TOP_LEFT);app.ui.size=size
+  for index in [1,2]:
+   app.dialogue_index=index;app.refresh_dialogue();app.dialogue_stage.arrange()
+   app.dialogue_stage.speech.visible_characters=-1;app.dialogue_stage.refresh_prompt()
+   await process_frame;await process_frame
+   var panel=app.dialogue_stage.panel
+   var speech=app.dialogue_stage.speech
+   assert(Rect2(Vector2.ZERO,size).grow(1).encloses(panel.get_global_rect()) and speech.get_line_count()<=speech.get_visible_line_count())
+   var hint=app.dialogue_stage.hint
+   assert(hint.get_line_count()<=hint.get_visible_line_count())
+   assert(app.dialogue_portrait.texture==app.portraits.get_dialogue_portrait("lyra","concerned"))
+ app.finish_dialogue()
+ assert(app.game.save_data("ending")==projected)

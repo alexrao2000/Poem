@@ -83,6 +83,8 @@ Casualty portrait cards distinguish needing rescue, withdrawing and permanent lo
 
 At section breaks, the relief-column event brings recruits scheduled for that chapter and the following chapter to the rally point. Thirty-one original lines cover relief arrivals, early volunteers, retreats and section memorials. These scenes play once at camp, persist across section restarts and can be replayed as named company memories. With death legacies enabled, the first permanent loss in each section earns its memorial; downed or returning allies do not. A final-battle memorial plays before the epilogue. Completed campaigns retain an archive whose return controls lead back to the epilogue, without reopening preparation or purchases. Retreats describe the regent retaking the road while survivors withdraw to a rally point. Chapter dialogue now adapts to permanent losses as described below; a fuller branching story and bespoke death-triggered recruits are still future content work.
 
+Each memorial names the recruits whose permanent losses earned legacy credits in that section. Replay from **Company memories** includes names added after the first reading. The roll uses the existing ledger and stays available after a retreat or save transfer.
+
 A toggle change applies immediately where possible. Enemy difficulty and returning-unit supplies apply when deploying the next attempt. Disabling a switch does not erase already committed deaths, purchases or pressure. Debug tools can intentionally bypass consequences for inspection: **Reset current battle** is a clean rebuild; **Test reset / section retreat** exercises the actual penalty path.
 
 ## Story after permanent losses
