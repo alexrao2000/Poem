@@ -710,7 +710,11 @@ func update_side():
 	if is_instance_valid(forecast_panel):ui.remove_child(forecast_panel);forecast_panel.queue_free()
 	forecast_panel=null
 	for n in side.get_children():side.remove_child(n);n.queue_free()
-	var phase_text="TURN %d  /  %s"%[game.turn,game.phase.to_upper()]+(" · DEBUG" if debug_session.active else "")+("\nSAVE FAILED" if save_failed else "")
+	var phase_text="TURN %d  /  %s"%[game.turn,game.phase.to_upper()]
+	var notices=[]
+	if debug_session.active:notices.append("DEBUG")
+	if save_failed:notices.append("SAVE FAILED")
+	if not notices.is_empty():phase_text+="\n"+" · ".join(notices)
 	battle_header.set_phase(phase_text,game.phase=="enemy",save_failed)
 	if selected!=null:
 		var identity=HBoxContainer.new();identity.add_theme_constant_override("separation",8);side.add_child(identity)

@@ -81,12 +81,14 @@ func configure(parent: Control,title: String,instruction: String,tooltip: String
  status.add_theme_font_size_override("font_size",17)
  phase_plate.add_child(status)
  resized.connect(arrange)
+ phase_plate.minimum_size_changed.connect(arrange)
  arrange()
 
 func arrange():
- chapter_plate.size=Vector2(minf(WIDTH,maxf(180,size.x-PHASE_WIDTH-16)),HEIGHT)
- phase_plate.position=Vector2(size.x-PHASE_WIDTH,0)
- phase_plate.size=Vector2(PHASE_WIDTH,HEIGHT)
+ var phase_width=maxf(phase_plate.get_combined_minimum_size().x,clampf(size.x*.29,204,PHASE_WIDTH))
+ chapter_plate.size=Vector2(minf(WIDTH,maxf(180,size.x-phase_width-40)),HEIGHT)
+ phase_plate.position=Vector2(size.x-phase_width,0)
+ phase_plate.size=Vector2(phase_width,HEIGHT)
 
 func set_phase(text_value: String,enemy: bool,save_failed: bool):
  status.text=text_value
