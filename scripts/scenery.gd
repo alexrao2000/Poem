@@ -133,13 +133,15 @@ func detail_material(tile: int) -> ShaderMaterial:
  m.set_shader_parameter("quadrant",Vector2((tile%2)*.5,(tile/2)*.5));materials[key]=m
  return m
 
-func water_material(theme="") -> ShaderMaterial:
+func water_material(theme="",across_stage: int=0) -> ShaderMaterial:
  var style=WATER_STYLES.get(theme,{})
  var key="water" if style.is_empty() else "water_"+theme
+ if across_stage!=0:key+="_stage_"+str(signi(across_stage))
  if not materials.has(key):
   var m=ShaderMaterial.new()
   m.shader=preload("res://assets/shaders/water.gdshader")
   for parameter in style:m.set_shader_parameter(parameter,style[parameter])
+  if across_stage!=0:m.set_shader_parameter("flow_direction",Vector2.RIGHT*signi(across_stage))
   materials[key]=m
  return materials[key]
 
@@ -602,6 +604,8 @@ func combat_context(game,a,b,screen_direction=1.0) -> Dictionary:
  var tile=game.terrain(game.pos(b))
  var near_water=theme in ["road","harbor"] and nearby_channel(game,midpoint)
  var harbor_quayside=theme=="harbor" and tile!="=" and near_water
+ var village_streamside=theme=="village" and CinderfordStream.borders_exchange(game,a,b)
+ var backdrop_edge=-9.25 if village_streamside else -7.0
  var candidates=[]
  var tollhouse_x=INF
  for item in game.info().get("landmarks",[]):
@@ -612,11 +616,13 @@ func combat_context(game,a,b,screen_direction=1.0) -> Dictionary:
   if item.kind=="tollhouse":
    tollhouse_x=clampf(delta.dot(axis)*2.2-6.3,-10,-4)
    continue
-  candidates.append({"kind":item.kind,"map_site":site,"roof_variant":Architecture.variant_at(Vector3(site.x,0,site.y)),"distance":delta.length(),"x":clampf(delta.dot(axis)*2.2,-11,11),"z":-7-clampf(absf(delta.dot(depth))*1.8,0,10)})
+  candidates.append({"kind":item.kind,"map_site":site,"roof_variant":Architecture.variant_at(Vector3(site.x,0,site.y)),"distance":delta.length(),"x":clampf(delta.dot(axis)*2.2,-11,11),"z":backdrop_edge-clampf(absf(delta.dot(depth))*1.8,0,10)})
  candidates.sort_custom(func(left,right):return left.distance<right.distance)
  var context={"chapter":game.chapter,"environment":theme,"terrain":tile,
   "landmarks":candidates.slice(0,2),"road_canal":theme=="road" and near_water,"harbor_quay":harbor_quayside}
- if theme=="village":context.chimney_wind=Vector2(ChimneySmoke.WIND.dot(axis),ChimneySmoke.WIND.dot(depth))
+ if theme=="village":
+  context.chimney_wind=Vector2(ChimneySmoke.WIND.dot(axis),ChimneySmoke.WIND.dot(depth))
+  if village_streamside:context.village_stream_direction=int(signf(axis.y))
  if context.road_canal:
   context.road_hoist=midpoint.distance_to(Vector2(KingsroadHoist.MAP_SITE.x,KingsroadHoist.MAP_SITE.z))<=3.5
  if theme=="castle":
@@ -957,6 +963,7 @@ func battle_landscape(parent,center,context={}):
  var wooden_floor=tile=="="
  var continuous_floor=not wooden_floor and theme in MapGround.CONTINUOUS_ARENAS
  var road_canal=theme=="road" and not wooden_floor and context.get("road_canal",false)
+ var village_stream_direction=int(context.get("village_stream_direction",0)) if theme=="village" and not wooden_floor else 0
  var harbor_quayside=theme=="harbor" and not wooden_floor and context.get("harbor_quay",false)
  var surface=maxi(0,MapGround.surface_for(tile,theme))
  parent.set_meta("arena_surface",surface)
@@ -973,6 +980,7 @@ func battle_landscape(parent,center,context={}):
    kingsroad_canal(parent,center,paint)
    if context.get("road_hoist",false):
     KingsroadHoist.build(self,parent,center+Vector3(-3.68,0,ROAD_CANAL_NEAR+.69),1.48,1.02)
+  elif village_stream_direction!=0:CinderfordStream.arena(self,parent,center,paint,village_stream_direction)
   else:ground(parent,center,Vector2(70,70),0,paint).name="ArenaGround"
  else:
   if theme=="observatory":
@@ -1031,7 +1039,8 @@ func battle_landscape(parent,center,context={}):
     if item.kind in ["house","warehouse"]:house_sites.append(Vector2(item.x,item.z))
    village_trees(parent,center,house_sites)
    village_mill(parent,center+village_mill_site(house_sites),1.55)
-   CinderfordMarket.build(self,parent,center+Vector3(1.25,0,-4.05),1.4)
+   var market_site=Vector3(3.90,0,-3.25) if village_stream_direction!=0 else Vector3(1.25,0,-4.05)
+   CinderfordMarket.build(self,parent,center+market_site,1.4)
   elif not harbor_quayside:
    var sites=[]
    for i in range(28 if theme=="forest" or tile=="f" else 17):

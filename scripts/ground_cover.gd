@@ -1,5 +1,6 @@
 extends RefCounted
 ## Sparse edge planting leaves movement cells and the fighting lane readable.
+const CinderfordStream=preload("res://scripts/cinderford_stream.gd")
 const THEMES=["village","river","forest","road","mountain"]
 const NATURAL=["river","forest","road","mountain"]
 const HEIGHTS=[.18,.15,.33,.17]
@@ -66,12 +67,13 @@ func add_arena(parent: Node3D,center: Vector3,context: Dictionary):
  var theme=context.get("environment","village")
  if theme not in THEMES or context.get("terrain","")=="=":return
  var rng=RandomNumberGenerator.new();rng.seed=38611+int(context.get("chapter",0))*113
+ var far_edge=CinderfordStream.ARENA_FAR_BANK-.50 if theme=="village" and int(context.get("village_stream_direction",0))!=0 else -4.2
  var count=0
  for i in range(48 if theme=="forest" else 30):
   var side=i%2*2-1;var x=side*rng.randf_range(6.2,11.3)
   var z=rng.randf_range(-2.5,2.3)
   if theme!="river" and i%3==0:
-   x=rng.randf_range(-11,11);z=rng.randf_range(-10,-4.2)
+   x=rng.randf_range(-11,11);z=rng.randf_range(-10,far_edge)
   var kind=1 if theme=="forest" else 3 if i%9==0 else 0
   plant(parent,{"position":center+Vector3(x,0,z),"kind":kind,"height":HEIGHTS[kind]*rng.randf_range(1.5,2.2),"yaw":rng.randf()*TAU});count+=1
  parent.set_meta("ground_cover_count",count)

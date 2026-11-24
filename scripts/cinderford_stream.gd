@@ -9,6 +9,9 @@ const WET_SHORE = [Vector2(-.07,-.126), Vector2(.14,-.043), VEGETATION_EDGE]
 const GRASS_SHOULDER = [VEGETATION_EDGE, Vector2(.54,-.055),
  Vector2(.84,-.108), Vector2(1.12,-.151)]
 const TREE_CLEARANCE = 1.95
+const ARENA_NEAR_BANK = -4.25
+const ARENA_FAR_BANK = -6.85
+const ARENA_WATER_LEVEL = -.12
 static var cached_length = 0.0
 static var meshes: Dictionary = {}
 
@@ -82,3 +85,23 @@ static func tree_position(game,point: Vector3) -> Vector3:
  if absf(offset)<cross.y+TREE_CLEARANCE:
   point.x += (cross.y+TREE_CLEARANCE)*(1 if offset>=0 else -1)
  return point
+
+static func borders_exchange(game,a: Dictionary,b: Dictionary) -> bool:
+ if a.x!=b.x or a.y==b.y or absi(a.x-CHANNEL_COLUMN)!=1:return false
+ for row in range(mini(a.y,b.y),maxi(a.y,b.y)+1):
+  if game.terrain(Vector2i(CHANNEL_COLUMN,row))=="~":return true
+ return false
+
+static func arena(scenery,parent: Node3D,center: Vector3,paint: Material,flow_direction: int):
+ var near_length = 35.0-ARENA_NEAR_BANK
+ var far_length = 35.0+ARENA_FAR_BANK
+ scenery.ground(parent,center+Vector3(0,0,(35+ARENA_NEAR_BANK)*.5),Vector2(70,near_length),0,paint).name="ArenaGround"
+ scenery.ground(parent,center+Vector3(0,0,(ARENA_FAR_BANK-35)*.5),Vector2(70,far_length),0,paint).name="CinderfordFarBank"
+ var channel = scenery.plane_shape(Vector2(70,ARENA_NEAR_BANK-ARENA_FAR_BANK))
+ var midpoint = (ARENA_NEAR_BANK+ARENA_FAR_BANK)*.5
+ var water = scenery.mesh(parent,channel,center+Vector3(0,ARENA_WATER_LEVEL,midpoint),Vector3.ONE,scenery.water_material("village",flow_direction))
+ water.name="CinderfordArenaStream"
+ water.cast_shadow=GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+ for edge in [ARENA_NEAR_BANK,ARENA_FAR_BANK]:
+  var stone=scenery.block(parent,center+Vector3(0,-.105,edge),Vector3(70,.28,.26),scenery.detail_material(3))
+  stone.name="CinderfordBankStone"

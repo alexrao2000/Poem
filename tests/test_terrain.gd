@@ -128,6 +128,7 @@ func run():
  surface_geometry()
  verify_perimeter()
  verify_cinderford_stream()
+ await verify_cinderford_streamside()
  await verify_aqueduct_reservoir()
  verify_bridge_support(Scenery.new())
  verify_arena_ground()
@@ -1039,3 +1040,72 @@ func verify_cinderford_stream():
  assert(game.save_data("camp")==state,"The stream changes no campaign state")
  map.free();shortened.free()
  print("PASS: both Cinderford stream mouths match the playable waterline and follow raised banks beyond the grid")
+
+func verify_cinderford_streamside():
+ var game=Rules.new()
+ var saved=game.save_data("camp")
+ var scenery=Scenery.new();scenery.batching_enabled=false
+ var center=Vector3(35,0,0)
+ var view=SubViewport.new();view.render_target_update_mode=SubViewport.UPDATE_DISABLED;root.add_child(view)
+ var camera=Camera3D.new();view.add_child(camera);camera.current=true
+ var director=preload("res://scripts/combat_camera.gd")
+ var channels=0
+ for x in [6,8]:
+  for direction in [-1,1]:
+   var context=scenery.combat_context(game,{"x":x,"y":5},{"x":x,"y":6},direction)
+   assert(context.village_stream_direction==direction)
+   var stage=Node3D.new();root.add_child(stage);scenery.battle_landscape(stage,center,context)
+   var water=stage.get_node("CinderfordArenaStream")
+   var near_floor=stage.get_node("ArenaGround")
+   var far_floor=stage.get_node("CinderfordFarBank")
+   var pool=water.global_transform*water.mesh.get_aabb()
+   var near_bounds=near_floor.global_transform*near_floor.mesh.get_aabb()
+   var far_bounds=far_floor.global_transform*far_floor.mesh.get_aabb()
+   var separate=Vector2(CinderfordStream.ARENA_NEAR_BANK,CinderfordStream.ARENA_FAR_BANK)
+   var floor_rect=Rect2(near_bounds.position.x,near_bounds.position.z,near_bounds.size.x,near_bounds.size.z)
+   assert(is_zero_approx(near_floor.position.y) and floor_rect.encloses(Rect2(center.x-2,-.5,4,1)))
+   assert(is_equal_approx(near_bounds.position.z,separate.x) and is_equal_approx(far_bounds.end.z,separate.y))
+   assert(is_equal_approx(pool.position.z,separate.y) and is_equal_approx(pool.end.z,separate.x))
+   assert(is_equal_approx(water.position.y,CinderfordStream.ARENA_WATER_LEVEL)
+    and water.cast_shadow==GeometryInstance3D.SHADOW_CASTING_SETTING_OFF)
+   var map_water=scenery.water_material("village")
+   assert(water.material_override==scenery.water_material("village",direction))
+   assert(water.material_override!=map_water and water.material_override.shader==map_water.shader)
+   assert(water.material_override.get_shader_parameter("flow_direction")==Vector2.RIGHT*direction)
+   var edges=stage.find_children("CinderfordBankStone*","MeshInstance3D",false,false)
+   assert(edges.size()==2)
+   var walls: Array[AABB]=[]
+   for wall in edges:
+    var edge=wall.global_transform*wall.mesh.get_aabb()
+    assert(edge.position.y<water.position.y and edge.end.y>0,"The stone caps meet the bank and the stream below")
+    walls.append(edge)
+   var market=stage.get_node("CinderfordMarketStall")
+   for part in market.find_children("*","MeshInstance3D",true,false):
+    assert((part.global_transform*part.mesh.get_aabb()).position.z>separate.x,"The stall stays on the near bank")
+   for landmark in stage.find_children("ArenaLandmark*","Node3D",false,false):
+    for part in landmark.find_children("*","MeshInstance3D",true,false):
+     assert((part.global_transform*part.mesh.get_aabb()).end.z<separate.y,"The distant houses stay across the stream")
+   var plants=stage.get_children().filter(func(node):return node is MeshInstance3D and node.has_meta("plant_kind"))
+   assert(plants.size()==30 and plants.all(func(plant):return plant.position.z>separate.x or plant.position.z<separate.y),
+    "Vegetation stays on dry ground on either bank")
+   var shot=director.frame_pair(center+Vector3.LEFT*1.6,center+Vector3.RIGHT*1.6,"wide",false,false,"",true)
+   camera.position=shot.anchor;camera.fov=shot.lens;camera.look_at(shot.focus)
+   for dimensions in [Vector2i(1024,640),Vector2i(1280,720),Vector2i(1440,900)]:
+    view.size=dimensions;await process_frame
+    var visible=Rect2(Vector2.ZERO,Vector2(dimensions)).grow(-16)
+    var surface=pool.get_center()
+    assert([-4,0,4].any(func(dx):
+     var point=surface+Vector3.RIGHT*dx
+     return visible.has_point(camera.unproject_position(point)) and walls.all(func(wall):return wall.intersects_segment(camera.position,point)==null)),
+     "An opening shot sees a clear strip of water")
+   var paint=water.material_override
+   scenery.batcher.combine(stage)
+   assert(stage.get_children().any(func(node):return node is MeshInstance3D and node.get_meta("static_batch",false) and node.material_override==paint))
+   stage.free();channels+=1
+ for pair in [[Vector2i(2,3),Vector2i(3,3)],[Vector2i(6,4),Vector2i(7,4)],[Vector2i(7,4),Vector2i(8,4)]]:
+  var a={"x":pair[0].x,"y":pair[0].y};var b={"x":pair[1].x,"y":pair[1].y}
+  var inland=scenery.combat_context(game,a,b)
+  assert(not inland.has("village_stream_direction"),"The market and wooden crossing use their ordinary arenas")
+ assert(game.save_data("camp")==saved)
+ view.free()
+ print("PASS: %d streamside Cinderford arenas preserve dry footing, shoreline landmarks and the mirrored current across three viewport sizes"%channels)
