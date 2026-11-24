@@ -71,7 +71,7 @@ func run():
    world.queue_free();arena.queue_free();await process_frame;cases+=1
  assert(cases>0 and game.rng.state==state,"Architecture never consumes gameplay RNG")
  await verify_cloth()
- print("PASS: arched castle gate/portcullis, tiered fountain basins/jets, six shared fortified towers, battlement/deck rays, three cached roofs, 204 gable intersections, ",cases," house identities, 14 pinned cloth resources, bounded motion parameters and cleanup")
+ print("PASS: arched castle gate/portcullis, tiered fountain basins/jets, six shared fortified towers, battlement/deck rays, three cached roofs, 204 gable intersections, ",cases," house identities, 14 pinned map-cloth placements, bounded motion parameters and cleanup")
  quit()
 
 func verify_ruined_columns():
@@ -603,9 +603,14 @@ func verify_cloth():
   cloth.queue_free();await process_frame
  world.queue_free();await process_frame
  var game=Rules.new();var scenery=Scenery.new();var flags=0;var sails=0;var state=game.rng.state
+ var shapes={};var private_materials={}
  for chapter in range(12):
   game.chapter=chapter;world=Node3D.new();root.add_child(world);scenery.landscape(world,game)
   var pieces=world.find_children("*","Node3D",true,false).filter(func(node):return node is Cloth)
+  for piece in pieces:
+   shapes[piece.cloth.mesh]=true
+   private_materials[piece.material.get_instance_id()]=true
+   assert(piece.cloth.mesh==Cloth.mesh_for(piece.dimensions,piece.standard))
   var expected_flags=0;var expected_sails=0
   for row in game.info().map:expected_flags+=row.count("o")
   for landmark in game.info().landmarks:
@@ -621,6 +626,16 @@ func verify_cloth():
   var references=pieces.map(func(piece):return weakref(piece));world.queue_free();await process_frame
   for reference in references:assert(reference.get_ref()==null,"Cloth resources release with their map")
  assert(flags==12 and sails==2 and game.rng.state==state,"All campaign cloth is bounded and independent of gameplay RNG")
+ assert(shapes.size()==2 and private_materials.size()==14,"Map flags and sails share two shapes and own their own materials")
+ var original_meshes=Cloth.cloth_meshes.duplicate()
+ for n in range(Cloth.MAX_CACHED_MESHES+3):
+  Cloth.mesh_for(Vector2(3+n*.13,.52),true)
+ assert(Cloth.cloth_meshes.size()==Cloth.MAX_CACHED_MESHES,"Temporary variants cannot grow the shared geometry cache")
+ for key in original_meshes:
+  assert(Cloth.cloth_meshes.get(key)==original_meshes[key],"Frequent campaign shapes keep their shared resources")
+ var transient=Vector2(12.30,.64)
+ assert(Cloth.mesh_for(transient,true)!=Cloth.mesh_for(transient,true),"One-off shapes stay usable after the cache fills")
+ print("PASS: recurring flags and sails reuse source meshes, keep private material phases and bound the cache")
 
 func verify_harbor_boats():
  var hull=HarborBoat.hull()
@@ -807,6 +822,7 @@ func verify_gate_standards(gate: Node3D):
  var rails=gate.find_children("StandardRail*","MeshInstance3D",false,false)
  var brackets=gate.find_children("StandardBracket*","MeshInstance3D",false,false)
  assert(banners.size()==2 and rails.size()==2 and brackets.size()==4)
+ assert(banners[0].cloth.mesh==banners[1].cloth.mesh,"Castle standards share their matching geometry")
  assert(banners[0].material!=banners[1].material and not is_equal_approx(banners[0].phase,banners[1].phase))
  for index in banners.size():
   var banner=banners[index]
