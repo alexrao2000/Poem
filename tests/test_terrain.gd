@@ -385,6 +385,12 @@ func verify_pass_escarpment():
  var map_slope=map.get_node("PassEscarpment")
  var map_bounds=map_slope.transform*map_slope.mesh.get_aabb()
  assert(map_bounds.end.z<-.5 and is_equal_approx(map_bounds.position.y,-.15),"Rock rises beyond the tactical cells and joins their extended ground")
+ var talus=map.get_node("PassTalus")
+ var talus_bounds=talus.transform*talus.mesh.get_aabb()
+ assert(talus_bounds.position.z>game.board_size().y and talus_bounds.position.y<-.15 and talus_bounds.end.y<.30,
+  "Both scree deposits are seated in the ground beyond the board")
+ assert(talus.mesh.get_surface_count()==1 and talus.material_override==map_slope.material_override)
+ assert(talus.cast_shadow==GeometryInstance3D.SHADOW_CASTING_SETTING_OFF)
  var arrays=map_slope.mesh.surface_get_arrays(0)
  var points=arrays[Mesh.ARRAY_VERTEX];var normals=arrays[Mesh.ARRAY_NORMAL]
  assert(points.size()==1344 and map_slope.material_override.vertex_color_use_as_albedo)
@@ -403,6 +409,7 @@ func verify_pass_escarpment():
  assert(context.landmarks.size()==1)
  var stage=Node3D.new();root.add_child(stage);scenery.battle_landscape(stage,center,context)
  var slope=stage.get_node("PassEscarpment")
+ assert(not stage.has_node("PassTalus"))
  var bounds=slope.transform*slope.mesh.get_aabb()
  assert(slope.mesh==map_slope.mesh and slope.material_override==map_slope.material_override)
  assert(is_equal_approx(bounds.position.y,center.y) and bounds.end.z<-10 and bounds.position.z>-26)
@@ -440,6 +447,13 @@ func verify_pass_escarpment():
  for size in [Vector2i(1024,640),Vector2i(1280,720),Vector2i(1440,900)]:
   viewport.size=size;await process_frame
   var safe=Rect2(Vector2.ZERO,Vector2(size)).grow(-12)
+  for local in [Vector3(-5.8,.2,1.4),Vector3(4.75,.2,1.54)]:
+   assert(safe.has_point(camera.unproject_position(talus.to_global(local))),"Both foreground deposits are visible at Home")
+  for row in game.board_size().y:
+   for column in game.board_size().x:
+    var cell=Vector3(column,0,row)
+    var origin=camera.project_ray_origin(camera.unproject_position(cell))
+    assert(talus_bounds.intersects_segment(origin,cell)==null,"Even the combined scree bounds leave every tile center in view")
   for flame in map_flames:
    assert(clear_pass_flame(flame,map_slope,points,camera,safe),"The Windscar overview frames both beacons above the rock")
    var target=flame.to_global(Vector3(0,.34,0))
@@ -450,6 +464,7 @@ func verify_pass_escarpment():
  viewport.free();stage.free();map.free()
  assert(game.save_data("camp")==snapshot,"The new scenery leaves the campaign snapshot and RNG unchanged")
  print("PASS: continuous Windscar escarpment, 448 lit triangles, shared geometry, clear ruins and six wide-shot projections")
+ print("PASS: two Windscar scree deposits in one mesh stay visible without covering any tile center")
  print("PASS: both Windscar maps seat two independent beacons, with animated flames retained after batching and nine clear arena/map projections")
 
 func verify_pass_beacons(parent: Node3D,slope: MeshInstance3D) -> Array:

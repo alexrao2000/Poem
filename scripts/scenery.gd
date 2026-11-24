@@ -437,6 +437,7 @@ func landscape(parent,game):
  elif theme=="mountain":
   var slope=PassEscarpment.build(parent,Vector3((game.board_size().x-1)*.5,-.15,-2.1),Vector3(.72,.66,.77))
   pass_beacons(parent,slope,false)
+  PassEscarpment.add_talus(parent,Vector3(center.x-.5,-.15,board.y+.10))
   for i in range(16):boulder(parent,Vector3(-3+(i*5)%22,.2,-3-i%3),2.5)
   for i in range(7):
    var position=Vector3(-3+(i*9)%22,0,-6-i%3)
