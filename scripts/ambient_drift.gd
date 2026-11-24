@@ -1,15 +1,20 @@
 extends Node3D
-# Sparse chapter atmosphere uses one instanced mesh and a private seed. Greywood
-# rain and Windscar’s low crosswind appear on the map and in the arena.
+# Chapter atmosphere uses a private seed and shared instanced meshes.
+# Greywood rain leaves rings at the end of the same fall cycle.
 const THEMES=["village","river","forest","abbey","road","harbor","mountain","aqueduct","observatory","furnace","castle","engine"]
+const RIPPLE_DURATION=.22
 static var unit_quad: QuadMesh
 static var appearances: Dictionary={}
+static var ripple_mesh: ArrayMesh
+static var ripple_material: StandardMaterial3D
 var kind="dust"
 var extent=Vector3(20,3,16)
 var states: Array=[]
 var cloud: MultiMeshInstance3D
 var elapsed=0.0
 var instance_buffer=PackedFloat32Array()
+var ripples: MultiMeshInstance3D
+var ripple_buffer=PackedFloat32Array()
 
 func configure(theme: String,dimensions: Vector3,arena=false,seed_value=0):
  name="AmbientDrift";extent=dimensions
@@ -51,7 +56,43 @@ func configure(theme: String,dimensions: Vector3,arena=false,seed_value=0):
   instance_buffer[offset+12]=color.r
   instance_buffer[offset+13]=color.g
   instance_buffer[offset+14]=color.b
+ if kind=="rain":configure_ripples()
  update_particles()
+
+func configure_ripples():
+ if ripple_mesh==null:
+  var surface=SurfaceTool.new();surface.begin(Mesh.PRIMITIVE_TRIANGLES)
+  var bands=[.78,.89,1.0]
+  for side in range(12):
+   var a=TAU*side/12;var b=TAU*(side+1)/12
+   var left=Vector3(cos(a),0,sin(a));var right=Vector3(cos(b),0,sin(b))
+   for band in range(2):
+    var points=[left*bands[band],right*bands[band],right*bands[band+1],left*bands[band+1]]
+    for corner in [0,1,2,0,2,3]:
+     var middle_band=(corner<2)==(band==1)
+     surface.set_color(Color(1,1,1,1.0 if middle_band else 0.0))
+     surface.add_vertex(points[corner])
+  ripple_mesh=surface.commit()
+  ripple_material=StandardMaterial3D.new()
+  ripple_material.shading_mode=BaseMaterial3D.SHADING_MODE_UNSHADED
+  ripple_material.transparency=BaseMaterial3D.TRANSPARENCY_ALPHA
+  ripple_material.vertex_color_use_as_albedo=true;ripple_material.vertex_color_is_srgb=true
+  ripple_material.cull_mode=BaseMaterial3D.CULL_DISABLED;ripple_material.disable_fog=true
+ ripples=MultiMeshInstance3D.new();ripples.name="RainRipples";add_child(ripples)
+ ripples.cast_shadow=GeometryInstance3D.SHADOW_CASTING_SETTING_OFF;ripples.material_override=ripple_material
+ var instances=MultiMesh.new();instances.transform_format=MultiMesh.TRANSFORM_3D;instances.use_colors=true
+ instances.mesh=ripple_mesh;instances.instance_count=states.size()
+ instances.custom_aabb=AABB(Vector3(-extent.x*.5,-.01,-extent.z*.5),Vector3(extent.x,.08,extent.z))
+ ripples.multimesh=instances
+ ripple_buffer.resize(states.size()*16)
+ for i in states.size():
+  var offset=i*16
+  var point=particle_position(states[i],1)
+  ripple_buffer[offset+3]=point.x;ripple_buffer[offset+7]=.018;ripple_buffer[offset+11]=point.z
+  ripple_buffer[offset+5]=1
+  ripple_buffer[offset+12]=states[i].color.r
+  ripple_buffer[offset+13]=states[i].color.g
+  ripple_buffer[offset+14]=states[i].color.b
 
 static func appearance_for(particle_kind: String) -> Dictionary:
  var additive=particle_kind in ["embers","aether"]
@@ -119,7 +160,13 @@ func update_particles():
   instance_buffer[offset+7]=point.y
   instance_buffer[offset+11]=point.z
   instance_buffer[offset+15]=smoothstep(0,.12,phase)*(1-smoothstep(.82,1,phase))*opacity
+  if ripples!=null:
+   var age=phase*state.life
+   var radius=lerpf(.038,.215,smoothstep(0,RIPPLE_DURATION,age))*state.scale
+   ripple_buffer[offset]=radius;ripple_buffer[offset+10]=radius
+   ripple_buffer[offset+15]=smoothstep(0,.025,age)*(1-smoothstep(.045,RIPPLE_DURATION,age))*.37
  cloud.multimesh.buffer=instance_buffer
+ if ripples!=null:ripples.multimesh.buffer=ripple_buffer
 
 func write_basis(offset: int,basis: Basis):
  # MultiMesh's bulk layout stores each transform in three rows before RGBA.

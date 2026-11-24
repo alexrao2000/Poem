@@ -22,7 +22,8 @@ func run():
    source_meshes[mesh]=true;materials[paint]=true
    assert(mesh==b.cloud.multimesh.mesh and paint==b.cloud.material_override and a.cloud.multimesh!=b.cloud.multimesh,
     "Every repeated atmosphere shares immutable appearance and owns its own instances")
-   assert(a.get_child_count()==1 and a.cloud.multimesh.instance_count<=(56 if theme=="forest" else 32),"All drift particles share one bounded instanced mesh")
+   assert(a.get_child_count()==(2 if theme=="forest" else 1) and a.cloud.multimesh.instance_count<=(56 if theme=="forest" else 32),
+    "One batch covers the air, with one more batch for Greywood's ground rings")
    assert(a.cloud.cast_shadow==GeometryInstance3D.SHADOW_CASTING_SETTING_OFF and a.find_children("*","Light3D",true,false).is_empty(),"Atmosphere adds no lights or shadows")
    assert(a.cloud.material_override.disable_fog,"Fog cannot reveal fully faded particle quads")
    if a.kind!="leaves":assert(a.cloud.material_override.billboard_keep_scale,"Camera-facing particles retain their small instance scales")
@@ -80,9 +81,10 @@ func run():
    for phase in [0.0,.001,.999]:
     a.elapsed=(1-state.phase+phase)*state.life;a.update_particles()
     assert(a.cloud.multimesh.buffer[15]<.01,"Loop boundaries fade before particles recycle")
+   if theme=="forest":verify_ripples(a,b)
    a.queue_free();b.queue_free();await process_frame
- assert(source_meshes.size()==3 and materials.size()==4,"Every chapter's map and arena use three shared meshes and four immutable paints")
- print("PASS: all 24 atmosphere configurations share three meshes and four materials with private instance buffers and stable paint and basis channels")
+ assert(source_meshes.size()==3 and materials.size()==4,"Airborne weather shares three meshes and four immutable paints")
+ print("PASS: all 24 airborne atmosphere configurations share three meshes and four materials with private instance buffers and stable paint and basis channels")
  assert(game.rng.state==rng and game.save_data("camp")==saved,"Atmosphere never consumes campaign RNG or modifies saves")
  var scenery=Scenery.new()
  for chapter in range(12):
@@ -102,6 +104,34 @@ func run():
  print("PASS: all twelve battlefields share seeded particles and exact phases in both directions at three sampled times")
  print("PASS: seamless deterministic cloud panorama, cached cover, horizon/zenith continuity, theme contrast; twelve chapter atmospheres, 24 map/arena configurations, bounded rain streaks, low Windscar crosswind and other instances, deterministic motion, hidden suspension, fade loops and cleanup")
  quit()
+
+func verify_ripples(first,second):
+ var mesh=first.ripples.multimesh.mesh
+ assert(mesh==second.ripples.multimesh.mesh and first.ripples.material_override==second.ripples.material_override)
+ assert(first.ripples.multimesh!=second.ripples.multimesh and first.ripples.multimesh.instance_count==first.states.size())
+ assert(first.ripples.cast_shadow==GeometryInstance3D.SHADOW_CASTING_SETTING_OFF and not first.ripples.material_override.no_depth_test)
+ var surfaces=mesh.surface_get_arrays(0);var vertices=surfaces[Mesh.ARRAY_VERTEX];var colors=surfaces[Mesh.ARRAY_COLOR]
+ assert(vertices.size()==144 and colors.size()==vertices.size())
+ for vertex in vertices:assert(is_zero_approx(vertex.y) and vertex.length()>=.779 and vertex.length()<=1.00001)
+ assert(Array(colors).any(func(color):return color.a==0) and Array(colors).any(func(color):return color.a==1))
+ var state=first.states[0];var end=first.particle_position(state,1)
+ var impact=(1-state.phase)*state.life
+ var expected=second.ripple_buffer.duplicate()
+ var last_radius=0.0
+ for age in [0.0,.03,.12,.22]:
+  first.seek_elapsed(impact+age)
+  var packed=first.ripples.multimesh.buffer
+  assert(packed==first.ripple_buffer and second.ripple_buffer==expected)
+  assert(is_equal_approx(packed[3],end.x) and is_equal_approx(packed[7],.018) and is_equal_approx(packed[11],end.z))
+  assert(packed[0]>last_radius and packed[0]==packed[10] and packed[0]<=.237)
+  last_radius=packed[0]
+  if age==0.0 or age==.22:assert(packed[15]<.001)
+  elif age==.03:assert(absf(packed[15]-.37)<.001)
+  else:assert(packed[15]>.01 and packed[15]<.3)
+ first.hide();var held=first.ripple_buffer.duplicate();first._process(.6)
+ assert(first.ripple_buffer==held)
+ first.show()
+ print("PASS: Greywood ripples expand at the drop endpoints with soft edges and a shared, private instance clock")
 
 func verify_chimneys(scenery,host,game):
  game.chapter=0
@@ -197,6 +227,9 @@ func compare_drift(map,closeup):
      else:assert(absf((near-.15)/(map.extent.y-.3)-(far-.15)/(closeup.extent.y-.3))<.000001)
     11:assert(absf(near/map.extent.z-far/closeup.extent.z)<.000001)
     _:assert(near==far,"The same particle keeps its orientation, scale and opacity in both scenes")
+  if map.kind=="rain":
+   for channel in [0,5,7,10,12,13,14,15]:
+    assert(map.ripple_buffer[offset+channel]==closeup.ripple_buffer[offset+channel],"The same ripple keeps its age and surface height through the cut")
 
 func verify_clouds():
  var image=CloudSky.image();var total=0.0;var bright=0;var clear=0

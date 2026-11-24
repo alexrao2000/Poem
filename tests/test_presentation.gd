@@ -326,6 +326,8 @@ func verify_weather_exchange(app):
 			var arena=app.stage.get_node("AmbientDrift")
 			assert(arena.kind=="rain" and arena.elapsed==rain.elapsed)
 			assert(arena.states.slice(0,rain.states.size())==rain.states)
+			assert(arena.ripples.multimesh.mesh==rain.ripples.multimesh.mesh)
+			for index in rain.states.size():assert(arena.ripple_buffer[index*16+15]==rain.ripple_buffer[index*16+15])
 			var wet_arena=wet_ground_material(app.stage)
 			assert(wet_arena!=null and wet_arena.shader==wet_tactical.shader)
 			transfer.entry=rain.elapsed
@@ -333,6 +335,7 @@ func verify_weather_exchange(app):
 			if app.stage.visible or app.world.visible:return
 			var arena=app.stage.get_node("AmbientDrift")
 			assert(arena.elapsed==rain.elapsed and arena.elapsed>transfer.entry)
+			for index in rain.states.size():assert(arena.ripple_buffer[index*16+15]==rain.ripple_buffer[index*16+15])
 			transfer.return=rain.elapsed
 		var handle_skip=func():
 			var veil=app.ui.get_node_or_null("CombatTransition")
