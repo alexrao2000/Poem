@@ -25,6 +25,7 @@ const AbbeyMosaic=preload("res://scripts/abbey_mosaic.gd")
 const KingsroadHoist=preload("res://scripts/kingsroad_hoist.gd")
 const StarfallChart=preload("res://scripts/starfall_chart.gd")
 const AqueductWheel=preload("res://scripts/aqueduct_waterwheel.gd")
+const ReddeepCart=preload("res://scripts/reddeep_slag_cart.gd")
 const MAX_CACHED_CYLINDERS=256
 const ROAD_CANAL_NEAR=-5.0
 const ROAD_CANAL_FAR=-13.0
@@ -370,6 +371,7 @@ func landscape(parent,game):
  if theme=="road":KingsroadHoist.build(self,parent,KingsroadHoist.MAP_SITE,KingsroadHoist.MAP_SCALE,-.16)
  if theme=="aqueduct":AqueductWheel.new().build(self,parent,AqueductWheel.MAP_SITE,AqueductWheel.MAP_SCALE,-.28)
  if theme=="castle":Fortification.build_map_gate(self,parent)
+ if theme=="furnace":ReddeepCart.build(self,parent,ReddeepCart.MAP_SITE,ReddeepCart.MAP_SCALE)
  if theme=="forest":TrailLanterns.roadside(parent)
  if theme in ["village","river","forest","road","castle"]:
   var base=-.15 if theme=="forest" else 0.0
@@ -532,6 +534,8 @@ func combat_context(game,a,b,screen_direction=1.0) -> Dictionary:
   context.road_hoist=midpoint.distance_to(Vector2(KingsroadHoist.MAP_SITE.x,KingsroadHoist.MAP_SITE.z))<=3.5
  if theme=="castle":
   context.raised_gate=midpoint.distance_to(Vector2(Fortification.MAP_GATE_SITE.x,Fortification.MAP_GATE_SITE.z))<=4.0
+ if theme=="furnace" and tile!="=":
+  context.slag_cart=midpoint.distance_to(Vector2(ReddeepCart.MAP_SITE.x,ReddeepCart.MAP_SITE.z))<=3.3
  if is_finite(tollhouse_x):context.tollhouse_x=tollhouse_x
  if theme=="abbey" and tile=="p" and midpoint.distance_to(Vector2(AbbeyMosaic.MAP_SITE.x,AbbeyMosaic.MAP_SITE.z))<=3.0:
   context.mosaic_yaw=atan2(axis.y,axis.x)
@@ -907,6 +911,8 @@ func battle_landscape(parent,center,context={}):
   if backdrop.is_empty():
    for x in [-5,5]:furnace(parent,center+Vector3(x,0,-8),2.1)
   reddeep_gantry(parent,center,backdrop)
+  if context.get("slag_cart",false):
+   ReddeepCart.build(self,parent,center+ReddeepCart.ARENA_SITE,ReddeepCart.ARENA_SCALE,ReddeepCart.ARENA_YAW)
  if theme=="engine":
   sun_engine_basin(parent,mechanism)
   sun_engine(parent,mechanism)

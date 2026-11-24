@@ -12,6 +12,7 @@ const RiverBank=preload("res://scripts/river_bank.gd")
 const AbbeyMosaic=preload("res://scripts/abbey_mosaic.gd")
 const KingsroadHoist=preload("res://scripts/kingsroad_hoist.gd")
 const AqueductWheel=preload("res://scripts/aqueduct_waterwheel.gd")
+const ReddeepCart=preload("res://scripts/reddeep_slag_cart.gd")
 func _initialize():call_deferred("run")
 func run():
  await verify_gate()
@@ -20,6 +21,7 @@ func run():
  await verify_harbor_boats()
  await verify_harbor_quay()
  await verify_reddeep_furnaces()
+ await verify_reddeep_cart()
  await verify_aqueduct_gallery()
  await verify_abbey_arcade()
  await verify_abbey_belfry()
@@ -986,6 +988,106 @@ func verify_reddeep_furnaces():
  map.queue_free();arena.queue_free();fallback.queue_free();await process_frame
  print("PASS: two Reddeep map hearths, arched fireboxes, connected grates, open chimney flues and actual arena counterparts")
  print("PASS: five planted Reddeep gantry supports, four crossed spans, two connected hoists and twelve wide-shot projections")
+
+func verify_reddeep_cart():
+ var scenery=Scenery.new();scenery.batching_enabled=false
+ var game=Rules.new();game.chapter=9
+ var rng_state=game.rng.state
+ var near=scenery.combat_context(game,{"x":7,"y":5},{"x":7,"y":6})
+ var reflected=scenery.combat_context(game,{"x":7,"y":5},{"x":7,"y":6},-1.0)
+ var far=scenery.combat_context(game,{"x":1,"y":1},{"x":2,"y":1})
+ var deck=scenery.combat_context(game,{"x":7,"y":7},{"x":6,"y":7})
+ assert(near.slag_cart and reflected.slag_cart and not far.slag_cart and deck.terrain=="=" and not deck.has("slag_cart"))
+ var map=Node3D.new();root.add_child(map);scenery.landscape(map,game)
+ var cart=map.get_node("ReddeepSlagCart")
+ assert(cart.position==ReddeepCart.MAP_SITE and cart.scale==Vector3.ONE*ReddeepCart.MAP_SCALE)
+ inspect_reddeep_cart(cart)
+ for part in cart.get_children():
+  var bounds=part.global_transform*part.mesh.get_aabb()
+  assert(bounds.position.x>6.5 and bounds.end.x<7.5,"The cart and rails fit on the paved bank")
+  for tile in [Vector2i(7,5),Vector2i(7,6)]:
+   assert(game.terrain(tile)=="p")
+   var from_ground=Vector3(tile.x,0,tile.y)
+   assert(bounds.intersects_segment(from_ground,from_ground+Vector3.UP)==null,"The centers of adjacent tactical tiles stay open")
+ var viewport=SubViewport.new();viewport.render_target_update_mode=SubViewport.UPDATE_DISABLED;root.add_child(viewport)
+ var camera=Camera3D.new();viewport.add_child(camera);camera.current=true
+ var board_center=Vector3(6.5,0,4.5)
+ camera.projection=Camera3D.PROJECTION_ORTHOGONAL;camera.size=16
+ camera.position=board_center+Vector3(2.5,22,11.5);camera.look_at(board_center);camera.h_offset=2
+ var sizes=[Vector2i(1024,640),Vector2i(1280,720),Vector2i(1440,900)]
+ for dimensions in sizes:
+  viewport.size=dimensions;await process_frame
+  var bounds=project_cart(cart,camera)
+  assert(bounds.size.x>=24 and bounds.size.y>=30 and bounds.position.y>118 and bounds.end.x<dimensions.x-325,"The rail cart stays visible beside the tactical controls")
+ camera.projection=Camera3D.PROJECTION_PERSPECTIVE;camera.h_offset=0
+ var center=Vector3(35,0,0)
+ for context in [near,reflected,far,deck]:
+  var stage=Node3D.new();root.add_child(stage);scenery.battle_landscape(stage,center,context)
+  var staged=stage.get_node_or_null("ReddeepSlagCart")
+  assert((staged!=null)==context.get("slag_cart",false),"Only nearby stone exchanges show the slag cart")
+  if staged!=null:
+   inspect_reddeep_cart(staged)
+   for part in ["CartHopper","CartSlag","CartHub"]:
+    assert(staged.get_node(part).mesh==cart.get_node(part).mesh,"Tactical scenery and close-up share the same cart geometry")
+   var floor=stage.get_children().filter(func(part):return part is MeshInstance3D and part.mesh is PlaneMesh and part.mesh.size==Vector2(70,70))[0]
+   assert(staged.position.is_equal_approx(center+ReddeepCart.ARENA_SITE) and is_equal_approx(staged.position.y,floor.position.y))
+   for mounted in [false,true]:
+    var shot=CombatCamera.frame_pair(center+Vector3.LEFT*1.6,center+Vector3.RIGHT*1.6,"wide",false,mounted)
+    camera.position=shot.anchor;camera.fov=shot.lens;camera.look_at(shot.focus)
+    for dimensions in sizes:
+     viewport.size=dimensions;await process_frame
+     var bounds=project_cart(staged,camera)
+     assert(bounds.size.x>=95 and bounds.size.y>=62 and bounds.end.x<dimensions.x*.4)
+     assert(Rect2(Vector2(20,20),Vector2(dimensions)-Vector2(40,174)).encloses(bounds),"The cart stays clear of the duel and HUD")
+  stage.queue_free();await process_frame
+ assert(game.rng.state==rng_state)
+ map.queue_free();viewport.queue_free();await process_frame
+ print("PASS: Reddeep rail cart, four wheels seated on rails, open slag hopper, open tactical cell centers, three map and twelve arena projections")
+
+func inspect_reddeep_cart(cart: Node3D):
+ var rails=cart.find_children("CartRailHead*","MeshInstance3D",false,false)
+ var sleepers=cart.find_children("CartSleeper*","MeshInstance3D",false,false)
+ var wheels=cart.find_children("CartWheel*","MeshInstance3D",false,false).filter(func(part):return not str(part.name).begins_with("CartWheelFlange"))
+ var axles=cart.find_children("CartAxle*","MeshInstance3D",false,false)
+ assert(rails.size()==2 and sleepers.size()==7 and wheels.size()==4 and axles.size()==2)
+ for part in wheels+axles+cart.find_children("CartRivet*","MeshInstance3D",false,false):
+  assert(part.mesh==wheels[0].mesh and part.mesh.rings==0,"Axles, wheels and rivets share a low-poly radial mesh")
+ for rail in rails:
+  var base=cart.find_children("CartRailBase*","MeshInstance3D",false,false).filter(func(part):return part.position.x==rail.position.x)[0]
+  var rail_bounds=rail.transform*rail.mesh.get_aabb()
+  var base_bounds=base.transform*base.mesh.get_aabb()
+  assert(rail_bounds.intersects(base_bounds))
+  for sleeper in sleepers:
+   var support=sleeper.transform*sleeper.mesh.get_aabb()
+   assert(support.position.y<0 and support.intersects(base_bounds),"Sleeper is grounded and supports the rail")
+  for wheel in wheels.filter(func(part):return part.position.x==rail.position.x):
+   var lowest=INF
+   for vertex in wheel.mesh.surface_get_arrays(0)[Mesh.ARRAY_VERTEX]:lowest=minf(lowest,(wheel.transform*vertex).y)
+   assert(is_equal_approx(lowest,rail_bounds.end.y),"Actual tread vertices meet the rail head")
+   var axle=axles.filter(func(part):return part.position.z==wheel.position.z)[0]
+   assert((wheel.transform*wheel.mesh.get_aabb()).intersects(axle.transform*axle.mesh.get_aabb()))
+ var hopper=cart.get_node("CartHopper").mesh
+ var inside=barrel_hit(hopper,Vector3(-.17,2,0),Vector3.DOWN)
+ var rim=barrel_hit(hopper,Vector3(0,2,-.87),Vector3.DOWN)
+ assert(inside!=null and is_equal_approx(inside.y,.630) and rim!=null and is_equal_approx(rim.y,1.037),"The hopper has an open interior with a raised steel lip")
+ assert(is_equal_approx(mesh_top(cart.get_node("CartSlag").mesh,Vector2(.02,-.184)),.766),"Slag rises from the open hopper floor")
+ for piece in ["CartHopper","CartSlag"]:
+  var surface=cart.get_node(piece).mesh.surface_get_arrays(0)
+  var points=surface[Mesh.ARRAY_VERTEX];var normals=surface[Mesh.ARRAY_NORMAL]
+  assert(points.size()/3<100)
+  for index in range(0,points.size(),3):
+   var face=(points[index+1]-points[index]).cross(points[index+2]-points[index])
+   assert(face.length_squared()>.000001 and face.normalized().dot(normals[index])<-.999)
+
+func project_cart(cart: Node3D,camera: Camera3D) -> Rect2:
+ var bounds=Rect2(camera.unproject_position(cart.global_position),Vector2.ZERO)
+ for part in cart.get_children():
+  var local=part.mesh.get_aabb()
+  for index in 8:
+   var world=part.to_global(local.get_endpoint(index))
+   assert(not camera.is_position_behind(world))
+   bounds=bounds.expand(camera.unproject_position(world))
+ return bounds
 
 func verify_reddeep_gantry(stage: Node3D,center: Vector3,hearths: Array):
  var gantry=stage.get_node("ReddeepGantry")
