@@ -34,13 +34,13 @@ if 'const originalFetch' not in s:s=s.replace('<script src="index.js"></script>'
 source=decorate_loader(s)
 splash=root/'index.png'
 cover=root/'index.splash.webp'
-if splash.is_file():
+if splash.is_file() or not cover.is_file():
     logs=root.parent/'logs'
     logs.mkdir(exist_ok=True)
     subprocess.run([
         os.environ.get('GODOT_BIN', 'godot'), '--headless', '--path', str(project),
         '--log-file', str(logs/'web-splash.log'), '--script', str(project/'web/encode-splash.gd'),
-        '--', str(splash), str(cover),
+        '--', 'res://assets/art/title-dawn-v1.png', str(cover),
     ], check=True)
 if not cover.is_file():raise FileNotFoundError(cover)
 html.write_text(source)

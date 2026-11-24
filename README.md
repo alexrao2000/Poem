@@ -286,6 +286,8 @@ GODOT_BIN=/path/to/godot scripts/build_local.sh
 
 The [build script](scripts/build_local.sh) imports assets, validates the model catalog, runs all default suites, exports and postprocesses the browser build, tests its packed resources, and packages macOS.
 
+The Web preset uses the postprocessed loading page for the dawn painting. Run the build script for the final browser loader and cover. The macOS preset uses the engine’s startup splash.
+
 For a focused development build, pass the affected suite names explicitly:
 
 ```sh
