@@ -57,6 +57,7 @@ var batcher=preload("res://scripts/static_batch.gd").new()
 var ground_cover=GroundCover.new()
 var conifer_crowns=ConiferCrowns.new()
 var unit_block=BoxMesh.new()
+var leaf_card=QuadMesh.new()
 var planes: Dictionary={}
 var cylinders: Dictionary={}
 var cylinder_environment=""
@@ -196,8 +197,13 @@ func tree(parent,p,seed_value=0,theme=""):
   var center=p+Vector3(cos(angle)*(.22+rng.randf()*.18),h*.65+float(i%3)*.18,sin(angle)*(.22+rng.randf()*.16))
   var leaf_type=2 if seed_value%5==0 else (seed_value+i)%2
   for card in range(3):
-   var shape=QuadMesh.new();shape.size=Vector2(1.15+rng.randf()*.18,1.0+rng.randf()*.15)
-   var n=mesh(parent,shape,center,Vector3.ONE,foliage_material(leaf_type))
+   var size=Vector2(1.15+rng.randf()*.18,1.0+rng.randf()*.15)
+   var shape=leaf_card
+   var card_scale=Vector3(size.x,size.y,1)
+   if not batching_enabled:
+    # Unbatched wind runs in the card's local units.
+    shape=QuadMesh.new();shape.size=size;card_scale=Vector3.ONE
+   var n=mesh(parent,shape,center,card_scale,foliage_material(leaf_type))
    n.rotation=Vector3(-1.05 if card==2 else -.25,angle+card*PI*.5,rng.randf_range(-.15,.15))
   var base=p+Vector3(0,h*.38,0)
   var branch=cylinder(parent,(base+center)*.5,base.distance_to(center),.03,Color.WHITE,.012)

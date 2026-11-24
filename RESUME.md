@@ -6,6 +6,8 @@ Development resumed on “go”. Continue in this chat until the user asks to st
 
 ### Latest state
 
+Normal scenery batching now builds broadleaf foliage from one shared quad. Forty-eight scene builds retained 13,056 cards, 484 batches and 52,224 measured vertices. UVs and atlas regions matched exactly. The maximum position difference was under four millionths of a unit, and the biggest normal angle change was under 0.007 degrees. The unbatched wind path retains native card sizing. Seven focused suites, both exports, packaged batching and geometry comparison, and archive integrity passed.
+
 The broken columns at Hallow Abbey, Windscar Pass and Starfall now share a low foundation and chipped, staggered masonry. All fourteen courses are closed, and the six map and arena placements use the same mesh. Seven focused suites, both exports, packaged architecture and archive integrity passed. Rendered appearance remains unreviewed.
 
 The benchmark now offers both combined Hard profiles and repeatable `--retreat-chapter` options. The versioned runner exactly reproduced forty-five default and twenty combined outcomes. It also exercised Chapter 6 and Chapter 10 in both loss modes, plus an ordinary Chapter 1 retreat. The local evidence is `build/review/versioned-benchmark-evidence.json`.

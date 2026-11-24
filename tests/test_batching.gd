@@ -58,6 +58,7 @@ func run():
  world.queue_free();await process_frame
  var scenery=Scenery.new();scenery.batching_enabled=false;var game=Rules.new();var total_sources=0;var total_batches=0
  verify_shared_primitives(scenery)
+ verify_leaf_cards(scenery)
  world=Node3D.new();root.add_child(world)
  var arches=[]
  for dimensions in [[.5,.4,.6],[1.65,.35,.8]]:
@@ -100,6 +101,24 @@ func run():
  assert(total_batches<total_sources*.6,"Static mesh submissions reduced by at least forty percent")
  print("PASS: 12 maps and 12 arenas retain vertices, triangles, UVs and transforms; correct scaled normals, four conifer atlas regions and grounded woodland/pass trees; ",total_sources," meshes → ",total_batches," batches")
  quit()
+
+func verify_leaf_cards(scenery):
+ var original=Node3D.new();root.add_child(original)
+ var scaled=Node3D.new();root.add_child(scaled)
+ scenery.batching_enabled=false;scenery.tree(original,Vector3(3,0,2),67,"village")
+ scenery.batching_enabled=true;scenery.tree(scaled,Vector3(3,0,2),67,"village")
+ scenery.batching_enabled=false
+ var first=original.get_children().filter(func(child):return child.mesh is QuadMesh)
+ var second=scaled.get_children().filter(func(child):return child.mesh is QuadMesh)
+ assert(first.size()==24 and second.size()==24)
+ for index in first.size():
+  var source=first[index];var reused=second[index]
+  assert(source.scale==Vector3.ONE and reused.mesh==scenery.leaf_card)
+  assert(source.mesh.size==Vector2(reused.scale.x,reused.scale.y))
+  assert(source.position==reused.position and source.rotation==reused.rotation)
+  assert(source.material_override==reused.material_override)
+ original.free();scaled.free()
+ print("PASS: broadleaf cards share a unit quad before batching and retain native dimensions in unbatched wind")
 
 func verify_shared_primitives(scenery):
  var host=Node3D.new();root.add_child(host)

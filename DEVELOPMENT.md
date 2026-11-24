@@ -1,5 +1,7 @@
 # Poem development
 
+Broadleaf foliage shares one quad during normal map and arena construction. Across forty-eight scene builds, the count fell from 13,056 quad resources to one. The 13,056 leaf cards keep their placements and UVs. The largest measured position difference was under four millionths of a unit, and the largest normal difference was under 0.007 degrees.
+
 Hallow Abbey, Windscar Pass and Starfall share a low ruined foundation, two chipped piers and loose masonry. The fourteen closed courses fit in one reusable mesh for both the tactical map and close-up arena.
 
 The campaign benchmark has explicit Hard profiles for the combined permanent-loss and recoverable-loss experiments. Use `--retreat-chapter` for each scripted retreat you want to exercise. A reached retreat records the preserved loss and purchase ledgers, enemy statistics, remaining tonics and advanced raider positions. The runner uses the existing legal planner and in-memory campaigns.
