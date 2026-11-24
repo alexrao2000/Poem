@@ -6,6 +6,8 @@ This checkpoint describes the current development branch and supersedes the earl
 
 ### Latest state
 
+Hold Z during a 3D fight in Debug mode to view it at half speed. Three headless layouts checked the hint, and live full and skipped exchanges checked the Fast toggle, focus loss, exact clock restoration, unchanged battle state and continuous music. Ten focused source suites, a final playback rerun, both exports, both playback suites in each pack and archive integrity passed.
+
 The two Glass Harbor sails carry independent wind phases between the tactical map and the combat stage. One actual quay fight and one pier fight checked the corresponding uniforms in both directions, including the phase of a boat outside the shot. Ten focused suites, both exports, architecture and mounted harbor checks in both packs, and archive integrity passed. Rendered appearance remains unreviewed.
 
 Cinderford’s windmill and the two clockwork mechanisms keep moving through the cut into 3D combat and back to the map. Five actual windmill exchanges and two clockwork exchanges checked both handoffs, including Skip. Nine focused suites, both exports, both transition suites in each pack and archive integrity passed. Rendered appearance remains unreviewed.

@@ -80,6 +80,7 @@ These controls apply to campaign battles; menus and the visual workshop have the
 | Reset the map view | Home |
 | Skip a chapter card, phase announcement, combat scene, or casualty card | Tab |
 | Play combat animation at double speed | Hold Shift, or click **Fast ×2** to toggle |
+| Inspect 3D combat at half speed in Debug mode | Hold Z |
 | Reveal or advance dialogue | Fresh Space / Enter |
 | Read revealed lines in the current conversation | H or **History**; H / Escape returns |
 | Apply Options or return from save transfer | Fresh Escape |

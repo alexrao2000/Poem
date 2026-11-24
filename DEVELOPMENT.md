@@ -1,5 +1,7 @@
 # Poem development
 
+Debug mode supports half-speed 3D playback while holding Z. Releasing it restores the previously selected speed. The music keeps its normal pitch and playhead.
+
 Glass Harbor’s close-up sails inherit the wind phase of their own boats on the tactical map. A boat shown in combat carries its new phase back to the map at the end of the exchange.
 
 Cinderford’s windmill, Starfall’s armillary and the Sun Engine carry their angle from the battlefield into the 3D arena. When the map returns, each landmark picks up from the last angle shown in the arena.

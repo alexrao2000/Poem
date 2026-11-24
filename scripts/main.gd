@@ -1259,7 +1259,7 @@ func cinematic(a,b,events,initial_hp={},challenge: Dictionary={}):
 	for visual in unit_nodes.values():visual.set_tactical_details_visible(false)
 	var tactical_controls={}
 	for control in ui.get_children():tactical_controls[control]=control.visible;control.hide()
-	var playback=preload("res://scripts/combat_playback.gd").new();playback.configure(ui)
+	var playback=preload("res://scripts/combat_playback.gd").new();playback.configure(ui,debug_session.active)
 	interface_audio.watch(playback.fast_button)
 	interface_audio.watch_navigation(playback.skip_button)
 	# Skip disables its button first, so acknowledge the one-shot request itself.
