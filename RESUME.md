@@ -6,6 +6,10 @@ This checkpoint describes the current development branch and supersedes the earl
 
 ### Latest state
 
+The tactical camera now refits Home when the viewport changes during a fight. Four actual encounters exercised a resize in the arena, an opening Skip, a resize during the map reveal and a manual view. Home matched the fitted board at the new size and retained the saved lens. A deliberate pan and zoom returned exactly. Eight focused suites, four packed checks, 72 matched chapter outcomes and both ZIP checks passed.
+
+The frozen authored-route release `724419f` passed all 383 registered engine suites and four offline checks. The verified source, log hashes and ordered results are in `build/review/latest-source-regression/full-current-state.json`.
+
 The close-up combat camera draws back in narrow viewports at the same lens angle. All 960 previously clipped roster layouts now clear the sides, captions and health HUD. All 10,560 desktop layouts match exactly. The two exports agree on all 17,600 projections. Six checks also measured 10,692 revised-model poses. A real ranged exchange updated the framing while resizing and restored the saved map camera. Eight focused suites, four packed checks, 72 matched chapter outcomes and both ZIP checks passed. See `build/review/narrow-arena-projections.json`. The checks were headless.
 
 The outfit viewer shows the recruit’s animated map sprite beside their portrait and close-up 3D fighter. It uses the same atlas and foot pivots as the tactical map. Model swaps retain the sprite identity, rotation, zoom and action. Thirty-two viewer layouts covered 720–1440 logical pixels. Nine focused suites, four packed checks, 72 matched chapter outcomes and both ZIP checks passed. The viewer was checked headlessly.

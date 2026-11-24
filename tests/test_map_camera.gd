@@ -164,8 +164,60 @@ func fitted_map_home():
  await Shutdown.dispose(app);viewport.queue_free();await process_frame
  print("PASS: %d complete default map views, live Home resizing, exact manual framing and fitted portrait zoom bounds"%layouts)
 
+func resized_combat_return():
+ var viewport=SubViewport.new();viewport.size=Vector2i(1440,900);viewport.render_target_update_mode=SubViewport.UPDATE_DISABLED
+ root.add_child(viewport)
+ var app=load("res://main.tscn").instantiate();app.settings_path="";app.save_path="/private/tmp/poem-resized-combat-return-%d.json"%Time.get_ticks_usec()
+ viewport.add_child(app);await process_frame
+ var nav=app.map_navigation
+ for fixture in [["arena",Vector2i(720,960),true],["opening Skip",Vector2i(720,640),true],["map reveal",Vector2i(720,960),true],["arena",Vector2i(720,960),false]]:
+  viewport.size=Vector2i(1440,900);await process_frame
+  app.game.new_campaign();app.game.start_battle();app.make_map();app.show_battle();await process_frame
+  var attacker=app.game.living("player").filter(func(unit):return unit.id=="sera")[0]
+  var target=app.game.living("enemy")[0]
+  attacker.x=6;attacker.y=4;target.x=8;target.y=4
+  app.refresh_pieces()
+  if not fixture[2]:
+   app.camera.size*=.85
+   app.camera.position+=Vector3(-.7,0,.4)
+  else:
+   app.camera.fov=62
+   nav.configure(app.camera,app.game.board_size())
+  assert(nav.at_home()==fixture[2])
+  var original=nav.capture_view();var events=app.game.combat(attacker,target)
+  var saved=app.game.save_data("battle").duplicate(true);var rng=app.game.rng.state
+  var resized=[false]
+  var resize=func():
+   if resized[0]:return
+   var veil=app.ui.get_node_or_null("CombatTransition")
+   if veil==null:return
+   match fixture[0]:
+    "arena":
+     if not app.ui.has_node("CombatHUD"):return
+    "opening Skip":
+     if veil.revealing or veil.progress<.12 or app.stage.visible:return
+     app.ui.get_node("CombatPlayback").request_skip()
+    "map reveal":
+     if not veil.revealing or app.stage.visible or veil.progress>=.95:return
+   viewport.size=fixture[1];resized[0]=true
+  app.busy=true;process_frame.connect(resize)
+  await app.cinematic(attacker,target,events)
+  process_frame.disconnect(resize);app.busy=false
+  assert(resized[0] and viewport.size==fixture[1],"The real encounter reached the requested resize point")
+  if fixture[2]:
+   assert(nav.at_home() and nav.capture_view()!=original and app.camera.fov==original.fov,"An arena return fits Home to the new viewport without losing the saved lens")
+   check_home_edges(app.camera,app.game.board_size())
+   var returned=nav.capture_view()
+   app.map_camera();assert(nav.capture_view()==returned,"Returning Home matches the useful default for the new viewport")
+  else:
+   assert(nav.capture_view()==original and not nav.at_home(),"A deliberate map view returns exactly after the combat resize")
+  assert(app.game.save_data("battle")==saved and app.game.rng.state==rng)
+ await Shutdown.dispose(app);viewport.queue_free();await process_frame
+ print("PASS: resizing during the arena, opening Skip or map reveal refits Home; a manual view restores exactly")
+
 func run():
  await fitted_map_home()
+ await resized_combat_return()
  await visible_combat_zoom()
  await offscreen_combat_zoom()
  var app=load("res://main.tscn").instantiate();app.settings_path="";app.save_path="/private/tmp/poem-map-camera.json"

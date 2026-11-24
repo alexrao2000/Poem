@@ -1329,6 +1329,7 @@ func cinematic(a,b,events,initial_hp={},challenge: Dictionary={}):
 			visual.face_toward(game.pos(pair[1]),game.pos(pair[0]));map_facings[pair[0].id]=visual.player.facing
 	skip_combat=false;music_mix(true)
 	var tactical_view=map_navigation.capture_view()
+	var home_viewport=get_viewport().get_visible_rect().size if map_navigation.at_home() else Vector2.ZERO
 	var focus=(map_position(game.pos(a))+map_position(game.pos(b)))*.5
 	markers.hide()
 	for visual in unit_nodes.values():visual.set_tactical_details_visible(false)
@@ -1349,7 +1350,7 @@ func cinematic(a,b,events,initial_hp={},challenge: Dictionary={}):
 	if veil.motion.is_running():await veil.motion.finished
 	var close_map_view=map_navigation.capture_view()
 	if skip_combat:
-		await return_to_tactical_map(veil,playback,close_map_view,tactical_view,tactical_controls,focus)
+		await return_to_tactical_map(veil,playback,close_map_view,tactical_view,tactical_controls,focus,home_viewport)
 		return
 	var map_x_a=camera.unproject_position(map_position(game.pos(a))).x
 	var map_x_b=camera.unproject_position(map_position(game.pos(b))).x
@@ -1564,18 +1565,25 @@ func cinematic(a,b,events,initial_hp={},challenge: Dictionary={}):
 		if child not in [actor,defender]:stage.remove_child(child);child.queue_free()
 	stage.process_mode=Node.PROCESS_MODE_DISABLED
 	restore_lighting(old_lighting)
-	await return_to_tactical_map(veil,playback,close_map_view,tactical_view,tactical_controls,focus)
+	await return_to_tactical_map(veil,playback,close_map_view,tactical_view,tactical_controls,focus,home_viewport)
 	await present_casualties(events)
 
-func return_to_tactical_map(veil,playback,close_map_view: Dictionary,tactical_view: Dictionary,tactical_controls: Dictionary,focus: Vector3):
+func return_to_tactical_map(veil,playback,close_map_view: Dictionary,tactical_view: Dictionary,tactical_controls: Dictionary,focus: Vector3,home_viewport: Vector2):
 	music_mix(false)
 	refresh_pieces()
 	for visual in unit_nodes.values():visual.set_tactical_details_visible(false)
 	world.show();pieces.show()
+	var return_viewport=get_viewport().get_visible_rect().size
+	if home_viewport!=Vector2.ZERO and return_viewport!=home_viewport:
+		camera.fov=tactical_view.fov
+		map_camera()
+		tactical_view=map_navigation.capture_view()
 	var pull=map_navigation.return_from_combat(close_map_view,tactical_view,.25)
 	veil.reveal(.25,func():return camera.unproject_position(focus))
 	await pull.finished
 	if veil.motion.is_running():await veil.motion.finished
+	if home_viewport!=Vector2.ZERO and get_viewport().get_visible_rect().size!=return_viewport:
+		map_camera()
 	veil.queue_free();playback.stop();playback.queue_free()
 	for visual in unit_nodes.values():visual.set_tactical_details_visible(true)
 	markers.show()
