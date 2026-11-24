@@ -47,6 +47,10 @@ func skip_phase(app,phase: String,report: Dictionary):
   var actors=app.stage.get_children().filter(func(node):return node is Actor and not node.is_queued_for_deletion())
   var found=actors.any(func(actor):return actor.pose_name==phase)
   if phase=="projectile":found=app.stage.has_node("CombatProjectile")
+  elif phase in ["ranged_miss_release","ranged_evade"]:
+   var shot=app.stage.get_node_or_null("CombatProjectile")
+   var evading=actors.any(func(actor):return actor.pose_name=="evade")
+   found=shot!=null and (shot.progress<.25 and not evading if phase=="ranged_miss_release" else evading)
   elif phase=="hold":found=app.stage.has_node("CombatHitStop")
   elif phase in ["heal_flight","heal_bloom"]:
    var heal=app.stage.get_node_or_null("CombatHeal")
@@ -67,13 +71,15 @@ func verify_phase_skips(app,a,b):
  var count_impact=func(node):
   if node is Impact:impact_count[0]+=1
  app.stage.child_entered_tree.connect(count_impact)
- for phase in ["windup","strike","projectile","hit","hold","down","evade","heal_flight","heal_bloom"]:
+ for phase in ["windup","strike","projectile","hit","hold","down","evade","ranged_miss_release","ranged_evade","heal_flight","heal_bloom"]:
   var healing=phase.begins_with("heal_")
-  a.job="Warden" if healing else "Ranger" if phase=="projectile" else "Vanguard"
-  a.weapon="staff" if healing else "bow" if phase=="projectile" else "sword"
-  a.item="mend_staff" if healing else "iron_bow" if phase=="projectile" else "iron_sword"
+  var ranged=phase=="projectile" or phase.begins_with("ranged_")
+  var miss=phase in ["evade","ranged_miss_release","ranged_evade"]
+  a.job="Warden" if healing else "Ranger" if ranged else "Vanguard"
+  a.weapon="staff" if healing else "bow" if ranged else "sword"
+  a.item="mend_staff" if healing else "iron_bow" if ranged else "iron_sword"
   b.team="player" if healing else "enemy"
-  var event={"actor":a.id,"target":b.id,"damage":0 if phase=="evade" else 1,"remaining":0 if phase=="down" else 19,"hit":phase!="evade","crit":false}
+  var event={"actor":a.id,"target":b.id,"damage":0 if miss else 1,"remaining":0 if phase=="down" else 20 if miss else 19,"hit":not miss,"crit":false}
   if healing:event={"actor":a.id,"target":b.id,"healing":3,"remaining":20}
   var saved=app.game.save_data("battle").duplicate(true);var rng=app.game.rng.state
   var camera=app.camera.transform;var score=app.score;var initial_impacts=impact_count[0]
@@ -85,7 +91,9 @@ func verify_phase_skips(app,a,b):
   assert(app.game.save_data("battle")==saved and app.game.rng.state==rng and app.score==score and Engine.time_scale==1.0,"Presentation cancellation preserves resolved state, score ownership and clock")
   for name in ["CombatProjectile","CombatHeal","CombatHitStop","CombatCharge","CombatTrail"]:assert(not app.stage.has_node(name),"Cancelled transient is released: "+name)
   for actor in app.stage.get_children().filter(func(node):return node is Actor):assert(actor.process_mode==Node.PROCESS_MODE_INHERIT and not actor.can_process(),"Cancellation releases actor-local hit stop while the hidden stage stays suspended")
-  if phase in ["windup","strike","projectile","evade"]:assert(impact_count[0]==initial_impacts,"No delayed impact may appear after the user skips before contact")
+  if phase in ["windup","strike","projectile"] or miss:assert(impact_count[0]==initial_impacts,"No delayed impact may appear after the user skips before contact")
+  if phase=="ranged_miss_release":
+   assert(app.stage.get_children().all(func(actor):return not actor is Actor or actor.pose_name!="evade"),"A skipped projectile cannot trigger a delayed dodge")
  app.stage.child_entered_tree.disconnect(count_impact)
 
 func verify_slow_controls(host: Control):
@@ -199,5 +207,5 @@ func run():
  await verify_phase_skips(app,a,b)
  await verify_actual_debug_slow(app)
  await Shutdown.dispose(app);await process_frame
- print("PASS: saved starting speed and per-exchange override, held/released speed, three hint layouts, focus loss, exact prior-scale cleanup, faster real combat, nine phase-specific skips within two frames, transient cleanup, map-only isolation and unchanged simulation/audio/camera")
+ print("PASS: saved starting speed and per-exchange override, held/released speed, three hint layouts, focus loss, exact prior-scale cleanup, faster real combat, eleven phase-specific skips within two frames, transient cleanup, map-only isolation and unchanged simulation/audio/camera")
  quit()

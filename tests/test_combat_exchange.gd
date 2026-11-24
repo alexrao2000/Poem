@@ -94,6 +94,9 @@ func watch_miss(node):
  if node is Projectile:
   await process_frame
   record.destination=node.destination;record.travel_end=node.travel_end
+  while is_instance_valid(node) and node.progress<.91:await process_frame
+  assert(is_instance_valid(node),"The ranged miss remains visible after reaching its aim")
+  assert(actors[1].position.z<-.25 and actors[1].pose_name=="evade","The defender clears the path before the shot crosses its aim")
  else:
   await process_frame
   assert(not node.has_node("ContactLight"),"A missed strike casts no light")
@@ -196,10 +199,11 @@ func run():
   assert(misses.size()==(2 if ranged else 1))
   assert(sound_cues==["approach","release_"+("gale" if weapon=="magic" else weapon)],"A missed attack plays only the approach and release cues")
   for sample in misses:
-   assert(sample.position.z<-.25 and sample.pose=="evade","Defender dodges before projectile release or melee contact")
    if sample.has("destination"):
+    assert(is_zero_approx(sample.position.z) and sample.pose=="idle","A ranged dodge starts in response to visible flight")
     assert(is_zero_approx(sample.destination.z),"Missed projectile keeps its original aim instead of tracking the dodge")
     assert(sample.travel_end>1,"Missed arrows, spears and spells carry beyond their original aim point")
+   else:assert(sample.position.z<-.25 and sample.pose=="evade","The defender is still clear when the miss is shown")
   for actor in app.stage.get_children().filter(func(node):return node is Actor):assert(is_zero_approx(actor.position.z),"Dodge settles before returning to the map")
   assert(app.game.save_data("battle")==saved and app.game.rng.state==rng,"Dodge presentation never changes the miss result")
  app.stage.child_entered_tree.disconnect(watch_miss)
@@ -260,5 +264,5 @@ func run():
  process_frame.disconnect(sound_observer);heard_playbacks.clear()
  app.music.stop();await create_timer(.15).timeout
  await Shutdown.dispose(app);await process_frame
- print("PASS: continuous exchanges, mixed reach, early dodges, local hit stops, skip cleanup, guarded hits, three spell presentations and unchanged simulation")
+ print("PASS: continuous exchanges, mixed reach, dodges timed to ranged flight, local hit stops, skip cleanup, guarded hits, three spell presentations and unchanged simulation")
  quit()

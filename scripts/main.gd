@@ -48,6 +48,8 @@ const CombatImpact=preload("res://scripts/combat_impact.gd")
 const CombatHitStop=preload("res://scripts/combat_hit_stop.gd")
 const CombatHeal=preload("res://scripts/combat_heal.gd")
 const CombatProjectile=preload("res://scripts/combat_projectile.gd")
+const PROJECTILE_FLIGHT_TIME=.23
+const DODGE_STEP_TIME=.12
 const CombatCamera=preload("res://scripts/combat_camera.gd")
 const CombatHUD=preload("res://scripts/combat_hud.gd")
 const CombatCaption=preload("res://scripts/combat_caption.gd")
@@ -1525,12 +1527,7 @@ func cinematic(a,b,events,initial_hp={},challenge: Dictionary={}):
 		if not is_ranged:play_sfx(combat_release_sound(unit))
 		var contact_point=whom.socket_position(contact_socket)
 		if who.has_method("aim_at"):who.aim_at(contact_point)
-		if not event.hit:
-			whom.pose("evade",.12)
-			dodge=create_tween()
-			dodge.tween_property(whom,"position:z",-.32,.12)
-			dodge.tween_interval(.35 if is_ranged else .12)
-			dodge.tween_property(whom,"position:z",0.0,.16)
+		if not event.hit and not is_ranged:dodge=combat_dodge(whom,false)
 		var blade_trail: Node3D
 		if not is_ranged:
 			blade_trail=CombatTrail.new();stage.add_child(blade_trail)
@@ -1550,6 +1547,7 @@ func cinematic(a,b,events,initial_hp={},challenge: Dictionary={}):
 			if who.has_method("release_projectile"):who.release_projectile()
 			if is_instance_valid(gathering):gathering.release()
 			play_sfx(combat_release_sound(unit))
+			if not event.hit:dodge=combat_dodge(whom,true)
 			if not await projectile(release,contact_point,unit.weapon,spell,fighters.equipment_profile(unit),not event.hit,source):break
 		director.shot(who.position,whom.position,"impact",is_ranged,mounted,.16)
 		if event.hit:
@@ -1723,9 +1721,20 @@ func combat_pause(duration: float) -> bool:
 	var motion=create_tween();motion.tween_interval(duration)
 	return await combat_wait(motion)
 
+func combat_dodge(defender: Node3D,ranged: bool) -> Tween:
+	var motion=create_tween()
+	if ranged:
+		motion.tween_interval(PROJECTILE_FLIGHT_TIME-DODGE_STEP_TIME-.03)
+		motion.tween_callback(defender.pose.bind("evade",DODGE_STEP_TIME))
+	else:defender.pose("evade",DODGE_STEP_TIME)
+	motion.tween_property(defender,"position:z",-.32,DODGE_STEP_TIME)
+	motion.tween_interval(.14 if ranged else .12)
+	motion.tween_property(defender,"position:z",0.0,.16)
+	return motion
+
 func projectile(from: Vector3,to: Vector3,kind: String,spell="",appearance={},miss=false,source: Node3D=null) -> bool:
 	var visual=CombatProjectile.new();stage.add_child(visual)
-	var completed=await combat_wait(visual.launch(from,to,kind,.23,spell,appearance,miss,source))
+	var completed=await combat_wait(visual.launch(from,to,kind,PROJECTILE_FLIGHT_TIME,spell,appearance,miss,source))
 	if is_instance_valid(visual):visual.queue_free()
 	return completed
 
