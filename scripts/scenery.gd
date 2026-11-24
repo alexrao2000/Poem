@@ -17,6 +17,7 @@ const PassEscarpment=preload("res://scripts/pass_escarpment.gd")
 const RuinedColumns=preload("res://scripts/ruined_columns.gd")
 const SanctuaryPlinth=preload("res://scripts/sanctuary_plinth.gd")
 const TrailLanterns=preload("res://scripts/trail_lanterns.gd")
+const GreywoodShelter=preload("res://scripts/greywood_shelter.gd")
 const MAX_CACHED_CYLINDERS=256
 const ROAD_CANAL_NEAR=-5.0
 const ROAD_CANAL_FAR=-13.0
@@ -406,8 +407,7 @@ func landmark(parent,p,kind,roof_variant=-1,map_site=Vector2.INF):
   sail.configure(Vector2(1.3,1.4),Color("dcd4b9"),false,site.x*.71+site.y*.37)
   harbor_rigging(parent,p)
  elif kind=="camp":
-  var tent=cylinder(parent,p+Vector3(0,.5,0),1,.8,Color("c7bba1"),0);tent.scale.z=1.5
-  cylinder(parent,p+Vector3(1,.06,0),.1,.3,Color("6a5c4b"))
+  GreywoodShelter.build(self,parent,p,.72)
  elif kind=="engine":
   sun_engine(parent,p+Vector3.DOWN*.06,.46)
  elif kind=="observatory":
@@ -816,6 +816,7 @@ func battle_landscape(parent,center,context={}):
    continue
   var group=Node3D.new();group.name="ArenaLandmark";parent.add_child(group,true);group.position=center+Vector3(lateral,0,depth)
   group.scale=Vector3.ONE*(2.1 if item.kind in ["house","warehouse","tower","spire","arch","furnace"] else 1.4)
+  if item.kind=="camp":group.scale=Vector3.ONE*2.5
   landmark(group,Vector3.ZERO,item.kind,item.get("roof_variant",0),item.get("map_site",Vector2.INF))
  if theme in ["village","road"]:
   cart(parent,center+Vector3(-6,0,-3.8));fence(parent,center+Vector3(3,0,-4),5.0)

@@ -101,6 +101,8 @@ The twelve chapters define their own sky, sun and ambient light. Glass Harbor us
 
 Greywood mixes two original fir crowns with its broadleaf trees. Windscar Pass uses two sparse pine crowns behind its rocks. The same four cutouts appear on the tactical maps and behind the fighting lanes. Each tree has a tapered trunk and three crossed cards with root-pinned wind. The cards share a mipmapped atlas and join the existing static batches. [Source prompt and image hash](conifer-crown-prompt.json).
 
+Greywood’s pitched canvas refuge sits in the clearing northwest of the lantern road. The front opens between two folded flaps and faces the road. Nearby 3D battles use the same canvas and timber frame behind the fighters.
+
 Reed Crossing’s dry-ground arenas join the fight floor to a winding bank. Fourteen small reeds sit where the ground slopes into the river. The distant bank supports the trees and towers, and towers keep their left-to-right order from the map. Bridge fights retain the raised deck, rail, and lower water level.
 
 Six chapters have authored water palettes with their own swell size, direction and pace. Reed Crossing has quick, green ripples. Glass Harbor has broader blue-gray swells, and Old Aqueduct runs slowly along the stone channels. The map and its close-up arena use the same chapter material. The opening fountain keeps its soft basin ripples.

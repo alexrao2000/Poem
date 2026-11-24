@@ -1,5 +1,7 @@
 # Poem development
 
+Greywood’s shelter uses one 26-triangle canvas with a roof ridge, closed rear and open front. The nearby arena scales the same prop behind the combat lane. The tent’s new position is the only campaign data edit.
+
 The tactical movement arrow rounds outside corners at the current tile height. Routes and range layers share one vertex-color material. The muted footstep fixture checks the distinct contact counts of the Original and Revised sword approaches.
 
 Static batching reuses normals and tangents when a mesh repeats a rotation and scale. The cache lasts for one batch build and holds up to 32 orientations per mesh.

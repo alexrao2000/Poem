@@ -19,6 +19,7 @@ func run():
  await verify_ruined_columns()
  await verify_village_groves()
  await verify_trail_lanterns()
+ await verify_greywood_shelter()
  await verify_kingsroad_canal()
  await verify_cart()
  await verify_barrels()
@@ -424,6 +425,79 @@ func verify_trail_lanterns():
  world.queue_free();stage.queue_free();viewport.queue_free();await process_frame
  assert(game.save_data("camp")==before,"Lamp placement never touches the campaign or RNG")
  print("PASS: six Greywood roadside fixtures, five reused arena lanterns, four shared map batches, no extra lights and six unoccluded wide-shot projections")
+
+func verify_greywood_shelter():
+ var scenery=Scenery.new();scenery.batching_enabled=false
+ var game=Rules.new();game.chapter=2
+ var snapshot=game.save_data("camp")
+ var field=Node3D.new();root.add_child(field);scenery.landscape(field,game)
+ var refuge=field.get_node("GreywoodShelter")
+ var fabric=refuge.get_node("Canvas")
+ var arrays=fabric.mesh.surface_get_arrays(0)
+ var points=arrays[Mesh.ARRAY_VERTEX];var normals=arrays[Mesh.ARRAY_NORMAL]
+ assert(points.size()==78,"The single canvas uses 26 shallow triangles")
+ for i in range(0,points.size(),3):
+  var face=(points[i+1]-points[i]).cross(points[i+2]-points[i])
+  assert(face.length()>.0001 and face.normalized().dot(normals[i])<-.90)
+ var entry=barrel_hit(fabric.mesh,Vector3(.12,.20,1.0),Vector3.FORWARD)
+ assert(entry!=null and entry.z<-.69,"The open front and covered rear read as a sheltered entrance")
+ var tied=barrel_hit(fabric.mesh,Vector3(.38,.20,1.0),Vector3.FORWARD)
+ assert(tied!=null and tied.z>.68,"Canvas flaps cover both sides of the entrance")
+ for side in [-1.0,1.0]:
+  var roof=barrel_hit(fabric.mesh,Vector3(side*.3,2,0),Vector3.DOWN)
+  assert(roof!=null and absf(roof.y-lerpf(1.08,.045,.3/.66))<.0001)
+ for child in refuge.get_children():
+  if child==fabric:continue
+  var support=child.transform*child.mesh.get_aabb()
+  if child.name=="RidgePole":
+   assert(support.end.y>1.07 and support.size.z>1.44)
+  else:
+   assert(absf(support.position.y)<.0001,"Both rails and uprights meet the ground")
+ var covered=fabric.global_transform*fabric.mesh.get_aabb()
+ for x in [3,4]:
+  for z in [1,2]:
+   assert(game.terrain(Vector2i(x,z))=="." and not covered.has_point(Vector3(x,.20,z)))
+ var viewport=SubViewport.new();viewport.render_target_update_mode=SubViewport.UPDATE_DISABLED;root.add_child(viewport)
+ var camera=Camera3D.new();viewport.add_child(camera);camera.current=true
+ var center=Vector3((game.board_size().x-1)*.5,0,(game.board_size().y-1)*.5)
+ camera.projection=Camera3D.PROJECTION_ORTHOGONAL;camera.size=maxf(16,game.board_size().x+2)
+ camera.position=center+Vector3(2.5,22,11.5);camera.look_at(center);camera.h_offset=2
+ var sizes=[Vector2i(1024,640),Vector2i(1280,720),Vector2i(1440,900)]
+ for size in sizes:
+  viewport.size=size;await process_frame
+  var open_screen=Rect2(Vector2.ZERO,Vector2(size)).grow(-12)
+  assert(shelter_ridge_visible(camera,refuge,field,open_screen))
+ camera.projection=Camera3D.PROJECTION_PERSPECTIVE;camera.h_offset=0
+ center=Vector3(35,0,0)
+ for mirror in [1.0,-1.0]:
+  var context=scenery.combat_context(game,{"x":3,"y":3},{"x":4,"y":3},mirror)
+  assert(context.landmarks[0].map_site==Vector2(3.5,1.5))
+  var stage=Node3D.new();root.add_child(stage);scenery.battle_landscape(stage,center,context)
+  var shelter=stage.find_children("GreywoodShelter","Node3D",true,false)[0]
+  var arena_fabric=shelter.get_node("Canvas")
+  assert(arena_fabric.mesh==fabric.mesh and arena_fabric.material_override==fabric.material_override)
+  var frame=CombatCamera.frame_pair(center+Vector3.LEFT*1.6,center+Vector3.RIGHT*1.6,"wide",false,mirror<0)
+  camera.position=frame.anchor;camera.fov=frame.lens;camera.look_at(frame.focus)
+  for size in sizes:
+   viewport.size=size;await process_frame
+   var open_screen=Rect2(Vector2(12,12),Vector2(size)-Vector2(24,164))
+   assert(shelter_ridge_visible(camera,shelter,stage,open_screen))
+  stage.free()
+ viewport.free();field.free()
+ assert(game.save_data("camp")==snapshot)
+ print("PASS: Greywood's map and close-up shelter share a pitched canvas, open entrance, grounded supports and nine projections")
+
+func shelter_ridge_visible(camera: Camera3D,shelter: Node3D,landscape: Node3D,frame: Rect2) -> bool:
+ var trees=landscape.find_children("Conifer*","MeshInstance3D",true,false)
+ var clear=0
+ for z in [.4,.52,.65]:
+  var ridge=shelter.to_global(Vector3(0,1.08,z))
+  var pixel=camera.unproject_position(ridge)
+  if camera.is_position_behind(ridge) or not frame.has_point(pixel):continue
+  var eye=camera.project_ray_origin(pixel)
+  if not trees.any(func(tree):return (tree.global_transform*tree.mesh.get_aabb()).intersects_segment(eye,ridge)!=null):
+   clear+=1
+ return clear>=2
 
 func verify_kingsroad_canal():
  var scenery=Scenery.new();scenery.batching_enabled=false
