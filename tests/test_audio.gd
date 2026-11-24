@@ -30,7 +30,7 @@ func run():
  await verify_themes(app)
  await verify_quick_battles(app)
  await Shutdown.dispose(app);await process_frame
- print("PASS: three exact calm/Ablaze pairs, 12 chapter mappings, continuous combat mixing, bounded act crossfades, mute/interruption and independent effects")
+ print("PASS: three exact calm/Ablaze pairs, 12 chapter mappings, compensated arrangement curve and seamless reversal, continuous combat mixing, bounded act crossfades, mute/interruption and independent effects")
  quit()
 
 func verify_themes(app):
@@ -73,8 +73,34 @@ func verify_themes(app):
  await create_timer(.6).timeout
  assert(director.outgoing==null and app.music.playing,"Battlefield replacement completes its fade with only the new pair playing")
  assert(app.game.rng.state==rng and app.game.roster==roster,"Music changes leave the roster and gameplay RNG untouched")
+ await verify_arrangement_curve(app)
  director.cancel_fade();app.music.stop()
  await create_timer(.2).timeout
+
+func verify_arrangement_curve(app):
+ var director=app.score_director;var pair=app.score
+ var decoder=app.music.get_stream_playback()
+ assert(decoder!=null)
+ for blend in [0.0,.25,.5,.75,1.0]:
+  director.apply_arrangement(blend)
+  var calm=db_to_linear(pair.get_sync_stream_volume(0));var ablaze=db_to_linear(pair.get_sync_stream_volume(1))
+  if blend==0.0 or blend==1.0:
+   assert(is_equal_approx(maxf(calm,ablaze),1.0) and is_equal_approx(minf(calm,ablaze),.001))
+  else:
+   assert(absf(calm*calm+ablaze*ablaze+.76*calm*ablaze-1.0)<.0001)
+   assert(absf(ablaze/(calm+ablaze)-blend)<.0001)
+ director.apply_arrangement(.40)
+ app.music_mix(true)
+ await create_timer(.15).timeout
+ var heard=director.arrangement_blend
+ assert(heard>.40 and heard<1.0 and app.music_transition.is_running())
+ var calm=pair.get_sync_stream_volume(0);var ablaze=pair.get_sync_stream_volume(1)
+ app.music_mix(false)
+ assert(director.arrangement_blend==heard and pair.get_sync_stream_volume(0)==calm and pair.get_sync_stream_volume(1)==ablaze,
+  "Replacing an in-flight fade starts at its exact current balance")
+ await create_timer(.53).timeout
+ assert(director.arrangement_blend==0.0 and pair.get_sync_stream_volume(0)==0 and pair.get_sync_stream_volume(1)<-50)
+ assert(app.score==pair and app.music.get_stream_playback()==decoder,"Gain curves do not seek or restart the live score")
 
 func verify_quick_battles(app):
  app.preferences.values.combat="map"

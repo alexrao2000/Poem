@@ -229,9 +229,8 @@ func select_score_theme():
 
 func music_mix(battle: bool):
 	if music_transition and music_transition.is_valid():music_transition.kill()
-	music_transition=create_tween().set_parallel(true)
-	music_transition.tween_method(func(v):score.set_sync_stream_volume(0,linear_to_db(maxf(v,0.001))),db_to_linear(score.get_sync_stream_volume(0)),0.001 if battle else 1.0,0.45)
-	music_transition.tween_method(func(v):score.set_sync_stream_volume(1,linear_to_db(maxf(v,0.001))),db_to_linear(score.get_sync_stream_volume(1)),1.0 if battle else 0.001,0.45)
+	music_transition=create_tween()
+	music_transition.tween_method(score_director.apply_arrangement,score_director.arrangement_blend,1.0 if battle else 0.0,ScoreDirector.ARRANGEMENT_FADE_SECONDS)
 
 func _process(dt):
 	clock+=dt

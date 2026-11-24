@@ -33,13 +33,11 @@ func select_arrangement(value: bool):
 
 func apply_arrangement(animate: bool):
  if mix and mix.is_valid():mix.kill()
- var pair=director.score
+ var target=1.0 if ablaze else 0.0
  if not animate:
-  pair.set_sync_stream_volume(0,-60 if ablaze else 0);pair.set_sync_stream_volume(1,0 if ablaze else -60);return
- mix=create_tween().set_parallel(true)
- for index in range(2):
-  var target=1.0 if (index==1)==ablaze else .001
-  mix.tween_method(func(value):pair.set_sync_stream_volume(index,linear_to_db(maxf(value,.001))),db_to_linear(pair.get_sync_stream_volume(index)),target,.45)
+  director.apply_arrangement(target);return
+ mix=create_tween()
+ mix.tween_method(director.apply_arrangement,director.arrangement_blend,target,Director.ARRANGEMENT_FADE_SECONDS)
 
 func _exit_tree():
  if mix and mix.is_valid():mix.kill()

@@ -1,5 +1,7 @@
 # Poem development
 
+The Calm and Ablaze crossfade compensates for the measured midpoint dip. Combat and the Music Room use the same gain curve and reverse a fade from its current balance.
+
 The Debug report’s Compare enemies view shows the next retry deployment row by row. It marks changed tiles, stats and tonic counts and keeps the report’s copy and restore controls one step away.
 
 Reed Crossing’s timber tollhouse has an open stone arch, slate roof and gold scales. The tactical map places it beside the eastern objective. Nearby 3D fights frame it across the river with both crossing towers.

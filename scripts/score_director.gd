@@ -1,6 +1,10 @@
 extends Node
 # One synchronized pair owns each act. Re-selecting an act leaves its playback
 # untouched; chapter changes crossfade at most one outgoing pair into the new one.
+const ARRANGEMENT_FADE_SECONDS=.45
+# The three authored pairs have similar partial correlation over a full fade.
+const ARRANGEMENT_CORRELATION=.38
+const SILENT_GAIN=.001
 var profiles=JSON.parse_string(FileAccess.get_file_as_string("res://assets/audio/themes.json")).profiles
 var player: AudioStreamPlayer
 var score: AudioStreamSynchronized
@@ -8,6 +12,7 @@ var outgoing: AudioStreamPlayer
 var fade: Tween
 var current_id=""
 var volume_db=-12.0
+var arrangement_blend=0.0
 
 func configure(volume=-12.0):
  volume_db=volume;player=AudioStreamPlayer.new();player.name="CampaignScore"
@@ -30,6 +35,16 @@ func make_pair(profile: Dictionary) -> AudioStreamSynchronized:
  pair.set_sync_stream_volume(1,-60)
  return pair
 
+static func arrangement_gains(blend: float) -> Vector2:
+ var weights=Vector2(1.0-blend,blend)
+ var power=weights.length_squared()+2.0*ARRANGEMENT_CORRELATION*weights.x*weights.y
+ return weights/sqrt(power)
+
+func apply_arrangement(blend: float):
+ arrangement_blend=clampf(blend,0.0,1.0)
+ var gains=arrangement_gains(arrangement_blend)
+ for index in 2:score.set_sync_stream_volume(index,linear_to_db(maxf(SILENT_GAIN,gains[index])))
+
 func cancel_fade():
  if fade and fade.is_valid():fade.kill()
  if is_instance_valid(outgoing):
@@ -46,7 +61,7 @@ func select_chapter(chapter: int) -> bool:
   outgoing=player;outgoing.name="OutgoingScore"
   player=AudioStreamPlayer.new();player.name="CampaignScore"
   player.playback_type=AudioServer.PLAYBACK_TYPE_STREAM;add_child(player)
- score=make_pair(profile);current_id=profile.id;player.stream=score;player.volume_db=volume_db
+ score=make_pair(profile);arrangement_blend=0.0;current_id=profile.id;player.stream=score;player.volume_db=volume_db
  if playing:
   player.volume_db=-80;player.play()
   var old=outgoing
