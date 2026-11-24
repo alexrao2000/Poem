@@ -1,6 +1,8 @@
 extends SceneTree
 const Shutdown=preload("helpers/game_shutdown.gd")
 const Rules=preload("res://scripts/rules.gd")
+const MapOverlay=preload("res://scripts/map_overlay.gd")
+const MapSurface=preload("res://scripts/map_surface.gd")
 func _initialize():call_deferred("run")
 
 func covers(vertices: PackedVector3Array,point: Vector2) -> bool:
@@ -10,7 +12,29 @@ func covers(vertices: PackedVector3Array,point: Vector2) -> bool:
   if Geometry2D.is_point_in_polygon(point,triangle):return true
  return false
 
+func check_bends():
+ var parent=Node3D.new();root.add_child(parent)
+ var directions=[Vector2i.LEFT,Vector2i.RIGHT,Vector2i.UP,Vector2i.DOWN]
+ for incoming in directions:
+  for outgoing in directions:
+   if Vector2(incoming).dot(Vector2(outgoing))!=0.0:continue
+   for level in [0.0,MapSurface.BRIDGE_HEIGHT,MapSurface.SANCTUARY_HEIGHT]:
+    var elevation=func(tile):return level if tile==Vector2i.ZERO else 0.0
+    var route=MapOverlay.route(parent,[-incoming,Vector2i.ZERO,outgoing],elevation)
+    var vertices=route.mesh.surface_get_arrays(0)[Mesh.ARRAY_VERTEX]
+    var outside=Vector2(incoming-outgoing).normalized()
+    for sample in [Vector2(.040,.060),Vector2(.075,.057)]:
+     var point=outside*sample.x
+     var height=-INF
+     for i in range(0,vertices.size(),3):
+      var hit=Geometry3D.ray_intersects_triangle(Vector3(point.x,.5,point.y),Vector3.DOWN,vertices[i],vertices[i+1],vertices[i+2])
+      if hit!=null:height=maxf(height,hit.y)
+     assert(is_equal_approx(height,level+sample.y),"The outer turn carries both colors at the height of its tile")
+    assert(not covers(vertices,outside*.085),"Rounded turn stops at the edge of the route's dark outline")
+ parent.free()
+
 func run():
+ check_bends()
  var g=Rules.new();var paths=0
  for chapter in range(12):
   g.chapter=chapter;g.start_battle()
@@ -45,6 +69,7 @@ func run():
   for x in range(app.game.board_size().x):assert(covers(vertices,Vector2(x,y))==reachable.has(Vector2i(x,y)),"Range mesh covers exactly the reachable tile centers")
  assert(overlay.cast_shadow==GeometryInstance3D.SHADOW_CASTING_SETTING_OFF,"Tactical ink never casts physical shadows")
  assert(app.route_preview.get_child_count()==1,"Route shares a single draw mesh")
+ assert(overlay.material_override==app.route_preview.get_child(0).material_override,"Range and route use one vertex-color material")
  vertices=app.route_preview.get_child(0).mesh.surface_get_arrays(0)[Mesh.ARRAY_VERTEX]
  var path=app.game.movement_path(unit,destination)
  for i in range(1,path.size()):assert(covers(vertices,(Vector2(path[i-1])+Vector2(path[i]))*.5),"Arrow traces each legal movement segment")
@@ -80,5 +105,5 @@ func run():
   assert(visual.visual_id==expected,"Every recruit uses individual animation when available, otherwise its class sheet")
   visual.queue_free()
  await Shutdown.dispose(app);await process_frame
- print("PASS: ",paths," legal weighted routes across 12 maps, movement animation, action lock and undo restoration")
+ print("PASS: ",paths," legal weighted routes across 12 maps, 24 rounded turns, shared overlay material, movement animation, action lock and undo restoration")
  quit()

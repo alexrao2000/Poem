@@ -1,7 +1,10 @@
 extends RefCounted
 const MapSurface=preload("res://scripts/map_surface.gd")
 # Unlit tactical marks follow raised walkable surfaces without hiding ground
-# detail. One mesh per layer shares tile seams; routes ramp into raised tiles.
+# detail. Each layer keeps its own geometry and shares the vertex-color material.
+# Routes ramp into raised tiles and fill the outside of each bend.
+static var ink: StandardMaterial3D
+
 static func quad(surface: SurfaceTool,points: Array,color: Color):
  for i in [0,1,2,0,2,3]:
   surface.set_normal(Vector3.UP);surface.set_color(color);surface.add_vertex(points[i])
@@ -10,10 +13,15 @@ static func rectangle(surface: SurfaceTool,center: Vector2,half: Vector2,height:
  quad(surface,[Vector3(center.x-half.x,height,center.y-half.y),Vector3(center.x+half.x,height,center.y-half.y),Vector3(center.x+half.x,height,center.y+half.y),Vector3(center.x-half.x,height,center.y+half.y)],color)
 
 static func finish(parent: Node3D,surface: SurfaceTool,label: String) -> MeshInstance3D:
+ if ink==null:
+  ink=StandardMaterial3D.new()
+  ink.shading_mode=BaseMaterial3D.SHADING_MODE_UNSHADED
+  ink.transparency=BaseMaterial3D.TRANSPARENCY_ALPHA
+  ink.vertex_color_use_as_albedo=true
+  ink.vertex_color_is_srgb=true
+  ink.cull_mode=BaseMaterial3D.CULL_DISABLED
  var node=MeshInstance3D.new();node.name=label;node.mesh=surface.commit()
- var material=StandardMaterial3D.new();material.shading_mode=BaseMaterial3D.SHADING_MODE_UNSHADED
- material.transparency=BaseMaterial3D.TRANSPARENCY_ALPHA;material.vertex_color_use_as_albedo=true;material.vertex_color_is_srgb=true
- material.cull_mode=BaseMaterial3D.CULL_DISABLED;node.material_override=material
+ node.material_override=ink
  node.cast_shadow=GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
  parent.add_child(node);return node
 
@@ -41,6 +49,14 @@ static func arrow(surface: SurfaceTool,point: Vector2,direction: Vector2,width: 
  for p in [point+direction*.29,point-direction*.17+side,point-direction*.17-side]:
   surface.set_normal(Vector3.UP);surface.set_color(color);surface.add_vertex(Vector3(p.x,height,p.y))
 
+static func bend(surface: SurfaceTool,point: Vector2,incoming: Vector2,outgoing: Vector2,width: float,height: float,color: Color):
+ var start=-outgoing*width
+ var end=incoming*width
+ var middle=(start+end).normalized()*width
+ for offset in [Vector2.ZERO,start,middle,Vector2.ZERO,middle,end]:
+  var corner=point+offset
+  surface.set_normal(Vector3.UP);surface.set_color(color);surface.add_vertex(Vector3(corner.x,height,corner.y))
+
 static func route(parent: Node3D,path: Array,elevation: Callable=Callable()) -> MeshInstance3D:
  if path.size()<2:return null
  var surface=SurfaceTool.new();surface.begin(Mesh.PRIMITIVE_TRIANGLES)
@@ -52,6 +68,12 @@ static func route(parent: Node3D,path: Array,elevation: Callable=Callable()) -> 
   for ends in [[a,middle],[middle,b]]:
    ribbon(surface,ends[0],ends[1],.08,.057,dark)
    ribbon(surface,ends[0],ends[1],.045,.060,gold)
+  if i>1:
+   var incoming=Vector2(path[i-1]-path[i-2])
+   var outgoing=Vector2(path[i]-path[i-1])
+   if incoming.dot(outgoing)==0.0:
+    bend(surface,Vector2(path[i-1]),incoming,outgoing,.08,a.y+.057,dark)
+    bend(surface,Vector2(path[i-1]),incoming,outgoing,.045,a.y+.060,gold)
  var last=Vector2(path[-1]);var direction=(last-Vector2(path[-2])).normalized()
  var level=float(elevation.call(path[-1])) if elevation.is_valid() else 0.0
  arrow(surface,last,direction,.22,level+.062,dark);arrow(surface,last,direction,.17,level+.065,gold)

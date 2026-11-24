@@ -123,9 +123,16 @@ func run():
  app.preferences.values.effects=0;app.apply_audio_preferences();app.stage.child_entered_tree.connect(watch_dust)
  var dust_a=app.game.units[0];var dust_b=app.game.living("enemy")[0];dust_a.x=8;dust_a.y=4;dust_b.x=9;dust_b.y=4
  saved=app.game.save_data("battle").duplicate(true);rng=app.game.rng.state
- await app.cinematic(dust_a,dust_b,[{"actor":dust_a.id,"target":dust_b.id,"damage":1,"remaining":19,"hit":true,"crit":false}],{dust_a.id:20,dust_b.id:20})
- assert(dust_contacts.size()==2 and dust_contacts.all(func(reference):return reference.get_ref()==null),"Actual muted sword approach emits exactly its two foot contacts and cleans both up")
- assert(app.game.save_data("battle")==saved and app.game.rng.state==rng,"Ground accents leave resolved simulation untouched")
+ var previous_models=app.preferences.values.character_models
+ var expected_contacts={"current":2,"revised":1}
+ for models in expected_contacts:
+  app.preferences.values.character_models=models
+  dust_contacts.clear()
+  await app.cinematic(dust_a,dust_b,[{"actor":dust_a.id,"target":dust_b.id,"damage":1,"remaining":19,"hit":true,"crit":false}],{dust_a.id:20,dust_b.id:20})
+  assert(dust_contacts.size()==expected_contacts[models],"%s sword approach emits the contacts for its own stride while muted"%models)
+  assert(dust_contacts.all(func(reference):return reference.get_ref()==null),"Every ground accent releases when the map returns")
+  assert(app.game.save_data("battle")==saved and app.game.rng.state==rng,"Ground accents leave resolved simulation untouched")
+ app.preferences.values.character_models=previous_models
  app.stage.child_entered_tree.disconnect(watch_dust)
  app.preferences.values.effects=.5;app.apply_audio_preferences()
  app.game.chapter=5;app.game.start_battle();app.make_map();app.show_battle()

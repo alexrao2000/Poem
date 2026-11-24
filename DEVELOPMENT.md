@@ -1,5 +1,7 @@
 # Poem development
 
+The tactical movement arrow rounds outside corners at the current tile height. Routes and range layers share one vertex-color material. The muted footstep fixture checks the distinct contact counts of the Original and Revised sword approaches.
+
 Static batching reuses normals and tangents when a mesh repeats a rotation and scale. The cache lasts for one batch build and holds up to 32 orientations per mesh.
 
 The browser packer converts the exported loading image to lossless WebP. The 1536 × 1024 image went from 2,796,503 to 2,056,348 bytes with identical decoded pixels. [Godot Image encoding](https://docs.godotengine.org/en/4.5/classes/class_image.html#class-image-method-save-webp).
