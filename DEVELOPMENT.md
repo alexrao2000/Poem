@@ -1,5 +1,7 @@
 # Poem development
 
+The browser packer converts the exported loading image to lossless WebP. The 1536 × 1024 image went from 2,796,503 to 2,056,348 bytes with identical decoded pixels. [Godot Image encoding](https://docs.godotengine.org/en/4.5/classes/class_image.html#class-image-method-save-webp).
+
 Reed Crossing’s iron chain sags across the water between two stone posts. The tactical map and close-up arena use the same link mesh with alternating orientations.
 
 Starfall has a sparse field of stars above its clouds. The tactical map and combat arena share the night texture. Other chapters use the same cloud panorama as before.

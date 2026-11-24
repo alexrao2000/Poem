@@ -6,6 +6,8 @@ This checkpoint describes the current development branch and supersedes the earl
 
 ### Latest state
 
+The browser splash is 740,155 bytes smaller. Its lossless WebP decodes to the exact original 1536 × 1024 pixels from the Godot export. Repacking twice produced the same HTML and WebP, the loader tests passed, and the Web game data and macOS archive match the Reed Crossing runtime checkpoint `a14ce85`. See `build/review/web-splash-comparison.json`. Browser rendering and load timing remain unreviewed.
+
 Reed Crossing’s chain runs between two grounded stone posts in the tactical map and close-up arena. One shared iron mesh supplies the alternating links. Nine projections checked the tactical view, dry-bank arena and deck arena. Eight focused suites, both exports, terrain and batching in both packs, and archive integrity passed. Assembled rendering remains unreviewed.
 
 Starfall’s map and 3D arena share a night sky with a sparse field of stars and faint clouds. Seven focused suites, including a complete Starfall exchange and the return to daytime on chapter change, passed. Both exports produced the same sky bytes as the source. The daytime panorama also matches the preceding package byte for byte. Packed atmosphere and presentation and both archive checks passed. See `build/review/starfall-cover-study.png` for a source texture study. Assembled gameplay rendering remains unreviewed.

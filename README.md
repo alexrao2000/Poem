@@ -312,7 +312,7 @@ python3 scripts/pack_web.py
 godot --headless --log-file "$PWD/build/logs/native.log" --path . --export-release macOS
 ```
 
-Run [pack_web.py](scripts/pack_web.py) after every Web export. It compresses the WASM engine and adds browser-side decompression through `DecompressionStream`, so static hosting does not need special response headers. It also adds the loading panel from [its markup](web/loading-panel.html) and [styles](web/loading.css), retaining Godot's startup callbacks. Use a browser that supports that API. Individual exports do not run the test suites or create `build/Poem-Web.zip`.
+Run [pack_web.py](scripts/pack_web.py) after every Web export. It compresses the WASM engine for browser-side decompression through `DecompressionStream` and converts the exported loading image to lossless WebP. It also adds the loading panel from [its markup](web/loading-panel.html) and [styles](web/loading.css), retaining Godot's startup callbacks. The files can be served by an ordinary static server. Individual exports do not run the test suites or create `build/Poem-Web.zip`.
 
 ## Assets and credits
 

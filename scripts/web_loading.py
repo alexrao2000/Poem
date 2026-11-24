@@ -32,4 +32,5 @@ def decorate_loader(source):
     hook = 'statusOverlay.dataset.poemMode = mode;'
     if hook not in source:
         source = replace_once(source, r'statusMode = mode;', 'statusMode = mode;\n\t\t' + hook)
+    source = replace_once(source, r'src="(?:index\.png|index\.splash\.webp)"', 'src="index.splash.webp"')
     return source

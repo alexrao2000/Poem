@@ -12,6 +12,12 @@ for (const id of ['canvas', 'status', 'status-splash', 'status-progress', 'statu
   assert(ids.includes(id), `Export includes ${id}`);
 }
 assert(html.includes('for="status-progress"') && html.includes('id="status-notice" role="alert"'));
+const splashTag = html.match(/<img\b[^>]*\bid="status-splash"[^>]*>/);
+assert(splashTag, 'The exported loader retains its splash image');
+assert.match(splashTag[0], /\bsrc="index\.splash\.webp"/);
+const splash = fs.readFileSync(path.join(path.dirname(htmlPath), 'index.splash.webp'));
+assert.equal(splash.toString('ascii', 0, 4), 'RIFF');
+assert.equal(splash.toString('ascii', 8, 12), 'WEBP');
 const scripts = [...html.matchAll(/<script(?:\s[^>]*)?>([\s\S]*?)<\/script>/g)].map(match => match[1]);
 const loaders = scripts.filter(source => source.includes('const GODOT_CONFIG'));
 assert.equal(loaders.length, 1);
