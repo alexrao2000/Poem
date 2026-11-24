@@ -1,6 +1,6 @@
 extends Node
-# One synchronized pair owns each act. Re-selecting an act leaves its playback
-# untouched; chapter changes crossfade at most one outgoing pair into the new one.
+# Re-selecting a theme keeps its synchronized pair and playhead. Theme changes
+# crossfade at most one outgoing pair into the new one.
 const ARRANGEMENT_FADE_SECONDS=.45
 # The three authored pairs have similar partial correlation over a full fade.
 const ARRANGEMENT_CORRELATION=.38
@@ -14,14 +14,15 @@ var current_id=""
 var volume_db=-12.0
 var arrangement_blend=0.0
 
-func configure(volume=-12.0):
+func configure(volume=-12.0,opening: Dictionary={}):
  volume_db=volume;player=AudioStreamPlayer.new();player.name="CampaignScore"
  player.playback_type=AudioServer.PLAYBACK_TYPE_STREAM;add_child(player)
- select_chapter(0)
+ select_profile(profiles[0] if opening.is_empty() else opening)
 
-func profile_for(chapter: int) -> Dictionary:
+func profile_for(chapter: int,theme_id: String="") -> Dictionary:
  var chosen=profiles[0]
  for profile in profiles:
+  if profile.id==theme_id:return profile
   if chapter>=int(profile.first_chapter):chosen=profile
  return chosen
 
@@ -50,8 +51,7 @@ func cancel_fade():
  if is_instance_valid(outgoing):
   outgoing.stop();remove_child(outgoing);outgoing.queue_free();outgoing=null
 
-func select_chapter(chapter: int) -> bool:
- var profile=profile_for(chapter)
+func select_profile(profile: Dictionary) -> bool:
  if current_id==profile.id:return false
  var playing=player.playing;var previous_volume=player.volume_db
  cancel_fade()

@@ -190,7 +190,7 @@ func setup_audio():
 	add_child(interface_audio);interface_audio.configure(preferences.volume_db("effects"))
 	add_child(travel_audio);travel_audio.configure(preferences.volume_db("effects"))
 	add_child(field_audio)
-	score_director=ScoreDirector.new();add_child(score_director);score_director.configure(preferences.volume_db("music"))
+	score_director=ScoreDirector.new();add_child(score_director);score_director.configure(preferences.volume_db("music"),campaign_score_profile(game.chapter))
 	music=score_director.player;score=score_director.score
 	for effect in ["select","swing","hit","critical","heal","magic","phase","guard","cutin","levelup","approach"]:
 		sfx_streams[effect]=load("res://assets/audio/"+effect+".wav")
@@ -222,10 +222,15 @@ func combat_contact_sounds(unit: Dictionary,event: Dictionary) -> Array:
 func play_combat_contact(unit: Dictionary,event: Dictionary):
 	for effect in combat_contact_sounds(unit,event):play_sfx(effect)
 
+func campaign_score_profile(chapter: int) -> Dictionary:
+	var theme_id=str(game.content.chapters[chapter].get("score_theme",""))
+	return score_director.profile_for(chapter,theme_id)
+
 func select_score_theme():
-	if score_director.current_id==score_director.profile_for(game.chapter).id:return
+	var profile=campaign_score_profile(game.chapter)
+	if score_director.current_id==profile.id:return
 	if music_transition and music_transition.is_valid():music_transition.kill()
-	score_director.select_chapter(game.chapter);score=score_director.score;music=score_director.player
+	score_director.select_profile(profile);score=score_director.score;music=score_director.player
 
 func music_mix(battle: bool):
 	if music_transition and music_transition.is_valid():music_transition.kill()
@@ -2250,7 +2255,7 @@ func show_music_room():
 	screen="music_room";reset_ui()
 	if options_return=="title":title_backdrop()
 	var preview=preload("res://scripts/music_room.gd").new();ui.add_child(preview)
-	preview.configure(score_director,music_transition,game.chapter,preferences.volume_db("music"))
+	preview.configure(score_director,music_transition,campaign_score_profile(game.chapter),preferences.volume_db("music"))
 	var frame=menu_panel(800);var panel=scrolling_column(frame)
 	label_in(panel,"POEM / MUSIC ROOM",17,GOLD)
 	label_in(panel,"Calm & Ablaze",44,GOLD)
@@ -2261,7 +2266,8 @@ func show_music_room():
 	var details=label_in(panel,"",18,GOLD);details.name="MusicRoomDetails"
 	var update_details=func():
 		var profile=preview.director.profiles[preview.theme_index]
-		details.text="Act %d · Chapters %02d–%02d · %d BPM"%[preview.theme_index+1,int(profile.first_chapter)+1,int(profile.first_chapter)+4,int(profile.bpm)]
+		var chapters=score_chapter_label(profile.id)
+		details.text=("%s · "%chapters if not chapters.is_empty() else "")+"%d BPM"%int(profile.bpm)
 	update_details.call()
 	themes.item_selected.connect(func(index):preview.select_theme(index);update_details.call())
 	var choices=HBoxContainer.new();choices.add_theme_constant_override("separation",12);panel.add_child(choices)
@@ -2272,6 +2278,20 @@ func show_music_room():
 	label_in(panel,"Music volume: %d%%. Change it in Options."%roundi(preferences.values.music*100),18)
 	label_in(panel,"Original Poem compositions · orchestral samples from VSCO 2 Community Edition (CC0).",16,Color("766e5e"))
 	button_in(frame,"Return to Options",close_music_room)
+
+func score_chapter_label(theme_id: String) -> String:
+	var spans=PackedStringArray()
+	var start=-1;var matches=0
+	var total=game.content.chapters.size()
+	for chapter in range(total+1):
+		if chapter<total and campaign_score_profile(chapter).id==theme_id:
+			if start<0:start=chapter
+			matches+=1
+		elif start>=0:
+			spans.append("%02d"%(start+1) if chapter==start+1 else "%02d–%02d"%[start+1,chapter])
+			start=-1
+	if matches==0:return ""
+	return ("Chapter " if matches==1 else "Chapters ")+", ".join(spans)
 
 func close_music_room():
 	if screen!="music_room":return

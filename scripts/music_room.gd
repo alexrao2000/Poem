@@ -9,21 +9,21 @@ var mix: Tween
 var theme_index=0
 var ablaze=false
 
-func configure(campaign: Node,campaign_mix,chapter: int,volume: float):
+func configure(campaign: Node,campaign_mix,profile: Dictionary,volume: float):
  name="MusicRoomAudio"
  for voice in [campaign.player,campaign.outgoing]:
   if is_instance_valid(voice):
    held_voices.append({"voice":voice,"paused":voice.stream_paused});voice.stream_paused=true
  for tween in [campaign.fade,campaign_mix]:
   if tween!=null and tween.is_valid() and tween.is_running():held_tweens.append(tween);tween.pause()
- director=Director.new();add_child(director);director.configure(volume)
- var profile=director.profile_for(chapter);theme_index=director.profiles.find(profile)
- director.select_chapter(chapter);director.player.play()
+ director=Director.new();add_child(director)
+ theme_index=director.profiles.find_custom(func(entry):return entry.id==profile.id)
+ director.configure(volume,director.profiles[theme_index]);director.player.play()
 
 func select_theme(index: int) -> bool:
  if index<0 or index>=director.profiles.size() or index==theme_index:return false
  if mix and mix.is_valid():mix.kill()
- theme_index=index;director.select_chapter(int(director.profiles[index].first_chapter))
+ theme_index=index;director.select_profile(director.profiles[index])
  apply_arrangement(false)
  return true
 

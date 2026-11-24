@@ -191,7 +191,7 @@ Failed autosaves display a warning and a phase-status marker. Keep the game open
 
 **Options** is available from the title screen, war council, and battle sidebar. Fixed **Presentation**, **Audio** and **Campaign** shortcuts jump to the corresponding settings and keep keyboard focus visible. You can set the starting speed for 3D battles, music and effects volume, dialogue speed, and automatic phase ending. The **Fast ×2** button overrides the speed for the current exchange. Preferences are stored on the device separately from campaign saves.
 
-Choose **Listen to campaign music** in Options to open the music room. Select any of the three act themes and switch between **Calm** and **Ablaze** without restarting the track. The room respects the music volume setting; returning resumes the campaign music where it was paused.
+Choose **Listen to campaign music** in Options to open the music room. Select a theme to see where it plays in the campaign, then switch between **Calm** and **Ablaze** without restarting it. The room uses the current music volume. Returning resumes the campaign music where it was paused.
 
 Quick map attacks blend into Ablaze during the exchange and return to Calm afterward on the same playhead.
 
@@ -225,6 +225,8 @@ The authored combat-model catalog starts empty; procedural actors remain the fal
 The `section_starts` list in [campaign.json](data/campaign.json) gives the zero-based chapter indices of the rally points. Start with `0` and list later starts in chapter order. In [campaign_trial_scenes.json](data/campaign_trial_scenes.json), append the same index to `relief_`, `memorial_`, and `retreat_` when authoring a section’s scenes.
 
 Each chapter’s `route_position` places its seal on the illustrated route. Coordinates run from `[0, 0]` at the upper left to `[1, 1]` at the lower right. The route offers a separate reached-chapter list when the seals overlap.
+
+Each chapter’s `score_theme` selects a Calm/Ablaze pair by ID from [themes.json](assets/audio/themes.json). Chapters can share a theme across section boundaries. An omitted or unknown ID uses the catalog’s `first_chapter` defaults. The music room shows the resulting chapter assignments.
 
 - [author_maps.py](scripts/author_maps.py) authors map geometry, deployment, squads, landmarks, and tactical briefings.
 - [index_sprites.gd](scripts/index_sprites.gd) generates sprite-region metadata from alpha bounds without modifying source images.

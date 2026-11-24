@@ -7,7 +7,7 @@ func press(app,text_value):
 func settle():
  await process_frame;await process_frame
 func inspect(app):
- for dimensions in [Vector2(1024,640),Vector2(1280,720),Vector2(1440,900)]:
+ for dimensions in [Vector2(720,640),Vector2(1024,640),Vector2(1280,720),Vector2(1440,900)]:
   app.ui.set_anchors_and_offsets_preset(Control.PRESET_TOP_LEFT);app.ui.size=dimensions;await settle()
   var frame=Rect2(Vector2.ZERO,dimensions)
   for node in app.ui.find_children("*","Control",true,false):
@@ -53,7 +53,8 @@ func run():
    chooser.select(index);chooser.item_selected.emit(index)
    var voice=preview.director.player;var pair=preview.director.score
    assert(preview.theme_index==index and preview.director.current_id==preview.director.profiles[index].id)
-   assert("Act %d"%[index+1] in app.ui.find_child("MusicRoomDetails",true,false).text)
+   var chapter_range="Chapters %02d–%02d"%[index*4+1,index*4+4]
+   assert(app.ui.find_child("MusicRoomDetails",true,false).text.begins_with(chapter_range))
    assert(not preview.select_theme(-1) and not preview.select_theme(3) and not preview.select_theme(index))
    voice.seek(12.0);await settle();var position=voice.get_playback_position()
    app.ui.find_child("MusicRoomAblaze",true,false).pressed.emit();await create_timer(.48).timeout
@@ -95,6 +96,33 @@ func run():
  muted.select_arrangement(false);var interrupted=weakref(muted)
  press(app,"Return to Options");await settle()
  assert(interrupted.get_ref()==null and not app.music.stream_paused,"Closing during simultaneous theme/arrangement fades releases the room and restores the campaign")
+ await verify_authored_labels(app)
  await Shutdown.dispose(app);await process_frame
- print("PASS: three-theme music room, continuous Calm/Ablaze switching, bounded crossfades, twelve layout checks, muted preview, guarded navigation and playing/paused/stopped/fading campaign restoration without state changes")
+ print("PASS: three-theme music room, continuous Calm/Ablaze switching, bounded crossfades, twenty layout checks, muted preview, guarded navigation and playing/paused/stopped/fading campaign restoration without state changes")
  quit()
+
+func verify_authored_labels(app):
+ var chapters=app.game.content.chapters
+ var originals=chapters.duplicate(true)
+ for i in range(chapters.size()):
+  chapters[i].score_theme="road" if i==1 or i in [4,5,6,7] else "standard"
+ chapters[0].score_theme="dawnless"
+ app.game.chapter=1
+ var campaign_voice=app.music
+ var state=app.game.save_data("camp");var rng=app.game.rng.state
+ app.show_options("camp");press(app,"Listen to campaign music")
+ var room=app.ui.get_node("MusicRoomAudio")
+ var chooser=app.ui.find_child("MusicRoomTheme",true,false)
+ var details=app.ui.find_child("MusicRoomDetails",true,false)
+ assert(chooser.selected==1 and room.director.current_id=="road" and details.text=="Chapters 02, 05–08 · 96 BPM")
+ await inspect(app)
+ chooser.select(2);chooser.item_selected.emit(2)
+ assert(room.director.current_id=="dawnless" and details.text=="Chapter 01 · 120 BPM")
+ chapters[0].score_theme="standard"
+ chooser.select(1);chooser.item_selected.emit(1)
+ chooser.select(2);chooser.item_selected.emit(2)
+ assert(details.text=="120 BPM","Unused music stays accessible without advertising an incorrect chapter")
+ chapters.assign(originals)
+ press(app,"Return to Options");await settle()
+ assert(app.game.save_data("camp")==state and app.game.rng.state==rng and app.music==campaign_voice)
+ print("PASS: Music Room follows the authored theme and formats split, single and unused chapter assignments")

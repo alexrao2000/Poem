@@ -28,6 +28,7 @@ func run():
  assert(app.sfx_streams.cutin.get_length()>.31 and app.sfx_streams.cutin.get_length()<.33,"Portrait cue ends before the strike resumes")
  assert(app.sfx_streams.levelup.get_length()>.71 and app.sfx_streams.levelup.get_length()<.73,"Level-up bell ends within the stat reveal")
  await verify_themes(app)
+ await verify_authored_themes(app)
  await verify_quick_battles(app)
  await Shutdown.dispose(app);await process_frame
  print("PASS: three exact calm/Ablaze pairs, 12 chapter mappings, compensated arrangement curve and seamless reversal, continuous combat mixing, bounded act crossfades, mute/interruption and independent effects")
@@ -45,7 +46,7 @@ func verify_themes(app):
   assert(absf(calm.get_length()-float(profile.bars)*4*60/profile.bpm)<1.0/profile.sample_rate,"Actual audio duration matches the composition's bar/tempo timeline")
   for stream in [calm,ablaze]:verify_decoded_loop(stream)
  for chapter in range(12):
-  assert(director.profile_for(chapter).id==["standard","road","dawnless"][chapter/4],"Each campaign act owns its paired theme")
+  assert(app.campaign_score_profile(chapter).id==["standard","road","dawnless"][chapter/4],"Shipped chapters retain the original pair")
  var roster=app.game.roster.duplicate(true);var rng=app.game.rng.state
  app.game.chapter=4;app.select_score_theme()
  assert(not app.music.playing and director.outgoing==null,"Loading a later act while stopped never starts unsolicited playback")
@@ -76,6 +77,30 @@ func verify_themes(app):
  await verify_arrangement_curve(app)
  director.cancel_fade();app.music.stop()
  await create_timer(.2).timeout
+
+func verify_authored_themes(app):
+ var chapters=app.game.content.chapters
+ var first=chapters[0].duplicate(true);var third=chapters[2].duplicate(true)
+ chapters[0].score_theme="road";chapters[2].score_theme="dawnless"
+ app.game.chapter=0;app.select_score_theme()
+ assert(app.score_director.current_id=="road" and not app.music.playing)
+ app.music.play(9);var pair=app.score;var voice=app.music;var decoder=voice.get_stream_playback()
+ app.game.chapter=5;app.select_score_theme()
+ assert(app.score==pair and app.music==voice and app.music.get_stream_playback()==decoder,
+  "The same authored theme keeps its decoder across separated chapters")
+ app.game.chapter=2
+ var save=app.game.save_data("camp");var rng=app.game.rng.state
+ app.select_score_theme()
+ assert(app.score_director.current_id=="dawnless" and app.score_director.outgoing==voice)
+ assert(app.score_director.outgoing.get_stream_playback()==decoder)
+ assert(app.game.save_data("camp")==save and app.game.rng.state==rng)
+ chapters[0].erase("score_theme");chapters[2].score_theme="unassigned"
+ assert(app.campaign_score_profile(0).id=="standard" and app.campaign_score_profile(2).id=="standard",
+  "An omitted or unknown theme uses the corresponding catalog default")
+ chapters[0]=first;chapters[2]=third
+ app.score_director.stop()
+ await process_frame
+ print("PASS: authored chapter themes select their actual paired streams, reuse the live decoder across distant chapters and fall back for omitted or unknown IDs")
 
 func verify_arrangement_curve(app):
  var director=app.score_director;var pair=app.score

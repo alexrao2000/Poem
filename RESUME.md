@@ -6,6 +6,8 @@ This checkpoint describes the current development branch and supersedes the earl
 
 ### Latest state
 
+Each chapter selects its Calm/Ablaze pair by theme ID. The music room opens on that theme and lists the chapters that use it, including separate spans. The shipped twelve assignments and all six full decoded loops match the prior build in both packages. A map authoring round trip retained the theme IDs, route seals and section starts. Eight focused suites, twenty music room layouts, four packed checks, 72 matched chapter outcomes and both ZIP checks passed. See `build/review/authored-score-streams.json`. Listening review remains open.
+
 The 3D reveal follows the fighters, and the return follows their location on the tactical map as the camera pulls back. At the reveal midpoint the aperture center is clear. The farthest corner retains 10.6–41.8 percent opacity across sixteen measured layouts. Five real exchanges checked both directions, including Skip, defeat, healing and raised tiles. Eight focused suites, 72 matched chapter outcomes, four packed checks, exact packaged opacity samples and both ZIP checks passed. See `build/review/focused-reveal-opacity.json`. Rendered appearance remains unreviewed.
 
 The tactical map and close-up combat share ten spark meshes and one guard mesh. Each effect retains its own material and fade. All 13 surface-array cases matched exactly. The median for 624 mesh requests fell from 15.43 ms to 0.46 ms in separate headless processes running both packages. This measures mesh construction and lookup. Eight focused suites, four packed checks, 72 matched chapter outcomes and both ZIP checks passed. See `build/review/contact-mesh-profile.json`.
