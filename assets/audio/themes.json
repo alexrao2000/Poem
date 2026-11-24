@@ -217,6 +217,31 @@
         }
       },
       "composition_sha256": "1cb300b70299fcd99a3110d667cc0f1d261eb2041af592973c859b67f9e2f809"
+    },
+    {
+      "id": "aqueduct",
+      "title": "What the Stone Carries",
+      "beats_per_bar": 3,
+      "bpm": 90,
+      "bars": 32,
+      "frames": 1411200,
+      "sample_rate": 22050,
+      "channels": 2,
+      "arrangements": {
+        "calm": {
+          "path": "res://assets/audio/aqueduct-calm.wav",
+          "peak": 0.6804188161751831,
+          "rms": 0.12,
+          "boundary_step": 0.002063817082814695
+        },
+        "ablaze": {
+          "path": "res://assets/audio/aqueduct-ablaze.wav",
+          "peak": 0.8441044826271449,
+          "rms": 0.15,
+          "boundary_step": 0.003999352955068841
+        }
+      },
+      "composition_sha256": "ab34abbddd9c182e81098d9751a3c82d43af0db5657300a054d7df16d1675bb2"
     }
   ]
 }

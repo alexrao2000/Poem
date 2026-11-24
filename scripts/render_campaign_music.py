@@ -147,6 +147,32 @@ THEMES = [
                  [(76,0,1.5),(74,1.5,.5),(72,2,1.5)],
                  [(69,.5,1),(73,1.5,1),(76,2.5,1)],
                  [(74,0,1.75),(69,2,1),(65,3,.8)]]),
+    dict(id='aqueduct', title='What the Stone Carries', bpm=90, beats_per_bar=3, seed=59713,
+         harp_pattern=(0,2,1,0,2,1),
+         ablaze_harp_pattern=(0,1,2,1,0,2),
+         ablaze_bass_pattern=(-12,-5,-5,-12,-5,-5),
+         percussion_pattern=((0,1.5),(1,2)),
+         melody_instruments=(('harp','flute'),('strings','flute')),
+         chords=[(52,55,59),(48,52,55),(55,59,62),(50,54,57),
+                 (52,55,59),(57,60,64),(48,52,55),(47,51,54),
+                 (55,59,62),(54,57,60),(52,55,59),(48,52,55),
+                 (50,54,57),(48,52,57),(47,51,54),(52,55,59)],
+         melody=[[(71,0,.5),(76,.5,1),(74,1.5,.5),(71,2,.75)],
+                 [(67,0,1),(72,1,.5),(76,1.5,1.25)],
+                 [(74,0,.5),(79,.5,1),(77,1.5,.5),(74,2,.75)],
+                 [(69,0,.5),(74,.5,1),(78,1.5,1.25)],
+                 [(76,0,.5),(83,.5,1),(81,1.5,.5),(79,2,.75)],
+                 [(76,0,1),(72,1,.5),(69,1.5,1.25)],
+                 [(67,0,.5),(72,.5,1),(76,1.5,.5),(74,2,.75)],
+                 [(75,0,.5),(71,.5,1),(66,1.5,1.0)],
+                 [(74,0,.5),(79,.5,1),(83,1.5,1.25)],
+                 [(81,0,1),(78,1,.5),(72,1.5,1.25)],
+                 [(71,0,.5),(76,.5,1),(79,1.5,.5),(76,2,.75)],
+                 [(72,0,.75),(67,.75,.75),(76,1.5,1.25)],
+                 [(74,0,.5),(78,.5,1),(81,1.5,1.25)],
+                 [(79,0,1),(76,1,.5),(72,1.5,1.25)],
+                 [(71,0,.5),(75,.5,1),(78,1.5,.5),(75,2,.75)],
+                 [(76,0,1),(71,1,.5),(67,1.5,.75)]]),
 ]
 
 
@@ -156,6 +182,7 @@ def render(theme,bank):
     results={}
     default_pattern=(0,2,1,2,0,1,2,1) if theme['id']=='road' else (0,1,2,1,2,1,0,2)
     calm_pattern=theme.get('harp_pattern',default_pattern)
+    bass_pattern=theme.get('ablaze_bass_pattern',(-12,-5))
     downbeats, accents = {3: ((0,), (1, 2)), 4: ((0, 2), (1, 3)), 5: ((0, 3), (1.5, 4))}[beats]
     downbeats, accents = theme.get('percussion_pattern', (downbeats, accents))
     for mode in ('calm','ablaze'):
@@ -187,7 +214,7 @@ def render(theme,bank):
                 note(pitch,start+offset,length*.94,lead,.23 if intense else .2,.12)
                 if bar>=16 and bar%4 in (2,3):note(pitch-12,start+offset,length*.9,answer,.09,-.25)
             if intense:
-                for step in range(beats*2):note(chord[0]-12 if step%2==0 else chord[0]-5,start+step*.5,.44,'bass',.19,.05)
+                for step in range(beats*2):note(chord[0]+bass_pattern[step%len(bass_pattern)],start+step*.5,.44,'bass',.19,.05)
                 for beat in downbeats:percussion(start+beat)
                 for beat in accents:percussion(start+beat,True)
                 if bar%4==3:percussion(start+beats-.5,True)

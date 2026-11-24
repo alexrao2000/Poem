@@ -1454,7 +1454,7 @@
       "title": "Stone Remembers",
       "place": "Old Aqueduct",
       "route_position": [0.71, 0.31],
-      "score_theme": "road",
+      "score_theme": "aqueduct",
       "objective": "seize",
       "boss": "Engineer Mal",
       "intro": "Petra knows a forgotten route across the aqueduct. Ari reports that the eastern gate is lightly guarded.",

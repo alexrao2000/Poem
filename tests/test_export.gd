@@ -121,9 +121,9 @@ func run():
  for element in ["ember","gale","thunder"]:assert(app.sfx_streams["impact_"+element].get_length()>.37,"Packaged spells include their elemental contact sound")
  for family in ["sword","axe","lance","bow","ember","gale","thunder"]:assert(app.sfx_streams["release_"+family].get_length()>.13,"Packaged combat includes every original weapon/element release cue")
  for job in app.CLASSES:assert(app.map_catalog.assets.has("enemy."+job.to_lower()),"Release includes every dedicated enemy class atlas")
- for chapter in [0,2,3,4,5,6,8,9,11]:
+ for chapter in [0,2,3,4,5,6,7,8,9,11]:
   app.game.chapter=chapter;app.game.start_battle();app.make_map();app.show_battle();await process_frame
-  var theme={2:"greywood",3:"abbey",5:"glass_harbor",6:"windscar",8:"starfall",11:"sun_engine"}.get(chapter,["standard","road","dawnless"][chapter/4])
+  var theme={2:"greywood",3:"abbey",5:"glass_harbor",6:"windscar",7:"aqueduct",8:"starfall",11:"sun_engine"}.get(chapter,["standard","road","dawnless"][chapter/4])
   assert(app.score_director.current_id==theme,"Export includes every chapter's assigned score pair")
   assert(app.unit_nodes.size()==app.game.units.size(),"Packaged maps instantiate every living actor")
   for y in range(app.game.board_size().y):
@@ -743,5 +743,5 @@ func run():
  assert(preview_rise_seen.all(func(seen):return seen) and app.preview_actor.pose_name=="idle" and app.game.save_data("battle")==packed_recovery_state,"Packed Revival selector replays the wounded hold and rise without changing the campaign")
  app.close_model_view();await process_frame
  await Shutdown.dispose(app);await process_frame
- print("PASS: exported catalog, all nine original scores, chapter scenes, sixteen promotion patterns, all forty-eight revised promotion outfits, licenses and credits")
+ print("PASS: exported catalog, assigned scores, chapter scenes, sixteen promotion patterns, all forty-eight revised promotion outfits, licenses and credits")
  quit()
