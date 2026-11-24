@@ -351,6 +351,8 @@ func verify_aqueduct_gallery():
  var camera=Camera3D.new();viewport.add_child(camera);camera.current=true
  var frame=CombatCamera.frame_pair(center+Vector3.LEFT*1.6,center+Vector3.RIGHT*1.6,"wide",false)
  camera.position=frame.anchor;camera.fov=frame.lens;camera.look_at(frame.focus)
+ var spill_shape=Scenery.aqueduct_spill_mesh()
+ var spill_material=preload("res://scripts/fountain.gd").stream_material()
  for terrain in ["p","="]:
   context.terrain=terrain
   var arena=Node3D.new();root.add_child(arena);scenery.battle_landscape(arena,center,context)
@@ -371,6 +373,30 @@ func verify_aqueduct_gallery():
    assert(shaft.intersects(lower) and shaft.intersects(capital.transform*capital.mesh.get_aabb()),"Each pier connects its submerged footing and capital")
   var coping=gallery.get_node("ChannelCoping")
   var coping_bounds=coping.transform*coping.mesh.get_aabb()
+  var falls=gallery.find_children("AqueductSpill*","MeshInstance3D",false,false)
+  var lips=gallery.find_children("SpillwayLip*","MeshInstance3D",false,false)
+  assert(falls.size()==2 and lips.size()==2)
+  var flow=spill_shape.surface_get_arrays(0)
+  var points=flow[Mesh.ARRAY_VERTEX];var uv=flow[Mesh.ARRAY_TEX_UV];var normals=flow[Mesh.ARRAY_NORMAL]
+  assert(points.size()==72)
+  for index in range(0,points.size(),3):
+   var normal=(points[index+1]-points[index]).cross(points[index+2]-points[index]).normalized()
+   assert(normal.dot(normals[index])<-.999,"The falling ribbons retain lit outward-facing surfaces")
+  for index in falls.size():
+   var fall=falls[index]
+   assert(fall.mesh==spill_shape and fall.material_override==spill_material)
+   assert(fall.cast_shadow==GeometryInstance3D.SHADOW_CASTING_SETTING_OFF)
+   var lip=lips[index].global_transform*lips[index].mesh.get_aabb()
+   assert(lip.position.z<gallery.global_position.z+.48 and lip.end.z>gallery.global_position.z+.70)
+   for vertex in points.size():
+    var point=fall.to_global(points[vertex])
+    if is_zero_approx(uv[vertex].y):
+     assert(is_equal_approx(point.y,lip.end.y) and is_equal_approx(point.z,lip.end.z),
+      "The first row meets the stone lip exactly")
+     assert(point.x>=lip.position.x and point.x<=lip.end.x)
+    if is_equal_approx(uv[vertex].y,1):
+     assert(is_equal_approx(point.y,water.global_position.y) and point.z>lip.end.z,
+      "The last row meets the stage’s actual pool height")
   for index in 6:
    var arch=arches[index];var span=arch.transform*arch.mesh.get_aabb()
    var course=channel[index].transform*channel[index].mesh.get_aabb()
@@ -386,9 +412,15 @@ func verify_aqueduct_gallery():
    var crown=gallery.to_global(Vector3(-2,coping_bounds.end.y,0))
    var screen=camera.unproject_position(crown)
    assert(not camera.is_position_behind(crown) and Rect2(Vector2.ZERO,Vector2(dimensions)).grow(-10).has_point(screen),"The middle span and channel crest fit the default wide shot")
+   var safe=Rect2(Vector2(20,20),Vector2(dimensions)-Vector2(40,176))
+   assert(falls.any(func(fall):
+    var flowing=fall.to_global(Scenery.spill_point(.5,.42))
+    return not camera.is_position_behind(flowing) and safe.has_point(camera.unproject_position(flowing))),
+    "A spillway is visible above the HUD in every wide shot")
   arena.queue_free();await process_frame
  viewport.queue_free();await process_frame
  print("PASS: six planted aqueduct spans, connected channel coping, dry and deck foregrounds, grounded map landmarks and six projected wide shots")
+ print("PASS: two Aqueduct spillways share the same mesh and meet their stone lips and both pool heights in six wide shots")
 
 func verify_reddeep_furnaces():
  var scenery=Scenery.new();scenery.batching_enabled=false

@@ -1,5 +1,7 @@
 # Poem development
 
+Two spillways pour from the Old Aqueduct’s upper channel into the pool behind the fighting lane. Both ribbons share the same curved mesh and flowing material. Each joins its stone lip and reaches the pool at the height used by that arena.
+
 Crimson standards hang from brass rails on either side of the Crown Approach gate. Their upper edges meet the rails, and the cloth uses two independent wind phases.
 
 Kingsroad has an original eight-second stereo canal ambience loop. The same field voice continues from the tactical road through 3D combat and tactical menus. It follows the Effects volume alongside the separate Calm and Ablaze score. Godot imports the field loop as 16-bit PCM. [Godot 4.5 WAV importer documentation](https://docs.godotengine.org/en/4.5/classes/class_resourceimporterwav.html#class-resourceimporterwav-property-compress-mode)

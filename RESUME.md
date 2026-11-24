@@ -2,9 +2,13 @@
 
 ## Active checkpoint · 2026-11-23
 
-Development resumed on “go”. Continue in this chat until the user asks to stop; no scheduled work is requested. This checkpoint supersedes the older paused status below.
+This checkpoint describes the current development branch and supersedes the earlier notes below.
 
 ### Latest state
+
+Two spillways now pour from the Old Aqueduct’s channel into its arena pool. The two ribbons share one mesh, meet the stone lips and land at the actual dry or bridge arena water height. Six projected wide shots kept a spillway clear of the HUD. Eight focused suites, both exports, architecture in both packs and archive integrity passed. Rendered appearance remains unreviewed.
+
+The Hard recoverable routes at `324f9a3` matched all 879 canonical save digests across Quick Map and All 3D Battles. Both ran 13 battles in 96 turns and 429 player actions. Lyra’s first defeat raised pressure to one. The planned Chapter 6 retreat stayed in Chapter 6 and raised pressure to two. Both routes recorded 28 staff revivals, six recovering deployments, ten distinct unit-turn attack bonus observations and all 24 recruits at the ending. The 3D route opened 458 arenas, played 14 exchanges through, and kept the field decoder in eight environments. See `build/review/recoverable-presentation.html`. Rendered appearance, listening quality and human difficulty remain unreviewed.
 
 Crown Approach’s gate now carries two crimson standards on fixed brass rails. The cloth keeps separate wind phases with its upper edges pinned to the rails. Six projected wide shots kept a standard above the HUD. Eight focused suites, both local exports, architecture in both packs and archive integrity passed. Rendered appearance remains unreviewed.
 

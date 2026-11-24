@@ -66,6 +66,7 @@ var planes: Dictionary={}
 var cylinders: Dictionary={}
 var cylinder_environment=""
 static var arch_shapes: Dictionary={}
+static var aqueduct_fall: ArrayMesh
 var atlas: Texture2D
 var environment_atlas: Texture2D
 var foliage_atlas: Texture2D
@@ -493,7 +494,7 @@ func abbey_arcade(parent: Node3D,anchor: Vector3):
  block(arcade,Vector3(0,5.23,0),Vector3(25.6,.34,.82),stone).name="ArcadeCoping"
  block(arcade,Vector3(0,5.43,0),Vector3(25.8,.10,1.06),Color("b7b3a0")).name="ArcadeCornice"
 
-func aqueduct_gallery(parent: Node3D,center: Vector3):
+func aqueduct_gallery(parent: Node3D,center: Vector3,water_height: float):
  var gallery=Node3D.new();gallery.name="AqueductGallery";gallery.position=center+Vector3(0,0,-8.4);parent.add_child(gallery)
  var masonry=detail_material(3)
  for x in range(-12,13,4):
@@ -504,8 +505,28 @@ func aqueduct_gallery(parent: Node3D,center: Vector3):
    arch_span(gallery,Vector3(x+2,2.10,0),1.65,.35,.86)
    block(gallery,Vector3(x+2,4.18,0),Vector3(3.98,.28,.96),masonry).name="ChannelStone"
  block(gallery,Vector3(0,4.36,0),Vector3(24.24,.12,1.12),Color("b7b9a8")).name="ChannelCoping"
+ for spillway in [Vector2(-6.0,.46),Vector2(2.0,.32)]:
+  block(gallery,Vector3(spillway.x,4.24,.52),Vector3(spillway.y+.20,.14,.54),masonry).name="SpillwayLip"
+  var fall=mesh(gallery,aqueduct_spill_mesh(),Vector3(spillway.x,water_height,.79),
+   Vector3(spillway.y,4.31-water_height,.52),Fountain.stream_material())
+  fall.name="AqueductSpill";fall.cast_shadow=GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
  var shelf=ground(parent,center+Vector3(0,0,-26),Vector2(32,32),3)
  shelf.name="AqueductFarWalk"
+
+static func spill_point(u: float,t: float) -> Vector3:
+ return Vector3((u-.5)*(1.0+.40*t),1.0-pow(t,1.42),.18*t+.82*pow(t,.75))
+
+static func aqueduct_spill_mesh() -> ArrayMesh:
+ if aqueduct_fall!=null:return aqueduct_fall
+ var tool=SurfaceTool.new();tool.begin(Mesh.PRIMITIVE_TRIANGLES)
+ for section in 12:
+  var top=section/12.0;var bottom=(section+1)/12.0
+  var uv=[Vector2(0,top),Vector2(1,top),Vector2(1,bottom),Vector2(0,bottom)]
+  var points=uv.map(func(point):return spill_point(point.x,point.y))
+  var normal=(points[2]-points[0]).cross(points[1]-points[0]).normalized()
+  for corner in [0,1,2,0,2,3]:
+   tool.set_normal(normal);tool.set_uv(uv[corner]);tool.add_vertex(points[corner])
+ aqueduct_fall=tool.commit();return aqueduct_fall
 
 func aqueduct_parapet(parent: Node3D,center: Vector3):
  var masonry=detail_material(3)
@@ -604,10 +625,10 @@ func battle_landscape(parent,center,context={}):
  else:
   ground(parent,center-Vector3(0,.06,0),Vector2(70,70),3 if stone else 0)
   if not wooden_floor:ground(parent,center,Vector2(24,6),surface)
+ var water_level=-.055 if wooden_floor else RiverBank.ARENA_WATER_LEVEL
  if river or theme in ["harbor","aqueduct"] or tile=="=":
   var water=water_material(theme)
   var plane=plane_shape(Vector2(RiverBank.ARENA_WIDTH,60 if wooden_floor else 40))
-  var water_level=-.055 if wooden_floor else RiverBank.ARENA_WATER_LEVEL
   var water_depth=-12.0 if wooden_floor else -23.0 if river else -22.0
   var water_surface=mesh(parent,plane,center+Vector3(0,water_level,water_depth),Vector3.ONE,water);water_surface.name="ArenaWater"
   if wooden_floor:arena_deck(parent,center)
@@ -661,7 +682,7 @@ func battle_landscape(parent,center,context={}):
   cart(parent,center+Vector3(-6,0,-3.8));fence(parent,center+Vector3(3,0,-4),5.0)
   for i in range(3):barrel(parent,center+Vector3(6+i*.4,0,-4.3),1.0)
  if theme=="forest":TrailLanterns.fighting_lane(parent,center)
- if theme=="aqueduct":aqueduct_gallery(parent,center)
+ if theme=="aqueduct":aqueduct_gallery(parent,center,water_level)
  if theme=="abbey":abbey_arcade(parent,center+Vector3(0,0,-9.7))
  if theme in ["observatory","castle"]:
   for x in ([] if theme=="castle" else range(-12,13,4)):
