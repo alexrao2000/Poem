@@ -6,6 +6,8 @@ This checkpoint describes the current development branch and supersedes the earl
 
 ### Latest state
 
+Tactical previews and pursuit reuse the equipped range offsets in their original order. All 6,018 ordered query results match across the campaign and two synthetic boards. Across the twelve campaign maps, the summed headless threat medians fell from 96.23 ms to 27.53–27.67 ms. On a 169-unit stress board they fell from 180.97 ms to 84.73–85.13 ms. Eight focused suites, four packed checks, 72 matched chapter outcomes and both ZIP checks passed. See `build/review/attack-offset-profile.json`.
+
 When a revived recruit stays carried, the tactical approach frames the healer and the carrier. The close-up shows the actual patient. A new [surrounded revival starter](build/review/playtest/surrounded-carried-revival.txt) revives Sera at 12 HP with her action spent and keeps her on Oren because every adjacent tile is occupied. The scene and save match in source and both exports. Eight focused suites, four packed checks, 72 matched chapter outcomes and both ZIP checks passed. See `build/review/surrounded-carried-revival.json`.
 
 Both exports also matched all sixteen portrait Debug encounters at `973b833`, including a full duel on every battlefield and both forms of Skip at Cinderford and the Sun Engine. See `build/review/all-chapter-depth-checks.json`.

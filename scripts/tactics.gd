@@ -1,21 +1,25 @@
 extends RefCounted
 # Deterministic tactical planning. No presentation, random rolls or state mutation.
 const DIRECTIONS=[Vector2i.LEFT,Vector2i.RIGHT,Vector2i.UP,Vector2i.DOWN]
+const ActionRange=preload("res://scripts/action_range.gd")
+
+func _attack_offsets(game,unit: Dictionary) -> Array[Vector2i]:
+ var item=game.item_for(unit)
+ # Existing battle saves can have reach bounds that differ from the item range.
+ return ActionRange.offsets(int(item.min_range),int(item.max_range),int(unit.reach))
 
 func threatened_tiles(game,unit: Dictionary) -> Dictionary:
  var result={}
  if unit.hp<=0 or unit.weapon=="staff":return result
  var occupants=game.occupied_tiles()
  var moves={game.pos(unit):0} if unit.get("ai","")=="guard" else game.reachable(unit,occupants)
+ var steps=_attack_offsets(game,unit)
  for p in moves:
   var occupied=occupants.get(p)
   if occupied!=null and occupied.id!=unit.id:continue
-  for y in range(-int(unit.reach),int(unit.reach)+1):
-   for x in range(-int(unit.reach),int(unit.reach)+1):
-    var distance=absi(x)+absi(y)
-    if not game.in_weapon_range(unit,distance):continue
-    var target=p+Vector2i(x,y)
-    if game.terrain(target) not in ["#","~"]:result[target]=true
+  for step in steps:
+   var target=p+step
+   if not result.has(target) and game.terrain(target) not in ["#","~"]:result[target]=true
  return result
 
 func step_cost(game,p: Vector2i) -> int:
@@ -42,13 +46,10 @@ func distance_field(game,unit: Dictionary,goals: Array) -> Dictionary:
 
 func attack_positions(game,unit: Dictionary,target: Dictionary) -> Array:
  var result=[];var center=game.pos(target)
- for y in range(-int(unit.reach),int(unit.reach)+1):
-  for x in range(-int(unit.reach),int(unit.reach)+1):
-   var distance=absi(x)+absi(y)
-   if not game.in_weapon_range(unit,distance):continue
-   var p=center+Vector2i(x,y)
-   var other=game.at(p)
-   if game.terrain(p) not in ["#","~"] and (other==null or other.id==unit.id):result.append(p)
+ for step in _attack_offsets(game,unit):
+  var p=center+step
+  var other=game.at(p)
+  if game.terrain(p) not in ["#","~"] and (other==null or other.id==unit.id):result.append(p)
  return result
 
 func plan(game,unit: Dictionary) -> Dictionary:

@@ -27,6 +27,12 @@ func _initialize():
  var threats=ai.threatened_tiles(g,enemy)
  assert(threats.has(g.pos(ally)),"Stationary bow threatens exactly range two")
  assert(not threats.has(g.pos(enemy)+Vector2i.LEFT),"Stationary bow has no adjacent threat")
+ enemy.reach=1
+ var diagonals=[Vector2i(-1,-1),Vector2i(1,-1),Vector2i(-1,1),Vector2i(1,1)]
+ var legacy_threats=diagonals.map(func(step):return g.pos(enemy)+step)
+ var legacy_positions=diagonals.map(func(step):return g.pos(ally)+step)
+ assert(ai.threatened_tiles(g,enemy).keys()==legacy_threats,"Older reach bounds preserve diagonal bow threats and their order")
+ assert(ai.attack_positions(g,enemy,ally)==legacy_positions,"Older reach bounds preserve ordered bow pursuit positions")
  g=Rules.new();g.start_battle();ally=g.units[0];enemy=g.living("enemy")[0]
  ally.x=4;ally.y=4;enemy.x=5;enemy.y=4
  g.phase="enemy";assert(g.combat(ally,enemy).is_empty(),"Cannot initiate during opposing phase")
