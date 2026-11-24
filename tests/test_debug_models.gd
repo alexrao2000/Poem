@@ -23,7 +23,7 @@ func watch(node):
  assert(node.model.get_node("Identity").painted_materials.size()>=3)
 func run():
  root.size=Vector2i(1024,640)
- var app=load("res://main.tscn").instantiate();app.settings_path="";app.save_path="/private/tmp/poem-debug-models-save.json";root.add_child(app);await process_frame
+ var app=load("res://main.tscn").instantiate();app.settings_path="";app.preferences.values.character_models="current";app.save_path="/private/tmp/poem-debug-models-save.json";root.add_child(app);await process_frame
  app.game.story_seen=["opening_0"];app.show_camp();assert(app.persist_campaign("camp"))
  var disk=FileAccess.get_file_as_string(app.save_path);var original=app.game.save_data("camp").duplicate(true);var catalog=app.fighters.models.catalog.duplicate(true)
  var nell=app.game.roster.filter(func(unit):return unit.id==character_ids[0])[0].duplicate(true);nell.team="player"

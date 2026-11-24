@@ -41,7 +41,7 @@ func check_layout(cutin,host):
  var crop=face.texture
  assert(Rect2(Vector2.ZERO,crop.atlas.get_size()).encloses(crop.region),"Close-up stays inside its own portrait, without neighboring atlas cells")
 func run():
- var app=load("res://main.tscn").instantiate();app.settings_path="";app.save_path="/private/tmp/poem-cutin-test.json";root.add_child(app);await process_frame
+ var app=load("res://main.tscn").instantiate();app.settings_path="";app.preferences.values.character_models="current";app.save_path="/private/tmp/poem-cutin-test.json";root.add_child(app);await process_frame
  var host=Control.new();root.add_child(host);host.theme=app.ui.theme
  for width in [1024,1280,1440]:
   host.size=Vector2(width,640 if width==1024 else 720 if width==1280 else 900)

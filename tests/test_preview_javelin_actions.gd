@@ -9,7 +9,7 @@ func select_action(app,key):
    choice.select(index);choice.item_selected.emit(index);return
  assert(false,"Javelin action is available: "+key)
 func run():
- var app=load("res://main.tscn").instantiate();app.settings_path="";app.save_path="/private/tmp/poem-preview-critical-javelin.json";root.add_child(app);await process_frame
+ var app=load("res://main.tscn").instantiate();app.settings_path="";app.preferences.values.character_models="current";app.save_path="/private/tmp/poem-preview-critical-javelin.json";root.add_child(app);await process_frame
  app.debug_session.begin(app.game,"camp");app.options_return="camp"
  var saved=app.game.save_data("camp").duplicate(true);var rng=app.game.rng.state;var count=0
  for study in ["knight_female","knight_male","rider_female","rider_male"]:

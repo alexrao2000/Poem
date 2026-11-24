@@ -7,13 +7,16 @@ var seen=[]
 var enemy_seen=[]
 func _initialize():call_deferred("run")
 func run():
- var prefs=Preferences.new();assert(prefs.values.character_models=="current")
+ var prefs=Preferences.new();assert(prefs.values.character_models=="revised")
  var path="/private/tmp/poem-model-preferences.json";var old=prefs.values.duplicate();old.erase("character_models")
  var file=FileAccess.open(path,FileAccess.WRITE);file.store_string(JSON.stringify(old));file.close()
  assert(prefs.load_file(path) and prefs.values.character_models=="current","Older preference files migrate without changing their presentation")
  for value in [null,true,"unknown",1]:
   var invalid=prefs.values.duplicate();invalid.character_models=value;assert(not prefs.valid(invalid))
- prefs.values.character_models="revised";assert(prefs.save_file(path));var loaded=Preferences.new();assert(loaded.load_file(path) and loaded.values.character_models=="revised")
+ var loaded=Preferences.new()
+ for mode in ["current","revised"]:
+  prefs.values.character_models=mode;assert(prefs.save_file(path))
+  assert(loaded.load_file(path) and loaded.values.character_models==mode)
  root.size=Vector2i(1024,640)
  var app=load("res://main.tscn").instantiate();app.settings_path="";app.save_path="/private/tmp/poem-model-preference-campaign.json";root.add_child(app);await process_frame
  app.ui.set_anchors_and_offsets_preset(Control.PRESET_TOP_LEFT)
@@ -21,10 +24,17 @@ func run():
  var original=app.game.save_data("camp").duplicate(true);var disk=FileAccess.get_file_as_string(app.save_path);var catalog=app.fighters.models.catalog.duplicate(true)
  for size_value in [Vector2i(1024,640),Vector2i(1280,720),Vector2i(1440,900)]:
   root.size=size_value;app.show_options("camp");app.ui.set_anchors_and_offsets_preset(Control.PRESET_TOP_LEFT);app.ui.size=size_value;await process_frame;await process_frame
-  var choice=app.ui.find_child("CharacterModels",true,false);assert(choice.selected==0 and not choice.disabled)
+  var choice=app.ui.find_child("CharacterModels",true,false);assert(choice.selected==1 and not choice.disabled)
+  assert(choice.get_item_text(0)=="Original models" and choice.get_item_text(1)=="Revised models")
   var scroller=app.ui.find_children("*","ScrollContainer",true,false)[0];scroller.ensure_control_visible(choice);await process_frame;await process_frame
   assert(scroller.get_global_rect().grow(.1).encloses(choice.get_global_rect()),"Character presentation option is reachable in every supported window size")
- var choice=app.ui.find_child("CharacterModels",true,false);choice.select(1);choice.item_selected.emit(1);app.close_options();await process_frame
+ var choice=app.ui.find_child("CharacterModels",true,false)
+ choice.select(0);choice.item_selected.emit(0)
+ var lyra=app.game.roster[0].duplicate(true);lyra.team="player"
+ var original_lyra=app.make_fighter(lyra,Vector3.ZERO)
+ assert(original_lyra is Actor,"The opt-out immediately selects the original actor")
+ original_lyra.queue_free();await process_frame
+ choice.select(1);choice.item_selected.emit(1);app.close_options();await process_frame
  assert(not app.debug_session.active and loaded.load_file(path) and loaded.values.character_models=="revised")
  var before_save=JSON.parse_string(disk);disk=FileAccess.get_file_as_string(app.save_path);var after_save=JSON.parse_string(disk)
  assert(after_save.save_sequence==before_save.save_sequence+1,"Applying Options keeps the existing ordered campaign checkpoint")
@@ -65,10 +75,11 @@ func run():
  app.show_options("battle");app.ui.find_child("DebugMode",true,false).button_pressed=false
  assert(not app.debug_session.active and not app.debug_session.revised_ranger and not app.debug_session.revised_knight and not app.debug_session.revised_rider and not app.debug_session.revised_enemies and app.game.save_data("battle")==battle and app.preferences.values.character_models=="revised")
  styled=app.make_fighter(units[0],Vector3.ZERO);assert(styled is Imported);styled.queue_free();await process_frame
- app.show_options("battle");app.ui.find_children("*","Button",true,false).filter(func(button):return button.text=="Restore defaults")[0].pressed.emit();await process_frame
- assert(app.preferences.values.character_models=="current" and app.ui.find_child("CharacterModels",true,false).selected==0)
- plain=app.make_fighter(units[1],Vector3.ZERO);assert(plain is Actor);plain.queue_free();await process_frame
+ app.preferences.values.character_models="current";app.show_options("battle")
+ app.ui.find_children("*","Button",true,false).filter(func(button):return button.text=="Restore defaults")[0].pressed.emit();await process_frame
+ assert(app.preferences.values.character_models=="revised" and app.ui.find_child("CharacterModels",true,false).selected==1)
+ styled=app.make_fighter(units[1],Vector3.ZERO);assert(styled is Imported);styled.queue_free();await process_frame
  assert(app.game.save_data("battle")==battle and FileAccess.get_file_as_string(app.save_path)==disk and app.fighters.models.catalog==catalog)
  await Shutdown.dispose(app);await process_frame
- print("PASS: old preference migration, enum validation/persistence, three-size UI, twenty-four real campaign model/preview/exchange selections, all eight classes’ fitted promotions, inherited independent debug overrides, exact campaign/save/RNG isolation and default restoration")
+ print("PASS: revised appearance on a fresh profile, saved original/revised choices, old profile migration, three-size UI, twenty-four real campaign model/preview/exchange selections, all eight classes’ fitted promotions, inherited independent debug overrides, exact campaign/save/RNG isolation and default restoration")
  quit()

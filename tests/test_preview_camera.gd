@@ -56,7 +56,7 @@ func run():
  assert(rules.roster==saved and rules.rng.state==rng,"Camera measurement cannot alter progression or randomness")
  viewport.queue_free();await process_frame
  root.size=Vector2i(1440,900)
- var app=load("res://main.tscn").instantiate();app.settings_path="";app.save_path="/private/tmp/poem-preview-camera-save.json";root.add_child(app);await process_frame
+ var app=load("res://main.tscn").instantiate();app.settings_path="";app.preferences.values.character_models="current";app.save_path="/private/tmp/poem-preview-camera-save.json";root.add_child(app);await process_frame
  for job in ["Vanguard","Rider","Warden"]:
   var unit=app.game.roster.filter(func(value):return value.job==job)[0]
   app.show_model_view(unit);await process_frame;await process_frame

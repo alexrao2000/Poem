@@ -47,7 +47,7 @@ func setup():
  return [a,b,spare]
 
 func run():
- app=load("res://main.tscn").instantiate();app.settings_path="";app.save_path="/private/tmp/poem-map-exchange.json";root.add_child(app);await process_frame
+ app=load("res://main.tscn").instantiate();app.settings_path="";app.preferences.values.character_models="current";app.save_path="/private/tmp/poem-map-exchange.json";root.add_child(app);await process_frame
  await verify_departures()
  app.music.play()
  var directions={"defeat":[Vector2i.RIGHT,"east","west"],"counter":[Vector2i.UP,"north","south"],"survive":[Vector2i.LEFT,"west","east"],"heal":[Vector2i.DOWN,"south","north"],"skip":[Vector2i.RIGHT,"east","west"]}

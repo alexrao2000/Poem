@@ -14,7 +14,9 @@ func cache_count(app) -> int:
 func run():
  var app=load("res://main.tscn").instantiate();app.settings_path="";app.save_path="/private/tmp/poem-prefetch-test-unused.json";root.add_child(app);await process_frame
  app.game.start_battle();app.make_map();app.show_battle()
- assert(cache_count(app)==0,"Default models do not load optional source scenes")
+ assert(cache_count(app)==8,"A fresh profile prepares the opening chapter’s revised models")
+ clear_caches(app);app.preferences.values.character_models="current";app.show_battle()
+ assert(cache_count(app)==0,"Original models do not load revised source scenes")
  app.preferences.values.character_models="revised";app.preferences.values.combat="map";app.show_battle()
  assert(cache_count(app)==0,"Map-only battles do not reserve cinematic resources")
  var saved=app.game.save_data("battle").duplicate(true);var rng=app.game.rng.state;var stage_children=app.stage.get_children()
@@ -53,5 +55,5 @@ func run():
  process_frame.connect(observer);await app.deploy_company();process_frame.disconnect(observer)
  assert(announced[0] and not app.busy and app.screen=="battle")
  await Shutdown.dispose(app);await process_frame
- print("PASS: chapter-scoped source loading before announcements, restored battles/menu reuse, default/map-only exclusions, independent debug selection, unsupported fallbacks and unchanged campaign/RNG/arena")
+ print("PASS: chapter-scoped source loading before announcements, restored battles/menu reuse, original/map-only exclusions, independent debug selection, unsupported fallbacks and unchanged campaign/RNG/arena")
  quit()

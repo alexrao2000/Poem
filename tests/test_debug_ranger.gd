@@ -19,7 +19,7 @@ func watch(node):
   assert(not actor.visible and actor.model.get_node("Identity").blink.closed);departures+=1
 func run():
  root.size=Vector2i(1024,640)
- var app=load("res://main.tscn").instantiate();app.settings_path="";app.save_path="/private/tmp/poem-debug-ranger-save.json";root.add_child(app);await process_frame
+ var app=load("res://main.tscn").instantiate();app.settings_path="";app.preferences.values.character_models="current";app.save_path="/private/tmp/poem-debug-ranger-save.json";root.add_child(app);await process_frame
  app.game.story_seen=["opening_0"];app.show_camp();assert(app.persist_campaign("camp"))
  var original=app.game.save_data("camp").duplicate(true);var disk=FileAccess.get_file_as_string(app.save_path);var catalog=app.fighters.models.catalog.duplicate(true)
  var unit=app.game.roster.filter(func(value):return value.id=="sera")[0].duplicate(true);unit.team="player"

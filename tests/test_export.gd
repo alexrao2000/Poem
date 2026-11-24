@@ -63,6 +63,11 @@ func run():
  var metadata=JSON.parse_string(FileAccess.get_file_as_string("res://assets/audio/score.json"))
  assert("CC0" in metadata.samples and metadata.frames==1568000,"Export uses the current orchestral arrangement")
  var app=load("res://main.tscn").instantiate();app.settings_path="";app.save_path="/private/tmp/poem-export-test.json";root.add_child(app);await process_frame
+ assert(app.preferences.values.character_models=="revised","Packaged fresh profiles start with revised models")
+ var fresh_unit=app.game.roster[0].duplicate(true);fresh_unit.team="player"
+ var fresh_lyra=app.make_fighter(fresh_unit,Vector3.ZERO)
+ assert(fresh_lyra.has_meta("source_model"),"Packaged fresh profiles select the fitted opening model")
+ fresh_lyra.free();app.preferences.values.character_models="current"
  assert(app.ui.get_node("TitleBackdrop").ART.get_width()==1536,"Release includes the original dawn title illustration")
  var cutin_host=Control.new();root.add_child(cutin_host);cutin_host.size=Vector2(1440,900)
  var packed_cutin=load("res://scripts/critical_cutin.gd").new()

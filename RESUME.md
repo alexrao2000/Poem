@@ -6,6 +6,8 @@ This checkpoint describes the current development branch and supersedes the earl
 
 ### Latest state
 
+Fresh settings and Restore defaults now select the revised 3D roster. Older settings that lack a model choice use Original models, and both saved choices round-trip. The viewer, Options and Debug encounter list use the same model names. Thirty-one focused suites covered all 24 recruits in real exchanges, promotion and fallback choices, both preferences, playback and Debug comparisons. The older combat fixture now expects the tactical zoom cue before weapon release. Both local exports, preference and prefetch checks in both packs, the browser journal check, and archive integrity passed. Rendered browser and macOS appearance remains unreviewed.
+
 Wind, rain, leaves, embers and other weather effects now reuse three meshes and four materials. The 144-placement comparison previously created 133 meshes and 144 materials. Exact mesh arrays, material settings and seven instance samples per configuration matched across source and both packs. Seven focused suites, both exports, packaged weather and presentation checks, and archive integrity passed.
 
 Hallow Abbey’s stone belfry shows the opening and timber yoke from the chapter’s missing bell. Twelve tactical and arena projections checked the open bay, including both sides of mapped approaches and a distant fallback. The lone landmark-kind change preserved the other campaign data and all 72 matched victory outcomes. Nine focused suites, both exports, architecture and route checks in both packs, and archive integrity passed. Rendered appearance remains unreviewed.

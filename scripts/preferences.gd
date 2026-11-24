@@ -1,5 +1,5 @@
 extends RefCounted
-const DEFAULTS={"combat":"all","music":1.0,"effects":1.0,"text_speed":55,"auto_end":true,"character_models":"current"}
+const DEFAULTS={"combat":"all","music":1.0,"effects":1.0,"text_speed":55,"auto_end":true,"character_models":"revised"}
 var values=DEFAULTS.duplicate()
 
 func reset():values=DEFAULTS.duplicate()
@@ -20,6 +20,7 @@ func load_file(path: String) -> bool:
  var parser=JSON.new()
  if parser.parse(file.get_as_text())!=OK or not valid(parser.data):return false
  values=DEFAULTS.duplicate();values.merge(parser.data,true);values.text_speed=int(values.text_speed)
+ values.character_models=parser.data.get("character_models","current")
  return true
 
 func save_file(path: String) -> bool:

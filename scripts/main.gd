@@ -1796,7 +1796,7 @@ func show_model_view(unit,on_close=Callable(),model_spec: Dictionary={},model_ch
 	if model_spec.is_empty():
 		model_choice_control=OptionButton.new();model_choice_control.name="PreviewModels";model_choice_control.custom_minimum_size.y=42
 		model_choice_control.tooltip_text="Only changes this preview. Campaign appearance and Debug choices stay as they are."
-		for entry in [["Use current settings",""],["Current models","current"],["Revised models · preview","revised"]]:
+		for entry in [["Use current settings",""],["Original models","current"],["Revised models","revised"]]:
 			model_choice_control.add_item(entry[0]);model_choice_control.set_item_metadata(model_choice_control.item_count-1,entry[1])
 			if entry[1]==model_choice:model_choice_control.select(model_choice_control.item_count-1)
 		panel.add_child(model_choice_control);interface_audio.watch(model_choice_control)
@@ -2146,10 +2146,10 @@ func show_options(return_to: String):
 	mode.item_selected.connect(func(index):preferences.values.combat=["all","player","map"][index])
 	label_in(panel,"Character models",21,GOLD)
 	var model_mode=OptionButton.new();model_mode.name="CharacterModels";model_mode.custom_minimum_size.y=42
-	for title in ["Current roster","Revised models · preview"]:model_mode.add_item(title)
+	for title in ["Original models","Revised models"]:model_mode.add_item(title)
 	model_mode.selected=["current","revised"].find(preferences.values.character_models);model_mode.disabled=debug_session.active;panel.add_child(model_mode)
 	model_mode.item_selected.connect(func(index):preferences.values.character_models=["current","revised"][index])
-	label_in(panel,"Revised models cover all 24 recruits and their promotion paths, ordinary enemies and chapter commanders. Unknown equipment keeps its current models. You can switch back at any time.",16)
+	label_in(panel,"Revised models cover all 24 recruits and their promotion paths, ordinary enemies and chapter commanders. Unlisted equipment uses the original models.",16)
 	if debug_session.active:label_in(panel,"Debug tools has separate model switches for this sandbox. Leave Debug mode to change campaign presentation.",16)
 	var audio_heading=label_in(panel,"Audio",21,GOLD)
 	for key in ["music","effects"]:
@@ -2463,10 +2463,10 @@ func show_debug_encounters(return_to="debug_tools"):
 	var model_buttons={}
 	var refresh_models=func():
 		var choice=debug_session.model_choice()
-		model_status.text={"current":"Models: current roster","revised":"Models: revised preview","mixed":"Models: mixed class choices"}[choice]
+		model_status.text={"current":"Models: original set","revised":"Models: revised set","mixed":"Models: mixed class choices"}[choice]
 		for key in model_buttons:model_buttons[key].set_pressed_no_signal(key==choice)
 	for choice in ["current","revised"]:
-		var pick=button_in(model_row,"Current roster" if choice=="current" else "Revised models · preview",func():debug_session.set_revised_models(choice=="revised");refresh_models.call())
+		var pick=button_in(model_row,"Original models" if choice=="current" else "Revised models",func():debug_session.set_revised_models(choice=="revised");refresh_models.call())
 		pick.name="EncounterModels_"+choice;pick.toggle_mode=true;pick.size_flags_horizontal=Control.SIZE_EXPAND_FILL;model_buttons[choice]=pick
 	refresh_models.call()
 	label_in(panel,"Choose anyone in the company",24,GOLD)

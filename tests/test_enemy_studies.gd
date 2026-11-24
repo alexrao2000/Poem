@@ -4,7 +4,7 @@ const Actor=preload("res://scripts/fighter_actor.gd")
 const Shutdown=preload("helpers/game_shutdown.gd")
 func _initialize():call_deferred("run")
 func run():
- var app=load("res://main.tscn").instantiate();app.settings_path="";app.save_path="/private/tmp/poem-enemy-families-save.json";root.add_child(app);await process_frame
+ var app=load("res://main.tscn").instantiate();app.settings_path="";app.preferences.values.character_models="current";app.save_path="/private/tmp/poem-enemy-families-save.json";root.add_child(app);await process_frame
  app.debug_session.begin(app.game,"camp");app.options_return="camp"
  var before=app.game.save_data("camp").duplicate(true);var rng=app.game.rng.state;var profiles=app.fighters.profiles.duplicate(true);var looks=app.fighters.enemy_looks.duplicate(true)
  var studies=JSON.parse_string(FileAccess.get_file_as_string("res://data/model_studies.json"));var count=0;var materials=[]

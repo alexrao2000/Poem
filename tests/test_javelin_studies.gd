@@ -41,7 +41,7 @@ func skip_phase(app,key: String,record: Dictionary):
  assert(false,"Reached the requested javelin skip phase")
 func run():
  root.size=Vector2i(1024,640)
- var app=load("res://main.tscn").instantiate();app.settings_path="";app.save_path="/private/tmp/poem-"+save_name+"-studies-save.json";root.add_child(app);await process_frame
+ var app=load("res://main.tscn").instantiate();app.settings_path="";app.preferences.values.character_models="current";app.save_path="/private/tmp/poem-"+save_name+"-studies-save.json";root.add_child(app);await process_frame
  app.debug_session.begin(app.game,"camp");app.options_return="camp";var before=app.game.save_data("camp").duplicate(true);var rng=app.game.rng.state
  var ordinary_unit=app.game.roster.filter(func(value):return value.id=="oren")[0].duplicate(true);ordinary_unit.team="player";ordinary_unit.item="javelin"
  app.show_model_view(ordinary_unit);await process_frame

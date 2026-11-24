@@ -53,6 +53,7 @@ func run():
     assert(app.game.save_data("camp")==saved and app.game.rng.state==rng,"Pose inspection leaves the sandbox and RNG unchanged")
     count+=1
  app.debug_session.end(app.game);assert(app.game.save_data("camp")==normal)
+ app.preferences.values.character_models="current"
  var lyra=app.game.roster.filter(func(value):return value.id=="lyra")[0]
  app.show_model_view(lyra);await process_frame
  var ordinary_choice=app.ui.find_child("PreviewAction",true,false);var ordinary_actions=app.stage.get_node("PreviewActionPlayer")

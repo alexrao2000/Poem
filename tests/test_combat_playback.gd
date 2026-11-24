@@ -2,6 +2,7 @@ extends SceneTree
 const Playback=preload("res://scripts/combat_playback.gd")
 const Impact=preload("res://scripts/combat_impact.gd")
 const Actor=preload("res://scripts/fighter_actor.gd")
+const Imported=preload("res://scripts/imported_fighter.gd")
 const Shutdown=preload("helpers/game_shutdown.gd")
 var mode="normal"
 var accelerated_seen=false
@@ -114,7 +115,11 @@ func verify_actual_debug_slow(app):
  app.ui.child_entered_tree.connect(watch_playback)
  var a=app.game.living("player")[0];var b=app.game.living("enemy")[0]
  a.x=8;a.y=4;b.x=9;b.y=4;app.refresh_pieces()
- app.debug_session.begin(app.game,"battle")
+ app.debug_session.begin(app.game,"battle",true)
+ var fitted=[0]
+ var observe_model=func(node):
+  if node is Imported:fitted[0]+=1
+ app.stage.child_entered_tree.connect(observe_model)
  var saved=app.game.save_data("battle").duplicate(true)
  var score=app.score;app.music.play();await process_frame
  var decoder=app.music.get_stream_playback()
@@ -130,6 +135,8 @@ func verify_actual_debug_slow(app):
   assert(app.score==score and app.music.get_stream_playback()==decoder and app.music.pitch_scale==1.0)
   speed_key(KEY_Z,false)
  assert(durations[1]>durations[0]*1.4,"The real Debug exchange visibly takes longer at half speed")
+ app.stage.child_entered_tree.disconnect(observe_model)
+ assert(fitted[0]==6,"Normal, half-speed and skipped 3D exchanges use the revised pair")
  assert(app.debug_session.end(app.game)=="battle" and not app.debug_session.active)
  assert(app.game.save_data("battle")==saved)
  print("PASS: Debug half speed works in three layouts and live exchanges, with focus, Fast, Skip, clock and audio restoration")
@@ -156,7 +163,7 @@ func run():
  host.queue_free();await process_frame
  assert(Engine.time_scale==.75,"Tree cleanup restores speed even without explicit cinematic completion")
  shift(false);Engine.time_scale=baseline
- var app=load("res://main.tscn").instantiate();app.settings_path="";app.save_path="/private/tmp/poem-playback-test.json";root.add_child(app);await process_frame
+ var app=load("res://main.tscn").instantiate();app.settings_path="";app.preferences.values.character_models="current";app.save_path="/private/tmp/poem-playback-test.json";root.add_child(app);await process_frame
  app.game.start_battle();app.make_map();app.show_battle();app.busy=true
  app.ui.child_entered_tree.connect(watch_playback)
  var a=app.game.units[0];var b=app.game.living("enemy")[0];a.x=8;a.y=4;b.x=9;b.y=4

@@ -137,7 +137,7 @@ func observe(app,shots,skip_at):
   previous_recovery=recovery_id
 
 func run():
- var app=load("res://main.tscn").instantiate();app.settings_path="";app.save_path="/private/tmp/poem-exchange-test.json"
+ var app=load("res://main.tscn").instantiate();app.settings_path="";app.preferences.values.character_models="current";app.save_path="/private/tmp/poem-exchange-test.json"
  root.add_child(app);await process_frame
  var sound_observer=watch_voices.bind(app);process_frame.connect(sound_observer)
  app.travel_audio.step_played.connect(func(family):
@@ -171,7 +171,8 @@ func run():
   if case=="mixed":
    assert((shots[1].a.x-shots[2].a.x)*opening_direction>0,"Long weapon steps back to regain reach after a short-weapon counter, including from the right")
   if case in ["swords","mixed","axe"]:
-   assert(sound_cues==["release_"+a.weapon,"hit","release_sword","hit","release_"+a.weapon,"hit"],"Every strike and counter uses its weapon cue before contact")
+   var expected=["approach","release_"+a.weapon,"hit","release_sword","hit","release_"+a.weapon,"hit"]
+   assert(sound_cues==expected,"Expected the strike and counter cues in order for %s. Observed %s."%[case,sound_cues])
   assert(app.game.save_data("battle")==saved and app.game.rng.state==rng,"Animation never changes campaign outcomes")
   assert(app.world.visible and not app.stage.visible and app.camera.projection==Camera3D.PROJECTION_ORTHOGONAL,"Every exchange returns to the map")
   for live in app.stage.get_children().filter(func(node):return node is Actor):assert(live.process_mode==Node.PROCESS_MODE_INHERIT and not live.can_process(),"Skipping releases actor-local hit stop while the hidden stage stays suspended")
@@ -185,7 +186,7 @@ func run():
   misses.clear();var saved=app.game.save_data("battle").duplicate(true);var rng=app.game.rng.state
   await app.cinematic(a,b,[{"actor":a.id,"target":b.id,"damage":0,"remaining":20,"hit":false,"crit":false}],{a.id:20,b.id:20})
   assert(misses.size()==(2 if weapon in ["bow","lance"] else 1))
-  assert(sound_cues==["release_"+weapon],"A missed attack has its release cue without a false impact sound")
+  assert(sound_cues==["approach","release_"+weapon],"A missed attack plays the approach and release cues")
   for sample in misses:
    assert(sample.position.z<-.25 and sample.pose=="evade","Defender dodges before projectile release or melee contact")
    if sample.has("destination"):
@@ -203,7 +204,7 @@ func run():
   a.item=folio
   var saved=app.game.save_data("battle").duplicate(true);var rng=app.game.rng.state
   await app.cinematic(a,b,[{"actor":a.id,"target":b.id,"damage":1,"remaining":19,"hit":true,"crit":false}],{a.id:20,b.id:20})
-  assert(sound_cues==["release_"+folio,"impact_"+folio],"Each equipped spell has its distinct launch sound followed by contact")
+  assert(sound_cues==["approach","release_"+folio,"impact_"+folio],"Each spell follows the approach cue with its own launch and contact sounds")
   assert(not app.stage.has_node("CombatCharge"),"Completed spell removes the anticipation effect")
   assert(app.game.save_data("battle")==saved and app.game.rng.state==rng,"Folio presentation never changes spell results")
  assert(spells==["ember","gale","thunder"],"Real cinematic carries equipment identity through flight")
@@ -214,7 +215,7 @@ func run():
  sound_cues.clear();a.item="thunder"
  var critical_saved=app.game.save_data("battle").duplicate(true);var critical_rng=app.game.rng.state
  await app.cinematic(a,b,[{"actor":a.id,"target":b.id,"damage":3,"remaining":17,"hit":true,"crit":true}],{a.id:20,b.id:20})
- assert(sound_cues==["cutin","release_thunder","impact_thunder","critical"],"Actual critical spell keeps its element at contact and adds the existing critical accent")
+ assert(sound_cues==["approach","cutin","release_thunder","impact_thunder","critical"],"Critical thunder keeps the approach, portrait and elemental cues in order")
  assert(app.game.save_data("battle")==critical_saved and app.game.rng.state==critical_rng)
  for contact in [{"hit":true,"damage":1,"crit":false},{"hit":true,"damage":3,"crit":true},{"hit":true,"damage":0,"crit":false},{"hit":false,"damage":0,"crit":false}]:
   sound_cues.clear();contact.merge({"actor":a.id,"target":b.id,"remaining":17})
@@ -225,7 +226,7 @@ func run():
  sound_cues.clear();skip_on_charge=true
  var before_skip=app.game.save_data("battle").duplicate(true);var before_rng=app.game.rng.state
  await app.cinematic(a,b,[{"actor":a.id,"target":b.id,"damage":3,"remaining":17,"hit":true,"crit":true}],{a.id:20,b.id:20})
- assert(sound_cues.is_empty() and not app.stage.has_node("CombatCharge"),"Skipping a magical windup removes gathering without launch or impact sounds")
+ assert(sound_cues==["approach"] and not app.stage.has_node("CombatCharge"),"A magical windup skip plays just the approach cue and clears the gathering effect")
  assert(app.game.save_data("battle")==before_skip and app.game.rng.state==before_rng)
  app.stage.child_entered_tree.disconnect(watch_charge)
  app.stage.child_entered_tree.connect(watch_block)

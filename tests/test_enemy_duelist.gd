@@ -23,7 +23,7 @@ func watch(node):
   assert(not victim.visible and victim.model.get_node("Identity").blink.closed);departures+=1
 func run():
  root.size=Vector2i(1024,640)
- var app=load("res://main.tscn").instantiate();app.settings_path="";app.save_path="/private/tmp/poem-enemy-study-save.json";root.add_child(app);await process_frame
+ var app=load("res://main.tscn").instantiate();app.settings_path="";app.preferences.values.character_models="current";app.save_path="/private/tmp/poem-enemy-study-save.json";root.add_child(app);await process_frame
  app.debug_session.begin(app.game,"camp");app.options_return="camp"
  var before=app.game.save_data("camp").duplicate(true);var rng=app.game.rng.state;var profiles=app.fighters.profiles.duplicate(true);var enemy_looks=app.fighters.enemy_looks.duplicate(true)
  var rejected=load("res://scripts/debug_source_models.gd").new(["enemy_duelist"]);assert(rejected.identities.is_empty() and not rejected.models.issues.is_empty(),"Enemy studies cannot alias a company recruit")
