@@ -72,7 +72,8 @@ var settings_path="user://preferences.json"
 var options_return="title"
 var tactics=preload("res://scripts/tactics.gd").new()
 var camera: Camera3D
-var map_navigation=preload("res://scripts/tactical_camera.gd").new()
+const TacticalCamera=preload("res://scripts/tactical_camera.gd")
+var map_navigation=TacticalCamera.new()
 var environment: Environment
 var sunlight: DirectionalLight3D
 var default_lighting: Dictionary
@@ -185,6 +186,7 @@ func _ready():
 	preferences.load_file(settings_path)
 	setup_audio();apply_audio_preferences()
 	show_title()
+	get_viewport().size_changed.connect(resize_map_home)
 
 func setup_audio():
 	add_child(interface_audio);interface_audio.configure(preferences.volume_db("effects"))
@@ -363,13 +365,20 @@ func sphere(parent,position,radius,color) -> MeshInstance3D:
 	var n=MeshInstance3D.new();var mesh=SphereMesh.new();mesh.radius=radius;mesh.height=radius*2;mesh.radial_segments=8;mesh.rings=4;n.mesh=mesh;n.position=position;n.material_override=mat(color);parent.add_child(n);return n
 
 func map_camera():
+	var dimensions=game.board_size()
 	camera.projection=Camera3D.PROJECTION_ORTHOGONAL
-	camera.size=maxf(16,game.board_size().x+2)
-	var center=Vector3((game.board_size().x-1)*.5,0,(game.board_size().y-1)*.5)
-	camera.position=center+Vector3(2.5,22,11.5)
+	camera.size=maxf(16,dimensions.x+2)
+	var center=Vector3((dimensions.x-1)*.5,0,(dimensions.y-1)*.5)
+	# Retain the angle while moving the near plane clear of deeper boards.
+	var distance=maxf(1.0,Vector2(dimensions).length()/38.0)
+	camera.position=center+Vector3(2.5,22,11.5)*distance
 	camera.look_at(center)
-	camera.h_offset=2.0
-	map_navigation.configure(camera,game.board_size())
+	camera.h_offset=2.0;camera.v_offset=0.0
+	TacticalCamera.fit_home(camera,dimensions)
+	map_navigation.configure(camera,dimensions)
+
+func resize_map_home():
+	if screen=="battle" and not busy and map_navigation.at_home():map_camera()
 
 func make_map():
 	drop_mode=false

@@ -8,6 +8,7 @@ var camera: Camera3D
 var board=Vector2i(14,10)
 var eye_offset=Vector3.ZERO
 var zoom_goal=16.0
+var home_view: Dictionary
 var motion: Tween
 var dragging=false
 var drag_anchor=Vector3.ZERO
@@ -15,6 +16,37 @@ var drag_anchor=Vector3.ZERO
 func configure(value: Camera3D,dimensions: Vector2i):
  stop();camera=value;board=dimensions;zoom_goal=camera.size
  eye_offset=camera.position-Vector3((board.x-1)*.5,0,(board.y-1)*.5)
+ home_view=capture_view()
+
+static func fit_home(view: Camera3D,dimensions: Vector2i):
+ var viewport=view.get_viewport().get_visible_rect()
+ var margin=minf(20,minf(viewport.size.x,viewport.size.y)*.10)
+ var frame=viewport.grow(-margin)
+ if not frame.has_area():return
+ var corners=[Vector3(-.5,0,-.5),Vector3(dimensions.x-.5,0,-.5),
+  Vector3(-.5,0,dimensions.y-.5),Vector3(dimensions.x-.5,0,dimensions.y-.5)]
+ var bounds=board_bounds(view,corners)
+ var fit=bounds.size/frame.size
+ var expansion=maxf(fit.x,fit.y)
+ if expansion>1.0:
+  view.size*=expansion*1.001
+  bounds=board_bounds(view,corners)
+ var half=bounds.size*.5
+ var middle=bounds.get_center()
+ var offset=middle.clamp(frame.position+half,frame.end-half)-middle
+ var reference=viewport.size.y if view.keep_aspect==Camera3D.KEEP_HEIGHT else viewport.size.x
+ var units_per_pixel=view.size/reference
+ # Camera offsets move the projection opposite its horizontal camera axis.
+ view.h_offset-=offset.x*units_per_pixel
+ view.v_offset+=offset.y*units_per_pixel
+
+static func board_bounds(view: Camera3D,corners: Array) -> Rect2:
+ var bounds=Rect2(view.unproject_position(corners[0]),Vector2.ZERO)
+ for corner in corners:bounds=bounds.expand(view.unproject_position(corner))
+ return bounds
+
+func at_home() -> bool:
+ return not home_view.is_empty() and not dragging and (not motion or not motion.is_running()) and capture_view()==home_view
 
 func stop():
  if motion and motion.is_valid():motion.kill()
@@ -94,7 +126,8 @@ func limit_position():
  camera.position.z=clampf(center.z,-1.0,board.y)+eye_offset.z
 
 func zoom(steps: float,screen_point: Vector2):
- var next=clampf(zoom_goal*pow(.86,steps),8.0,maxf(16,board.x+2)*1.5)
+ var limit=maxf(maxf(16,board.x+2),home_view.size)*1.5
+ var next=clampf(zoom_goal*pow(.86,steps),8.0,limit)
  stop();zoom_goal=next
  var before=ground_at(screen_point);var old_position=camera.position;var old_size=camera.size
  camera.size=next

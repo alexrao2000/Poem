@@ -77,7 +77,7 @@ These controls apply to campaign battles; menus and the visual workshop have the
 | Open or close the battle menu | M; Escape also closes it |
 | Zoom the tactical map | Mouse wheel / + / − |
 | Pan the tactical map | Middle-button drag |
-| Reset the map view | Home |
+| Fit the whole battlefield | Home |
 | Skip a chapter card, phase announcement, combat scene, or casualty card | Tab |
 | Play combat animation at double speed | Hold Shift, or click **Fast ×2** to toggle |
 | Inspect 3D combat at half speed in Debug mode | Hold Z |

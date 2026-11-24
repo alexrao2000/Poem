@@ -6,6 +6,8 @@ This checkpoint describes the current development branch and supersedes the earl
 
 ### Latest state
 
+Home fits the battlefield on narrow displays and on boards of different shapes. Twenty tested views contained every outer corner with at least 18 logical pixels to spare. Seven views fit before the change and match their earlier projections exactly. Live resizing refits Home and preserves deliberate pans and zooms. Eight focused suites, four packed checks, all 20 matching packaged projections, 72 matched chapter outcomes and both ZIP checks passed. See `build/review/map-home-framing.json`.
+
 Each chapter selects its Calm/Ablaze pair by theme ID. The music room opens on that theme and lists the chapters that use it, including separate spans. The shipped twelve assignments and all six full decoded loops match the prior build in both packages. A map authoring round trip retained the theme IDs, route seals and section starts. Eight focused suites, twenty music room layouts, four packed checks, 72 matched chapter outcomes and both ZIP checks passed. See `build/review/authored-score-streams.json`. Listening review remains open.
 
 The 3D reveal follows the fighters, and the return follows their location on the tactical map as the camera pulls back. At the reveal midpoint the aperture center is clear. The farthest corner retains 10.6–41.8 percent opacity across sixteen measured layouts. Five real exchanges checked both directions, including Skip, defeat, healing and raised tiles. Eight focused suites, 72 matched chapter outcomes, four packed checks, exact packaged opacity samples and both ZIP checks passed. See `build/review/focused-reveal-opacity.json`. Rendered appearance remains unreviewed.
