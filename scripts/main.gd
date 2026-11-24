@@ -1346,8 +1346,10 @@ func cinematic(a,b,events,initial_hp={},challenge: Dictionary={}):
 	var tactical_view=map_navigation.capture_view()
 	var home_viewport=get_viewport().get_visible_rect().size if map_navigation.at_home() else Vector2.ZERO
 	var focus=(map_position(game.pos(a))+map_position(game.pos(b)))*.5
+	var focal_units=[a.id,b.id]
 	markers.hide()
-	for visual in unit_nodes.values():visual.set_tactical_details_visible(false)
+	# Keep the exchange readable while the lower camera lets scenery cover bystanders.
+	for visual in unit_nodes.values():visual.set_tactical_details_visible(false,visual.unit_id in focal_units)
 	var tactical_controls={}
 	for control in ui.get_children():tactical_controls[control]=control.visible;control.hide()
 	var playback=preload("res://scripts/combat_playback.gd").new()
@@ -1365,7 +1367,7 @@ func cinematic(a,b,events,initial_hp={},challenge: Dictionary={}):
 	if veil.motion.is_running():await veil.motion.finished
 	var close_map_view=map_navigation.capture_view()
 	if skip_combat:
-		await return_to_tactical_map(veil,playback,close_map_view,tactical_view,tactical_controls,focus,home_viewport)
+		await return_to_tactical_map(veil,playback,close_map_view,tactical_view,tactical_controls,focus,home_viewport,focal_units)
 		return
 	var map_x_a=camera.unproject_position(map_position(game.pos(a))).x
 	var map_x_b=camera.unproject_position(map_position(game.pos(b))).x
@@ -1580,13 +1582,13 @@ func cinematic(a,b,events,initial_hp={},challenge: Dictionary={}):
 		if child not in [actor,defender]:stage.remove_child(child);child.queue_free()
 	stage.process_mode=Node.PROCESS_MODE_DISABLED
 	restore_lighting(old_lighting)
-	await return_to_tactical_map(veil,playback,close_map_view,tactical_view,tactical_controls,focus,home_viewport)
+	await return_to_tactical_map(veil,playback,close_map_view,tactical_view,tactical_controls,focus,home_viewport,focal_units)
 	await present_casualties(events)
 
-func return_to_tactical_map(veil,playback,close_map_view: Dictionary,tactical_view: Dictionary,tactical_controls: Dictionary,focus: Vector3,home_viewport: Vector2):
+func return_to_tactical_map(veil,playback,close_map_view: Dictionary,tactical_view: Dictionary,tactical_controls: Dictionary,focus: Vector3,home_viewport: Vector2,focal_units: Array):
 	music_mix(false)
 	refresh_pieces()
-	for visual in unit_nodes.values():visual.set_tactical_details_visible(false)
+	for visual in unit_nodes.values():visual.set_tactical_details_visible(false,visual.unit_id in focal_units)
 	world.show();pieces.show()
 	var return_viewport=get_viewport().get_visible_rect().size
 	if home_viewport!=Vector2.ZERO and return_viewport!=home_viewport:

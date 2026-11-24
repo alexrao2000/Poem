@@ -125,8 +125,9 @@ func refresh_health():
   health_textures[key]=ImageTexture.create_from_image(image)
  health.texture=health_textures[key];health.visible=tactical_details_visible
 
-func set_tactical_details_visible(value: bool):
+func set_tactical_details_visible(value: bool, draw_over_scenery=true):
  tactical_details_visible=value
+ sprite.no_depth_test=draw_over_scenery
  health.visible=value
  ring.visible=value and selected and not departing and not transferring
  for icon in [commander_insignia,rescue_marker,carry_marker,shared_marker]:

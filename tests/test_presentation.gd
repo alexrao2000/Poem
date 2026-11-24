@@ -261,6 +261,8 @@ func verify_weather_exchange(app):
 		var inspect_idle=func():
 			for unit in [a,b,bystander]:
 				var piece=app.unit_nodes[unit.id]
+				assert(piece.sprite.no_depth_test==(unit!=bystander),
+					"Only the focal pair bypasses scenery depth on either side of the close-up")
 				if not app.pieces.visible:
 					# Set distinct nonzero positions once the hidden sprite clock pauses.
 					piece.player.play("idle","",true)
@@ -299,6 +301,9 @@ func verify_weather_exchange(app):
 		assert(transfer.entry>7.25 and transfer.return>transfer.entry and transfer.skipped==skip)
 		assert(sprites_restored[0]==3)
 		assert(rain.elapsed>=transfer.return and app.world.visible and not app.stage.visible)
+		for piece in app.unit_nodes.values():
+			assert(piece.sprite.no_depth_test,"Normal tactical readability returns for every surviving figure")
 	assert(app.game.save_data("battle")==state)
 	print("PASS: Greywood carries the same seeded rain phases into a complete and a skipped 3D exchange, then continues on the map")
 	print("PASS: both combatants and a bystander retain their exact tactical idle phases through full and skipped 3D exchanges")
+	print("PASS: both map reveals respect scenery depth for bystanders and restore tactical visibility")

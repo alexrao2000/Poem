@@ -6,6 +6,10 @@ This checkpoint describes the current development branch and supersedes the earl
 
 ### Latest state
 
+During the camera approach and return reveal, scenery can cover nearby bystanders while the fighting pair remains readable. The normal tactical view restores every sprite. Cinderford’s 159 scenery surfaces and both camera states match between source and both exports. Seven bystander depth flags change during the cut, and the software projection shows three figures partly covered by a roof or stall. The [three-stage Cinderford study](build/review/cinderford-combat-sequence.png) shows the tactical view, the approach and the revised 3D duel with simplified lighting. Eight focused suites, four packed checks, 72 matched chapter outcomes and both ZIP checks passed. See `build/review/transition-scenery-depth.json`.
+
+The macOS data pack at `64ff967` reached the ending in Quick Map after the tactical indexing changes. All 998 earlier saves match, including 15 battles, 470 player actions, both planned retreats, Lyra’s defeat and retry and all three memorials. See `build/review/tactical-index-route-state.json`.
+
 Map sprite refresh indexes shared-tile badges and carried allies before rebuilding the figures. All 389 position, texture and badge records match. Across the twelve campaign maps the summed headless refresh medians fell from 17.22 ms to 16.46–16.59 ms. The 169-unit synthetic board fell from 27.76 ms to 18.16–18.24 ms. Eight focused suites, four packed checks, 72 matched chapter outcomes and both ZIP checks passed. See `build/review/tactical-piece-index-profile.json`.
 
 Movement, threat previews and reverse searches use a per-query occupancy lookup. All 5,631 ordered results match in twelve campaign maps and two synthetic stress boards. The summed headless movement medians across the campaign fell from 30.99 ms to 16.46–16.73 ms. On the synthetic 169-unit board, movement fell from 756.68 ms to 57.01–59.59 ms. Ten focused suites, four packed checks, 72 matched chapter outcomes and both ZIP checks passed. See `build/review/tactical-query-profile.json`.
