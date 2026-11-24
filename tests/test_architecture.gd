@@ -1761,6 +1761,11 @@ func verify_gate():
  var gates=arena.find_children("CastleGate","Node3D",true,false)
  assert(gates.size()==1 and gates[0].position==Vector3(35,0,-9),"Castle combat replaces the old flat wall at the same background depth")
  var gate=gates[0];assert(gate.get_node("GateMasonry").mesh==shape)
+ var front=gate.get_node("GateMasonry").material_override
+ assert(front==masonry.wall_paint(Color("9ca295")) and front.shader.resource_path.ends_with("castle-stone.gdshader"))
+ assert(front.get_shader_parameter("atlas_texture")==scenery.environment_atlas and front.get_shader_parameter("tint")==Color("9ca295"))
+ var wings=gate.find_children("CastleWallWing*","MeshInstance3D",false,false)
+ assert(wings.size()==2 and wings.all(func(wing):return wing.material_override==masonry.wall_paint(Color("858b88"))))
  var bars=gate.get_children().filter(func(node):return str(node.name).begins_with("PortcullisBar"))
  assert(bars.size()==11,"The gate contains a recessed open iron grille")
  for bar in bars:
@@ -1768,7 +1773,9 @@ func verify_gate():
   assert(bar.position.z<0 and top<2+sqrt(1.96-bar.position.x*bar.position.x),"Portcullis bars fit below the curved stone opening")
  var supports=gate.get_children().filter(func(node):return str(node.name).begins_with("Buttress"))
  assert(supports.size()==6)
- for support in supports:assert(absf(support.position.x)>=4 and support.position.z<1,"Castle supports engage the side walls and keep the gate approach clear")
+ for support in supports:
+  assert(absf(support.position.x)>=4 and support.position.z<1,"Castle supports engage the side walls and keep the gate approach clear")
+  assert(support.material_override==masonry.wall_paint(Color("989e92")))
  var bounds=AABB();var first=true
  for node in gate.get_children():
   if node is MeshInstance3D:
@@ -1795,6 +1802,10 @@ func verify_crown_passage(scenery,masonry):
  var stage=Node3D.new();root.add_child(stage);scenery.battle_landscape(stage,Vector3(35,0,0),near)
  var other=stage.get_node("CastleGate")
  assert(other.get_node("GateMasonry").mesh==gate.get_node("GateMasonry").mesh)
+ var paint=gate.get_node("GateMasonry").material_override
+ assert(other.get_node("GateMasonry").material_override==paint,"Map and arena portals share the same stone paint")
+ var returns=gate.get_children().filter(func(node):return str(node.name).begins_with("GateReturn") and not str(node.name).begins_with("GateReturnCap"))
+ assert(returns.size()==2 and returns.all(func(node):return node.material_override==masonry.wall_paint(Color("989e92"))))
  for entry in [gate,other]:
   var bars=entry.find_children("PortcullisBar*","MeshInstance3D",false,false)
   assert(bars.size()==11 and bars.all(func(bar):return (bar.transform*bar.mesh.get_aabb()).position.y>=3.199))
@@ -1818,8 +1829,11 @@ func verify_crown_passage(scenery,masonry):
   var point=banner.to_global(Vector3(.60,0,0))
   assert(Rect2(Vector2.ZERO,Vector2(pixels)).grow(-10).has_point(camera.unproject_position(point)))
   assert(not gate_obstructs(gate,camera.global_position,point))
+ scenery.batcher.combine(stage)
+ assert(stage.get_children().any(func(node):return node is MeshInstance3D and node.get_meta("static_batch",false) and node.material_override==paint))
  field.queue_free();stage.queue_free();viewport.queue_free();await process_frame
  print("PASS: Crown Approach’s shared passage fits both tactical lanes, preserves separately moving standards and remains visible in three tactical projections")
+ print("PASS: Crown Approach shares painted stone across map and arena masonry, with three cached colors, through static batching")
 
 func gate_obstructs(gate: Node3D,start: Vector3,finish: Vector3) -> bool:
  for child in gate.get_children():

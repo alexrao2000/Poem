@@ -1,15 +1,26 @@
 extends RefCounted
 const GateCloth=preload("res://scripts/wind_cloth.gd")
 const MAP_GATE_SITE=Vector3(7.92,0,4.5)
+const STONE_ATLAS=preload("res://assets/art/environment-atlas.png")
 ## Cached masonry courses and wedge battlements replace the plain tower drum.
 static var tower_mesh: ArrayMesh
 static var stone_material: StandardMaterial3D
+static var castle_paints: Dictionary={}
 
 static func material() -> StandardMaterial3D:
  if stone_material==null:
   stone_material=StandardMaterial3D.new();stone_material.vertex_color_use_as_albedo=true
   stone_material.vertex_color_is_srgb=true;stone_material.roughness=.96
  return stone_material
+
+static func wall_paint(tint: Color) -> ShaderMaterial:
+ if not castle_paints.has(tint):
+  var stone=ShaderMaterial.new()
+  stone.shader=preload("res://assets/shaders/castle-stone.gdshader")
+  stone.set_shader_parameter("atlas_texture",STONE_ATLAS)
+  stone.set_shader_parameter("tint",tint)
+  castle_paints[tint]=stone
+ return castle_paints[tint]
 
 static func triangle(tool: SurfaceTool,a: Vector3,b: Vector3,c: Vector3,normal: Vector3,color: Color):
  var points=[a,b,c] if (b-a).cross(c-a).dot(normal)<0 else [a,c,b]
@@ -78,11 +89,11 @@ static func gate_wall() -> ArrayMesh:
 static func build_castle_wall(painter,parent: Node3D,point: Vector3,raised=false):
  var group=Node3D.new();group.name="CastleGate";group.position=point;parent.add_child(group)
  for side in [-1,1]:
-  painter.block(group,Vector3(side*9.85,2,0),Vector3(15.3,4,.7),Color("858b88"))
+  painter.block(group,Vector3(side*9.85,2,0),Vector3(15.3,4,.7),wall_paint(Color("858b88"))).name="CastleWallWing"
   painter.block(group,Vector3(side*9.85,3.92,0),Vector3(15.3,.18,.82),Color("a2a699"))
  # Engaged square buttresses leave the approach to the gate unobstructed.
  for x in [-12,-8,-4,4,8,12]:
-  var support=painter.block(group,Vector3(x,1.8,.48),Vector3(.6,3.6,.62),Color("989e92"));support.name="Buttress"
+  var support=painter.block(group,Vector3(x,1.8,.48),Vector3(.6,3.6,.62),wall_paint(Color("989e92")));support.name="Buttress"
   painter.block(group,Vector3(x,.16,.48),Vector3(.82,.32,.8),Color("777f77"))
   painter.block(group,Vector3(x,3.64,.48),Vector3(.78,.22,.77),Color("b0b3a2"))
  for x in range(-16,17,2):
@@ -96,14 +107,14 @@ static func build_map_gate(painter,parent: Node3D):
  gate.rotation.y=PI*.5;gate.scale=Vector3(.72,.59,.70);parent.add_child(gate)
  for x in [-2.12,2.12]:
   painter.block(gate,Vector3(x,.18,0),Vector3(.66,.38,1.04),Color("777f77")).name="GateFooting"
-  painter.block(gate,Vector3(x,2.23,0),Vector3(.60,4.40,.82),Color("989e92")).name="GateReturn"
+  painter.block(gate,Vector3(x,2.23,0),Vector3(.60,4.40,.82),wall_paint(Color("989e92"))).name="GateReturn"
   painter.block(gate,Vector3(x,4.44,0),Vector3(.70,.22,.93),Color("b0b3a2")).name="GateReturnCap"
  build_portal(painter,gate,true)
  hang_gate_standards(painter,gate,1.9)
  return gate
 
 static func build_portal(painter,group: Node3D,raised: bool):
- var front=painter.mesh(group,gate_wall(),Vector3.ZERO,Vector3.ONE,material());front.name="GateMasonry"
+ var front=painter.mesh(group,gate_wall(),Vector3.ZERO,Vector3.ONE,wall_paint(Color("9ca295")));front.name="GateMasonry"
  painter.arch_span(group,Vector3(0,2,0),1.4,.3,.88)
  painter.block(group,Vector3(0,4.52,0),Vector3(4.6,.2,.95),Color("b4b7a5"))
  for x in [-1.5,0,1.5]:painter.block(group,Vector3(x,4.85,0),Vector3(.65,.5,.9),Color("a4aa9a"))
