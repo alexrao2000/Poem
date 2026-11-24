@@ -1,5 +1,7 @@
 # Poem development
 
+Glass Harbor’s close-up sails inherit the wind phase of their own boats on the tactical map. A boat shown in combat carries its new phase back to the map at the end of the exchange.
+
 Cinderford’s windmill, Starfall’s armillary and the Sun Engine carry their angle from the battlefield into the 3D arena. When the map returns, each landmark picks up from the last angle shown in the arena.
 
 Cinderford’s windmill appears on the tactical map and behind the cottages in close-up fights. Four braced cloth sails turn on a shared axle. The close-up chooses among three sites to keep the stone foot and sweeping blades clear of nearby buildings.

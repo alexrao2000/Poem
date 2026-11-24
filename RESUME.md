@@ -6,6 +6,8 @@ This checkpoint describes the current development branch and supersedes the earl
 
 ### Latest state
 
+The two Glass Harbor sails carry independent wind phases between the tactical map and the combat stage. One actual quay fight and one pier fight checked the corresponding uniforms in both directions, including the phase of a boat outside the shot. Ten focused suites, both exports, architecture and mounted harbor checks in both packs, and archive integrity passed. Rendered appearance remains unreviewed.
+
 Cinderford’s windmill and the two clockwork mechanisms keep moving through the cut into 3D combat and back to the map. Five actual windmill exchanges and two clockwork exchanges checked both handoffs, including Skip. Nine focused suites, both exports, both transition suites in each pack and archive integrity passed. Rendered appearance remains unreviewed.
 
 Cinderford now has a stone windmill with four turning sails on the tactical map and in the arena. Thirty-six projections kept a sail visible in wide shots. The placement sweep checked cottage clearance in 358 adjacent encounter arrangements, using all three arena sites. Nine focused suites, both exports, architecture and the placement sweep in both packs, and archive integrity passed. Rendered appearance remains unreviewed.

@@ -132,13 +132,41 @@ func run():
  var a=app.game.units[0];var b=app.game.living("enemy")[0]
  a.job="Rider";a.weapon="lance";a.item="iron_lance"
  var arena_cues=[];sound.step_played.connect(func(family):arena_cues.append(family))
- for course in [[Vector2i(8,4),Vector2i(9,4),"hoof_hard"],[Vector2i(12,7),Vector2i(12,8),"hoof_wood"]]:
+ for course in [[Vector2i(8,4),Vector2i(9,4),"hoof_hard",1],[Vector2i(12,7),Vector2i(12,8),"hoof_wood",2]]:
   a.x=course[0].x;a.y=course[0].y;b.x=course[1].x;b.y=course[1].y
   app.refresh_pieces();arena_cues.clear()
+  var map_sails=app.scenery.boat_sails(app.world)
+  assert(map_sails.size()==2)
+  for site in map_sails:map_sails[site].seek_phase(3.0+site.x)
+  var entry={}
+  var returned={"checked":false}
+  var stage_entry=func():
+   if app.world.visible:return
+   var arena_sails=app.scenery.boat_sails(app.stage)
+   assert(arena_sails.size()==course[3])
+   for site in map_sails:entry[site]=map_sails[site].phase
+   for site in arena_sails:
+    assert(map_sails.has(site) and is_equal_approx(arena_sails[site].phase,entry[site]))
+    assert(is_equal_approx(arena_sails[site].material.get_shader_parameter("phase"),entry[site]))
+  var stage_return=func():
+   if app.stage.visible or app.world.visible:return
+   var arena_sails=app.scenery.boat_sails(app.stage)
+   assert(arena_sails.size()==course[3] and entry.size()==2)
+   for site in map_sails:
+    var expected=arena_sails[site].phase if arena_sails.has(site) else entry[site]
+    assert(is_equal_approx(map_sails[site].phase,expected))
+    assert(is_equal_approx(map_sails[site].material.get_shader_parameter("phase"),expected))
+    if arena_sails.has(site):assert(expected>entry[site],"Each pictured sail advances before returning")
+   returned.checked=true
+  app.world.visibility_changed.connect(stage_entry)
+  app.stage.visibility_changed.connect(stage_return)
   saved=app.game.save_data("battle").duplicate(true);rng=app.game.rng.state
   await app.cinematic(a,b,[{"actor":a.id,"target":b.id,"damage":1,"remaining":19,"hit":true,"crit":false}],{a.id:20,b.id:20})
+  app.world.visibility_changed.disconnect(stage_entry);app.stage.visibility_changed.disconnect(stage_return)
+  assert(returned.checked)
   assert(not arena_cues.is_empty() and arena_cues.all(func(family):return family==course[2]),"Actual mounted harbor approaches match paved and wooden floors")
   assert(app.game.save_data("battle")==saved and app.game.rng.state==rng,"Arena contacts do not change campaign outcomes")
  await Shutdown.dispose(app);await process_frame
  print("PASS: six original contacts, 84 matching terrain/chapter surfaces, real movement timing, planted final step, mounted map/harbor arena cues, grounded dust/wood suppression, muted visual contacts, isolated voices, volume/mute and unchanged simulation/score")
+ print("PASS: Harbor matches the sail phases of each shown boat during quay and pier cutaways and retains omitted sails")
  quit()

@@ -367,7 +367,7 @@ func landscape(parent,game):
  atmosphere.position=Vector3((game.board_size().x-1)*.5,0,(game.board_size().y-1)*.5)
  atmosphere.configure(theme,Vector3(game.board_size().x+6,3,game.board_size().y+6),false,game.chapter)
 
-func landmark(parent,p,kind,roof_variant=-1):
+func landmark(parent,p,kind,roof_variant=-1,map_site=Vector2.INF):
  var stone=Color("969b91")
  if kind in ["house","warehouse"]:
   var warehouse=kind=="warehouse"
@@ -392,7 +392,9 @@ func landmark(parent,p,kind,roof_variant=-1):
   var yard=cylinder(parent,p+Vector3(.62,2.2,0),1.44,.023,Color("685644"),.014)
   yard.name="BoatYardarm";yard.rotation.z=-PI/2.0
   var sail=WindCloth.new();parent.add_child(sail);sail.position=p+Vector3(0,1.5,0)
-  sail.configure(Vector2(1.3,1.4),Color("dcd4b9"),false,p.x*.71+p.z*.37)
+  var site=Vector2(p.x,p.z) if map_site==Vector2.INF else map_site
+  sail.set_meta("boat_site",site)
+  sail.configure(Vector2(1.3,1.4),Color("dcd4b9"),false,site.x*.71+site.y*.37)
   harbor_rigging(parent,p)
  elif kind=="camp":
   var tent=cylinder(parent,p+Vector3(0,.5,0),1,.8,Color("c7bba1"),0);tent.scale.z=1.5
@@ -484,9 +486,10 @@ func combat_context(game,a,b,screen_direction=1.0) -> Dictionary:
  var candidates=[]
  for item in game.info().get("landmarks",[]):
   if theme=="harbor" and item.kind=="boat" and tile!="=" and not harbor_quayside:continue
-  var delta=Vector2(item.position[0],item.position[1])-midpoint
+  var site=Vector2(item.position[0],item.position[1])
+  var delta=site-midpoint
   if delta.length()>8:continue
-  candidates.append({"kind":item.kind,"roof_variant":Architecture.variant_at(Vector3(item.position[0],0,item.position[1])),"distance":delta.length(),"x":clampf(delta.dot(axis)*2.2,-11,11),"z":-7-clampf(absf(delta.dot(depth))*1.8,0,10)})
+  candidates.append({"kind":item.kind,"map_site":site,"roof_variant":Architecture.variant_at(Vector3(site.x,0,site.y)),"distance":delta.length(),"x":clampf(delta.dot(axis)*2.2,-11,11),"z":-7-clampf(absf(delta.dot(depth))*1.8,0,10)})
  candidates.sort_custom(func(left,right):return left.distance<right.distance)
  return {"chapter":game.chapter,"environment":theme,"terrain":tile,
   "landmarks":candidates.slice(0,2),"road_canal":theme=="road" and near_water,"harbor_quay":harbor_quayside}
@@ -502,6 +505,18 @@ func transfer_landmark_motion(source: Node3D,destination: Node3D,theme: String):
   if original!=null and counterpart!=null:
    counterpart.elapsed=original.elapsed
    counterpart.update_motion()
+ elif theme=="harbor":
+  var originals=boat_sails(source)
+  var counterparts=boat_sails(destination)
+  for site in counterparts:
+   if originals.has(site):counterparts[site].seek_phase(originals[site].phase)
+
+func boat_sails(parent: Node3D) -> Dictionary:
+ var sails={}
+ for node in parent.find_children("*","Node3D",true,false):
+  if node is WindCloth and node.has_meta("boat_site"):
+   sails[node.get_meta("boat_site")]=node
+ return sails
 
 func nearby_channel(game,midpoint: Vector2) -> bool:
  var nearest=Vector2i(midpoint.round())
@@ -756,7 +771,7 @@ func battle_landscape(parent,center,context={}):
    continue
   var group=Node3D.new();group.name="ArenaLandmark";parent.add_child(group,true);group.position=center+Vector3(lateral,0,depth)
   group.scale=Vector3.ONE*(2.1 if item.kind in ["house","warehouse","tower","spire","arch","furnace"] else 1.4)
-  landmark(group,Vector3.ZERO,item.kind,item.get("roof_variant",0))
+  landmark(group,Vector3.ZERO,item.kind,item.get("roof_variant",0),item.get("map_site",Vector2.INF))
  if theme in ["village","road"]:
   cart(parent,center+Vector3(-6,0,-3.8));fence(parent,center+Vector3(3,0,-4),5.0)
   for i in range(3):barrel(parent,center+Vector3(6+i*.4,0,-4.3),1.0)

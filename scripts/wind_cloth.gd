@@ -2,6 +2,7 @@ extends Node3D
 # Bounded vertex motion keeps the entire attached edge pinned. The node stays
 # outside static batching so local dimensions and culling bounds remain valid.
 # Geometry depends on the dimensions and shape. Materials and clocks stay per instance.
+# Both wave frequencies repeat at the same phase interval.
 const SHADER=preload("res://assets/shaders/cloth.gdshader")
 const LINEN=preload("res://assets/art/character-materials.png")
 const PERIOD=TAU*10.0
@@ -15,9 +16,9 @@ var standard=true
 
 func configure(extent: Vector2,color: Color,is_standard=true,start_phase=0.0):
  name="WindStandard" if is_standard else "WindSail";dimensions=extent;standard=is_standard
- phase=fposmod(start_phase,PERIOD)
  material=ShaderMaterial.new();material.shader=SHADER;material.set_shader_parameter("linen_atlas",LINEN)
- material.set_shader_parameter("dimensions",extent);material.set_shader_parameter("tint",color);material.set_shader_parameter("emblem",standard);material.set_shader_parameter("phase",phase)
+ material.set_shader_parameter("dimensions",extent);material.set_shader_parameter("tint",color);material.set_shader_parameter("emblem",standard)
+ seek_phase(start_phase)
  cloth=MeshInstance3D.new();cloth.name="Cloth";cloth.mesh=mesh_for(extent,is_standard);cloth.material_override=material
  cloth.custom_aabb=AABB(Vector3(0,-extent.y*.545,-extent.x*.061),Vector3(extent.x,extent.y*1.045,extent.x*.122))
  cloth.cast_shadow=GeometryInstance3D.SHADOW_CASTING_SETTING_DOUBLE_SIDED
@@ -37,7 +38,8 @@ static func mesh_for(extent: Vector2,is_standard: bool) -> ArrayMesh:
  if cloth_meshes.size()<MAX_CACHED_MESHES:cloth_meshes[key]=shape
  return shape
 
+func seek_phase(value: float):
+ phase=fposmod(value,PERIOD);material.set_shader_parameter("phase",phase)
+
 func _process(dt):
- if material==null or not is_visible_in_tree():return
- # Both wave frequencies repeat exactly at this bounded phase interval.
- phase=fposmod(phase+dt,PERIOD);material.set_shader_parameter("phase",phase)
+ if material!=null and is_visible_in_tree():seek_phase(phase+dt)
