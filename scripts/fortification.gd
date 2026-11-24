@@ -1,4 +1,5 @@
 extends RefCounted
+const GateCloth=preload("res://scripts/wind_cloth.gd")
 ## Cached masonry courses and wedge battlements replace the plain tower drum.
 static var tower_mesh: ArrayMesh
 static var stone_material: StandardMaterial3D
@@ -96,4 +97,22 @@ static func build_castle_wall(painter,parent: Node3D,point: Vector3):
  for y in [.8,1.8,2.8]:
   var width=2.7 if y<2 else 2*sqrt(1.4*1.4-pow(y-2,2))-.1
   painter.block(group,Vector3(0,y,-.11),Vector3(width,.06,.07),Color("637073"))
+ hang_gate_standards(painter,group)
  return group
+
+static func hang_gate_standards(painter,gate: Node3D):
+ var iron=Color("62646a")
+ var brass=Color("a58b52")
+ for side in [-1,1]:
+  var x=side*3.03
+  for offset in [-.43,.43]:
+   painter.block(gate,Vector3(x+offset,3.68,.49),Vector3(.082,.082,.28),iron).name="StandardBracket"
+  painter.block(gate,Vector3(x,3.68,.63),Vector3(1.12,.08,.08),brass).name="StandardRail"
+  for offset in [-.56,.56]:
+   painter.block(gate,Vector3(x+offset,3.68,.63),Vector3(.082,.12,.12),brass).name="StandardFinial"
+  var cloth=GateCloth.new()
+  gate.add_child(cloth,true)
+  cloth.position=Vector3(x,3.68,.67)
+  cloth.rotation.z=-PI*.5
+  cloth.configure(Vector2(2.12,.95),Color("8c414b"),true,1.8 if side<0 else 5.3)
+  cloth.material.set_shader_parameter("trim",Color("bda370"))

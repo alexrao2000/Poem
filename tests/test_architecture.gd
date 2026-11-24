@@ -767,7 +767,53 @@ func verify_gate():
    var box=node.transform*node.get_aabb()
    bounds=box if first else bounds.merge(box);first=false
  assert(bounds.position.x>=-17.501 and bounds.end.x<=17.501 and bounds.end.y<=5.101,"Detailed castle wall keeps its fixed battlefield backdrop footprint")
+ await verify_gate_standards(gate)
  arena.queue_free();await process_frame
+
+func verify_gate_standards(gate: Node3D):
+ var banners=gate.get_children().filter(func(node):return node is Cloth)
+ var rails=gate.find_children("StandardRail*","MeshInstance3D",false,false)
+ var brackets=gate.find_children("StandardBracket*","MeshInstance3D",false,false)
+ assert(banners.size()==2 and rails.size()==2 and brackets.size()==4)
+ assert(banners[0].material!=banners[1].material and not is_equal_approx(banners[0].phase,banners[1].phase))
+ for index in banners.size():
+  var banner=banners[index]
+  var rail=rails[index]
+  var support=rail.transform*rail.mesh.get_aabb()
+  assert(banner.standard and banner.material.get_shader_parameter("emblem"))
+  assert(banner.dimensions==Vector2(2.12,.95))
+  for mount in [brackets[index*2],brackets[index*2+1]]:
+   var contact=mount.transform*mount.mesh.get_aabb()
+   assert(contact.intersects(support) and contact.position.z<=.351,"The rail brackets start at the wall and reach the rail")
+  var volume=banner.transform*banner.cloth.custom_aabb
+  assert(volume.position.z>.4 and (volume.position.x>2.2 or volume.end.x<-2.2),"Cloth waves stay clear of stone and the gate opening")
+  var surface=banner.cloth.mesh.surface_get_arrays(0)
+  var points=surface[Mesh.ARRAY_VERTEX];var uv=surface[Mesh.ARRAY_TEX_UV]
+  for vertex in points.size():
+   if is_zero_approx(uv[vertex].x):
+    var pin=banner.transform*points[vertex]
+    assert(is_equal_approx(pin.y,rail.position.y) and support.grow(.001).has_point(pin),"The pinned upper edge sits on the rail")
+ var viewport=SubViewport.new();viewport.render_target_update_mode=SubViewport.UPDATE_DISABLED;root.add_child(viewport)
+ var camera=Camera3D.new();viewport.add_child(camera);camera.current=true
+ var center=Vector3(35,0,0)
+ for mounted in [false,true]:
+  var frame=CombatCamera.frame_pair(center+Vector3.LEFT*1.6,center+Vector3.RIGHT*1.6,"wide",false,mounted)
+  camera.position=frame.anchor;camera.fov=frame.lens;camera.look_at(frame.focus)
+  for dimensions in [Vector2i(1024,640),Vector2i(1280,720),Vector2i(1440,900)]:
+   viewport.size=dimensions;await process_frame
+   var safe=Rect2(Vector2(20,20),Vector2(dimensions)-Vector2(40,172))
+   var in_frame=banners.any(func(banner):
+    return [Vector3.ZERO,Vector3.RIGHT*1.42].all(func(point):
+     var position=banner.to_global(point)
+     return not camera.is_position_behind(position) and safe.has_point(camera.unproject_position(position))))
+   assert(in_frame,"A banner hangs in view above the HUD in the wide shot")
+ var phases=banners.map(func(node):return node.phase)
+ gate.hide();await create_timer(.06).timeout
+ assert(phases==banners.map(func(node):return node.phase),"Hidden arena banners suspend their cloth phases")
+ gate.show();await create_timer(.06).timeout
+ assert(phases!=banners.map(func(node):return node.phase))
+ viewport.queue_free();await process_frame
+ print("PASS: two Crown Approach standards with attached upper edges, private cloth phases, wall and opening clearance, and six wide-shot projections")
 
 func wheel_hit(shape: Mesh,point: Vector2) -> bool:
  var points=shape.surface_get_arrays(0)[Mesh.ARRAY_VERTEX]
