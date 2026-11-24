@@ -6,6 +6,8 @@ Development resumed on “go”. Continue in this chat until the user asks to st
 
 ### Latest state
 
+Reddeep’s 3D arena now places a crossed iron gantry and two suspended hoists behind its furnaces. Five supports seat on stone footings, the diagonal braces join both horizontal chords, and the hanging chains reach their hooks. Twelve projected scenes kept a hoist clear of the hearths and HUD. Eight focused suites, both exports, architecture in both packs and archive integrity passed. Rendered appearance remains unreviewed.
+
 Static batching reuses source surfaces within each build and applies packed transforms to positions and normals. Two comparisons retained exact arrays for all 12 maps, 12 arenas, 1,077 batches and 511,538 submitted vertices. Across 72 paired headless samples each, batching time was 16.3% lower with the prototype and 15.2% lower with the exported script. Twelve focused suites, both exports, scenery and character rig checks in both packs, and archive integrity passed. See `build/review/static-batch-profile.json`.
 
 Kingsroad now frames the canal in 3D when the tactical engagement is near water. The two stone banks meet the measured water edges, and mapped towers sit securely on the far bank. Twelve projected mounted and unmounted shots see the water above the near coping. Dry fights keep their field and bridge fights keep their deck. Nine focused suites, both local exports, architecture in both packs and archive integrity passed. Rendered appearance remains unreviewed.

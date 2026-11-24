@@ -524,6 +524,38 @@ func kingsroad_canal(parent: Node3D,center: Vector3,paint: Material):
   block(parent,center+Vector3(0,-.13,depth),Vector3(70,.34,.40),detail_material(3)).name="CanalRevetment"
   block(parent,center+Vector3(0,.06,depth),Vector3(70,.10,.54),Color("9a9a88")).name="CanalCoping"
 
+func reddeep_gantry(parent: Node3D,center: Vector3,backdrop: Array):
+ var depth=-11.5
+ for item in backdrop:
+  if item.kind=="furnace":depth=minf(depth,item.z-2.3)
+ var gantry=Node3D.new();gantry.name="ReddeepGantry";gantry.position=center+Vector3(0,0,depth)
+ parent.add_child(gantry)
+ var stone=detail_material(3)
+ var iron=Color("51424a")
+ var edge=Color("80605a")
+ for x in range(-12,13,6):
+  block(gantry,Vector3(x,.13,0),Vector3(.94,.44,1.09),stone).name="GantryFooting"
+  block(gantry,Vector3(x,2.33,0),Vector3(.38,4.09,.52),iron).name="GantryPost"
+  block(gantry,Vector3(x,4.31,0),Vector3(.77,.28,.72),edge).name="GantrySaddle"
+  block(gantry,Vector3(x,2.30,.268),Vector3(.12,3.90,.06),edge).name="GantryFlange"
+  if x==12:continue
+  for side in [-1,1]:
+   var rise=Vector2(5.97,side*.96)
+   var diagonal=block(gantry,Vector3(x+3,4.82,side*.104),Vector3(rise.length(),.125,.18),iron)
+   diagonal.name="GantryDiagonal";diagonal.rotation.z=rise.angle()
+ for y in [4.34,5.30]:
+  block(gantry,Vector3(0,y,0),Vector3(24.7,.22,.51),iron).name="GantryChord"
+  block(gantry,Vector3(0,y+.05,.26),Vector3(24.7,.08,.11),edge).name="GantryRim"
+ for x in [-3.15,3.4]:
+  block(gantry,Vector3(x,4.23,0),Vector3(.51,.27,.58),iron).name="HoistHanger"
+  var drum=cylinder(gantry,Vector3(x,3.96,0),.32,.23,edge)
+  drum.name="HoistDrum";drum.rotation.x=PI/2.0
+  for offset in [-.11,.11]:
+   block(gantry,Vector3(x+offset,3.26,0),Vector3(.032,1.16,.038),iron).name="HoistChain"
+  block(gantry,Vector3(x,2.69,0),Vector3(.28,.09,.11),edge).name="HoistHookBlock"
+  block(gantry,Vector3(x-.04,2.57,0),Vector3(.075,.18,.078),iron).name="HoistHook"
+  block(gantry,Vector3(x+.02,2.49,0),Vector3(.16,.063,.078),iron).name="HoistToe"
+
 func sun_engine(parent: Node3D,anchor: Vector3,scale_value=1.0):
  var chamber=Node3D.new();chamber.name="SunEngineChamber";chamber.position=anchor
  chamber.scale=Vector3.ONE*scale_value;parent.add_child(chamber)
@@ -650,8 +682,10 @@ func battle_landscape(parent,center,context={}):
     var position=center+Vector3(-17+(i*11)%35,0,-12.8-i%3*2.25)
     position.y=PassEscarpment.height_at(slope,position)
     battle_tree(parent,position,i*47,2.2+i%3*.2,theme)
- if theme=="furnace" and backdrop.is_empty():
-  for x in [-5,5]:furnace(parent,center+Vector3(x,0,-8),2.1)
+ if theme=="furnace":
+  if backdrop.is_empty():
+   for x in [-5,5]:furnace(parent,center+Vector3(x,0,-8),2.1)
+  reddeep_gantry(parent,center,backdrop)
  if theme=="engine":
   sun_engine_basin(parent,mechanism)
   sun_engine(parent,mechanism)

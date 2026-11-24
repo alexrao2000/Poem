@@ -419,9 +419,66 @@ func verify_reddeep_furnaces():
  scenery.battle_landscape(fallback,center,{"environment":"furnace"})
  var extra=fallback.find_children("FurnaceHearth*","Node3D",false,false)
  assert(extra.size()==2 and extra.all(func(hearth):return hearth.position.z==center.z-8 and hearth.scale.is_equal_approx(Vector3.ONE*2.1)))
+ await verify_reddeep_gantry(arena,center,staged)
+ await verify_reddeep_gantry(fallback,center,extra)
  assert(game.rng.state==rng_state)
  map.queue_free();arena.queue_free();fallback.queue_free();await process_frame
  print("PASS: two Reddeep map hearths, arched fireboxes, connected grates, open chimney flues and actual arena counterparts")
+ print("PASS: five planted Reddeep gantry supports, four crossed spans, two connected hoists and twelve wide-shot projections")
+
+func verify_reddeep_gantry(stage: Node3D,center: Vector3,hearths: Array):
+ var gantry=stage.get_node("ReddeepGantry")
+ assert(gantry.position.z<=center.z-11.5)
+ var footings=gantry.find_children("GantryFooting*","MeshInstance3D",false,false)
+ var posts=gantry.find_children("GantryPost*","MeshInstance3D",false,false)
+ var saddles=gantry.find_children("GantrySaddle*","MeshInstance3D",false,false)
+ var chords=gantry.find_children("GantryChord*","MeshInstance3D",false,false)
+ var braces=gantry.find_children("GantryDiagonal*","MeshInstance3D",false,false)
+ assert(footings.size()==5 and posts.size()==5 and saddles.size()==5 and chords.size()==2 and braces.size()==8)
+ var lower=chords[0].transform*chords[0].mesh.get_aabb()
+ var upper=chords[1].transform*chords[1].mesh.get_aabb()
+ for index in posts.size():
+  var foot=footings[index].transform*footings[index].mesh.get_aabb()
+  var post=posts[index].transform*posts[index].mesh.get_aabb()
+  var saddle=saddles[index].transform*saddles[index].mesh.get_aabb()
+  assert(foot.position.y<-.06 and foot.intersects(post) and post.intersects(saddle) and saddle.intersects(lower))
+ for brace in braces:
+  var bounds=brace.transform*brace.mesh.get_aabb()
+  assert(bounds.intersects(lower) and bounds.intersects(upper),"Angled plates connect both truss chords")
+ var drums=gantry.find_children("HoistDrum*","MeshInstance3D",false,false)
+ var hangers=gantry.find_children("HoistHanger*","MeshInstance3D",false,false)
+ var chain=gantry.find_children("HoistChain*","MeshInstance3D",false,false)
+ var hooks=gantry.find_children("HoistHookBlock*","MeshInstance3D",false,false)
+ assert(drums.size()==2 and hangers.size()==2 and chain.size()==4 and hooks.size()==2 and drums[0].mesh==drums[1].mesh)
+ for index in drums.size():
+  var drum_bounds=drums[index].transform*drums[index].mesh.get_aabb()
+  var hanger_bounds=hangers[index].transform*hangers[index].mesh.get_aabb()
+  var hook_bounds=hooks[index].transform*hooks[index].mesh.get_aabb()
+  assert(drum_bounds.intersects(hanger_bounds) and hanger_bounds.intersects(lower))
+  for hanging in [chain[index*2],chain[index*2+1]]:
+   var bounds=hanging.transform*hanging.mesh.get_aabb()
+   assert(bounds.intersects(drum_bounds) and bounds.intersects(hook_bounds),"Both chains connect the hoist drum to its block")
+ var hearth_silhouettes=[]
+ for hearth in hearths:
+  var foundation=hearth.get_node("HearthFoundation")
+  var base=foundation.global_transform*foundation.mesh.get_aabb()
+  assert(base.position.z>gantry.global_position.z+.6,"The gantry stands behind each foundry hearth")
+  for part in hearth.find_children("*","MeshInstance3D",true,false):
+   hearth_silhouettes.append(part.global_transform*part.mesh.get_aabb())
+ var viewport=SubViewport.new();viewport.render_target_update_mode=SubViewport.UPDATE_DISABLED;root.add_child(viewport)
+ var camera=Camera3D.new();viewport.add_child(camera);camera.current=true
+ for mounted in [false,true]:
+  var shot=CombatCamera.frame_pair(center+Vector3.LEFT*1.6,center+Vector3.RIGHT*1.6,"wide",false,mounted)
+  camera.position=shot.anchor;camera.fov=shot.lens;camera.look_at(shot.focus)
+  for dimensions in [Vector2i(1024,640),Vector2i(1280,720),Vector2i(1440,900)]:
+   viewport.size=dimensions;await process_frame
+   var safe=Rect2(Vector2(16,16),Vector2(dimensions)-Vector2(32,168))
+   var visible=drums.filter(func(drum):
+    var point=drum.global_position
+    var clear=not hearth_silhouettes.any(func(part):return part.intersects_segment(camera.global_position,point)!=null)
+    return clear and safe.has_point(camera.unproject_position(point)) and not camera.is_position_behind(point))
+   assert(not visible.is_empty(),"At least one hoist remains clear of foreground hearths and the HUD")
+ viewport.queue_free();await process_frame
 
 func verify_hearth(hearth: Node3D):
  var foundation=hearth.get_node("HearthFoundation")
