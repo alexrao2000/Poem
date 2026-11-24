@@ -34,6 +34,7 @@ const KingsroadHoist=preload("res://scripts/kingsroad_hoist.gd")
 const StarfallChart=preload("res://scripts/starfall_chart.gd")
 const StarfallTerrain=preload("res://scripts/starfall_terrain.gd")
 const AqueductWheel=preload("res://scripts/aqueduct_waterwheel.gd")
+const AqueductReservoir=preload("res://scripts/aqueduct_reservoir.gd")
 const ReddeepCart=preload("res://scripts/reddeep_slag_cart.gd")
 const HearthFire=preload("res://scripts/hearth_fire.gd")
 const ReddeepWorks=preload("res://scripts/reddeep_works.gd")
@@ -445,10 +446,12 @@ func landscape(parent,game):
    var position=Vector3(-3+(i*9)%22,0,-6-i%3)
    position.y=PassEscarpment.height_at(slope,position)
    tree(parent,position,i*31,theme)
- elif theme in ["harbor","aqueduct"]:
+ elif theme=="aqueduct":
+  AqueductReservoir.build(self,parent,board,extent)
+ elif theme=="harbor":
   var sea=plane_shape(Vector2(55,35))
   mesh(parent,sea,Vector3(7,-.12,26),Vector3.ONE,water_material(theme))
-  if theme=="harbor":HarborBreakwater.build(self,parent,HarborBreakwater.MAP_SITE,HarborBreakwater.MAP_SCALE,PI)
+  HarborBreakwater.build(self,parent,HarborBreakwater.MAP_SITE,HarborBreakwater.MAP_SCALE,PI)
 
  ground_cover.add_map(parent,game,building_cells)
  if batching_enabled:batcher.combine(parent)

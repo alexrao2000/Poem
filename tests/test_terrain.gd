@@ -11,6 +11,7 @@ const MapGround=preload("res://scripts/map_ground.gd")
 const SanctuaryPlinth=preload("res://scripts/sanctuary_plinth.gd")
 const PassEscarpment=preload("res://scripts/pass_escarpment.gd")
 const StarfallTerrain=preload("res://scripts/starfall_terrain.gd")
+const AqueductReservoir=preload("res://scripts/aqueduct_reservoir.gd")
 func _initialize():call_deferred("run")
 func surface_geometry():
  var scenery=Scenery.new();var parent=Node3D.new();root.add_child(parent)
@@ -125,6 +126,7 @@ func verify_perimeter():
 func run():
  surface_geometry()
  verify_perimeter()
+ await verify_aqueduct_reservoir()
  verify_bridge_support(Scenery.new())
  verify_arena_ground()
  await verify_river_arena()
@@ -888,3 +890,86 @@ func verify_water_styles():
    arenas+=1
  assert(game.rng.state==before and wet_cells==250 and arenas==8)
  print("PASS: six chapter water palettes, ",wet_cells," tactical water cells, ",arenas," actual arena bindings and unchanged physical levels")
+func verify_aqueduct_reservoir():
+ var game=Rules.new();game.chapter=7
+ var before=game.save_data("camp");var rng=game.rng.state
+ var scenery=Scenery.new();scenery.batching_enabled=false
+ var map=Node3D.new();root.add_child(map);scenery.landscape(map,game)
+ var bank_group=map.get_node("AqueductReservoir")
+ var water=bank_group.get_node("ReservoirWater")
+ var size=game.board_size()
+ var bounds=water.global_transform*water.mesh.get_aabb()
+ var water_paint=scenery.water_material("aqueduct")
+ assert(bounds.size.x>=72 and bounds.size.z>=72 and water.material_override==water_paint)
+ assert(is_equal_approx(water.position.y,AqueductReservoir.WATER_LEVEL))
+ var map_water=map.find_children("MapWater*","MeshInstance3D",false,false)
+ assert(not map_water.is_empty())
+ for cell in map_water:
+  assert(cell.position.y>water.position.y and cell.material_override==water_paint)
+ var silhouettes: Array[AABB]=[]
+ var shore_points: Array[Vector3]=[]
+ for side in [-1,1]:
+  var bank=bank_group.get_node("WestBank" if side<0 else "EastBank")
+  var grass=bank.get_node("GrassyBank")
+  var mud=bank.get_node("WetShore")
+  assert(grass.material_override==scenery.ground_material(0) and mud.material_override==scenery.ground_material(2))
+  assert(grass.mesh==AqueductReservoir.bank_mesh(side,true) and mud.mesh==AqueductReservoir.bank_mesh(side,false))
+  assert(is_equal_approx(bank.position.x,-.5 if side<0 else size.x-.5))
+  var shoreline={}
+  for part in [grass,mud]:
+   var edges=part.mesh.surface_get_arrays(0)
+   var points: PackedVector3Array=edges[Mesh.ARRAY_VERTEX]
+   var normals: PackedVector3Array=edges[Mesh.ARRAY_NORMAL]
+   assert(normals.size()==points.size() and edges[Mesh.ARRAY_INDEX].size()==6*AqueductReservoir.ROWS*(5 if part==grass else 2))
+   for i in points.size():
+    assert(normals[i].y>.90 and points[i].x*side>.75,"The gently sloped banks face up and stay outside the grid")
+    if is_equal_approx(points[i].y,.045):
+     if part==grass:shoreline[points[i]]=true
+     else:assert(shoreline.has(points[i]),"The soil and grass mesh share the exact shoreline seam")
+   var envelope=part.global_transform*part.mesh.get_aabb()
+   assert(envelope.size.z>=76)
+   silhouettes.append(envelope)
+  for tree in bank.find_children("Conifer*","MeshInstance3D",false,false):
+   silhouettes.append(tree.global_transform*tree.mesh.get_aabb())
+  var trunks=bank.find_children("ConiferTrunk*","MeshInstance3D",false,false)
+  assert(trunks.size()==3)
+  var land=grass.mesh.surface_get_arrays(0)
+  var triangles=land[Mesh.ARRAY_INDEX]
+  var vertices=land[Mesh.ARRAY_VERTEX]
+  for tree in trunks:
+   var foot=tree.global_position-Vector3.UP*tree.mesh.height*.5
+   var ray=foot+Vector3.UP
+   var planted=false
+   for i in range(0,triangles.size(),3):
+    var hit=Geometry3D.ray_intersects_triangle(ray,Vector3.DOWN,grass.to_global(vertices[triangles[i]]),
+     grass.to_global(vertices[triangles[i+1]]),grass.to_global(vertices[triangles[i+2]]))
+    if hit!=null and hit.y>=foot.y and hit.y<foot.y+.095:planted=true
+   assert(planted,"Each conifer's trunk intersects the grassy surface")
+  shore_points.append(bank.to_global(AqueductReservoir.bank_point(0,AqueductReservoir.GRASS[0],side)))
+ var camera_view=SubViewport.new();camera_view.render_target_update_mode=SubViewport.UPDATE_DISABLED;root.add_child(camera_view)
+ var camera=Camera3D.new();camera_view.add_child(camera);camera.current=true
+ var center=Vector3((size.x-1)*.5,0,(size.y-1)*.5)
+ var tactical=preload("res://scripts/tactical_camera.gd")
+ camera.projection=Camera3D.PROJECTION_ORTHOGONAL
+ camera.position=center+Vector3(2.5,22,11.5);camera.look_at(center)
+ for dimensions in [Vector2i(1024,640),Vector2i(1280,720),Vector2i(1440,900)]:
+  camera_view.size=dimensions;await process_frame
+  camera.size=16;camera.h_offset=2;camera.v_offset=0
+  tactical.fit_home(camera,size)
+  for point in shore_points:assert(camera_view.get_visible_rect().has_point(camera.unproject_position(point)))
+  for row in size.y:
+   for column in size.x:
+    var tile=Vector3(column,0,row)
+    var origin=camera.project_ray_origin(camera.unproject_position(tile))
+    assert(silhouettes.all(func(box):return box.intersects_segment(origin,tile)==null),
+     "The bank and trees leave a clear view to all tactical tile centers")
+ var larger=Node3D.new();root.add_child(larger)
+ AqueductReservoir.build(scenery,larger,Vector2i(18,42),168)
+ var larger_bank=larger.get_node("AqueductReservoir/EastBank/GrassyBank")
+ assert(larger_bank.mesh==AqueductReservoir.bank_mesh(1,true) and larger_bank.scale.z>2)
+ assert(larger.get_node("AqueductReservoir/ReservoirWater").mesh.size==Vector2(168,168))
+ scenery.batcher.combine(map)
+ assert(map.get_children().filter(func(node):return node is MeshInstance3D and node.get_meta("static_batch",false) and node.material_override==water_paint).size()>=2)
+ assert(game.save_data("camp")==before and game.rng.state==rng)
+ camera_view.free();map.free();larger.free()
+ print("PASS: Old Aqueduct's sloped reservoir banks join the field without blocking tile centers, scale to larger maps and reuse four ground meshes")
