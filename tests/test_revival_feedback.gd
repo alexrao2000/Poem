@@ -57,10 +57,16 @@ func run():
   assert(app.busy and patient.hp>0 and not Door.downed(patient) and healer.acted)
   if sample[0]!="normal":assert(patient.acted)
   if sample[0]=="surrounded":assert(patient.get("carried_by","")==carrier.id)
+  if sample[0]=="carried":
+   assert(not patient.has("carried_by") and app.unit_nodes.has(patient.id))
+   var figure=app.unit_nodes[patient.id]
+   assert(figure.downed and figure.player.state=="hurt" and is_zero_approx(figure.hp_ratio),
+    "A patient set down for staff treatment still looks wounded before the light arrives")
   var resolved=canonical(app.game.save_data("battle"));var saved=Rules.new()
   assert(saved.load_game(app.save_path)=="battle" and canonical(saved.save_data("battle"))==resolved,"Recovery commits before its presentation")
   var carrier_cut=sample[0]=="surrounded" and sample[2]!="map"
   var carrier_reveals={}
+  var uncarried_reveals={}
   var saw_caption=false;var saw_map=false;var skipped=false;var arrived=false;var saw_zero=false;var saw_map_flight=false;var saw_wounded=false;var saw_rise=false;var saw_follow=false;var deadline=Time.get_ticks_msec()+15000
   while app.busy and Time.get_ticks_msec()<deadline:
    await process_frame
@@ -103,6 +109,12 @@ func run():
     if is_instance_valid(app.terrain_card):assert(not bounds.intersects(app.terrain_card.get_global_rect()))
     saw_map=true
    var playback=app.ui.get_node_or_null("CombatPlayback")
+   if sample[0]=="carried" and playback!=null and app.world.visible:
+    var veil=app.ui.get_node("CombatTransition")
+    var figure=app.unit_nodes[patient.id]
+    var healed=saw_caption and veil.revealing
+    assert(figure.downed!=healed and (figure.player.state=="idle" if healed else figure.player.state=="hurt"))
+    uncarried_reveals[healed]=true
    if carrier_cut and playback!=null and app.world.visible and not app.unit_nodes[carrier.id].tactical_details_visible:
     var veil=app.ui.get_node("CombatTransition")
     assert(not app.unit_nodes.has(patient.id),"A carried passenger has no separate tactical figure")
@@ -120,6 +132,7 @@ func run():
   assert(not app.busy and canonical(app.game.save_data("battle"))==resolved and app.game.rng.state==rng)
   if carrier_cut:
    assert(carrier_reveals.size()==2 and app.unit_nodes[carrier.id].sprite.no_depth_test)
+  if sample[0]=="carried" and sample[2]!="map":assert(uncarried_reveals.size()==2)
   if sample[2]=="map":assert(saw_map and saw_map_flight and not saw_caption and app.pieces.get_node_or_null("MapHeal")==null)
   elif sample[0]=="skip_windup":assert(skipped and not saw_caption)
   else:assert(saw_caption and saw_zero and saw_wounded and saw_rise and saw_follow)

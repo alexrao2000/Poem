@@ -6,6 +6,8 @@ This checkpoint describes the current development branch and supersedes the earl
 
 ### Latest state
 
+A patient set down for staff treatment starts in the wounded tactical pose. Quick Map restores their standing pose at staff contact. The 3D approach shows them wounded, and the map reveal shows them recovered after the full scene or an opening Skip. The [carried treatment starter](build/review/playtest/carried-treatment.txt) set Sera down at (4, 3) with 12 HP and her action spent in all three flows. Source and both local packages produced the same committed save. Eight focused suites, four packed checks, 72 matched chapter outcomes and both ZIP checks passed. See `build/review/carried-treatment.json`.
+
 Tactical previews and pursuit reuse the equipped range offsets in their original order. All 6,018 ordered query results match across the campaign and two synthetic boards. Across the twelve campaign maps, the summed headless threat medians fell from 96.23 ms to 27.53–27.67 ms. On a 169-unit stress board they fell from 180.97 ms to 84.73–85.13 ms. Eight focused suites, four packed checks, 72 matched chapter outcomes and both ZIP checks passed. See `build/review/attack-offset-profile.json`.
 
 When a revived recruit stays carried, the tactical approach frames the healer and the carrier. The close-up shows the actual patient. A new [surrounded revival starter](build/review/playtest/surrounded-carried-revival.txt) revives Sera at 12 HP with her action spent and keeps her on Oren because every adjacent tile is occupied. The scene and save match in source and both exports. Eight focused suites, four packed checks, 72 matched chapter outcomes and both ZIP checks passed. See `build/review/surrounded-carried-revival.json`.

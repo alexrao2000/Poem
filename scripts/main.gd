@@ -1266,6 +1266,9 @@ func make_fighter(u,position) -> Node3D:
 
 func staff_healing(healer,recipient,amount: int,before: Dictionary={}):
 	var revived=amount>0 and recipient.hp==amount
+	var patient=unit_nodes.get(recipient.id)
+	# A newly placed patient starts in the wounded pose until treatment arrives.
+	if revived and patient!=null and not patient.downed:patient.show_wounded_pose()
 	if not preferences.show_cinematic(healer.team):
 		play_sfx("heal");await map_heal_feedback(healer,recipient,amount,revived);return
 	var old_max=before.get(healer.id,{}).get("max_hp",healer.max_hp)

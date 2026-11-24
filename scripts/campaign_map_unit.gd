@@ -79,10 +79,14 @@ func recover_health(ratio: float,revived: bool):
  refresh_health()
 
 func fall_wounded(turns: int):
- downed=true;spent=true;hp_ratio=0
  if is_instance_valid(carry_marker):
   remove_child(carry_marker);carry_marker.queue_free();carry_marker=null
- rest_pose();show_rescue_countdown(turns);refresh_health()
+ show_wounded_pose()
+ show_rescue_countdown(turns)
+
+func show_wounded_pose():
+ downed=true;spent=true;hp_ratio=0
+ rest_pose();refresh_health()
 
 static func selection_mesh() -> ArrayMesh:
  if selected_mesh!=null:return selected_mesh
