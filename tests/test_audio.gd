@@ -29,17 +29,18 @@ func run():
  assert(app.sfx_streams.levelup.get_length()>.71 and app.sfx_streams.levelup.get_length()<.73,"Level-up bell ends within the stat reveal")
  await verify_themes(app)
  await verify_authored_themes(app)
- await verify_chapter_exchange(app,3,"standard","abbey",Vector2i(11,4),Vector2i(12,4))
+ await verify_chapter_exchange(app,2,"standard","greywood",Vector2i(3,3),Vector2i(4,3))
+ await verify_chapter_exchange(app,3,"greywood","abbey",Vector2i(11,4),Vector2i(12,4))
  await verify_chapter_exchange(app,8,"road","starfall",Vector2i(9,1),Vector2i(10,1))
  await verify_chapter_exchange(app,11,"dawnless","sun_engine",Vector2i(9,2),Vector2i(10,2))
  await verify_quick_battles(app)
  await Shutdown.dispose(app);await process_frame
- print("PASS: six exact Calm/Ablaze pairs, 12 chapter mappings, compensated arrangement curve and seamless reversal, continuous combat mixing, bounded theme crossfades, mute/interruption and independent effects")
+ print("PASS: seven exact Calm/Ablaze pairs, 12 chapter mappings, compensated arrangement curve and seamless reversal, continuous combat mixing, bounded theme crossfades, mute/interruption and independent effects")
  quit()
 
 func verify_themes(app):
  var director=app.score_director
- assert(director.profiles.size()==6)
+ assert(director.profiles.size()==7)
  for profile in director.profiles:
   var pair=director.make_pair(profile)
   var calm=pair.get_sync_stream(0);var ablaze=pair.get_sync_stream(1)
@@ -49,7 +50,7 @@ func verify_themes(app):
   assert(absf(calm.get_length()-float(profile.bars)*profile.get("beats_per_bar",4)*60/profile.bpm)<1.0/profile.sample_rate,"Actual audio duration matches the composition's meter and tempo")
   for stream in [calm,ablaze]:verify_decoded_loop(stream)
  for chapter in range(12):
-  var theme={3:"abbey",8:"starfall",11:"sun_engine"}.get(chapter,["standard","road","dawnless"][chapter/4])
+  var theme={2:"greywood",3:"abbey",8:"starfall",11:"sun_engine"}.get(chapter,["standard","road","dawnless"][chapter/4])
   assert(app.campaign_score_profile(chapter).id==theme)
  assert(director.profile_for(11).id=="dawnless","An explicit finale theme does not change the catalog default")
  var roster=app.game.roster.duplicate(true);var rng=app.game.rng.state

@@ -722,7 +722,7 @@
       "title": "Lanterns in the Rain",
       "place": "Greywood",
       "route_position": [0.23, 0.38],
-      "score_theme": "standard",
+      "score_theme": "greywood",
       "objective": "survive",
       "boss": "Hunter Cale",
       "intro": "Refugees are hidden in the wood. Hold the lantern road for six turns while Nell guides them to safety.",

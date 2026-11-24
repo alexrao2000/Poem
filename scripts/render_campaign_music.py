@@ -1,7 +1,7 @@
 """Render original campaign themes from the existing verified CC0 bank.
 
 Each 32-bar calm/Ablaze pair shares one event timeline and exact frame count.
-This leaves the first act's score and all short game effects unchanged.
+The opening theme and short game effects are rendered separately.
 """
 from pathlib import Path
 import argparse
@@ -84,6 +84,21 @@ THEMES = [
                  [(74,0,1),(78,1,1.75),(76,3,.75),(74,3.75,1)],[(73,0,1.5),(69,2,1),(78,3,1.5)],
                  [(81,0,1.0),(76,1.5,1),(74,3,1.5)],[(75,0,1),(78,1,1.25),(83,3,1.5)],
                  [(80,0,1),(77,1,1),(73,3,.75),(77,3.75,1)],[(78,0,3),(73,3.5,1)]]),
+    dict(id='greywood', title='Where the Lanterns Wait', bpm=96, beats_per_bar=3, seed=61972,
+         harp_pattern=(0,2,1,2,1,2),
+         percussion_pattern=((0,1.5),(.5,2.5)),
+         chords=[(50,53,57),(43,47,50),(48,52,55),(45,48,52),
+                 (50,53,57),(47,50,53),(43,47,50),(45,48,52),
+                 (48,52,55),(43,47,50),(45,48,52),(50,53,57),
+                 (41,45,48),(43,47,50),(45,48,52),(50,53,57)],
+         melody=[[(62,.5,.5),(65,1,.5),(69,1.5,1.5)],[(71,0,1),(69,1,.5),(67,1.5,1.25)],
+                 [(64,0,1.5),(67,1.5,1),(72,2.5,.5)],[(71,0,.5),(69,.5,1),(64,1.5,1.25)],
+                 [(65,0,.5),(69,.5,1),(74,1.5,1.5)],[(77,0,1),(74,1,.5),(71,1.5,1.25)],
+                 [(67,0,1.5),(71,1.5,.5),(74,2,1)],[(72,0,1),(69,1,.5),(64,1.5,1.0)],
+                 [(72,.5,.5),(76,1,.5),(79,1.5,1.5)],[(77,0,1),(74,1,.5),(71,1.5,1.5)],
+                 [(72,0,.75),(76,.75,.75),(69,1.5,1.25)],[(74,0,1.25),(69,1.5,.5),(65,2,1)],
+                 [(69,0,.5),(72,.5,1),(77,1.5,1.5)],[(74,0,1),(71,1,.5),(67,1.5,1.5)],
+                 [(69,0,1),(64,1,.5),(65,1.5,.5),(67,2,.75)],[(62,0,2.5)]]),
 ]
 
 
@@ -94,6 +109,7 @@ def render(theme,bank):
     default_pattern=(0,2,1,2,0,1,2,1) if theme['id']=='road' else (0,1,2,1,2,1,0,2)
     calm_pattern=theme.get('harp_pattern',default_pattern)
     downbeats, accents = {3: ((0,), (1, 2)), 4: ((0, 2), (1, 3)), 5: ((0, 3), (1.5, 4))}[beats]
+    downbeats, accents = theme.get('percussion_pattern', (downbeats, accents))
     for mode in ('calm','ablaze'):
         rng=np.random.default_rng(theme['seed'])
         track=np.zeros((frames,2),dtype=np.float64);intense=mode=='ablaze'

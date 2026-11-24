@@ -144,6 +144,31 @@
         }
       },
       "composition_sha256": "10a7f48a7fb12be294fc96158e078286c8215890bc25d33cea4c082afa6dc001"
+    },
+    {
+      "id": "greywood",
+      "title": "Where the Lanterns Wait",
+      "beats_per_bar": 3,
+      "bpm": 96,
+      "bars": 32,
+      "frames": 1323000,
+      "sample_rate": 22050,
+      "channels": 2,
+      "arrangements": {
+        "calm": {
+          "path": "res://assets/audio/greywood-calm.wav",
+          "peak": 0.6163865355202678,
+          "rms": 0.11999999999999998,
+          "boundary_step": 0.003472994763654192
+        },
+        "ablaze": {
+          "path": "res://assets/audio/greywood-ablaze.wav",
+          "peak": 0.8700000000000001,
+          "rms": 0.14932899689360565,
+          "boundary_step": 0.006392871364620127
+        }
+      },
+      "composition_sha256": "d2f9723c7a2687d21a27ba0fab8dd6291ce26ab2341ed11b8ef8be15964362af"
     }
   ]
 }
