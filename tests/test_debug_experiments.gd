@@ -3,6 +3,7 @@ const Rules=preload("res://scripts/rules.gd")
 const Session=preload("res://scripts/debug_session.gd")
 const Tactics=preload("res://scripts/tactics.gd")
 const Shutdown=preload("helpers/game_shutdown.gd")
+const SETUP_IDS=["committed_losses","reset_pressure","section_retreat","rescue","last_rescue","sacrifice"]
 func _initialize():call_deferred("run")
 func canonical(data):return JSON.parse_string(JSON.stringify(data))
 func unit(game,id):return game.units.filter(func(u):return u.id==id)[0]
@@ -27,11 +28,18 @@ func consequences(game,session,id):
   assert(game.retry_battle() and game.chapter==0 and game.trials.pressure==1 and "oren" in game.lost_ids())
   assert(game.trials.buy(game,"tempered_sword"))
  elif id=="reset_pressure":
+  assert(unit(game,"lyra").hp==1 and game.pos(unit(game,"lyra"))==Vector2i(8,4))
   var positions={}
   for enemy in game.living("enemy"):positions[enemy.id]=game.pos(enemy);assert(enemy.held_tonics==2)
   assert(game.trials.restart(game));game.start_battle()
   assert(not game.permadeath and game.trials.pressure==1 and game.living("enemy").all(func(e):return e.held_tonics==1))
   assert(game.living("enemy").any(func(e):return e.get("raider",false) and game.pos(e)!=positions[e.id]))
+ elif id=="section_retreat":
+  assert(game.chapter==5 and game.trials.checkpoint.chapter==4 and game.permadeath)
+  assert(game.lost_ids()==["oren"] and game.trials.credits==1 and game.trials.losses.oren==5)
+  assert(game.trials.restart(game) and game.chapter==4 and game.trials.pressure==1)
+  assert(game.lost_ids()==["oren"] and game.trials.credits==1 and "oren" not in game.deployed)
+  assert("relief_4" in game.trials.earned_scenes and "memorial_4" in game.trials.earned_scenes and "retreat_4" in game.trials.earned_scenes)
  elif id=="rescue":
   assert(session.fall_unit(game,"oren"));var patient=unit(game,"oren")
   assert(game.DeathDoor.downed(patient) and patient.bleed_turns==2)
@@ -53,6 +61,7 @@ func consequences(game,session,id):
   assert(game.heal(healer,patient) and patient.hp>0 and patient.acted and patient.get("carried_by","").is_empty())
   assert(not "oren" in game.lost_ids() and game.valid_save(game.save_data("battle")))
  else:
+  assert(unit(game,"oren").hp==1 and unit(game,"enemy_4").hp==6 and game.action_saves)
   var attack=game.attack_power(unit(game,"lyra"))
   assert(session.fall_unit(game,"oren") and game.attack_power(unit(game,"lyra"))==attack+2)
   assert(game.trials.restart(game));game.start_battle();var patient=unit(game,"oren")
@@ -62,7 +71,7 @@ func run():
  assert(not session.start_experiment(rules,"rescue") and rules.save_data("battle")==original)
  session.begin(rules,"battle",true);assert(not session.start_experiment(rules,"unknown") and rules.save_data("battle")==original)
  session.set_combat_seed(rules,309)
- for id in ["committed_losses","reset_pressure","rescue","last_rescue","sacrifice"]:
+ for id in SETUP_IDS:
   assert(session.start_experiment(rules,id));var start=canonical(rules.save_data("battle"))
   assert(rules.valid_save(start) and session.revised_knight and session.revised_enemies)
   consequences(rules,session,id)
@@ -80,11 +89,11 @@ func run():
  app.show_options("camp");app.ui.find_child("DebugMode",true,false).button_pressed=true
  app.debug_session.set_combat_seed(app.game,309)
  var expected_rng=RandomNumberGenerator.new();expected_rng.seed=309
- for id in ["committed_losses","reset_pressure","rescue","last_rescue","sacrifice"]:
+ for id in SETUP_IDS:
   app.show_debug_tools("camp" if id=="committed_losses" else "battle")
   var before=app.game.save_data("battle").duplicate(true)
   press(app,"Choose an experiment setup");assert(app.screen=="debug_experiments")
-  for dimensions in [Vector2(1024,640),Vector2(1280,720),Vector2(1440,900)]:
+  for dimensions in [Vector2(720,640),Vector2(1024,640),Vector2(1280,720),Vector2(1440,900)]:
    app.ui.set_anchors_and_offsets_preset(Control.PRESET_TOP_LEFT);app.ui.size=dimensions
    await process_frame;await process_frame
    var start_button=app.ui.find_child("StartExperiment_"+id,true,false)
@@ -154,5 +163,5 @@ func run():
  app.show_options("battle");app.ui.find_child("DebugMode",true,false).button_pressed=false
  assert(not app.debug_session.active and app.game.save_data("camp")==live and FileAccess.get_file_as_string(app.save_path)==disk)
  await Shutdown.dispose(app);await process_frame
- print("PASS: five deterministic experiment starters, five-seed rescue/bleed-out branches, carrier badge triage and exact map targets, checkpointed rescue and loss branches, three-size menus, separate saves, traces and exact campaign restoration")
+ print("PASS: six deterministic experiment starters, five-seed rescue/bleed-out branches, carrier badge triage and exact map targets, checkpointed rescue and loss branches, four-size menus, separate saves, traces and exact campaign restoration")
  quit()

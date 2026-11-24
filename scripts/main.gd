@@ -2606,8 +2606,8 @@ func show_debug_experiments():
 	var frame=menu_panel(840);var panel=scrolling_column(frame)
 	label_in(panel,"DEBUG / EXPERIMENT SETUPS",17,GOLD)
 	label_in(panel,"Try a campaign rule",36,GOLD)
-	label_in(panel,"Starting a setup replaces the temporary debug campaign, including its losses, items and rule switches. Your original campaign stays preserved. Each uses a fresh company and the selected seed: %d. Starting injuries and spent actions are described below."%debug_session.combat_seed,19)
-	label_in(panel,"All rules remain independent toggles in Options. These starting positions demonstrate the mechanics; they are not campaign balance presets.",17)
+	label_in(panel,"Starting a setup replaces the Debug company, losses, supplies and rule settings. Each uses combat seed %d. The default seed is 472019."%debug_session.combat_seed,19)
+	label_in(panel,"Change individual rules in Options. Turn off Debug mode to return to your campaign.",17)
 	for setup in preload("res://scripts/debug_experiments.gd").SETUPS:
 		label_in(panel,setup.title,26,GOLD)
 		label_in(panel,setup.rules,17)
