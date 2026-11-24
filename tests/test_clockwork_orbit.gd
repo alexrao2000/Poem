@@ -6,6 +6,7 @@ const Scenery=preload("res://scripts/scenery.gd")
 const Rules=preload("res://scripts/rules.gd")
 const Encounters=preload("res://scripts/debug_encounters.gd")
 const Shutdown=preload("helpers/game_shutdown.gd")
+const CombatCamera=preload("res://scripts/combat_camera.gd")
 
 func _initialize():call_deferred("run")
 func run():
@@ -70,6 +71,10 @@ func run():
    var map_shaft=landmarks[0].get_parent().get_node("EnginePylonShaft")
    var arena_shaft=backdrops[0].get_parent().get_node("EnginePylonShaft")
    assert(map_shaft.mesh==arena_shaft.mesh and map_shaft.material_override==arena_shaft.material_override,"Map and close-up chamber share structure and finish")
+  else:
+   verify_meridian(landmarks[0],-.15,1.1)
+   verify_meridian(backdrops[0],-.06,1.54)
+   await verify_meridian_wide(arena,Vector3(35,0,0))
   scenery.batcher.combine(world);scenery.batcher.combine(arena)
   for node in landmarks+backdrops:
    assert(node is Orbit and node.theme==game.info().environment)
@@ -78,11 +83,23 @@ func run():
   scenery.battle_landscape(fallback,Vector3(35,0,0),{"environment":context.environment})
   var centered=fallback.find_children("ClockworkOrbit*","Node3D",true,false)
   assert(centered.size()==1 and is_equal_approx(centered[0].global_position.x,35))
+  if chapter==8:
+   verify_meridian(centered[0],-.06,1.54)
+   await verify_meridian_wide(fallback,Vector3(35,0,0))
+   var mirrored=Node3D.new();host.add_child(mirrored)
+   var reversed=scenery.combat_context(game,{"x":10,"y":row},{"x":11,"y":row},-1)
+   scenery.battle_landscape(mirrored,Vector3(35,0,0),reversed)
+   var other=mirrored.get_node("ClockworkOrbit")
+   assert(is_equal_approx(other.global_position.x+anchor.x,70))
+   verify_meridian(other,-.06,1.54)
+   await verify_meridian_wide(mirrored,Vector3(35,0,0))
+   mirrored.queue_free()
   world.queue_free();arena.queue_free();fallback.queue_free();await process_frame
  game.chapter=saved.chapter;assert(game.save_data("camp")==saved and game.rng.state==random)
  host.queue_free();await process_frame
  await scenes()
  print("PASS: %d moving geometry samples, one arena mechanism per landmark, four grounded Sun Engine pylons with ring clearance, hidden-clock suspension and actual normal/Skip cleanup"%samples)
+ print("PASS: Starfall's grounded meridian dais and brass dial clear the moving rings, with planted columns and eighteen wide-shot projections")
  quit()
 
 func verify_chamber(orbit: Node3D,ground_height: float):
@@ -106,6 +123,59 @@ func verify_chamber(orbit: Node3D,ground_height: float):
   var bounds=part.transform*part.mesh.get_aabb()
   var nearest=orbit.position.clamp(bounds.position,bounds.end)
   assert(nearest.distance_to(orbit.position)>1.875*1.15,"Stationary containment stays outside the full swept ring volume")
+
+func verify_meridian(orbit: Node3D,ground_height: float,radius: float):
+ var dais=orbit.get_parent().get_node("ObservatoryDais")
+ var base=dais.get_node("MeridianFooting")
+ var foundation=base.global_transform*base.mesh.get_aabb()
+ assert(foundation.position.y<ground_height and foundation.end.y>ground_height,"The plinth intersects the land beneath it")
+ var names=["MeridianFooting","MeridianPlinth","MeridianTable","MeridianRim","MeridianDial"]
+ var previous=AABB()
+ for name in names:
+  var part=dais.get_node(name)
+  var bounds=part.transform*part.mesh.get_aabb()
+  if name!=names[0]:assert(bounds.intersects(previous),"Every level of the plinth supports the next")
+  previous=bounds
+ var ticks=dais.find_children("MeridianTick*","MeshInstance3D",false,false)
+ var axes=dais.find_children("MeridianAxis*","MeshInstance3D",false,false)
+ assert(ticks.size()==12 and axes.size()==2)
+ assert(ticks.filter(func(mark):return mark.scale.z>.2).size()==4)
+ for marker in ticks+axes:
+  var bounds=marker.transform*marker.mesh.get_aabb()
+  assert(bounds.intersects(previous),"Marks lie on the actual dial")
+ for part in dais.get_children():
+  var bounds=part.global_transform*part.mesh.get_aabb()
+  var nearest=orbit.global_position.clamp(bounds.position,bounds.end)
+  assert(nearest.distance_to(orbit.global_position)>radius*1.15,"Stone and dial stay outside the complete swept ring radius")
+
+func verify_meridian_wide(arena: Node3D,center: Vector3):
+ var dais=arena.get_node("ObservatoryDais")
+ var shafts=arena.find_children("ObservatoryColumnShaft*","MeshInstance3D",false,false)
+ var bases=arena.find_children("ObservatoryColumnBase*","MeshInstance3D",false,false)
+ var capitals=arena.find_children("ObservatoryColumnCapital*","MeshInstance3D",false,false)
+ assert(shafts.size()==6 and bases.size()==6 and capitals.size()==6)
+ var silhouettes=[]
+ for index in 6:
+  var foot=bases[index].global_transform*bases[index].mesh.get_aabb()
+  var shaft=shafts[index].global_transform*shafts[index].mesh.get_aabb()
+  var capital=capitals[index].global_transform*capitals[index].mesh.get_aabb()
+  assert(foot.position.y<center.y-.06 and foot.intersects(shaft) and shaft.intersects(capital))
+  silhouettes.append(foot.merge(shaft).merge(capital))
+ var viewport=SubViewport.new()
+ viewport.render_target_update_mode=SubViewport.UPDATE_DISABLED;root.add_child(viewport)
+ var camera=Camera3D.new();viewport.add_child(camera);camera.current=true
+ var edges=[dais.global_position+Vector3(-1.08,.5895,.60),dais.global_position+Vector3(1.08,.5895,.60)]
+ for mounted in [false,true]:
+  var shot=CombatCamera.frame_pair(center+Vector3.LEFT*1.6,center+Vector3.RIGHT*1.6,"wide",false,mounted)
+  camera.position=shot.anchor;camera.fov=shot.lens;camera.look_at(shot.focus)
+  for dimensions in [Vector2i(1024,640),Vector2i(1280,720),Vector2i(1440,900)]:
+   viewport.size=dimensions;await process_frame
+   var safe=Rect2(Vector2(20,20),Vector2(dimensions)-Vector2(40,174))
+   assert(edges.any(func(point):
+    var clear=not silhouettes.any(func(pillar):return pillar.intersects_segment(camera.global_position,point)!=null)
+    return clear and not camera.is_position_behind(point) and safe.has_point(camera.unproject_position(point))
+   ),"At least one bronze rim point stays clear of the columns and HUD")
+ viewport.queue_free();await process_frame
 
 func scenes():
  var app=load("res://main.tscn").instantiate();app.settings_path="";app.save_path="/private/tmp/poem-clockwork-%d.json"%Time.get_ticks_usec();root.add_child(app);await process_frame

@@ -1,5 +1,7 @@
 # Poem development
 
+Starfall’s armillary now has a stepped stone dais with a twelve-mark brass dial in both the tactical map and 3D battle scene. Six columns frame the close-up while leaving the dial visible in the middle.
+
 High-quality import compression for ten portrait sheets reduced the browser data pack from 109.4 MB to 97.5 MB. Imported alpha matches exactly. The largest mean RGB error across 68 roster, dialogue, enemy and commander crops is 1.85 of 255 levels. [Godot 4.5 texture importer](https://docs.godotengine.org/en/4.5/classes/class_resourceimportertexture.html#class-resourceimportertexture-property-compress-mode)
 
 All twelve chapters have original battlefield ambience. Cinderford adds dawn calls, the Old Aqueduct adds droplets, Starfall adds night wind, and Crown Approach adds cloth rustles. The ambience shares one decoder across tactical and 3D scenes and follows the Effects setting.

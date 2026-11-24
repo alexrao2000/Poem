@@ -395,8 +395,7 @@ func landmark(parent,p,kind,roof_variant=-1):
  elif kind=="engine":
   sun_engine(parent,p+Vector3.DOWN*.06,.46)
  elif kind=="observatory":
-  cylinder(parent,p+Vector3(0,.2,0),.4,1.3,stone)
-  var orbit=preload("res://scripts/clockwork_orbit.gd").new();parent.add_child(orbit);orbit.position=p+Vector3(0,1.5,0);orbit.configure(kind)
+  observatory(parent,p)
  elif kind=="furnace":furnace(parent,p)
  elif kind=="ruin":
   var ruin=mesh(parent,RuinedColumns.mesh(),p,Vector3.ONE,Fortification.material())
@@ -412,6 +411,30 @@ func harbor_rigging(parent: Node3D,point: Vector3):
   stay.name="BoatStay"
   stay.quaternion=Quaternion(Vector3.UP,direction.normalized())
   stay.scale.y=direction.length()
+
+func observatory(parent: Node3D,point: Vector3,in_arena=false):
+ var dais=Node3D.new();dais.name="ObservatoryDais";dais.position=point
+ if not in_arena:dais.scale=Vector3(.58,.25,.58)
+ parent.add_child(dais)
+ cylinder(dais,Vector3(0,-.47,0),1.26,2.18,Color("777771"),2.09).name="MeridianFooting"
+ cylinder(dais,Vector3(0,.28,0),.34,1.91,Color("817f76"),1.65).name="MeridianPlinth"
+ cylinder(dais,Vector3(0,.48,0),.18,1.68,Color("a19683"),1.59).name="MeridianTable"
+ cylinder(dais,Vector3(0,.567,0),.045,1.38,Color("ae925d"),1.35).name="MeridianRim"
+ cylinder(dais,Vector3(0,.584,0),.028,1.22,Color("535d63"),1.19).name="MeridianDial"
+ for index in 12:
+  var angle=index*TAU/12
+  var cardinal=index%3==0
+  var length=.29 if cardinal else .11
+  var radius=1.14-length*.5
+  var marker=block(dais,Vector3(sin(angle)*radius,.602,cos(angle)*radius),
+   Vector3(.074 if cardinal else .038,.018,length),Color("c6af7e") if cardinal else Color("a99060"))
+  marker.name="MeridianTick";marker.rotation.y=angle
+ block(dais,Vector3(0,.607,0),Vector3(.086,.024,1.52),Color("c6af7e")).name="MeridianAxis"
+ block(dais,Vector3(0,.602,0),Vector3(.95,.016,.065),Color("c6af7e")).name="MeridianAxis"
+ var orbit=preload("res://scripts/clockwork_orbit.gd").new()
+ parent.add_child(orbit)
+ orbit.position=point+Vector3.UP*(2.6 if in_arena else 1.5)
+ orbit.configure("observatory",1.54 if in_arena else 1.1,.55)
 
 func furnace(parent: Node3D,p: Vector3,scale_value=1.0):
  var hearth=Node3D.new();hearth.name="FurnaceHearth";hearth.position=p
@@ -722,15 +745,14 @@ func battle_landscape(parent,center,context={}):
  if theme=="forest":TrailLanterns.fighting_lane(parent,center)
  if theme=="aqueduct":aqueduct_gallery(parent,center,water_level)
  if theme=="abbey":abbey_arcade(parent,center+Vector3(0,0,-9.7))
- if theme in ["observatory","castle"]:
-  for x in ([] if theme=="castle" else range(-12,13,4)):
-   cylinder(parent,center+Vector3(x,1.8,-5),3.6,.32,Color("9e9d8d"))
-   cylinder(parent,center+Vector3(x,.12,-5),.24,.5,Color("7f8178"))
-   cylinder(parent,center+Vector3(x,3.5,-5),.3,.48,Color("c2bea7"))
-  if theme=="castle":
-   Fortification.build_castle_wall(self,parent,center+Vector3(0,0,-9))
-  elif theme=="observatory":
-   var orbit=preload("res://scripts/clockwork_orbit.gd").new();parent.add_child(orbit);orbit.position=mechanism+Vector3.UP*2.6;orbit.configure(theme,1.54,.55)
+ if theme=="castle":
+  Fortification.build_castle_wall(self,parent,center+Vector3(0,0,-9))
+ elif theme=="observatory":
+  for x in [-13,-9,-5.2,5.2,9,13]:
+   cylinder(parent,center+Vector3(x,1.8,-5),3.6,.32,Color("9e9d8d")).name="ObservatoryColumnShaft"
+   cylinder(parent,center+Vector3(x,.11,-5),.38,.5,Color("7f8178")).name="ObservatoryColumnBase"
+   cylinder(parent,center+Vector3(x,3.5,-5),.3,.48,Color("c2bea7")).name="ObservatoryColumnCapital"
+  observatory(parent,mechanism,true)
  if ArenaRidges.LANDSCAPES.has(theme):
   ArenaRidges.build(parent,center+Vector3.UP*.06 if continuous_floor else center,theme)
   if theme=="mountain":
