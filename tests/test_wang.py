@@ -3,6 +3,7 @@ import hashlib
 import importlib.util
 import json
 from pathlib import Path
+import re
 import unittest
 
 import numpy as np
@@ -52,6 +53,14 @@ class WangAtlas(unittest.TestCase):
                 x, y = (index % 4) * wang.STRIDE, (material * 4 + index // 4) * wang.STRIDE
                 actual = self.atlas[y:y + wang.STRIDE, x:x + wang.STRIDE]
                 np.testing.assert_array_equal(actual, np.pad(tile, ((wang.GUTTER, wang.GUTTER), (wang.GUTTER, wang.GUTTER), (0, 0)), mode="reflect"))
+
+    def test_distant_mip_feeds_bilinear_samples_from_the_same_cell(self):
+        ground = (ROOT / "assets/shaders/ground.gdshader").read_text()
+        maximum = re.search(r"const float WANG_FAR_MIP = (\d+)\.0;", ground)
+        self.assertIsNotNone(maximum)
+        texel_width = 1 << int(maximum[1])
+        self.assertEqual(wang.STRIDE % texel_width, 0)
+        self.assertGreaterEqual(wang.GUTTER + .5, texel_width / 2)
 
     def test_reproducible_from_recorded_source(self):
         metadata = json.loads((ROOT / "assets/art/terrain-wang.json").read_text())

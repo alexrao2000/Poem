@@ -1,8 +1,10 @@
 // Position-hashed shared edges select a complete two-color Wang set. Explicit
 // gradients keep atlas jumps out of mip selection; reflected gutters protect
-// adjacent cells. Existing control weights still own material transitions.
+// adjacent cells. Distant ground can use mip 4, where a 144-pixel cell is nine
+// texels wide and the eight-pixel gutters still cover the bilinear samples.
 
 shader_type spatial;
+const float WANG_FAR_MIP = 4.0;
 uniform sampler2D atlas_texture : source_color, filter_linear_mipmap;
 uniform sampler2D wang_texture : source_color, filter_linear_mipmap, repeat_disable;
 uniform bool wang_enabled = false;
@@ -30,6 +32,9 @@ vec3 wang_paint(int index, int surface, vec2 local_uv, vec2 dx, vec2 dy) {
 	vec2 dimensions = vec2(textureSize(wang_texture, 0));
 	vec2 uv = (cell * 144.0 + vec2(8.5) + local_uv * 127.0) / dimensions;
 	float footprint = max(max(length(dx), length(dy)) * 127.0, 1.0);
+	if (footprint > 16.0) {
+		return textureLod(wang_texture, uv, min(WANG_FAR_MIP, log2(footprint) - 1.0)).rgb;
+	}
 	float mip_scale = min(1.0, 8.0 / footprint);
 	return textureGrad(wang_texture, uv, dx * 127.0 * mip_scale / dimensions, dy * 127.0 * mip_scale / dimensions).rgb;
 }
