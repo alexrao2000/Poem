@@ -189,6 +189,8 @@ The previous roof slabs left the existing gable peak protruding by about 0.035 w
 
 Each palette uses one cached mesh under 600 triangles, with a shared vertex-color material. Geometry checks measure 204 roof/gable intersections, face winding/normals, overhangs and all eight campaign house/warehouse identities in their actual backdrops. Full static batching checks preserve triangles, positions and UVs across all maps/arenas; map counts at that checkpoint were 13,501 source meshes / 625 batches. These are geometry checks, not rendered appearance or frame-rate measurements.
 
+Cinderford’s seven cottage chimneys have open stone rims and drifting smoke. Each cottage keeps its plume timing when it appears in a close-up. The arena rotates the village wind into the fight’s camera orientation and gives the cottages more room below the top of the frame. Nearby pairs keep a gap between their eaves. All visible wisps share one instanced mesh in each view.
+
 ## Equipped action reach
 
 The blue movement region now has an orange action envelope showing where the selected unit could attack after a legal move. Staff users receive green healing reach instead. The envelope excludes blue cells to keep movement readable, while immediately attackable enemies or healable allies retain a stronger target highlight. After moving, reach originates only at the new tile; undo restores the larger preview. A short contextual legend explains the colors.

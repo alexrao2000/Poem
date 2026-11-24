@@ -3,6 +3,7 @@ const CloudSky=preload("res://scripts/cloud_sky.gd")
 const Drift=preload("res://scripts/ambient_drift.gd")
 const Rules=preload("res://scripts/rules.gd")
 const Scenery=preload("res://scripts/scenery.gd")
+const ChimneySmoke=preload("res://scripts/chimney_smoke.gd")
 
 func _initialize():call_deferred("run")
 
@@ -89,16 +90,78 @@ func run():
   var map=Node3D.new();host.add_child(map);scenery.landscape(map,game)
   var atmosphere=map.get_node("AmbientDrift")
   assert(atmosphere.cloud.multimesh.instance_count>0 and atmosphere.position.y==0,"Every tactical chapter attaches its atmosphere after scenery batching")
+  assert(map.has_node("ChimneySmoke")== (chapter==0),"Only Cinderford has active household vents")
   var arena=Node3D.new();host.add_child(arena);scenery.battle_landscape(arena,Vector3(35,0,0),{"environment":game.info().environment,"chapter":chapter})
   var closeup=arena.get_node("AmbientDrift")
   assert(closeup.kind==atmosphere.kind and closeup.position.x==35,"Close-up arena retains the chapter atmosphere around its real stage origin")
   verify_handoff(scenery,map,arena,game.info().environment)
   var reference=weakref(atmosphere);map.queue_free();arena.queue_free();await process_frame
   assert(reference.get_ref()==null,"Leaving a chapter releases its instanced atmosphere")
+ await verify_chimneys(scenery,host,game)
  host.queue_free();await process_frame
  print("PASS: all twelve battlefields share seeded particles and exact phases in both directions at three sampled times")
  print("PASS: seamless deterministic cloud panorama, cached cover, horizon/zenith continuity, theme contrast; twelve chapter atmospheres, 24 map/arena configurations, bounded rain streaks, low Windscar crosswind and other instances, deterministic motion, hidden suspension, fade loops and cleanup")
  quit()
+
+func verify_chimneys(scenery,host,game):
+ game.chapter=0
+ var field=Node3D.new();host.add_child(field);scenery.batching_enabled=false;scenery.landscape(field,game)
+ var field_smoke=field.get_node("ChimneySmoke")
+ var vents=game.info().landmarks.filter(func(item):return item.kind=="house")
+ var rims=field.find_children("ChimneyRim*","MeshInstance3D",true,false)
+ var house_count=vents.size()
+ assert(rims.size()==house_count*4 and field_smoke.multimesh.instance_count==house_count*ChimneySmoke.WISPS)
+ for i in house_count:
+  var site=Vector2(vents[i].position[0],vents[i].position[1])
+  var vent=ChimneySmoke.vent(Vector3(site.x,0,site.y),Scenery.HOUSE_SCALE,site)
+  assert(field_smoke.vents[i]==vent)
+  for rim in rims.slice(i*4,(i+1)*4):
+   var box=rim.global_transform*rim.mesh.get_aabb()
+   assert(is_equal_approx(box.end.y,vent.origin.y) and not box.has_point(vent.origin-Vector3.UP*.02),"Smoke exits through an open rim at roof height")
+ for direction in [-1.0,1.0]:
+  var stage=Node3D.new();host.add_child(stage)
+  var context=scenery.combat_context(game,{"x":1,"y":2},{"x":2,"y":2},direction)
+  scenery.battle_landscape(stage,Vector3(35,0,0),context)
+  var close=stage.get_node("ChimneySmoke")
+  var moved_site=context.landmarks.filter(func(item):return item.kind=="house")[0].map_site
+  var field_index=vents.map(func(item):return Vector2(item.position[0],item.position[1])).find(moved_site)
+  var close_vent=close.vents[0]
+  assert(field_index>=0 and close_vent.phase==field_smoke.vents[field_index].phase)
+  assert(close.material_override==field_smoke.material_override and close.multimesh.mesh==field_smoke.multimesh.mesh)
+  assert(close.multimesh!=field_smoke.multimesh and close.cast_shadow==GeometryInstance3D.SHADOW_CASTING_SETTING_OFF)
+  assert(close.wind.is_equal_approx(ChimneySmoke.WIND*direction))
+  for step in 25:
+   field_smoke.clock.seek_elapsed(float(step)/24.0*ChimneySmoke.LIFETIME)
+   field_smoke.update_from_clock()
+   scenery.transfer_environment_motion(field,stage,"village")
+   assert(close.clock.elapsed==field_smoke.clock.elapsed)
+   var near=field_smoke.instance_data
+   var far=close.instance_data
+   for i in ChimneySmoke.WISPS:
+    var offset=i*16
+    assert(far[offset+15]==near[(field_index*ChimneySmoke.WISPS+i)*16+15],"The same chimney keeps the phase and opacity of every wisp")
+   for i in close.multimesh.instance_count:
+    var offset=i*16
+    var position=Vector3(far[offset+3],far[offset+7],far[offset+11])
+    var radius=Vector3.ONE*Vector2(far[offset],far[offset+5]).length()*.5
+    assert(close.multimesh.custom_aabb.encloses(AABB(position-radius,radius*2)))
+  var frozen=field_smoke.instance_data.duplicate()
+  field.hide();close.clock.seek_elapsed(close.clock.elapsed+.5);field_smoke._process(.5)
+  assert(field_smoke.instance_data==frozen)
+  scenery.transfer_environment_motion(stage,field,"village")
+  assert(field_smoke.clock.elapsed==close.clock.elapsed and field_smoke.instance_data!=frozen)
+  field.show();stage.queue_free();await process_frame
+ var paired=Node3D.new();host.add_child(paired)
+ var context=scenery.combat_context(game,{"x":8,"y":4},{"x":9,"y":4})
+ scenery.battle_landscape(paired,Vector3(35,0,0),context)
+ var roofs=paired.find_children("TiledRoof","MeshInstance3D",true,false)
+ assert(roofs.size()==2)
+ var first=roofs[0].global_transform*roofs[0].mesh.get_aabb()
+ var second=roofs[1].global_transform*roofs[1].mesh.get_aabb()
+ assert(not first.intersects(second),"Two visible village rooftops have separate eaves")
+ paired.queue_free()
+ field.queue_free();await process_frame
+ print("PASS: seven Cinderford vents, fifty chimney phases through both camera directions, one shared mesh per view, open rims, culling and hidden handoff")
 
 
 func verify_handoff(scenery,field: Node3D,stage: Node3D,theme: String):

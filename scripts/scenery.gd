@@ -8,6 +8,7 @@ const Architecture=preload("res://scripts/architecture.gd")
 const Fortification=preload("res://scripts/fortification.gd")
 const Fountain=preload("res://scripts/fountain.gd")
 const AmbientDrift=preload("res://scripts/ambient_drift.gd")
+const ChimneySmoke=preload("res://scripts/chimney_smoke.gd")
 const GroundCover=preload("res://scripts/ground_cover.gd")
 const ConiferCrowns=preload("res://scripts/conifer_crowns.gd")
 const BarrelVisuals=preload("res://scripts/barrel_visuals.gd")
@@ -28,6 +29,8 @@ const AqueductWheel=preload("res://scripts/aqueduct_waterwheel.gd")
 const ReddeepCart=preload("res://scripts/reddeep_slag_cart.gd")
 const EngineConduits=preload("res://scripts/sun_engine_conduits.gd")
 const MAX_CACHED_CYLINDERS=256
+const HOUSE_SCALE=1.2
+const VILLAGE_HOUSE_BACKDROP_SCALE=1.7
 const ROAD_CANAL_NEAR=-5.0
 const ROAD_CANAL_FAR=-13.0
 const ROAD_CANAL_LEVEL=-.11
@@ -275,7 +278,7 @@ func bridge(parent,p,vertical=false):
 func sanctuary(parent,p):
  mesh(parent,SanctuaryPlinth.mesh(),p,Vector3.ONE,SanctuaryPlinth.material()).name="SanctuaryPlinth"
 
-func house(parent,p,scale_value=1.0,roof_variant=-1,warehouse=false):
+func house(parent,p,scale_value=1.0,roof_variant=-1,warehouse=false,vented=false):
  var root=Node3D.new();parent.add_child(root);root.position=p;root.scale=Vector3.ONE*scale_value
  root.name="House"
  if roof_variant<0:roof_variant=Architecture.variant_at(p)
@@ -306,7 +309,13 @@ func house(parent,p,scale_value=1.0,roof_variant=-1,warehouse=false):
   block(root,Vector3(0,1.42,z),Vector3(.065,.55,.06),oak)
  var roof=mesh(root,Architecture.roof(roof_variant),Vector3.ZERO,Vector3.ONE,Architecture.material());roof.name="TiledRoof"
  var chimney=block(root,Vector3(.5,1.6,-.3),Vector3(.23,.7,.25),Color("8d8271"));chimney.material_override=detail_material(3)
- block(root,Vector3(.5,1.97,-.3),Vector3(.29,.08,.3),Color("686c68"))
+ var cap=ChimneySmoke.OUTLET-Vector3.UP*.04
+ var cap_color=Color("686c68")
+ if vented:
+  for side in [-1,1]:
+   block(root,cap+Vector3(side*.09875,0,0),Vector3(.0925,.08,.30),cap_color).name="ChimneyRim"
+   block(root,cap+Vector3(0,0,side*.10125),Vector3(.105,.08,.0975),cap_color).name="ChimneyRim"
+ else:block(root,cap,Vector3(.29,.08,.30),cap_color)
  for z in [-.25,.18]:barrel(root,Vector3(.95,0,z),.75)
  var sign=block(root,Vector3(-.56,.92,.78),Vector3(.28,.18,.045),Color("74634c"));sign.rotation.z=.05
  block(root,Vector3(-.56,.92,.81),Vector3(.12,.025,.01),Color("c2af78"))
@@ -364,8 +373,13 @@ func landscape(parent,game):
     flag.configure(Vector2(.45,.32),Color("a54c47"),true,x*.71+y*.37)
    elif t=="+":sanctuary(parent,p)
  # Authored landmarks communicate the chapter instead of a repeated village frame.
+ var vents=[]
  for item in game.info().get("landmarks",[]):
-  landmark(parent,Vector3(item.position[0],0,item.position[1]),item.kind)
+  var site=Vector2(item.position[0],item.position[1])
+  var position=Vector3(site.x,0,site.y)
+  var vented=theme=="village" and item.kind=="house"
+  landmark(parent,position,item.kind,-1,Vector2.INF,vented)
+  if vented:vents.append(ChimneySmoke.vent(position,HOUSE_SCALE,site))
  if theme=="river":RiverChain.build(self,parent,Vector3(4.32,0,4.52),Vector3(6.68,0,4.52),.44,.25,.105)
  if theme=="village":
   village_mill(parent,MILL_MAP_SITE,.69)
@@ -401,12 +415,18 @@ func landscape(parent,game):
  var atmosphere=AmbientDrift.new();parent.add_child(atmosphere)
  atmosphere.position=Vector3((game.board_size().x-1)*.5,0,(game.board_size().y-1)*.5)
  atmosphere.configure(theme,Vector3(game.board_size().x+6,3,game.board_size().y+6),false,game.chapter)
+ add_chimney_smoke(parent,vents,ChimneySmoke.WIND,atmosphere)
 
-func landmark(parent,p,kind,roof_variant=-1,map_site=Vector2.INF):
+func add_chimney_smoke(parent: Node3D,vents: Array,wind: Vector2,atmosphere: AmbientDrift):
+ if vents.is_empty():return
+ var smoke=ChimneySmoke.new();parent.add_child(smoke)
+ smoke.configure(vents,wind,atmosphere)
+
+func landmark(parent,p,kind,roof_variant=-1,map_site=Vector2.INF,vented=false):
  var stone=Color("969b91")
  if kind in ["house","warehouse"]:
   var warehouse=kind=="warehouse"
-  house(parent,p,1.4 if warehouse else 1.2,roof_variant,warehouse)
+  house(parent,p,1.4 if warehouse else HOUSE_SCALE,roof_variant,warehouse,vented)
  elif kind=="fountain":
   Fountain.build(parent,p,water_material())
  elif kind=="tower":
@@ -536,6 +556,7 @@ func combat_context(game,a,b,screen_direction=1.0) -> Dictionary:
  candidates.sort_custom(func(left,right):return left.distance<right.distance)
  var context={"chapter":game.chapter,"environment":theme,"terrain":tile,
   "landmarks":candidates.slice(0,2),"road_canal":theme=="road" and near_water,"harbor_quay":harbor_quayside}
+ if theme=="village":context.chimney_wind=Vector2(ChimneySmoke.WIND.dot(axis),ChimneySmoke.WIND.dot(depth))
  if context.road_canal:
   context.road_hoist=midpoint.distance_to(Vector2(KingsroadHoist.MAP_SITE.x,KingsroadHoist.MAP_SITE.z))<=3.5
  if theme=="castle":
@@ -553,6 +574,8 @@ func transfer_environment_motion(source: Node3D,destination: Node3D,theme: Strin
  if previous_drift!=null and next_drift!=null and previous_drift.kind==next_drift.kind:
   next_drift.seek_elapsed(previous_drift.elapsed)
  if theme=="village":
+  var smoke=destination.get_node_or_null("ChimneySmoke") as ChimneySmoke
+  if smoke!=null:smoke.update_from_clock()
   var original=source.get_node_or_null("CinderfordMill/MillRotor")
   var counterpart=destination.get_node_or_null("CinderfordMill/MillRotor")
   if original!=null and counterpart!=null:counterpart.rotation.z=original.rotation.z
@@ -789,6 +812,18 @@ func sun_engine_basin(parent: Node3D,anchor: Vector3):
  for z in [-3.75,3.75]:
   block(parent,anchor+Vector3(0,.035,z),Vector3(11.5,.20,.24),masonry).name="EngineBasinRim"
 
+func separate_village_houses(backdrop: Array) -> Array:
+ if backdrop.size()!=2 or not backdrop.all(func(item):return item.kind=="house" and item.has("map_site")):return backdrop
+ var nearer=backdrop[0]
+ var farther=backdrop[1]
+ var scale_value=HOUSE_SCALE*VILLAGE_HOUSE_BACKDROP_SCALE
+ var width=2*Architecture.HALF_WIDTH*scale_value+.20
+ var depth=2*Architecture.HALF_DEPTH*scale_value+.20
+ if absf(nearer.x-farther.x)>=width or absf(nearer.z-farther.z)>=depth:return backdrop
+ farther=farther.duplicate()
+ farther.z=nearer.z-depth
+ return [nearer,farther]
+
 func battle_landscape(parent,center,context={}):
  var theme=context.get("environment","village")
  if theme!=cylinder_environment:
@@ -840,6 +875,7 @@ func battle_landscape(parent,center,context={}):
     var reed=ground_cover.plant(parent,{"kind":2,"position":position,"height":.28+(index%3)*.045,"yaw":index*2.399})
     reed.name="ArenaBankReed"
  var backdrop=context.get("landmarks",[])
+ if theme=="village":backdrop=separate_village_houses(backdrop)
  var tollhouse=Vector3(context.get("tollhouse_x",INF),0,RiverBank.ARENA_FAR_START-1.9)
  if is_finite(tollhouse.x):ReedTollhouse.build(self,parent,center+tollhouse,2.50)
  if theme in ["village","river","road","forest","harbor"]:
@@ -866,6 +902,7 @@ func battle_landscape(parent,center,context={}):
  parent.set_meta("backdrop_count",backdrop.size())
  var mechanism=center+Vector3(0,0,-12 if theme=="engine" else -10)
  var belfry_lateral=-5.7
+ var vents=[]
  for item in backdrop:
   var depth=RiverBank.ARENA_FAR_START-1.5+(item.z+7)*.7 if river else item.z
   var lateral=item.x
@@ -883,10 +920,15 @@ func battle_landscape(parent,center,context={}):
    mechanism.x=center.x+clampf(item.x,-3.8,3.8)
    mechanism.z=minf(mechanism.z,center.z+depth)
    continue
+  var map_site=item.get("map_site",Vector2.INF)
+  var vented=theme=="village" and item.kind=="house" and map_site!=Vector2.INF
   var group=Node3D.new();group.name="ArenaLandmark";parent.add_child(group,true);group.position=center+Vector3(lateral,0,depth)
   group.scale=Vector3.ONE*(2.1 if item.kind in ["house","warehouse","tower","spire","arch","furnace"] else 1.4)
+  # Give the village roofline room below the top of the close-up camera.
+  if vented:group.scale=Vector3.ONE*VILLAGE_HOUSE_BACKDROP_SCALE
   if item.kind=="camp":group.scale=Vector3.ONE*2.5
-  landmark(group,Vector3.ZERO,item.kind,item.get("roof_variant",0),item.get("map_site",Vector2.INF))
+  landmark(group,Vector3.ZERO,item.kind,item.get("roof_variant",0),map_site,vented)
+  if vented:vents.append(ChimneySmoke.vent(group.position,group.scale.x*HOUSE_SCALE,map_site))
  if theme in ["village","road"]:
   cart(parent,center+Vector3(-6,0,-3.8));fence(parent,center+Vector3(3,0,-4),5.0)
   for i in range(3):barrel(parent,center+Vector3(6+i*.4,0,-4.3),1.0)
@@ -931,6 +973,7 @@ func battle_landscape(parent,center,context={}):
  if batching_enabled:batcher.combine(parent)
  var atmosphere=AmbientDrift.new();parent.add_child(atmosphere);atmosphere.position=center+Vector3(0,0,-3)
  atmosphere.configure(theme,Vector3(28,4,14),true,context.get("chapter",0))
+ add_chimney_smoke(parent,vents,context.get("chimney_wind",ChimneySmoke.WIND),atmosphere)
  return theme
 
 func pass_beacons(parent: Node3D,slope: MeshInstance3D,arena: bool):

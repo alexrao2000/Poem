@@ -133,12 +133,49 @@ func run():
 	await verify_aqueduct_exchange(app)
 	await verify_crown_gate_exchange(app)
 	await verify_weather_exchange(app)
+	await verify_chimney_exchange(app)
 	app.show_ending()
 	await process_frame
 	await Shutdown.dispose(app)
 	await process_frame
 	print("PASS: 12 distinct chapter palettes shared by map and arena, 12 camp/map scenes, combat camera transition, control restoration and ending")
 	quit()
+
+func verify_chimney_exchange(app):
+	app.game.chapter=0;app.game.start_battle();app.make_map();app.show_battle()
+	var a=app.game.living("player")[0];var b=app.game.living("enemy")[0]
+	a.x=8;a.y=4;b.x=9;b.y=4;app.refresh_pieces()
+	var smoke=app.world.get_node("ChimneySmoke")
+	var clock=smoke.clock;clock.seek_elapsed(3.25);smoke.update_from_clock()
+	var state=app.game.save_data("battle").duplicate(true)
+	var events=[{"actor":a.id,"target":b.id,"damage":1,"remaining":b.hp-1,"hit":true,"crit":false}]
+	var phases=[]
+	var roof_in_view=[false]
+	var enter=func():
+		if app.world.visible:return
+		var arena=app.stage.get_node("ChimneySmoke")
+		assert(arena.clock.elapsed==clock.elapsed and arena.multimesh.instance_count>0)
+		phases.append(clock.elapsed)
+	var leave=func():
+		if app.stage.visible or app.world.visible:return
+		var arena=app.stage.get_node("ChimneySmoke")
+		assert(arena.clock.elapsed==clock.elapsed and clock.elapsed>phases[0])
+		phases.append(clock.elapsed)
+	var inspect=func():
+		if roof_in_view[0] or not app.stage.visible or not app.ui.has_node("CombatHUD"):return
+		var arena=app.stage.get_node("ChimneySmoke")
+		var visible_area=app.camera.get_viewport().get_visible_rect().grow(-16)
+		roof_in_view[0]=arena.vents.any(func(vent):
+			return visible_area.has_point(app.camera.unproject_position(vent.origin+Vector3.UP*1.08)))
+	app.world.visibility_changed.connect(enter);app.stage.visibility_changed.connect(leave)
+	process_frame.connect(inspect)
+	await app.cinematic(a,b,events,{a.id:a.hp,b.id:b.hp})
+	process_frame.disconnect(inspect)
+	app.world.visibility_changed.disconnect(enter);app.stage.visibility_changed.disconnect(leave)
+	assert(phases.size()==2 and clock.elapsed>=phases[1] and app.world.visible and roof_in_view[0])
+	assert(app.stage.get_node_or_null("ChimneySmoke")==null)
+	assert(app.game.save_data("battle")==state)
+	print("PASS: Cinderford chimney smoke follows the houses through a complete 3D exchange and returns at the same phase")
 
 func verify_starfall_exchange(app):
 	app.game.chapter=8
