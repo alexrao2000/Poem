@@ -674,7 +674,9 @@ func deploy_company():
 
 func announce_chapter():
 	chapter_card_skip=false;chapter_card_active=true
-	var card=preload("res://scripts/chapter_card.gd").new();card.configure(ui,game.chapter,game.info().title,game.info().place)
+	var card=preload("res://scripts/chapter_card.gd").new()
+	var horizon=environment.sky.sky_material.sky_horizon_color
+	card.configure(ui,game.chapter,game.info().title,game.info().place,horizon)
 	await card.play(func():return chapter_card_skip)
 	ui.remove_child(card);card.queue_free();chapter_card_active=false
 

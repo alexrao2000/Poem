@@ -6,6 +6,8 @@ This checkpoint describes the current development branch and supersedes the earl
 
 ### Latest state
 
+Deployment banners use each battlefield’s horizon tint. Seventy-two layouts kept every heading readable between 720 and 1440 logical pixels. The lowest measured text contrast was 4.993 over a bright field. A real Starfall deployment, eight focused suites, 72 matched chapter outcomes, packed chapter and phase checks and both ZIP checks passed. Windscar’s new Debug code verifies both beacon flames and the crosswind through a full revised fight in both packs. The guide now has a checkpoint for every battlefield. See `build/review/playtest/README.md`. Rendered gameplay remains unreviewed.
+
 The tactical chapter and phase plates leave a 40-pixel gap at 720 logical pixels. Debug and save failures share a second line, and the phase plate keeps its 22-pixel right inset. Seventy-two chapter layouts and 72 Debug status layouts passed. Eight focused suites, 72 matched chapter outcomes, packed objectives and Debug checks and both ZIP checks passed. Rendered gameplay remains unreviewed.
 
 The Hard committed-loss campaign at `b49e392` reached the ending after 15 battles, 470 player actions and 529 complete 3D exchanges at Fast ×2. All 998 saves matched the earlier Quick Map route, including both section retreats, Lyra’s defeat and retry, 17 permanent losses and all three named memorials. Seven recruits remained available. The score and ambience decoders stayed active through every exchange. See `build/review/committed-cinematics.html`. Rendered appearance, listening and human difficulty remain unreviewed.
