@@ -17,6 +17,12 @@ const PROFILE=[
  Vector2(.28,0),Vector2(.73,.40),Vector2(.95,.80),Vector2(1,1)
 ]
 const STRAKES=[Color("685346"),Color("8b6c52"),Color("765743"),Color("51443e")]
+const RIGGING=[
+ [Vector3(0,2.23,.020),Vector3(0,.362,1.39)],
+ [Vector3(0,2.23,-.020),Vector3(0,.308,-1.34)],
+ [Vector3(0,2.04,-.019),Vector3(-.58,.282,-.43)],
+ [Vector3(0,2.04,-.019),Vector3(.58,.282,-.43)]
+]
 static var shape: ArrayMesh
 
 static func point(rib: int,profile_index: int) -> Vector3:

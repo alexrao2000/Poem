@@ -386,6 +386,7 @@ func landmark(parent,p,kind,roof_variant=-1):
   yard.name="BoatYardarm";yard.rotation.z=-PI/2.0
   var sail=WindCloth.new();parent.add_child(sail);sail.position=p+Vector3(0,1.5,0)
   sail.configure(Vector2(1.3,1.4),Color("dcd4b9"),false,p.x*.71+p.z*.37)
+  harbor_rigging(parent,p)
  elif kind=="camp":
   var tent=cylinder(parent,p+Vector3(0,.5,0),1,.8,Color("c7bba1"),0);tent.scale.z=1.5
   cylinder(parent,p+Vector3(1,.06,0),.1,.3,Color("6a5c4b"))
@@ -399,6 +400,16 @@ func landmark(parent,p,kind,roof_variant=-1):
   var ruin=mesh(parent,RuinedColumns.mesh(),p,Vector3.ONE,Fortification.material())
   ruin.name="RuinMasonry"
   ruin.set_meta("static_batch",true)
+
+func harbor_rigging(parent: Node3D,point: Vector3):
+ for line in HarborBoat.RIGGING:
+  var direction: Vector3=line[0]-line[1]
+  var cleat: Vector3=point+line[1]
+  block(parent,cleat-Vector3.UP*.04,Vector3(.13,.12,.095),Color("8d7955")).name="BoatCleat"
+  var stay=cylinder(parent,cleat+direction*.5,1.0,.014,Color("51483c"))
+  stay.name="BoatStay"
+  stay.quaternion=Quaternion(Vector3.UP,direction.normalized())
+  stay.scale.y=direction.length()
 
 func furnace(parent: Node3D,p: Vector3,scale_value=1.0):
  var hearth=Node3D.new();hearth.name="FurnaceHearth";hearth.position=p

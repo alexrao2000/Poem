@@ -686,7 +686,7 @@ func verify_harbor_boats():
  assert(game.rng.state==before,"Harbor scenery leaves campaign rolls intact")
  map.free()
  await process_frame
- print("PASS: closed 140-triangle timber hull, raised prow, fitted yardarm, and both moored boats on the map and in combat")
+ print("PASS: closed 140-triangle timber hull, fitted sail, and four deck-anchored stays on every map and arena boat")
 
 func verify_mooring(piece: MeshInstance3D,water_level: float):
  var wood=piece.material_override as StandardMaterial3D
@@ -708,6 +708,28 @@ func verify_mooring(piece: MeshInstance3D,water_level: float):
  assert(is_equal_approx(yard.position.y,sail.position.y+sail.dimensions.y*.5),"The sail's upper edge meets the yardarm")
  var span=yard.basis.y*yard_mesh.height*.5
  assert(yard.position.x-span.x<sail.position.x and yard.position.x+span.x>sail.position.x+sail.dimensions.x)
+ var ropes=piece.get_parent().get_children().filter(func(node):
+  return node is MeshInstance3D and str(node.name).begins_with("BoatStay")
+ )
+ var ties=piece.get_parent().get_children().filter(func(node):
+  return node is MeshInstance3D and str(node.name).begins_with("BoatCleat")
+ )
+ assert(HarborBoat.RIGGING.size()==4)
+ assert(ropes.all(func(rope):return rope.mesh==ropes[0].mesh),"Every stay uses the same cylindrical mesh")
+ for line in HarborBoat.RIGGING:
+  var top=piece.position+line[0];var anchor=piece.position+line[1]
+  var attached=ropes.filter(func(rope):return rope.position.is_equal_approx((top+anchor)*.5))
+  var fixed=ties.filter(func(block):return block.position.is_equal_approx(anchor-Vector3.UP*.04))
+  assert(attached.size()==1 and fixed.size()==1,"One stay joins each deck cleat to the mast")
+  var rope=attached[0]
+  var half=rope.transform.basis.y*rope.mesh.height*.5
+  assert((rope.position+half).distance_to(top)<.00002 and (rope.position-half).distance_to(anchor)<.00002)
+  var cleat=fixed[0].transform*fixed[0].mesh.get_aabb()
+  var deck_y=piece.position.y+mesh_top(piece.mesh,Vector2(line[1].x,line[1].z))
+  assert(cleat.position.y<deck_y and cleat.end.y>deck_y and cleat.has_point(anchor),"The cleat meets the actual curved deck")
+  var mast_height=top.y-(mast.position.y-mast_mesh.height*.5)
+  var mast_radius=lerpf(mast_mesh.bottom_radius,mast_mesh.top_radius,mast_height/mast_mesh.height)
+  assert(mast_height>0 and mast_height<mast_mesh.height and Vector2(line[0].x,line[0].z).length()<mast_radius)
 
 func verify_towers():
  var masonry=preload("res://scripts/fortification.gd")

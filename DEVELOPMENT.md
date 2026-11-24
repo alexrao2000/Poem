@@ -1,5 +1,7 @@
 # Poem development
 
+Glass Harbor’s two boats each have four mast stays secured to fitted deck cleats. Map and close-up boats reuse one stay mesh.
+
 Objective flags, boat sails and gate standards share cloth meshes by size and shape. Each piece still owns its material and wind phase. A 54-placement comparison used three meshes and retained exact vertex data and bounds.
 
 The war council shows the rally point when section restarts apply. It shows enemy pressure, held tonics and the raider head start when reset pressure applies. The preparation lines wrap inside the existing briefing column.

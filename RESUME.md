@@ -6,6 +6,8 @@ This checkpoint describes the current development branch and supersedes the earl
 
 ### Latest state
 
+Both Glass Harbor boats now carry four mast stays and fitted deck cleats in the tactical map and close-up arenas. Each cleat meets the hull, and every stay reaches the tapered mast. Seven focused suites, both exports, architecture in both packs and archive integrity passed. Rendered appearance remains unreviewed.
+
 Flags, sails and gate standards now share cloth meshes by size and shape. Three meshes serve the 54 measured placements with identical vertex data and culling bounds and a private wind material for each piece. The cache holds up to twelve shapes. Six focused suites, both exports, architecture and exact mesh comparisons in both packs, and archive integrity passed.
 
 The war council now distinguishes an active section rally point from enemy pressure. The briefing shows the actual number of held tonics and explains when raiders may advance. Sixteen headless layouts at 1024 and 1440 pixels exercised independent flags, zero and capped pressure, wrapping, scrolling and the campaign action. Eight focused suites, both exports, campaign-trial checks in both packs and archive integrity passed. Rendered appearance remains unreviewed.
