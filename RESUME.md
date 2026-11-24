@@ -6,6 +6,8 @@ This checkpoint describes the current development branch and supersedes the earl
 
 ### Latest state
 
+Crown Approach’s stone passage now spans both walkable lanes. The raised grille clears those lanes and appears in nearby close-ups. Both crimson standards share their geometry and carry separate wind phases between views. Three tactical projections, eight focused suites, all 72 matched chapter outcomes, both exports, packed architecture and presentation, and ZIP integrity passed. The new Debug code opens a full revised fight by the gate. See `build/review/crown-passage-study.png` and `build/review/playtest/README.md`. Rendered gameplay remains unreviewed.
+
 The Old Aqueduct’s waterwheel turns on the tactical map and below the larger spillway in combat. Its ten paddles, two rims and axle fit both arena water levels, and the wheel keeps its phase through the cut and return. Twelve mounted and unmounted projections, seven focused suites, all 72 matched chapter outcomes, both exports, packed architecture and presentation, and ZIP integrity passed. The new Debug transfer code opens a full revised fight beside it in both packs. See `build/review/aqueduct-wheel-study.png` and `build/review/playtest/README.md`. Rendered gameplay remains unreviewed.
 
 The battle forecast distinguishes a rescuable fall, a loss committed during battle, and a fall that would cause defeat. Eleven actual exchanges matched the forecast at two sizes, including a healed passenger released by their falling carrier. Eight focused suites and two packed suites per platform passed. The 72 casualty and save records match the prior source exactly in both exports. Rendered gameplay remains unreviewed.

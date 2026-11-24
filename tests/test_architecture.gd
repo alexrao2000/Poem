@@ -84,7 +84,7 @@ func run():
    world.queue_free();arena.queue_free();await process_frame;cases+=1
  assert(cases>0 and game.rng.state==state,"Architecture never consumes gameplay RNG")
  await verify_cloth()
- print("PASS: arched castle gate/portcullis, tiered fountain basins/jets, six shared fortified towers, battlement/deck rays, three cached roofs, 204 gable intersections, ",cases," house identities, 14 pinned map-cloth placements, bounded motion parameters and cleanup")
+ print("PASS: arched castle gate/portcullis, tiered fountain basins/jets, six shared fortified towers, battlement/deck rays, three cached roofs, 204 gable intersections, ",cases," house identities, 16 pinned map-cloth placements, bounded motion parameters and cleanup")
  quit()
 
 func verify_ruined_columns():
@@ -1142,6 +1142,7 @@ func verify_cloth():
    assert(piece.cloth.mesh==Cloth.mesh_for(piece.dimensions,piece.standard))
   var expected_flags=0;var expected_sails=0
   for row in game.info().map:expected_flags+=row.count("o")
+  if game.info().environment=="castle":expected_flags+=2
   for landmark in game.info().landmarks:
    if landmark.kind=="boat":
     expected_sails+=1
@@ -1150,12 +1151,12 @@ func verify_cloth():
     var arena_sails=arena.find_children("*","Node3D",true,false).filter(func(node):return node is Cloth and not node.standard)
     assert(arena_sails.size()==context.landmarks.filter(func(item):return item.kind=="boat").size(),"Nearby boats keep their cloth sails in actual combat backdrops")
     arena.queue_free()
-  assert(pieces.filter(func(piece):return piece.standard).size()==expected_flags and pieces.filter(func(piece):return not piece.standard).size()==expected_sails,"All objective standards and boat sails survive scene batching")
+  assert(pieces.filter(func(piece):return piece.standard).size()==expected_flags and pieces.filter(func(piece):return not piece.standard).size()==expected_sails,"All objective flags, gate standards and boat sails survive scene batching")
   flags+=expected_flags;sails+=expected_sails
   var references=pieces.map(func(piece):return weakref(piece));world.queue_free();await process_frame
   for reference in references:assert(reference.get_ref()==null,"Cloth resources release with their map")
- assert(flags==12 and sails==2 and game.rng.state==state,"All campaign cloth is bounded and independent of gameplay RNG")
- assert(shapes.size()==2 and private_materials.size()==14,"Map flags and sails share two shapes and own their own materials")
+ assert(flags==14 and sails==2 and game.rng.state==state,"All campaign cloth is bounded and independent of gameplay RNG")
+ assert(shapes.size()==3 and private_materials.size()==16,"Map flags, standards and sails share three shapes and own their own materials")
  var original_meshes=Cloth.cloth_meshes.duplicate()
  for n in range(Cloth.MAX_CACHED_MESHES+3):
   Cloth.mesh_for(Vector2(3+n*.13,.52),true)
@@ -1482,6 +1483,61 @@ func verify_gate():
  assert(bounds.position.x>=-17.501 and bounds.end.x<=17.501 and bounds.end.y<=5.101,"Detailed castle wall keeps its fixed battlefield backdrop footprint")
  await verify_gate_standards(gate)
  arena.queue_free();await process_frame
+ await verify_crown_passage(scenery,masonry)
+
+func verify_crown_passage(scenery,masonry):
+ var game=Rules.new();game.chapter=10
+ var field=Node3D.new();root.add_child(field);scenery.landscape(field,game)
+ var gate=field.get_node("CastleGate")
+ assert(gate.position==masonry.MAP_GATE_SITE and gate.get_node("GateMasonry").mesh==masonry.gate_wall())
+ for row in [4,5]:
+  assert(game.terrain(Vector2i(8,row))=="p")
+  for height in [.15,.60,1.2]:
+   assert(not gate_obstructs(gate,Vector3(6.7,height,row),Vector3(9.2,height,row)),"Both walkable lanes fit through the stone and raised grille")
+ assert(gate_obstructs(gate,Vector3(6.7,.9,3.20),Vector3(9.2,.9,3.20)),"Masonry frames the two routes through the gate")
+ var near=scenery.combat_context(game,{"x":7,"y":4},{"x":8,"y":4})
+ var distant=scenery.combat_context(game,{"x":2,"y":4},{"x":3,"y":4})
+ assert(near.raised_gate and not distant.raised_gate)
+ var stage=Node3D.new();root.add_child(stage);scenery.battle_landscape(stage,Vector3(35,0,0),near)
+ var other=stage.get_node("CastleGate")
+ assert(other.get_node("GateMasonry").mesh==gate.get_node("GateMasonry").mesh)
+ for entry in [gate,other]:
+  var bars=entry.find_children("PortcullisBar*","MeshInstance3D",false,false)
+  assert(bars.size()==11 and bars.all(func(bar):return (bar.transform*bar.mesh.get_aabb()).position.y>=3.199))
+ for side in ["WindStandardLeft","WindStandardRight"]:
+  var local=gate.get_node(side);var staged=other.get_node(side)
+  assert(local.cloth.mesh==staged.cloth.mesh and local.material!=staged.material)
+  local.seek_phase(1.3 if side.ends_with("Left") else 5.9)
+ scenery.transfer_landmark_motion(field,stage,"castle")
+ assert(is_equal_approx(other.get_node("WindStandardLeft").phase,1.3) and is_equal_approx(other.get_node("WindStandardRight").phase,5.9))
+ other.get_node("WindStandardLeft").seek_phase(3.1);other.get_node("WindStandardRight").seek_phase(6.2)
+ scenery.transfer_landmark_motion(stage,field,"castle")
+ assert(is_equal_approx(gate.get_node("WindStandardLeft").phase,3.1) and is_equal_approx(gate.get_node("WindStandardRight").phase,6.2))
+ var viewport=SubViewport.new();viewport.render_target_update_mode=SubViewport.UPDATE_DISABLED;root.add_child(viewport)
+ var camera=Camera3D.new();viewport.add_child(camera);camera.current=true
+ var center=Vector3(6.5,0,4.5)
+ camera.projection=Camera3D.PROJECTION_ORTHOGONAL;camera.size=16
+ camera.position=center+Vector3(2.5,22,11.5);camera.look_at(center)
+ for pixels in [Vector2i(1024,640),Vector2i(1280,720),Vector2i(1440,900)]:
+  viewport.size=pixels;await process_frame
+  var banner=gate.get_node("WindStandardLeft")
+  var point=banner.to_global(Vector3(.60,0,0))
+  assert(Rect2(Vector2.ZERO,Vector2(pixels)).grow(-10).has_point(camera.unproject_position(point)))
+  assert(not gate_obstructs(gate,camera.global_position,point))
+ field.queue_free();stage.queue_free();viewport.queue_free();await process_frame
+ print("PASS: Crown Approach’s shared passage fits both tactical lanes, preserves separately moving standards and remains visible in three tactical projections")
+
+func gate_obstructs(gate: Node3D,start: Vector3,finish: Vector3) -> bool:
+ for child in gate.get_children():
+  if not child is MeshInstance3D:continue
+  var from=child.to_local(start);var to=child.to_local(finish)
+  if child.mesh.get_aabb().intersects_segment(from,to)==null:continue
+  var surface=child.mesh.surface_get_arrays(0)
+  var vertices=surface[Mesh.ARRAY_VERTEX];var indices=surface[Mesh.ARRAY_INDEX]
+  var order=indices if indices!=null and not indices.is_empty() else range(vertices.size())
+  for index in range(0,order.size(),3):
+   if Geometry3D.segment_intersects_triangle(from,to,vertices[order[index]],vertices[order[index+1]],vertices[order[index+2]])!=null:return true
+ return false
 
 func verify_gate_standards(gate: Node3D):
  var banners=gate.get_children().filter(func(node):return node is Cloth)

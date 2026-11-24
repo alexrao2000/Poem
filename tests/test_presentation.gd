@@ -131,6 +131,7 @@ func run():
 	assert(app.screen=="dossier" and app.camera.projection==Camera3D.PROJECTION_ORTHOGONAL,"Gallery restores map camera")
 	await verify_starfall_exchange(app)
 	await verify_aqueduct_exchange(app)
+	await verify_crown_gate_exchange(app)
 	app.show_ending()
 	await process_frame
 	await Shutdown.dispose(app)
@@ -185,3 +186,36 @@ func verify_aqueduct_exchange(app):
 	assert(progress.entry>1 and progress.returned and app.world.visible and not app.stage.visible)
 	assert(app.game.save_data("battle")==snapshot and app.game.rng.state==rng)
 	print("PASS: the Aqueduct waterwheel retains its motion through a complete combat cut and return without changing the campaign")
+
+func verify_crown_gate_exchange(app):
+	app.game.chapter=10;app.game.start_battle();app.make_map();app.show_battle()
+	var a=app.game.living("player")[0];var b=app.game.living("enemy")[0]
+	a.x=7;a.y=4;b.x=8;b.y=4;app.refresh_pieces()
+	var sides=["WindStandardLeft","WindStandardRight"]
+	var gate=app.world.get_node("CastleGate")
+	gate.get_node(sides[0]).seek_phase(1.7);gate.get_node(sides[1]).seek_phase(6.1)
+	var moments={"entry":[],"returned":false}
+	var entering=func():
+		if app.world.visible:return
+		var backdrop=app.stage.get_node("CastleGate")
+		for side in sides:
+			var standard=backdrop.get_node(side)
+			assert(is_equal_approx(standard.phase,gate.get_node(side).phase))
+			moments.entry.append(standard.phase)
+	var returning=func():
+		if app.stage.visible or app.world.visible:return
+		var backdrop=app.stage.get_node("CastleGate")
+		for index in sides.size():
+			var side=sides[index]
+			assert(is_equal_approx(gate.get_node(side).phase,backdrop.get_node(side).phase))
+			assert(gate.get_node(side).phase>moments.entry[index])
+		moments.returned=true
+	app.world.visibility_changed.connect(entering)
+	app.stage.visibility_changed.connect(returning)
+	var state=app.game.save_data("battle").duplicate(true);var rng=app.game.rng.state
+	await app.cinematic(a,b,[{"actor":a.id,"target":b.id,"damage":1,"remaining":b.hp-1,"hit":true,"crit":false}],{a.id:a.hp,b.id:b.hp})
+	app.world.visibility_changed.disconnect(entering)
+	app.stage.visibility_changed.disconnect(returning)
+	assert(moments.entry.size()==2 and moments.returned and not is_equal_approx(moments.entry[0],moments.entry[1]))
+	assert(app.game.save_data("battle")==state and app.game.rng.state==rng)
+	print("PASS: both Crown Approach standards carry their separate wind phases through a complete 3D exchange")

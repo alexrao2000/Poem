@@ -369,6 +369,7 @@ func landscape(parent,game):
  if theme=="harbor":HarborNet.build(self,parent,HarborNet.MAP_SITE,HarborNet.MAP_SCALE)
  if theme=="road":KingsroadHoist.build(self,parent,KingsroadHoist.MAP_SITE,KingsroadHoist.MAP_SCALE,-.16)
  if theme=="aqueduct":AqueductWheel.new().build(self,parent,AqueductWheel.MAP_SITE,AqueductWheel.MAP_SCALE,-.28)
+ if theme=="castle":Fortification.build_map_gate(self,parent)
  if theme=="forest":TrailLanterns.roadside(parent)
  if theme in ["village","river","forest","road","castle"]:
   var base=-.15 if theme=="forest" else 0.0
@@ -529,6 +530,8 @@ func combat_context(game,a,b,screen_direction=1.0) -> Dictionary:
   "landmarks":candidates.slice(0,2),"road_canal":theme=="road" and near_water,"harbor_quay":harbor_quayside}
  if context.road_canal:
   context.road_hoist=midpoint.distance_to(Vector2(KingsroadHoist.MAP_SITE.x,KingsroadHoist.MAP_SITE.z))<=3.5
+ if theme=="castle":
+  context.raised_gate=midpoint.distance_to(Vector2(Fortification.MAP_GATE_SITE.x,Fortification.MAP_GATE_SITE.z))<=4.0
  if is_finite(tollhouse_x):context.tollhouse_x=tollhouse_x
  if theme=="abbey" and tile=="p" and midpoint.distance_to(Vector2(AbbeyMosaic.MAP_SITE.x,AbbeyMosaic.MAP_SITE.z))<=3.0:
   context.mosaic_yaw=atan2(axis.y,axis.x)
@@ -549,6 +552,12 @@ func transfer_landmark_motion(source: Node3D,destination: Node3D,theme: String):
   var original=source.get_node_or_null("AqueductWaterwheel")
   var counterpart=destination.get_node_or_null("AqueductWaterwheel")
   if original!=null and counterpart!=null:counterpart.seek_phase(original.phase)
+ elif theme=="castle":
+  for standard in ["WindStandardLeft","WindStandardRight"]:
+   var address="CastleGate/"+standard
+   var original=source.get_node_or_null(address)
+   var counterpart=destination.get_node_or_null(address)
+   if original!=null and counterpart!=null:counterpart.seek_phase(original.phase)
  elif theme=="harbor":
   var originals=boat_sails(source)
   var counterparts=boat_sails(destination)
@@ -874,7 +883,7 @@ func battle_landscape(parent,center,context={}):
   if context.has("mosaic_yaw") and tile=="p":
    AbbeyMosaic.build(self,parent,center+AbbeyMosaic.ARENA_SITE,AbbeyMosaic.ARENA_SCALE,context.mosaic_yaw)
  if theme=="castle":
-  Fortification.build_castle_wall(self,parent,center+Vector3(0,0,-9))
+  Fortification.build_castle_wall(self,parent,center+Vector3(0,0,-9),context.get("raised_gate",false))
  elif theme=="observatory":
   for x in [-13,-9,-5.2,5.2,9,13]:
    cylinder(parent,center+Vector3(x,1.8,-5),3.6,.32,Color("9e9d8d")).name="ObservatoryColumnShaft"

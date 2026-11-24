@@ -1,5 +1,6 @@
 extends RefCounted
 const GateCloth=preload("res://scripts/wind_cloth.gd")
+const MAP_GATE_SITE=Vector3(7.92,0,4.5)
 ## Cached masonry courses and wedge battlements replace the plain tower drum.
 static var tower_mesh: ArrayMesh
 static var stone_material: StandardMaterial3D
@@ -74,7 +75,7 @@ static func gate_wall() -> ArrayMesh:
    quad(tool,[front[edge],back[edge],back[next],front[next]],normal,Color("939b8e"))
  gate_mesh=tool.commit();return gate_mesh
 
-static func build_castle_wall(painter,parent: Node3D,point: Vector3):
+static func build_castle_wall(painter,parent: Node3D,point: Vector3,raised=false):
  var group=Node3D.new();group.name="CastleGate";group.position=point;parent.add_child(group)
  for side in [-1,1]:
   painter.block(group,Vector3(side*9.85,2,0),Vector3(15.3,4,.7),Color("858b88"))
@@ -84,27 +85,43 @@ static func build_castle_wall(painter,parent: Node3D,point: Vector3):
   var support=painter.block(group,Vector3(x,1.8,.48),Vector3(.6,3.6,.62),Color("989e92"));support.name="Buttress"
   painter.block(group,Vector3(x,.16,.48),Vector3(.82,.32,.8),Color("777f77"))
   painter.block(group,Vector3(x,3.64,.48),Vector3(.78,.22,.77),Color("b0b3a2"))
- var front=painter.mesh(group,gate_wall(),Vector3.ZERO,Vector3.ONE,material());front.name="GateMasonry"
- painter.arch_span(group,Vector3(0,2,0),1.4,.3,.88)
  for x in range(-16,17,2):
   if absi(x)>=4:painter.block(group,Vector3(x,4.2,0),Vector3(.8,.8,.9),Color("9a9d91"))
- painter.block(group,Vector3(0,4.52,0),Vector3(4.6,.2,.95),Color("b4b7a5"))
- for x in [-1.5,0,1.5]:painter.block(group,Vector3(x,4.85,0),Vector3(.65,.5,.9),Color("a4aa9a"))
- # A recessed portcullis leaves visible openings below the real stone arch.
- for index in range(-5,6):
-  var x=index*.24;var height=2+sqrt(1.4*1.4-x*x)-.09
-  var bar=painter.block(group,Vector3(x,height*.5,-.12),Vector3(.045,height,.06),Color("4d585b"));bar.name="PortcullisBar"
- for y in [.8,1.8,2.8]:
-  var width=2.7 if y<2 else 2*sqrt(1.4*1.4-pow(y-2,2))-.1
-  painter.block(group,Vector3(0,y,-.11),Vector3(width,.06,.07),Color("637073"))
+ build_portal(painter,group,raised)
  hang_gate_standards(painter,group)
  return group
 
-static func hang_gate_standards(painter,gate: Node3D):
+static func build_map_gate(painter,parent: Node3D):
+ var gate=Node3D.new();gate.name="CastleGate";gate.position=MAP_GATE_SITE
+ gate.rotation.y=PI*.5;gate.scale=Vector3(.72,.59,.70);parent.add_child(gate)
+ for x in [-2.12,2.12]:
+  painter.block(gate,Vector3(x,.18,0),Vector3(.66,.38,1.04),Color("777f77")).name="GateFooting"
+  painter.block(gate,Vector3(x,2.23,0),Vector3(.60,4.40,.82),Color("989e92")).name="GateReturn"
+  painter.block(gate,Vector3(x,4.44,0),Vector3(.70,.22,.93),Color("b0b3a2")).name="GateReturnCap"
+ build_portal(painter,gate,true)
+ hang_gate_standards(painter,gate,1.9)
+ return gate
+
+static func build_portal(painter,group: Node3D,raised: bool):
+ var front=painter.mesh(group,gate_wall(),Vector3.ZERO,Vector3.ONE,material());front.name="GateMasonry"
+ painter.arch_span(group,Vector3(0,2,0),1.4,.3,.88)
+ painter.block(group,Vector3(0,4.52,0),Vector3(4.6,.2,.95),Color("b4b7a5"))
+ for x in [-1.5,0,1.5]:painter.block(group,Vector3(x,4.85,0),Vector3(.65,.5,.9),Color("a4aa9a"))
+ var base=3.20 if raised else 0.0
+ for index in range(-5,6):
+  var x=index*.24
+  var height=.77 if raised else 2+sqrt(1.4*1.4-x*x)-.09
+  var bar=painter.block(group,Vector3(x,base+height*.5,-.12),Vector3(.045,height,.06),Color("4d585b"));bar.name="PortcullisBar"
+ var heights=[3.38,3.79] if raised else [.8,1.8,2.8]
+ for y in heights:
+  var width=2.51 if raised else (2.7 if y<2 else 2*sqrt(1.4*1.4-pow(y-2,2))-.1)
+  painter.block(group,Vector3(0,y,-.11),Vector3(width,.06,.07),Color("637073"))
+
+static func hang_gate_standards(painter,gate: Node3D,lateral=3.03):
  var iron=Color("62646a")
  var brass=Color("a58b52")
  for side in [-1,1]:
-  var x=side*3.03
+  var x=side*lateral
   for offset in [-.43,.43]:
    painter.block(gate,Vector3(x+offset,3.68,.49),Vector3(.082,.082,.28),iron).name="StandardBracket"
   painter.block(gate,Vector3(x,3.68,.63),Vector3(1.12,.08,.08),brass).name="StandardRail"
@@ -115,4 +132,5 @@ static func hang_gate_standards(painter,gate: Node3D):
   cloth.position=Vector3(x,3.68,.67)
   cloth.rotation.z=-PI*.5
   cloth.configure(Vector2(2.12,.95),Color("8c414b"),true,1.8 if side<0 else 5.3)
+  cloth.name="WindStandardLeft" if side<0 else "WindStandardRight"
   cloth.material.set_shader_parameter("trim",Color("bda370"))
