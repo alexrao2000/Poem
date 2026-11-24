@@ -14,7 +14,7 @@ func configure_equipment(kind: String,item: String) -> String:
   for child in get_children():remove_child(child);child.free()
   var weapon=painter.EquipmentVisuals.build(painter,self,kind,item)
   weapon.position=Vector3.ZERO;weapon.rotation.x=PI/2
-  var crown=Marker3D.new();crown.name="Crown";weapon.add_child(crown);crown.position=Vector3(0,.78,0)
+  var crown=Marker3D.new();crown.name="Crown";weapon.add_child(crown);crown.position=painter.EquipmentVisuals.STAFF_CROWN_CENTER
   equipped=item
  get_node("Weapon/StaffShaft").scale=Vector3(handle_radius/.022,1,handle_radius/.022)
  var anchor=get_parent() as BoneAttachment3D

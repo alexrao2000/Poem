@@ -7,6 +7,7 @@ const MountStride=preload("res://scripts/mount_stride.gd")
 const Stride=preload("res://scripts/infantry_stride.gd")
 const Boot=preload("res://scripts/infantry_boot.gd")
 const Mount=preload("res://scripts/mount_visuals.gd")
+const EquipmentVisuals=preload("res://scripts/equipment_visuals.gd")
 const PELVIS_CENTER=Vector3(0,-.16,0)
 const PELVIS_RADII=Vector3(.19,.19,.14)
 signal travel_contact(index: int)
@@ -458,7 +459,7 @@ func socket_position(key: String) -> Vector3:
  if key=="guard" and bones.has("Shield"):return bones.Shield.to_global(Vector3(0,0,-.05))
  if key=="gaze" and bones.has("Head"):return bones.Head.global_position
  if key=="projectile" and kind=="magic" and bones.has("RightHand"):return bones.RightHand.to_global(Vector3(0,0,-.10))
- if key=="projectile" and kind=="staff" and bones.has("Weapon"):return bones.Weapon.to_global(Vector3(0,.78,0))
+ if key=="projectile" and kind=="staff" and bones.has("Weapon"):return bones.Weapon.to_global(EquipmentVisuals.STAFF_CROWN_CENTER)
  if key=="projectile" and kind=="bow" and bones.has("NockedArrow"):return bones.NockedArrow.global_position
  if key=="projectile" and bones.has("Weapon"):
   var offset=Vector3(0,0,-.22) if kind=="bow" else Vector3.ZERO

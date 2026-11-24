@@ -1,5 +1,7 @@
 # Poem development
 
+The four healing staffs now use upright brass settings and faceted crystals that follow the existing item icons. The launch point is the center of the crystal for both model sets.
+
 Casualty cards name the legacy credit, early recruit or sacrifice effect earned by that loss. The rules supply the details on the resolved strike or phase ending.
 
 Glass Harbor’s shore has a wooden drying rack with a sagging fishing net and four attached cork floats. Nearby quay fights use the same woven mesh.

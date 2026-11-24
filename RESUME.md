@@ -6,6 +6,8 @@ This checkpoint describes the current development branch and supersedes the earl
 
 ### Latest state
 
+Field, Mend, Beacon and Vigil staffs use upright brass settings with faceted crystals. The outer band turns across the main bands so the setting stays visible from the side. All twelve cast snapshots using Ivo, Esme and Galen launch from the same coordinates as before. The original and revised models share the prop. See the [staff comparison](build/review/staff-crown-comparison.png) for isolated projections and `build/review/staff-crown-checks.json` for verification.
+
 During the 2D-to-3D camera move, nearby sprites gradually darken while the combatants keep their usual colors. The return restores the exact tactical colors, including after Skipping. Cinderford’s seven bystander colors match in source and both packages. Both combatants, the normal map view, sprite frames and camera poses match the earlier build. Eight focused suites, four packed checks, 72 matched chapter outcomes and both ZIP checks passed. See the [combat focus study](build/review/combat-focus-comparison.png) and `build/review/bystander-focus.json`. The study uses software projection.
 
 Reed Crossing now has animated foam along its existing shoreline triangles. The tactical map and both arena banks show the same kind of moving edge. Deck fights retain the far bank’s foam at the deck’s water level. Both packages match the 512 map and 480 arena triangles and material parameters from the actual crossing encounter. Eight focused suites, four packed checks, 72 matched chapter outcomes and both ZIP checks passed. See the [crossing study](build/review/reed-crossing-foam.png) and `build/review/river-foam.json`. The study uses software projection and simplified lighting.

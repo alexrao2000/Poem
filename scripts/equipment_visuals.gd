@@ -5,8 +5,12 @@ const Blades=preload("res://scripts/weapon_blades.gd")
 const Projectile=preload("res://scripts/combat_projectile.gd")
 const Book=preload("res://scripts/spellbook.gd")
 const DEFAULT={"sword":"iron_sword","lance":"iron_lance","axe":"iron_axe","bow":"scout_bow","magic":"ember","staff":"field_staff"}
+const STAFF_CROWN_CENTER=Vector3(0,.78,0)
+const STAFF_BAND_RADII={1:[.104],2:[.078,.104],3:[.060,.081,.104]}
 static var profiles=JSON.parse_string(FileAccess.get_file_as_string("res://data/equipment_looks.json"))
 static var shapes={}
+static var staff_bands={}
+static var staff_crystal: ArrayMesh
 
 static func resolve(kind: String,item: String) -> String:
  return item if profiles.has(item) and profiles[item].kind==kind else DEFAULT.get(kind,"iron_sword")
@@ -41,12 +45,7 @@ static func build(painter,arm: Node3D,kind: String,item: String) -> Node3D:
  if kind=="magic":
   Book.build(painter,hand,gold,Color(look.cover),Color(look.ribbon))
  elif kind=="staff":
-  var shaft=painter.geo.cylinder(hand,Vector3(0,.05,0),1.35,.022,wood);shaft.name="StaffShaft"
-  var orb=painter.ellipsoid(hand,Vector3(0,.78,0),Vector3(.11,.11,.11),Color(look.core))
-  var glow=orb.material_override.duplicate();glow.emission_enabled=true;glow.emission=Color(look.core);glow.emission_energy_multiplier=1.4;orb.material_override=glow
-  for i in range(int(look.rings)):
-   var ring=TorusMesh.new();ring.inner_radius=.09;ring.outer_radius=.115;ring.rings=16;ring.ring_segments=8
-   painter.geo.mesh(hand,ring,Vector3(0,.70+i*.055,0),Vector3.ONE,painter.geo.material(gold))
+  build_staff(painter,hand,look)
  elif kind=="bow":
   hand.rotation.x=-1.5;hand.set_meta("bow_height",float(look.height))
   for i in range(12):
@@ -82,3 +81,51 @@ static func build(painter,arm: Node3D,kind: String,item: String) -> Node3D:
    else:painter.geo.block(hand,Vector3(0,0,-.21),Vector3(.24,.04,.055),gold)
    var edge=painter.geo.mesh(hand,blade(item),Vector3.ZERO,Vector3.ONE,metal);edge.name="SwordBlade"
  return hand
+
+static func build_staff(painter,hand: Node3D,look: Dictionary):
+ var shaft=painter.geo.cylinder(hand,Vector3(0,.05,0),1.35,.022,Color(look.grip))
+ shaft.name="StaffShaft"
+ var socket=painter.geo.cylinder(hand,Vector3(0,.697,0),.074,.027,Color(look.steel),.043)
+ socket.name="StaffSocket"
+ var brass=painter.geo.material(Color(look.accent)).duplicate()
+ brass.set_meta("no_character_outline",true)
+ var radii=STAFF_BAND_RADII[int(look.rings)]
+ for index in range(radii.size()):
+  var band=painter.geo.mesh(hand,staff_band(radii[index]),STAFF_CROWN_CENTER,Vector3.ONE,brass)
+  band.name="StaffBand%d"%index
+  band.rotation.x=PI/2
+ # The cross band keeps the setting readable when a cast turns it edge-on.
+ var cross_band=painter.geo.mesh(hand,staff_band(radii.back()),STAFF_CROWN_CENTER,Vector3.ONE,brass)
+ cross_band.name="StaffCrossBand"
+ cross_band.rotation=Vector3(PI/2,PI/2,0)
+ var color=Color(look.core)
+ var glow=painter.geo.material(color).duplicate() as StandardMaterial3D
+ glow.emission_enabled=true
+ glow.emission=color
+ glow.emission_energy_multiplier=.32
+ var crystal=painter.geo.mesh(hand,staff_crystal_mesh(),STAFF_CROWN_CENTER,Vector3.ONE,glow)
+ crystal.name="StaffCrystal"
+
+static func staff_band(radius: float) -> TorusMesh:
+ if not staff_bands.has(radius):
+  var band=TorusMesh.new()
+  band.inner_radius=radius-.012
+  band.outer_radius=radius
+  band.rings=16
+  band.ring_segments=6
+  staff_bands[radius]=band
+ return staff_bands[radius]
+
+static func staff_crystal_mesh() -> ArrayMesh:
+ if staff_crystal==null:
+  var surface=SurfaceTool.new()
+  surface.begin(Mesh.PRIMITIVE_TRIANGLES)
+  for side in range(6):
+   var angle=TAU*side/6.0
+   var next=TAU*(side+1)/6.0
+   var a=Vector3(cos(angle),0,sin(angle))*.039
+   var b=Vector3(cos(next),0,sin(next))*.039
+   Blades.triangle(surface,a,b,Vector3.UP*.045,(a+b)*.5+Vector3.UP*.02)
+   Blades.triangle(surface,a,b,Vector3.DOWN*.043,(a+b)*.5+Vector3.DOWN*.02)
+  staff_crystal=surface.commit()
+ return staff_crystal

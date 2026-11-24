@@ -59,6 +59,7 @@ func run():
    var actor=painter.build(stage,unit,Vector3.ZERO);actor.set_process(false);actor.rotation.y=-direction*PI/2;actor.pose_tween.kill()
    var hand=actor.bones.Weapon;assert(hand.get_meta("equipment")==item.id)
    if item.id=="war_hammer":assert(hand.has_node("HammerHead") and not hand.has_node("AxeBlade"),"War hammer has its own solid blunt head")
+   if item.kind=="staff":verify_staff(actor,hand,Looks.profiles[item.id])
    if direction==1:
     var signature=visual_signature(hand)
     assert(not signatures.has(signature),"All equipped items differ in actual geometry or visible materials")
@@ -101,6 +102,26 @@ func run():
  await Shutdown.dispose(app);await process_frame
  print("PASS: all catalogued weapon appearances are distinct, closed cached blade/head geometry, retained reach, %d grounded pose samples, closed ridged breastplates / mirrored capped pauldrons / fitted trim, bowed shields, open quivers/feather clearance, bowstring endpoints, enemy equipment and thrown spear continuity"%samples)
  quit()
+
+func verify_staff(actor: Node3D,hand: Node3D,look: Dictionary):
+ var crystal=hand.get_node("StaffCrystal") as MeshInstance3D
+ closed_mesh(crystal.mesh)
+ assert(crystal.mesh==Looks.staff_crystal_mesh() and crystal.material_override.emission==Color(look.core))
+ assert(actor.socket_position("projectile").distance_to(crystal.global_position)<.00001,"Healing leaves the visible crystal")
+ var radii=Looks.STAFF_BAND_RADII[int(look.rings)]
+ assert(hand.get_children().filter(func(node):return node.name.begins_with("StaffBand")).size()==look.rings)
+ for index in range(radii.size()):
+  var band=hand.get_node("StaffBand%d"%index) as MeshInstance3D
+  assert(band.position==crystal.position,"Band center %s matches crystal %s"%[band.position,crystal.position])
+  assert(band.mesh==Looks.staff_band(radii[index]),"Bands share geometry and keep the gaps clear of silhouette outlines")
+  assert((band.basis*Vector3.UP).is_equal_approx(Vector3.BACK),"The main bands stand upright around the crystal")
+  assert(band.mesh.inner_radius>crystal.mesh.get_aabb().size.y*.5+.002)
+ var cross_band=hand.get_node("StaffCrossBand") as MeshInstance3D
+ assert((cross_band.basis*Vector3.UP).is_equal_approx(Vector3.RIGHT) and cross_band.mesh==Looks.staff_band(radii.back()))
+ var socket=hand.get_node("StaffSocket") as MeshInstance3D
+ var half_height=socket.mesh.get_aabb().size.y*.5
+ var outer_base=crystal.position.y-float(radii.back())
+ assert(socket.position.y-half_height<outer_base and socket.position.y+half_height>outer_base)
 
 func shield_intersection(mesh: Mesh,xy: Vector2) -> Variant:
  var points=mesh.surface_get_arrays(0)[Mesh.ARRAY_VERTEX];var nearest=null
