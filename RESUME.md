@@ -6,6 +6,10 @@ This checkpoint describes the current development branch and supersedes the earl
 
 ### Latest state
 
+When a revived recruit stays carried, the tactical approach frames the healer and the carrier. The close-up shows the actual patient. A new [surrounded revival starter](build/review/playtest/surrounded-carried-revival.txt) revives Sera at 12 HP with her action spent and keeps her on Oren because every adjacent tile is occupied. The scene and save match in source and both exports. Eight focused suites, four packed checks, 72 matched chapter outcomes and both ZIP checks passed. See `build/review/surrounded-carried-revival.json`.
+
+Both exports also matched all sixteen portrait Debug encounters at `973b833`, including a full duel on every battlefield and both forms of Skip at Cinderford and the Sun Engine. See `build/review/all-chapter-depth-checks.json`.
+
 During the camera approach and return reveal, scenery can cover nearby bystanders while the fighting pair remains readable. The normal tactical view restores every sprite. Cinderford’s 159 scenery surfaces and both camera states match between source and both exports. Seven bystander depth flags change during the cut, and the software projection shows three figures partly covered by a roof or stall. The [three-stage Cinderford study](build/review/cinderford-combat-sequence.png) shows the tactical view, the approach and the revised 3D duel with simplified lighting. Eight focused suites, four packed checks, 72 matched chapter outcomes and both ZIP checks passed. See `build/review/transition-scenery-depth.json`.
 
 The macOS data pack at `64ff967` reached the ending in Quick Map after the tactical indexing changes. All 998 earlier saves match, including 15 battles, 470 player actions, both planned retreats, Lyra’s defeat and retry and all three memorials. See `build/review/tactical-index-route-state.json`.

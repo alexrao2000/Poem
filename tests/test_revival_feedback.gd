@@ -4,6 +4,7 @@ const Door=preload("res://scripts/death_door.gd")
 const Heal=preload("res://scripts/combat_heal.gd")
 const Director=preload("res://scripts/combat_camera.gd")
 const Caption=preload("res://scripts/combat_caption.gd")
+const SpritePlayer=preload("res://visuals/sprite_player.gd")
 const Shutdown=preload("helpers/game_shutdown.gd")
 func _initialize():call_deferred("run")
 func canonical(data):return JSON.parse_string(JSON.stringify(data))
@@ -17,6 +18,7 @@ func run():
   ["field","revised","all",Vector2i(1440,900)],
   ["carried","current","all",Vector2i(1280,720)],
   ["carried","revised","all",Vector2i(1024,640)],
+  ["surrounded","revised","all",Vector2i(720,960)],
   ["mounted","current","all",Vector2i(1280,720)],
   ["mounted","revised","all",Vector2i(1440,900)],
   ["field","current","map",Vector2i(1024,640)],
@@ -57,6 +59,8 @@ func run():
   if sample[0]=="surrounded":assert(patient.get("carried_by","")==carrier.id)
   var resolved=canonical(app.game.save_data("battle"));var saved=Rules.new()
   assert(saved.load_game(app.save_path)=="battle" and canonical(saved.save_data("battle"))==resolved,"Recovery commits before its presentation")
+  var carrier_cut=sample[0]=="surrounded" and sample[2]!="map"
+  var carrier_reveals={}
   var saw_caption=false;var saw_map=false;var skipped=false;var arrived=false;var saw_zero=false;var saw_map_flight=false;var saw_wounded=false;var saw_rise=false;var saw_follow=false;var deadline=Time.get_ticks_msec()+15000
   while app.busy and Time.get_ticks_msec()<deadline:
    await process_frame
@@ -99,11 +103,23 @@ func run():
     if is_instance_valid(app.terrain_card):assert(not bounds.intersects(app.terrain_card.get_global_rect()))
     saw_map=true
    var playback=app.ui.get_node_or_null("CombatPlayback")
+   if carrier_cut and playback!=null and app.world.visible and not app.unit_nodes[carrier.id].tactical_details_visible:
+    var veil=app.ui.get_node("CombatTransition")
+    assert(not app.unit_nodes.has(patient.id),"A carried passenger has no separate tactical figure")
+    assert(app.unit_nodes[carrier.id].sprite.no_depth_test and app.unit_nodes[healer.id].sprite.no_depth_test,
+     "The caster and the carrier are the two visible subjects of a carried revival")
+    var facing=SpritePlayer.facing_for_step(app.game.pos(healer)-app.game.pos(carrier))
+    assert(app.unit_nodes[carrier.id].player.facing==facing,"The carrier faces the caster for the tactical approach")
+    carrier_reveals[veil.revealing]=true
+   if carrier_cut and hud!=null:
+    assert(hud.records.has(patient.id) and not hud.records.has(carrier.id),"The close-up shows the actual patient’s health")
    if playback!=null and not skipped:
     if sample[0]=="skip_windup" and caption!=null and not arrived:playback.request_skip();skipped=true
     elif sample[0]=="skip_arrival" and saw_caption:playback.request_skip();skipped=true
    if is_instance_valid(app.reward_panel):app.reward_panel.request_continue()
   assert(not app.busy and canonical(app.game.save_data("battle"))==resolved and app.game.rng.state==rng)
+  if carrier_cut:
+   assert(carrier_reveals.size()==2 and app.unit_nodes[carrier.id].sprite.no_depth_test)
   if sample[2]=="map":assert(saw_map and saw_map_flight and not saw_caption and app.pieces.get_node_or_null("MapHeal")==null)
   elif sample[0]=="skip_windup":assert(skipped and not saw_caption)
   else:assert(saw_caption and saw_zero and saw_wounded and saw_rise and saw_follow)
@@ -113,5 +129,5 @@ func run():
   assert(saved.load_game(app.save_path)=="battle" and canonical(saved.save_data("battle"))==resolved)
  assert(rise_sides.size()==2,"Actual revivals place the patient on both sides of the healer")
  await Shutdown.dispose(app);viewport.queue_free();await process_frame
- print("PASS: twelve real field/carried/mounted/surrounded/ordinary/skip healing flows, current/revised wounded-to-rising recipients on both sides and followed light, captions at contact, three-size cue bounds, committed health/spent actions, unchanged RNG/checkpoints and cleanup")
+ print("PASS: thirteen real healing flows including a portrait carried revival with the carrier framed on the map, actual patient in the close-up, wounded-to-rising poses, followed light, caption bounds, committed recovery and exact RNG/checkpoints")
  quit()

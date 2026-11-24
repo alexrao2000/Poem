@@ -1336,17 +1336,21 @@ func cinematic(a,b,events,initial_hp={},challenge: Dictionary={}):
 		music_mix(false)
 		await present_casualties(events)
 		return
+	# A patient who stays carried is represented by the carrier on the map.
+	var target_sprite_id=b.get("carried_by","")
+	if target_sprite_id.is_empty():target_sprite_id=b.id
+	var focal_units=[a.id,target_sprite_id]
 	var combat_sprites: Array = []
-	for pair in [[a,b],[b,a]]:
-		var visual=unit_nodes.get(pair[0].id)
+	for pair in [[a,b,a.id],[b,a,target_sprite_id]]:
+		var sprite_id=pair[2]
+		var visual=unit_nodes.get(sprite_id)
 		if visual!=null:
 			combat_sprites.append(visual)
-			visual.face_toward(game.pos(pair[1]),game.pos(pair[0]));map_facings[pair[0].id]=visual.player.facing
+			visual.face_toward(game.pos(pair[1]),game.pos(pair[0]));map_facings[sprite_id]=visual.player.facing
 	skip_combat=false;music_mix(true)
 	var tactical_view=map_navigation.capture_view()
 	var home_viewport=get_viewport().get_visible_rect().size if map_navigation.at_home() else Vector2.ZERO
 	var focus=(map_position(game.pos(a))+map_position(game.pos(b)))*.5
-	var focal_units=[a.id,b.id]
 	markers.hide()
 	# Keep the exchange readable while the lower camera lets scenery cover bystanders.
 	for visual in unit_nodes.values():visual.set_tactical_details_visible(false,visual.unit_id in focal_units)
