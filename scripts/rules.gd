@@ -124,9 +124,11 @@ func site_scene_token(scene: Dictionary) -> String:
 func unread_site_scene(scene: Dictionary) -> bool:
 	return (not scene.lines.is_empty() or scene.get("refill_tonics",false)) and site_scene_token(scene) not in story_seen
 
+func available_site_scenes() -> Array:
+	return info().get("site_scenes",[]).filter(unread_site_scene)
+
 func site_events_at(tile: Vector2i) -> Array:
-	return info().get("site_scenes",[]).filter(func(scene):
-		return Vector2i(scene.position[0],scene.position[1])==tile and unread_site_scene(scene))
+	return available_site_scenes().filter(func(scene):return Vector2i(scene.position[0],scene.position[1])==tile)
 
 func site_visitor(scene: Dictionary):
 	var unit=at(Vector2i(scene.position[0],scene.position[1]))
@@ -136,8 +138,7 @@ func site_visitor(scene: Dictionary):
 
 func pending_site_scenes() -> Array:
 	if phase!="player":return []
-	return info().get("site_scenes",[]).filter(func(scene):
-		return unread_site_scene(scene) and site_visitor(scene)!=null)
+	return available_site_scenes().filter(func(scene):return site_visitor(scene)!=null)
 
 func complete_site_scene(scene: Dictionary) -> String:
 	if not unread_site_scene(scene):return ""

@@ -1159,6 +1159,11 @@ func highlight():
 		var unclaimed=standards.filter(func(point):return point not in held)
 		MapOverlay.tiles(markers,unclaimed,Color(.90,.68,.21,.39),.023,"RequiredStandards",map_height)
 		MapOverlay.tiles(markers,held,Color(.34,.73,.60,.40),.023,"HeldStandards",map_height)
+	var events={}
+	for scene in game.available_site_scenes():
+		var tile=Vector2i(scene.position[0],scene.position[1])
+		events[tile]=events.get(tile,false) or scene.get("refill_tonics",false)
+	MapOverlay.site_badges(markers,events,map_height)
 	var danger={}
 	if show_danger:
 		for enemy in game.living("enemy"):danger.merge(tactics.threatened_tiles(game,enemy))

@@ -40,6 +40,8 @@ In Story, use Add tile scene to give a battlefield location its own dialogue. Th
 
 Enable Refill the visiting ally’s field tonics on a tile scene to bring that ally’s supply back to two. Hallow Abbey uses this in the Valley campaign draft. A cache without dialogue stays available until an ally who needs tonics finishes an action there.
 
+In battle, a small marker shows each unused site. Green crosses mark tonic caches. The marker disappears after the site is used.
+
 The chapter picker and editing controls sit above the Battle, Encounters, Story, Route, Company, Bonds, and Rules workspaces. Click the illustrated chart in Route to place the active chapter’s pin, or use the percentage fields for precise positioning. Save draft keeps a local copy. Transfer JSON lets you open or save a campaign file on your device, and also accepts pasted JSON. Playtest can start at the first war council or the selected chapter. If another chapter is unfinished, Test this battle still opens a ready chapter with its own save. A single-battle test returns directly to the editor after victory.
 
 Use Copy in Open drafts to start a separate edition of a saved campaign. Use Remove to free its place in the library.

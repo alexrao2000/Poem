@@ -39,6 +39,24 @@ static func tiles(parent: Node3D,points: Array,color: Color,height: float,label:
    rectangle(surface,Vector2(point)+Vector2(step)*.445,half,level+.001,edge)
  return finish(parent,surface,label)
 
+static func site_badges(parent: Node3D,events: Dictionary,elevation: Callable) -> MeshInstance3D:
+ if events.is_empty():return null
+ var surface=SurfaceTool.new();surface.begin(Mesh.PRIMITIVE_TRIANGLES)
+ for tile in events:
+  var center=Vector2(tile)+Vector2(-.27,-.27)
+  var height=float(elevation.call(tile))+.074
+  var supplies=events[tile]
+  rectangle(surface,center,Vector2.ONE*.16,height,Color("233a3b"))
+  rectangle(surface,center,Vector2.ONE*.132,height+.002,Color("3d8269") if supplies else Color("a9814d"))
+  var face=Color("fff2cf")
+  if supplies:
+   rectangle(surface,center,Vector2(.083,.023),height+.004,face)
+   rectangle(surface,center,Vector2(.023,.083),height+.004,face)
+  else:
+   rectangle(surface,center+Vector2.UP*.035,Vector2(.075,.019),height+.004,face)
+   rectangle(surface,center+Vector2.DOWN*.035,Vector2(.05,.019),height+.004,face)
+ return finish(parent,surface,"SiteBadges")
+
 static func ribbon(surface: SurfaceTool,a: Vector3,b: Vector3,width: float,height: float,color: Color):
  var offset=Vector2(b.x-a.x,b.z-a.z).orthogonal().normalized()*width
  var side=Vector3(offset.x,0,offset.y);var lift=Vector3.UP*height
