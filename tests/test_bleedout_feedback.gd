@@ -18,7 +18,9 @@ func run():
  var app=load("res://main.tscn").instantiate();app.settings_path="";app.save_path="/private/tmp/poem-bleedout-%d.json"%Time.get_ticks_usec();viewport.add_child(app);await process_frame
  app.tactics=WaitingTactics.new();app.preferences.values.auto_end=false
  var cases=["permanent","recoverable","lord","multiple","carried","next_phase","skip","save_failure"];var count=0
+ var vigil=app.sfx_streams["legacy-vigil"]
  for kind in cases:
+  for player in app.sfx_players:player.stop();player.stream=null
   viewport.size=[Vector2i(1024,640),Vector2i(1280,720),Vector2i(1440,900)][count%3];await process_frame
   app.game.new_campaign(kind!="recoverable");app.game.death_door=true;app.game.action_saves=true
   app.game.trials.flags.death_legacies=kind in ["permanent","multiple"]
@@ -43,9 +45,11 @@ func run():
    assert(figures.all(func(entry):return entry.ref.get_ref()==null or not entry.ref.get_ref().departing),"Failed save starts no departure")
    app.save_path=saved_path;await app.retry_action_save();assert(not app.save_failed and app.game.phase=="player")
    count+=1;continue
-  var observed={};var cards={};var skipped=false;var interrupted={};var deadline=Time.get_ticks_msec()+10000
+  var observed={};var cards={};var vigils={};var skipped=false;var interrupted={};var deadline=Time.get_ticks_msec()+10000
   while app.busy and Time.get_ticks_msec()<deadline:
    await process_frame
+   for player in app.sfx_players:
+    if player.stream==vigil and player.has_stream_playback():vigils[player.get_stream_playback().get_instance_id()]=true
    for entry in figures:
     var figure=app.unit_nodes.get(entry.id)
     if figure!=null and figure.departing:
@@ -65,6 +69,7 @@ func run():
     card.dismissed=true
   assert(not app.busy and observed.size()==expected_count,"Every expired patient gets one map departure: "+kind)
   assert(cards.size()==(0 if skipped else expected_count),"Casualty captions: "+str([kind,cards,expected_count,skipped]))
+  assert(vigils.size()==(1 if kind in ["permanent","multiple"] else 0),"One vigil cue per displayed permanent loss sequence: "+kind)
   if kind=="permanent":assert(cards["Oren · LAST WORDS"]=="Legacy credit +1 · Faye joins early")
   elif kind=="recoverable":
    assert(cards["Oren · WITHDRAWING"]=="Allies gain +2 attack · Recovery on redeployment")
@@ -87,7 +92,7 @@ func run():
   count+=1
  verify_shared_recovery()
  await Shutdown.dispose(app);viewport.queue_free();await process_frame
- print("PASS: %d actual phase endings across three viewports, exact credit and sacrifice feedback, permanent/recoverable/lord/multiple losses, carried and next-phase exclusions, durable-before-fade state, keyboard Skip, interrupted reload and failed-save retry"%count)
+ print("PASS: %d actual phase endings across three viewports, exact credit and sacrifice feedback, one vigil per permanent loss sequence, carried and next-phase exclusions, durable-before-fade state, keyboard Skip, interrupted reload and failed-save retry"%count)
  quit()
 
 func verify_shared_recovery():

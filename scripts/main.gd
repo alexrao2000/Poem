@@ -197,7 +197,7 @@ func setup_audio():
 	add_child(field_audio)
 	score_director=ScoreDirector.new();add_child(score_director);score_director.configure(preferences.volume_db("music"),campaign_score_profile(game.chapter))
 	music=score_director.player;score=score_director.score
-	for effect in ["select","swing","hit","critical","heal","magic","phase","guard","cutin","levelup","approach"]:
+	for effect in ["select","swing","hit","critical","heal","magic","phase","guard","cutin","levelup","approach","legacy-vigil"]:
 		sfx_streams[effect]=load("res://assets/audio/"+effect+".wav")
 	for family in ["sword","axe","lance","bow","ember","gale","thunder"]:
 		sfx_streams["release_"+family]=load("res://assets/audio/release_"+family+".wav")
@@ -1651,6 +1651,8 @@ func present_casualties(events: Array):
 	if skip_combat:return
 	var Card=preload("res://scripts/casualty_card.gd")
 	var shown=[]
+	var committed=game.lost_ids()
+	var vigil_played=false
 	for event in events:
 		if not event.get("hit",false) or event.get("remaining",1)>0 or event.target in shown:continue
 		var casualties=game.units.filter(func(unit):return unit.id==event.target and unit.team=="player" and unit.hp<=0)
@@ -1660,6 +1662,8 @@ func present_casualties(events: Array):
 		shown.append(unit.id)
 		var card=Card.new()
 		card.configure(ui,unit,portraits.get_portrait(unit.id),Card.mode_for(game,unit),quote,event.get("casualty_effects",{}))
+		if not vigil_played and unit.id in committed:
+			play_sfx("legacy-vigil");vigil_played=true
 		await card.play(func():return skip_combat)
 		card.queue_free()
 		if skip_combat:return

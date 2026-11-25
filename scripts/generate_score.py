@@ -9,7 +9,7 @@ import wave
 import sys
 import numpy as np
 from orchestra_samples import OrchestraSamples
-from combat_accents import guard, cutin, levelup
+from combat_accents import guard, cutin, legacy_vigil, levelup
 ROOT=Path(__file__).resolve().parent.parent
 OUT=ROOT/'assets/audio';OUT.mkdir(parents=True,exist_ok=True)
 SR=22050;BPM=108;BEAT=60/BPM;BARS=32;FRAMES=round(BARS*4*BEAT*SR)
@@ -132,7 +132,7 @@ for mode in ['calm','ablaze']:
         f.setparams((2,2,SR,0,'NONE','not compressed'))
         f.writeframes((track*32767).astype('<i2').tobytes())
 
-# Short deterministic effects, also synthesized from first principles.
+# Short deterministic effects use synthesized and sampled voices.
 effects={}
 effects['guard']=guard(SR)
 effects['cutin']=cutin(SR)
@@ -146,6 +146,7 @@ effects['heal']=sum(voice(p,.65,'harp',.18) for p in [74,77,81])
 effects['magic']=sum(voice(p,.45,'flute',.12) for p in [74,81,86])
 effects['phase']=sum(voice(p,.7,'horn',.13) for p in [50,57,62])
 effects['select']=voice(81,.07,'harp',.13)
+effects['legacy-vigil']=legacy_vigil(voice,SR)
 for name,sound in effects.items():
     with wave.open(str(OUT/f'{name}.wav'),'wb') as f:
         f.setparams((1,2,SR,0,'NONE','not compressed'));f.writeframes((np.clip(sound,-.9,.9)*32767).astype('<i2').tobytes())

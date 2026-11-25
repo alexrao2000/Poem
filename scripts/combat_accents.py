@@ -51,6 +51,23 @@ def approach(sample_rate=22050):
     return ((.31 - .13 * progress) * low_air + (.055 + .21 * progress) * high_air + sweep) * envelope
 
 
+def legacy_vigil(voice, sample_rate):
+    sound = np.zeros(round(1.52 * sample_rate))
+    # A descending harp line settles on a low string note.
+    notes = [(0, 69, .52, "harp", .50), (.20, 65, .66, "harp", .54),
+             (.43, 62, .93, "harp", .69), (.43, 50, .86, "strings", .153)]
+    for onset, pitch, length, instrument, volume in notes:
+        note = voice(pitch, length, instrument, volume)
+        start = round(onset * sample_rate)
+        sound[start:start + len(note)] += note
+    for delay, volume in [(.073, .13), (.131, .08)]:
+        offset = round(delay * sample_rate)
+        sound[offset:] += sound[:-offset] * volume
+    tail = round(.16 * sample_rate)
+    sound[-tail:] *= np.cos(np.linspace(0, np.pi * .5, tail)) ** 2
+    return sound * (.34 / np.max(np.abs(sound)))
+
+
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description=__doc__)
     effects = {"guard": guard, "cutin": cutin, "levelup": levelup, "approach": approach}

@@ -56,7 +56,10 @@ func run():
   assert(card.get_global_rect().encloses(card.prompt.get_global_rect()))
   card.queue_free()
  host.queue_free()
+ var vigil=app.sfx_streams["legacy-vigil"]
+ assert(vigil is AudioStreamWAV and vigil.mix_rate==22050 and is_equal_approx(vigil.get_length(),1.52) and vigil.loop_mode==AudioStreamWAV.LOOP_DISABLED)
  for kind in ["death","warden","ranger","retreat","downed"]:
+  for player in app.sfx_players:player.stop();player.stream=null
   app.game.new_campaign(kind!="retreat");app.game.death_door=kind=="downed"
   app.game.trials.flags.death_legacies=true;app.game.trials.flags.sacrifice_cost=kind in ["retreat","downed"]
   app.game.start_battle()
@@ -77,8 +80,12 @@ func run():
   assert(cards==before_cards+1 and app.ui.get_node_or_null("CasualtyCard")==null,"A real exchange presents one casualty card and releases it")
   assert(observed_effects=={"death":"Legacy credit +1 · Faye joins early","warden":"Legacy credit +1 · Faye joins early · Maelin joins","ranger":"Legacy credit +1 · Faye joins early · Tovin joins","retreat":"Allies gain +2 attack · Recovery on redeployment","downed":""}[kind])
   assert(app.game.save_data("battle")==snapshot,"Dialogue cannot alter casualties, actions or RNG")
+  var cue_players=app.sfx_players.filter(func(player):return player.stream==vigil)
+  assert(cue_players.size()==(1 if kind in ["death","warden","ranger"] else 0),"Only a committed loss calls the vigil cue")
+  for player in app.sfx_players:player.stop();player.stream=null
   app.skip_combat=true;await app.present_casualties(events)
   assert(cards==before_cards+1,"Skipped exchanges cannot reintroduce casualty dialogue")
+  assert(app.sfx_players.all(func(player):return player.stream!=vigil),"Skipped casualty dialogue never starts the cue")
   app.busy=false
  await verify_keyboard(app)
  await Shutdown.dispose(app);await process_frame
