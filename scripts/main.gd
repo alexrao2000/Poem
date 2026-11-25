@@ -1066,6 +1066,8 @@ func update_side():
 		button_in(side,"Enemy ranges [R]: "+("on" if show_danger else "off"),toggle_danger,busy)
 		if game.capture_tiles().size()>1:
 			button_in(side,"Next standard [G]",focus_next_standard,busy or game.phase!="player").name="NextStandard"
+		if not game.available_site_scenes().is_empty():
+			button_in(side,"Next site [J]",focus_next_site,busy or game.phase!="player").name="NextSite"
 	if save_failed and game.action_saves:button_in(side,"Retry autosave",retry_action_save,busy)
 	var expiring=game.units.filter(func(unit):return game.DeathDoor.downed(unit) and unit.bleed_turns==1 and unit.get("carried_by","").is_empty()) if game.phase=="player" else []
 	var phase_button=button_in(side,"End player phase" if expiring.is_empty() else "End phase · %d will fall"%expiring.size(),end_turn,busy or game.phase!="player");phase_button.name="EndPlayerPhase"
@@ -1248,6 +1250,8 @@ func _input(event):
 			toggle_tracked_threat();get_viewport().set_input_as_handled();return
 		if event.keycode==KEY_G and not event.echo and game.capture_tiles().size()>1:
 			focus_next_standard();get_viewport().set_input_as_handled();return
+		if event.keycode==KEY_J and not event.echo and not game.available_site_scenes().is_empty():
+			focus_next_site();get_viewport().set_input_as_handled();return
 	if is_instance_valid(reward_panel) and event is InputEventKey and event.pressed and event.keycode in [KEY_SPACE,KEY_ENTER,KEY_TAB]:
 		if not event.echo:reward_panel.request_continue();reward_skip=true
 		get_viewport().set_input_as_handled();return
@@ -3478,11 +3482,20 @@ func cycle_ready_ally(direction: int):
 	map_navigation.keep_visible(map_position(cursor_tile),terrain_card.get_global_rect() if is_instance_valid(terrain_card) else Rect2())
 
 func focus_next_standard():
-	if screen!="battle" or busy or game.phase!="player":return
 	var goals=game.capture_tiles()
-	if goals.size()<2:return
-	var current=goals.find(cursor_tile) if cursor_visible else -1
-	cursor_tile=goals[(current+1)%goals.size()]
+	if goals.size()>1:focus_next_map_point(goals)
+
+func focus_next_site():
+	var sites: Array[Vector2i]=[]
+	for scene in game.available_site_scenes():
+		var point=Vector2i(scene.position[0],scene.position[1])
+		if point not in sites:sites.append(point)
+	focus_next_map_point(sites)
+
+func focus_next_map_point(points: Array[Vector2i]):
+	if screen!="battle" or busy or game.phase!="player" or points.is_empty():return
+	var current=points.find(cursor_tile) if cursor_visible else -1
+	cursor_tile=points[(current+1)%points.size()]
 	cursor_visible=true
 	move_map_cursor(Vector2i.ZERO)
 	interface_audio.cue("move")

@@ -487,6 +487,7 @@ func verify_multiple_standards(app):
  assert(isolated.battle_readiness(0).description=="A required standard is cut off from every deployment tile.")
  level.deployment_positions.resize(1)
  assert(isolated.playtest_problem().contains("Place at least 2 deployment tiles"))
+ editor.level().site_scenes=[{"id":"standard_cache","position":[2,3],"lines":[],"refill_tonics":true}]
  editor.draft.data.settings.action_saves=true
  controls(app,"Play from start").pressed.emit();await finish_presentation(app)
  assert(app.objective_text()=="Hold all 2 standards with standing allies")
@@ -494,6 +495,15 @@ func verify_multiple_standards(app):
  assert(app.screen=="battle" and app.markers.has_node("RequiredStandards"))
  assert(app.game.capture_tiles()==[primary,secondary])
  assert(app.objective_label.text=="0/2 standards held")
+ for dimensions in [Vector2i(720,640),Vector2i(1440,900)]:
+  root.size=dimensions
+  root.content_scale_size=dimensions
+  await process_frame;await process_frame
+  var site_button=controls(app,"Next site [J]")
+  var standard_button=controls(app,"Next standard [G]")
+  assert(root.get_visible_rect().encloses(site_button.get_global_rect()))
+  assert(root.get_visible_rect().encloses(standard_button.get_global_rect()))
+  assert(not site_button.get_global_rect().intersects(standard_button.get_global_rect()))
  var initial=canonical(app.game.save_data("battle"))
  controls(app,"Next standard [G]").pressed.emit();await process_frame
  assert(app.cursor_tile==primary and app.terrain_card.tile==primary)
@@ -833,6 +843,9 @@ func verify_site_recruitment(app):
  var text="If the crossing holds, I’ll march with you."
  editor.find_child("EditorTileSceneLines",true,false).text="narrator | "+text
  editor.find_child("EditorTileSceneLines",true,false).text_changed.emit()
+ var cache=Vector2i(0,4)
+ for id in ["cache","second_cache"]:
+  editor.level().site_scenes.append({"id":id,"position":[cache.x,cache.y],"lines":[],"refill_tonics":true})
  draft.data.settings.permadeath=true
  draft.data.settings.action_saves=true
  draft.data.settings.section_restarts=true
@@ -847,8 +860,18 @@ func verify_site_recruitment(app):
  assert(app.screen=="camp" and card.deploy_button.disabled and card.state_label.text=="AWAITING RECRUITMENT")
  controls(app,"Deploy company  >").pressed.emit();await finish_presentation(app)
  assert(app.screen=="battle" and app.markers.has_node("SiteBadges"))
- await app.click_tile(site)
+ var initial=canonical(app.game.save_data("battle"))
+ var initial_file=FileAccess.get_file_as_string(app.campaign_save_path())
+ app.cursor_visible=false
+ controls(app,"Next site [J]").pressed.emit();await process_frame
+ assert(app.cursor_tile==site and app.terrain_card.tile==site)
  assert(app.terrain_card.dialogue.text=="Recruit · Dialogue")
+ var next_site=InputEventKey.new();next_site.keycode=KEY_J;next_site.pressed=true
+ app._input(next_site);await process_frame
+ assert(app.cursor_tile==cache and app.terrain_card.dialogue.text=="Field tonic refill")
+ app._input(next_site);await process_frame
+ assert(app.cursor_tile==site and canonical(app.game.save_data("battle"))==initial)
+ assert(FileAccess.get_file_as_string(app.campaign_save_path())==initial_file)
  await app.click_tile(Vector2i(1,3));await app.click_tile(site)
  assert(app.game.at(site).id=="lyra" and app.game.at(site).potions==2)
  app.wait_action();await await_phase_dialogue(app,text)
@@ -862,7 +885,10 @@ func verify_site_recruitment(app):
  var saved=app.game.read_saved_data(app.campaign_save_path())
  assert(saved.story_seen.count(token)==1 and saved.trials.volunteers.count(recruit.id)==1)
  assert(app.game.available().any(func(member):return member.id==recruit.id))
- assert(not app.game.units.any(func(unit):return unit.id==recruit.id) and not app.markers.has_node("SiteBadges"))
+ assert(not app.game.units.any(func(unit):return unit.id==recruit.id) and app.game.site_events_at(site).is_empty())
+ assert(app.markers.get_node("SiteBadges").mesh.surface_get_array_len(0)==24)
+ app._input(next_site);await process_frame
+ assert(app.cursor_tile==cache and app.terrain_card.dialogue.text=="Field tonic refill")
  var reloaded=Rules.new(app.game.content)
  assert(reloaded.restore_save(saved)=="battle" and reloaded.trials.volunteers.count(recruit.id)==1)
  assert(reloaded.complete_site_scene(runtime).is_empty())
@@ -879,6 +905,7 @@ func verify_site_recruitment(app):
  assert(card.state_label.text=="IN COMPANY")
  controls(app,"Deploy company  >").pressed.emit();await finish_presentation(app)
  assert(app.game.units.any(func(unit):return unit.id==recruit.id) and app.unit_nodes.has(recruit.id))
+ assert(app.ui.find_child("NextSite",true,false)==null)
  app.close_campaign_preview();await process_frame
 
 func run():
@@ -1786,5 +1813,5 @@ func run():
  await verify_site_recruitment(app)
  assert(FileAccess.get_file_as_string(app.save_path)==disk and app.game==installed)
  await Shutdown.dispose(app);await process_frame
- print("PASS: campaign JSON file transfer, draft library management, remembered playtest setup, campaign readiness, authored Hard bonuses, authored retry raiders, deployment comparison, authored formation previews, small deployment limits and save recovery, custom campaign atlas, terrain stroke undo, bulk terrain rows, editor dialogs at two viewport sizes, direct chapter reordering, continuous terrain strokes, connected terrain fill, placement moves and swaps, repeated placement copies, switching enemy difficulty groups, editor music preview, multiple standards and exact resume, standard navigation and live progress, standards that follow route pins, route pins, war-table site terrain, war-table overlay, blank war-table chapter, rising Valley landmarks, Valley reveal sound cues, battlefield site markers, custom recruits, phase scenes, tile dialogue and reload, recruitment on battlefield sites, one-use field tonic caches, Valley landmark dialogue, dialogue that follows route pins, timed reinforcements, chapter 32 saves, section dialogue, authored section relief, authored legacy stock and purchase persistence, authored loss recruits, authored loss dialogue, reproducible playtest setup, Valley carryover and resume, thirteen-chapter Valley template, and single-battle tests")
+ print("PASS: campaign JSON file transfer, draft library management, remembered playtest setup, campaign readiness, authored Hard bonuses, authored retry raiders, deployment comparison, authored formation previews, small deployment limits and save recovery, custom campaign atlas, terrain stroke undo, bulk terrain rows, editor dialogs at two viewport sizes, direct chapter reordering, continuous terrain strokes, connected terrain fill, placement moves and swaps, repeated placement copies, switching enemy difficulty groups, editor music preview, multiple standards and exact resume, standard navigation and live progress, standards that follow route pins, route pins, war-table site terrain, war-table overlay, blank war-table chapter, rising Valley landmarks, Valley reveal sound cues, battlefield site markers, custom recruits, phase scenes, tile dialogue and reload, recruitment on battlefield sites, navigation between available sites, one-use field tonic caches, Valley landmark dialogue, dialogue that follows route pins, timed reinforcements, chapter 32 saves, section dialogue, authored section relief, authored legacy stock and purchase persistence, authored loss recruits, authored loss dialogue, reproducible playtest setup, Valley carryover and resume, thirteen-chapter Valley template, and single-battle tests")
  quit()

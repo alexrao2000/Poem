@@ -4,7 +4,7 @@ Poem campaigns are ordered sets of battles, recruit arrivals, section checkpoint
 
 Use Move to… above the Battle workspace to move the selected chapter to a specific number. The preview shows where it will land in the current order. Chapter-linked recruits, scenes, and standards follow their chapter. Check campaign flags links that reorder a war table ahead of a required route location.
 
-Use Recruit on visit in Story’s Tile events to offer a reserve or a recruit scheduled for a later chapter. A standing ally recruits them by finishing an action on the tile. They join the company for the next deployment. The site can also play dialogue and replenish field tonics.
+Use Recruit on visit in Story’s Tile events to offer a reserve or a recruit scheduled for a later chapter. A standing ally recruits them by finishing an action on the tile. They join the company for the next deployment. The site can also play dialogue and replenish field tonics. In battle, choose Next site or press J to cycle through available tile events.
 
 ## Authoring
 
