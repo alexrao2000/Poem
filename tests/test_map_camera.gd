@@ -277,8 +277,44 @@ func resized_combat_return():
    assert(nav.capture_view()==original and not nav.at_home(),"A deliberate map view returns exactly after the combat resize")
   assert(app.game.save_data("battle")==saved and app.game.rng.state==rng)
  await verify_resized_longbow_approach(app,viewport)
+ await verify_resized_overlays(app,viewport)
  await Shutdown.dispose(app);viewport.queue_free();await process_frame
  print("PASS: resizing during the arena, opening Skip or map reveal refits Home; a manual view restores exactly")
+
+func verify_resized_overlays(app,viewport: SubViewport):
+ for overlay in ["battle_menu","options"]:
+  for manual in [false,true]:
+   viewport.size=Vector2i(1440,900);await process_frame
+   app.game.new_campaign();app.game.start_battle();app.make_map();app.show_battle();await process_frame
+   assert(app.persist_campaign("battle"))
+   var state=app.game.export_code("battle")
+   var original_file=FileAccess.get_file_as_string(app.campaign_save_path())
+   if manual:
+    app.camera.size-=2
+    app.camera.position+=Vector3(.4,0,.4)
+   var view=app.map_navigation.capture_view()
+   app.show_battle_menu();await process_frame
+   if overlay=="options":
+    var settings=app.ui.find_children("*","Button",true,false).filter(func(button):return button.text=="Options / audio")
+    assert(settings.size()==1);settings[0].pressed.emit();await process_frame
+   assert(app.screen==overlay)
+   viewport.size=Vector2i(720,750);await process_frame;await process_frame
+   var back="Return to battle" if overlay=="battle_menu" else "Apply and return [Esc]"
+   var buttons=app.ui.find_children("*","Button",true,false).filter(func(button):return button.text==back)
+   assert(buttons.size()==1);buttons[0].pressed.emit();await process_frame
+   assert(app.screen=="battle" and app.map_navigation.at_home()==not manual)
+   var returned=app.map_navigation.capture_view()
+   if manual:assert(returned==view)
+   else:
+    assert(returned!=view);check_home_edges(app.camera,app.game.board_size())
+    app.map_camera();assert(app.map_navigation.capture_view()==returned)
+   assert(app.game.export_code("battle")==state)
+   if overlay=="battle_menu":assert(FileAccess.get_file_as_string(app.campaign_save_path())==original_file)
+   else:
+    var saved=app.game.get_script().new(app.game.content)
+    assert(saved.load_game(app.campaign_save_path())=="battle")
+    assert(JSON.parse_string(JSON.stringify(saved.save_data("battle")))==JSON.parse_string(JSON.stringify(app.game.save_data("battle"))))
+ print("PASS: battle menu and Options returns refit Home after a resize and retain the exact manual view")
 
 func verify_resized_longbow_approach(app,viewport: SubViewport):
  var portrait=Vector2i(720,960)

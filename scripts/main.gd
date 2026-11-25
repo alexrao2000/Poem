@@ -75,7 +75,6 @@ var valley_reveal_active=false
 var editor_reveal_close_pending=false
 var valley_reveal_skip=false
 var atlas_return_control=""
-var atlas_open_extent=Vector2.ZERO
 var atlas_grid_enabled=false
 var atlas_units_enabled=false
 var atlas_reach_enabled=false
@@ -96,6 +95,7 @@ var tactics=preload("res://scripts/tactics.gd").new()
 var camera: Camera3D
 const TacticalCamera=preload("res://scripts/tactical_camera.gd")
 var map_navigation=TacticalCamera.new()
+var map_home_extent=Vector2.ZERO
 var environment: Environment
 var sunlight: DirectionalLight3D
 var default_lighting: Dictionary
@@ -423,6 +423,11 @@ func map_camera():
 	TacticalCamera.fit_home(camera,dimensions,not reveal_preview)
 	fit_home_forecast()
 	map_navigation.configure(camera,dimensions)
+	map_home_extent=get_viewport().get_visible_rect().size
+
+func refit_home_after_resize():
+	var viewport_size=get_viewport().get_visible_rect().size
+	if map_home_extent!=Vector2.ZERO and viewport_size!=map_home_extent and map_navigation.at_home():map_camera()
 
 func fit_home_forecast():
 	if not is_instance_valid(forecast_panel) or selected==null or target==null:return
@@ -1301,6 +1306,7 @@ func present_battle_scene(scene: Dictionary,token: String,reason: String,site=fa
 func show_battle():
 	prefetch_battle_models()
 	screen="battle";reset_ui()
+	refit_home_after_resize()
 	battle_header=BattleHeader.new()
 	battle_header.configure(ui,"%02d  ·  %s"%[game.chapter+1,game.info().title],battle_objective_text(),objective_text())
 	objective_label=battle_header.objective;status=battle_header.status
@@ -1559,17 +1565,11 @@ func open_battle_atlas(opener: String):
 	if busy or game.phase!="player" or game.info().get("presentation","")!="valley_table":return
 	if screen=="battle_menu":close_battle_menu()
 	if screen!="battle":return
-	atlas_open_extent=get_viewport().get_visible_rect().size
 	atlas_return_control=opener;map_navigation.stop()
 	show_campaign_route("battle_route")
 
 func close_battle_route():
-	var viewport_size=get_viewport().get_visible_rect().size
-	var resized=atlas_open_extent!=Vector2.ZERO and viewport_size!=atlas_open_extent
-	var refit=resized and map_navigation.at_home()
-	atlas_open_extent=Vector2.ZERO
 	show_battle()
-	if refit:map_camera()
 	var opener=side.find_child(atlas_return_control,true,false)
 	atlas_return_control=""
 	if opener!=null:opener.grab_focus()
@@ -1577,6 +1577,7 @@ func close_battle_route():
 func close_battle_menu():
 	if not is_instance_valid(battle_menu):return
 	get_viewport().gui_release_focus();ui.remove_child(battle_menu);battle_menu.queue_free();battle_menu=null;screen="battle"
+	refit_home_after_resize()
 
 func highlight():
 	for id in unit_nodes:unit_nodes[id].selected=selected!=null and selected.id==id
