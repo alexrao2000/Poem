@@ -76,6 +76,22 @@ static func build(scenery,parent: Node3D,game,extent: float,water_level: float):
    var shoulder = scenery.mesh(stream,shape(extent*.53,direction,shore,water_level,GRASS_SHOULDER),origin,Vector3.ONE,scenery.ground_material(0))
    shoulder.name = "StreamShoulder"
    shoulder.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+   plant_mouth(scenery,stream,origin,extent*.53,direction,shore)
+
+static func plant_mouth(scenery,stream: Node3D,origin: Vector3,length: float,direction: int,shore: int):
+ # These roots sit between two sampled shoulder grades, on a mesh row.
+ var first: Vector2 = GRASS_SHOULDER[0]
+ var second: Vector2 = GRASS_SHOULDER[1]
+ for row in [2,4,6,9]:
+  var distance = length*float(row+(1 if shore>0 else 0))/ROWS
+  var channel = section(distance,direction)
+  for tuft in 2:
+   var grade = first.lerp(second,.23+tuft*.37)
+   var height = lerpf(-.151,grade.y,smoothstep(0,1.2,distance))-.006
+   var root = origin+Vector3(channel.x+shore*(channel.y+grade.x),height,direction*distance)
+   var reed = scenery.ground_cover.plant(stream,{"kind":2,"position":root,
+    "height":.26+float((row*7+tuft*3)%5)*.021,"yaw":row*.91+tuft*1.7})
+   reed.name = "StreamReed"
 
 static func tree_position(game,point: Vector3) -> Vector3:
  var direction = -1 if point.z < 0 else 1
@@ -105,3 +121,12 @@ static func arena(scenery,parent: Node3D,center: Vector3,paint: Material,flow_di
  for edge in [ARENA_NEAR_BANK,ARENA_FAR_BANK]:
   var stone=scenery.block(parent,center+Vector3(0,-.105,edge),Vector3(70,.28,.26),scenery.detail_material(3))
   stone.name="CinderfordBankStone"
+ var stations = [-9.4,-5.2,-1.45,2.7,6.8,10.4]
+ for side in [-1,1]:
+  var bank = ARENA_NEAR_BANK if side>0 else ARENA_FAR_BANK
+  for index in stations.size():
+   for tuft in 2:
+    var position = center+Vector3(stations[index]+tuft*.21+side*.27,0,bank+side*(.40+tuft*.23))
+    var reed = scenery.ground_cover.plant(parent,{"kind":2,"position":position,
+     "height":.38+float((index*7+tuft*3)%6)*.036,"yaw":index*1.43+tuft*1.1+side*.7})
+    reed.name = "StreamsideReed"

@@ -991,8 +991,9 @@ func verify_cinderford_stream():
  var reaches=stream.find_children("StreamReach*","MeshInstance3D",false,false)
  var banks=stream.find_children("StreamBank*","MeshInstance3D",false,false)
  var shoulders=stream.find_children("StreamShoulder*","MeshInstance3D",false,false)
+ var reeds=stream.find_children("StreamReed*","MeshInstance3D",false,false)
  var map_water=map.find_children("MapWater*","MeshInstance3D",false,false)
- assert(reaches.size()==2 and banks.size()==4 and shoulders.size()==4 and map_water.size()==10)
+ assert(reaches.size()==2 and banks.size()==4 and shoulders.size()==4 and map_water.size()==10 and reeds.size()==32)
  for tile in map_water:
   assert(is_equal_approx(tile.position.y,Scenery.MAP_WATER_LEVEL))
   assert(tile.material_override==scenery.water_material("village"))
@@ -1013,6 +1014,13 @@ func verify_cinderford_stream():
    x_range.x=minf(x_range.x,point.x);x_range.y=maxf(x_range.y,point.x)
   seam.sort()
   assert(seam==[6.5,7.5] and x_range.y-x_range.x>2.4,"Both mouths meet the existing tile before widening")
+  var planted=reeds.filter(func(reed):return (reed.position.z-z)*direction>0.0)
+  assert(planted.size()==16)
+  for reed in planted:
+   var cross=CinderfordStream.section(absf(reed.position.z-z),direction)
+   var offset=absf(reed.position.x-cross.x)-cross.y
+   assert(offset>.25 and offset<.54 and reed.position.y>Scenery.MAP_WATER_LEVEL)
+   assert(reed.mesh==scenery.ground_cover.shape(2) and reed.material_override==scenery.ground_cover.material())
   for distance in [3.0,4.3,5.6]:
    var cross=CinderfordStream.section(distance,direction)
    var root_point=Vector3(cross.x,-.15,z+direction*distance)
@@ -1036,6 +1044,7 @@ func verify_cinderford_stream():
  var shortened_reaches=shortened.get_node("CinderfordStream").find_children("StreamReach*","MeshInstance3D",false,false)
  assert(shortened_reaches.size()==1 and shortened_reaches[0].mesh==reaches[1].mesh,
   "A rebuild retains the same geometry at the remaining mouth")
+ assert(shortened.get_node("CinderfordStream").find_children("StreamReed*","MeshInstance3D",false,false).size()==16)
  dry[0]=north
  assert(game.save_data("camp")==state,"The stream changes no campaign state")
  map.free();shortened.free()
@@ -1086,8 +1095,11 @@ func verify_cinderford_streamside():
     for part in landmark.find_children("*","MeshInstance3D",true,false):
      assert((part.global_transform*part.mesh.get_aabb()).end.z<separate.y,"The distant houses stay across the stream")
    var plants=stage.get_children().filter(func(node):return node is MeshInstance3D and node.has_meta("plant_kind"))
-   assert(plants.size()==30 and plants.all(func(plant):return plant.position.z>separate.x or plant.position.z<separate.y),
+   assert(plants.size()==54 and plants.all(func(plant):return plant.position.z>separate.x or plant.position.z<separate.y),
     "Vegetation stays on dry ground on either bank")
+   var reeds=stage.find_children("StreamsideReed*","MeshInstance3D",false,false)
+   assert(reeds.size()==24 and reeds.filter(func(reed):return reed.position.z>separate.x).size()==12)
+   for reed in reeds:assert(reed.mesh==scenery.ground_cover.shape(2) and reed.position.y==center.y)
    var shot=director.frame_pair(center+Vector3.LEFT*1.6,center+Vector3.RIGHT*1.6,"wide",false,false,"",true)
    camera.position=shot.anchor;camera.fov=shot.lens;camera.look_at(shot.focus)
    for dimensions in [Vector2i(1024,640),Vector2i(1280,720),Vector2i(1440,900)]:
@@ -1108,4 +1120,5 @@ func verify_cinderford_streamside():
   assert(not inland.has("village_stream_direction"),"The market and wooden crossing use their ordinary arenas")
  assert(game.save_data("camp")==saved)
  view.free()
+ print("PASS: Cinderford stream reeds share one plant mesh and sit on both tactical and combat banks")
  print("PASS: %d streamside Cinderford arenas preserve dry footing, shoreline landmarks and the mirrored current across three viewport sizes"%channels)
