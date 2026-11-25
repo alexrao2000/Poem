@@ -598,6 +598,46 @@ func verify_enemy_group_switch(app):
  assert(editor.level().enemies.size()==normal_count and editor.level().hard_enemies[-1]==hard_copy)
  assert(editor.draft.playtest_problem().is_empty())
 
+func verify_editor_score_preview(app):
+ var editor=app.campaign_editor
+ var tabs=editor.find_child("CampaignEditorTabs",true,false)
+ tabs.current_tab=0;await process_frame
+ var selector=editor.find_child("EditorScoreTheme",true,false)
+ for index in selector.item_count:
+  if selector.get_item_metadata(index)=="valley":
+   selector.select(index);selector.item_selected.emit(index);break
+ assert(editor.level().score_theme=="valley")
+ var draft_before=editor.draft.encode()
+ var camp_before=canonical(app.game.save_data("camp"))
+ var disk_before=FileAccess.get_file_as_string(app.save_path)
+ var campaign_voice=app.music
+ var campaign_score=app.score_director.score
+ if not campaign_voice.playing:campaign_voice.play()
+ await process_frame;await process_frame
+ controls(app,"Preview score").pressed.emit();await process_frame
+ var dialog=editor.get_node("EditorScorePreview")
+ var audition=dialog.get_node("MusicRoomAudio")
+ var pair=audition.director.score
+ var voice=audition.director.player
+ var suspended_position=campaign_voice.get_playback_position()
+ assert(dialog.title==app.score_director.profile_for(editor.selected,"valley").title)
+ assert(audition.director.current_id=="valley" and campaign_voice.stream_paused and voice.playing)
+ var first_position=voice.get_playback_position()
+ dialog.find_child("MusicRoomAblaze",true,false).pressed.emit()
+ await audition.mix.finished
+ assert(audition.ablaze and audition.director.score==pair and audition.director.player==voice)
+ assert(voice.get_playback_position()>=first_position-.03 and pair.get_sync_stream_volume(0)<=-59)
+ assert(absf(campaign_voice.get_playback_position()-suspended_position)<.04)
+ dialog.confirmed.emit();await process_frame;await process_frame
+ assert(app.screen=="campaign_editor" and app.campaign_editor==editor and not editor.has_node("EditorScorePreview"))
+ assert(app.music==campaign_voice and app.score_director.score==campaign_score and not campaign_voice.stream_paused)
+ controls(app,"Preview score").pressed.emit();await process_frame
+ var escape=InputEventKey.new();escape.keycode=KEY_ESCAPE;escape.pressed=true
+ app._unhandled_input(escape);await process_frame;await process_frame
+ assert(app.screen=="campaign_editor" and not editor.has_node("EditorScorePreview") and not campaign_voice.stream_paused)
+ assert(editor.draft.encode()==draft_before and canonical(app.game.save_data("camp"))==camp_before)
+ assert(FileAccess.get_file_as_string(app.save_path)==disk_before)
+
 func run():
  check_document()
  check_small_section_deployment()
@@ -1496,7 +1536,8 @@ func run():
  await verify_moving_placements(app)
  await verify_enemy_group_switch(app)
  await verify_multiple_standards(app)
+ await verify_editor_score_preview(app)
  assert(FileAccess.get_file_as_string(app.save_path)==disk and app.game==installed)
  await Shutdown.dispose(app);await process_frame
- print("PASS: campaign JSON file transfer, draft library management, remembered playtest setup, campaign readiness, authored Hard bonuses, authored retry raiders, deployment comparison, authored formation previews, small deployment limits and save recovery, custom campaign atlas, terrain stroke undo, continuous terrain strokes, connected terrain fill, placement moves and swaps, repeated placement copies, switching enemy difficulty groups, multiple standards and exact resume, standard navigation and live progress, standards that follow route pins, route pins, war-table site terrain, war-table overlay, blank war-table chapter, rising Valley landmarks, Valley reveal sound cues, battlefield site markers, custom recruits, phase scenes, tile dialogue and reload, one-use field tonic caches, Valley landmark dialogue, dialogue that follows route pins, timed reinforcements, chapter 32 saves, section dialogue, authored section relief, authored legacy stock and purchase persistence, authored loss recruits, authored loss dialogue, reproducible playtest setup, Valley carryover and resume, thirteen-chapter Valley template, and single-battle tests")
+ print("PASS: campaign JSON file transfer, draft library management, remembered playtest setup, campaign readiness, authored Hard bonuses, authored retry raiders, deployment comparison, authored formation previews, small deployment limits and save recovery, custom campaign atlas, terrain stroke undo, continuous terrain strokes, connected terrain fill, placement moves and swaps, repeated placement copies, switching enemy difficulty groups, editor music preview, multiple standards and exact resume, standard navigation and live progress, standards that follow route pins, route pins, war-table site terrain, war-table overlay, blank war-table chapter, rising Valley landmarks, Valley reveal sound cues, battlefield site markers, custom recruits, phase scenes, tile dialogue and reload, one-use field tonic caches, Valley landmark dialogue, dialogue that follows route pins, timed reinforcements, chapter 32 saves, section dialogue, authored section relief, authored legacy stock and purchase persistence, authored loss recruits, authored loss dialogue, reproducible playtest setup, Valley carryover and resume, thirteen-chapter Valley template, and single-battle tests")
  quit()

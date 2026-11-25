@@ -2,6 +2,7 @@ extends VBoxContainer
 signal closed
 signal playtest_requested(start: int, resume: bool, single_battle: bool)
 signal draft_selection_changed(key: String, chapter: int)
+signal score_preview_requested(theme_id: String)
 const Draft=preload("res://scripts/campaign_draft.gd")
 const Grid=preload("res://scripts/campaign_editor_grid.gd")
 const Route=preload("res://scripts/campaign_route.gd")
@@ -122,7 +123,12 @@ func build_battle(panel: VBoxContainer):
   layout.objective=value;grid.marks=draft.valley_marks(selected);refresh_linked_standards();show_brush_options();changed()))
  field_label(parameters,"Phase limit",spin(int(layout.turn_limit),1,99,func(value):layout.turn_limit=value;changed()))
  field_label(parameters,"Environment",choice(Draft.ENVIRONMENTS,layout.environment,func(value):layout.environment=value;changed()))
- field_label(parameters,"Score",choice(draft.music_ids,layout.score_theme,func(value):layout.score_theme=value;changed()))
+ var score_controls=HBoxContainer.new();score_controls.add_theme_constant_override("separation",8)
+ var theme=choice(draft.music_ids,layout.score_theme,func(value):layout.score_theme=value;changed())
+ theme.name="EditorScoreTheme";theme.size_flags_horizontal=SIZE_EXPAND_FILL;score_controls.add_child(theme)
+ var listen=action(score_controls,"Preview score",func():score_preview_requested.emit(layout.score_theme))
+ listen.name="EditorPreviewScore";listen.size_flags_horizontal=SIZE_FILL
+ field_label(parameters,"Score",score_controls)
  var width=spin(layout.map[0].length(),Draft.MIN_BOARD.x,Draft.MAX_BOARD.x,Callable())
  var height=spin(layout.map.size(),Draft.MIN_BOARD.y,Draft.MAX_BOARD.y,Callable())
  var fixed_chart=layout.presentation=="valley_table"

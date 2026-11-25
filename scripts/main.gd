@@ -534,6 +534,7 @@ func show_campaign_editor(return_to: String):
 	campaign_editor=preload("res://scripts/campaign_editor.gd").new();panel.add_child(campaign_editor)
 	campaign_editor.configure(campaign_draft,campaign_draft_library,campaign_editor_key,campaign_editor_chapter,campaign_playtest_setup)
 	campaign_editor.closed.connect(close_campaign_editor)
+	campaign_editor.score_preview_requested.connect(open_editor_score_preview)
 	campaign_editor.draft_selection_changed.connect(func(key,index):
 		campaign_editor_key=key;campaign_editor_chapter=index)
 	campaign_editor.playtest_requested.connect(func(index,resume,single_battle):
@@ -1252,7 +1253,10 @@ func _input(event):
 
 func _unhandled_input(event):
 	if screen=="campaign_editor" and event is InputEventKey and event.pressed and not event.echo and event.keycode==KEY_ESCAPE:
-		close_campaign_editor();get_viewport().set_input_as_handled();return
+		var audition=campaign_editor.get_node_or_null("EditorScorePreview")
+		if audition!=null and audition.visible:audition.queue_free()
+		else:close_campaign_editor()
+		get_viewport().set_input_as_handled();return
 	if screen=="formation" and event is InputEventKey and event.pressed and event.keycode==KEY_R:
 		if not event.echo:
 			var toggle=ui.find_child("FormationAllReach",true,false);toggle.button_pressed=not toggle.button_pressed;interface_audio.cue("select")
@@ -2687,14 +2691,31 @@ func show_music_room():
 		details.text=("%s · "%chapters if not chapters.is_empty() else "")+"%d BPM"%int(profile.bpm)
 	update_details.call()
 	themes.item_selected.connect(func(index):preview.select_theme(index);update_details.call())
+	add_arrangement_buttons(panel,preview)
+	label_in(panel,"Music volume: %d%%. Change it in Options."%roundi(preferences.values.music*100),18)
+	label_in(panel,"Original Poem compositions · orchestral samples from VSCO 2 Community Edition (CC0).",16,Color("766e5e"))
+	button_in(frame,"Return to Options",close_music_room)
+
+func add_arrangement_buttons(panel: Control,preview: Node):
 	var choices=HBoxContainer.new();choices.add_theme_constant_override("separation",12);panel.add_child(choices)
 	var group=ButtonGroup.new()
 	for title in ["Calm","Ablaze"]:
 		var choice=button_in(choices,title,func():preview.select_arrangement(title=="Ablaze"))
 		choice.name="MusicRoom"+title;choice.toggle_mode=true;choice.button_group=group;choice.button_pressed=title=="Calm";choice.size_flags_horizontal=Control.SIZE_EXPAND_FILL
-	label_in(panel,"Music volume: %d%%. Change it in Options."%roundi(preferences.values.music*100),18)
-	label_in(panel,"Original Poem compositions · orchestral samples from VSCO 2 Community Edition (CC0).",16,Color("766e5e"))
-	button_in(frame,"Return to Options",close_music_room)
+
+func open_editor_score_preview(theme_id: String):
+	if screen!="campaign_editor" or campaign_editor.has_node("EditorScorePreview"):return
+	var profile=score_director.profile_for(campaign_editor.selected,theme_id)
+	var dialog=AcceptDialog.new();dialog.name="EditorScorePreview";dialog.title=profile.title
+	dialog.get_ok_button().text="Done"
+	campaign_editor.add_child(dialog)
+	var preview=preload("res://scripts/music_room.gd").new();dialog.add_child(preview)
+	preview.configure(score_director,music_transition,profile,preferences.volume_db("music"))
+	var panel=VBoxContainer.new();panel.add_theme_constant_override("separation",8);dialog.add_child(panel)
+	label_in(panel,"%d BPM"%int(profile.bpm),18,GOLD)
+	add_arrangement_buttons(panel,preview)
+	dialog.confirmed.connect(dialog.queue_free);dialog.canceled.connect(dialog.queue_free)
+	dialog.popup_centered(Vector2i(400,156))
 
 func score_chapter_label(theme_id: String) -> String:
 	var spans=PackedStringArray()
