@@ -365,6 +365,7 @@ func run():
  assert(not frame.encloses(nav.combat_bounds(subjects)),"The actual exchange starts from a camera panned away from its participants")
  var handoff=[false];var restored=[false];var checked_tint=[false];var visible_before_cut=[false]
  var streaks_seen=[false]
+ var held_pair=[false]
  var horizon=app.environment.sky.sky_material.sky_horizon_color
  var expected_ink=Transition.INK.lerp(horizon.darkened(.81),.52)
  var observe_return=func():
@@ -377,6 +378,8 @@ func run():
     visible_before_cut[0]=true
     assert(veil.subject_bounds_source.call()==nav.combat_bounds(subjects))
     streaks_seen[0]=check_opening_streaks(app,veil,subjects,Vector2i(frame.size))>0
+    if veil.progress==Transition.FRAMED_APERTURE and frame.grow(-17).encloses(nav.combat_bounds(subjects)):
+     held_pair[0]=true
   if app.stage.visible:handoff[0]=true
   elif handoff[0] and not restored[0]:
    restored[0]=true
@@ -386,6 +389,7 @@ func run():
  await app.cinematic(a,b,[{"actor":a.id,"target":b.id,"damage":1,"remaining":19,"hit":true,"crit":false}],{a.id:20,b.id:20})
  process_frame.disconnect(observe_return)
  assert(restored[0] and checked_tint[0] and visible_before_cut[0] and streaks_seen[0],"Real cinematic finds the offscreen units, frames them with streaks, and restores the player's view")
+ assert(held_pair[0],"The actual cinematic holds both enlarged sprites in the aperture before cutting to 3D")
  check_details(app,true)
  await create_timer(.2).timeout
  assert(camera.transform.is_equal_approx(prior) and is_equal_approx(camera.size,size),"Interrupted map zoom cannot overwrite arena or restored view")

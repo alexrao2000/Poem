@@ -71,6 +71,14 @@ func run():
  veil.conceal(.2);await create_timer(.03).timeout
  await veil.reveal(.02).finished
  assert(veil.progress==0,"Interrupted transition cancels earlier movement")
+ var framed=veil.conceal_framed();framed.pause()
+ framed.custom_step(Transition.APPROACH_SECONDS+Transition.FRAMED_HOLD_SECONDS*.25)
+ assert(veil.progress==Transition.FRAMED_APERTURE and veil.cover_alpha()<.07 and veil.streaks)
+ framed.custom_step(Transition.FRAMED_HOLD_SECONDS*.50)
+ assert(veil.progress==Transition.FRAMED_APERTURE,"The framed map sprites have a clear beat before the full cover")
+ framed.custom_step(Transition.FRAMED_HOLD_SECONDS*.25+Transition.APPROACH_COVER_SECONDS+.001)
+ assert(veil.progress==1 and veil.cover_alpha()==1)
+ print("PASS: the framed combat approach holds the aperture before the arena swap")
  verify_focused_reveal(host,veil)
  host.queue_free();await process_frame
  print("PASS: camera framing, axis continuity, mounted framing, impact settling, transition coverage and cleanup")

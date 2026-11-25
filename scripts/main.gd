@@ -2016,10 +2016,10 @@ func cinematic(a,b,events,initial_hp={},challenge: Dictionary={}):
 	var horizon=environment.sky.sky_material.sky_horizon_color
 	var veil=CombatTransition.new();veil.configure(ui,func():return camera.unproject_position(focus),horizon,
 		func():return map_navigation.combat_bounds(combat_sprites) if not combat_sprites.is_empty() else Rect2())
-	veil.conceal()
+	veil.conceal_framed()
 	var chart_ink=ValleyBattle.grid_material(world)
 	play_sfx("valley-approach" if chart_ink!=null else "approach")
-	var push_time=.42
+	var push_time=CombatTransition.APPROACH_SECONDS
 	var push=map_navigation.approach_combat(focus,push_time,combat_sprites)
 	push.parallel().tween_method(dim_bystanders.bind(bystanders),0.0,1.0,push_time)
 	if chart_ink!=null:

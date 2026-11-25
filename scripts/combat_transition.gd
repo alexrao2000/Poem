@@ -6,6 +6,10 @@ const WARM_STREAK=Color(.88,.81,.64)
 const APERTURE_INNER=.17
 const APERTURE_OUTER=.36
 const STREAK_COUNT=28
+const APPROACH_SECONDS=.32
+const FRAMED_APERTURE=.58
+const FRAMED_HOLD_SECONDS=.08
+const APPROACH_COVER_SECONDS=.10
 static var opening_mask: GradientTexture2D
 var progress=0.0:
  set(value):progress=clampf(value,0,1);queue_redraw()
@@ -32,10 +36,21 @@ func set_horizon(horizon: Color):
  queue_redraw()
 
 func conceal(duration=.42,with_streaks=true) -> Tween:
+ begin_conceal(with_streaks)
+ motion.tween_property(self,"progress",1.0,duration)
+ return motion
+
+func conceal_framed() -> Tween:
+ begin_conceal(true)
+ motion.tween_property(self,"progress",FRAMED_APERTURE,APPROACH_SECONDS)
+ motion.tween_interval(FRAMED_HOLD_SECONDS)
+ motion.tween_property(self,"progress",1.0,APPROACH_COVER_SECONDS)
+ return motion
+
+func begin_conceal(with_streaks: bool):
  if motion and motion.is_valid():motion.kill()
  revealing=false;streaks=with_streaks;progress=0
- motion=create_tween();motion.tween_property(self,"progress",1.0,duration)
- return motion
+ motion=create_tween()
 
 func reveal(duration=.22,source=Callable()) -> Tween:
  if motion and motion.is_valid():motion.kill()
