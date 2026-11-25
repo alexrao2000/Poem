@@ -16,7 +16,7 @@ Legacy arrivals can give a recruit an early or reserve-only entry after a loss. 
 
 The map workspace combines a terrain brush with controls for deployment tiles, enemy placements, hard-mode reinforcements, and the objective. Authors can resize a board and choose its battlefield environment and score. The Encounters workspace assigns the commander, chapter-wide enemy levels, individual level overrides, classes, strategies, and compatible equipment. Set an enemy’s arrival turn and phase to bring them in as reinforcements. Arrivals use the nearest open passable tile if the marked tile is occupied. The editor identifies blocked tiles, overlapping placements, and missing objective markers before playtest. The runtime uses its regular tactical rules and two-stage combat presentation.
 
-Undo terrain and Redo terrain reverse whole brush strokes. On the focused Battle grid, use Command-Z or Control-Z to undo and add Shift to redo. Resizing a board starts a fresh terrain history for that chapter.
+Drag to paint a continuous line with the terrain brush. Leaving and reentering the board starts a fresh line in the same stroke. Undo terrain and Redo terrain reverse whole brush strokes. On the focused Battle grid, use Command-Z or Control-Z to undo and add Shift to redo. Resizing a board starts a fresh terrain history for that chapter.
 
 Switch on Fill connected area to paint touching tiles of the same terrain in one step. The fill stops at different terrain and inherited route tiles. Undo terrain reverses the whole fill.
 

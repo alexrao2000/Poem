@@ -140,7 +140,9 @@ func build_battle(panel: VBoxContainer):
  fill_terrain.button_pressed=fill_connected;tools.add_child(fill_terrain)
  fill_terrain.toggled.connect(func(value):
   fill_connected=value
-  if brush==0:grid.paint_on_drag=not value)
+  if brush==0:
+   grid.paint_on_drag=not value
+   grid.connect_terrain_strokes=not value)
  job_choice=choice(draft.templates.classes.keys(),"Vanguard",Callable());tools.add_child(job_choice)
  ai_choice=choice(Draft.STRATEGIES,"pursue",Callable());tools.add_child(ai_choice)
  enemy_name=line_edit("","Enemy name",80,Callable());tools.add_child(enemy_name)
@@ -156,6 +158,7 @@ func build_battle(panel: VBoxContainer):
  grid.terrain_step_requested.connect(step_terrain)
  grid.placement_canceled.connect(clear_placement_selection)
  grid.tile_edited.connect(edit_tile)
+ grid.terrain_segment_edited.connect(paint_terrain_segment)
  if fixed_chart:
   var inspected=heading(panel,"",15)
   inspected.name="EditorAtlasTile"
@@ -176,6 +179,7 @@ func show_brush_options():
  placement_hint.visible=brush==MOVE_PLACEMENT
  grid_help.visible=brush!=MOVE_PLACEMENT
  grid.paint_on_drag=brush!=MOVE_PLACEMENT and (brush!=0 or not fill_connected)
+ grid.connect_terrain_strokes=brush==0 and not fill_connected
  clear_placement_selection()
 
 func clear_placement_selection():
@@ -205,20 +209,32 @@ func step_terrain(redo: bool):
  grid.queue_redraw();grid.tile_inspected.emit(grid.cursor);grid.grab_focus()
  update_terrain_history();changed()
 
+func paint_terrain_segment(points: Array[Vector2i],erase: bool):
+ var layout=level()
+ var symbol="." if erase else terrain_choice.get_selected_metadata()
+ var painted=false
+ for point in points:
+  if layout.map[point.y][point.x]==symbol:continue
+  if not painted:
+   if not grid.stroke_active or not terrain_changed:draft.remember_terrain(selected)
+   terrain_changed=grid.stroke_active
+   painted=true
+  draft.paint(layout,point,symbol)
+ if painted:
+  grid.queue_redraw()
+  update_terrain_history()
+  changed()
+
 func edit_tile(point: Vector2i,erase: bool):
  if brush==MOVE_PLACEMENT:
   move_placement(point,erase);return
  var layout=level()
  var position=[point.x,point.y]
  if brush==0:
+  if not fill_connected:
+   paint_terrain_segment([point],erase);return
   var symbol="." if erase else terrain_choice.get_selected_metadata()
-  if fill_connected:
-   if not draft.fill_terrain(selected,point,symbol,grid.marks):return
-  else:
-   if layout.map[point.y][point.x]==symbol:return
-   if not grid.stroke_active or not terrain_changed:draft.remember_terrain(selected)
-   terrain_changed=grid.stroke_active
-   draft.paint(layout,point,symbol)
+  if not draft.fill_terrain(selected,point,symbol,grid.marks):return
   update_terrain_history()
  elif erase:
   layout.deployment_positions=layout.deployment_positions.filter(func(site):return not same_tile(site,point))

@@ -514,6 +514,28 @@ func run():
  controls(app,"Undo terrain").pressed.emit()
  assert(editor.level().map[4][6]=="f")
  fill_control.button_pressed=false
+ var board=terrain_canvas.board_rect()
+ click.pressed=true;click.position=board.position+Vector2(2.5,7.5)*cell
+ terrain_canvas._gui_input(click)
+ stroke.position=board.position+Vector2(8.5,7.5)*cell
+ terrain_canvas._gui_input(stroke)
+ stroke.position=board.position-Vector2.ONE
+ terrain_canvas._gui_input(stroke)
+ stroke.position=board.position+Vector2(12.5,7.5)*cell
+ terrain_canvas._gui_input(stroke)
+ click.pressed=false;terrain_canvas._gui_input(click)
+ assert(editor.level().map[7]=="..hhhhhhh...h.","A fast stroke should cover skipped tiles and stop joining them after leaving the grid.")
+ controls(app,"Undo terrain").pressed.emit()
+ assert(editor.level().map[7]=="..............")
+ terrain_canvas._gui_input(redo)
+ assert(editor.level().map[7]=="..hhhhhhh...h.")
+ click.button_index=MOUSE_BUTTON_RIGHT
+ click.pressed=true;click.position=board.position+Vector2(8.5,7.5)*cell
+ terrain_canvas._gui_input(click)
+ stroke.button_mask=MOUSE_BUTTON_MASK_RIGHT;stroke.position=board.position+Vector2(2.5,7.5)*cell
+ terrain_canvas._gui_input(stroke)
+ click.pressed=false;terrain_canvas._gui_input(click)
+ assert(editor.level().map[7]=="............h.")
  use_brush(editor,4,Vector2i(0,3))
  editor.chapter().opening=[{"speaker":"lyra","text":"This is a new campaign."}]
  editor.level().title="River Gate"
@@ -1104,5 +1126,5 @@ func run():
  await verify_moving_placements(app)
  assert(FileAccess.get_file_as_string(app.save_path)==disk and app.game==installed)
  await Shutdown.dispose(app);await process_frame
- print("PASS: campaign JSON file transfer, draft library management, remembered playtest setup, campaign readiness, authored Hard bonuses, authored retry raiders, deployment comparison, custom campaign atlas, terrain stroke undo, connected terrain fill, placement moves and swaps, route pins, war-table site terrain, rising Valley landmarks, custom recruits, phase scenes, timed reinforcements, chapter 32 saves, section dialogue, authored section relief, authored legacy stock and purchase persistence, authored loss recruits, authored loss dialogue, reproducible playtest setup, Valley carryover, thirteen-chapter Valley template, and single-battle tests")
+ print("PASS: campaign JSON file transfer, draft library management, remembered playtest setup, campaign readiness, authored Hard bonuses, authored retry raiders, deployment comparison, custom campaign atlas, terrain stroke undo, continuous terrain strokes, connected terrain fill, placement moves and swaps, route pins, war-table site terrain, rising Valley landmarks, custom recruits, phase scenes, timed reinforcements, chapter 32 saves, section dialogue, authored section relief, authored legacy stock and purchase persistence, authored loss recruits, authored loss dialogue, reproducible playtest setup, Valley carryover, thirteen-chapter Valley template, and single-battle tests")
  quit()

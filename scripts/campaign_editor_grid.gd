@@ -1,6 +1,7 @@
 extends Control
 ## A single canvas stays usable for authored boards up to 32 by 24 tiles.
 signal tile_edited(point: Vector2i,erase: bool)
+signal terrain_segment_edited(points: Array[Vector2i],erase: bool)
 signal tile_inspected(point: Vector2i)
 signal stroke_started
 signal terrain_step_requested(redo: bool)
@@ -15,6 +16,7 @@ var cursor=Vector2i.ZERO
 var last_tile=Vector2i(-1,-1)
 var stroke_active=false
 var paint_on_drag=true
+var connect_terrain_strokes=false
 var marked_placement=Vector2i(-1,-1)
 
 func configure(source: Dictionary,route_marks: Dictionary,picture: Texture2D=null):
@@ -25,6 +27,7 @@ func configure(source: Dictionary,route_marks: Dictionary,picture: Texture2D=nul
  mouse_default_cursor_shape=CURSOR_CROSS
  custom_minimum_size.y=306
  focus_entered.connect(queue_redraw);focus_exited.connect(queue_redraw)
+ mouse_exited.connect(func():last_tile=Vector2i(-1,-1))
  resized.connect(queue_redraw)
 
 func board_size() -> Vector2i:
@@ -121,8 +124,31 @@ func tile_at(position: Vector2) -> Vector2i:
 
 func use_pointer(position: Vector2,erase: bool):
  var point=tile_at(position)
- if point.x<0 or point==last_tile:return
+ if point.x<0:
+  last_tile=Vector2i(-1,-1);return
+ if point==last_tile:return
  if not stroke_active:
   stroke_active=true;stroke_started.emit()
+ if connect_terrain_strokes and last_tile.x>=0:
+  terrain_segment_edited.emit(terrain_segment(last_tile,point),erase)
+ else:
+  tile_edited.emit(point,erase)
  cursor=point;last_tile=point
- tile_edited.emit(point,erase);tile_inspected.emit(point);queue_redraw();accept_event()
+ tile_inspected.emit(point);queue_redraw();accept_event()
+
+func terrain_segment(start: Vector2i,end: Vector2i) -> Array[Vector2i]:
+ var points: Array[Vector2i]=[]
+ var point=start
+ var distance=(end-start).abs()
+ var direction=(end-start).sign()
+ var error=distance.x-distance.y
+ while point!=end:
+  var doubled_error=2*error
+  if doubled_error>-distance.y:
+   error-=distance.y
+   point.x+=direction.x
+  if doubled_error<distance.x:
+   error+=distance.x
+   point.y+=direction.y
+  points.append(point)
+ return points
