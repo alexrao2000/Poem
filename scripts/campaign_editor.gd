@@ -819,9 +819,21 @@ func build_phase_scenes(panel: VBoxContainer,record: Dictionary):
  var phase=choice(["player","enemy"],scene.phase,func(value):
   scene.phase=value;picker.set_item_text(index,phase_scene_label(scene));changed())
  phase.name="EditorPhaseScenePhase";field_label(trigger,"Phase",phase)
+ var defense=CheckButton.new();defense.name="EditorPhaseSceneDefense"
+ defense.text="When a standards defense begins"
+ defense.tooltip_text="Plays once when all required standards are held at the start of the enemy phase."
+ defense.button_pressed=scene.get("on_defense",false)
+ panel.add_child(defense)
+ turn.editable=not defense.button_pressed;phase.disabled=defense.button_pressed
+ defense.toggled.connect(func(enabled):
+  if enabled:scene.on_defense=true
+  else:scene.erase("on_defense")
+  turn.editable=not enabled;phase.disabled=enabled
+  picker.set_item_text(index,phase_scene_label(scene));changed())
  dialogue_editor(panel,"EditorPhaseSceneLines",132,func():return scene.lines,func(lines):scene.lines=lines;changed())
 
 func phase_scene_label(scene: Dictionary) -> String:
+ if scene.get("on_defense",false):return "Defense begins"
  return "Turn %d · %s phase"%[scene.turn,scene.phase.capitalize()]
 
 func confirm_remove_battle_scene(scenes: Array,index: int,trigger: String,refresh: Callable):

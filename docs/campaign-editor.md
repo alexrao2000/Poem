@@ -42,6 +42,8 @@ For a seize battle, use Extra standard in Battle to add more objectives. Win by 
 
 Turn on Hold standards through an enemy phase to require a defense after your allies capture the objectives. End the player phase with a standing ally on every standard. If a standard falls, retake it and defend again. Action saves keep the current defense if you leave during the enemy phase.
 
+In Story, add a phase scene and choose When a standards defense begins to play it as the company starts its first defense. The scene plays before the enemy acts. Its action save remembers when the dialogue has finished.
+
 In Encounters, choose Arrive to contest the standards for a reserve you want to send in when that defense starts. It deploys at the start of the enemy phase and can act right away. The reserve uses its normal arrival time whenever the chapter uses immediate capture.
 
 Preview deployment lists the enemies on the opening board and the reserves that join later. It shows when each reserve will arrive, its marked tile, and how retry pressure changes its stats and held tonics.

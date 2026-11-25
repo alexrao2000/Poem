@@ -1242,9 +1242,20 @@ func verify_standards_through_enemy_phase(app):
   preview.confirmed.emit();await process_frame
  editor.find_child("EditorEncounterDefenseArrival",true,false).button_pressed=true
  assert(draft.encode()==preview_before)
+ tabs.current_tab=tabs.get_tab_idx_from_control(editor.find_child("Story",true,false))
+ await process_frame
+ controls(app,"Add phase scene").pressed.emit();await process_frame
+ var announce_defense="The garrison is coming for the standards."
+ var phase_lines=editor.find_child("EditorPhaseSceneLines",true,false)
+ phase_lines.text="narrator | "+announce_defense;phase_lines.text_changed.emit()
+ editor.find_child("EditorPhaseSceneDefense",true,false).button_pressed=true
+ assert(editor.find_child("EditorPhaseScene",true,false).get_item_text(0)=="Defense begins")
+ assert(not editor.find_child("EditorPhaseSceneTurn",true,false).editable)
+ assert(editor.find_child("EditorPhaseScenePhase",true,false).disabled)
  var decoded=Draft.new()
  assert(decoded.decode(draft.encode()).is_empty() and decoded.compile().content.chapters[0].hold_enemy_phase)
  assert(decoded.data.chapters[0].level.enemies[1].arrive_on_defense)
+ assert(decoded.data.chapters[0].phase_scenes[0].on_defense)
  var fallback_content=decoded.compile().content
  fallback_content.chapters[0].hold_enemy_phase=false
  var timed=Rules.new(fallback_content)
@@ -1264,6 +1275,7 @@ func verify_standards_through_enemy_phase(app):
  assert(waiting.import_code(app.game.export_code("battle"))=="battle")
  waiting.begin_enemy_phase();waiting.next_player_turn()
  assert(waiting.standard_hold_turn==0 and waiting.enemy_waves.size()==1 and waiting.at(Vector2i(5,4))==null)
+ assert(waiting.pending_phase_scenes().is_empty())
  var tampered=waiting.save_data("battle").duplicate(true)
  tampered.enemy_waves[0].arrive_on_defense=false
  assert(not waiting.valid_save(tampered))
@@ -1277,6 +1289,9 @@ func verify_standards_through_enemy_phase(app):
  armed.begin_enemy_phase()
  assert(armed.standard_hold_turn==1 and armed.result().is_empty())
  assert(armed.enemy_waves.is_empty() and armed.at(Vector2i(5,4)).id=="enemy_1")
+ var first_scene=armed.pending_phase_scenes()
+ assert(first_scene.size()==1 and first_scene[0].lines[0].text==announce_defense)
+ var defense_token=armed.phase_scene_token(first_scene[0])
  var during_enemy=armed.export_code("battle")
  var broken=Rules.new(armed.content)
  assert(broken.import_code(during_enemy)=="battle" and canonical(broken.save_data("battle"))==canonical(armed.save_data("battle")))
@@ -1284,13 +1299,22 @@ func verify_standards_through_enemy_phase(app):
  invalid.standard_hold_turn=2
  assert(not broken.valid_save(invalid))
  broken.at(Vector2i(2,4)).hp=0
+ broken.story_seen.append(defense_token)
  broken.next_player_turn()
  assert(broken.standard_hold_turn==0 and broken.result().is_empty())
  var replacement=broken.at(Vector2i(0,3))
  assert(broken.move_unit(replacement,Vector2i(2,4)) and broken.result().is_empty())
- broken.begin_enemy_phase();broken.next_player_turn()
+ broken.begin_enemy_phase()
+ assert(broken.pending_phase_scenes().is_empty())
+ broken.next_player_turn()
  assert(broken.standard_hold_turn==2 and broken.result()=="victory")
+ var displayed=[0]
+ var watch=func():
+  if app.screen=="dialogue" and app.dialogue_label.text==announce_defense:displayed[0]+=1
+ process_frame.connect(watch)
  controls(app,"End player phase").pressed.emit();await finish_presentation(app)
+ process_frame.disconnect(watch)
+ assert(displayed[0]>0 and app.game.story_seen.count(defense_token)==1)
  assert(app.screen=="result" and app.game.result()=="victory" and app.game.turn==2)
  assert(app.game.units.filter(func(unit):return unit.id=="enemy_1").size()==1)
  assert(app.ui.find_children("*","Label",true,false).any(func(label):return label.text.begins_with("1 turn  ·  ")))
@@ -1300,6 +1324,13 @@ func verify_standards_through_enemy_phase(app):
  assert(armed.save_game(app.campaign_save_path(),"battle"))
  app.load_campaign();await finish_presentation(app)
  assert(app.screen=="result" and canonical(app.game.save_data("battle"))==complete)
+ armed.story_seen.append(defense_token)
+ assert(armed.save_game(app.campaign_save_path(),"battle"))
+ displayed[0]=0
+ process_frame.connect(watch)
+ app.load_campaign();await finish_presentation(app)
+ process_frame.disconnect(watch)
+ assert(displayed[0]==0 and canonical(app.game.save_data("battle"))==complete)
  controls(app,"Return to editor").pressed.emit();await process_frame
  assert(app.screen=="campaign_editor" and app.game==ordinary and FileAccess.get_file_as_string(app.save_path)==disk)
 
@@ -2270,5 +2301,5 @@ func run():
  await verify_standards_through_enemy_phase(app)
  assert(FileAccess.get_file_as_string(app.save_path)==disk and app.game==installed)
  await Shutdown.dispose(app);await process_frame
- print("PASS: campaign JSON file transfer, draft library management, remembered playtest setup, campaign readiness, authored Hard bonuses, authored retry raiders, deployment comparison, authored formation previews, small deployment limits and save recovery, custom campaign atlas, terrain stroke undo, bulk terrain rows, editor dialogs at two viewport sizes, direct chapter reordering, continuous terrain strokes, connected terrain fill, placement moves and swaps, repeated placement copies, switching enemy difficulty groups, editor music preview, multiple standards and exact resume, standard navigation and live progress, standards that follow route pins, route pins, war-table site terrain, war-table overlay, blank war-table chapter, rising Valley landmarks, local war-table arena landmarks including Kingsroad and Windscar, authored route arenas, fading route seals, war-table landmark index and shared survey marks, Valley reveal sound cues, battlefield site markers, custom recruits, phase scenes, tile dialogue and reload, recruitment on battlefield sites, authored recruit starting equipment, live recruit art previews, 3D recruit preview and editor return, navigation between available sites, one-use field tonic caches, Valley landmark dialogue, dialogue that follows route pins, timed reinforcements, chapter 32 saves, section dialogue, authored section relief, authored legacy stock and purchase persistence, authored loss recruits, authored loss dialogue, reproducible playtest setup, Valley carryover and resume, thirteen-chapter Valley template, built-in Hold the Valley Roads trial, 3D arena previews from Battle and Route, holding standards through an enemy phase, defense-triggered reserves, reserve stats in deployment previews, and single-battle tests")
+ print("PASS: campaign JSON file transfer, draft library management, remembered playtest setup, campaign readiness, authored Hard bonuses, authored retry raiders, deployment comparison, authored formation previews, small deployment limits and save recovery, custom campaign atlas, terrain stroke undo, bulk terrain rows, editor dialogs at two viewport sizes, direct chapter reordering, continuous terrain strokes, connected terrain fill, placement moves and swaps, repeated placement copies, switching enemy difficulty groups, editor music preview, multiple standards and exact resume, standard navigation and live progress, standards that follow route pins, route pins, war-table site terrain, war-table overlay, blank war-table chapter, rising Valley landmarks, local war-table arena landmarks including Kingsroad and Windscar, authored route arenas, fading route seals, war-table landmark index and shared survey marks, Valley reveal sound cues, battlefield site markers, custom recruits, phase scenes, tile dialogue and reload, recruitment on battlefield sites, authored recruit starting equipment, live recruit art previews, 3D recruit preview and editor return, navigation between available sites, one-use field tonic caches, Valley landmark dialogue, dialogue that follows route pins, timed reinforcements, chapter 32 saves, section dialogue, authored section relief, authored legacy stock and purchase persistence, authored loss recruits, authored loss dialogue, reproducible playtest setup, Valley carryover and resume, thirteen-chapter Valley template, built-in Hold the Valley Roads trial, 3D arena previews from Battle and Route, holding standards through an enemy phase, defense-triggered reserves, reserve stats in deployment previews, defense-triggered dialogue and exact resume, and single-battle tests")
  quit()

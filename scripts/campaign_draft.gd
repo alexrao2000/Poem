@@ -503,6 +503,7 @@ func phase_scenes_valid(scenes) -> bool:
    return false
   if not integer(scene.get("turn"),1,99) or scene.get("phase") not in ["player","enemy"] or not dialogue_valid(scene.get("lines")):
    return false
+  if not scene.get("on_defense",false) is bool:return false
   found[scene.id]=true
  return true
 

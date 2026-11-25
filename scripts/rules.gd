@@ -118,7 +118,8 @@ func phase_scene_token(scene: Dictionary) -> String:
 
 func pending_phase_scenes() -> Array:
 	return info().get("phase_scenes",[]).filter(func(scene):
-		return scene.turn==turn and scene.phase==phase and not scene.lines.is_empty() and phase_scene_token(scene) not in story_seen)
+		var due=phase=="enemy" and standard_hold_turn==turn if scene.get("on_defense",false) else scene.turn==turn and scene.phase==phase
+		return due and not scene.lines.is_empty() and phase_scene_token(scene) not in story_seen)
 
 func site_scene_token(scene: Dictionary) -> String:
 	return "site_scene_%d_%s"%[chapter,scene.id]
