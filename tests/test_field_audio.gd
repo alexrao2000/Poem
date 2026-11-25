@@ -116,7 +116,11 @@ func verify_war_table_ambience(app):
  assert(not events.is_empty())
  var frozen=app.game.save_data("battle").duplicate(true)
  app.busy=true
+ var paper=app.sfx_streams["valley-approach"]
+ assert(paper is AudioStreamWAV and is_equal_approx(paper.get_length(),.42))
+ assert(paper.data!=app.sfx_streams.approach.data and paper.data!=app.sfx_streams["valley-unroll"].data)
  app.cinematic(ally,foe,events)
+ assert(app.sfx_players.any(func(player):return player.playing and player.stream==paper))
  for _frame in 180:
   if app.stage.visible:break
   await process_frame
@@ -137,6 +141,7 @@ func verify_war_table_ambience(app):
  var map_decoder=app.field_audio.player.get_stream_playback()
  app.cinematic(ally,foe,events)
  assert(not app.stage.visible)
+ assert(app.sfx_players.any(func(player):return player.playing and player.stream==paper))
  app.ui.get_node("CombatPlayback").request_skip()
  for _frame in 180:
   if not app.ui.has_node("CombatPlayback"):break
@@ -145,6 +150,7 @@ func verify_war_table_ambience(app):
  assert(app.field_audio.player.get_stream_playback()==map_decoder and app.music.get_stream_playback()==score_voice)
  assert(app.game.save_data("battle")==frozen)
  app.busy=false
+ print("PASS: the paper sweep starts with both full and skipped war-table combat approaches")
  print("PASS: war-table room tone fades to the actual river arena and back; skipping before the arena preserves both playheads")
 
 func verify_combat_voice(app,chapter: int,theme: String,point: Vector2i) -> AudioStreamPlayback:
@@ -168,6 +174,7 @@ func verify_combat_voice(app,chapter: int,theme: String,point: Vector2i) -> Audi
  var frozen=app.game.save_data("battle").duplicate(true)
  app.busy=true
  app.cinematic(ally,foe,events)
+ assert(app.sfx_players.any(func(player):return player.playing and player.stream==app.sfx_streams.approach))
  for frame in range(180):
   if app.stage.visible:break
   await process_frame

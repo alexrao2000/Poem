@@ -163,7 +163,7 @@ The Valley chart has its own quiet room loop. When the camera drops into close-u
 
 Warm light separates the war table from its outdoor battlefields. Stained oak, brass rails, and slotted corner fasteners frame the parchment. The reveal begins with the route’s familiar chapter seals, which fade as the grid ink reaches them and miniatures rise. Miniatures make wooden contacts as they move. The tactical zoom starts in the room’s palette, takes on the local arena color under the veil, and restores the room on return.
 
-When the camera closes in on a Valley exchange, the ink takes on a warmer tone near the two units and fades farther away. The full grid returns with the tactical camera.
+When the camera closes in on a Valley exchange, a short paper sweep follows the camera move. The ink takes on a warmer tone near the two units and fades farther away. The full grid returns with the tactical camera.
 
 Quick map attacks also blend into Ablaze and start the return to Calm after the last strike. Consecutive attacks take up the blend from its current gain on the same live decoder.
 

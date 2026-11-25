@@ -211,6 +211,20 @@ def render_table_unroll():
     return np.rint(stereo * 32767).astype("<i2")
 
 
+def render_table_approach():
+    count = round(.42 * RATE)
+    progress = np.linspace(0, 1, count)
+    window = np.sin(np.pi * progress) ** 2
+    random = np.random.default_rng(57071)
+    brush = band_noise(random, 190, 910)[:count]
+    grain = band_noise(random, 940, 3800)[:count]
+    flecks = np.exp(-((progress - .53) / .14) ** 2) + .48 * np.exp(-((progress - .71) / .07) ** 2)
+    center = window * (.081 * brush + .057 * grain * flecks)
+    side = .010 * window * band_noise(random, 630, 2100)[:count]
+    stereo = np.stack((center - side, center + side), axis=-1)
+    return np.rint(stereo * 32767).astype("<i2")
+
+
 def write_audio(path, samples):
     with wave.open(str(path), "wb") as stream:
         stream.setnchannels(2)
@@ -229,6 +243,7 @@ def main():
     for field, profile in PROFILES.items():
         write_audio(destination / f"field-{field}.wav", render(profile))
     write_audio(destination / "valley-unroll.wav", render_table_unroll())
+    write_audio(destination / "valley-approach.wav", render_table_approach())
 
 
 if __name__ == "__main__":

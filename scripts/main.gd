@@ -214,7 +214,7 @@ func setup_audio():
 	add_child(field_audio)
 	score_director=ScoreDirector.new();add_child(score_director);score_director.configure(preferences.volume_db("music"),campaign_score_profile(game.chapter))
 	music=score_director.player;score=score_director.score
-	for effect in ["select","swing","hit","critical","heal","magic","phase","guard","cutin","levelup","approach","legacy-vigil","valley-unroll"]:
+	for effect in ["select","swing","hit","critical","heal","magic","phase","guard","cutin","levelup","approach","legacy-vigil","valley-unroll","valley-approach"]:
 		sfx_streams[effect]=load("res://assets/audio/"+effect+".wav")
 	for family in ["sword","axe","lance","bow","ember","gale","thunder"]:
 		sfx_streams["release_"+family]=load("res://assets/audio/release_"+family+".wav")
@@ -1841,11 +1841,11 @@ func cinematic(a,b,events,initial_hp={},challenge: Dictionary={}):
 	var veil=CombatTransition.new();veil.configure(ui,func():return camera.unproject_position(focus),horizon,
 		func():return map_navigation.combat_bounds(combat_sprites) if not combat_sprites.is_empty() else Rect2())
 	veil.conceal()
-	play_sfx("approach")
+	var chart_ink=ValleyBattle.grid_material(world)
+	play_sfx("valley-approach" if chart_ink!=null else "approach")
 	var push_time=.42
 	var push=map_navigation.approach_combat(focus,push_time,combat_sprites)
 	push.parallel().tween_method(dim_bystanders.bind(bystanders),0.0,1.0,push_time)
-	var chart_ink=ValleyBattle.grid_material(world)
 	if chart_ink!=null:
 		chart_ink.set_shader_parameter("combat_focus",Vector2(focus.x,focus.z))
 		push.parallel().tween_method(func(value):chart_ink.set_shader_parameter("combat_strength",value),0.0,1.0,push_time)
