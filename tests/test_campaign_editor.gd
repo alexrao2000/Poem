@@ -1697,6 +1697,23 @@ func run():
    var projected=app.camera.unproject_position(app.map_position(expected))
    assert(app.map_navigation.safe_rect().grow(1).has_point(projected))
    assert(not app.terrain_card.get_global_rect().has_point(projected))
+  var open_index=app.ui.find_child("OpenLandmarkIndex",true,false)
+  assert(root.get_visible_rect().encloses(open_index.get_global_rect()))
+  assert(not open_index.get_global_rect().intersects(next_landmark.get_global_rect()))
+  open_index.pressed.emit();await process_frame;await process_frame
+  assert(app.screen=="battle_menu")
+  var index=app.ui.find_child("LandmarkIndex",true,false)
+  var entries=index.get_child(0).get_children()
+  assert(entries.size()==11 and entries[0].has_focus() and root.get_visible_rect().encloses(index.get_global_rect()))
+  var reed=controls(app,"G-10 · Reed Crossing")
+  assert(reed.get_parent()==index.get_child(0))
+  reed.pressed.emit();await process_frame
+  assert(app.screen=="battle" and app.ui.find_child("LandmarkIndex",true,false)==null)
+  assert(app.cursor_tile==Vector2i(6,9) and app.terrain_card.place.text=="Reed Crossing")
+  open_index.pressed.emit();await process_frame
+  var exit_index=InputEventKey.new();exit_index.keycode=KEY_ESCAPE;exit_index.pressed=true
+  app._input(exit_index);await process_frame
+  assert(app.screen=="battle" and app.cursor_tile==Vector2i(6,9))
   assert(canonical(app.game.save_data("battle"))==atlas_state and FileAccess.get_file_as_string(valley_path)==atlas_disk)
  root.size=original_size
  root.content_scale_size=original_scale
@@ -2014,5 +2031,5 @@ func run():
  await verify_route_arena_reuse(app)
  assert(FileAccess.get_file_as_string(app.save_path)==disk and app.game==installed)
  await Shutdown.dispose(app);await process_frame
- print("PASS: campaign JSON file transfer, draft library management, remembered playtest setup, campaign readiness, authored Hard bonuses, authored retry raiders, deployment comparison, authored formation previews, small deployment limits and save recovery, custom campaign atlas, terrain stroke undo, bulk terrain rows, editor dialogs at two viewport sizes, direct chapter reordering, continuous terrain strokes, connected terrain fill, placement moves and swaps, repeated placement copies, switching enemy difficulty groups, editor music preview, multiple standards and exact resume, standard navigation and live progress, standards that follow route pins, route pins, war-table site terrain, war-table overlay, blank war-table chapter, rising Valley landmarks, local war-table arena landmarks, authored route arenas, fading route seals, war-table landmark navigation and shared survey marks, Valley reveal sound cues, battlefield site markers, custom recruits, phase scenes, tile dialogue and reload, recruitment on battlefield sites, authored recruit starting equipment, live recruit art previews, 3D recruit preview and editor return, navigation between available sites, one-use field tonic caches, Valley landmark dialogue, dialogue that follows route pins, timed reinforcements, chapter 32 saves, section dialogue, authored section relief, authored legacy stock and purchase persistence, authored loss recruits, authored loss dialogue, reproducible playtest setup, Valley carryover and resume, thirteen-chapter Valley template, and single-battle tests")
+ print("PASS: campaign JSON file transfer, draft library management, remembered playtest setup, campaign readiness, authored Hard bonuses, authored retry raiders, deployment comparison, authored formation previews, small deployment limits and save recovery, custom campaign atlas, terrain stroke undo, bulk terrain rows, editor dialogs at two viewport sizes, direct chapter reordering, continuous terrain strokes, connected terrain fill, placement moves and swaps, repeated placement copies, switching enemy difficulty groups, editor music preview, multiple standards and exact resume, standard navigation and live progress, standards that follow route pins, route pins, war-table site terrain, war-table overlay, blank war-table chapter, rising Valley landmarks, local war-table arena landmarks, authored route arenas, fading route seals, war-table landmark index and shared survey marks, Valley reveal sound cues, battlefield site markers, custom recruits, phase scenes, tile dialogue and reload, recruitment on battlefield sites, authored recruit starting equipment, live recruit art previews, 3D recruit preview and editor return, navigation between available sites, one-use field tonic caches, Valley landmark dialogue, dialogue that follows route pins, timed reinforcements, chapter 32 saves, section dialogue, authored section relief, authored legacy stock and purchase persistence, authored loss recruits, authored loss dialogue, reproducible playtest setup, Valley carryover and resume, thirteen-chapter Valley template, and single-battle tests")
  quit()

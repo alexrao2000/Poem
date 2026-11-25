@@ -76,7 +76,7 @@ To carry an earlier location into a war table battle, set its terrain in Route. 
 
 Close-up battles at reached war-table sites can bring back local scenery. Reed Crossing’s tollhouse returns on its bridge tile. Fighting at Hallow Abbey brings back its floor mosaic and any memorial lamps, while the table’s capital stronghold uses the raised gate.
 
-Route briefings show each reached location’s survey mark. The same marks appear in the editor’s war-table overlay and on the battlefield’s terrain card. Choose Next landmark or press L to inspect places from earlier chapters in campaign order. Locations sharing a tile appear once, with their names together.
+Route briefings show each reached location’s survey mark. The same marks appear in the editor’s war-table overlay and on the battlefield’s terrain card. Choose Next landmark or press L to inspect places from earlier chapters in campaign order. Use Index beside Next landmark to jump directly to a named place. Locations sharing a tile have separate entries in the index.
 
 Turn on Reuse this environment on later war tables in Route to give the tile that chapter’s close-up surroundings and ambience. The war-table overlay names the chosen arena. When several opted-in pins share a tile, the latest preceding chapter supplies it.
 

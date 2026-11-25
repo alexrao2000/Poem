@@ -1112,7 +1112,11 @@ func update_side():
 		if not game.available_site_scenes().is_empty():
 			button_in(side,"Next site [J]",focus_next_site,busy or game.phase!="player").name="NextSite"
 		if not terrain_card.places.is_empty():
-			button_in(side,"Next landmark [L]",focus_next_landmark,busy or game.phase!="player").name="NextLandmark"
+			var landmarks=HBoxContainer.new();landmarks.add_theme_constant_override("separation",6);side.add_child(landmarks)
+			var next=button_in(landmarks,"Next landmark [L]",focus_next_landmark,busy or game.phase!="player")
+			next.name="NextLandmark";next.size_flags_horizontal=Control.SIZE_EXPAND_FILL
+			var index=button_in(landmarks,"Index",show_battle_menu.bind(true),busy or game.phase!="player")
+			index.name="OpenLandmarkIndex";index.tooltip_text="Choose a landmark from an earlier chapter."
 	if save_failed and game.action_saves:button_in(side,"Retry autosave",retry_action_save,busy)
 	var expiring=game.units.filter(func(unit):return game.DeathDoor.downed(unit) and unit.bleed_turns==1 and unit.get("carried_by","").is_empty()) if game.phase=="player" else []
 	var phase_button=button_in(side,"End player phase" if expiring.is_empty() else "End phase · %d will fall"%expiring.size(),end_turn,busy or game.phase!="player");phase_button.name="EndPlayerPhase"
@@ -1165,7 +1169,7 @@ func arrange_battle_hint():
 	var reserved=44 if TacticalCamera.needs_map_clearance(ui.size) and below_commands else 365
 	help.offset_right=help.offset_left+minf(ceilf(width+padding),maxf(1,ui.size.x-reserved))
 
-func show_battle_menu():
+func show_battle_menu(landmark_index=false):
 	if screen!="battle" or busy or game.phase!="player":return
 	map_navigation.stop();interface_audio.cue("confirm");screen="battle_menu"
 	battle_menu=Control.new();battle_menu.name="BattleMenu";ui.add_child(battle_menu)
@@ -1174,6 +1178,9 @@ func show_battle_menu():
 	var frame=PanelContainer.new();frame.name="MenuFrame";battle_menu.add_child(frame)
 	frame.set_anchors_and_offsets_preset(Control.PRESET_CENTER);frame.offset_left=-280;frame.offset_right=280;frame.offset_top=-250;frame.offset_bottom=250
 	var commands=VBoxContainer.new();commands.add_theme_constant_override("separation",8);frame.add_child(commands)
+	if landmark_index:
+		build_landmark_index(commands)
+		return
 	label_in(commands,"Battle menu"+(" / DEBUG" if debug_session.active else ""),40,GOLD)
 	label_in(commands,"Turn %d · %s"%[game.turn,game.info().title],17)
 	button_in(commands,"Return to battle",close_battle_menu).grab_focus()
@@ -1201,6 +1208,21 @@ func show_battle_menu():
 	if encounter_button!=null:
 		option_button.focus_neighbor_right=option_button.get_path_to(encounter_button)
 		encounter_button.focus_neighbor_left=encounter_button.get_path_to(option_button)
+
+func build_landmark_index(commands: VBoxContainer):
+	label_in(commands,"Landmarks",40,GOLD)
+	var list=scrolling_column(commands)
+	var scroll=list.get_parent()
+	scroll.name="LandmarkIndex"
+	scroll.follow_focus=true
+	for point in terrain_card.places:
+		for place in terrain_card.places[point]:
+			var name_line="%s · %s"%[ValleyBattle.survey_mark(point),place]
+			var choice=button_in(list,name_line,func():close_battle_menu();focus_map_point(point))
+			choice.clip_text=true;choice.text_overrun_behavior=TextServer.OVERRUN_TRIM_ELLIPSIS
+			choice.alignment=HORIZONTAL_ALIGNMENT_LEFT;choice.tooltip_text=name_line
+	button_in(commands,"Return to battle",close_battle_menu)
+	list.get_child(0).grab_focus()
 
 func close_battle_menu():
 	if not is_instance_valid(battle_menu):return
@@ -3559,7 +3581,10 @@ func focus_next_landmark():
 func focus_next_map_point(points: Array[Vector2i]):
 	if screen!="battle" or busy or game.phase!="player" or points.is_empty():return
 	var current=points.find(cursor_tile) if cursor_visible else -1
-	cursor_tile=points[(current+1)%points.size()]
+	focus_map_point(points[(current+1)%points.size()])
+
+func focus_map_point(point: Vector2i):
+	cursor_tile=point
 	cursor_visible=true
 	move_map_cursor(Vector2i.ZERO)
 	interface_audio.cue("move")
