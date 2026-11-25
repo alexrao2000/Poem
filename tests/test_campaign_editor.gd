@@ -1956,15 +1956,34 @@ func run():
  var independently=Rules.new(app.game.content)
  assert(independently.restore_save(canonical(before))=="battle")
  var exchange=independently.combat(independently.at(app.game.pos(hero)),independently.at(Vector2i(3,8)))
- var witnessed=[false]
+ var ink_focus=Valley.grid_material(app.world)
+ var center=(Vector2(app.game.pos(hero))+Vector2(app.game.pos(guard)))*.5
+ var witnessed=[false,false,false]
  var watch=func():
+  var strength=float(ink_focus.get_shader_parameter("combat_strength"))
   if app.stage.visible:
    assert(app.stage.get_meta("environment")=="forest")
+   assert(is_equal_approx(strength,1.0))
    witnessed[0]=true
+  elif app.world.visible and strength>.05 and strength<.95:
+   assert(ink_focus.get_shader_parameter("combat_focus")==center)
+   witnessed[2 if witnessed[0] else 1]=true
  process_frame.connect(watch)
  await app.cinematic(hero,guard,exchange,{hero.id:hero.hp,guard.id:guard.hp})
  process_frame.disconnect(watch)
- assert(witnessed[0] and app.game.save_data("battle")==before and app.world.has_node("ValleyChart"))
+ assert(witnessed==[true,true,true] and is_zero_approx(float(ink_focus.get_shader_parameter("combat_strength"))))
+ assert(app.game.save_data("battle")==before and app.world.has_node("ValleyChart"))
+ var skipped=[false]
+ var skip_on_approach=func():
+  assert(not app.stage.visible)
+  if not skipped[0] and float(ink_focus.get_shader_parameter("combat_strength"))>.15:
+   app.ui.get_node("CombatPlayback").request_skip()
+   skipped[0]=true
+ process_frame.connect(skip_on_approach)
+ await app.cinematic(hero,guard,exchange,{hero.id:hero.hp,guard.id:guard.hp})
+ process_frame.disconnect(skip_on_approach)
+ assert(skipped[0] and is_zero_approx(float(ink_focus.get_shader_parameter("combat_strength"))))
+ assert(app.game.save_data("battle")==before)
  await capture_tile(app,Vector2i(2,9))
  controls(app,"Continue the chronicle").pressed.emit();await finish_presentation(app)
  assert(app.screen=="ending" and app.game.completed)
@@ -2414,5 +2433,5 @@ func run():
  await verify_standards_through_enemy_phase(app)
  assert(FileAccess.get_file_as_string(app.save_path)==disk and app.game==installed)
  await Shutdown.dispose(app);await process_frame
- print("PASS: campaign JSON file transfer, draft library management, remembered playtest setup, campaign readiness, authored Hard bonuses, authored retry raiders, deployment comparison, authored formation previews, small deployment limits and save recovery, custom campaign atlas, terrain stroke undo, bulk terrain rows, editor dialogs at two viewport sizes, direct chapter reordering, continuous terrain strokes, connected terrain fill, placement moves and swaps, repeated placement copies, switching enemy difficulty groups, editor music, draft dialogue previews and simulated losses, multiple standards and exact resume, standard navigation and live progress, standards that follow route pins, route pins, war-table site terrain, war-table overlay, blank war-table chapter, framed Valley parchment, rising Valley landmarks, local war-table arena landmarks including Kingsroad and Windscar, authored route arenas, fading route seals, war-table landmark index and shared survey marks, Valley reveal sound cues, battlefield site markers, custom recruits, phase scenes, tile dialogue and reload, recruitment on battlefield sites, authored recruit starting equipment, live recruit art previews, 3D recruit preview and editor return, navigation between available sites, one-use field tonic caches, Valley landmark dialogue with revisited art, dialogue that follows route pins, timed reinforcements, chapter 32 saves, section dialogue, authored section relief, authored legacy stock and purchase persistence, authored loss recruits, authored loss dialogue, reproducible playtest setup, Valley carryover and resume, thirteen-chapter Valley template, built-in Hold the Valley Roads and Signals in the Valley trials, 3D arena previews from Battle and Route, holding standards through an enemy phase, defense-triggered reserves, reserve stats in deployment previews, defense-triggered dialogue and exact resume, and single-battle tests")
+ print("PASS: campaign JSON file transfer, draft library management, remembered playtest setup, campaign readiness, authored Hard bonuses, authored retry raiders, deployment comparison, authored formation previews, small deployment limits and save recovery, custom campaign atlas, terrain stroke undo, bulk terrain rows, editor dialogs at two viewport sizes, direct chapter reordering, continuous terrain strokes, connected terrain fill, placement moves and swaps, repeated placement copies, switching enemy difficulty groups, editor music, draft dialogue previews and simulated losses, multiple standards and exact resume, standard navigation and live progress, standards that follow route pins, route pins, war-table site terrain, war-table overlay, blank war-table chapter, framed Valley parchment, combat ink focus with full and skipped return, rising Valley landmarks, local war-table arena landmarks including Kingsroad and Windscar, authored route arenas, fading route seals, war-table landmark index and shared survey marks, Valley reveal sound cues, battlefield site markers, custom recruits, phase scenes, tile dialogue and reload, recruitment on battlefield sites, authored recruit starting equipment, live recruit art previews, 3D recruit preview and editor return, navigation between available sites, one-use field tonic caches, Valley landmark dialogue with revisited art, dialogue that follows route pins, timed reinforcements, chapter 32 saves, section dialogue, authored section relief, authored legacy stock and purchase persistence, authored loss recruits, authored loss dialogue, reproducible playtest setup, Valley carryover and resume, thirteen-chapter Valley template, built-in Hold the Valley Roads and Signals in the Valley trials, 3D arena previews from Battle and Route, holding standards through an enemy phase, defense-triggered reserves, reserve stats in deployment previews, defense-triggered dialogue and exact resume, and single-battle tests")
  quit()

@@ -1845,6 +1845,10 @@ func cinematic(a,b,events,initial_hp={},challenge: Dictionary={}):
 	var push_time=.42
 	var push=map_navigation.approach_combat(focus,push_time,combat_sprites)
 	push.parallel().tween_method(dim_bystanders.bind(bystanders),0.0,1.0,push_time)
+	var chart_ink=ValleyBattle.grid_material(world)
+	if chart_ink!=null:
+		chart_ink.set_shader_parameter("combat_focus",Vector2(focus.x,focus.z))
+		push.parallel().tween_method(func(value):chart_ink.set_shader_parameter("combat_strength",value),0.0,1.0,push_time)
 	await push.finished
 	if veil.motion.is_running():await veil.motion.finished
 	var close_map_view=map_navigation.capture_view()
@@ -2081,6 +2085,9 @@ func return_to_tactical_map(veil,playback,close_map_view: Dictionary,tactical_vi
 	var pull_time=.25
 	var pull=map_navigation.return_from_combat(close_map_view,tactical_view,pull_time)
 	pull.parallel().tween_method(dim_bystanders.bind(bystanders),1.0,0.0,pull_time)
+	var chart_ink=ValleyBattle.grid_material(world)
+	if chart_ink!=null:
+		pull.parallel().tween_method(func(value):chart_ink.set_shader_parameter("combat_strength",value),1.0,0.0,pull_time)
 	veil.reveal(pull_time,func():return camera.unproject_position(focus))
 	await pull.finished
 	if veil.motion.is_running():await veil.motion.finished

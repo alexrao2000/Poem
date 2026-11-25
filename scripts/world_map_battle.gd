@@ -117,6 +117,7 @@ static func build(parent: Node3D,game,scenery):
  var grid=ImmediateMesh.new()
  var ink=ShaderMaterial.new();ink.shader=GRID_INK
  ink.set_shader_parameter("origin",Vector2(reveal_origin(game)))
+ ink.set_shader_parameter("combat_strength",0.0)
  grid.surface_begin(Mesh.PRIMITIVE_LINES)
  for x in range(int(size.x)+1):
   grid.surface_add_vertex(Vector3(x-.5,.013,-.5))
@@ -284,6 +285,10 @@ static func tabletop_pieces(game,world: Node3D,actors: Array) -> Array:
   if standard!=null:props.append(standard)
  return props
 
+static func grid_material(world: Node3D) -> ShaderMaterial:
+ var grid=world.get_node_or_null("ValleyGrid") as MeshInstance3D
+ return grid.material_override as ShaderMaterial if grid!=null else null
+
 static func play_reveal(navigation,game,world: Node3D,actors: Array,hint: Control,skip: Callable,cue: Callable=Callable()):
  var camera: Camera3D=navigation.camera
  var home: Dictionary=navigation.capture_view()
@@ -293,7 +298,7 @@ static func play_reveal(navigation,game,world: Node3D,actors: Array,hint: Contro
  hint.get_parent().add_child(seals)
  seals.configure(camera,game,origin)
  var radius=ink_radius(game.board_size(),origin)
- var ink: ShaderMaterial=world.get_node("ValleyGrid").material_override
+ var ink=grid_material(world)
  var props=tabletop_pieces(game,world,actors)
  var pieces_from_above=props.size()
  props.append_array(world.get_node("ValleyLandmarks").get_children())
@@ -332,7 +337,7 @@ static func play_conclusion(navigation,game,world: Node3D,actors: Array,hint: Co
  var board: Vector2i=game.board_size()
  var origin=Vector2(reveal_origin(game))
  var radius=ink_radius(board,origin)
- var ink: ShaderMaterial=world.get_node("ValleyGrid").material_override
+ var ink=grid_material(world)
  var tactical_front=ink.get_shader_parameter("front")
  var seals=RouteSeals.new()
  hint.get_parent().add_child(seals)
