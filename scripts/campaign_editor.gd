@@ -204,14 +204,32 @@ func build_encounters():
   changed())
  strength.name="EditorEncounterLevel";field_label(fields,"Level override",strength)
  heading(encounter_panel,"Use 0 to inherit the chapter’s default level.",15)
+ var is_commander=enemy_index==0 and not layout.enemies.is_empty()
+ var turn=spin(int(enemy.get("arrival_turn",1)),1,99,func(value):
+  if value==1:enemy.erase("arrival_turn")
+  else:enemy.arrival_turn=int(value)
+  sync_encounter_arrival(enemy,enemy_index,layout.enemies.size(),selector);changed())
+ turn.name="EditorEncounterArrivalTurn";turn.editable=not is_commander;field_label(fields,"Arrival turn",turn)
+ var phase=choice(["player","enemy"],enemy.get("arrival_phase","player"),func(value):
+  if value=="player":enemy.erase("arrival_phase")
+  else:enemy.arrival_phase=value
+  sync_encounter_arrival(enemy,enemy_index,layout.enemies.size(),selector);changed())
+ phase.name="EditorEncounterArrivalPhase";phase.disabled=is_commander;field_label(fields,"Arrival phase",phase)
  action(encounter_panel,"Make commander",func():
   layout.enemies.remove_at(enemy_index);layout.enemies.push_front(enemy)
-  selected_enemy=0;grid.queue_redraw();changed();build_encounters(),enemy_index==0 or enemy_index>=layout.enemies.size())
+  selected_enemy=0;grid.queue_redraw();changed();build_encounters(),is_commander or enemy_index>=layout.enemies.size()).name="EditorMakeCommander"
+ sync_encounter_arrival(enemy,enemy_index,layout.enemies.size(),selector)
+
+func sync_encounter_arrival(enemy: Dictionary,index: int,standard_count: int,selector: OptionButton):
+ selector.set_item_text(index,encounter_name(enemy,index,standard_count))
+ var commander=encounter_panel.get_node_or_null("EditorMakeCommander")
+ if commander!=null:commander.disabled=index==0 or index>=standard_count or Draft.Rules.delayed_enemy(enemy)
 
 func encounter_name(enemy: Dictionary,index: int,standard_count: int) -> String:
  var name=enemy.get("name","").strip_edges()
  if name.is_empty():name=enemy.job
  var role=" · Commander" if index==0 and standard_count>0 else " · Hard only" if index>=standard_count else ""
+ if Draft.Rules.delayed_enemy(enemy):role+=" · Turn %d %s"%[enemy.get("arrival_turn",1),enemy.get("arrival_phase","player")]
  return "%s · %d, %d%s"%[name,enemy.position[0],enemy.position[1],role]
 
 func build_story(panel: VBoxContainer):

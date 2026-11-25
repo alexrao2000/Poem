@@ -145,16 +145,20 @@ func prepare_battle(game):
  var modifiers=enemy_modifiers(game.chapter)
  for unit in game.units:
   if unit.team=="enemy":
-   for key in ["max_hp","pow","speed","defense"]:game.raise_stat(unit,key,modifiers[key])
-   unit.hp=unit.max_hp
-   if flags.reset_pressure:
-    unit.held_tonics=modifiers.held_tonics
-    if extra>0:unit.reset_supplies_spent=mini(2,extra)
-    if not unit.boss and unit.job in ["Corsair","Ranger"]:unit.raider=true
+   prepare_enemy(game,unit,modifiers,extra)
   else:
    var condition=deployment_condition(game,unit)
    if condition.recovering:unit.hp=condition.hp;unit.potions=condition.tonics;unit.recovering=true
+ for wave in game.enemy_waves:prepare_enemy(game,wave.unit,modifiers,extra)
  if extra>0:advance_raiders(game,extra)
+
+func prepare_enemy(game,unit: Dictionary,modifiers: Dictionary,pressure_steps: int):
+ for key in ["max_hp","pow","speed","defense"]:game.raise_stat(unit,key,modifiers[key])
+ unit.hp=unit.max_hp
+ if not flags.reset_pressure:return
+ unit.held_tonics=modifiers.held_tonics
+ if pressure_steps>0:unit.reset_supplies_spent=mini(2,pressure_steps)
+ if not unit.boss and unit.job in ["Corsair","Ranger"]:unit.raider=true
 
 func advance_raiders(game,moves: int):
  var raiders=game.units.filter(func(unit):return unit.get("raider",false))
@@ -198,7 +202,7 @@ func restart(game) -> bool:
   log_event("The company withdraws to the start of section %d. The fallen remain lost; enemy preparations and legacy supplies remain."%(section_index(game.chapter)+1))
  else:
   if game.permadeath:game.supports.state=game.battle_supports.duplicate(true)
- game.units.clear();game.turn=1;game.phase="player"
+ game.units.clear();game.enemy_waves.clear();game.turn=1;game.phase="player"
  return true
 
 func arrive(game):

@@ -794,7 +794,10 @@ func objective_text(chapter: Dictionary={}) -> String:
 
 func battle_objective_text() -> String:
 	match game.info().objective:
-		"rout":return "Defeat every enemy · %d remaining"%game.living("enemy").size()
+		"rout":
+			var standing=game.living("enemy").size()
+			if standing==0 and not game.enemy_waves.is_empty():return "Defeat every enemy · Reinforcements expected"
+			return "Defeat every enemy · %d remaining"%standing
 		"survive":return "Survive · %d/%d enemy phases · or defeat every enemy"%[clampi(game.turn-1,0,game.info().turn_limit),game.info().turn_limit]
 		_:return objective_text()
 
@@ -1327,17 +1330,20 @@ func end_turn(resuming=false):
 	if not resuming:
 		var bleeding=game.units.filter(func(unit):return game.DeathDoor.downed(unit)).map(func(unit):return unit.id)
 		var had_downed=game.units.any(func(unit):return game.DeathDoor.downed(unit))
+		var pending=game.enemy_waves.size()
 		var consequences=game.begin_enemy_phase()
+		var reinforced=game.enemy_waves.size()<pending
 		if not checkpoint_action("enemy_phase"):return
 		var losses=[]
 		for unit in game.units:
 			if unit.id in bleeding and not game.DeathDoor.downed(unit):
 				losses.append({"target":unit.id,"remaining":0,"hit":true,"casualty_effects":consequences.get(unit.id,{})})
 		skip_combat=false;await map_bleedout_feedback(losses)
-		if had_downed:refresh_pieces();highlight()
+		if had_downed or reinforced:refresh_pieces();highlight()
 		await present_casualties(losses)
 		if await check_result():busy=false;return
 		update_side();await announce_phase("enemy")
+		if reinforced:show_notice("Enemy reinforcements arrived.")
 	if not await present_phase_scenes():return
 	for e in game.living("enemy"):
 		if e.acted:continue
@@ -1370,6 +1376,7 @@ func end_turn(resuming=false):
 	var recovery_before={}
 	for unit in game.units:
 		if unit.hp>0 and unit.hp<unit.max_hp:recovery_before[unit.id]=unit.hp
+	var pending=game.enemy_waves.size()
 	game.next_player_turn();update_side();refresh_pieces();highlight()
 	if not checkpoint_action("player_phase"):return
 	if await check_result():busy=false;return
@@ -1377,6 +1384,7 @@ func end_turn(resuming=false):
 	if not allies.is_empty():await frame_map_action([allies[0]])
 	await announce_phase("player")
 	if not await present_phase_scenes():return
+	if game.enemy_waves.size()<pending:show_notice("Enemy reinforcements arrived.")
 	await show_terrain_recovery(recovery_before)
 	busy=false;update_side()
 	persist_campaign("battle")

@@ -27,6 +27,7 @@ var phase: String = "player"
 var roster: Array = []
 var recruit_templates: Dictionary = {}
 var units: Array = []
+var enemy_waves: Array = []
 var deployed: Array = []
 var formation_order: Array = []
 var rng := RandomNumberGenerator.new()
@@ -59,6 +60,7 @@ func new_campaign(permadeath_enabled=false):
 	turn = 1
 	phase = "player"
 	units.clear()
+	enemy_waves.clear()
 	completed = false
 	story_seen.clear()
 	supports.state.clear();battle_supports.clear()
@@ -162,6 +164,7 @@ func start_battle():
 	trials.capture_section(self)
 	battle_supports=supports.state.duplicate(true)
 	units.clear()
+	enemy_waves.clear()
 	turn = 1
 	phase = "player"
 	var spots = info().get("deployment_positions",[[1,3],[1,4],[1,5],[2,3],[2,4],[2,5]])
@@ -180,23 +183,60 @@ func start_battle():
 	var formation=enemy_formation()
 	for i in range(formation.size()):
 		var entry=formation[i]
-		var job=entry.job
-		var e=content.classes[job].duplicate(true)
-		e.id="enemy_"+str(i)
-		e.name=info().boss if i==0 else entry.get("name",["Ash guard","Crown scout","Sun sworn","Black pennant"][i%4])
-		var level=int(entry.get("level",0))
-		if level==0:level=int(info().get("enemy_level",0))
-		if level==0:level=chapter+1
-		var growth=level-1
-		e.job=job;e.color="#ce7771";e.level=level;e.xp=0
-		e.hp+=growth*2;e.pow+=growth;e.defense+=growth/2;e.resistance+=growth/2;e.max_hp=e.hp
-		e.team="enemy";e.acted=false;e.moved=false;e.boss=i==0
-		e.ai=entry.get("ai","pursue");e.alerted=false
-		e.x=int(entry.position[0]);e.y=int(entry.position[1])
-		e.item=entry.get("item",DEFAULT_ITEMS[e.weapon])
-		normalize_equipment(e)
-		units.append(e)
+		var enemy=build_enemy(entry,i)
+		if delayed_enemy(entry):
+			enemy_waves.append({"turn":entry.get("arrival_turn",1),"phase":entry.get("arrival_phase","player"),"unit":enemy})
+		else:units.append(enemy)
 	trials.prepare_battle(self)
+
+func build_enemy(entry: Dictionary,index: int) -> Dictionary:
+	var enemy=content.classes[entry.job].duplicate(true)
+	enemy.id="enemy_"+str(index)
+	enemy.name=info().boss if index==0 else entry.get("name",["Ash guard","Crown scout","Sun sworn","Black pennant"][index%4])
+	var level=int(entry.get("level",0))
+	if level==0:level=int(info().get("enemy_level",0))
+	if level==0:level=chapter+1
+	var growth=level-1
+	enemy.job=entry.job;enemy.color="#ce7771";enemy.level=level;enemy.xp=0
+	enemy.hp+=growth*2;enemy.pow+=growth;enemy.defense+=growth/2;enemy.resistance+=growth/2;enemy.max_hp=enemy.hp
+	enemy.team="enemy";enemy.acted=false;enemy.moved=false;enemy.boss=index==0
+	enemy.ai=entry.get("ai","pursue");enemy.alerted=false
+	enemy.x=int(entry.position[0]);enemy.y=int(entry.position[1])
+	enemy.item=entry.get("item",DEFAULT_ITEMS[enemy.weapon])
+	normalize_equipment(enemy)
+	return enemy
+
+static func delayed_enemy(entry: Dictionary) -> bool:
+	return entry.get("arrival_turn",1)>1 or entry.get("arrival_phase","player")=="enemy"
+
+func bring_in_enemy_waves():
+	if enemy_waves.is_empty():return
+	var occupied=occupied_tiles()
+	var waiting=[]
+	for wave in enemy_waves:
+		var due=turn>wave.turn or (turn==wave.turn and (phase=="enemy" or wave.phase=="player"))
+		if not due:
+			waiting.append(wave);continue
+		var enemy=wave.unit
+		var site=wave_tile(pos(enemy),occupied)
+		if site.x<0:
+			waiting.append(wave);continue
+		enemy.x=site.x;enemy.y=site.y
+		occupied[site]=enemy;units.append(enemy)
+	enemy_waves=waiting
+
+func wave_tile(anchor: Vector2i,occupied: Dictionary) -> Vector2i:
+	if not occupied.has(anchor):return anchor
+	var best=Vector2i(-1,-1)
+	var distance=INF
+	var dimensions=board_size()
+	for y in dimensions.y:
+		for x in dimensions.x:
+			var point=Vector2i(x,y)
+			var gap=absi(x-anchor.x)+absi(y-anchor.y)
+			if gap>=distance or occupied.has(point) or terrain_profile(point).move==0:continue
+			best=point;distance=gap
+	return best
 
 func terrain(p: Vector2i) -> String:
 	if p.x<0 or p.y<0 or p.x>=board_size().x or p.y>=board_size().y: return "#"
@@ -360,6 +400,7 @@ func begin_enemy_phase() -> Dictionary:
 	DeathDoor.end_player_phase(self)
 	var consequences=commit_casualties()
 	phase="enemy"
+	bring_in_enemy_waves()
 	for u in living("enemy"):
 		u.acted=false;u.moved=false;u.erase("move_origin")
 	return consequences
@@ -451,11 +492,11 @@ func result() -> String:
 	var boss_alive = units.any(func(u): return u.get("boss",false) and u.hp>0)
 	match info().objective:
 		"rout":
-			if living("enemy").is_empty(): return "victory"
+			if enemy_waves.is_empty() and living("enemy").is_empty():return "victory"
 		"boss":
 			if not boss_alive: return "victory"
 		"survive":
-			if turn>info().turn_limit or living("enemy").is_empty(): return "victory"
+			if turn>info().turn_limit or (enemy_waves.is_empty() and living("enemy").is_empty()):return "victory"
 		"seize":
 			var occupant = at(objective_position())
 			if occupant!=null and occupant.team=="player" and occupant.hp>0: return "victory"
@@ -471,6 +512,7 @@ func finish_chapter():
 				if permadeath and u.hp<=0 and not DeathDoor.downed(u):
 					r.fallen=true;r.fallen_chapter=chapter;r.hp=0;deployed.erase(r.id)
 	chapter+=1
+	enemy_waves.clear()
 	if chapter>=content.chapters.size():
 		completed=true
 		chapter=content.chapters.size()-1
@@ -491,6 +533,7 @@ func next_player_turn():
 		u.acted=DeathDoor.downed(u);u.moved=false;u.erase("move_origin")
 		var recovery=terrain_profile(pos(u)).heal
 		if u.hp>0 and recovery>0:u.hp=mini(u.max_hp,u.hp+recovery)
+	bring_in_enemy_waves()
 
 func commit_casualties() -> Dictionary:
 	var consequences=trials.record_losses(self)
@@ -513,6 +556,7 @@ func layout_signature() -> String:
 func save_data(stage: String) -> Dictionary:
 	var saved={"version":SAVE_VERSION,"trials":trials.to_data(),"death_door":death_door,"action_saves":action_saves,"permadeath":permadeath,"battle_supports":battle_supports,"layout_signature":layout_signature(),"story_seen":story_seen,"supports":supports.state,"chapter":chapter,"turn":turn,"phase":phase,"roster":roster,"units":units,"deployed":deployed,"formation_order":formation_order,"completed":completed,"rng":str(rng.state),"stage":stage}
 	if content.has("authoring_signature"):saved.campaign_id=content.authoring_signature
+	if stage=="battle" and not enemy_waves.is_empty():saved.enemy_waves=enemy_waves
 	return saved
 
 func save_game(path: String,stage: String) -> bool:
@@ -607,6 +651,7 @@ func valid_save(data) -> bool:
 			if ids[unit.id].get("fallen",false) and unit.hp>0:return false
 		var grid=content.chapters[int(data.chapter)].map
 		if unit.x<0 or unit.y<0 or unit.x>=grid[0].length() or unit.y>=grid.size():return false
+	if not valid_enemy_waves(data,combat_ids):return false
 	for unit in data.units:
 		if not unit.get("carried_by","").is_empty():
 			if not combat_ids.has(unit.carried_by):return false
@@ -615,6 +660,29 @@ func valid_save(data) -> bool:
 			if carrier.hp<=0 or carrier.team!="player" or unit.team!="player" or not carrier.get("carried_by","").is_empty() or carrier.id==unit.id:return false
 			if carrier.x!=unit.x or carrier.y!=unit.y:return false
 			if data.units.filter(func(other):return other.get("carried_by","")==carrier.id).size()!=1:return false
+	return true
+
+func valid_enemy_waves(data: Dictionary,combat_ids: Dictionary) -> bool:
+	var waves=data.get("enemy_waves",[])
+	if not waves is Array:return false
+	if waves.is_empty():return true
+	if data.stage!="battle":return false
+	var level=content.chapters[int(data.chapter)]
+	var formation=level.enemies+level.get("hard_enemies",[])
+	if waves.size()>formation.size():return false
+	var seen=combat_ids.duplicate()
+	for wave in waves:
+		if not wave is Dictionary or not valid_unit(wave.get("unit"),true):return false
+		var unit=wave.unit
+		if unit.team!="enemy" or not unit.id.begins_with("enemy_") or seen.has(unit.id) or unit.hp<=0:return false
+		var index=unit.id.trim_prefix("enemy_")
+		if not index.is_valid_int() or int(index)<1 or int(index)>=formation.size():return false
+		if unit.id!="enemy_"+str(int(index)):return false
+		var authored=formation[int(index)]
+		if not delayed_enemy(authored) or unit.job!=authored.job or unit.get("boss",false):return false
+		if wave.get("turn")!=authored.get("arrival_turn",1) or wave.get("phase")!=authored.get("arrival_phase","player"):return false
+		if unit.x!=authored.position[0] or unit.y!=authored.position[1]:return false
+		seen[unit.id]=true
 	return true
 
 func matches_appearance(unit: Dictionary,original: Dictionary) -> bool:
@@ -674,6 +742,7 @@ func restore_save(data) -> String:
 	battle_supports=data.get("battle_supports",{}).duplicate(true)
 	chapter=int(data.chapter);turn=int(data.turn);phase=data.phase;roster=data.roster;units=data.units;deployed=data.deployed;completed=data.completed;rng.state=int(data.rng)
 	formation_order=data.get("formation_order",[])
+	enemy_waves=data.get("enemy_waves",[])
 	for unit in roster:
 		normalize_equipment(unit);unit.resistance=resistance_for(unit)
 		unit.fallen=unit.get("fallen",false);unit.fallen_chapter=int(unit.get("fallen_chapter",-1))
@@ -684,7 +753,7 @@ func restore_save(data) -> String:
 		if unit.team=="enemy":unit.ai=unit.get("ai","guard" if unit.get("boss",false) else "pursue")
 	# Old layouts cannot safely resume units on redesigned walls or water.
 	if data.stage=="battle" and data.get("layout_signature","")!=layout_signature():
-		units.clear();phase="player";return "camp"
+		units.clear();enemy_waves.clear();phase="player";return "camp"
 	return data.stage
 
 func progress_snapshot() -> Dictionary:

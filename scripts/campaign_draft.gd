@@ -312,6 +312,8 @@ func map_structure_problem(level: Dictionary) -> String:
     return "An enemy needs a class and a tile."
    if enemy.get("ai","pursue") not in STRATEGIES or not valid_text(enemy.get("name",""),80):return "An enemy has an invalid strategy or name."
    if not integer(enemy.get("level",0),0,Rules.MAX_LEVEL):return "Set an enemy level from 0 to 99."
+   if not integer(enemy.get("arrival_turn",1),1,99) or enemy.get("arrival_phase","player") not in ["player","enemy"]:
+    return "Set an enemy arrival to a player or enemy phase between turns 1 and 99."
    if enemy.has("item") and not gear_for(enemy.job).any(func(item):return item.id==enemy.item):
     return "An enemy has equipment their class cannot use."
  return ""
@@ -324,6 +326,7 @@ func battle_problem(level: Dictionary) -> String:
  var occupied={}
  if level.deployment_positions.is_empty():return "Place at least one deployment tile."
  if level.enemies.is_empty():return "Place at least one enemy. The first enemy is the commander."
+ if Rules.delayed_enemy(level.enemies[0]):return "The commander must start on the board."
  if level.objective=="seize" and not walkable(level,level.objective_position):return "Put the seize objective on passable terrain."
  var positions=level.deployment_positions+level.enemies.map(func(enemy):return enemy.position)+level.hard_enemies.map(func(enemy):return enemy.position)
  for position in positions:

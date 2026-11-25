@@ -50,6 +50,9 @@ func check_document():
  assert("class cannot use" in draft.decode(JSON.stringify(broken)))
  broken=canonical(draft.data);broken.chapters[0].phase_scenes=[{"id":"scene_01","phase":"invalid","turn":2,"lines":[]}]
  assert("phase scene" in draft.decode(JSON.stringify(broken)))
+ broken=canonical(draft.data);broken.chapters[0].level.enemies[0].arrival_turn=2
+ var late_commander=Draft.new();assert(late_commander.decode(JSON.stringify(broken)).is_empty())
+ assert("commander must start" in late_commander.playtest_problem())
  assert(canonical(draft.data)==JSON.parse_string(original))
  var selected=draft.insert_chapter(2,true)
  assert(selected==3 and draft.data.chapters[selected].key!="chapter_03")
@@ -90,6 +93,32 @@ func check_long_campaign(path: String):
  var malformed=saved.duplicate(true);malformed.supports[bond.id].chapter=32
  assert(not restored.valid_save(malformed) and not Rules.new().supports.valid_state(saved.supports))
 
+func check_reinforcement_collision(path: String):
+ var draft=Draft.new();draft.data=draft.new_document(false)
+ var level=draft.data.chapters[0].level;level.objective="rout"
+ var delayed=level.enemies[1]
+ delayed.position=[0,3];delayed.arrival_turn=2
+ var content=draft.compile().content
+ var game=Rules.new(content)
+ game.trials.flags.reset_pressure=true;game.trials.pressure=1
+ game.start_battle()
+ assert(game.living("enemy").size()==1 and game.enemy_waves.size()==1)
+ game.living("enemy")[0].hp=0
+ assert(game.result().is_empty())
+ assert(game.move_unit(game.at(Vector2i(1,3)),Vector2i(0,3)))
+ assert(game.save_game(path,"battle"))
+ var restored=Rules.new(content)
+ assert(restored.load_game(path)=="battle" and restored.enemy_waves.size()==1)
+ restored.begin_enemy_phase();restored.next_player_turn()
+ var arrived=restored.at(Vector2i(0,2))
+ assert(arrived.id=="enemy_1" and arrived.held_tonics==1 and restored.at(Vector2i(0,3)).id=="lyra")
+ assert(restored.enemy_waves.is_empty() and restored.living("enemy").size()==1)
+ assert(restored.save_game(path,"battle") and restored.load_game(path)=="battle")
+ restored.begin_enemy_phase();restored.next_player_turn()
+ assert(restored.units.filter(func(unit):return unit.id=="enemy_1").size()==1)
+ restored.at(Vector2i(0,2)).hp=0
+ assert(restored.result()=="victory")
+
 func use_brush(editor,index: int,point: Vector2i,erase=false):
  var mode=editor.find_child("EditorBrush",true,false)
  mode.select(index);mode.item_selected.emit(index)
@@ -111,6 +140,7 @@ func run():
  var scratch="/private/tmp/poem-campaign-editor-%d"%OS.get_process_id()
  assert(DirAccess.make_dir_recursive_absolute(scratch)==OK)
  check_long_campaign(scratch.path_join("long-campaign.json"))
+ check_reinforcement_collision(scratch.path_join("timed-reinforcement.json"))
  root.size=Vector2i(1440,900)
  var app=load("res://main.tscn").instantiate();app.settings_path="";app.save_path=scratch.path_join("normal.json")
  app.campaign_draft_library.path=scratch.path_join("drafts.json")
@@ -181,6 +211,13 @@ func run():
  phase_text.text="narrator | Their line is already moving.";phase_text.text_changed.emit()
  editor.draft.data.settings.action_saves=true
  assert(editor.chapter().phase_scenes.size()==2 and editor.chapter().phase_scenes[1].phase=="enemy")
+ book.current_tab=book.get_tab_idx_from_control(editor.find_child("Encounters",true,false))
+ await process_frame
+ var first_encounter=editor.find_child("EditorEncounter",true,false)
+ first_encounter.select(1);first_encounter.item_selected.emit(1)
+ var arrival=editor.find_child("EditorEncounterArrivalPhase",true,false)
+ arrival.select(1);arrival.item_selected.emit(1)
+ assert(editor.level().enemies[1].arrival_phase=="enemy" and editor.find_child("EditorMakeCommander",true,false).disabled)
  editor.find_child("AddValleyBattle",true,false).pressed.emit()
  assert(editor.selected==1 and editor.level().map.size()==16 and editor.level().map[0].length()==24)
  var chart=editor.level()
@@ -237,8 +274,11 @@ func run():
  var reinforcement=encounter.item_count-1
  encounter.select(reinforcement);encounter.item_selected.emit(reinforcement)
  editor.find_child("EditorEncounterLevel",true,false).value=9
+ editor.find_child("EditorEncounterArrivalTurn",true,false).value=2
  var hard=Rules.new(editor.draft.compile().content)
  hard.chapter=1;hard.trials.flags.hard_campaign=true;hard.start_battle()
+ assert(hard.at(Vector2i(20,2))==null and hard.enemy_waves.size()==1)
+ hard.begin_enemy_phase();hard.next_player_turn()
  assert(hard.at(Vector2i(20,2)).level==9 and hard.at(Vector2i(20,2)).job=="Warden")
  assert(editor.draft.playtest_problem().is_empty(),editor.draft.playtest_problem())
  controls(app,"Play from start").pressed.emit()
@@ -264,6 +304,7 @@ func run():
  var player_key=app.game.phase_scene_token(pending[0])
  var unfinished=app.game.read_saved_data(app.campaign_save_path())
  assert(player_key not in unfinished.story_seen and unfinished.stage=="battle")
+ assert(unfinished.enemy_waves[0].unit.id=="enemy_1" and not app.unit_nodes.has("enemy_1"))
  await finish_presentation(app)
  assert(player_key in app.game.read_saved_data(app.campaign_save_path()).story_seen)
  assert(app.game.restore_save(unfinished)=="battle")
@@ -288,6 +329,8 @@ func run():
  var enemy_scene=app.game.pending_phase_scenes()[0]
  var enemy_key=app.game.phase_scene_token(enemy_scene)
  assert(app.game.turn==1 and app.game.phase=="enemy" and app.game.living("enemy").all(func(enemy):return not enemy.acted))
+ assert(app.game.enemy_waves.is_empty() and app.unit_nodes.has("enemy_1"))
+ assert(app.game.read_saved_data(app.campaign_save_path()).units.any(func(unit):return unit.id=="enemy_1"))
  await finish_presentation(app)
  assert(app.game.turn==2 and app.game.phase=="player" and enemy_key in app.game.read_saved_data(app.campaign_save_path()).story_seen)
  await capture_tile(app,Vector2i(0,3))
@@ -391,5 +434,5 @@ func run():
  assert(app.screen=="campaign_route" and app.game==installed and app.game.save_data("camp")==route_state)
  assert(FileAccess.get_file_as_string(app.save_path)==disk)
  await Shutdown.dispose(app);await process_frame
- print("PASS: campaign JSON and chapter order, custom recruit presentation, authored phase scenes and durable replay, authored encounters and bonds, chapter 32 saves, two complete chapters, valley reveal and sites, and isolated resume")
+ print("PASS: campaign JSON and chapter order, custom recruit presentation, phase scenes, timed reinforcements and durable replay, authored encounters and bonds, chapter 32 saves, two complete chapters, valley reveal and sites, and isolated resume")
  quit()
