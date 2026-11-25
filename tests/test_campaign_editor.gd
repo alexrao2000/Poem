@@ -730,11 +730,39 @@ func run():
  assert(template.data.chapters[11].level.presentation=="valley_table" and template.data.chapters[11].phase_scenes.size()==1)
  var chapters=app.campaign_editor.find_child("EditorChapter",true,false)
  chapters.select(11);chapters.item_selected.emit(11)
- controls(app,"Play chapter").pressed.emit();await finish_presentation(app)
+ var editor_tabs=app.campaign_editor.find_child("CampaignEditorTabs",true,false)
+ editor_tabs.current_tab=editor_tabs.get_tab_idx_from_control(app.campaign_editor.find_child("Story",true,false))
+ await process_frame
+ app.campaign_editor.find_child("EditorChapterDialogue_openingLossOptions",true,false).pressed.emit();await process_frame
+ var loss_dialog=app.campaign_editor.find_child("EditorLossDialogue",true,false)
+ var required=loss_dialog.find_child("EditorLossRequires",true,false)
+ required.text="unknown_recruit";loss_dialog.confirmed.emit()
+ assert(loss_dialog.visible and loss_dialog.find_child("EditorLossError",true,false).text.contains("unknown_recruit"))
+ required.text="ivo"
+ loss_dialog.find_child("EditorLossAlternatives",true,false).text="ivo | I can still see the ford.\nlyra | Leave Ivo’s lamp at the crossing."
+ loss_dialog.confirmed.emit();await process_frame
+ var opening_text=app.campaign_editor.find_child("EditorChapterDialogue_opening",true,false)
+ opening_text.text+="\nnarrator | The companies look down at the roads.";opening_text.text_changed.emit()
+ var opening=template.data.chapters[11].opening
+ assert(opening[0].requires==["ivo"] and opening[0].when_absent.size()==2 and opening.size()==3)
+ var exported=Draft.new()
+ assert(exported.decode(template.encode()).is_empty() and exported.data.chapters[11].opening==opening)
+ template.data.settings.permadeath=true;template.data.settings.action_saves=true
+ controls(app,"Play chapter").pressed.emit()
+ await await_phase_dialogue(app,"Pull the seals off the chart. I want to see every road into the capital.")
+ await finish_presentation(app)
  assert(app.screen=="camp" and app.game.chapter==11 and app.game.info().title=="The Roads Between")
+ controls(app,"Deploy company  >").pressed.emit()
+ app.valley_reveal_skip=true;await finish_presentation(app)
+ var fallen_ivo=app.game.units.filter(func(member):return member.id=="ivo")[0]
+ fallen_ivo.hp=0;app.game.commit_casualties()
+ assert("ivo" in app.game.lost_ids())
+ app.game.story_seen.erase("opening_11");app.show_camp()
+ await await_phase_dialogue(app,"Leave Ivo’s lamp at the crossing.")
+ await finish_presentation(app)
  controls(app,"Return to editor").pressed.emit();await process_frame
  assert(app.screen=="campaign_editor" and app.game==installed and app.campaign_editor.selected==11)
  assert(FileAccess.get_file_as_string(app.save_path)==disk)
  await Shutdown.dispose(app);await process_frame
- print("PASS: campaign JSON, route pins, war-table site terrain, custom recruits, phase scenes, timed reinforcements, chapter 32 saves, section dialogue, authored section relief, authored legacy stock and purchase persistence, authored loss recruits, Valley carryover, thirteen-chapter Valley template, and single-battle tests")
+ print("PASS: campaign JSON, route pins, war-table site terrain, custom recruits, phase scenes, timed reinforcements, chapter 32 saves, section dialogue, authored section relief, authored legacy stock and purchase persistence, authored loss recruits, authored loss dialogue, Valley carryover, thirteen-chapter Valley template, and single-battle tests")
  quit()

@@ -267,8 +267,8 @@ func build_story(panel: VBoxContainer):
  heading(panel,"Dialogue uses one line per speaker. Enter an ID, a vertical bar, then their words.",15)
  for kind in ["opening","closing"]:
   heading(panel,kind.capitalize()+" dialogue",17)
-  var original_lines=record[kind].duplicate(true)
-  panel.add_child(multiline(dialogue_text(original_lines),132,func(value):record[kind]=parse_dialogue(value,original_lines);changed()))
+  dialogue_editor(panel,"EditorChapterDialogue_"+kind,132,func():return record[kind],func(lines):
+   record[kind]=lines;changed())
  var events=VBoxContainer.new();events.add_theme_constant_override("separation",8);panel.add_child(events)
  build_phase_scenes(events,record)
  var section_story=VBoxContainer.new();section_story.add_theme_constant_override("separation",8);panel.add_child(section_story)
@@ -322,10 +322,8 @@ func build_section_story(panel: VBoxContainer,record: Dictionary):
   var title=line_edit(scene.title,"Scene title",100,func(value):
    scene.title=value;definitions[kind]=scene;record.section_scenes=definitions;changed())
   title.name="EditorSectionTitle_"+kind;panel.add_child(title)
-  var original_lines=scene.lines.duplicate(true)
-  var lines=multiline(dialogue_text(original_lines),110,func(value):
-   scene.lines=parse_dialogue(value,original_lines);definitions[kind]=scene;record.section_scenes=definitions;changed())
-  lines.name="EditorSectionLines_"+kind;panel.add_child(lines)
+  dialogue_editor(panel,"EditorSectionLines_"+kind,110,func():return scene.lines,func(lines):
+   scene.lines=lines;definitions[kind]=scene;record.section_scenes=definitions;changed())
 
 func build_route(panel: VBoxContainer):
  heading(panel,"Click the chart to place this chapter’s pin. Select a seal to edit its chapter.",16)
@@ -380,9 +378,7 @@ func build_phase_scenes(panel: VBoxContainer,record: Dictionary):
  var phase=choice(["player","enemy"],scene.phase,func(value):
   scene.phase=value;picker.set_item_text(index,phase_scene_label(scene));changed())
  phase.name="EditorPhaseScenePhase";field_label(trigger,"Phase",phase)
- var original_lines=scene.lines.duplicate(true)
- var lines=multiline(dialogue_text(original_lines),132,func(value):scene.lines=parse_dialogue(value,original_lines);changed())
- lines.name="EditorPhaseSceneLines";panel.add_child(lines)
+ dialogue_editor(panel,"EditorPhaseSceneLines",132,func():return scene.lines,func(lines):scene.lines=lines;changed())
 
 func phase_scene_label(scene: Dictionary) -> String:
  return "Turn %d · %s phase"%[scene.turn,scene.phase.capitalize()]
@@ -559,9 +555,8 @@ func build_legacy_arrivals(panel: VBoxContainer):
  var title=line_edit(arrival.title,"Arrival scene title",100,func(value):arrival.title=value;save_legacy_arrivals(arrivals))
  title.name="EditorLegacyArrivalTitle";panel.add_child(title)
  heading(panel,"Enter each line as a speaker ID, a vertical bar, then their words.",15)
- var original_lines=arrival.lines.duplicate(true)
- var lines=multiline(dialogue_text(original_lines),110,func(value):arrival.lines=parse_dialogue(value,original_lines);save_legacy_arrivals(arrivals))
- lines.name="EditorLegacyArrivalLines";panel.add_child(lines)
+ dialogue_editor(panel,"EditorLegacyArrivalLines",110,func():return arrival.lines,func(lines):
+  arrival.lines=lines;save_legacy_arrivals(arrivals))
 
 func move_legacy_arrival(panel: VBoxContainer,arrivals: Array,slot: int,direction: int):
  var arrival=arrivals.pop_at(slot)
@@ -640,6 +635,63 @@ func build_bonds(panel: VBoxContainer):
 func save_bond_edits(bonds: Array):
  draft.data.bonds=bonds
  changed()
+
+func dialogue_editor(panel: Control,field_name: String,height: int,read: Callable,write: Callable):
+ var field=multiline(dialogue_text(read.call()),height,Callable())
+ field.name=field_name;panel.add_child(field)
+ var options=action(panel,"Edit loss dialogue",func():show_loss_dialogue(field,read.call(),write),read.call().is_empty())
+ options.name=field_name+"LossOptions"
+ field.text_changed.connect(func():
+  write.call(parse_dialogue(field.text,read.call()))
+  options.disabled=read.call().is_empty())
+
+func show_loss_dialogue(field: TextEdit,source: Array,write: Callable):
+ var lines=source.duplicate(true)
+ var dialog=AcceptDialog.new();dialog.name="EditorLossDialogue";dialog.title="Dialogue after a loss"
+ dialog.ok_button_text="Apply changes";dialog.dialog_hide_on_ok=false;add_child(dialog)
+ dialog.canceled.connect(dialog.queue_free)
+ var panel=VBoxContainer.new();panel.add_theme_constant_override("separation",8);dialog.add_child(panel)
+ var picker=OptionButton.new();picker.name="EditorLossLine";picker.fit_to_longest_item=false;picker.clip_text=true
+ picker.custom_minimum_size.y=42;panel.add_child(picker)
+ for index in lines.size():
+  var line=lines[index]
+  picker.add_item("%d · %s · %s"%[index+1,line.speaker,line.text.replace("\n"," ").left(64)])
+ var words=multiline("",84,Callable());words.name="EditorLossWords";panel.add_child(words)
+ heading(panel,"Also requires these recruits to survive",16)
+ var needs=line_edit("","Recruit IDs separated by commas",1800,Callable());needs.name="EditorLossRequires";panel.add_child(needs)
+ heading(panel,"Alternate lines if the speaker or a required recruit fell",16)
+ heading(panel,"Enter a speaker ID, a vertical bar, then their words. The first surviving speaker is used.",15)
+ var alternatives=multiline("",116,Callable());alternatives.name="EditorLossAlternatives";panel.add_child(alternatives)
+ var error=heading(panel,"",15);error.name="EditorLossError"
+ var select_line=func(index):
+  var line=lines[index]
+  words.text=line.text;needs.text=", ".join(line.get("requires",[]))
+  alternatives.text=dialogue_text(line.get("when_absent",[]));error.text=""
+ picker.item_selected.connect(select_line);picker.select(0);select_line.call(0)
+ dialog.confirmed.connect(func():
+  var line=lines[picker.selected]
+  var required=[]
+  var members=draft.bond_members()
+  for entry in needs.text.split(",",false):
+   var recruit=entry.strip_edges()
+   if recruit.is_empty() or recruit in required:continue
+   if recruit not in members:
+    error.text="Unknown recruit ID · "+recruit;return
+   required.append(recruit)
+  var substitutions=parse_dialogue(alternatives.text,line.get("when_absent",[]))
+  if substitutions.any(func(alternate):return alternate.speaker not in members and alternate.speaker!="narrator"):
+   error.text="Use a recruit ID or narrator for each alternate line.";return
+  line.text=words.text.strip_edges()
+  if line.text.is_empty() or not Draft.dialogue_valid(substitutions) or not Draft.valid_text(line.text,1800):
+   error.text="Enter dialogue with up to 1,800 characters in each line.";return
+  if required.is_empty():line.erase("requires")
+  else:line.requires=required
+  if substitutions.is_empty():line.erase("when_absent")
+  else:line.when_absent=substitutions
+  write.call(lines)
+  field.set_block_signals(true);field.text=dialogue_text(lines);field.set_block_signals(false)
+  dialog.hide();dialog.queue_free())
+ dialog.popup_centered(Vector2i(560,440))
 
 func dialogue_text(lines: Array) -> String:
  var rows=[]
