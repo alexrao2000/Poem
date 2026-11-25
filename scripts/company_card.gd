@@ -11,7 +11,7 @@ func label_in(parent: Node,text_value: String,font_size: int,color: Color) -> La
  label.add_theme_font_size_override("font_size",font_size);label.add_theme_color_override("font_color",color)
  parent.add_child(label);return label
 
-func configure(unit: Dictionary,class_title: String,portrait: Texture2D,weapon: Dictionary,deployed: bool,available: bool,support_ready: bool,full: bool,condition: Dictionary={}):
+func configure(unit: Dictionary,class_title: String,portrait: Texture2D,weapon: Dictionary,deployed: bool,available: bool,support_ready: bool,full: bool,chapter_count: int,condition: Dictionary={}):
  name="Company_"+unit.id;set_meta("unit_id",unit.id);size_flags_horizontal=Control.SIZE_EXPAND_FILL
  var fallen=unit.get("fallen",false)
  var ink=Color("34566d") if available else Color("827c70")
@@ -20,7 +20,8 @@ func configure(unit: Dictionary,class_title: String,portrait: Texture2D,weapon: 
  style.set_border_width_all(2 if deployed else 1);style.content_margin_left=10;style.content_margin_right=10
  style.content_margin_top=8;style.content_margin_bottom=8;add_theme_stylebox_override("panel",style)
  var column=VBoxContainer.new();column.add_theme_constant_override("separation",6);add_child(column)
- state_label=label_in(column,"FALLEN · CHAPTER %02d"%[int(unit.fallen_chapter)+1] if fallen else "IN COMPANY" if deployed else "RESERVE" if available else "JOINS IN CHAPTER %02d"%[int(unit.join)+1],12,ink)
+ var arrival="JOINS IN CHAPTER %02d"%[int(unit.join)+1] if int(unit.join)<chapter_count else "AWAITING RECRUITMENT"
+ state_label=label_in(column,"FALLEN · CHAPTER %02d"%[int(unit.fallen_chapter)+1] if fallen else "IN COMPANY" if deployed else "RESERVE" if available else arrival,12,ink)
  if condition.get("recovering",false) and available:
   state_label.text+=" · RECOVERING";state_label.mouse_filter=Control.MOUSE_FILTER_PASS
   state_label.tooltip_text="Next deployment: %d/%d HP and %d tonic. Healing can restore full health."%[condition.hp,unit.max_hp,condition.tonics]

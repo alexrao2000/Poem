@@ -67,9 +67,14 @@ func check_tonic_cache_without_dialogue():
  assert(game.wait_unit(visitor))
  assert(game.pending_site_scenes().is_empty() and game.site_events_at(game.pos(visitor)).size()==1)
  visitor.potions=0
- assert(game.pending_site_scenes().size()==1 and game.complete_site_scene(scene)==visitor.name)
+ assert(game.pending_site_scenes().size()==1 and game.complete_site_scene(scene)=={"resupplied":visitor.name})
  assert(visitor.potions==2 and game.complete_site_scene(scene).is_empty())
  assert(game.story_seen.count(game.site_scene_token(scene))==1)
+ var reserve=game.roster.filter(func(unit):return not game.trials.joined(game,unit))[0]
+ var meeting={"id":"reserve_meeting","position":scene.position,"lines":[],"recruit":reserve.id}
+ game.info().site_scenes.append(meeting)
+ assert(game.pending_site_scenes()==[meeting] and game.complete_site_scene(meeting)=={"recruited":reserve.name})
+ assert(game.complete_site_scene(meeting).is_empty() and game.trials.volunteers.count(reserve.id)==1)
 
 func check_document():
  var draft=Draft.new()
@@ -801,6 +806,80 @@ func verify_move_to_chapter(app):
  assert(destination in content.section_starts)
  assert(content.roster.filter(func(person):return person.id==recruit_id)[0].join==destination)
  assert(content.chapters[destination].site_scenes[0].position==locations[0])
+
+func verify_site_recruitment(app):
+ controls(app,"New draft").pressed.emit();await process_frame
+ var editor=app.campaign_editor
+ var draft=editor.draft
+ var recruit_index=draft.add_recruit(draft.data.recruits[1],"")
+ var recruit=draft.data.recruits[recruit_index]
+ recruit.name="Merrin"
+ draft.insert_chapter(0,false)
+ draft.data.chapters[0].level.objective_position=[0,4]
+ editor.select_chapter(0);await process_frame
+ var site=Vector2i(0,3)
+ editor.grid.cursor=site
+ var tabs=editor.find_child("CampaignEditorTabs",true,false)
+ tabs.current_tab=tabs.get_tab_idx_from_control(editor.find_child("Story",true,false))
+ await process_frame
+ controls(app,"Add tile scene").pressed.emit()
+ var picker=editor.find_child("EditorTileSceneRecruit",true,false)
+ assert(picker.get_item_metadata(0)=="")
+ for index in picker.item_count:
+  if picker.get_item_metadata(index)!=recruit.id:continue
+  picker.select(index);picker.item_selected.emit(index);break
+ var scene=editor.level().site_scenes[0]
+ assert(scene.recruit==recruit.id and draft.recruit_in_use(recruit.id))
+ var text="If the crossing holds, I’ll march with you."
+ editor.find_child("EditorTileSceneLines",true,false).text="narrator | "+text
+ editor.find_child("EditorTileSceneLines",true,false).text_changed.emit()
+ draft.data.settings.permadeath=true
+ draft.data.settings.action_saves=true
+ draft.data.settings.section_restarts=true
+ var copy=Draft.new()
+ assert(copy.decode(draft.encode()).is_empty() and copy.compile().content.chapters[0].site_scenes[0].recruit==recruit.id)
+ copy.paint(copy.data.chapters[0].level,site,"#")
+ assert(copy.battle_readiness(0).description=="Move the recruitment site at 0, 3 to passable terrain.")
+ copy.data.chapters[0].level.site_scenes[0].recruit="missing_member"
+ assert(copy.structural_problem(copy.data)=="A recruitment site needs a recruit from the company roster.")
+ controls(app,"Play from start").pressed.emit();await finish_presentation(app)
+ var card=app.ui.find_child("Company_"+recruit.id,true,false)
+ assert(app.screen=="camp" and card.deploy_button.disabled and card.state_label.text=="AWAITING RECRUITMENT")
+ controls(app,"Deploy company  >").pressed.emit();await finish_presentation(app)
+ assert(app.screen=="battle" and app.markers.has_node("SiteBadges"))
+ await app.click_tile(site)
+ assert(app.terrain_card.dialogue.text=="Recruit · Dialogue")
+ await app.click_tile(Vector2i(1,3));await app.click_tile(site)
+ assert(app.game.at(site).id=="lyra" and app.game.at(site).potions==2)
+ app.wait_action();await await_phase_dialogue(app,text)
+ var interrupted=app.game.read_saved_data(app.campaign_save_path())
+ var runtime=app.game.info().site_scenes[0]
+ var token=app.game.site_scene_token(runtime)
+ assert(token not in interrupted.story_seen and recruit.id not in interrupted.trials.volunteers)
+ await finish_presentation(app)
+ assert(app.game.restore_save(interrupted)=="battle")
+ app.resume_saved_battle();await await_phase_dialogue(app,text);await finish_presentation(app)
+ var saved=app.game.read_saved_data(app.campaign_save_path())
+ assert(saved.story_seen.count(token)==1 and saved.trials.volunteers.count(recruit.id)==1)
+ assert(app.game.available().any(func(member):return member.id==recruit.id))
+ assert(not app.game.units.any(func(unit):return unit.id==recruit.id) and not app.markers.has_node("SiteBadges"))
+ var reloaded=Rules.new(app.game.content)
+ assert(reloaded.restore_save(saved)=="battle" and reloaded.trials.volunteers.count(recruit.id)==1)
+ assert(reloaded.complete_site_scene(runtime).is_empty())
+ reloaded.at(site).hp=0
+ assert(reloaded.retry_battle() and reloaded.trials.volunteers.count(recruit.id)==1)
+ assert(reloaded.available().any(func(member):return member.id==recruit.id))
+ assert(reloaded.restore_save(reloaded.save_data("camp"))=="camp")
+ await app.click_tile(Vector2i(1,4));await app.click_tile(Vector2i(0,4))
+ app.wait_action();await finish_presentation(app)
+ assert(app.screen=="result" and app.game.result()=="victory")
+ controls(app,"Continue the chronicle").pressed.emit();await finish_presentation(app)
+ assert(app.screen=="camp" and app.game.chapter==1 and recruit.id in app.game.deployed)
+ card=app.ui.find_child("Company_"+recruit.id,true,false)
+ assert(card.state_label.text=="IN COMPANY")
+ controls(app,"Deploy company  >").pressed.emit();await finish_presentation(app)
+ assert(app.game.units.any(func(unit):return unit.id==recruit.id) and app.unit_nodes.has(recruit.id))
+ app.close_campaign_preview();await process_frame
 
 func run():
  check_document()
@@ -1704,7 +1783,8 @@ func run():
  await verify_editor_score_preview(app)
  await verify_terrain_rows(app)
  await verify_move_to_chapter(app)
+ await verify_site_recruitment(app)
  assert(FileAccess.get_file_as_string(app.save_path)==disk and app.game==installed)
  await Shutdown.dispose(app);await process_frame
- print("PASS: campaign JSON file transfer, draft library management, remembered playtest setup, campaign readiness, authored Hard bonuses, authored retry raiders, deployment comparison, authored formation previews, small deployment limits and save recovery, custom campaign atlas, terrain stroke undo, bulk terrain rows, editor dialogs at two viewport sizes, direct chapter reordering, continuous terrain strokes, connected terrain fill, placement moves and swaps, repeated placement copies, switching enemy difficulty groups, editor music preview, multiple standards and exact resume, standard navigation and live progress, standards that follow route pins, route pins, war-table site terrain, war-table overlay, blank war-table chapter, rising Valley landmarks, Valley reveal sound cues, battlefield site markers, custom recruits, phase scenes, tile dialogue and reload, one-use field tonic caches, Valley landmark dialogue, dialogue that follows route pins, timed reinforcements, chapter 32 saves, section dialogue, authored section relief, authored legacy stock and purchase persistence, authored loss recruits, authored loss dialogue, reproducible playtest setup, Valley carryover and resume, thirteen-chapter Valley template, and single-battle tests")
+ print("PASS: campaign JSON file transfer, draft library management, remembered playtest setup, campaign readiness, authored Hard bonuses, authored retry raiders, deployment comparison, authored formation previews, small deployment limits and save recovery, custom campaign atlas, terrain stroke undo, bulk terrain rows, editor dialogs at two viewport sizes, direct chapter reordering, continuous terrain strokes, connected terrain fill, placement moves and swaps, repeated placement copies, switching enemy difficulty groups, editor music preview, multiple standards and exact resume, standard navigation and live progress, standards that follow route pins, route pins, war-table site terrain, war-table overlay, blank war-table chapter, rising Valley landmarks, Valley reveal sound cues, battlefield site markers, custom recruits, phase scenes, tile dialogue and reload, recruitment on battlefield sites, one-use field tonic caches, Valley landmark dialogue, dialogue that follows route pins, timed reinforcements, chapter 32 saves, section dialogue, authored section relief, authored legacy stock and purchase persistence, authored loss recruits, authored loss dialogue, reproducible playtest setup, Valley carryover and resume, thirteen-chapter Valley template, and single-battle tests")
  quit()

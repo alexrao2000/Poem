@@ -47,6 +47,12 @@ func inspect(game,point: Vector2i):
  var events=game.site_events_at(point)
  var can_refill=events.any(func(scene):return scene.get("refill_tonics",false))
  var has_dialogue=events.any(func(scene):return not scene.lines.is_empty())
+ var can_recruit=events.any(func(scene):return not game.site_recruit(scene).is_empty())
  dialogue.text="Dialogue · Tonic refill" if has_dialogue and can_refill else "Dialogue on action" if has_dialogue else "Field tonic refill"
+ if can_recruit:
+  var benefits=PackedStringArray(["Recruit"])
+  if has_dialogue:benefits.append("Dialogue")
+  if can_refill:benefits.append("Tonic refill")
+  dialogue.text=" · ".join(benefits) if benefits.size()>1 else "Recruit on action"
  dialogue.visible=not events.is_empty()
  if had_place!=place.visible or had_dialogue!=dialogue.visible:reset_size()

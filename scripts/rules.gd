@@ -121,8 +121,16 @@ func pending_phase_scenes() -> Array:
 func site_scene_token(scene: Dictionary) -> String:
 	return "site_scene_%d_%s"%[chapter,scene.id]
 
+func site_recruit(scene: Dictionary) -> Dictionary:
+	var id=scene.get("recruit","")
+	if id.is_empty():return {}
+	for member in roster:
+		if member.id==id and not member.get("fallen",false) and not trials.joined(self,member):return member
+	return {}
+
 func unread_site_scene(scene: Dictionary) -> bool:
-	return (not scene.lines.is_empty() or scene.get("refill_tonics",false)) and site_scene_token(scene) not in story_seen
+	if site_scene_token(scene) in story_seen:return false
+	return not scene.lines.is_empty() or scene.get("refill_tonics",false) or not site_recruit(scene).is_empty()
 
 func available_site_scenes() -> Array:
 	return info().get("site_scenes",[]).filter(unread_site_scene)
@@ -133,21 +141,29 @@ func site_events_at(tile: Vector2i) -> Array:
 func site_visitor(scene: Dictionary):
 	var unit=at(Vector2i(scene.position[0],scene.position[1]))
 	if phase!="player" or unit==null or unit.team!="player" or unit.hp<=0 or not unit.acted:return null
-	if scene.lines.is_empty() and unit.potions>=2:return null
+	var can_refill=scene.get("refill_tonics",false) and unit.potions<2
+	if scene.lines.is_empty() and not can_refill and site_recruit(scene).is_empty():return null
 	return unit
 
 func pending_site_scenes() -> Array:
 	if phase!="player":return []
 	return available_site_scenes().filter(func(scene):return site_visitor(scene)!=null)
 
-func complete_site_scene(scene: Dictionary) -> String:
-	if not unread_site_scene(scene):return ""
+func complete_site_scene(scene: Dictionary) -> Dictionary:
+	if not unread_site_scene(scene):return {}
 	var visitor=site_visitor(scene)
-	if visitor==null:return ""
+	if visitor==null:return {}
 	story_seen.append(site_scene_token(scene))
-	if not scene.get("refill_tonics",false) or visitor.potions>=2:return ""
-	visitor.potions=2
-	return visitor.name
+	var result={}
+	if scene.get("refill_tonics",false) and visitor.potions<2:
+		visitor.potions=2
+		result.resupplied=visitor.name
+	var recruit=site_recruit(scene)
+	if not recruit.is_empty():
+		trials.volunteers.append(recruit.id)
+		trials.log_event(recruit.name+" joined the company at a battlefield site.")
+		result.recruited=recruit.name
+	return result
 
 func board_size() -> Vector2i:
 	return Vector2i(info().map[0].length(),info().map.size())

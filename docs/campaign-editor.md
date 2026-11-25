@@ -4,6 +4,8 @@ Poem campaigns are ordered sets of battles, recruit arrivals, section checkpoint
 
 Use Move to… above the Battle workspace to move the selected chapter to a specific number. The preview shows where it will land in the current order. Chapter-linked recruits, scenes, and standards follow their chapter. Check campaign flags links that reorder a war table ahead of a required route location.
 
+Use Recruit on visit in Story’s Tile events to offer a reserve or a recruit scheduled for a later chapter. A standing ally recruits them by finishing an action on the tile. They join the company for the next deployment. The site can also play dialogue and replenish field tonics.
+
 ## Authoring
 
 The chapter list shows play order and section starts. Authors can insert, duplicate, move, and remove chapters. A stable chapter key links its recruit arrivals, story scenes, and route pin, so reordering a battle moves its associated material with it. The first chapter always starts a section.

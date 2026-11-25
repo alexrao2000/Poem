@@ -713,7 +713,10 @@ func show_camp():
 	for u in game.roster:
 		var unlocked=game.trials.joined(game,u) and not u.get("fallen",false)
 		var card=preload("res://scripts/company_card.gd").new();cards.add_child(card)
-		card.configure(u,game.class_name_for(u),portraits.get_unit_portrait(u) if unlocked or u.get("fallen",false) else map_catalog.preview_sprite(u),game.item_for(u),u.id in game.deployed,unlocked,unlocked and supports_ready(u),game.deployed.size()>=deployment_limit,game.trials.deployment_condition(game,u))
+		var portrait=portraits.get_unit_portrait(u) if unlocked or u.get("fallen",false) else map_catalog.preview_sprite(u)
+		card.configure(u,game.class_name_for(u),portrait,game.item_for(u),u.id in game.deployed,unlocked,
+			unlocked and supports_ready(u),game.deployed.size()>=deployment_limit,game.content.chapters.size(),
+			game.trials.deployment_condition(game,u))
 		if u.id=="lyra" and (game.trials.flags.reset_pressure or (game.trials.flags.section_restarts and game.permadeath)):
 			card.deploy_button.disabled=true;card.deploy_button.tooltip_text="The lord leads the company in this experiment."
 		interface_audio.watch(card.portrait_button);interface_audio.watch(card.deploy_button)
@@ -915,6 +918,7 @@ func present_site_scenes() -> bool:
 	if scenes.is_empty() or game.result()=="defeat":return true
 	busy=true
 	for scene in scenes:
+		if not game.unread_site_scene(scene) or game.site_visitor(scene)==null:continue
 		if not await present_battle_scene(scene,game.site_scene_token(scene),"site_scene",true):return false
 	busy=false;update_side()
 	return true
@@ -924,13 +928,16 @@ func present_battle_scene(scene: Dictionary,token: String,reason: String,site=fa
 		var finished=[false]
 		show_dialogue(scene.lines,func():finished[0]=true)
 		while not finished[0]:await get_tree().process_frame
-	var resupplied=""
-	if site:resupplied=game.complete_site_scene(scene)
+	var effects={}
+	if site:effects=game.complete_site_scene(scene)
 	else:game.story_seen.append(token)
 	show_battle()
 	if not persist_campaign("battle",true,reason) and game.action_saves:
 		busy=false;update_side();return false
-	if not resupplied.is_empty():show_notice(resupplied+" replenished their field tonics.")
+	var notices=PackedStringArray()
+	if effects.has("resupplied"):notices.append(effects.resupplied+" replenished their field tonics.")
+	if effects.has("recruited"):notices.append(effects.recruited+" joined the company.")
+	if not notices.is_empty():show_notice(" ".join(notices))
 	return true
 
 func show_battle():
@@ -1166,7 +1173,9 @@ func highlight():
 	var events={}
 	for scene in game.available_site_scenes():
 		var tile=Vector2i(scene.position[0],scene.position[1])
-		events[tile]=events.get(tile,false) or scene.get("refill_tonics",false)
+		if not game.site_recruit(scene).is_empty():events[tile]="recruit"
+		elif events.get(tile)!="recruit" and scene.get("refill_tonics",false):events[tile]="tonic"
+		elif not events.has(tile):events[tile]="dialogue"
 	MapOverlay.site_badges(markers,events,map_height)
 	var danger={}
 	if show_danger:

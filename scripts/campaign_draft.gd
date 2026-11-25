@@ -129,7 +129,7 @@ func recruit_in_use(id: String) -> bool:
   if id in chapter.get("relief_company",[]):return true
   if dialogue_uses(chapter.opening,id) or dialogue_uses(chapter.closing,id):return true
   for scene in chapter.get("phase_scenes",[])+chapter.level.get("site_scenes",[]):
-   if dialogue_uses(scene.lines,id):return true
+   if scene.get("recruit","")==id or dialogue_uses(scene.lines,id):return true
   for scene in chapter.get("section_scenes",{}).values():
    if dialogue_uses(scene.lines,id):return true
  return false
@@ -411,6 +411,9 @@ func structural_problem(document) -> String:
   return "Choose a unique recruit, a loss threshold and a valid class for each legacy arrival."
  if not known.all(func(id):return people.has(id)):return "The company roster is incomplete."
  for chapter in document.chapters:
+  for scene in chapter.level.get("site_scenes",[]):
+   if scene.has("recruit") and not people.has(scene.recruit):
+    return "A recruitment site needs a recruit from the company roster."
   if not chapter.has("relief_company"):continue
   var relief=chapter.relief_company
   if not relief is Array or relief.size()>=people.size():return "Choose a distinct roster member for each relief assignment."
@@ -484,6 +487,7 @@ func site_scenes_valid(scenes) -> bool:
    return false
   if not point_valid(scene.get("position")) or not dialogue_valid(scene.get("lines")):return false
   if not scene.get("refill_tonics",false) is bool:return false
+  if scene.has("recruit") and (not valid_text(scene.recruit,40) or not scene.recruit.is_valid_identifier()):return false
   if scene.has("route_key") and (not valid_text(scene.route_key,64) or not scene.route_key.is_valid_identifier()):return false
   identities[scene.id]=true
  return true
@@ -586,8 +590,8 @@ func battle_problem(level: Dictionary) -> String:
   if not walkable(level,[goal.x,goal.y]):return "Put the seize objective on passable terrain." if goals.size()==1 else "Put all standards on passable terrain."
   standard_tiles[goal]=true
  for scene in level.get("site_scenes",[]):
-  if (not scene.lines.is_empty() or scene.get("refill_tonics",false)) and not walkable(level,scene.position):
-   var event="tonic cache" if scene.lines.is_empty() else "tile dialogue"
+  if (not scene.lines.is_empty() or scene.get("refill_tonics",false) or scene.has("recruit")) and not walkable(level,scene.position):
+   var event="recruitment site" if scene.has("recruit") else "tonic cache" if scene.lines.is_empty() else "tile dialogue"
    return "Move the %s at %d, %d to passable terrain."%[event,scene.position[0],scene.position[1]]
  var positions=level.deployment_positions+level.enemies.map(func(enemy):return enemy.position)+level.hard_enemies.map(func(enemy):return enemy.position)
  for position in positions:

@@ -776,7 +776,7 @@ func confirm_remove_battle_scene(scenes: Array,index: int,trigger: String,refres
 
 func build_tile_dialogue(panel: VBoxContainer,layout: Dictionary):
  for child in panel.get_children():panel.remove_child(child);child.queue_free()
- heading(panel,"Tile dialogue",21)
+ heading(panel,"Tile events",21)
  var scenes=layout.get("site_scenes",[])
  var actions=row(panel)
  action(actions,"Add tile scene",func():
@@ -788,7 +788,7 @@ func build_tile_dialogue(panel: VBoxContainer,layout: Dictionary):
   selected_site_scene=scenes.size()-1;refresh_tile_scene_markers();changed()
   build_tile_dialogue(panel,layout),scenes.size()>=Draft.MAX_SITE_SCENES).name="EditorAddTileScene"
  if scenes.is_empty():return
- heading(panel,"Plays once when a standing ally finishes an action on the tile.",15)
+ heading(panel,"Triggers when a standing ally finishes an action on the tile.",15)
  selected_site_scene=clampi(selected_site_scene,0,scenes.size()-1)
  var index=selected_site_scene
  var scene=scenes[index]
@@ -813,6 +813,17 @@ func build_tile_dialogue(panel: VBoxContainer,layout: Dictionary):
   if value:scene.refill_tonics=true
   else:scene.erase("refill_tonics")
   changed())
+ var recruit_names={"":"No recruit"}
+ for person in draft.data.recruits:
+  if person.id==scene.get("recruit","") or person.chapter.is_empty() or draft.index_for(person.chapter)>selected:
+   recruit_names[person.id]=person.name
+ var recruit=choice(recruit_names.keys(),scene.get("recruit",""),func(value):
+  if value.is_empty():scene.erase("recruit")
+  else:scene.recruit=value
+  changed())
+ recruit.name="EditorTileSceneRecruit";recruit.fit_to_longest_item=false;recruit.clip_text=true
+ for option in recruit.item_count:recruit.set_item_text(option,recruit_names[recruit.get_item_metadata(option)])
+ field_label(row(panel),"Recruit on visit",recruit)
  dialogue_editor(panel,"EditorTileSceneLines",132,func():return scene.lines,func(lines):scene.lines=lines;changed())
 
 func tile_scene_label(scene: Dictionary) -> String:

@@ -45,13 +45,17 @@ static func site_badges(parent: Node3D,events: Dictionary,elevation: Callable) -
  for tile in events:
   var center=Vector2(tile)+Vector2(-.27,-.27)
   var height=float(elevation.call(tile))+.074
-  var supplies=events[tile]
+  var effect=events[tile]
+  var badge_color=Color("3d8269") if effect=="tonic" else Color("3e6d88") if effect=="recruit" else Color("a9814d")
   rectangle(surface,center,Vector2.ONE*.16,height,Color("233a3b"))
-  rectangle(surface,center,Vector2.ONE*.132,height+.002,Color("3d8269") if supplies else Color("a9814d"))
+  rectangle(surface,center,Vector2.ONE*.132,height+.002,badge_color)
   var face=Color("fff2cf")
-  if supplies:
+  if effect=="tonic":
    rectangle(surface,center,Vector2(.083,.023),height+.004,face)
    rectangle(surface,center,Vector2(.023,.083),height+.004,face)
+  elif effect=="recruit":
+   rectangle(surface,center+Vector2.UP*.024,Vector2.ONE*.033,height+.004,face)
+   rectangle(surface,center+Vector2.DOWN*.022,Vector2(.072,.028),height+.004,face)
   else:
    rectangle(surface,center+Vector2.UP*.035,Vector2(.075,.019),height+.004,face)
    rectangle(surface,center+Vector2.DOWN*.035,Vector2(.05,.019),height+.004,face)
