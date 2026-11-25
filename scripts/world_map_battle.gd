@@ -354,6 +354,13 @@ static func chart_view(camera: Camera3D,board: Vector2i,home: Dictionary) -> Dic
  view.h_offset=0.0;view.v_offset=0.0
  return view
 
+static func fit_atlas_views(camera: Camera3D,board: Vector2i,home: Dictionary,chart: Dictionary,refresh_home: Callable):
+ var extent=camera.get_viewport().get_visible_rect().size
+ if extent==chart.get("viewport"):return
+ if chart.has("viewport") and refresh_home.is_valid():home.merge(refresh_home.call(),true)
+ chart.merge(chart_view(camera,board,home),true)
+ chart.viewport=extent
+
 static func reserve_view(camera: Camera3D,board: Vector2i,home: Dictionary) -> Dictionary:
  var view=chart_view(camera,board,home)
  var center=Vector3((board.x-1)*.5,0,(board.y-1)*.5)
@@ -382,8 +389,8 @@ static func play_reveal(navigation,game,world: Node3D,actors: Array,hint: Contro
  var viewport=camera.get_viewport()
  var board=game.board_size()
  var home: Dictionary=navigation.capture_view()
- var chart=chart_view(camera,board,home)
- chart.viewport=viewport.get_visible_rect().size
+ var chart={}
+ fit_atlas_views(camera,board,home,chart,refresh_home)
  var origin=Vector2(reveal_origin(game.info()))
  var seals=RouteSeals.new()
  hint.get_parent().add_child(seals)
@@ -402,11 +409,7 @@ static func play_reveal(navigation,game,world: Node3D,actors: Array,hint: Contro
  var progress=[0.0]
  var apply_frame=func(weight: float,sound: bool):
   progress[0]=weight
-  var viewport_size=viewport.get_visible_rect().size
-  if viewport_size!=chart.viewport:
-   if refresh_home.is_valid():home.merge(refresh_home.call(),true)
-   chart.merge(chart_view(camera,board,home),true)
-   chart.viewport=viewport_size
+  fit_atlas_views(camera,board,home,chart,refresh_home)
   var front=lerpf(-.85,radius,smoothstep(.10,.86,weight))
   ink.set_shader_parameter("front",front)
   navigation.apply_return(smoothstep(.07,1.0,weight),chart,home)
@@ -434,8 +437,11 @@ static func play_reveal(navigation,game,world: Node3D,actors: Array,hint: Contro
  seals.get_parent().remove_child(seals)
  seals.queue_free()
 
-static func play_conclusion(navigation,game,world: Node3D,actors: Array,hint: Control,duration: float,skip: Callable,cue: Callable):
+static func play_conclusion(navigation,game,world: Node3D,actors: Array,hint: Control,duration: float,skip: Callable,cue: Callable,refresh_home: Callable=Callable()):
+ var camera: Camera3D=navigation.camera
+ var viewport=camera.get_viewport()
  var home: Dictionary=navigation.capture_view()
+ var chart={}
  var board: Vector2i=game.board_size()
  var origin=Vector2(reveal_origin(game.info()))
  var radius=ink_radius(board,origin)
@@ -449,8 +455,10 @@ static func play_conclusion(navigation,game,world: Node3D,actors: Array,hint: Co
  var resting=props.map(func(piece):return piece.position)
  var visible=props.map(func(piece):return piece.visible)
  var seats=resting.map(func(point):return origin.distance_to(Vector2(point.x,point.z)))
+ var progress=[0.0]
  var apply_frame=func(weight: float):
-  var chart=chart_view(navigation.camera,board,home)
+  progress[0]=weight
+  fit_atlas_views(camera,board,home,chart,refresh_home)
   navigation.apply_return(smoothstep(0.0,.49,weight),home,chart)
   var front=lerpf(radius,-.85,smoothstep(.21,.87,weight))
   ink.set_shader_parameter("front",front)
@@ -460,6 +468,8 @@ static func play_conclusion(navigation,game,world: Node3D,actors: Array,hint: Co
    props[index].visible=visible[index] and relief>0.0
    props[index].position=resting[index]+Vector3.DOWN*.42*(1.0-relief)
   hint.modulate.a=1.0-smoothstep(.87,1.0,weight)
+ var resize=func():apply_frame.call(progress[0])
+ viewport.size_changed.connect(resize)
  apply_frame.call(0.0)
  var motion=world.create_tween().set_parallel(true)
  motion.tween_method(apply_frame,0.0,1.0,duration)
@@ -468,6 +478,7 @@ static func play_conclusion(navigation,game,world: Node3D,actors: Array,hint: Co
  ).set_delay(duration*.21)
  while motion.is_running() and not skip.call():await world.get_tree().process_frame
  if motion.is_running():motion.kill()
+ viewport.size_changed.disconnect(resize)
  navigation.apply_return(1.0,home,home)
  ink.set_shader_parameter("front",tactical_front)
  for index in props.size():

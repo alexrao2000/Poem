@@ -2217,7 +2217,36 @@ func run():
  process_frame.disconnect(skip_on_approach)
  assert(skipped[0] and is_zero_approx(float(ink_focus.get_shader_parameter("combat_strength"))))
  assert(app.game.save_data("battle")==before)
+ var result_size=root.size;var result_scale=root.content_scale_size
+ root.size=Vector2i(1440,900);root.content_scale_size=root.size
+ await process_frame;await process_frame
+ app.map_camera()
+ var victory_frames=[0]
+ var victory_checkpoint=[""]
+ var victory_path=app.campaign_save_path()
+ var victory_score_playing=app.score_director.player.playing
+ var watch_victory=func():
+  if not app.valley_reveal_active:return
+  if victory_checkpoint[0].is_empty():
+   victory_checkpoint[0]=FileAccess.get_file_as_string(victory_path)
+   assert(not victory_checkpoint[0].is_empty())
+   root.size=Vector2i(720,640);root.content_scale_size=root.size
+  var viewport=root.get_visible_rect()
+  if viewport.size.x!=720:return
+  var outline=Valley.reveal_corners(app.game.board_size())
+  assert(viewport.grow(1).encloses(app.TacticalCamera.board_bounds(app.camera,outline)))
+  victory_frames[0]+=1
+ var victory_resize_connections=root.size_changed.get_connections().size()
+ process_frame.connect(watch_victory)
  await capture_tile(app,Vector2i(2,9))
+ process_frame.disconnect(watch_victory)
+ assert(victory_frames[0]>2 and app.map_navigation.at_home())
+ assert(victory_checkpoint[0]==FileAccess.get_file_as_string(victory_path))
+ assert(app.score_director.player.playing==victory_score_playing)
+ assert(root.size_changed.get_connections().size()==victory_resize_connections)
+ root.size=result_size;root.content_scale_size=result_scale
+ await process_frame
+ print("PASS: resizing as the Valley folds away keeps the board and the committed victory in view")
  controls(app,"Continue the chronicle").pressed.emit();await finish_presentation(app)
  assert(app.screen=="ending" and app.game.completed)
  assert(app.ui.find_child("Ending_oren",true,false).text==renamed.ending)

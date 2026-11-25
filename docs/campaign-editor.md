@@ -120,7 +120,7 @@ During a war-table battle, press **V** or select **Atlas** to reread the earlier
 
 Choose **Replay reveal** in the battle atlas to watch the chart become the battlefield again. Click or press Tab to skip. The scene returns to the current camera and selected unit.
 
-Resizing during the atlas reveal keeps the board in view as the camera settles into Home. If you resize in the atlas, battle menu, or Options, returning to battle fits Home to the new size. A manual pan or zoom stays where you left it.
+Resizing during the atlas reveal or victory keeps the board in view from Home. If you resize in the atlas, battle menu, or Options, returning to battle fits Home to the new size. A manual pan or zoom stays where you left it.
 
 The atlas remembers its layers while you move between it and the same battlefield. Loading a battle opens the atlas with all layers off.
 

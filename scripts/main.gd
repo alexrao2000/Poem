@@ -409,7 +409,7 @@ func cube(parent,position,scale_value,color) -> MeshInstance3D:
 func sphere(parent,position,radius,color) -> MeshInstance3D:
 	var n=MeshInstance3D.new();var mesh=SphereMesh.new();mesh.radius=radius;mesh.height=radius*2;mesh.radial_segments=8;mesh.rings=4;n.mesh=mesh;n.position=position;n.material_override=mat(color);parent.add_child(n);return n
 
-func map_camera():
+func map_camera() -> Dictionary:
 	var dimensions=game.board_size()
 	var reveal_preview=screen=="editor_reveal_preview"
 	camera.projection=Camera3D.PROJECTION_ORTHOGONAL
@@ -424,6 +424,7 @@ func map_camera():
 	fit_home_forecast()
 	map_navigation.configure(camera,dimensions)
 	map_home_extent=get_viewport().get_visible_rect().size
+	return map_navigation.home_view
 
 func refit_home_after_resize():
 	var viewport_size=get_viewport().get_visible_rect().size
@@ -1228,11 +1229,7 @@ func reveal_valley_battle(follow_home=true):
 	var cue=func(event):
 		if event=="paper":play_sfx("valley-unroll")
 		else:travel_audio.step("=","",0)
-	var refresh_home=Callable()
-	if follow_home:
-		refresh_home=func():
-			map_camera()
-			return map_navigation.capture_view()
+	var refresh_home: Callable=map_camera if follow_home else Callable()
 	await ValleyBattle.play_reveal(map_navigation,game,world,unit_nodes.values(),hint,func():return valley_reveal_skip,cue,refresh_home)
 	canvas.remove_child(hint);hint.queue_free()
 	ui.show();markers.show()
@@ -2660,7 +2657,7 @@ func close_rally_enemies():
 
 func close_valley_battle():
 	var was_home=map_navigation.at_home()
-	var viewport_size=get_viewport().get_visible_rect().size
+	if was_home:refit_home_after_resize()
 	var previous_busy=busy
 	var previous_ui=ui.visible;var previous_markers=markers.visible
 	map_navigation.stop()
@@ -2669,10 +2666,10 @@ func close_valley_battle():
 	ui.hide();markers.hide()
 	var hint=valley_transition_hint()
 	var duration=.66 if preferences.values.combat_speed=="fast" else 1.06
+	var refresh_home: Callable=map_camera if was_home else Callable()
 	await ValleyBattle.play_conclusion(map_navigation,game,world,unit_nodes.values(),hint,duration,
-		func():return valley_reveal_skip,func():play_sfx("valley-unroll"))
+		func():return valley_reveal_skip,func():play_sfx("valley-unroll"),refresh_home)
 	map_navigation.stop()
-	if was_home and get_viewport().get_visible_rect().size!=viewport_size:map_camera()
 	canvas.remove_child(hint);hint.queue_free()
 	ui.visible=previous_ui;markers.visible=previous_markers
 	valley_reveal_active=false;busy=previous_busy
