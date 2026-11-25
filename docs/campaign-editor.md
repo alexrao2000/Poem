@@ -54,6 +54,8 @@ Choose a battle in the War-table overlay in Route to see its effective terrain a
 
 Use Open atlas image in Route to use your own PNG or JPEG for a campaign. The picker accepts images up to 6 MB and 8 megapixels. Poem centers the image in a 3:2 crop, sizes it to 1,200 by 800 pixels, and stores it inside the campaign JSON. The route screen and war tables use the same picture. Place chapter pins and paint the table’s terrain against that picture.
 
+Use Add blank war table in Route when you want to paint your own geography. It inserts a battle after the selected chapter and opens its 24 by 16 grid on the current atlas. The base grid starts with a stronghold objective and plain terrain. Earlier route pins still supply their assigned terrain.
+
 ## Game data and playtest
 
 A campaign document contains its format and version, title, ordered chapters, roster settings, bonds, and defaults. Chapter entries carry the campaign fields for terrain, deployments, encounters, objectives, music, and scenery alongside their story scenes. The editor resolves stable recruit arrival and bond chapter keys to chapter indices when it makes a runtime copy. Removing a chapter moves those arrivals and conversations to the next surviving chapter, or the previous chapter if it was the finale. Each playtest runs against its own copy and saves independently of the normal campaign.

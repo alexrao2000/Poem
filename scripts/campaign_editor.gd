@@ -502,6 +502,7 @@ func build_route(panel: VBoxContainer) -> Callable:
  action(atlas_actions,"Open atlas image",func():open_route_atlas(panel,feedback)).name="EditorOpenAtlas"
  action(atlas_actions,"Restore original atlas",func():
   draft.data.erase("route_atlas");changed();rebuild(),not draft.data.has("route_atlas")).name="EditorRestoreAtlas"
+ action(atlas_actions,"Add blank war table",add_blank_war_table,draft.data.chapters.size()>=Draft.MAX_CHAPTERS).name="EditorAddBlankWarTable"
  var chart=Route.new();chart.name="EditorRouteChart"
  var refresh_survey=build_route_survey(panel,chart)
  panel.add_child(chart)
@@ -974,6 +975,11 @@ func select_chapter(index: int):
 func insert_chapter(copy: bool,valley=false):
  var index=draft.insert_chapter(selected,copy,valley)
  if index>=0:dirty=true;select_chapter(index)
+
+func add_blank_war_table():
+ var index=draft.insert_blank_war_table(selected)
+ if index<0:return
+ dirty=true;active_tab=0;select_chapter(index)
 
 func move_chapter(direction: int):
  dirty=true;select_chapter(draft.move_chapter(selected,direction))

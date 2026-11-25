@@ -198,6 +198,18 @@ func insert_chapter(after: int,copy_current: bool,valley_table=false) -> int:
  data.chapters.insert(after+1,record)
  return after+1
 
+func insert_blank_war_table(after: int) -> int:
+ var index=insert_chapter(after,false)
+ if index<0:return index
+ var level=data.chapters[index].level
+ level.title="New war-table chapter"
+ level.place="War table"
+ level.presentation="valley_table"
+ level.score_theme="valley"
+ resize_map(level,Vector2i(Valley.WIDTH,Valley.HEIGHT))
+ paint(level,Vector2i(level.objective_position[0],level.objective_position[1]),"o")
+ return index
+
 func load_poem_template(valley: bool):
  data=new_document(true)
  if valley:

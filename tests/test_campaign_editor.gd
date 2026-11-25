@@ -380,13 +380,24 @@ func verify_custom_atlas(app,scratch: String):
  assert(center.g>center.r+.1)
  var grid=editor.find_child("EditorGrid",true,false)
  assert(grid.atlas==picture)
+ var start=editor.selected+1
+ var add_table=editor.find_child("EditorAddBlankWarTable",true,false)
+ assert(add_table.is_visible_in_tree() and not add_table.disabled)
+ add_table.pressed.emit();await process_frame
+ assert(editor.selected==start and editor.active_tab==0)
+ assert(editor.level().presentation=="valley_table" and editor.level().score_theme=="valley")
+ assert(editor.chapter().opening.is_empty() and editor.chapter().closing.is_empty())
+ assert("".join(editor.level().map).replace(".","")=="o")
+ var empty_grid=editor.find_child("EditorGrid",true,false)
+ assert(empty_grid.atlas==picture and empty_grid.board_size()==Vector2i(24,16))
  var restored=Draft.new()
  assert(restored.decode(editor.draft.encode()).is_empty())
  assert(restored.route_texture().get_image().get_pixel(600,400).is_equal_approx(center))
+ assert(restored.data.chapters[start].level.map==editor.level().map)
  var malformed=restored.data.duplicate();malformed.route_atlas="AAAAAAAA"
  assert(restored.structural_problem(malformed).contains("invalid route atlas"))
  controls(app,"Play chapter").pressed.emit();await finish_presentation(app)
- assert(app.screen=="camp" and app.game.chapter==11)
+ assert(app.screen=="camp" and app.game.chapter==start and app.game.info().title=="New war-table chapter")
  controls(app,"Route").pressed.emit();await process_frame
  assert(app.ui.find_child("CampaignRoute",true,false).map_picture==picture)
  controls(app,"Return to war council").pressed.emit();await process_frame
@@ -395,8 +406,15 @@ func verify_custom_atlas(app,scratch: String):
  assert(app.world.get_node("ValleyChart").material_override.albedo_texture==picture and app.game.board_size()==Vector2i(24,16))
  app.show_battle_menu();await process_frame
  controls(app,"Return to editor").pressed.emit();await process_frame
- app.campaign_editor.find_child("EditorRestoreAtlas",true,false).pressed.emit();await process_frame
- assert(app.campaign_editor.find_child("EditorRouteChart",true,false).map_picture==Route.MAP)
+ editor=app.campaign_editor
+ book=editor.find_child("CampaignEditorTabs",true,false)
+ book.current_tab=book.get_tab_idx_from_control(editor.find_child("Route",true,false))
+ await process_frame
+ editor.find_child("EditorRestoreAtlas",true,false).pressed.emit();await process_frame
+ assert(editor.find_child("EditorRouteChart",true,false).map_picture==Route.MAP)
+ var chapters=editor.find_child("EditorChapter",true,false)
+ chapters.select(start-1);chapters.item_selected.emit(start-1)
+ await process_frame
 
 func verify_moving_placements(app):
  var editor=app.campaign_editor
@@ -1181,5 +1199,5 @@ func run():
  await verify_moving_placements(app)
  assert(FileAccess.get_file_as_string(app.save_path)==disk and app.game==installed)
  await Shutdown.dispose(app);await process_frame
- print("PASS: campaign JSON file transfer, draft library management, remembered playtest setup, campaign readiness, authored Hard bonuses, authored retry raiders, deployment comparison, custom campaign atlas, terrain stroke undo, continuous terrain strokes, connected terrain fill, placement moves and swaps, route pins, war-table site terrain, war-table overlay, rising Valley landmarks, custom recruits, phase scenes, timed reinforcements, chapter 32 saves, section dialogue, authored section relief, authored legacy stock and purchase persistence, authored loss recruits, authored loss dialogue, reproducible playtest setup, Valley carryover and resume, thirteen-chapter Valley template, and single-battle tests")
+ print("PASS: campaign JSON file transfer, draft library management, remembered playtest setup, campaign readiness, authored Hard bonuses, authored retry raiders, deployment comparison, custom campaign atlas, terrain stroke undo, continuous terrain strokes, connected terrain fill, placement moves and swaps, route pins, war-table site terrain, war-table overlay, blank war-table chapter, rising Valley landmarks, custom recruits, phase scenes, timed reinforcements, chapter 32 saves, section dialogue, authored section relief, authored legacy stock and purchase persistence, authored loss recruits, authored loss dialogue, reproducible playtest setup, Valley carryover and resume, thirteen-chapter Valley template, and single-battle tests")
  quit()
