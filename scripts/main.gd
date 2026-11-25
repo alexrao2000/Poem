@@ -618,7 +618,7 @@ func open_editor_arena_preview(chapter_index: int,tile: Vector2i,from_route: boo
 	if screen!="campaign_editor":return
 	var view_state=editor_preview_state("Route","EditorPreviewRouteArena") if from_route else editor_preview_state("Battle","EditorPreviewArena")
 	var return_to=campaign_editor_return
-	var preview_game=Rules.new(campaign_draft.compile().content)
+	var preview_game=Rules.new(campaign_draft.compile(false).content)
 	preview_game.chapter=chapter_index
 	var neighbor=tile+(Vector2i.LEFT if tile.x>0 else Vector2i.RIGHT)
 	var arena=scenery.combat_context(preview_game,{"x":neighbor.x,"y":neighbor.y},{"x":tile.x,"y":tile.y})
@@ -650,7 +650,7 @@ func open_editor_reveal_preview():
 		"selected":selected,"dropping":drop_mode,"cursor_visible":cursor_visible,"cursor_tile":cursor_tile,
 		"atlas_grid":atlas_grid_enabled,"atlas_units":atlas_units_enabled
 	}
-	var compiled=campaign_draft.compile()
+	var compiled=campaign_draft.compile(false)
 	game=Rules.new(compiled.content)
 	var seed_value=int(campaign_playtest_setup.seed) if campaign_playtest_setup.fixed_seed else -1
 	var pressure=int(campaign_playtest_setup.pressure) if compiled.settings.reset_pressure else 0

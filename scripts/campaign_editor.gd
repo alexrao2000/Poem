@@ -543,7 +543,7 @@ func show_deployment_preview():
   note.size_flags_vertical=SIZE_EXPAND_FILL;panel.add_child(note)
   popup_editor_dialog(dialog,Vector2i(560,180))
   return
- var compiled=draft.compile()
+ var compiled=draft.compile(false)
  var index=selected
  var seed_value=int(playtest_setup.seed) if playtest_setup.fixed_seed else -1
  var start_pressure=int(playtest_setup.pressure) if compiled.settings.reset_pressure else 0

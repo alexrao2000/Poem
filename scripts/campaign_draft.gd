@@ -816,12 +816,13 @@ func company_problem() -> String:
  if not data.opening_company.all(func(id):return id in starting):return "The opening company can only use recruits who have arrived."
  return ""
 
-func compile() -> Dictionary:
+func compile(include_save_signature=true) -> Dictionary:
  var content=templates.duplicate(true)
  content.title=data.title
  var picture=route_texture()
  if picture!=null:content.route_atlas=picture
- content.authoring_signature=JSON.stringify(JSON.parse_string(encode()),"",true,true).sha256_text()
+ if include_save_signature:
+  content.authoring_signature=JSON.stringify(JSON.parse_string(encode()),"",true,true).sha256_text()
  content.opening_company=data.opening_company.duplicate()
  content.chapters=[]
  content.section_starts=[]
