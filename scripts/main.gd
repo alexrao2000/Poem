@@ -2000,7 +2000,9 @@ func cinematic(a,b,events,initial_hp={},challenge: Dictionary={}):
 			visual.face_toward(game.pos(pair[1]),game.pos(pair[0]));map_facings[sprite_id]=visual.player.facing
 	skip_combat=false;music_mix(true)
 	var tactical_view=map_navigation.capture_view()
-	var home_viewport=get_viewport().get_visible_rect().size if map_navigation.at_home() else Vector2.ZERO
+	var map_viewport=camera.get_viewport()
+	var approach_extent=map_viewport.get_visible_rect().size
+	var home_viewport=approach_extent if map_navigation.at_home() else Vector2.ZERO
 	var focus=(map_position(game.pos(a))+map_position(game.pos(b)))*.5
 	markers.hide()
 	# Keep the exchange readable while the lower camera lets scenery cover bystanders.
@@ -2026,7 +2028,11 @@ func cinematic(a,b,events,initial_hp={},challenge: Dictionary={}):
 		chart_ink.set_shader_parameter("combat_focus",Vector2(focus.x,focus.z))
 		push.parallel().tween_method(func(value):chart_ink.set_shader_parameter("combat_strength",value),0.0,1.0,push_time)
 	await push.finished
+	var refit_approach=map_navigation.refit_combat_approach.bind(focus,combat_sprites)
+	map_viewport.size_changed.connect(refit_approach)
+	if map_viewport.get_visible_rect().size!=approach_extent:refit_approach.call()
 	if veil.motion.is_running():await veil.motion.finished
+	map_viewport.size_changed.disconnect(refit_approach)
 	var close_map_view=map_navigation.capture_view()
 	if skip_combat:
 		await return_to_tactical_map(veil,playback,close_map_view,tactical_view,tactical_controls,focus,home_viewport,focal_units)

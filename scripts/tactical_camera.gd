@@ -112,6 +112,10 @@ func fit_combat_zoom(subjects: Array,focus: Vector3,angle: Vector3,distance: flo
  var half_frame=(frame.size*.5-Vector2(18,18)).max(Vector2.ONE)
  return COMBAT_SIZE*maxf(1,maxf(extent.x/half_frame.x,extent.y/half_frame.y))
 
+func refit_combat_approach(focus: Vector3,subjects: Array):
+ if subjects.is_empty():return
+ camera.size=fit_combat_zoom(subjects,focus,camera.rotation,eye_offset.length(),camera.get_viewport().get_visible_rect())
+
 func capture_view() -> Dictionary:
  return {"transform":camera.transform,"size":camera.size,"h_offset":camera.h_offset,"v_offset":camera.v_offset,"fov":camera.fov,"projection":camera.projection}
 

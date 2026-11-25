@@ -276,8 +276,41 @@ func resized_combat_return():
   else:
    assert(nav.capture_view()==original and not nav.at_home(),"A deliberate map view returns exactly after the combat resize")
   assert(app.game.save_data("battle")==saved and app.game.rng.state==rng)
+ await verify_resized_longbow_approach(app,viewport)
  await Shutdown.dispose(app);viewport.queue_free();await process_frame
  print("PASS: resizing during the arena, opening Skip or map reveal refits Home; a manual view restores exactly")
+
+func verify_resized_longbow_approach(app,viewport: SubViewport):
+ var portrait=Vector2i(720,960)
+ for resize_at in [.25,Transition.FRAMED_APERTURE]:
+  viewport.size=Vector2i(1440,900);await process_frame
+  app.debug_session.begin(app.game,"camp")
+  var setup=app.debug_session.start_recruit_encounter(app.game,"sera","","longbow",5)
+  assert(not setup.is_empty())
+  app.make_map();app.show_battle();await process_frame
+  app.camera.size=9.4;app.camera.position+=Vector3(4,0,-3)
+  var subjects=[app.unit_nodes[setup.actor],app.unit_nodes[setup.target]]
+  var attacker=app.game.units.filter(func(unit):return unit.id==setup.actor)[0]
+  var target=app.game.units.filter(func(unit):return unit.id==setup.target)[0]
+  var original=app.map_navigation.capture_view()
+  var saved=app.game.save_data("battle").duplicate(true)
+  var proof={"resized":false,"framed":false}
+  var resize=func():
+   var veil=app.ui.get_node_or_null("CombatTransition")
+   if veil==null or veil.revealing or not veil.streaks or app.stage.visible:return
+   if not proof.resized and veil.progress>=resize_at:
+    viewport.size=portrait;proof.resized=true;return
+   if proof.resized and veil.progress==Transition.FRAMED_APERTURE:
+    assert(app.camera.size>app.map_navigation.COMBAT_SIZE)
+    assert(viewport.get_visible_rect().grow(-17).encloses(app.map_navigation.combat_bounds(subjects)))
+    proof.framed=true
+  process_frame.connect(resize)
+  await app.cinematic(attacker,target,[{"actor":attacker.id,"target":target.id,"damage":1,"remaining":19,"hit":true,"crit":false}])
+  process_frame.disconnect(resize)
+  assert(proof.resized and proof.framed and app.map_navigation.capture_view()==original)
+  assert(app.game.save_data("battle")==saved)
+  app.debug_session.end(app.game)
+ print("PASS: both a resize during the zoom and a resize during the framed beat keep the longbow pair inside the aperture")
 
 func run():
  await fitted_map_home()
