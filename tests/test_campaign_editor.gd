@@ -601,6 +601,30 @@ func run():
  hover.position=table_grid.board_rect().position+(Vector2(site_tile)+Vector2(.5,.5))*table_grid.cell_size()
  table_grid._gui_input(hover)
  assert(editor.find_child("EditorAtlasTile",true,false).text=="6, 10 · Stronghold · River Gate")
+ table_tabs.current_tab=table_tabs.get_tab_idx_from_control(editor.find_child("Route",true,false))
+ await process_frame;await process_frame
+ var overlay=editor.find_child("EditorRouteSurvey",true,false)
+ assert(overlay.item_count==2 and overlay.selected==0)
+ overlay.select(1);overlay.item_selected.emit(1)
+ var survey=editor.find_child("EditorRouteChart",true,false)
+ assert(survey.survey_terrain==editor.draft.battle_level(1).map and survey.survey_objective==Vector2i(21,2))
+ assert(survey.survey_tile(survey.positions[0])==site_tile)
+ survey.markers[0].pressed.emit()
+ await process_frame;await process_frame
+ assert(editor.selected==0)
+ survey=editor.find_child("EditorRouteChart",true,false)
+ overlay=editor.find_child("EditorRouteSurvey",true,false)
+ assert(overlay.selected==1 and editor.find_child("EditorRouteSurveyTile",true,false).text=="Selected pin · 6, 10 · Stronghold")
+ editor.find_child("EditorRouteX",true,false).value=33
+ var shifted=Valley.route_tile([.33,.67])
+ assert(survey.survey_tile(survey.positions[0])==shifted)
+ assert(survey.survey_terrain[shifted.y][shifted.x]=="o" and survey.survey_terrain[site_tile.y][site_tile.x]==chart.map[site_tile.y][site_tile.x])
+ editor.find_child("EditorRouteX",true,false).value=27
+ assert(survey.survey_terrain==editor.draft.battle_level(1).map)
+ overlay.select(0);overlay.item_selected.emit(0)
+ assert(survey.survey_terrain.is_empty() and not editor.find_child("EditorRouteSurveyTile",true,false).visible)
+ survey.markers[1].pressed.emit()
+ await process_frame;await process_frame
  var bonds_tabs=editor.find_child("CampaignEditorTabs",true,false)
  bonds_tabs.current_tab=bonds_tabs.get_tab_idx_from_control(editor.find_child("Bonds",true,false))
  await process_frame
@@ -1126,5 +1150,5 @@ func run():
  await verify_moving_placements(app)
  assert(FileAccess.get_file_as_string(app.save_path)==disk and app.game==installed)
  await Shutdown.dispose(app);await process_frame
- print("PASS: campaign JSON file transfer, draft library management, remembered playtest setup, campaign readiness, authored Hard bonuses, authored retry raiders, deployment comparison, custom campaign atlas, terrain stroke undo, continuous terrain strokes, connected terrain fill, placement moves and swaps, route pins, war-table site terrain, rising Valley landmarks, custom recruits, phase scenes, timed reinforcements, chapter 32 saves, section dialogue, authored section relief, authored legacy stock and purchase persistence, authored loss recruits, authored loss dialogue, reproducible playtest setup, Valley carryover, thirteen-chapter Valley template, and single-battle tests")
+ print("PASS: campaign JSON file transfer, draft library management, remembered playtest setup, campaign readiness, authored Hard bonuses, authored retry raiders, deployment comparison, custom campaign atlas, terrain stroke undo, continuous terrain strokes, connected terrain fill, placement moves and swaps, route pins, war-table site terrain, war-table overlay, rising Valley landmarks, custom recruits, phase scenes, timed reinforcements, chapter 32 saves, section dialogue, authored section relief, authored legacy stock and purchase persistence, authored loss recruits, authored loss dialogue, reproducible playtest setup, Valley carryover, thirteen-chapter Valley template, and single-battle tests")
  quit()

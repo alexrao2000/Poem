@@ -5,6 +5,7 @@ signal chapter_selected(index: int)
 signal seal_spacing_changed(crowded: bool)
 signal pin_placed(index: int,position: Vector2)
 const MAP=preload("res://assets/art/campaign-valley-v1.png")
+const Grid=preload("res://scripts/campaign_editor_grid.gd")
 const SEAL_SIZE=36.0
 const SEAL_INSET=20.0
 const STANDARD_INSET=41.0
@@ -22,6 +23,8 @@ var map_rect=Rect2()
 var seal_scale=1.0
 var editable=false
 var map_picture: Texture2D=MAP
+var survey_terrain: Array
+var survey_objective=Vector2i(-1,-1)
 
 func configure(chapters: Array,index: int,finished=false,rallies=PackedInt32Array(),retreat=0,atlas: Texture2D=null):
  map_picture=MAP if atlas==null else atlas
@@ -55,6 +58,31 @@ func select_chapter(index: int):
 func enable_pin_editor():
  editable=true
  mouse_filter=Control.MOUSE_FILTER_STOP
+
+func set_war_table_overlay(battle: Dictionary):
+ survey_terrain=battle.get("map",[])
+ survey_objective=Vector2i(-1,-1)
+ if battle.get("objective")=="seize":
+  survey_objective=Vector2i(battle.objective_position[0],battle.objective_position[1])
+ queue_redraw()
+
+func survey_tile(pin: Vector2) -> Vector2i:
+ var dimensions=Vector2i(survey_terrain[0].length(),survey_terrain.size())
+ return Vector2i((pin*Vector2(dimensions)).floor()).clamp(Vector2i.ZERO,dimensions-Vector2i.ONE)
+
+func draw_war_table_overlay():
+ var cell=map_rect.size/Vector2(survey_terrain[0].length(),survey_terrain.size())
+ var ink=Color(.22,.16,.12,.44)
+ for y in survey_terrain.size():
+  for x in survey_terrain[y].length():
+   var tile=Vector2i(x,y)
+   var rect=Rect2(map_rect.position+Vector2(tile)*cell,cell)
+   var symbol=survey_terrain[y][x]
+   var tint=Color(Grid.COLORS[symbol])
+   tint.a=.44 if symbol in ["~","#","f","h"] else .25
+   draw_rect(rect,tint)
+   draw_rect(rect,ink,false,1.0)
+   if tile==survey_objective:draw_rect(rect.grow(-1),Color("ffe8a5"),false,2.0)
 
 func place_pin(position: Vector2):
  if not editable:return
@@ -108,6 +136,7 @@ func _process(dt):
 func _draw():
  if map_rect.size.x<=0:return
  draw_texture_rect(map_picture,map_rect,false)
+ if not survey_terrain.is_empty():draw_war_table_overlay()
  var tick=Color(.34,.23,.14,.53)
  for index in range(1,24):
   var x=map_rect.position.x+map_rect.size.x*index/24.0

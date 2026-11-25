@@ -26,6 +26,7 @@ var selected_enemy=0
 var selected_scene=0
 var selected_stock=0
 var selected_arrival=0
+var survey_chapter=""
 var encounter_panel: VBoxContainer
 var grid: Control
 var terrain_changed=false
@@ -85,16 +86,19 @@ func rebuild():
  build_battle(page(book,"Battle"))
  encounter_panel=page(book,"Encounters")
  build_story(page(book,"Story"))
- build_route(page(book,"Route"))
+ var route_panel=page(book,"Route")
+ var refresh_route=build_route(route_panel)
  build_company(page(book,"Company"))
  build_bonds(page(book,"Bonds"))
  build_rules(page(book,"Rules"))
  var encounters_tab=book.get_tab_idx_from_control(encounter_panel.get_parent())
+ var route_tab=book.get_tab_idx_from_control(route_panel.get_parent())
  book.current_tab=active_tab
  if active_tab==encounters_tab:build_encounters()
  book.tab_changed.connect(func(index):
   active_tab=index
-  if index==encounters_tab:build_encounters())
+  if index==encounters_tab:build_encounters()
+  if index==route_tab:refresh_route.call())
  status=heading(self,"",15);status.name="EditorStatus"
  var footer=row(self)
  play_buttons.append(action(footer,"Play from start",func():launch(0,false)))
@@ -491,14 +495,16 @@ func build_section_story(panel: VBoxContainer,record: Dictionary):
   dialogue_editor(panel,"EditorSectionLines_"+kind,110,func():return scene.lines,func(lines):
    scene.lines=lines;definitions[kind]=scene;record.section_scenes=definitions;changed())
 
-func build_route(panel: VBoxContainer):
+func build_route(panel: VBoxContainer) -> Callable:
  heading(panel,"Click the chart to place this chapter’s pin. Select a seal to edit its chapter.",16)
  var atlas_actions=row(panel)
  var feedback=heading(panel,"",15);feedback.name="EditorAtlasStatus"
  action(atlas_actions,"Open atlas image",func():open_route_atlas(panel,feedback)).name="EditorOpenAtlas"
  action(atlas_actions,"Restore original atlas",func():
   draft.data.erase("route_atlas");changed();rebuild(),not draft.data.has("route_atlas")).name="EditorRestoreAtlas"
- var chart=Route.new();chart.name="EditorRouteChart";panel.add_child(chart)
+ var chart=Route.new();chart.name="EditorRouteChart"
+ var refresh_survey=build_route_survey(panel,chart)
+ panel.add_child(chart)
  chart.configure(draft.data.chapters.map(func(record):return record.level),selected,true,PackedInt32Array(),0,draft.route_texture())
  chart.enable_pin_editor()
  chart.chapter_selected.connect(select_chapter)
@@ -510,17 +516,49 @@ func build_route(panel: VBoxContainer):
  field_label(coordinates,"Pin X %",x);field_label(coordinates,"Pin Y %",y)
  chart.pin_placed.connect(func(index,point):
   draft.data.chapters[index].level.route_position=[point.x,point.y]
-  x.set_value_no_signal(roundi(point.x*100));y.set_value_no_signal(roundi(point.y*100));changed())
+  x.set_value_no_signal(roundi(point.x*100));y.set_value_no_signal(roundi(point.y*100))
+  refresh_survey.call();changed())
  if level().presentation!="valley_table":
   var site=choice([""]+Draft.ROUTE_TERRAIN,level().get("route_terrain",""),func(value):
    if value.is_empty():level().erase("route_terrain")
    else:level().route_terrain=value
-   changed())
+   refresh_survey.call();changed())
   site.name="EditorRouteTerrain"
   site.set_item_text(0,"Use the table’s terrain")
   for index in Draft.ROUTE_TERRAIN.size():
    site.set_item_text(index+1,Draft.Rules.TERRAIN_PROFILES[Draft.ROUTE_TERRAIN[index]].name)
   field_label(row(panel),"Terrain on later war tables",site)
+ refresh_survey.call()
+ return refresh_survey
+
+func build_route_survey(panel: VBoxContainer,chart: Control) -> Callable:
+ var tables=draft.data.chapters.filter(func(record):return record.level.presentation=="valley_table")
+ if tables.is_empty():return func():pass
+ var picker=OptionButton.new();picker.name="EditorRouteSurvey"
+ picker.custom_minimum_size.y=42;picker.fit_to_longest_item=false;picker.clip_text=true
+ picker.add_item("Off")
+ picker.select(0)
+ for record in tables:
+  picker.add_item("%02d · %s"%[draft.index_for(record.key)+1,record.level.title])
+  picker.set_item_metadata(picker.item_count-1,record.key)
+  if record.key==survey_chapter:picker.select(picker.item_count-1)
+ field_label(row(panel),"War-table overlay",picker)
+ var location=heading(panel,"",15);location.name="EditorRouteSurveyTile"
+ var refresh=func():
+  var key=picker.get_selected_metadata()
+  var index=draft.index_for(key) if key is String else -1
+  chart.set_war_table_overlay(draft.battle_level(index) if index>=0 else {})
+  location.visible=index>=0
+  if index>=0:
+   picker.set_item_text(picker.selected,"%02d · %s"%[index+1,draft.data.chapters[index].level.title])
+   var tile=chart.survey_tile(chart.positions[selected])
+   var terrain=Draft.Rules.TERRAIN_PROFILES[chart.survey_terrain[tile.y][tile.x]].name
+   location.text="Selected pin · %d, %d · %s"%[tile.x,tile.y,terrain]
+ picker.item_selected.connect(func(_selected):
+  var key=picker.get_selected_metadata()
+  survey_chapter=key if key is String else ""
+  refresh.call())
+ return refresh
 
 func open_route_atlas(parent: Node,feedback: Label):
  var limit=Draft.Atlas.MAX_FILE_BYTES
