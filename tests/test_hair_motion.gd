@@ -18,6 +18,12 @@ func run():
    continue
   moving+=1;profiles[style]=true
   var fall=actor.bone("HairFall");var anchor=fall.position
+  if style=="ponytail":
+   var tie=actor.bones.Head.get_node("PonytailTie")
+   var expected_y=.184 if unit.id=="sera" else .10
+   var expected_tint=Color("473327") if unit.id=="sera" else Color("bca26b")
+   assert(is_equal_approx(anchor.y,expected_y) and tie.position==anchor and tie.material_override.albedo_color==expected_tint,
+    "Sera's painted leather tie and raised root stay fitted while the loose ponytail moves")
   assert(fall==actor.hair_motion.root and fall.get_parent()==actor.bones.Head and fall.get_meta("dynamic"),"Loose hair binds a joint fixed beneath the head")
   var before=Rig.signature(actor);painter.batch_rig(actor);Rig.equivalent(before,Rig.signature(actor))
   assert(fall==actor.bone("HairFall") and fall.get_child_count()>0,"Baking preserves the root and all loose length geometry")
@@ -64,5 +70,5 @@ func run():
  for frame in range(3):await process_frame
  assert(held.hair_motion.angle!=held_angle,"Visible actors resume settling")
  stage.queue_free();await process_frame
- print("PASS: ten personal hair rigs/four loose styles, preserved baked geometry, fixed roots, stable bounded settling, static faces/bangs, frame subdivision and local hit-stop/visibility")
+ print("PASS: ten personal hair rigs/four loose styles, Sera's fitted high ponytail, preserved baked geometry, fixed roots, stable bounded settling, static faces/bangs, frame subdivision and local hit-stop/visibility")
  quit()

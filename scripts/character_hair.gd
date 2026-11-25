@@ -36,12 +36,19 @@ static func build(painter,head,appearance,gold):
   for side in [-1,1]:
    painter.hair_lock(head,[Vector3(side*.13,.08,-.055),Vector3(side*.15,-.14,-.08),Vector3(side*.18,-.31,-.11),Vector3(side*.15,-.49,-.08)],.038,hair)
  elif style=="ponytail":
-  painter.ellipsoid(head,Vector3(0,.10,.18),Vector3(.07,.055,.065),gold)
+  var rise=float(appearance.get("ponytail_rise",0.0))
+  var root=Vector3(0,.10+rise,.18-rise*.18)
+  var tie_size=Vector3(.07,.055,.065)-Vector3(.12,.18,.20)*rise
+  var tie=painter.ellipsoid(head,root,tie_size,Color(appearance.get("hair_tie",gold)))
+  tie.name="PonytailTie"
   var lengths=[]
   for i in range(5):
    var x=(i-2)*.025
-   lengths.append(painter.hair_lock(head,[Vector3(x,.10,.18),Vector3(x*1.4,.0,.30),Vector3(x*1.6,-.24,.36),Vector3(x*1.3,-.51,.30)],.047,hair.lightened((i%3)*.025)))
-  separate_lengths(head,lengths,Vector3(0,.1,.18),.14)
+   var path=[root+Vector3(x,0,0),Vector3(x*1.4,rise*1.9,.30),
+    Vector3(x*1.6,-.24+rise*1.4,.36-rise*.12),Vector3(x*1.3,-.51+rise,.30-rise*.08)]
+   if rise>0:path=smooth_path(path,2)
+   lengths.append(painter.hair_lock(head,path,.047,hair.lightened((i%3)*.025)))
+  separate_lengths(head,lengths,root,.14)
  elif style in ["braid","side_braid"]:
   var front=style=="side_braid"
   var lengths=[]
@@ -127,12 +134,12 @@ static func fringe(painter,head,color,style):
    points=[Vector3(.07,.16,-.08),Vector3(.12+index*.02,.08,-.11),Vector3(.14+index*.015,-.05,-.06)];radius=.03
   var lock=painter.hair_lock(head,smooth_path(points),radius,color.lightened((i%3)*.025));lock.name="Fringe"+str(i)
 
-static func smooth_path(points: Array) -> Array:
+static func smooth_path(points: Array,subdivisions=4) -> Array:
  var result=[]
  for segment in range(points.size()-1):
   var a=points[segment];var b=points[segment+1]
   var before=points[maxi(0,segment-1)];var after=points[mini(points.size()-1,segment+2)]
-  for sample in range(4):result.append(a.cubic_interpolate(b,before,after,sample/4.0))
+  for sample in range(subdivisions):result.append(a.cubic_interpolate(b,before,after,float(sample)/subdivisions))
  result.append(points[-1]);return result
 
 static func separate_lengths(head: Node3D,pieces: Array,anchor: Vector3,strength: float):
