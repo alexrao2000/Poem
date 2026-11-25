@@ -2209,6 +2209,9 @@ func run():
   var grid=app.ui.find_child("BattleRouteGrid",true,false)
   var units=app.ui.find_child("BattleRouteUnits",true,false)
   var inspect=app.ui.find_child("BattleRouteInspect",true,false)
+  var retained_grid=grid.button_pressed
+  assert(atlas.survey_terrain.is_empty()!=retained_grid and not units.button_pressed)
+  grid.button_pressed=false
   assert(atlas.selected==1 and atlas.map_picture==Valley.MAP and atlas.survey_terrain.is_empty())
   assert(atlas.markers[12].disabled and app.ui.find_child("RouteSurveyMark",true,false).text=="G-10")
   for control in [grid,units,inspect,app.ui.find_child("BattleRouteReplay",true,false),app.ui.find_child("BattleRouteReturn",true,false)]:
@@ -2271,6 +2274,8 @@ func run():
  var atlas_toggle=InputEventKey.new();atlas_toggle.keycode=KEY_V;atlas_toggle.pressed=true
  root.push_input(atlas_toggle,true);await process_frame
  assert(app.screen=="battle_route" and app.selected==vanguard and app.origin==selected_move)
+ assert(app.ui.find_child("BattleRouteGrid",true,false).button_pressed)
+ app.ui.find_child("BattleRouteUnits",true,false).button_pressed=true
  var held=atlas_toggle.duplicate();held.echo=true;root.push_input(held,true)
  assert(app.screen=="battle_route")
  atlas_toggle.pressed=false;root.push_input(atlas_toggle,true)
@@ -2288,6 +2293,8 @@ func run():
   atlas_toggle.pressed=true;root.push_input(atlas_toggle,true);await process_frame
   atlas_toggle.pressed=false;root.push_input(atlas_toggle,true)
   assert(app.screen=="battle_route")
+  assert(app.ui.find_child("BattleRouteGrid",true,false).button_pressed)
+  assert(app.ui.find_child("BattleRouteUnits",true,false).button_pressed)
   app.ui.find_child("BattleRouteReplay",true,false).pressed.emit()
   assert(app.valley_reveal_active and app.busy and not app.ui.visible and not app.markers.visible)
   assert(app.canvas.get_node("ValleyRouteSeals").projected_pins().size()==11 and replay_ink.get_shader_parameter("front")<0)
@@ -2324,6 +2331,15 @@ func run():
  controls(app,"Resume the war table").pressed.emit();await finish_presentation(app)
  assert(app.screen=="battle" and app.campaign_save_path()==valley_path)
  assert(canonical(app.game.save_data("battle"))==valley_state and app.game.at(destination).id=="oren")
+ var resumed_disk=FileAccess.get_file_as_string(valley_path)
+ atlas_toggle.pressed=true;root.push_input(atlas_toggle,true);await process_frame
+ atlas_toggle.pressed=false;root.push_input(atlas_toggle,true)
+ assert(app.screen=="battle_route")
+ assert(not app.ui.find_child("BattleRouteGrid",true,false).button_pressed)
+ assert(not app.ui.find_child("BattleRouteUnits",true,false).button_pressed)
+ app.ui.find_child("BattleRouteReturn",true,false).pressed.emit();await process_frame
+ assert(app.screen=="battle" and FileAccess.get_file_as_string(valley_path)==resumed_disk)
+ print("PASS: the atlas remembers both layer switches through visits and replays and reloads a fresh view")
  for unit in app.game.units:
   if unit.id in ["sera","lyra"]:unit.hp=0
  app.game.commit_casualties()

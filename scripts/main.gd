@@ -72,6 +72,8 @@ const ValleyBattle=preload("res://scripts/world_map_battle.gd")
 var valley_reveal_active=false
 var valley_reveal_skip=false
 var atlas_return_control=""
+var atlas_grid_enabled=false
+var atlas_units_enabled=false
 var rally_company_return=""
 var rally_company_state: Rules
 const CriticalCutin=preload("res://scripts/critical_cutin.gd")
@@ -424,6 +426,7 @@ func resize_map_home():
 
 func make_map():
 	drop_mode=false
+	atlas_grid_enabled=false;atlas_units_enabled=false
 	select_score_theme()
 	cursor_visible=false
 	clear_world()
@@ -1023,19 +1026,22 @@ func show_campaign_route(view: String="campaign_route"):
 		grid.tooltip_text="Show the tactical tiles and inspect them with the pointer or arrow keys."
 		var company=CheckButton.new();company.text="Show units";company.name="BattleRouteUnits";display_options.add_child(company)
 		company.tooltip_text="Mark standing and downed units and show who holds each standard."
-		var update_picker=func():
-			var enabled=grid.button_pressed or company.button_pressed
-			inspection.visible=enabled;route.enable_battle_tile_picker(enabled)
-		grid.toggled.connect(func(enabled):
-			route.set_war_table_overlay(game.info() if enabled else {})
-			update_picker.call())
-		interface_audio.watch(grid)
-		company.toggled.connect(func(enabled):
-			key.visible=enabled
-			if enabled:route.set_battle_positions(game.occupied_tiles(),game.capture_tiles())
+		grid.set_pressed_no_signal(atlas_grid_enabled)
+		company.set_pressed_no_signal(atlas_units_enabled)
+		var update_layers=func(_pressed: bool):
+			atlas_grid_enabled=grid.button_pressed
+			atlas_units_enabled=company.button_pressed
+			route.set_war_table_overlay(game.info() if atlas_grid_enabled else {})
+			if atlas_units_enabled:route.set_battle_positions(game.occupied_tiles(),game.capture_tiles())
 			else:route.set_battle_positions({},[])
-			update_picker.call())
+			key.visible=atlas_units_enabled
+			inspection.visible=atlas_grid_enabled or atlas_units_enabled
+			route.enable_battle_tile_picker(inspection.visible)
+		grid.toggled.connect(update_layers)
+		company.toggled.connect(update_layers)
+		interface_audio.watch(grid)
 		interface_audio.watch(company)
+		update_layers.call(false)
 		var actions=HBoxContainer.new();actions.add_theme_constant_override("separation",8);frame.add_child(actions)
 		var inspect=button_in(actions,"Inspect selected tile",func():
 			var tile=route.battle_tile
