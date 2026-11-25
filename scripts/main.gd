@@ -70,6 +70,7 @@ const ValleyBattle=preload("res://scripts/world_map_battle.gd")
 var valley_reveal_active=false
 var valley_reveal_skip=false
 var atlas_return_control=""
+var rally_company_return=""
 const CriticalCutin=preload("res://scripts/critical_cutin.gd")
 const Fighters = preload("res://scripts/fighters.gd")
 const ImportedFighter=preload("res://scripts/imported_fighter.gd")
@@ -1519,6 +1520,8 @@ func _unhandled_input(event):
 		interface_audio.cue("back");close_model_view();get_viewport().set_input_as_handled();return
 	if screen=="retreat_route" and event is InputEventKey and event.pressed and not event.echo and event.keycode==KEY_ESCAPE:
 		interface_audio.cue("back");close_retreat_route();get_viewport().set_input_as_handled();return
+	if screen=="rally_company" and event is InputEventKey and event.pressed and not event.echo and event.keycode==KEY_ESCAPE:
+		interface_audio.cue("back");close_rally_company();get_viewport().set_input_as_handled();return
 	if screen=="battle_route" and event is InputEventKey and event.pressed and not event.echo and event.keycode in [KEY_ESCAPE,KEY_V]:
 		interface_audio.cue("back");close_battle_route();get_viewport().set_input_as_handled();return
 	if screen in ["dossier","campaign_route","campaign_trials","formation"] and event is InputEventKey and event.pressed and not event.echo and event.keycode==KEY_ESCAPE:
@@ -2342,7 +2345,11 @@ func show_battle_result(outcome: String):
 		label_in(v,"Retry from the beginning of this section. Deaths, legacy supplies and reset pressure remain." if game.trials.flags.section_restarts and game.permadeath else "Retry from preparation. Committed deaths remain lost." if (game.action_saves or game.trials.flags.death_legacies) and game.permadeath else "Retry from chapter preparation. Losses and gains from this failed attempt are discarded; earlier permanent losses remain." if game.permadeath else "Regroup at the war council and choose a new approach.",20)
 		var retreat=label_in(v,restart_summary(),18,GOLD);retreat.name="RestartPreview"
 		if game.trials.restart_preview(game).chapter<game.chapter:
-			button_in(frame,"View rally on atlas",show_campaign_route.bind("retreat_route")).name="ViewRallyOnAtlas"
+			var previews=HBoxContainer.new();previews.add_theme_constant_override("separation",8);frame.add_child(previews)
+			var atlas=button_in(previews,"View rally on atlas",show_campaign_route.bind("retreat_route"))
+			atlas.name="ViewRallyOnAtlas";atlas.size_flags_horizontal=Control.SIZE_EXPAND_FILL
+			var company=button_in(previews,"Preview rally company",show_rally_company)
+			company.name="PreviewRallyCompany";company.size_flags_horizontal=Control.SIZE_EXPAND_FILL
 		button_in(frame,"Regroup and retry",func():
 			if not action_save_ready():return
 			if game.retry_battle():persist_campaign("camp");show_camp())
@@ -2359,6 +2366,50 @@ func show_battle_result(outcome: String):
 func close_retreat_route():
 	show_battle_result("defeat")
 	ui.find_child("ViewRallyOnAtlas",true,false).grab_focus()
+
+func show_rally_company():
+	if screen not in ["result","phase_losses"] or busy:return
+	var from_losses=screen=="phase_losses"
+	var rally=Rules.new(game.content)
+	if rally.restore_save(game.save_data("battle"))!="battle":
+		show_notice("The rally company preview is unavailable for this position.");return
+	if from_losses:
+		if selected!=null and origin!=null:
+			var moving=rally.units.filter(func(unit):return unit.id==selected.id)
+			if not moving.is_empty():rally.undo_move(moving[0])
+		rally.begin_enemy_phase()
+	if not rally.retry_battle():
+		show_notice("The rally company preview is unavailable for this position.");return
+	rally_company_return=screen
+	screen="rally_company";reset_ui()
+	var frame=menu_panel(780)
+	label_in(frame,"Company at the rally",34,GOLD)
+	var location=rally.info().place if not rally.info().place.is_empty() else rally.info().title
+	var briefing="Chapter %02d · %s"%[rally.chapter+1,location]
+	if rally.trials.flags.reset_pressure:briefing+=" · Retry pressure %d"%rally.trials.pressure
+	label_in(frame,briefing,20,GOLD).name="RallyCompanyLocation"
+	var fallen=rally.roster.filter(func(unit):return unit.get("fallen",false)).map(func(unit):return unit.name)
+	if not fallen.is_empty():label_in(frame,"Still lost · "+", ".join(fallen),17).name="RallyCompanyLosses"
+	var list=scrolling_column(frame);list.get_parent().name="RallyCompanyRoster"
+	var starters=rally.deployment_units()
+	var reserves=rally.available().filter(func(unit):return not starters.has(unit))
+	reserves.sort_custom(func(left,right):return left.level>right.level if left.level!=right.level else left.name<right.name)
+	for starting in [true,false]:
+		var formation=starters if starting else reserves
+		if formation.is_empty():continue
+		var group=VBoxContainer.new();group.name="RallyStarters" if starting else "RallyReserves";list.add_child(group)
+		label_in(group,"Starting company" if starting else "Reserves",23,GOLD)
+		for unit in formation:
+			label_in(group,"%s · %s · Lv %d"%[unit.name,rally.class_name_for(unit),unit.level],18).name="RallyRoster_"+unit.id
+	if not reserves.is_empty():label_in(frame,"You can change the company at the war council after regrouping.",16)
+	button_in(frame,"Return to loss review [Esc]" if from_losses else "Return to result [Esc]",close_rally_company).grab_focus()
+
+func close_rally_company():
+	if rally_company_return=="phase_losses":
+		screen="battle";show_phase_losses()
+	else:show_battle_result("defeat")
+	rally_company_return=""
+	ui.find_child("PreviewRallyCompany",true,false).grab_focus()
 
 func close_valley_battle():
 	var was_home=map_navigation.at_home()
@@ -3677,6 +3728,8 @@ func show_phase_losses():
 			var guide=button_in(details,caption,guide_phase_aid.bind(option,patient))
 			guide.name="PhaseAid_%s_%s_%s"%[patient.id,option.ally,option.action]
 			guide.tooltip_text="Select %s and point to a tile for this action."%option.name
+	if leader_lost and game.trials.restart_preview(game).chapter<game.chapter:
+		button_in(frame,"Preview rally company",show_rally_company).name="PreviewRallyCompany"
 	button_in(frame,"Return to battle [Esc]",close_phase_losses).grab_focus()
 
 func close_phase_losses():

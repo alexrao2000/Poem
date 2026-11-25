@@ -118,7 +118,7 @@ func verify_retreat_route(app):
  var leader=app.game.living("player").filter(func(unit):return unit.id=="lyra")[0]
  leader.hp=0
  assert(await app.check_result() and app.game.result()=="defeat")
- var before=app.game.save_data("battle")
+ var before=app.game.save_data("battle").duplicate(true)
  var disk=FileAccess.get_file_as_string(app.save_path)
  for dimensions in [Vector2(720,640),Vector2(1440,900)]:
   app.ui.find_child("ViewRallyOnAtlas",true,false).pressed.emit()
@@ -139,10 +139,27 @@ func verify_retreat_route(app):
    back.pressed.emit()
   assert(app.screen=="result" and app.ui.find_child("ViewRallyOnAtlas",true,false).has_focus())
   assert(app.game.save_data("battle")==before and FileAccess.get_file_as_string(app.save_path)==disk)
+  app.ui.find_child("PreviewRallyCompany",true,false).pressed.emit()
+  app.ui.set_anchors_and_offsets_preset(Control.PRESET_TOP_LEFT);app.ui.size=dimensions
+  await process_frame;await process_frame
+  var roster=app.ui.find_child("RallyCompanyRoster",true,false)
+  assert(app.screen=="rally_company" and "Chapter 09 · Starfall" in app.ui.find_child("RallyCompanyLocation",true,false).text)
+  assert(Rect2(Vector2.ZERO,dimensions).encloses(roster.get_global_rect()))
+  assert(roster.find_child("RallyRoster_lyra",true,false)!=null)
+  if dimensions.x==720:
+   var retreat_escape=InputEventKey.new();retreat_escape.pressed=true;retreat_escape.keycode=KEY_ESCAPE
+   app._unhandled_input(retreat_escape)
+  else:
+   var roster_back=app.ui.find_children("*","Button",true,false).filter(func(button):return button.text=="Return to result [Esc]")[0]
+   roster_back.pressed.emit()
+  assert(app.screen=="result" and app.ui.find_child("PreviewRallyCompany",true,false).has_focus())
+  assert(app.game.save_data("battle")==before and FileAccess.get_file_as_string(app.save_path)==disk)
  app.game.trials.flags.section_restarts=false
  app.show_battle_result("defeat")
  assert(app.ui.find_child("ViewRallyOnAtlas",true,false)==null)
+ assert(app.ui.find_child("PreviewRallyCompany",true,false)==null)
  print("PASS: defeat previews the actual rally on the atlas and returns read-only by button or Escape")
+ print("PASS: defeat previews the rally roster at narrow and desktop sizes and returns to the unchanged result")
 
 func verify_longer_route(app):
  var original=app.game.content.chapters.duplicate(true)

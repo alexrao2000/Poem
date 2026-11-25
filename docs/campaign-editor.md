@@ -100,6 +100,8 @@ Route briefings show each reached location’s survey mark. The same marks appea
 
 During a war-table battle, press **V** or select **Atlas** to reread the earlier briefings. **Show battle grid** overlays the current terrain and required standards. Select any tile with the pointer or use the arrow keys with the atlas focused. **Show units** marks your company, foes, downed allies, and control of the standards. **Inspect selected tile** returns to the battlefield at its survey mark.
 
+When a defeat sends the company back to an earlier chapter, **Preview rally company** lists the starting deployment, available reserves, and permanent losses before regrouping. The same preview is available in **Review losses** if ending the phase would cause that retreat.
+
 Use Reuse this environment on later war tables in Route to give the tile that chapter’s close-up surroundings and ambience. Built-in locations including Glass Harbor and Starfall offer their original arenas by default. The war-table overlay names the chosen arena. Use Preview arena below the overlay to open the actual close-up scenery at that pin. When several eligible pins share a tile, the latest preceding chapter supplies it.
 
 Choose a battle in the War-table overlay in Route to see its effective terrain and seize objective over the atlas. The readout follows the selected pin. Moving a pin or changing its inherited terrain updates the overlay as you edit.
