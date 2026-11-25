@@ -48,11 +48,15 @@ func rebuild():
  for child in get_children():remove_child(child);child.queue_free()
  play_buttons.clear()
  heading(self,"Campaign editor",34)
- var toolbar=row(self)
+ var toolbar=HFlowContainer.new()
+ toolbar.add_theme_constant_override("h_separation",8)
+ toolbar.add_theme_constant_override("v_separation",8)
+ add_child(toolbar)
  action(toolbar,"New draft",new_draft)
  action(toolbar,"Open drafts",open_library)
  action(toolbar,"Save draft",save_draft).name="SaveCampaignDraft"
  action(toolbar,"Transfer JSON",show_transfer)
+ action(toolbar,"Check campaign",show_readiness).name="EditorCheckCampaign"
  var chapter_bar=row(self)
  source_chapter=OptionButton.new();source_chapter.name="EditorChapter";source_chapter.fit_to_longest_item=false;source_chapter.clip_text=true
  source_chapter.custom_minimum_size.y=42;source_chapter.size_flags_horizontal=SIZE_EXPAND_FILL;chapter_bar.add_child(source_chapter)
@@ -838,6 +842,31 @@ func show_transfer():
  action(files,"Open JSON file",func():open_campaign_file(dialog,feedback)).name="EditorOpenCampaignFile"
  action(files,"Save JSON file",func():save_campaign_file(dialog,feedback)).name="EditorSaveCampaignFile"
  dialog.popup_centered(Vector2i(560,350))
+
+func show_readiness():
+ var dialog=AcceptDialog.new();dialog.name="EditorCampaignReadiness";dialog.title="Campaign readiness";add_child(dialog)
+ dialog.confirmed.connect(dialog.queue_free);dialog.canceled.connect(dialog.queue_free)
+ var scroll=ScrollContainer.new();scroll.horizontal_scroll_mode=ScrollContainer.SCROLL_MODE_DISABLED
+ scroll.custom_minimum_size=Vector2(452,260);dialog.add_child(scroll)
+ var list=VBoxContainer.new();list.size_flags_horizontal=SIZE_EXPAND_FILL
+ list.add_theme_constant_override("separation",12);scroll.add_child(list)
+ var invalid=draft.structural_problem(draft.data)
+ if not invalid.is_empty():
+  heading(list,invalid,17)
+ else:
+  var company=draft.company_problem()
+  if not company.is_empty():heading(list,company,17)
+  for index in draft.data.chapters.size():
+   var readiness=draft.battle_readiness(index)
+   var section=VBoxContainer.new();section.add_theme_constant_override("separation",4);list.add_child(section)
+   var outline="%02d · %s · %s"%[index+1,draft.data.chapters[index].level.title,readiness.title]
+   var chapter_button=action(section,outline,func():active_tab=0;select_chapter(index))
+   chapter_button.name="EditorReadinessChapter_%d"%index
+   chapter_button.alignment=HORIZONTAL_ALIGNMENT_LEFT
+   chapter_button.text_overrun_behavior=TextServer.OVERRUN_TRIM_ELLIPSIS
+   if not readiness.description.is_empty():
+    heading(section,readiness.description,16).name="EditorReadinessNote_%d"%index
+ dialog.popup_centered(Vector2i(560,420))
 
 func import_campaign_text(raw: String,feedback: Label):
  var incoming=Draft.new()

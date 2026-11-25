@@ -5,6 +5,7 @@ const Settings=preload("res://scripts/campaign_settings.gd")
 const Supports=preload("res://scripts/supports.gd")
 const Trials=preload("res://scripts/campaign_trials.gd")
 const Valley=preload("res://scripts/world_map_battle.gd")
+const Tactics=preload("res://scripts/tactics.gd")
 const FORMAT="poem-campaign"
 const VERSION=1
 const MAX_CHAPTERS=32
@@ -434,6 +435,28 @@ func battle_level(index: int) -> Dictionary:
  for tile in marks:paint(adjusted,tile,marks[tile].terrain)
  return adjusted
 
+func battle_readiness(index: int) -> Dictionary:
+ var level=battle_level(index)
+ var issue=battle_problem(level)
+ if not issue.is_empty():return {"title":"Needs edits","description":issue}
+ if level.objective=="seize" and not seize_route_exists(level):
+  return {"title":"Check the route","description":"The seize tile is cut off from every deployment tile."}
+ return {"title":"Ready","description":""}
+
+func seize_route_exists(level: Dictionary) -> bool:
+ var goal=Vector2i(level.objective_position[0],level.objective_position[1])
+ var deployments=level.deployment_positions.map(func(point):return Vector2i(point[0],point[1]))
+ var frontier=[goal]
+ var visited={goal:true}
+ while not frontier.is_empty():
+  var point=frontier.pop_back()
+  if point in deployments:return true
+  for direction in Tactics.DIRECTIONS:
+   var next=point+direction
+   if not visited.has(next) and walkable(level,[next.x,next.y]):
+    visited[next]=true;frontier.append(next)
+ return false
+
 func playtest_problem(selected=-1) -> String:
  var issue=structural_problem(data)
  if not issue.is_empty():return issue
@@ -441,6 +464,9 @@ func playtest_problem(selected=-1) -> String:
  for index in indices:
   issue=battle_problem(battle_level(index))
   if not issue.is_empty():return "Chapter %d · %s"%[index+1,issue]
+ return company_problem()
+
+func company_problem() -> String:
  var leader=data.recruits.filter(func(recruit):return recruit.id=="lyra")[0]
  if leader.chapter!=data.chapters[0].key:return "Set the company leader’s arrival to the first chapter."
  if data.opening_company.size()>data.chapters[0].level.deployment_positions.size():

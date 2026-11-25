@@ -255,6 +255,18 @@ func check_authored_relief():
  assert(restored.available().any(func(member):return member.id==reserve.id))
  assert(draft.move_chapter(4,1)==5 and draft.compile().content.section_relief=={5:[reserve.id]})
 
+func check_battle_readiness():
+ var draft=Draft.new()
+ draft.data=draft.new_document(false)
+ var level=draft.data.chapters[0].level
+ assert(draft.battle_readiness(0).title=="Ready")
+ for y in level.map.size():draft.paint(level,Vector2i(7,y),"~")
+ assert(draft.battle_readiness(0).title=="Check the route" and draft.playtest_problem().is_empty())
+ draft.paint(level,Vector2i(7,4),"=")
+ assert(draft.battle_readiness(0).title=="Ready")
+ level.enemies.clear()
+ assert(draft.battle_readiness(0).title=="Needs edits")
+
 func use_brush(editor,index: int,point: Vector2i,erase=false):
  var mode=editor.find_child("EditorBrush",true,false)
  mode.select(index);mode.item_selected.emit(index)
@@ -292,6 +304,7 @@ func run():
  check_legacy_arrivals()
  check_war_table_sites()
  check_authored_relief()
+ check_battle_readiness()
  root.size=Vector2i(1440,900)
  var app=load("res://main.tscn").instantiate();app.settings_path="";app.save_path=scratch.path_join("normal.json")
  app.campaign_draft_library.path=scratch.path_join("drafts.json")
@@ -310,7 +323,7 @@ func run():
  for dimensions in [Vector2(720,640),Vector2(1024,640),Vector2(1440,900)]:
   app.ui.set_anchors_and_offsets_preset(Control.PRESET_TOP_LEFT);app.ui.size=dimensions
   await process_frame;await process_frame
-  for name in ["SaveCampaignDraft","EditorChapter","AddValleyBattle","CampaignEditorTabs","PlayEditedChapter"]:
+  for name in ["SaveCampaignDraft","EditorCheckCampaign","EditorChapter","AddValleyBattle","CampaignEditorTabs","PlayEditedChapter"]:
    var control=editor.find_child(name,true,false)
    assert(Rect2(Vector2.ZERO,dimensions).grow(1).encloses(control.get_global_rect()),"Editor layout %s, %s, %s"%[dimensions,name,control.get_global_rect()])
  controls(app,"New draft").pressed.emit()
@@ -692,7 +705,13 @@ func run():
  app.campaign_draft.data.settings.section_restarts=true
  app.campaign_draft.data.settings.death_legacies=true
  app.show_campaign_editor("title");await process_frame
- app.campaign_editor.select_chapter(ready);await process_frame
+ controls(app,"Check campaign").pressed.emit();await process_frame
+ var readiness=app.campaign_editor.find_child("EditorCampaignReadiness",true,false)
+ var chapter_ready=readiness.find_child("EditorReadinessChapter_1",true,false)
+ assert(chapter_ready.text.ends_with("Ready"))
+ assert(readiness.find_child("EditorReadinessNote_0",true,false).text.begins_with("Place at least one enemy"))
+ chapter_ready.pressed.emit();await process_frame
+ assert(app.campaign_editor.selected==ready and app.campaign_editor.active_tab==0)
  var section_book=app.campaign_editor.find_child("CampaignEditorTabs",true,false)
  section_book.current_tab=section_book.get_tab_idx_from_control(app.campaign_editor.find_child("Story",true,false))
  await process_frame
@@ -866,5 +885,5 @@ func run():
  app.campaign_editor.find_child("EditorOpenDraft_"+saved_key,true,false).pressed.emit();await process_frame
  assert(app.campaign_editor.draft_key==saved_key and app.campaign_editor.draft.data.title==saved_title)
  await Shutdown.dispose(app);await process_frame
- print("PASS: campaign JSON file transfer, draft library management, route pins, war-table site terrain, rising Valley landmarks, custom recruits, phase scenes, timed reinforcements, chapter 32 saves, section dialogue, authored section relief, authored legacy stock and purchase persistence, authored loss recruits, authored loss dialogue, reproducible playtest setup, Valley carryover, thirteen-chapter Valley template, and single-battle tests")
+ print("PASS: campaign JSON file transfer, draft library management, campaign readiness, route pins, war-table site terrain, rising Valley landmarks, custom recruits, phase scenes, timed reinforcements, chapter 32 saves, section dialogue, authored section relief, authored legacy stock and purchase persistence, authored loss recruits, authored loss dialogue, reproducible playtest setup, Valley carryover, thirteen-chapter Valley template, and single-battle tests")
  quit()
