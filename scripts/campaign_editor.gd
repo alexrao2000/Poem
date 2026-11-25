@@ -663,18 +663,24 @@ func open_library():
  dialog.confirmed.connect(dialog.queue_free)
  var scroll=ScrollContainer.new();scroll.custom_minimum_size=Vector2(360,240);dialog.add_child(scroll)
  var list=VBoxContainer.new();list.size_flags_horizontal=SIZE_EXPAND_FILL;scroll.add_child(list)
+ heading(list,"Campaign templates",21)
+ action(list,"Copy Poem’s campaign",func():open_poem_template(false))
+ action(list,"Copy Poem with the Valley battle",func():open_poem_template(true)).name="EditorValleyTemplate"
+ heading(list,"Saved drafts",21)
  var records=library.list_drafts()
  if records.is_empty():heading(list,"Save a draft to add it here.",17)
  for record in records:
   action(list,record.document.get("title","Campaign"),func():
    if dirty and not save_draft():return
+   if draft_key==record.key:dialog.queue_free();return
    var error=draft.decode(JSON.stringify(record.document,"",true,true))
    if not error.is_empty():status.text=error;return
    draft_key=record.key;dirty=false;select_chapter(0))
- action(list,"Copy Poem’s campaign",func():
-  if dirty and not save_draft():return
-  draft.data=draft.new_document(true);draft_key="";dirty=true;select_chapter(0))
  dialog.popup_centered(Vector2i(440,320))
+
+func open_poem_template(valley: bool):
+ if dirty and not save_draft():return
+ draft.load_poem_template(valley);draft_key="";dirty=true;select_chapter(0)
 
 func show_transfer():
  var dialog=AcceptDialog.new();dialog.title="Campaign JSON";add_child(dialog)

@@ -171,6 +171,12 @@ func insert_chapter(after: int,copy_current: bool,valley_table=false) -> int:
  data.chapters.insert(after+1,record)
  return after+1
 
+func load_poem_template(valley: bool):
+ data=new_document(true)
+ if valley:
+  data.title="Poem · The Roads Between"
+  insert_chapter(data.chapters.size()-2,false,true)
+
 func move_chapter(index: int,direction: int) -> int:
  var destination=index+direction
  if destination<0 or destination>=data.chapters.size():return index

@@ -682,6 +682,19 @@ func run():
  controls(app,"Return to editor").pressed.emit();await finish_presentation(app)
  assert(app.screen=="campaign_editor" and app.game==installed and app.campaign_editor.selected==1)
  assert(FileAccess.get_file_as_string(app.save_path)==disk)
+ controls(app,"Open drafts").pressed.emit();await process_frame
+ app.campaign_editor.find_child("EditorValleyTemplate",true,false).pressed.emit();await process_frame
+ var template=app.campaign_editor.draft
+ assert(template.data.chapters.size()==13 and template.playtest_problem().is_empty())
+ assert(template.data.chapters[10].level.place=="Crown Approach" and template.data.chapters[12].level.place=="The Sun Engine")
+ assert(template.data.chapters[11].level.presentation=="valley_table" and template.data.chapters[11].phase_scenes.size()==1)
+ var chapters=app.campaign_editor.find_child("EditorChapter",true,false)
+ chapters.select(11);chapters.item_selected.emit(11)
+ controls(app,"Play chapter").pressed.emit();await finish_presentation(app)
+ assert(app.screen=="camp" and app.game.chapter==11 and app.game.info().title=="The Roads Between")
+ controls(app,"Return to editor").pressed.emit();await process_frame
+ assert(app.screen=="campaign_editor" and app.game==installed and app.campaign_editor.selected==11)
+ assert(FileAccess.get_file_as_string(app.save_path)==disk)
  await Shutdown.dispose(app);await process_frame
- print("PASS: campaign JSON, route pins, war-table site terrain, custom recruits, phase scenes, timed reinforcements, chapter 32 saves, section dialogue, authored legacy stock and purchase persistence, authored loss recruits, Valley carryover, and single-battle tests")
+ print("PASS: campaign JSON, route pins, war-table site terrain, custom recruits, phase scenes, timed reinforcements, chapter 32 saves, section dialogue, authored legacy stock and purchase persistence, authored loss recruits, Valley carryover, thirteen-chapter Valley template, and single-battle tests")
  quit()

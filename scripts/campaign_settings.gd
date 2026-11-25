@@ -14,7 +14,7 @@ const SWITCHES=[
  {
   "key": "section_restarts",
   "name": "Restart the current section",
-  "text": "With permadeath: retries return to the start of the four-chapter section. Deaths and legacy supplies remain. Relief recruits arrive at section breaks."
+  "text": "With permadeath enabled, retries return to the current section’s opening chapter. Deaths and legacy supplies remain. Relief recruits arrive at section breaks."
  },
  {
   "key": "reset_pressure",
