@@ -28,7 +28,7 @@ Use Copy in Open drafts to start a separate edition of a saved campaign. Use Rem
 
 Check campaign lists the battles that need edits and flags seize tiles with no passable route from deployment. Select a chapter in the list to open its Battle workspace. You can still test a disconnected objective while you work on the map.
 
-In Rules, Playtest setup lets you override the combat seed or choose a starting level of retry pressure. Enable Enemies prepare after resets to set the starting pressure. These inputs stay with the current editor session and leave the draft’s campaign rules alone. Playtests use separate saves for each seed and pressure setup. Match the setup when you resume.
+In Rules, Playtest setup lets you override the combat seed or choose a starting level of retry pressure. Enable Enemies prepare after resets to set the starting pressure. A saved draft remembers its selected chapter and setup when you save or start a playtest. Each setup opens its own playtest save. The campaign JSON carries the campaign rules while the local library remembers these playtest choices on this device.
 
 ## When the map becomes a battlefield
 

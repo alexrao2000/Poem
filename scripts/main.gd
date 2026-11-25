@@ -143,13 +143,14 @@ const SAVE = "user://campaign.json"
 var save_path=SAVE
 var debug_session=preload("res://scripts/debug_session.gd").new()
 var campaign_draft
-var campaign_draft_library=preload("res://scripts/campaign_draft_library.gd").new()
+const CampaignDraftLibrary=preload("res://scripts/campaign_draft_library.gd")
+var campaign_draft_library=CampaignDraftLibrary.new()
 var campaign_editor_key=""
 var campaign_editor_chapter=0
 var campaign_editor_return="title"
 var campaign_editor
 var campaign_preview={}
-var campaign_playtest_setup={"fixed_seed":false,"seed":Rules.DEFAULT_COMBAT_SEED,"pressure":0}
+var campaign_playtest_setup=CampaignDraftLibrary.DEFAULT_SETUP.duplicate()
 var campaign_playtest_directory="user://"
 var debug_duelists=preload("res://scripts/debug_duelist_models.gd").new()
 var revised_enemies=preload("res://scripts/revised_enemy_models.gd").new()
@@ -520,8 +521,11 @@ func show_campaign_editor(return_to: String):
 	if campaign_draft==null:
 		campaign_draft=preload("res://scripts/campaign_draft.gd").new()
 		var drafts=campaign_draft_library.list_drafts()
-		if not drafts.is_empty() and campaign_draft.decode(JSON.stringify(drafts[0].document)).is_empty():
+		if not drafts.is_empty() and campaign_draft.decode(JSON.stringify(drafts[0].document,"",true,true)).is_empty():
 			campaign_editor_key=drafts[0].key
+			var editor_state=CampaignDraftLibrary.editor_state(drafts[0])
+			campaign_playtest_setup=editor_state.setup
+			campaign_editor_chapter=maxi(0,campaign_draft.index_for(editor_state.chapter))
 	screen="campaign_editor";reset_ui();title_backdrop()
 	var panel=menu_panel(1180)
 	campaign_editor=preload("res://scripts/campaign_editor.gd").new();panel.add_child(campaign_editor)

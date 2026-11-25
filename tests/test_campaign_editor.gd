@@ -861,6 +861,7 @@ func run():
  var setup_tabs=app.campaign_editor.find_child("CampaignEditorTabs",true,false)
  setup_tabs.current_tab=setup_tabs.get_tab_idx_from_control(app.campaign_editor.find_child("Rules",true,false))
  await process_frame
+ controls(app,"Save draft").pressed.emit();await process_frame
  var authored=template.encode()
  app.campaign_editor.find_child("EditorFixedSeed",true,false).button_pressed=true
  var seed=app.campaign_editor.find_child("EditorPlaytestSeed",true,false)
@@ -877,6 +878,11 @@ func run():
  app.valley_reveal_skip=true;await finish_presentation(app)
  assert(app.game.living("enemy").all(func(member):return member.held_tonics==0))
  var experiment_snapshot=app.game.save_data("battle").duplicate(true)
+ var legacy_layout=experiment_snapshot.duplicate(true)
+ legacy_layout.layout_signature=JSON.stringify(app.game.layout_data()).sha256_text()
+ assert(legacy_layout.layout_signature!=experiment_snapshot.layout_signature)
+ var same_draft=Rules.new(app.game.content)
+ assert(same_draft.restore_save(canonical(legacy_layout))=="battle")
  app.show_battle_menu();await process_frame
  controls(app,"Return to editor").pressed.emit();await process_frame
  controls(app,"Resume playtest").pressed.emit();await finish_presentation(app)
@@ -888,6 +894,10 @@ func run():
  app.show_battle_menu();await process_frame
  controls(app,"Return to editor").pressed.emit();await process_frame
  assert(app.game==installed and FileAccess.get_file_as_string(app.save_path)==disk)
+ var authoring_entry=app.campaign_draft_library.list_drafts()[0]
+ var authoring_state=app.campaign_draft_library.editor_state(authoring_entry)
+ assert(authoring_state.setup=={"fixed_seed":true,"seed":267,"pressure":2})
+ assert(authoring_state.chapter==template.data.chapters[11].key and not JSON.parse_string(authored).has("editor"))
  controls(app,"Save draft").pressed.emit();await process_frame
  var saved_key=app.campaign_editor.draft_key
  var saved_title=app.campaign_editor.draft.data.title
@@ -912,7 +922,24 @@ func run():
  assert(not remaining.any(func(entry):return entry.key==copy_key))
  assert(app.campaign_editor.draft_key.is_empty() and FileAccess.file_exists(experiment_path))
  app.campaign_editor.find_child("EditorOpenDraft_"+saved_key,true,false).pressed.emit();await process_frame
- assert(app.campaign_editor.draft_key==saved_key and app.campaign_editor.draft.data.title==saved_title)
+ assert(app.campaign_editor.draft_key==saved_key and app.campaign_editor.draft.data.title==saved_title and app.campaign_editor.selected==11)
+ var reopened=load("res://main.tscn").instantiate();reopened.settings_path="";reopened.save_path=app.save_path
+ reopened.campaign_draft_library.path=app.campaign_draft_library.path;reopened.campaign_playtest_directory=scratch
+ root.add_child(reopened);await process_frame
+ reopened.ui.find_child("OpenCampaignEditor",true,false).pressed.emit();await process_frame
+ assert(reopened.campaign_editor.draft_key==saved_key and reopened.campaign_editor.selected==11)
+ assert(reopened.campaign_playtest_setup=={"fixed_seed":true,"seed":267,"pressure":2})
+ assert(reopened.campaign_draft.compile().content.authoring_signature==template.compile().content.authoring_signature)
+ var probe=Rules.new(reopened.campaign_draft.compile().content)
+ var replay_position=probe.read_saved_data(experiment_path)
+ assert(not replay_position.is_empty(),"Reopened draft could not validate its earlier battle save")
+ assert(probe.restore_save(replay_position)=="battle","Reopened draft produced a different battle layout signature")
+ controls(reopened,"Resume playtest").pressed.emit();await finish_presentation(reopened)
+ assert(reopened.screen=="battle" and reopened.campaign_save_path()==experiment_path,
+  "Reopened test reached %s via %s instead of %s"%[reopened.screen,reopened.campaign_save_path(),experiment_path])
+ assert(canonical(reopened.game.save_data("battle"))==expected)
+ assert(FileAccess.get_file_as_string(app.save_path)==disk)
+ await Shutdown.dispose(reopened);await process_frame
  await Shutdown.dispose(app);await process_frame
- print("PASS: campaign JSON file transfer, draft library management, campaign readiness, authored Hard bonuses, route pins, war-table site terrain, rising Valley landmarks, custom recruits, phase scenes, timed reinforcements, chapter 32 saves, section dialogue, authored section relief, authored legacy stock and purchase persistence, authored loss recruits, authored loss dialogue, reproducible playtest setup, Valley carryover, thirteen-chapter Valley template, and single-battle tests")
+ print("PASS: campaign JSON file transfer, draft library management, remembered playtest setup, campaign readiness, authored Hard bonuses, route pins, war-table site terrain, rising Valley landmarks, custom recruits, phase scenes, timed reinforcements, chapter 32 saves, section dialogue, authored section relief, authored legacy stock and purchase persistence, authored loss recruits, authored loss dialogue, reproducible playtest setup, Valley carryover, thirteen-chapter Valley template, and single-battle tests")
  quit()

@@ -559,11 +559,18 @@ func commit_casualties() -> Dictionary:
 
 const SAVE_VERSION=6
 
-func layout_signature() -> String:
+func layout_data() -> Array:
 	# Equipment changes are safe for an existing battle: each unit saves its item.
 	var placement=info().enemies.duplicate(true)
 	for entry in placement:entry.erase("item")
-	return JSON.stringify([info().map,info().deployment_positions,placement,info().objective_position]).sha256_text()
+	return [info().map,info().deployment_positions,placement,info().objective_position]
+
+func layout_signature() -> String:
+	# Draft coordinates have integer values before editing and JSON numbers after reload.
+	return JSON.stringify(JSON.parse_string(JSON.stringify(layout_data(),"",true,true))).sha256_text()
+
+func matches_layout_signature(signature: String) -> bool:
+	return signature==layout_signature() or signature==JSON.stringify(layout_data()).sha256_text()
 
 func save_data(stage: String) -> Dictionary:
 	var saved={"version":SAVE_VERSION,"trials":trials.to_data(),"death_door":death_door,"action_saves":action_saves,"permadeath":permadeath,"battle_supports":battle_supports,"layout_signature":layout_signature(),"story_seen":story_seen,"supports":supports.state,"chapter":chapter,"turn":turn,"phase":phase,"roster":roster,"units":units,"deployed":deployed,"formation_order":formation_order,"completed":completed,"rng":str(rng.state),"stage":stage}
@@ -770,7 +777,7 @@ func restore_save(data) -> String:
 		if unit.team=="player":unit.potions=int(unit.get("potions",2))
 		if unit.team=="enemy":unit.ai=unit.get("ai","guard" if unit.get("boss",false) else "pursue")
 	# Old layouts cannot safely resume units on redesigned walls or water.
-	if data.stage=="battle" and data.get("layout_signature","")!=layout_signature():
+	if data.stage=="battle" and not matches_layout_signature(data.get("layout_signature","")):
 		units.clear();enemy_waves.clear();phase="player";return "camp"
 	return data.stage
 

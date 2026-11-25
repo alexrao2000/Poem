@@ -779,12 +779,12 @@ func confirm_remove():
 func new_draft():
  if dirty and not save_draft():return
  draft.data=draft.new_document(false);draft_key="";dirty=true
- select_chapter(0)
+ select_chapter(restore_editor_state({}))
 
 func save_draft() -> bool:
  var issue=draft.structural_problem(draft.data)
  if not issue.is_empty():status.text=issue;return false
- var saved=library.save(draft_key,draft.data)
+ var saved=library.save(draft_key,draft.data,playtest_setup,chapter().key)
  if saved.is_empty():status.text="Could not save the draft. Copy the JSON to keep it.";return false
  draft_key=saved;dirty=false;draft_selection_changed.emit(draft_key,selected);status.text="Draft saved."
  return true
@@ -816,9 +816,11 @@ func open_library():
 
 func open_saved_draft(record: Dictionary,make_copy: bool,dialog: AcceptDialog,feedback: Label):
  if dirty and not save_draft():feedback.text=status.text;return
+ var chapter_index=selected
  if draft_key!=record.key:
   var error=draft.decode(JSON.stringify(record.document,"",true,true))
   if not error.is_empty():feedback.text=error;return
+  chapter_index=restore_editor_state(record)
  elif not make_copy:
   dialog.queue_free();return
  if make_copy:
@@ -826,7 +828,12 @@ func open_saved_draft(record: Dictionary,make_copy: bool,dialog: AcceptDialog,fe
   draft_key="";dirty=true
  else:
   draft_key=record.key;dirty=false
- select_chapter(0)
+ select_chapter(chapter_index)
+
+func restore_editor_state(record: Dictionary) -> int:
+ var saved=library.editor_state(record)
+ playtest_setup.clear();playtest_setup.merge(saved.setup)
+ return maxi(0,draft.index_for(saved.chapter))
 
 func confirm_remove_draft(record: Dictionary,dialog: AcceptDialog,feedback: Label):
  var confirm=ConfirmationDialog.new();confirm.name="EditorConfirmRemoveDraft"
@@ -844,7 +851,7 @@ func confirm_remove_draft(record: Dictionary,dialog: AcceptDialog,feedback: Labe
 
 func open_poem_template(valley: bool):
  if dirty and not save_draft():return
- draft.load_poem_template(valley);draft_key="";dirty=true;select_chapter(0)
+ draft.load_poem_template(valley);draft_key="";dirty=true;select_chapter(restore_editor_state({}))
 
 func show_transfer():
  var dialog=AcceptDialog.new();dialog.title="Campaign JSON";add_child(dialog)
@@ -892,7 +899,7 @@ func import_campaign_text(raw: String,feedback: Label):
  var issue=incoming.decode(raw)
  if not issue.is_empty():feedback.text=issue;return
  if dirty and not save_draft():feedback.text=status.text;return
- draft.data=incoming.data;draft_key="";dirty=true;select_chapter(0)
+ draft.data=incoming.data;draft_key="";dirty=true;select_chapter(restore_editor_state({}))
 
 func open_campaign_file(parent: Window,feedback: Label):
  if OS.has_feature("web"):
@@ -954,6 +961,7 @@ func campaign_file_picker(parent: Window,saving: bool) -> FileDialog:
 func launch(index: int,resume: bool,allow_single=false):
  var single_battle=not draft.playtest_problem().is_empty()
  if single_battle and (not allow_single or not draft.playtest_problem(index).is_empty()):return
+ if not draft_key.is_empty() and not dirty:library.remember_playtest(draft_key,playtest_setup,chapter().key)
  draft_selection_changed.emit(draft_key,selected)
  playtest_requested.emit(index,resume,single_battle)
 
