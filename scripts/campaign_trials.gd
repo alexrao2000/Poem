@@ -92,7 +92,7 @@ func capture_section(game):
  var snapshot=game
  if game.chapter!=start:
   snapshot=game.get_script().new(game.content);snapshot.chapter=start
-  snapshot.deployed=snapshot.available().slice(0,6).map(func(unit):return unit.id)
+  snapshot.deployed=snapshot.available().slice(0,int(snapshot.info().deployment)).map(func(unit):return unit.id)
  checkpoint=snapshot.save_data("camp").duplicate(true)
  checkpoint.erase("trials");checkpoint.version=5;checkpoint.units=[];checkpoint.phase="player";checkpoint.turn=1
 
@@ -226,7 +226,7 @@ func restart(game) -> bool:
   for casualty in deaths:
    for recruit in game.roster:
     if recruit.id==casualty.id:recruit.fallen=true;recruit.fallen_chapter=casualty.fallen_chapter;recruit.hp=0
-  game.deployed=game.available().slice(0,6).map(func(unit):return unit.id)
+  game.deployed=game.available().slice(0,int(game.info().deployment)).map(func(unit):return unit.id)
   queue_scene("retreat_"+str(game.chapter))
   log_event("The company withdraws to the start of section %d. The fallen remain lost; enemy preparations and legacy supplies remain."%(section_index(game.chapter)+1))
  else:

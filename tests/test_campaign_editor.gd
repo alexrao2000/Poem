@@ -33,6 +33,31 @@ func await_phase_dialogue(app,text_value: String):
   await process_frame
  assert(app.screen=="dialogue" and app.dialogue_label.text==text_value)
 
+func check_small_section_deployment():
+ var draft=Draft.new()
+ draft.data=draft.new_document(false)
+ draft.data.chapters[0].level.deployment_positions.resize(2)
+ draft.data.opening_company.resize(2)
+ draft.insert_chapter(0,false)
+ var content=draft.compile().content
+ var game=Rules.new(content)
+ game.new_campaign(true);game.action_saves=true
+ var overfull=game.save_data("camp").duplicate(true)
+ overfull.deployed=game.available().slice(0,4).map(func(unit):return unit.id)
+ assert(overfull.deployed.size()==4)
+ var restored=Rules.new(content)
+ assert(restored.restore_save(canonical(overfull))=="camp","Recover older authored saves that were allowed to select too many allies.")
+ assert(restored.deployed==game.deployed and restored.deployment_slots().size()==2)
+ game.trials.flags.section_restarts=true;game.trials.flags.reset_pressure=true
+ game.chapter=1;game.deployed=overfull.deployed.duplicate()
+ game.start_battle()
+ assert(game.trials.checkpoint.chapter==0 and game.trials.checkpoint.deployed.size()==2)
+ var leader=game.living("player").filter(func(unit):return unit.id=="lyra")[0]
+ leader.hp=0
+ assert(game.result()=="defeat" and game.retry_battle())
+ assert(game.chapter==0 and game.deployed.size()==2 and game.trials.pressure==1)
+ assert(restored.import_code(game.export_code("camp"))=="camp" and restored.deployed==game.deployed)
+
 func check_document():
  var draft=Draft.new()
  assert(draft.playtest_problem().is_empty())
@@ -450,6 +475,7 @@ func verify_moving_placements(app):
 
 func run():
  check_document()
+ check_small_section_deployment()
  var scratch="/private/tmp/poem-campaign-editor-%d"%OS.get_process_id()
  assert(DirAccess.make_dir_recursive_absolute(scratch)==OK)
  check_long_campaign(scratch.path_join("long-campaign.json"))
@@ -843,6 +869,12 @@ func run():
  controls(app,"Continue the chronicle").pressed.emit();await finish_presentation(app)
  assert(app.screen=="camp" and app.game.chapter==1 and app.game.info().presentation=="valley_table")
  assert(app.game.deployed.size()==2 and app.game.read_saved_data(app.campaign_save_path()).stage=="camp")
+ assert(app.ui.find_child("DeploymentCount",true,false).text.ends_with("Deployed 2 / 2"))
+ var reserve_id=app.game.available().filter(func(unit):return unit.id not in app.game.deployed)[0].id
+ var reserve_card=app.ui.find_child("Company_"+reserve_id,true,false)
+ assert(reserve_card.deploy_button.disabled and reserve_card.deploy_button.tooltip_text=="All deployment slots are in use")
+ reserve_card.deploy_button.pressed.emit();await process_frame
+ assert(app.game.deployed.size()==2)
  app.game.supports.state[first_bond.id]={"points":1,"rank":0,"chapter":0,"earned":1,"turn":1}
  app.read_support(veteran,playable_bond,0)
  assert(app.screen=="dialogue" and app.dialogue_label.text=="The bridge is quiet now.")
@@ -1294,5 +1326,5 @@ func run():
  await verify_moving_placements(app)
  assert(FileAccess.get_file_as_string(app.save_path)==disk and app.game==installed)
  await Shutdown.dispose(app);await process_frame
- print("PASS: campaign JSON file transfer, draft library management, remembered playtest setup, campaign readiness, authored Hard bonuses, authored retry raiders, deployment comparison, authored formation previews, custom campaign atlas, terrain stroke undo, continuous terrain strokes, connected terrain fill, placement moves and swaps, route pins, war-table site terrain, war-table overlay, blank war-table chapter, rising Valley landmarks, custom recruits, phase scenes, tile dialogue and reload, Valley landmark dialogue, dialogue that follows route pins, timed reinforcements, chapter 32 saves, section dialogue, authored section relief, authored legacy stock and purchase persistence, authored loss recruits, authored loss dialogue, reproducible playtest setup, Valley carryover and resume, thirteen-chapter Valley template, and single-battle tests")
+ print("PASS: campaign JSON file transfer, draft library management, remembered playtest setup, campaign readiness, authored Hard bonuses, authored retry raiders, deployment comparison, authored formation previews, small deployment limits and save recovery, custom campaign atlas, terrain stroke undo, continuous terrain strokes, connected terrain fill, placement moves and swaps, route pins, war-table site terrain, war-table overlay, blank war-table chapter, rising Valley landmarks, custom recruits, phase scenes, tile dialogue and reload, Valley landmark dialogue, dialogue that follows route pins, timed reinforcements, chapter 32 saves, section dialogue, authored section relief, authored legacy stock and purchase persistence, authored loss recruits, authored loss dialogue, reproducible playtest setup, Valley carryover and resume, thirteen-chapter Valley template, and single-battle tests")
  quit()

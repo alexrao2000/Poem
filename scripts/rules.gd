@@ -675,7 +675,8 @@ func valid_save(data) -> bool:
 		if not id is String or not ids.has(id) or deployment_ids.has(id):return false
 		if ids[id].get("fallen",false):return false
 		deployment_ids[id]=true
-	if data.deployed.size()>int(content.chapters[int(data.chapter)].deployment):return false
+	if data.deployed.size()>6:return false
+	if not content.has("authoring_signature") and data.deployed.size()>int(content.chapters[int(data.chapter)].deployment):return false
 	var placement=data.get("formation_order",[])
 	if not placement is Array or placement.size()>6:return false
 	var placement_ids={}
@@ -789,6 +790,9 @@ func restore_save(data) -> String:
 	chapter=int(data.chapter);turn=int(data.turn);phase=data.phase;roster=data.roster;units=data.units;deployed=data.deployed;completed=data.completed;rng.state=int(data.rng)
 	formation_order=data.get("formation_order",[])
 	enemy_waves=data.get("enemy_waves",[])
+	# Older authored camps let the player select six allies on smaller maps.
+	if deployed.size()>int(info().deployment):
+		deployed=deployment_slots(false).filter(func(id):return not id.is_empty())
 	if data.stage=="camp" and content.has("authoring_signature"):
 		var size=board_size()
 		# Older chapter transitions could save combat positions from the previous board.

@@ -628,6 +628,7 @@ func save_and_return_to_route(stage_name: String):
 func show_camp():
 	drop_mode=false
 	game.ensure_leader()
+	var deployment_limit=int(game.info().deployment)
 	select_score_theme()
 	screen="camp";busy=false;selected=null;target=null;origin=null
 	game.phase="player"
@@ -667,9 +668,11 @@ func show_camp():
 	label_in(briefing,game.info().get("tactical_brief",""),18,Color("6f6c5e"))
 	if game.trials.flags.hard_campaign and not game.info().get("hard_brief","").is_empty():
 		label_in(briefing,game.info().hard_brief,17,GOLD).name="HardFormationBrief"
-	label_in(briefing,"Select up to six allies. Open a portrait to inspect equipment and support conversations. Wardens heal within staff range; field tonics restore 12 HP. Cards show starting health and supplies.",16,Color("766e5e"))
+	var limit_hint="Select up to %d %s."%[deployment_limit,"ally" if deployment_limit==1 else "allies"]
+	label_in(briefing,limit_hint+" Open a portrait to inspect equipment and support conversations. Wardens heal within staff range; field tonics restore 12 HP. Cards show starting health and supplies.",16,Color("766e5e"))
 	label_in(left,"OBJECTIVE  /  "+objective_text(),18,GOLD)
-	label_in(left,"%s  ·  Available %d  ·  Deployed %d / 6"%["Permadeath ON" if game.permadeath else "Permadeath OFF",game.available().size(),game.deployed.size()],18)
+	label_in(left,"%s  ·  Available %d  ·  Deployed %d / %d"%[
+		"Permadeath ON" if game.permadeath else "Permadeath OFF",game.available().size(),game.deployed.size(),deployment_limit],18).name="DeploymentCount"
 	var deployment_row=HBoxContainer.new();deployment_row.add_theme_constant_override("separation",8);left.add_child(deployment_row)
 	button_in(deployment_row,"Deploy company  >",deploy_company,game.deployed.is_empty()).size_flags_horizontal=Control.SIZE_EXPAND_FILL
 	button_in(deployment_row,"Positions",show_formation,game.deployed.is_empty()).name="OpenFormation"
@@ -709,14 +712,14 @@ func show_camp():
 	for u in game.roster:
 		var unlocked=game.trials.joined(game,u) and not u.get("fallen",false)
 		var card=preload("res://scripts/company_card.gd").new();cards.add_child(card)
-		card.configure(u,game.class_name_for(u),portraits.get_unit_portrait(u) if unlocked or u.get("fallen",false) else map_catalog.preview_sprite(u),game.item_for(u),u.id in game.deployed,unlocked,unlocked and supports_ready(u),game.deployed.size()>=6,game.trials.deployment_condition(game,u))
+		card.configure(u,game.class_name_for(u),portraits.get_unit_portrait(u) if unlocked or u.get("fallen",false) else map_catalog.preview_sprite(u),game.item_for(u),u.id in game.deployed,unlocked,unlocked and supports_ready(u),game.deployed.size()>=deployment_limit,game.trials.deployment_condition(game,u))
 		if u.id=="lyra" and (game.trials.flags.reset_pressure or (game.trials.flags.section_restarts and game.permadeath)):
 			card.deploy_button.disabled=true;card.deploy_button.tooltip_text="The lord leads the company in this experiment."
 		interface_audio.watch(card.portrait_button);interface_audio.watch(card.deploy_button)
 		card.inspect_requested.connect(func():show_dossier(u))
 		card.deployment_requested.connect(func():
 			if u.id in game.deployed:game.deployed.erase(u.id)
-			elif unlocked and game.deployed.size()<6:game.deployed.append(u.id)
+			elif unlocked and game.deployed.size()<deployment_limit:game.deployed.append(u.id)
 			var previous_scroll=scroll.scroll_vertical
 			show_camp()
 			# The new grid must finish layout before restoring its reading position.

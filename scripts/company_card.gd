@@ -50,5 +50,5 @@ func configure(unit: Dictionary,class_title: String,portrait: Texture2D,weapon: 
  label_in(column,"Open portrait to remember" if fallen else "Support conversation ready" if support_ready else "Open portrait for dossier" if available else "The road will bring you together",12,Color("906b2e") if support_ready else Color("817b6b"))
  deploy_button=Button.new();deploy_button.text="Permanently lost" if fallen else "Remove" if deployed else "Add to company" if available else "Not yet recruited"
  deploy_button.custom_minimum_size.y=36;deploy_button.disabled=not available or (full and not deployed)
- deploy_button.tooltip_text="Fell in chapter %02d"%[int(unit.fallen_chapter)+1] if fallen else "Return "+unit.name+" to reserve" if deployed else "Choose up to six allies" if full else "Deploy "+unit.name
+ deploy_button.tooltip_text="Fell in chapter %02d"%[int(unit.fallen_chapter)+1] if fallen else "Return "+unit.name+" to reserve" if deployed else "All deployment slots are in use" if full else "Deploy "+unit.name
  deploy_button.pressed.connect(func():deployment_requested.emit());column.add_child(deploy_button)
