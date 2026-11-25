@@ -18,6 +18,7 @@ var stroke_active=false
 var paint_on_drag=true
 var connect_terrain_strokes=false
 var marked_placement=Vector2i(-1,-1)
+var site_tiles: Array
 
 func configure(source: Dictionary,route_marks: Dictionary,picture: Texture2D=null):
  level=source
@@ -71,8 +72,8 @@ func _draw():
   var symbol="C" if index==0 else str(level.enemies[index].job).left(1)
   draw_token(level.enemies[index].position,symbol,Color("803c40"))
  for enemy in level.hard_enemies:draw_token(enemy.position,"H",Color("745076"))
- for scene in level.get("site_scenes",[]):
-  var tile=Vector2i(scene.position[0],scene.position[1])
+ for position in site_tiles:
+  var tile=Vector2i(position[0],position[1])
   if not Rect2i(Vector2i.ZERO,board_size()).has_point(tile):continue
   var mark=rect.position+Vector2(tile)*cell+Vector2.ONE*cell*.18
   draw_circle(mark,maxf(2.5,cell*.13),Color("246966"))

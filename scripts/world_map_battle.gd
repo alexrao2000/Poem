@@ -36,11 +36,13 @@ static func route_dialogue(route: Array) -> Array:
   "Windscar Pass":{"id":"windscar_pass","lines":[
    {"speaker":"lyra","text":"Those roofs below us belong to everyone we’ve met on the road. Leave a company on the ridge until the last banner is through."}]}}
  var events=[]
- for place in route:
+ for chapter in route:
+  var place=chapter.level
   if not scenes.has(place.place):continue
   var tile=route_tile(place.route_position)
   var event=scenes[place.place]
   event.position=[tile.x,tile.y]
+  event.route_key=chapter.key
   events.append(event)
  return events
 

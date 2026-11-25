@@ -159,6 +159,7 @@ func build_battle(panel: VBoxContainer):
  placement_hint=heading(panel,"",15);placement_hint.name="EditorMovePlacementStatus"
  grid=Grid.new();grid.name="EditorGrid";panel.add_child(grid)
  grid.configure(layout,draft.valley_marks(selected),draft.route_texture() if fixed_chart else null)
+ refresh_tile_scene_markers()
  grid.stroke_started.connect(func():terrain_changed=false)
  grid.terrain_step_requested.connect(step_terrain)
  grid.placement_canceled.connect(clear_placement_selection)
@@ -626,7 +627,7 @@ func confirm_remove_battle_scene(scenes: Array,index: int,trigger: String,refres
  var dialog=ConfirmationDialog.new();dialog.title="Remove this %s scene?"%trigger
  dialog.dialog_text="This removes its dialogue and trigger."
  add_child(dialog);dialog.popup_centered()
- dialog.confirmed.connect(func():scenes.remove_at(index);grid.queue_redraw();changed();refresh.call();dialog.queue_free())
+ dialog.confirmed.connect(func():scenes.remove_at(index);refresh_tile_scene_markers();changed();refresh.call();dialog.queue_free())
  dialog.canceled.connect(dialog.queue_free)
 
 func build_tile_dialogue(panel: VBoxContainer,layout: Dictionary):
@@ -640,7 +641,7 @@ func build_tile_dialogue(panel: VBoxContainer,layout: Dictionary):
   while "site_%02d"%number in ids:number+=1
   scenes.append({"id":"site_%02d"%number,"position":[grid.cursor.x,grid.cursor.y],"lines":[]})
   layout.site_scenes=scenes
-  selected_site_scene=scenes.size()-1;grid.queue_redraw();changed()
+  selected_site_scene=scenes.size()-1;refresh_tile_scene_markers();changed()
   build_tile_dialogue(panel,layout),scenes.size()>=Draft.MAX_SITE_SCENES).name="EditorAddTileScene"
  if scenes.is_empty():return
  heading(panel,"Plays once when a standing ally finishes an action on the tile.",15)
@@ -651,18 +652,45 @@ func build_tile_dialogue(panel: VBoxContainer,layout: Dictionary):
  var picker=OptionButton.new();picker.name="EditorTileScene";picker.custom_minimum_size.y=42
  for stored in scenes:picker.add_item(tile_scene_label(stored))
  picker.select(index);picker.item_selected.connect(func(value):selected_site_scene=value;build_tile_dialogue(panel,layout));panel.add_child(picker)
+ if layout.presentation=="valley_table":add_site_route_picker(panel,layout,scene)
  var trigger=row(panel)
+ var position=draft.site_position(selected,scene)
  for axis in 2:
   var title="X tile" if axis==0 else "Y tile"
   var bounds=Draft.MAX_BOARD.x if axis==0 else Draft.MAX_BOARD.y
-  var coordinate=spin(int(scene.position[axis]),0,bounds-1,func(value):
-   scene.position[axis]=int(value);picker.set_item_text(index,tile_scene_label(scene));grid.queue_redraw();changed())
+  var coordinate=spin(int(position[axis]),0,bounds-1,func(value):
+   scene.position[axis]=int(value);picker.set_item_text(index,tile_scene_label(scene));refresh_tile_scene_markers();changed())
+  coordinate.editable=not scene.has("route_key")
   coordinate.name="EditorTileScene"+str(axis)
   field_label(trigger,title,coordinate)
  dialogue_editor(panel,"EditorTileSceneLines",132,func():return scene.lines,func(lines):scene.lines=lines;changed())
 
 func tile_scene_label(scene: Dictionary) -> String:
- return "Tile %d, %d"%scene.position
+ return "Tile %d, %d"%draft.site_position(selected,scene)
+
+func refresh_tile_scene_markers():
+ grid.site_tiles=level().get("site_scenes",[]).map(func(scene):return draft.site_position(selected,scene))
+ grid.queue_redraw()
+
+func add_site_route_picker(panel: VBoxContainer,layout: Dictionary,scene: Dictionary):
+ var routes={}
+ for index in selected:
+  var record=draft.data.chapters[index]
+  var place=record.level.place if not record.level.place.is_empty() else record.level.title
+  if record.level.presentation!="valley_table":routes[record.key]="%02d · %s"%[index+1,place]
+ var link=scene.get("route_key","")
+ if not link.is_empty() and not routes.has(link):routes[link]="Choose an earlier route pin"
+ if routes.is_empty():return
+ var field=choice([""]+routes.keys(),link,func(value):
+  if value.is_empty():
+   scene.position=draft.site_position(selected,scene)
+   scene.erase("route_key")
+  else:scene.route_key=value
+  refresh_tile_scene_markers();changed();build_tile_dialogue(panel,layout))
+ field.name="EditorTileSceneRoute";field.fit_to_longest_item=false;field.clip_text=true
+ field.set_item_text(0,"Fixed tile")
+ for index in routes.size():field.set_item_text(index+1,routes.values()[index])
+ field_label(row(panel),"Route pin",field)
 
 func build_company(panel: VBoxContainer):
  var company=draft.data.recruits

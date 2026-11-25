@@ -216,7 +216,7 @@ func load_poem_template(valley: bool):
  if valley:
   data.title="Poem · The Roads Between"
   var stage=insert_chapter(data.chapters.size()-2,false,true)
-  data.chapters[stage].level.site_scenes=Valley.route_dialogue(templates.chapters)
+  data.chapters[stage].level.site_scenes=Valley.route_dialogue(data.chapters.slice(0,stage))
 
 func move_chapter(index: int,direction: int) -> int:
  var destination=index+direction
@@ -233,6 +233,12 @@ func remove_chapter(index: int) -> int:
  var removed=data.chapters.pop_at(index)
  terrain_history.erase(removed.key)
  var next=mini(index,data.chapters.size()-1)
+ for chapter in data.chapters:
+  for scene in chapter.level.get("site_scenes",[]):
+   if scene.get("route_key","")!=removed.key:continue
+   var tile=Valley.route_tile(removed.level.route_position)
+   scene.position=[tile.x,tile.y]
+   scene.erase("route_key")
  for recruit in data.recruits:
   if recruit.chapter==removed.key:recruit.chapter=data.chapters[next].key
  for bond in data.get("bonds",[]):
@@ -343,6 +349,10 @@ func structural_problem(document) -> String:
    if not SECTION_SCENES.has(kind) or not section[kind] is Dictionary or not valid_text(section[kind].get("title"),100) or not dialogue_valid(section[kind].get("lines")):
     return "A chapter has invalid section dialogue."
   keys[chapter.key]=true
+ for chapter in document.chapters:
+  for scene in chapter.level.get("site_scenes",[]):
+   if scene.has("route_key") and (chapter.level.presentation!="valley_table" or not keys.has(scene.route_key)):
+    return "A tile dialogue link needs a campaign route pin."
  if not document.chapters[0].section:return "The opening chapter must start a section."
  var known=templates.roster.map(func(recruit):return recruit.id)
  var people={}
@@ -442,6 +452,7 @@ func site_scenes_valid(scenes) -> bool:
   if not scene is Dictionary or not valid_text(scene.get("id"),32) or not scene.id.is_valid_identifier() or identities.has(scene.id):
    return false
   if not point_valid(scene.get("position")) or not dialogue_valid(scene.get("lines")):return false
+  if scene.has("route_key") and (not valid_text(scene.route_key,64) or not scene.route_key.is_valid_identifier()):return false
   identities[scene.id]=true
  return true
 
@@ -552,13 +563,42 @@ func valley_marks(index: int) -> Dictionary:
 func battle_level(index: int) -> Dictionary:
  var level=data.chapters[index].level
  var marks=valley_marks(index)
- if marks.is_empty():return level
+ var scenes=level.get("site_scenes",[])
+ var linked=scenes.any(func(scene):return scene.has("route_key"))
+ if marks.is_empty() and not linked:return level
  var adjusted=level.duplicate()
- adjusted.map=level.map.duplicate()
+ if not marks.is_empty():adjusted.map=level.map.duplicate()
  for tile in marks:paint(adjusted,tile,marks[tile].terrain)
+ if linked:
+  adjusted.site_scenes=scenes.map(func(scene):
+   if not scene.has("route_key"):return scene
+   var resolved=scene.duplicate()
+   resolved.position=site_position(index,scene)
+   resolved.erase("route_key")
+   return resolved)
  return adjusted
 
+func route_site_index(index: int,site: Dictionary) -> int:
+ if not site.has("route_key"):return -1
+ var anchor=index_for(site.route_key)
+ if anchor<0 or anchor>=index or data.chapters[anchor].level.presentation=="valley_table":return -1
+ return anchor
+
+func site_position(index: int,site: Dictionary) -> Array:
+ var anchor=route_site_index(index,site)
+ if anchor<0:return site.position
+ var tile=Valley.route_tile(data.chapters[anchor].level.route_position)
+ return [tile.x,tile.y]
+
+func site_link_problem(index: int) -> String:
+ for scene in data.chapters[index].level.get("site_scenes",[]):
+  if scene.has("route_key") and route_site_index(index,scene)<0:
+   return "Tile dialogue must follow a route pin from an earlier chapter."
+ return ""
+
 func battle_readiness(index: int) -> Dictionary:
+ var link_issue=site_link_problem(index)
+ if not link_issue.is_empty():return {"title":"Needs edits","description":link_issue}
  var level=battle_level(index)
  var issue=battle_problem(level)
  if not issue.is_empty():return {"title":"Needs edits","description":issue}
@@ -585,6 +625,8 @@ func playtest_problem(selected=-1) -> String:
  if not issue.is_empty():return issue
  var indices=range(data.chapters.size()) if selected<0 else [selected]
  for index in indices:
+  issue=site_link_problem(index)
+  if not issue.is_empty():return "Chapter %d · %s"%[index+1,issue]
   issue=battle_problem(battle_level(index))
   if not issue.is_empty():return "Chapter %d · %s"%[index+1,issue]
  return company_problem()

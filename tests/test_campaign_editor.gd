@@ -1089,11 +1089,41 @@ func run():
  var landmark_dialogue=template.data.chapters[11].level.site_scenes
  assert(landmark_dialogue.map(func(scene):return scene.id)==["reed_crossing","hallow_abbey","windscar_pass"])
  assert(landmark_dialogue.map(func(scene):return scene.position)==[[6,9],[9,5],[19,7]])
+ var source_key=landmark_dialogue[0].route_key
+ var crossing_chapter=template.index_for(source_key)
  var chapters=app.campaign_editor.find_child("EditorChapter",true,false)
+ chapters.select(crossing_chapter);chapters.item_selected.emit(crossing_chapter)
+ var routes=app.campaign_editor.find_child("CampaignEditorTabs",true,false)
+ routes.current_tab=routes.get_tab_idx_from_control(app.campaign_editor.find_child("Route",true,false))
+ await process_frame
+ app.campaign_editor.find_child("EditorRouteY",true,false).value=66
+ assert(landmark_dialogue[0].position==[6,9] and template.battle_level(11).site_scenes[0].position==[6,10])
+ var linked_copy=Draft.new()
+ assert(linked_copy.decode(template.encode()).is_empty())
+ assert(linked_copy.compile().content.chapters[11].site_scenes[0].position==[6,10])
+ var valley_key=template.data.chapters[11].key
+ while linked_copy.index_for(source_key)<linked_copy.index_for(valley_key):
+  linked_copy.move_chapter(linked_copy.index_for(source_key),1)
+ assert(linked_copy.playtest_problem().contains("earlier chapter"))
+ linked_copy.remove_chapter(linked_copy.index_for(source_key))
+ var fixed_scene=linked_copy.data.chapters[linked_copy.index_for(valley_key)].level.site_scenes[0]
+ assert(not fixed_scene.has("route_key") and fixed_scene.position==[6,10])
+ chapters=app.campaign_editor.find_child("EditorChapter",true,false)
  chapters.select(11);chapters.item_selected.emit(11)
  var editor_tabs=app.campaign_editor.find_child("CampaignEditorTabs",true,false)
  editor_tabs.current_tab=editor_tabs.get_tab_idx_from_control(app.campaign_editor.find_child("Story",true,false))
  await process_frame
+ var pin_picker=app.campaign_editor.find_child("EditorTileSceneRoute",true,false)
+ var crossing_option=pin_picker.selected
+ assert(pin_picker.get_selected_metadata()==source_key)
+ assert(not app.campaign_editor.find_child("EditorTileScene1",true,false).editable)
+ assert(app.campaign_editor.find_child("EditorGrid",true,false).site_tiles.has([6,10]))
+ pin_picker.select(0);pin_picker.item_selected.emit(0)
+ assert(not landmark_dialogue[0].has("route_key") and landmark_dialogue[0].position==[6,10])
+ assert(app.campaign_editor.find_child("EditorTileScene1",true,false).editable)
+ pin_picker=app.campaign_editor.find_child("EditorTileSceneRoute",true,false)
+ pin_picker.select(crossing_option);pin_picker.item_selected.emit(crossing_option)
+ assert(landmark_dialogue[0].route_key==source_key)
  app.campaign_editor.find_child("EditorChapterDialogue_openingLossOptions",true,false).pressed.emit();await process_frame
  var loss_dialog=app.campaign_editor.find_child("EditorLossDialogue",true,false)
  var required=loss_dialog.find_child("EditorLossRequires",true,false)
@@ -1117,9 +1147,9 @@ func run():
  var ordinary_playtest=app.campaign_save_path()
  controls(app,"Deploy company  >").pressed.emit()
  app.valley_reveal_skip=true;await finish_presentation(app)
- var reed=Vector2i(6,9)
+ var reed=Vector2i(6,10)
  var visitors=app.game.living("player").filter(func(unit):return app.game.reachable(unit).has(reed))
- assert(not visitors.is_empty() and app.game.has_tile_dialogue(reed))
+ assert(not visitors.is_empty() and app.game.has_tile_dialogue(reed) and not app.game.has_tile_dialogue(Vector2i(6,9)))
  await app.click_tile(app.game.pos(visitors[0]));await app.click_tile(reed)
  app.wait_action()
  await await_phase_dialogue(app,landmark_dialogue[0].lines[0].text)
@@ -1238,5 +1268,5 @@ func run():
  await verify_moving_placements(app)
  assert(FileAccess.get_file_as_string(app.save_path)==disk and app.game==installed)
  await Shutdown.dispose(app);await process_frame
- print("PASS: campaign JSON file transfer, draft library management, remembered playtest setup, campaign readiness, authored Hard bonuses, authored retry raiders, deployment comparison, custom campaign atlas, terrain stroke undo, continuous terrain strokes, connected terrain fill, placement moves and swaps, route pins, war-table site terrain, war-table overlay, blank war-table chapter, rising Valley landmarks, custom recruits, phase scenes, tile dialogue and reload, Valley landmark dialogue, timed reinforcements, chapter 32 saves, section dialogue, authored section relief, authored legacy stock and purchase persistence, authored loss recruits, authored loss dialogue, reproducible playtest setup, Valley carryover and resume, thirteen-chapter Valley template, and single-battle tests")
+ print("PASS: campaign JSON file transfer, draft library management, remembered playtest setup, campaign readiness, authored Hard bonuses, authored retry raiders, deployment comparison, custom campaign atlas, terrain stroke undo, continuous terrain strokes, connected terrain fill, placement moves and swaps, route pins, war-table site terrain, war-table overlay, blank war-table chapter, rising Valley landmarks, custom recruits, phase scenes, tile dialogue and reload, Valley landmark dialogue, dialogue that follows route pins, timed reinforcements, chapter 32 saves, section dialogue, authored section relief, authored legacy stock and purchase persistence, authored loss recruits, authored loss dialogue, reproducible playtest setup, Valley carryover and resume, thirteen-chapter Valley template, and single-battle tests")
  quit()
