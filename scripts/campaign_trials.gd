@@ -185,7 +185,7 @@ func prepare_enemy(game,unit: Dictionary,modifiers: Dictionary,pressure_steps: i
  if not flags.reset_pressure:return
  unit.held_tonics=modifiers.held_tonics
  if pressure_steps>0:unit.reset_supplies_spent=mini(2,pressure_steps)
- if not unit.boss and unit.job in ["Corsair","Ranger"]:unit.raider=true
+ if not unit.boss and not unit.has("raider") and unit.job in ["Corsair","Ranger"]:unit.raider=true
 
 func advance_raiders(game,moves: int):
  var raiders=game.units.filter(func(unit):return unit.get("raider",false))

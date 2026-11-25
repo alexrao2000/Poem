@@ -392,6 +392,7 @@ func map_structure_problem(level: Dictionary) -> String:
    if not enemy is Dictionary or not templates.classes.has(enemy.get("job")) or not point_valid(enemy.get("position")):
     return "An enemy needs a class and a tile."
    if enemy.get("ai","pursue") not in STRATEGIES or not valid_text(enemy.get("name",""),80):return "An enemy has an invalid strategy or name."
+   if enemy.has("raider") and not enemy.raider is bool:return "Choose a valid enemy retry behavior."
    if not integer(enemy.get("level",0),0,Rules.MAX_LEVEL):return "Set an enemy level from 0 to 99."
    if not integer(enemy.get("arrival_turn",1),1,99) or enemy.get("arrival_phase","player") not in ["player","enemy"]:
     return "Set an enemy arrival to a player or enemy phase between turns 1 and 99."

@@ -240,6 +240,15 @@ func build_encounters():
   else:enemy.arrival_phase=value
   sync_encounter_arrival(enemy,enemy_index,layout.enemies.size(),selector);changed())
  phase.name="EditorEncounterArrivalPhase";phase.disabled=is_commander;field_label(fields,"Arrival phase",phase)
+ var default_role="class"
+ if enemy.has("raider"):default_role="advance" if enemy.raider else "hold"
+ var role=choice(["class","advance","hold"],default_role,func(value):
+  if value=="class":enemy.erase("raider")
+  else:enemy.raider=value=="advance"
+  changed())
+ role.name="EditorEnemyRetryRole"
+ role.set_item_text(0,"Class default");role.set_item_text(1,"Advance as a raider");role.set_item_text(2,"Hold position")
+ field_label(fields,"Retry deployment",role)
  action(encounter_panel,"Make commander",func():
   layout.enemies.remove_at(enemy_index);layout.enemies.push_front(enemy)
   selected_enemy=0;grid.queue_redraw();changed();build_encounters(),is_commander or enemy_index>=layout.enemies.size()).name="EditorMakeCommander"
@@ -267,6 +276,8 @@ func sync_encounter_arrival(enemy: Dictionary,index: int,standard_count: int,sel
  selector.set_item_text(index,encounter_name(enemy,index,standard_count))
  var commander=encounter_panel.get_node_or_null("EditorMakeCommander")
  if commander!=null:commander.disabled=index==0 or index>=standard_count or Draft.Rules.delayed_enemy(enemy)
+ var role=encounter_panel.find_child("EditorEnemyRetryRole",true,false)
+ if role!=null:role.disabled=index==0 or Draft.Rules.delayed_enemy(enemy)
 
 func encounter_name(enemy: Dictionary,index: int,standard_count: int) -> String:
  var name=enemy.get("name","").strip_edges()

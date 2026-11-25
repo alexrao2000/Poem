@@ -208,6 +208,7 @@ func build_enemy(entry: Dictionary,index: int) -> Dictionary:
 	enemy.hp+=growth*2;enemy.pow+=growth;enemy.defense+=growth/2;enemy.resistance+=growth/2;enemy.max_hp=enemy.hp
 	enemy.team="enemy";enemy.acted=false;enemy.moved=false;enemy.boss=index==0
 	enemy.ai=entry.get("ai","pursue");enemy.alerted=false
+	if trials.flags.reset_pressure and not enemy.boss and entry.has("raider"):enemy.raider=entry.raider
 	enemy.x=int(entry.position[0]);enemy.y=int(entry.position[1])
 	enemy.item=entry.get("item",DEFAULT_ITEMS[enemy.weapon])
 	normalize_equipment(enemy)

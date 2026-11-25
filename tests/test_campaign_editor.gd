@@ -287,6 +287,29 @@ func check_chapter_hard_bonuses():
  assert(retry.chapter==0 and retry.enemies.max_hp==7 and retry.enemies.pow==6 and retry.enemies.held_tonics==0)
  assert(normal.trials.enemy_modifiers(0).max_hp==0)
 
+func check_authored_raiders():
+ var draft=Draft.new()
+ draft.data=draft.new_document(false)
+ var level=draft.data.chapters[0].level
+ level.enemies[0].raider=true
+ level.enemies[1].raider=false
+ level.enemies.append({"job":"Vanguard","position":[7,6],"ai":"pursue","name":"Road raider","raider":true})
+ level.enemies.append({"job":"Corsair","position":[8,6],"ai":"pursue","name":"Late raider","raider":true,
+  "arrival_turn":2,"arrival_phase":"player"})
+ assert(draft.playtest_problem().is_empty())
+ var game=Rules.new(draft.compile().content)
+ game.trials.flags.reset_pressure=true;game.trials.pressure=1;game.start_battle()
+ var commander=game.units.filter(func(member):return member.id=="enemy_0")[0]
+ var guard=game.units.filter(func(member):return member.id=="enemy_1")[0]
+ var raider=game.units.filter(func(member):return member.id=="enemy_2")[0]
+ assert(commander.boss and not commander.get("raider",false) and game.pos(commander)==Vector2i(11,4))
+ assert(not guard.raider and game.pos(guard)==Vector2i(9,4))
+ assert(raider.job=="Vanguard" and raider.raider and game.pos(raider)!=Vector2i(7,6))
+ assert(game.enemy_waves.size()==1 and game.pos(game.enemy_waves[0].unit)==Vector2i(8,6))
+ var restored=Rules.new(game.content)
+ assert(restored.import_code(game.export_code("battle"))=="battle")
+ assert(restored.at(game.pos(raider)).id=="enemy_2" and restored.at(game.pos(guard)).id=="enemy_1")
+
 func use_brush(editor,index: int,point: Vector2i,erase=false):
  var mode=editor.find_child("EditorBrush",true,false)
  mode.select(index);mode.item_selected.emit(index)
@@ -326,6 +349,7 @@ func run():
  check_authored_relief()
  check_battle_readiness()
  check_chapter_hard_bonuses()
+ check_authored_raiders()
  root.size=Vector2i(1440,900)
  var app=load("res://main.tscn").instantiate();app.settings_path="";app.save_path=scratch.path_join("normal.json")
  app.campaign_draft_library.path=scratch.path_join("drafts.json")
@@ -418,9 +442,13 @@ func run():
  await process_frame
  var first_encounter=editor.find_child("EditorEncounter",true,false)
  first_encounter.select(1);first_encounter.item_selected.emit(1)
+ var retry_role=editor.find_child("EditorEnemyRetryRole",true,false)
+ assert(not retry_role.disabled);retry_role.select(1);retry_role.item_selected.emit(1)
+ assert(editor.level().enemies[1].raider==true)
  var arrival=editor.find_child("EditorEncounterArrivalPhase",true,false)
  arrival.select(1);arrival.item_selected.emit(1)
  assert(editor.level().enemies[1].arrival_phase=="enemy" and editor.find_child("EditorMakeCommander",true,false).disabled)
+ assert(retry_role.disabled)
  editor.find_child("AddValleyBattle",true,false).pressed.emit()
  assert(editor.selected==1 and editor.level().map.size()==16 and editor.level().map[0].length()==24)
  var chart=editor.level()
@@ -941,5 +969,5 @@ func run():
  assert(FileAccess.get_file_as_string(app.save_path)==disk)
  await Shutdown.dispose(reopened);await process_frame
  await Shutdown.dispose(app);await process_frame
- print("PASS: campaign JSON file transfer, draft library management, remembered playtest setup, campaign readiness, authored Hard bonuses, route pins, war-table site terrain, rising Valley landmarks, custom recruits, phase scenes, timed reinforcements, chapter 32 saves, section dialogue, authored section relief, authored legacy stock and purchase persistence, authored loss recruits, authored loss dialogue, reproducible playtest setup, Valley carryover, thirteen-chapter Valley template, and single-battle tests")
+ print("PASS: campaign JSON file transfer, draft library management, remembered playtest setup, campaign readiness, authored Hard bonuses, authored retry raiders, route pins, war-table site terrain, rising Valley landmarks, custom recruits, phase scenes, timed reinforcements, chapter 32 saves, section dialogue, authored section relief, authored legacy stock and purchase persistence, authored loss recruits, authored loss dialogue, reproducible playtest setup, Valley carryover, thirteen-chapter Valley template, and single-battle tests")
  quit()
