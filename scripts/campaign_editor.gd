@@ -7,6 +7,7 @@ const Grid=preload("res://scripts/campaign_editor_grid.gd")
 const Route=preload("res://scripts/campaign_route.gd")
 const Settings=preload("res://scripts/campaign_settings.gd")
 const Trials=preload("res://scripts/campaign_trials.gd")
+const DebugSession=preload("res://scripts/debug_session.gd")
 const MAX_CAMPAIGN_FILE_BYTES=4*Draft.MAX_DRAFT_LENGTH
 const TOOLS=["Terrain","Deployment","Enemy","Hard-mode enemy","Objective"]
 const GOLD=Color("896937")
@@ -187,6 +188,7 @@ func build_encounters():
  field_label(defaults,"Default enemy level",base_level)
  heading(encounter_panel,"Use 0 to scale by chapter number.",15)
  build_hard_bonuses(layout)
+ action(encounter_panel,"Preview deployment",show_deployment_preview).name="EditorPreviewDeployment"
  var enemies=layout.enemies+layout.hard_enemies
  if enemies.is_empty():
   heading(encounter_panel,"Place enemies on the Battle map to edit them here.",17)
@@ -271,6 +273,49 @@ func build_hard_bonuses(layout: Dictionary):
   if enabled:layout.hard_bonuses=bonuses
   else:layout.erase("hard_bonuses")
   changed())
+
+func show_deployment_preview():
+ var dialog=AcceptDialog.new();dialog.name="EditorDeploymentPreview";dialog.title="Enemy deployment";add_child(dialog)
+ dialog.confirmed.connect(dialog.queue_free);dialog.canceled.connect(dialog.queue_free)
+ var panel=VBoxContainer.new();panel.add_theme_constant_override("separation",8);dialog.add_child(panel)
+ var issue=draft.playtest_problem(selected)
+ if not issue.is_empty():
+  heading(panel,issue,17);dialog.popup_centered(Vector2i(560,160));return
+ var compiled=draft.compile()
+ var index=selected
+ var seed_value=int(playtest_setup.seed) if playtest_setup.fixed_seed else -1
+ var start_pressure=int(playtest_setup.pressure) if compiled.settings.reset_pressure else 0
+ var reference=Draft.Rules.new(compiled.content)
+ Draft.prepare_playtest(reference,compiled.settings,index,seed_value,0);reference.start_battle()
+ var summary=heading(panel,"",19);summary.name="EditorDeploymentSummary"
+ var scroll=ScrollContainer.new();scroll.horizontal_scroll_mode=ScrollContainer.SCROLL_MODE_DISABLED
+ scroll.custom_minimum_size=Vector2(470,270);scroll.size_flags_vertical=SIZE_EXPAND_FILL
+ var list=VBoxContainer.new();list.size_flags_horizontal=SIZE_EXPAND_FILL
+ list.add_theme_constant_override("separation",12);scroll.add_child(list)
+ var refresh=func(value):
+  for item in list.get_children():list.remove_child(item);item.queue_free()
+  var prepared=Draft.Rules.new(compiled.content)
+  Draft.prepare_playtest(prepared,compiled.settings,index,seed_value,int(value));prepared.start_battle()
+  var comparison=DebugSession.compare_deployments(reference,prepared)
+  summary.text="Chapter %02d · Pressure %d → %d"%[comparison.chapter,comparison.reference_pressure,comparison.pressure]
+  for enemy in comparison.enemies:
+   var card=VBoxContainer.new();card.add_theme_constant_override("separation",4);list.add_child(card)
+   heading(card,enemy.name+(" · Raider" if enemy.raider else ""),17)
+   var placement="Tile %s · HP %s · Attack %s"%[deployment_change(enemy,"position"),deployment_change(enemy,"hp"),deployment_change(enemy,"attack")]
+   heading(card,placement,15).name="EditorDeploymentPlacement_"+enemy.id
+   var details="Speed %s · Defense %s · Tonics %s"%[deployment_change(enemy,"speed"),deployment_change(enemy,"defense"),deployment_change(enemy,"held_tonics")]
+   heading(card,details,15).name="EditorDeploymentStats_"+enemy.id
+ var pressure=spin(start_pressure,0,10,refresh);pressure.name="EditorDeploymentPressure"
+ pressure.editable=compiled.settings.reset_pressure
+ field_label(row(panel),"Starting retry pressure",pressure)
+ panel.add_child(scroll);refresh.call(start_pressure)
+ dialog.popup_centered(Vector2i(560,420))
+
+func deployment_change(enemy: Dictionary,key: String) -> String:
+ var previous=enemy.before[key];var current=enemy.after[key]
+ var before="%d, %d"%previous if key=="position" else str(previous)
+ var after="%d, %d"%current if key=="position" else str(current)
+ return after if before==after else before+" → "+after
 
 func sync_encounter_arrival(enemy: Dictionary,index: int,standard_count: int,selector: OptionButton):
  selector.set_item_text(index,encounter_name(enemy,index,standard_count))

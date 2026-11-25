@@ -193,14 +193,17 @@ func retry_deployment(snapshot: Dictionary,compare_current=false) -> Dictionary:
  reference.trials.pressure=reference_pressure
  reference.start_battle()
  retry.start_battle()
+ return compare_deployments(reference,retry)
+
+static func compare_deployments(reference,prepared) -> Dictionary:
  var baseline={}
  for enemy in reference.living("enemy"):baseline[enemy.id]=enemy_deployment(reference,enemy)
  var enemies=[]
- for enemy in retry.living("enemy"):
+ for enemy in prepared.living("enemy"):
   enemies.append({"id":enemy.id,"name":enemy.name,"raider":enemy.get("raider",false),
-   "before":baseline[enemy.id],"after":enemy_deployment(retry,enemy)})
- return {"chapter":retry.chapter+1,"pressure":retry.trials.pressure,"reference_pressure":reference_pressure,"enemies":enemies}
+   "before":baseline[enemy.id],"after":enemy_deployment(prepared,enemy)})
+ return {"chapter":prepared.chapter+1,"pressure":prepared.trials.pressure,"reference_pressure":reference.trials.pressure,"enemies":enemies}
 
-func enemy_deployment(game,enemy: Dictionary) -> Dictionary:
+static func enemy_deployment(game,enemy: Dictionary) -> Dictionary:
  return {"position":[enemy.x,enemy.y],"hp":enemy.hp,"attack":game.attack_power(enemy),
-  "speed":game.attack_speed(enemy),"defense":enemy.defense,"held_tonics":enemy.held_tonics}
+  "speed":game.attack_speed(enemy),"defense":enemy.defense,"held_tonics":enemy.get("held_tonics",0)}

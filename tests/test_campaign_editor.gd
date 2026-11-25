@@ -951,6 +951,23 @@ func run():
  assert(app.campaign_editor.draft_key.is_empty() and FileAccess.file_exists(experiment_path))
  app.campaign_editor.find_child("EditorOpenDraft_"+saved_key,true,false).pressed.emit();await process_frame
  assert(app.campaign_editor.draft_key==saved_key and app.campaign_editor.draft.data.title==saved_title and app.campaign_editor.selected==11)
+ var preview_tabs=app.campaign_editor.find_child("CampaignEditorTabs",true,false)
+ preview_tabs.current_tab=preview_tabs.get_tab_idx_from_control(app.campaign_editor.find_child("Encounters",true,false))
+ await process_frame
+ var draft_before_preview=app.campaign_editor.draft.encode()
+ controls(app,"Preview deployment").pressed.emit();await process_frame
+ var deployment=app.campaign_editor.find_child("EditorDeploymentPreview",true,false)
+ assert(deployment.find_child("EditorDeploymentSummary",true,false).text=="Chapter 12 · Pressure 0 → 2")
+ assert(deployment.find_child("EditorDeploymentStats_enemy_0",true,false).text.ends_with("Tonics 2 → 0"))
+ for enemy in experiment_snapshot.units.filter(func(unit):return unit.team=="enemy"):
+  var placement=deployment.find_child("EditorDeploymentPlacement_"+enemy.id,true,false).text
+  assert(placement.get_slice(" · ",0).ends_with("%d, %d"%[enemy.x,enemy.y]))
+  assert(placement.get_slice(" · ",1).ends_with(" "+str(int(enemy.hp))))
+ deployment.find_child("EditorDeploymentPressure",true,false).value=1;await process_frame
+ assert(deployment.find_child("EditorDeploymentStats_enemy_0",true,false).text.ends_with("Tonics 2 → 1"))
+ assert(app.campaign_playtest_setup.pressure==2 and app.campaign_editor.draft.encode()==draft_before_preview)
+ assert(FileAccess.get_file_as_string(app.save_path)==disk and app.game==installed)
+ deployment.confirmed.emit();await process_frame
  var reopened=load("res://main.tscn").instantiate();reopened.settings_path="";reopened.save_path=app.save_path
  reopened.campaign_draft_library.path=app.campaign_draft_library.path;reopened.campaign_playtest_directory=scratch
  root.add_child(reopened);await process_frame
@@ -969,5 +986,5 @@ func run():
  assert(FileAccess.get_file_as_string(app.save_path)==disk)
  await Shutdown.dispose(reopened);await process_frame
  await Shutdown.dispose(app);await process_frame
- print("PASS: campaign JSON file transfer, draft library management, remembered playtest setup, campaign readiness, authored Hard bonuses, authored retry raiders, route pins, war-table site terrain, rising Valley landmarks, custom recruits, phase scenes, timed reinforcements, chapter 32 saves, section dialogue, authored section relief, authored legacy stock and purchase persistence, authored loss recruits, authored loss dialogue, reproducible playtest setup, Valley carryover, thirteen-chapter Valley template, and single-battle tests")
+ print("PASS: campaign JSON file transfer, draft library management, remembered playtest setup, campaign readiness, authored Hard bonuses, authored retry raiders, deployment comparison, route pins, war-table site terrain, rising Valley landmarks, custom recruits, phase scenes, timed reinforcements, chapter 32 saves, section dialogue, authored section relief, authored legacy stock and purchase persistence, authored loss recruits, authored loss dialogue, reproducible playtest setup, Valley carryover, thirteen-chapter Valley template, and single-battle tests")
  quit()

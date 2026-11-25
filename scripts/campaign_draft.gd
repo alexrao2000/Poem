@@ -531,6 +531,15 @@ func compile() -> Dictionary:
  if not relief.is_empty():content.section_relief=relief
  return {"content":content,"story":{"chapters":scenes},"settings":data.settings.duplicate(true)}
 
+static func prepare_playtest(game,settings: Dictionary,start: int,seed_value: int,pressure: int,deploy_company=true):
+ game.new_campaign(settings.permadeath);game.chapter=start
+ for setting in Settings.SWITCHES:Settings.set_enabled(game,setting.key,settings[setting.key])
+ if seed_value>=0:game.rng.seed=seed_value
+ game.trials.pressure=pressure
+ if deploy_company and start>0:
+  if game.content.get("section_relief",{}).has(start):game.trials.arrive(game)
+  game.deployed=game.available().slice(0,int(game.info().deployment)).map(func(unit):return unit.id)
+
 func compile_section_scenes(content: Dictionary):
  content.trial_scenes={}
  content.trial_titles={}

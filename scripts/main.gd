@@ -1,5 +1,6 @@
 extends Node3D
 const Rules = preload("res://scripts/rules.gd")
+const CampaignDraftModel=preload("res://scripts/campaign_draft.gd")
 const CampaignSettings=preload("res://scripts/campaign_settings.gd")
 const EquipmentComparison=preload("res://scripts/equipment_comparison.gd")
 const Portraits = preload("res://scripts/portraits.gd")
@@ -519,7 +520,7 @@ func show_visual_workshop():
 func show_campaign_editor(return_to: String):
 	campaign_editor_return=return_to
 	if campaign_draft==null:
-		campaign_draft=preload("res://scripts/campaign_draft.gd").new()
+		campaign_draft=CampaignDraftModel.new()
 		var drafts=campaign_draft_library.list_drafts()
 		if not drafts.is_empty() and campaign_draft.decode(JSON.stringify(drafts[0].document,"",true,true)).is_empty():
 			campaign_editor_key=drafts[0].key
@@ -560,14 +561,8 @@ func start_campaign_preview(compiled: Dictionary,start: int,resume: bool,return_
 	game=preview;story=compiled.story
 	debug_session=preload("res://scripts/debug_session.gd").new()
 	if resume:await load_campaign();return
-	game.new_campaign(compiled.settings.permadeath);game.chapter=start
-	for setting in CampaignSettings.SWITCHES:CampaignSettings.set_enabled(game,setting.key,compiled.settings[setting.key])
-	if seed_value>=0:game.rng.seed=seed_value
-	game.trials.pressure=pressure
+	CampaignDraftModel.prepare_playtest(game,compiled.settings,start,seed_value,pressure,return_to!="route")
 	if return_to=="route":carry_valley_company(campaign_preview.game)
-	elif start>0:
-		if compiled.content.get("section_relief",{}).has(start):game.trials.arrive(game)
-		game.deployed=game.available().slice(0,int(game.info().deployment)).map(func(unit):return unit.id)
 	persist_campaign("camp")
 	show_camp()
 
@@ -604,7 +599,7 @@ func close_campaign_preview():
 	else:show_campaign_editor(campaign_editor_return)
 
 func play_valley_front():
-	var valley=preload("res://scripts/campaign_draft.gd").new()
+	var valley=CampaignDraftModel.new()
 	var index=valley.insert_chapter(10,false,true)
 	var compiled=valley.compile()
 	compiled.settings=CampaignSettings.snapshot(game)
