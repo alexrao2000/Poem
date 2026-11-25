@@ -542,6 +542,33 @@ func verify_moving_placements(app):
  var escape=InputEventKey.new();escape.keycode=KEY_ESCAPE;escape.pressed=true
  grid._gui_input(escape)
  assert(grid.marked_placement.x<0 and app.screen=="campaign_editor")
+ reinforcement.item="field_staff";reinforcement.level=12;reinforcement.raider=false
+ mode.select(7);mode.item_selected.emit(7)
+ assert(not grid.paint_on_drag)
+ grid.tile_edited.emit(capital,false)
+ grid.tile_edited.emit(reserve,false)
+ assert(level.hard_enemies.size()==1 and grid.marked_placement==capital)
+ var first_copy=Vector2i(1,1)
+ var second_copy=Vector2i(2,1)
+ grid.tile_edited.emit(first_copy,false);grid.tile_edited.emit(second_copy,false)
+ assert(level.hard_enemies.size()==3 and grid.marked_placement==capital and reinforcement.position==[21,2])
+ for index in [1,2]:
+  var expected=reinforcement.duplicate(true)
+  expected.position=[index,1]
+  assert(level.hard_enemies[index]==expected)
+ level.hard_enemies[1].level=13
+ assert(reinforcement.level==12 and level.hard_enemies[2].level==12)
+ assert(editor.draft.playtest_problem().is_empty())
+ var compiled=Rules.new(editor.draft.compile().content)
+ compiled.chapter=editor.selected;compiled.trials.flags.hard_campaign=true;compiled.start_battle()
+ assert(compiled.enemy_waves.size()==3 and compiled.enemy_waves.all(func(wave):
+  return wave.turn==3 and wave.phase=="enemy" and wave.unit.item=="field_staff"))
+ grid._gui_input(escape)
+ var first_deployment=Vector2i(level.deployment_positions[0][0],level.deployment_positions[0][1])
+ grid.tile_edited.emit(first_deployment,false);grid.tile_edited.emit(Vector2i(3,1),false)
+ assert(level.deployment_positions.size()==6 and editor.find_child("EditorMovePlacementStatus",true,false).text=="This placement group is full.")
+ grid._gui_input(escape)
+ assert(grid.marked_placement.x<0)
 
 func run():
  check_document()
@@ -1442,5 +1469,5 @@ func run():
  await verify_multiple_standards(app)
  assert(FileAccess.get_file_as_string(app.save_path)==disk and app.game==installed)
  await Shutdown.dispose(app);await process_frame
- print("PASS: campaign JSON file transfer, draft library management, remembered playtest setup, campaign readiness, authored Hard bonuses, authored retry raiders, deployment comparison, authored formation previews, small deployment limits and save recovery, custom campaign atlas, terrain stroke undo, continuous terrain strokes, connected terrain fill, placement moves and swaps, multiple standards and exact resume, standard navigation and live progress, standards that follow route pins, route pins, war-table site terrain, war-table overlay, blank war-table chapter, rising Valley landmarks, Valley reveal sound cues, battlefield site markers, custom recruits, phase scenes, tile dialogue and reload, one-use field tonic caches, Valley landmark dialogue, dialogue that follows route pins, timed reinforcements, chapter 32 saves, section dialogue, authored section relief, authored legacy stock and purchase persistence, authored loss recruits, authored loss dialogue, reproducible playtest setup, Valley carryover and resume, thirteen-chapter Valley template, and single-battle tests")
+ print("PASS: campaign JSON file transfer, draft library management, remembered playtest setup, campaign readiness, authored Hard bonuses, authored retry raiders, deployment comparison, authored formation previews, small deployment limits and save recovery, custom campaign atlas, terrain stroke undo, continuous terrain strokes, connected terrain fill, placement moves and swaps, repeated placement copies, multiple standards and exact resume, standard navigation and live progress, standards that follow route pins, route pins, war-table site terrain, war-table overlay, blank war-table chapter, rising Valley landmarks, Valley reveal sound cues, battlefield site markers, custom recruits, phase scenes, tile dialogue and reload, one-use field tonic caches, Valley landmark dialogue, dialogue that follows route pins, timed reinforcements, chapter 32 saves, section dialogue, authored section relief, authored legacy stock and purchase persistence, authored loss recruits, authored loss dialogue, reproducible playtest setup, Valley carryover and resume, thirteen-chapter Valley template, and single-battle tests")
  quit()

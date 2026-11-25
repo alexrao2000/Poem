@@ -22,6 +22,8 @@ Switch on Fill connected area to paint touching tiles of the same terrain in one
 
 Use Move placement to relocate a deployment tile or enemy with its equipment, level, strategy, and arrival settings. Select another placement to swap their tiles. Right-click or press Escape to cancel the selection.
 
+Use Copy placement to repeat an enemy or deployment position on empty passable tiles. Enemy copies keep their equipment, level, Hard assignment, and arrival settings. Click more tiles to repeat the same source, or press Escape to clear the selection.
+
 The war council and section rallies use the number of deployment tiles you placed for that chapter. The Positions screen previews the authored map and its prepared enemies.
 
 For a seize battle, use Extra standard in Battle to add more objectives. Win by holding every standard at once with standing allies. Right-click or press Backspace to remove an extra standard. The Battle grid, Positions screen, and war table show all required tiles. During battle, the objective shows how many are held. Choose Next standard or press G to cycle through their positions. Check campaign flags standards cut off from deployment.

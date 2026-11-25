@@ -9,9 +9,10 @@ const Settings=preload("res://scripts/campaign_settings.gd")
 const Trials=preload("res://scripts/campaign_trials.gd")
 const DebugSession=preload("res://scripts/debug_session.gd")
 const MAX_CAMPAIGN_FILE_BYTES=4*Draft.MAX_DRAFT_LENGTH
-const TOOLS=["Terrain","Deployment","Enemy","Hard-mode enemy","Objective","Move placement","Extra standard"]
+const TOOLS=["Terrain","Deployment","Enemy","Hard-mode enemy","Objective","Move placement","Extra standard","Copy placement"]
 const MOVE_PLACEMENT=5
 const EXTRA_STANDARD=6
+const COPY_PLACEMENT=7
 const GOLD=Color("896937")
 var draft: RefCounted
 var library: RefCounted
@@ -184,28 +185,35 @@ func show_brush_options():
  terrain_choice.visible=brush==0
  fill_terrain.visible=brush==0
  job_choice.visible=enemy;ai_choice.visible=enemy;enemy_name.visible=enemy
- placement_hint.visible=brush==MOVE_PLACEMENT
- grid_help.visible=brush!=MOVE_PLACEMENT
+ placement_hint.visible=brush in [MOVE_PLACEMENT,COPY_PLACEMENT]
+ grid_help.visible=not placement_hint.visible
  grid_help.text="Click or use the arrow keys and Enter. Right-click or Backspace erases. C marks the commander."
  if brush==EXTRA_STANDARD:
   grid_help.text="Place an extra standard. Right-click or Backspace removes it." if level().objective=="seize" else "Choose the seize objective to place standards."
- grid.paint_on_drag=brush not in [MOVE_PLACEMENT,EXTRA_STANDARD] and (brush!=0 or not fill_connected)
+ grid.paint_on_drag=not placement_hint.visible and brush!=EXTRA_STANDARD and (brush!=0 or not fill_connected)
  grid.connect_terrain_strokes=brush==0 and not fill_connected
  clear_placement_selection()
 
 func clear_placement_selection():
  grid.marked_placement=Vector2i(-1,-1)
- placement_hint.text="Select a deployment tile or enemy to move it."
+ placement_hint.text="Select a deployment tile or enemy to copy." if brush==COPY_PLACEMENT else "Select a deployment tile or enemy to move it."
  grid.queue_redraw()
 
-func move_placement(point: Vector2i,erase: bool):
+func use_placement_tool(point: Vector2i,erase: bool):
  if erase or grid.marked_placement==point:
   clear_placement_selection();return
  if grid.marked_placement.x<0:
   if Draft.placement_at(level(),point).is_empty():return
   grid.marked_placement=point
-  placement_hint.text="Choose an empty tile or a placement to swap."
+  placement_hint.text="Choose an empty passable tile for the copy." if brush==COPY_PLACEMENT else "Choose an empty tile or a placement to swap."
   grid.queue_redraw();return
+ if brush==COPY_PLACEMENT:
+  var issue=draft.copy_placement(selected,grid.marked_placement,point)
+  placement_hint.text=issue
+  if issue.is_empty():
+   placement_hint.text="Choose another empty tile to copy again."
+   grid.queue_redraw();changed()
+  return
  if not draft.move_placement(selected,grid.marked_placement,point):
   placement_hint.text="Choose a passable destination."
   return
@@ -237,8 +245,8 @@ func paint_terrain_segment(points: Array[Vector2i],erase: bool):
   changed()
 
 func edit_tile(point: Vector2i,erase: bool):
- if brush==MOVE_PLACEMENT:
-  move_placement(point,erase);return
+ if brush in [MOVE_PLACEMENT,COPY_PLACEMENT]:
+  use_placement_tool(point,erase);return
  var layout=level()
  var position=[point.x,point.y]
  if brush==EXTRA_STANDARD:
@@ -254,7 +262,7 @@ func edit_tile(point: Vector2i,erase: bool):
   for group in ["enemies","hard_enemies"]:
    layout[group]=layout[group].filter(func(enemy):return not same_tile(enemy.position,point))
  elif brush==1:
-  if layout.deployment_positions.size()<6 and not layout.deployment_positions.any(func(site):return same_tile(site,point)):
+  if layout.deployment_positions.size()<Draft.MAX_DEPLOYMENTS and not layout.deployment_positions.any(func(site):return same_tile(site,point)):
    layout.deployment_positions.append(position)
  elif brush in [2,3]:
   var group=layout.enemies if brush==2 else layout.hard_enemies
@@ -263,7 +271,7 @@ func edit_tile(point: Vector2i,erase: bool):
   if old>=0:
    if group[old].job!=enemy.job:group[old].erase("item")
    group[old].merge(enemy,true)
-  elif group.size()<24:group.append(enemy)
+  elif group.size()<Draft.MAX_ENEMY_PLACEMENTS:group.append(enemy)
  else:
   if point in grid.linked_standards:
    grid_help.text="This tile already has a standard from a route pin.";return

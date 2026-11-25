@@ -14,6 +14,8 @@ const MAX_CUSTOM_RECRUITS=16
 const MAX_PHASE_SCENES=8
 const MAX_SITE_SCENES=8
 const MAX_EXTRA_STANDARDS=5
+const MAX_ENEMY_PLACEMENTS=24
+const MAX_DEPLOYMENTS=6
 const TERRAIN_UNDO_LIMIT=32
 const SECTION_SCENES={"relief":"Relief arrivals","retreat":"Withdrawal","memorial":"Memorial"}
 const MAX_DRAFT_LENGTH=1000000
@@ -329,6 +331,24 @@ func move_placement(index: int,from: Vector2i,to: Vector2i) -> bool:
  set_placement(level,selected,to)
  return true
 
+func copy_placement(index: int,from: Vector2i,to: Vector2i) -> String:
+ var level=data.chapters[index].level
+ var source=placement_at(level,from)
+ if source.is_empty():return "Select a placement to copy."
+ var position=[to.x,to.y]
+ if not placement_at(level,to).is_empty() or not walkable(battle_level(index),position):
+  return "Choose an empty passable tile."
+ var group=level[source.group]
+ var deployment=source.group=="deployment_positions"
+ if group.size()>=(MAX_DEPLOYMENTS if deployment else MAX_ENEMY_PLACEMENTS):
+  return "This placement group is full."
+ if deployment:group.append(position)
+ else:
+  var copied=group[source.index].duplicate(true)
+  copied.position=position
+  group.append(copied)
+ return ""
+
 static func set_placement(level: Dictionary,placement: Dictionary,point: Vector2i):
  var target=[point.x,point.y]
  var group=level[placement.group]
@@ -533,10 +553,10 @@ func map_structure_problem(level: Dictionary) -> String:
   if not valid_text(pin,64) or not pin.is_valid_identifier() or seen.has(pin):return "Each linked standard needs a different route pin."
   seen[pin]=true
  if not site_scenes_valid(level.get("site_scenes",[])):return "A chapter has invalid tile dialogue."
- if not level.get("deployment_positions") is Array or level.deployment_positions.size()>6 or not level.deployment_positions.all(point_valid):
+ if not level.get("deployment_positions") is Array or level.deployment_positions.size()>MAX_DEPLOYMENTS or not level.deployment_positions.all(point_valid):
   return "A battle supports up to six deployment tiles."
  for key in ["enemies","hard_enemies"]:
-  if not level.get(key) is Array or level[key].size()>24:return "A battle supports up to 24 placements in each enemy group."
+  if not level.get(key) is Array or level[key].size()>MAX_ENEMY_PLACEMENTS:return "A battle supports up to 24 placements in each enemy group."
   for enemy in level[key]:
    if not enemy is Dictionary or not templates.classes.has(enemy.get("job")) or not point_valid(enemy.get("position")):
     return "An enemy needs a class and a tile."
