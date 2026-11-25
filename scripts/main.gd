@@ -647,6 +647,7 @@ func open_editor_reveal_preview():
 	var return_to=campaign_editor_return
 	var original_game=game
 	var original_camera=map_navigation.capture_view()
+	var original_home_extent=get_viewport().get_visible_rect().size if map_navigation.at_home() else Vector2.ZERO
 	var original_map={
 		"selected":selected,"dropping":drop_mode,"cursor_visible":cursor_visible,"cursor_tile":cursor_tile,
 		"atlas_grid":atlas_grid_enabled,"atlas_units":atlas_units_enabled
@@ -667,7 +668,8 @@ func open_editor_reveal_preview():
 		drop_mode=original_map.dropping;cursor_visible=original_map.cursor_visible;cursor_tile=original_map.cursor_tile
 		atlas_grid_enabled=original_map.atlas_grid;atlas_units_enabled=original_map.atlas_units
 		camera.projection=original_camera.projection;camera.fov=original_camera.fov
-		map_navigation.apply_return(1.0,original_camera,original_camera)
+		if original_home_extent==Vector2.ZERO or original_home_extent==get_viewport().get_visible_rect().size:
+			map_navigation.apply_return(1.0,original_camera,original_camera)
 		map_navigation.stop()
 		restore_editor_after_preview(return_to,view_state)
 	var actions=HBoxContainer.new();actions.add_theme_constant_override("separation",8);ui.add_child(actions)

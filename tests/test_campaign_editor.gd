@@ -620,6 +620,20 @@ func verify_editor_reveal_preview(app,scratch: String,picture: Texture2D,origin:
  assert(app.score_director.player.get_stream_playback()==playback)
  assert(DirAccess.get_files_at(scratch)==files and FileAccess.get_file_as_string(app.save_path)==disk)
  print("PASS: the editor plays and skips the authored atlas reveal and Escape returns mid-reveal to the exact draft without writing a playtest")
+ app.map_camera()
+ var wide_home=app.map_navigation.capture_view()
+ controls(app,"Preview atlas reveal").pressed.emit()
+ assert(app.valley_reveal_active)
+ root.size=Vector2i(720,640);root.content_scale_size=root.size
+ await process_frame;await process_frame
+ root.push_input(escape,true);await finish_presentation(app)
+ await process_frame;await process_frame;await process_frame
+ assert(app.screen=="campaign_editor" and app.map_navigation.at_home() and app.map_navigation.capture_view()!=wide_home)
+ assert(app.game==original and app.game.save_data("battle")==state and DirAccess.get_files_at(scratch)==files)
+ root.size=size_before;root.content_scale_size=scale_before
+ app.map_camera()
+ await process_frame
+ print("PASS: resizing the editor reveal preview returns the original battle to its newly fitted Home camera")
 
 func verify_multiple_standards(app):
  controls(app,"New draft").pressed.emit();await process_frame
