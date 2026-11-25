@@ -34,7 +34,7 @@ func verify_rules():
  g.units[0].hp=0;g.units[0].erase("downed")
  assert(g.retry_battle());g.start_battle()
  assert(not g.units.any(func(u):return u.id==victim.id),"Lord defeat cannot erase committed deaths")
- var path="/private/tmp/poem-action-save-test.json"
+ var path="/private/tmp/poem-action-save-test-%d.json"%OS.get_process_id()
  assert(g.save_game(path,"battle"));g.turn=8;assert(g.save_game(path,"battle"))
  assert(FileAccess.get_file_as_string(path)==FileAccess.get_file_as_string(path+".bak"),"Recovery copy contains the same irreversible checkpoint")
  var bad=FileAccess.open(path,FileAccess.WRITE);bad.store_string("broken");bad.close()
@@ -212,7 +212,7 @@ func run():
  verify_rules()
  verify_downed_objectives()
  root.size=Vector2i(1440,900)
- var app=load("res://main.tscn").instantiate();app.settings_path="";app.save_path="/private/tmp/poem-experiment-ui.json"
+ var app=load("res://main.tscn").instantiate();app.settings_path="";app.save_path="/private/tmp/poem-experiment-ui-%d.json"%OS.get_process_id()
  root.add_child(app);await process_frame
  app.game.new_campaign(true);app.game.action_saves=true;app.game.death_door=true;app.game.start_battle()
  app.preferences.values.combat="map";app.preferences.values.auto_end=false
@@ -304,6 +304,21 @@ func run():
  assert(loaded.load_game(app.save_path)=="battle" and loaded.result()=="defeat","The phase-boundary defeat is checkpointed")
  var lost=app.ui.find_child("DefeatCommittedLosses",true,false)
  assert(lost.text=="Permanent losses on this attempt · Sera" and loaded.lost_ids()==["sera"],"The result names the companion who stays lost after retry")
+ assert(app.ui.find_child("DefeatRecovery",true,false)==null)
+ app.game.new_campaign();app.game.death_door=true;app.game.action_saves=true
+ app.game.trials.flags.sacrifice_cost=true;app.game.trials.flags.reset_pressure=true
+ app.game.start_battle()
+ for unit in app.game.units:
+  if unit.id in ["lyra","oren"]:casualty(app.game,unit);unit.bleed_turns=1
+ app.make_map();app.show_battle();await app.end_turn()
+ assert(app.screen=="result" and app.ui.find_child("DefeatCommittedLosses",true,false)==null)
+ var recovery=app.ui.find_child("DefeatRecovery",true,false)
+ assert(recovery.text=="Next deployment recovery · Lyra (23 HP, 1 tonic), Oren (28 HP, 1 tonic)")
+ assert(loaded.load_game(app.save_path)=="battle" and loaded.lost_ids().is_empty() and loaded.trials.injuries.size()==2)
+ for dimensions in [Vector2i(1024,640),Vector2i(1280,720),Vector2i(1440,900)]:
+  app.ui.set_anchors_and_offsets_preset(Control.PRESET_TOP_LEFT);app.ui.size=dimensions
+  await process_frame;await process_frame
+  assert(Rect2(Vector2.ZERO,Vector2(dimensions)).grow(1).encloses(recovery.get_global_rect()))
  await Shutdown.dispose(app);await process_frame
  print("PASS: downed countdown, rescue/carry/drop, revival, carrier loss, evacuation, irreversible deaths and movement, current recovery saves, validation and interrupted phase continuation")
  quit()

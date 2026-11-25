@@ -1774,6 +1774,14 @@ func check_result() -> bool:
 		var losses=game.units.filter(func(unit):return unit.team=="player" and unit.id in committed).map(func(unit):return unit.name)
 		if not losses.is_empty():
 			label_in(v,"Permanent losses on this attempt · "+", ".join(losses),18,GOLD).name="DefeatCommittedLosses"
+		if not game.permadeath and game.trials.flags.sacrifice_cost:
+			var recovering: PackedStringArray=[]
+			for unit in game.units:
+				if unit.team!="player" or unit.hp>0 or game.DeathDoor.downed(unit) or unit.id in committed:continue
+				var condition=game.trials.deployment_condition(game,unit)
+				if condition.recovering:recovering.append("%s (%d HP, %d tonic)"%[unit.name,condition.hp,condition.tonics])
+			if not recovering.is_empty():
+				label_in(v,"Next deployment recovery · "+", ".join(recovering),18,GOLD).name="DefeatRecovery"
 		label_in(v,"Retry from the beginning of this section. Deaths, legacy supplies and reset pressure remain." if game.trials.flags.section_restarts and game.permadeath else "Retry from preparation. Committed deaths remain lost." if (game.action_saves or game.trials.flags.death_legacies) and game.permadeath else "Retry from chapter preparation. Losses and gains from this failed attempt are discarded; earlier permanent losses remain." if game.permadeath else "Regroup at the war council and choose a new approach.",20)
 		var retreat=label_in(v,restart_summary(),18,GOLD);retreat.name="RestartPreview"
 		button_in(frame,"Regroup and retry",func():
