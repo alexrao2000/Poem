@@ -331,6 +331,7 @@ func run():
  assert(app.game.story_seen.count(player_key)==1 and app.screen=="battle")
  var deployed_linden=app.game.units.filter(func(unit):return unit.id==custom.id)[0]
  assert(app.unit_nodes[custom.id].visual_id=="recruit.sera")
+ assert(app.unit_nodes[custom.id].marker.mesh is PlaneMesh and not app.unit_nodes[custom.id].on_war_table)
  var actor=app.make_preview_fighter(deployed_linden,Vector3(35,0,0),"revised")
  assert(actor.available and actor.actor.has_meta("source_model"))
  app.stage.remove_child(actor.actor);actor.actor.queue_free()
@@ -383,6 +384,19 @@ func run():
  var paper=app.world.get_node("ValleyChart")
  assert(paper.material_override.albedo_texture==Route.MAP and Valley.MAP==Route.MAP)
  assert(app.world.has_node("ValleyTable") and app.world.has_node("ValleyGrid") and app.world.has_node("ValleyStandard"))
+ assert(app.world.has_node("ValleyRoomFloor"))
+ var allied_counter=app.unit_nodes.lyra.marker
+ var enemy_counter=app.unit_nodes.enemy_0.marker
+ assert(allied_counter.name=="ValleyCounter" and enemy_counter.name=="ValleyCounter")
+ assert(allied_counter.mesh==app.unit_nodes.oren.marker.mesh and allied_counter.mesh!=enemy_counter.mesh)
+ assert(allied_counter.mesh.surface_get_arrays(0)[Mesh.ARRAY_VERTEX].size()==216)
+ assert(enemy_counter.mesh.surface_get_arrays(0)[Mesh.ARRAY_VERTEX].size()==162)
+ assert(allied_counter.mesh.get_aabb().end.y+allied_counter.position.y<app.unit_nodes.lyra.ring.position.y)
+ var sample_material=allied_counter.material_override
+ app.unit_nodes.oren.begin_rescue_transfer(.35)
+ assert(app.unit_nodes.oren.marker.material_override!=sample_material and is_equal_approx(sample_material.albedo_color.a,1.0))
+ assert(is_equal_approx(app.unit_nodes.oren.marker.material_override.albedo_color.a,.35))
+ app.refresh_pieces();await process_frame
  assert(app.world.get_node("ValleyGrid").mesh.surface_get_arrays(0)[Mesh.ARRAY_VERTEX].size()==84)
  assert(app.map_height(Vector2i(7,5))==0 and app.game.terrain(Vector2i(7,5))=="+")
  var hero=app.game.units.filter(func(unit):return unit.id=="lyra")[0]
@@ -449,5 +463,5 @@ func run():
  assert(app.screen=="campaign_route" and app.game==installed and app.game.save_data("camp")==route_state)
  assert(FileAccess.get_file_as_string(app.save_path)==disk)
  await Shutdown.dispose(app);await process_frame
- print("PASS: campaign JSON, direct route pin placement, chapter order, custom recruit presentation, phase scenes, timed reinforcements and durable replay, authored encounters and bonds, chapter 32 saves, two complete chapters, valley reveal and sites, and isolated resume")
+ print("PASS: campaign JSON, direct route pin placement, chapter order, custom recruit presentation, phase scenes, timed reinforcements and durable replay, authored encounters and bonds, chapter 32 saves, two complete chapters, valley reveal, company counters and sites, and isolated resume")
  quit()

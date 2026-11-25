@@ -9,6 +9,8 @@ const HEALTH_COLORS=[Color("e87c63"),Color("f2c45e"),Color("acd86b")]
 const CUTAWAY_TINT=Color(.66,.73,.79)
 static var contact_material: StandardMaterial3D
 static var contact_mesh: PlaneMesh
+static var counter_meshes: Dictionary={}
+static var counter_material: StandardMaterial3D
 static var selected_mesh: ArrayMesh
 static var selected_material: StandardMaterial3D
 static var health_textures={}
@@ -27,9 +29,11 @@ var transferring=false
 var rescue_opacity=1.0
 var tactical_details_visible=true
 var cutaway_dim=0.0
+var on_war_table=false
 
-func configure(source: RefCounted,unit: Dictionary,facing="south",carried_name="",shared_count=0):
+func configure(source: RefCounted,unit: Dictionary,facing="south",carried_name="",shared_count=0,war_table=false):
  unit_id=unit.id;team=unit.team;spent=unit.acted;downed=unit.get("downed",false)
+ on_war_table=war_table
  hp_ratio=clampf(float(unit.hp)/maxf(1,unit.max_hp),0,1)
  setup(source,source.asset_id_for(unit))
  sprite.pixel_size=TACTICAL_PIXEL_SIZE;sprite.no_depth_test=true;sprite.render_priority=2
@@ -37,6 +41,9 @@ func configure(source: RefCounted,unit: Dictionary,facing="south",carried_name="
   contact_mesh=PlaneMesh.new();contact_mesh.size=CONTACT_SIZE
  marker.mesh=contact_mesh;marker.material_override=shadow_material()
  ring.mesh=selection_mesh();ring.material_override=selection_material();ring.position.y=.072
+ if on_war_table:
+  marker.name="ValleyCounter";marker.mesh=counter_mesh(team);marker.material_override=counter_surface()
+  ring.position.y=.108
  ring.cast_shadow=GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
  marker.cast_shadow=GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
  rest_pose(facing)
@@ -120,6 +127,44 @@ static func shadow_material() -> StandardMaterial3D:
   contact_material.shading_mode=BaseMaterial3D.SHADING_MODE_UNSHADED
  return contact_material
 
+static func counter_surface() -> StandardMaterial3D:
+ if counter_material==null:
+  counter_material=StandardMaterial3D.new()
+  counter_material.vertex_color_use_as_albedo=true
+  counter_material.roughness=.62;counter_material.metallic=.12
+  counter_material.cull_mode=BaseMaterial3D.CULL_DISABLED
+  counter_material.transparency=BaseMaterial3D.TRANSPARENCY_ALPHA
+ return counter_material
+
+static func counter_mesh(side: String) -> ArrayMesh:
+ if counter_meshes.has(side):return counter_meshes[side]
+ var allied=side=="player"
+ var corners=8 if allied else 6
+ var rings=[Vector2(.33,-.027),Vector2(.36,-.009),Vector2(.36,.024),Vector2(.30,.048),Vector2(.29,.056)]
+ var paints=[Color("302331"),Color("56363a"),Color("c09a61"),
+  Color("769da1") if allied else Color("b27369"),Color("36586b") if allied else Color("793e48")]
+ var outline=[]
+ for corner in corners:
+  var angle=TAU*(corner+.5)/corners
+  outline.append(Vector3(cos(angle),0,sin(angle)))
+ var tool=SurfaceTool.new();tool.begin(Mesh.PRIMITIVE_TRIANGLES)
+ for band in range(rings.size()-1):
+  for index in corners:
+   var left=outline[index];var right=outline[(index+1)%corners]
+   var low=rings[band];var high=rings[band+1]
+   var a=left*low.x+Vector3.UP*low.y;var b=right*low.x+Vector3.UP*low.y
+   var c=right*high.x+Vector3.UP*high.y;var d=left*high.x+Vector3.UP*high.y
+   tool.set_color(paints[band])
+   tool.set_normal(((left+right)*.5+Vector3.UP*maxf(0,low.x-high.x)*15.0).normalized())
+   for point in [a,b,d,b,c,d]:tool.add_vertex(point)
+ var top=rings[-1]
+ tool.set_color(paints[-1]);tool.set_normal(Vector3.UP)
+ for index in corners:
+  for point in [Vector3.ZERO,outline[index]*top.x,outline[(index+1)%corners]*top.x]:
+   tool.add_vertex(point+Vector3.UP*top.y)
+ counter_meshes[side]=tool.commit()
+ return counter_meshes[side]
+
 func refresh_health():
  var width=roundi(22*clampf(hp_ratio,0,1))
  var tier=2 if hp_ratio>.5 else 1 if hp_ratio>.25 else 0
@@ -172,7 +217,7 @@ func update_frame():
  sprite.scale=Vector3(scale_value.x,scale_value.y,1)
  sprite.flip_h=player.facing=="west" and player.asset.get("right_facing_frames",[]).any(func(value):return int(value)==player.frame_index())
  sprite.offset=Vector2(frame.pivot_px[0]-frame.rect[2] if sprite.flip_h else -frame.pivot_px[0],frame.pivot_px[1]-frame.rect[3])
- if frame.has("hoof_span_px"):
+ if not on_war_table and frame.has("hoof_span_px"):
   update_hoof_shadow(frame,scale_value.x)
  elif marker.scale!=Vector3.ONE:
   marker.position=Vector3.UP*.03

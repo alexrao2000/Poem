@@ -86,6 +86,7 @@ static func build(parent: Node3D,game,scenery):
  var size=Vector2(game.board_size())
  var center=Vector3(size.x*.5-.5,0,size.y*.5-.5)
  var extent=Vector3(size.x,.76,size.y)
+ scenery.block(parent,center+Vector3.DOWN*.95,Vector3(84,.27,84),Color("382c3b")).name="ValleyRoomFloor"
  scenery.block(parent,center+Vector3.DOWN*.43,extent+Vector3(.96,0,.96),Color("463044")).name="ValleyTable"
  scenery.block(parent,center+Vector3.DOWN*.10,Vector3(size.x+.38,.16,size.y+.38),Color("ad8555")).name="ValleyTableRim"
  var parchment=StandardMaterial3D.new()
