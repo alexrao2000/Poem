@@ -835,7 +835,11 @@ func show_campaign_route():
 	var details=VBoxContainer.new();details.custom_minimum_size.x=260;row.add_child(details)
 	var progress=label_in(details,"",16,GOLD)
 	var title=label_in(details,"",28)
-	var place=label_in(details,"",17,GOLD)
+	var location=HBoxContainer.new();location.add_theme_constant_override("separation",8);details.add_child(location)
+	var place=label_in(location,"",17,GOLD);place.size_flags_horizontal=Control.SIZE_EXPAND_FILL
+	var survey=label_in(location,"",15,Color("766e5e"));survey.name="RouteSurveyMark"
+	survey.autowrap_mode=TextServer.AUTOWRAP_OFF
+	survey.size_flags_vertical=Control.SIZE_SHRINK_CENTER
 	var section_label=label_in(details,"",15,GOLD);section_label.name="RouteSection";section_label.visible=sectioned
 	var chapter_choice=OptionButton.new()
 	chapter_choice.name="ReachedChapters"
@@ -859,6 +863,7 @@ func show_campaign_route():
 		var chapter=game.content.chapters[index]
 		progress.text="CHAPTER %02d / %02d · %s"%[index+1,game.content.chapters.size(),"COMPLETED" if index<game.chapter or game.completed else "CURRENT"]
 		title.text=chapter.title;place.text=chapter.place.to_upper()
+		survey.text=ValleyBattle.survey_mark(route.survey_cells[index])
 		var start=game.trials.section_start(index)
 		var last=game.trials.section_end(index,game.content.chapters.size())
 		section_label.text="SECTION %d · CHAPTERS %02d–%02d"%[game.trials.section_index(index)+1,start+1,last+1]
@@ -994,6 +999,7 @@ func show_battle():
 	battle_hint.autowrap_mode=TextServer.AUTOWRAP_OFF;battle_hint.text_overrun_behavior=TextServer.OVERRUN_TRIM_WORD_ELLIPSIS
 	terrain_card=TerrainCard.new();terrain_card.configure(ui)
 	if game.info().get("presentation","")=="valley_table":
+		terrain_card.show_survey=true
 		terrain_card.places=ValleyBattle.reached_places(game.content.chapters,game.chapter)
 	var inspected=game.pos(selected) if selected!=null else game.pos(game.living("player")[0]) if not game.living("player").is_empty() else Vector2i.ZERO
 	terrain_card.inspect(game,cursor_tile if cursor_visible else inspected)
@@ -1105,6 +1111,8 @@ func update_side():
 			button_in(side,"Next standard [G]",focus_next_standard,busy or game.phase!="player").name="NextStandard"
 		if not game.available_site_scenes().is_empty():
 			button_in(side,"Next site [J]",focus_next_site,busy or game.phase!="player").name="NextSite"
+		if not terrain_card.places.is_empty():
+			button_in(side,"Next landmark [L]",focus_next_landmark,busy or game.phase!="player").name="NextLandmark"
 	if save_failed and game.action_saves:button_in(side,"Retry autosave",retry_action_save,busy)
 	var expiring=game.units.filter(func(unit):return game.DeathDoor.downed(unit) and unit.bleed_turns==1 and unit.get("carried_by","").is_empty()) if game.phase=="player" else []
 	var phase_button=button_in(side,"End player phase" if expiring.is_empty() else "End phase · %d will fall"%expiring.size(),end_turn,busy or game.phase!="player");phase_button.name="EndPlayerPhase"
@@ -1289,6 +1297,8 @@ func _input(event):
 			focus_next_standard();get_viewport().set_input_as_handled();return
 		if event.keycode==KEY_J and not event.echo and not game.available_site_scenes().is_empty():
 			focus_next_site();get_viewport().set_input_as_handled();return
+		if event.keycode==KEY_L and not event.echo and not terrain_card.places.is_empty():
+			focus_next_landmark();get_viewport().set_input_as_handled();return
 	if is_instance_valid(reward_panel) and event is InputEventKey and event.pressed and event.keycode in [KEY_SPACE,KEY_ENTER,KEY_TAB]:
 		if not event.echo:reward_panel.request_continue();reward_skip=true
 		get_viewport().set_input_as_handled();return
@@ -3540,6 +3550,11 @@ func focus_next_site():
 		var point=Vector2i(scene.position[0],scene.position[1])
 		if point not in sites:sites.append(point)
 	focus_next_map_point(sites)
+
+func focus_next_landmark():
+	var landmarks: Array[Vector2i]=[]
+	landmarks.assign(terrain_card.places.keys())
+	focus_next_map_point(landmarks)
 
 func focus_next_map_point(points: Array[Vector2i]):
 	if screen!="battle" or busy or game.phase!="player" or points.is_empty():return

@@ -8,10 +8,12 @@ const MAP=preload("res://assets/art/campaign-valley-v1.png")
 const Grid=preload("res://scripts/campaign_editor_grid.gd")
 const Rules=preload("res://scripts/rules.gd")
 const RouteSeals=preload("res://scripts/route_seals.gd")
+const Valley=preload("res://scripts/world_map_battle.gd")
 const SEAL_SIZE=36.0
 const SEAL_INSET=20.0
 const STANDARD_INSET=41.0
 var positions=PackedVector2Array()
+var survey_cells: Array[Vector2i]=[]
 var markers: Array[Button]=[]
 var current=0
 var selected=0
@@ -34,6 +36,7 @@ func configure(chapters: Array,index: int,finished=false,rallies=PackedInt32Arra
   var pin=chapter.get("route_position",[])
   assert(pin is Array and pin.size()==2 and pin[0]>=0 and pin[0]<=1 and pin[1]>=0 and pin[1]<=1,"Route positions use normalized image coordinates")
   positions.append(Vector2(pin[0],pin[1]))
+  survey_cells.append(Valley.route_tile(pin))
  current=clampi(index,0,positions.size()-1);selected=current;complete=finished
  rally_points=rallies;retreat_chapter=retreat;section_starts=not rally_points.is_empty()
  mouse_filter=Control.MOUSE_FILTER_IGNORE
@@ -66,10 +69,6 @@ func set_war_table_overlay(battle: Dictionary):
  survey_standards=Rules.standard_tiles(battle)
  queue_redraw()
 
-func survey_tile(pin: Vector2) -> Vector2i:
- var dimensions=Vector2i(survey_terrain[0].length(),survey_terrain.size())
- return Vector2i((pin*Vector2(dimensions)).floor()).clamp(Vector2i.ZERO,dimensions-Vector2i.ONE)
-
 func draw_war_table_overlay():
  var cell=map_rect.size/Vector2(survey_terrain[0].length(),survey_terrain.size())
  var ink=Color(.22,.16,.12,.44)
@@ -87,6 +86,8 @@ func draw_war_table_overlay():
 func place_pin(position: Vector2):
  if not editable:return
  positions[selected]=position.clamp(Vector2.ZERO,Vector2.ONE)
+ var pin=positions[selected]
+ survey_cells[selected]=Valley.route_tile([pin.x,pin.y])
  arrange()
  pin_placed.emit(selected,positions[selected])
 
@@ -138,12 +139,18 @@ func _draw():
  draw_texture_rect(map_picture,map_rect,false)
  if not survey_terrain.is_empty():draw_war_table_overlay()
  var tick=Color(.34,.23,.14,.53)
- for index in range(1,24):
-  var x=map_rect.position.x+map_rect.size.x*index/24.0
+ for index in range(1,Valley.WIDTH):
+  var x=map_rect.position.x+map_rect.size.x*index/Valley.WIDTH
   draw_line(Vector2(x,map_rect.end.y-4),Vector2(x,map_rect.end.y),tick)
- for index in range(1,16):
-  var y=map_rect.position.y+map_rect.size.y*index/16.0
+ for index in range(1,Valley.HEIGHT):
+  var y=map_rect.position.y+map_rect.size.y*index/Valley.HEIGHT
   draw_line(Vector2(map_rect.position.x,y),Vector2(map_rect.position.x+4,y),tick)
+ if not editable:
+  var cell=Vector2(survey_cells[selected])+Vector2(.5,.5)
+  var mark=map_rect.position+map_rect.size*cell/Vector2(Valley.WIDTH,Valley.HEIGHT)
+  var stamp=Color("5f3e20")
+  draw_line(Vector2(mark.x,map_rect.end.y-7),Vector2(mark.x,map_rect.end.y),stamp,2)
+  draw_line(Vector2(map_rect.position.x,mark.y),Vector2(map_rect.position.x+7,mark.y),stamp,2)
  for i in range(positions.size()-1):
   var a=point(i);var b=point(i+1);var delta=b-a
   var side=Vector2(-delta.y,delta.x).normalized()*minf(18,delta.length()*.1)

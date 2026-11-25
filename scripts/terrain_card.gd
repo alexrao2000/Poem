@@ -2,12 +2,15 @@ extends PanelContainer
 # A compact map readout uses the same terrain profile as movement and combat.
 const Icons=preload("res://scripts/terrain_icons.gd")
 const FONT=preload("res://assets/fonts/CormorantGaramond.ttf")
+const Valley=preload("res://scripts/world_map_battle.gd")
 var heading: Label
 var icon: TextureRect
 var values: Label
 var detail: Label
 var place: Label
 var dialogue: Label
+var survey: Label
+var show_survey=false
 var places: Dictionary={}
 var tile=Vector2i(-1,-1)
 
@@ -20,6 +23,10 @@ func configure(parent: Control):
  icon.mouse_filter=Control.MOUSE_FILTER_IGNORE;identity.add_child(icon)
  heading=Label.new();heading.add_theme_font_override("font",FONT);heading.add_theme_font_size_override("font_size",22)
  heading.add_theme_color_override("font_color",Color("63543a"));heading.size_flags_vertical=Control.SIZE_SHRINK_CENTER;identity.add_child(heading)
+ heading.size_flags_horizontal=Control.SIZE_EXPAND_FILL
+ survey=Label.new();survey.name="TerrainSurveyMark";survey.hide()
+ survey.add_theme_font_size_override("font_size",13);survey.add_theme_color_override("font_color",Color("63543a"))
+ survey.size_flags_vertical=Control.SIZE_SHRINK_CENTER;identity.add_child(survey)
  values=Label.new();values.add_theme_font_size_override("font_size",14);column.add_child(values)
  detail=Label.new();detail.add_theme_font_size_override("font_size",13);detail.add_theme_color_override("font_color",Color("777163"));column.add_child(detail)
  place=Label.new();place.name="TerrainLocation";place.hide()
@@ -29,7 +36,7 @@ func configure(parent: Control):
  dialogue=Label.new();dialogue.name="TerrainDialogue";dialogue.hide()
  dialogue.add_theme_font_size_override("font_size",13);dialogue.add_theme_color_override("font_color",Color("35655b"))
  column.add_child(dialogue)
- for label in [heading,values,detail,place,dialogue]:label.mouse_filter=Control.MOUSE_FILTER_IGNORE
+ for label in [heading,values,detail,place,dialogue,survey]:label.mouse_filter=Control.MOUSE_FILTER_IGNORE
 
 func inspect(game,point: Vector2i):
  tile=point
@@ -38,6 +45,8 @@ func inspect(game,point: Vector2i):
  var terrain=game.terrain_profile(point)
  icon.texture=Icons.get_icon(game.terrain(point))
  heading.text=terrain.name.to_upper()
+ survey.visible=show_survey
+ if show_survey:survey.text=Valley.survey_mark(point)
  values.text="Move %d   Cover %d   Avoid +%d"%[terrain.move,terrain.cover,terrain.avoid] if terrain.move>0 else "Cannot enter"
  detail.text="Restores %d HP each turn"%terrain.heal if terrain.heal>0 else "Slows movement" if terrain.move>1 else "Passable ground" if terrain.move>0 else "Find a route around"
  var had_place=place.visible

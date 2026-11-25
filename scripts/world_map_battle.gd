@@ -188,6 +188,9 @@ static func reveal_origin(game) -> Vector2i:
 static func route_tile(pin: Array) -> Vector2i:
  return Vector2i(floori(pin[0]*WIDTH),floori(pin[1]*HEIGHT)).clamp(Vector2i.ZERO,Vector2i(WIDTH-1,HEIGHT-1))
 
+static func survey_mark(point: Vector2i) -> String:
+ return "%s-%d"%["ABCDEFGHIJKLMNOPQRSTUVWX"[point.x],point.y+1]
+
 static func reached_places(chapters: Array,chapter_index: int) -> Dictionary:
  var places={}
  for index in range(0,chapter_index):

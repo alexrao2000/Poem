@@ -694,10 +694,10 @@ func build_route_survey(panel: VBoxContainer,chart: Control) -> Callable:
   require.hide()
   if index>=0:
    picker.set_item_text(picker.selected,"%02d · %s"%[index+1,draft.data.chapters[index].level.title])
-   var tile=chart.survey_tile(chart.positions[selected])
+   var tile=chart.survey_cells[selected]
    var terrain_symbol=chart.survey_terrain[tile.y][tile.x]
    var terrain=Draft.Rules.TERRAIN_PROFILES[terrain_symbol].name
-   location.text="Selected pin · %d, %d · %s"%[tile.x,tile.y,terrain]
+   location.text="Selected pin · %s · %s"%[Draft.Valley.survey_mark(tile),terrain]
    var earlier=draft.data.chapters.map(func(record):return record.level)
    var arena=Draft.Valley.arena_at(earlier,index,tile,terrain_symbol)
    if arena.reused:location.text+=" · "+arena.environment.capitalize()+" arena"

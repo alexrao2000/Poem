@@ -1044,10 +1044,10 @@ func verify_route_arena_reuse(app):
  var survey=editor.find_child("EditorRouteSurvey",true,false)
  survey.select(1);survey.item_selected.emit(1)
  var caption=editor.find_child("EditorRouteSurveyTile",true,false)
- assert(caption.text=="Selected pin · 6, 9 · Path" and arena_at.call(draft,crossing).environment=="road")
+ assert(caption.text=="Selected pin · G-10 · Path" and arena_at.call(draft,crossing).environment=="road")
  var toggle=editor.find_child("EditorRouteArena",true,false)
  toggle.button_pressed=true
- assert(editor.level().route_arena and caption.text=="Selected pin · 6, 9 · Path · River arena")
+ assert(editor.level().route_arena and caption.text=="Selected pin · G-10 · Path · River arena")
  var copy=Draft.new()
  assert(copy.decode(draft.encode()).is_empty())
  var river=arena_at.call(copy,crossing)
@@ -1056,7 +1056,7 @@ func verify_route_arena_reuse(app):
  assert(copy.structural_problem(copy.data)=="Choose whether later war tables reuse the route location’s environment.")
  var chart=editor.find_child("EditorRouteChart",true,false)
  chart.place_pin(Vector2(.265,.64))
- assert(caption.text=="Selected pin · 6, 10 · Path · River arena")
+ assert(caption.text=="Selected pin · G-11 · Path · River arena")
  assert(arena_at.call(draft,crossing).environment=="road" and arena_at.call(draft,moved_crossing).environment=="river")
  var abbey=draft.data.chapters[3].level
  abbey.route_position=editor.level().route_position.duplicate()
@@ -1065,7 +1065,7 @@ func verify_route_arena_reuse(app):
  abbey.erase("route_arena")
  toggle.button_pressed=false
  assert(not editor.level().has("route_arena"))
- assert(caption.text=="Selected pin · 6, 10 · Path" and arena_at.call(draft,moved_crossing).environment=="road")
+ assert(caption.text=="Selected pin · G-11 · Path" and arena_at.call(draft,moved_crossing).environment=="road")
 
 func run():
  check_document()
@@ -1259,20 +1259,20 @@ func run():
  overlay.select(1);overlay.item_selected.emit(1)
  var survey=editor.find_child("EditorRouteChart",true,false)
  assert(survey.survey_terrain==editor.draft.battle_level(1).map and survey.survey_standards==[Vector2i(21,2)])
- assert(survey.survey_tile(survey.positions[0])==site_tile)
+ assert(survey.survey_cells[0]==site_tile)
  survey.markers[0].pressed.emit()
  await process_frame;await process_frame
  assert(editor.selected==0)
  survey=editor.find_child("EditorRouteChart",true,false)
  overlay=editor.find_child("EditorRouteSurvey",true,false)
- assert(overlay.selected==1 and editor.find_child("EditorRouteSurveyTile",true,false).text=="Selected pin · 6, 10 · Stronghold")
+ assert(overlay.selected==1 and editor.find_child("EditorRouteSurveyTile",true,false).text=="Selected pin · G-11 · Stronghold")
  var required_pin=editor.find_child("EditorRequireRouteStandard",true,false)
  assert(required_pin.visible and not required_pin.disabled and not required_pin.button_pressed)
  required_pin.button_pressed=true
  assert(survey.survey_standards==[Vector2i(21,2),site_tile] and chart.extra_standard_pins==[editor.chapter().key])
  editor.find_child("EditorRouteX",true,false).value=33
  var shifted=Valley.route_tile([.33,.67])
- assert(survey.survey_tile(survey.positions[0])==shifted)
+ assert(survey.survey_cells[0]==shifted)
  assert(survey.survey_terrain[shifted.y][shifted.x]=="o" and survey.survey_terrain[site_tile.y][site_tile.x]==chart.map[site_tile.y][site_tile.x])
  assert(survey.survey_standards==[Vector2i(21,2),shifted])
  var compiled_flags=editor.draft.compile().content.chapters[1]
@@ -1671,6 +1671,36 @@ func run():
  assert(not app.terrain_card.place.visible and app.terrain_card.place.text.is_empty())
  assert(Valley.route_tile([1.0,1.0])==Vector2i(23,15))
  assert(Valley.reached_places(app.game.content.chapters,app.game.chapter).size()==11)
+ var atlas_state=canonical(app.game.save_data("battle"))
+ var atlas_disk=FileAccess.get_file_as_string(valley_path)
+ var original_size=root.size
+ var original_scale=root.content_scale_size
+ var atlas_places=app.terrain_card.places
+ var atlas_points=atlas_places.keys()
+ assert(atlas_points.size()==11 and Vector2i(6,9) in atlas_points)
+ var landmark_key=InputEventKey.new();landmark_key.keycode=KEY_L;landmark_key.pressed=true
+ for dimensions in [Vector2i(720,640),Vector2i(1440,900)]:
+  root.size=dimensions
+  root.content_scale_size=dimensions
+  app.cursor_visible=false
+  await process_frame;await process_frame
+  var next_landmark=controls(app,"Next landmark [L]")
+  assert(root.get_visible_rect().encloses(next_landmark.get_global_rect()))
+  for i in atlas_points.size()+1:
+   var expected=atlas_points[i%atlas_points.size()]
+   if i==0:next_landmark.pressed.emit()
+   else:app._input(landmark_key)
+   await process_frame
+   assert(app.cursor_tile==expected and app.terrain_card.tile==expected)
+   assert(app.terrain_card.place.text==" · ".join(atlas_places[expected]))
+   assert(app.terrain_card.survey.visible and app.terrain_card.survey.text==Valley.survey_mark(expected))
+   var projected=app.camera.unproject_position(app.map_position(expected))
+   assert(app.map_navigation.safe_rect().grow(1).has_point(projected))
+   assert(not app.terrain_card.get_global_rect().has_point(projected))
+  assert(canonical(app.game.save_data("battle"))==atlas_state and FileAccess.get_file_as_string(valley_path)==atlas_disk)
+ root.size=original_size
+ root.content_scale_size=original_scale
+ await process_frame
  var vanguard=app.game.at(Vector2i(3,9))
  var destination=app.game.reachable(vanguard).keys().filter(func(point):return app.game.at(point)==null)[0]
  await app.click_tile(Vector2i(3,9));await app.click_tile(destination)
@@ -1984,5 +2014,5 @@ func run():
  await verify_route_arena_reuse(app)
  assert(FileAccess.get_file_as_string(app.save_path)==disk and app.game==installed)
  await Shutdown.dispose(app);await process_frame
- print("PASS: campaign JSON file transfer, draft library management, remembered playtest setup, campaign readiness, authored Hard bonuses, authored retry raiders, deployment comparison, authored formation previews, small deployment limits and save recovery, custom campaign atlas, terrain stroke undo, bulk terrain rows, editor dialogs at two viewport sizes, direct chapter reordering, continuous terrain strokes, connected terrain fill, placement moves and swaps, repeated placement copies, switching enemy difficulty groups, editor music preview, multiple standards and exact resume, standard navigation and live progress, standards that follow route pins, route pins, war-table site terrain, war-table overlay, blank war-table chapter, rising Valley landmarks, local war-table arena landmarks, authored route arenas, fading route seals, Valley reveal sound cues, battlefield site markers, custom recruits, phase scenes, tile dialogue and reload, recruitment on battlefield sites, authored recruit starting equipment, live recruit art previews, 3D recruit preview and editor return, navigation between available sites, one-use field tonic caches, Valley landmark dialogue, dialogue that follows route pins, timed reinforcements, chapter 32 saves, section dialogue, authored section relief, authored legacy stock and purchase persistence, authored loss recruits, authored loss dialogue, reproducible playtest setup, Valley carryover and resume, thirteen-chapter Valley template, and single-battle tests")
+ print("PASS: campaign JSON file transfer, draft library management, remembered playtest setup, campaign readiness, authored Hard bonuses, authored retry raiders, deployment comparison, authored formation previews, small deployment limits and save recovery, custom campaign atlas, terrain stroke undo, bulk terrain rows, editor dialogs at two viewport sizes, direct chapter reordering, continuous terrain strokes, connected terrain fill, placement moves and swaps, repeated placement copies, switching enemy difficulty groups, editor music preview, multiple standards and exact resume, standard navigation and live progress, standards that follow route pins, route pins, war-table site terrain, war-table overlay, blank war-table chapter, rising Valley landmarks, local war-table arena landmarks, authored route arenas, fading route seals, war-table landmark navigation and shared survey marks, Valley reveal sound cues, battlefield site markers, custom recruits, phase scenes, tile dialogue and reload, recruitment on battlefield sites, authored recruit starting equipment, live recruit art previews, 3D recruit preview and editor return, navigation between available sites, one-use field tonic caches, Valley landmark dialogue, dialogue that follows route pins, timed reinforcements, chapter 32 saves, section dialogue, authored section relief, authored legacy stock and purchase persistence, authored loss recruits, authored loss dialogue, reproducible playtest setup, Valley carryover and resume, thirteen-chapter Valley template, and single-battle tests")
  quit()

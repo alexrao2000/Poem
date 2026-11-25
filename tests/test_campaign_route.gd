@@ -1,5 +1,6 @@
 extends SceneTree
 const Shutdown=preload("helpers/game_shutdown.gd")
+const Valley=preload("res://scripts/world_map_battle.gd")
 ## Read-only route navigation preserves the campaign, prevents locked briefing
 ## access, and keeps fitted markers/standard inside the display at every size.
 func _initialize():call_deferred("run")
@@ -41,6 +42,9 @@ func run():
     assert(marker.disabled==(index>chapter),"Future chapters remain unavailable")
     var prior=route.selected;route.select_chapter(index)
     assert(route.selected==(prior if index>chapter else index),"Locked chapter cannot reveal its briefing even through programmatic selection")
+    var active_pin=app.game.content.chapters[route.selected].route_position
+    var active_mark=Valley.survey_mark(Valley.route_tile(active_pin))
+    assert(app.ui.find_child("RouteSurveyMark",true,false).text==active_mark)
     assert(app.ui.find_child("RouteObjective",true,false).text=="OBJECTIVE / "+app.objective_text(app.game.content.chapters[route.selected]),"Historical objective follows the selected briefing without changing the current chapter")
     if index>chapter:assert(marker.tooltip_text=="Unreached destination")
     elif index%4==0:
@@ -84,6 +88,7 @@ func run():
  app.ui.size=Vector2(1440,900)
  await process_frame;await process_frame
  assert(route.selected==11 and route.markers[11].size.x==36,"Live expansion retains the selected briefing")
+ assert(app.ui.find_child("RouteSurveyMark",true,false).text=="V-2")
  assert(app.game.save_data("camp")==completed_state,"Navigation never changes the completed campaign")
  app.game.completed=false;app.game.chapter=5
  app.game.trials.configure_section_starts([0,3,7],app.game.content.chapters.size())
@@ -122,6 +127,7 @@ func verify_longer_route(app):
   var route=app.ui.find_child("CampaignRoute",true,false)
   assert(route.markers.size()==14 and route.selected==12 and route.markers[13].disabled)
   assert(route.point(12).is_equal_approx(route.map_rect.position),"A seal can sit on the authored map corner")
+  assert(app.ui.find_child("RouteSurveyMark",true,false).text=="A-1")
   var bounds=Rect2(Vector2.ZERO,route.size).grow(.001)
   assert(bounds.encloses(Rect2(route.point(12)-Vector2(20,41),Vector2(40,61))),"Even a corner seal keeps its standard inside the route")
   assert(app.ui.find_child("RouteSection",true,false).text=="SECTION 4 · CHAPTERS 13–14")
@@ -158,6 +164,9 @@ func verify_longer_route(app):
  app.ui.size=Vector2(1440,900)
  await process_frame;await process_frame
  assert(not chooser.visible and app.get_viewport().gui_get_focus_owner()==reflow.markers[13],"When seals separate, focus follows the selected chapter")
+ app.game.content.chapters[13].route_position=[1.0/3.0-.000000000001,.125-.000000000001]
+ app.show_campaign_route();await process_frame
+ assert(app.ui.find_child("RouteSurveyMark",true,false).text=="H-2","Pins immediately before a tile edge retain the authored survey cell")
  app.game.content.chapters=original
  app.game.trials.configure_section_starts(app.game.content.section_starts,original.size())
  app.game.chapter=11
