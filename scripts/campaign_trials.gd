@@ -7,11 +7,17 @@ const FLAGS={"section_restarts":false,"reset_pressure":false,"hard_campaign":fal
 const SACRIFICE_ATTACK=2
 const RECOVERY_HP_PENALTY=4
 const RECOVERY_TONICS=1
+const SACRIFICE_PARAMETERS={
+ "attack":{"label":"Attack bonus","default":SACRIFICE_ATTACK,"maximum":10},
+ "hp_penalty":{"label":"Recovery HP penalty","default":RECOVERY_HP_PENALTY,"maximum":20},
+ "tonics":{"label":"Recovery tonics","default":RECOVERY_TONICS,"maximum":2},
+}
 const HARD_BONUS_STATS={"max_hp":"Maximum HP","pow":"Attack","speed":"Speed","defense":"Defense"}
 const LEGACY_STOCK=[{"id":"tempered_sword","cost":1,"losses":1},{"id":"war_hammer","cost":2,"losses":2},{"id":"longbow","cost":3,"losses":3},{"id":"rally_lance","cost":2,"losses":2},{"id":"vigil_staff","cost":2,"losses":2}]
 const LEGACY_ARRIVALS=[{"id":"faye","losses":1,"job":""},{"id":"noor","losses":3,"job":""}]
 var legacy_stock: Array=LEGACY_STOCK
 var chapter_hard_bonuses: Dictionary={}
+var sacrifice_tuning: Dictionary=resolved_sacrifice_tuning()
 const SCENE_TITLES={"relief_4":"Relief at the abbey","relief_8":"Relief at the monastery","retreat_0":"Regrouping at Cinderford","retreat_4":"Return to the abbey","retreat_8":"Return to Starfall","volunteer_faye":"Faye answers the call","volunteer_noor":"Noor leaves the observatory","volunteer_maelin":"The hospice road","volunteer_tovin":"The lanes beneath the hedge","memorial_0":"Names in the company book","memorial_4":"The abbey record","memorial_8":"The monastery bell"}
 var scenes: Dictionary=JSON.parse_string(FileAccess.get_file_as_string("res://data/campaign_trial_scenes.json"))
 var scene_titles: Dictionary=SCENE_TITLES
@@ -27,6 +33,11 @@ var credits=0
 var events: Array=[]
 var checkpoint: Dictionary={}
 var section_starts=PackedInt32Array([0])
+
+static func resolved_sacrifice_tuning(overrides: Dictionary={}) -> Dictionary:
+ var tuning={}
+ for field in SACRIFICE_PARAMETERS:tuning[field]=int(overrides.get(field,SACRIFICE_PARAMETERS[field].default))
+ return tuning
 
 func configure_section_starts(starts: Array,chapter_count: int):
  var configured=PackedInt32Array()
@@ -103,7 +114,27 @@ func records_sacrifice(game,unit: Dictionary) -> bool:
  return flags.sacrifice_cost and int(injuries.get(unit.id,-1))<game.chapter+1
 
 func extends_sacrifice_opening(game,ally: Dictionary) -> bool:
- return int(ally.get("resolve_until",-1))<game.turn+1
+ return sacrifice_tuning.attack>0 and int(ally.get("resolve_until",-1))<game.turn+1
+
+func has_recovery_cost() -> bool:
+ return sacrifice_tuning.hp_penalty>0 or sacrifice_tuning.tonics<2
+
+func recovery_health(unit: Dictionary) -> int:
+ return maxi(1,int(unit.max_hp)-int(sacrifice_tuning.hp_penalty))
+
+func recovery_supplies(field=false) -> String:
+ var count=int(sacrifice_tuning.tonics)
+ var noun="field tonic" if field else "tonic"
+ return "%s %s%s"%[["no","one","two"][count],noun,"" if count==1 else "s"]
+
+func sacrifice_description() -> String:
+ var details=PackedStringArray()
+ if has_recovery_cost():
+  var recovery="%d HP down, with "%sacrifice_tuning.hp_penalty if sacrifice_tuning.hp_penalty>0 else "with "
+  details.append("Returning allies start attempts through the next chapter "+recovery+recovery_supplies()+".")
+ if sacrifice_tuning.attack>0:
+  details.append("The first fall per recruit in a chapter gives survivors +%d attack through the next player turn."%sacrifice_tuning.attack)
+ return " ".join(details) if not details.is_empty() else "All sacrifice effects are set to zero. Returning allies keep both field tonics."
 
 func awards_legacy_credit(game,unit: Dictionary) -> bool:
  return flags.death_legacies and game.permadeath and unit.id!="lyra" and not losses.has(unit.id)
@@ -115,14 +146,17 @@ func record_losses(game) -> Dictionary:
   if records_sacrifice(game,unit):
    injuries[unit.id]=game.chapter+1
    var opening=false
-   for ally in game.living("player"):
-    if extends_sacrifice_opening(game,ally):opening=true
-    ally.resolve_until=game.turn+1
-   if opening or not game.permadeath:consequences[unit.id]={"opening":opening,"recovering":not game.permadeath}
-   var dispatch=unit.name+" bought an opening. Surviving allies gain +%d attack through the next player turn."%SACRIFICE_ATTACK if opening else ""
-   if not game.permadeath:
+   if sacrifice_tuning.attack>0:
+    for ally in game.living("player"):
+     if extends_sacrifice_opening(game,ally):opening=true
+     ally.resolve_until=game.turn+1
+   var recovering=not game.permadeath and has_recovery_cost()
+   if opening or recovering:consequences[unit.id]={"opening":opening,"recovering":recovering}
+   var dispatch=unit.name+" bought an opening. Surviving allies gain +%d attack through the next player turn."%sacrifice_tuning.attack if opening else ""
+   if recovering:
     var subject=" They" if opening else unit.name
-    dispatch+=subject+" will start deployments during recovery with reduced health and one tonic."
+    var health="reduced health and " if sacrifice_tuning.hp_penalty>0 else ""
+    dispatch+=subject+" will start deployments during recovery with "+health+recovery_supplies()+"."
    if not dispatch.is_empty():log_event(dispatch)
   if not awards_legacy_credit(game,unit):continue
   losses[unit.id]=game.chapter;credits+=1
@@ -175,8 +209,8 @@ func restart_preview(game) -> Dictionary:
 
 func deployment_condition(game,unit: Dictionary,chapter=-1) -> Dictionary:
  var deployment_chapter=game.chapter if chapter<0 else chapter
- var recovering=flags.sacrifice_cost and not unit.get("fallen",false) and int(injuries.get(unit.id,-1))>=deployment_chapter
- return {"recovering":recovering,"hp":maxi(1,int(unit.max_hp)-RECOVERY_HP_PENALTY) if recovering else int(unit.max_hp),"tonics":RECOVERY_TONICS if recovering else 2}
+ var recovering=flags.sacrifice_cost and has_recovery_cost() and not unit.get("fallen",false) and int(injuries.get(unit.id,-1))>=deployment_chapter
+ return {"recovering":recovering,"hp":recovery_health(unit) if recovering else int(unit.max_hp),"tonics":int(sacrifice_tuning.tonics) if recovering else 2}
 
 func prepare_battle(game):
  if not flags.reset_pressure and not flags.hard_campaign and not flags.sacrifice_cost:return

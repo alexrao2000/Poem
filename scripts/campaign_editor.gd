@@ -1073,12 +1073,29 @@ func build_rules(panel: VBoxContainer):
   enabled.name="EditorRule_"+key
   enabled.toggled.connect(func(value):draft.data.settings[key]=value;changed())
   if key=="reset_pressure":pressure_option=enabled
-  heading(panel,setting.text,15)
+  if key=="sacrifice_cost":build_sacrifice_tuning(panel,enabled)
+  else:heading(panel,setting.text,15)
  build_playtest_setup(panel,pressure_option)
  var stock=VBoxContainer.new();stock.add_theme_constant_override("separation",8);panel.add_child(stock)
  build_legacy_stock(stock)
  var arrivals=VBoxContainer.new();arrivals.add_theme_constant_override("separation",8);panel.add_child(arrivals)
  build_legacy_arrivals(arrivals)
+
+func build_sacrifice_tuning(panel: VBoxContainer,switch: CheckButton):
+ var controls=VBoxContainer.new();controls.visible=switch.button_pressed;panel.add_child(controls)
+ switch.toggled.connect(func(value):controls.visible=value)
+ heading(controls,"The opening lasts through the next player turn. Recovery applies to deployments through the next chapter. A full allowance is two tonics.",15)
+ var defaults=Trials.resolved_sacrifice_tuning()
+ var tuning=Trials.resolved_sacrifice_tuning(draft.data.get("sacrifice_tuning",{}))
+ for key in Trials.SACRIFICE_PARAMETERS:
+  var field=Trials.SACRIFICE_PARAMETERS[key]
+  var value=spin(tuning[key],0,field.maximum,func(amount):
+   tuning[key]=int(amount)
+   if tuning==defaults:draft.data.erase("sacrifice_tuning")
+   else:draft.data.sacrifice_tuning=tuning
+   changed())
+  value.name="EditorSacrifice_"+key
+  field_label(row(controls),field.label,value)
 
 func build_playtest_setup(panel: VBoxContainer,pressure_option: CheckButton):
  heading(panel,"Playtest setup",21)

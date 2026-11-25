@@ -1321,9 +1321,14 @@ func update_side():
 			conditions.append("Carrying "+passenger.name)
 			condition_help.append("Carrying %s: movement %d. Rescue & triage offers healing or a drop position."%[passenger.name,game.movement_allowance(selected)])
 		if selected.get("resolve_until",0)>=game.turn:
-			conditions.append("ATK +2");condition_help.append("Sacrifice opening: +2 attack through player turn %d."%selected.resolve_until)
+			var bonus=int(game.trials.sacrifice_tuning.attack)
+			conditions.append("ATK +%d"%bonus)
+			condition_help.append("Sacrifice opening grants +%d attack through player turn %d."%[bonus,selected.resolve_until])
 		if selected.get("recovering",false):
-			conditions.append("Recovering");condition_help.append("Started this attempt with 4 HP missing and one tonic. Healing can restore normal maximum health.")
+			var missing_hp=int(selected.max_hp)-game.trials.recovery_health(selected)
+			var health="%d HP missing and "%missing_hp if missing_hp>0 else ""
+			conditions.append("Recovering")
+			condition_help.append("Started this attempt with "+health+game.trials.recovery_supplies()+". Healing can restore normal maximum health.")
 		if not conditions.is_empty():
 			var condition_label=label_in(side," · ".join(conditions),16,GOLD);condition_label.name="UnitConditions"
 			condition_label.mouse_filter=Control.MOUSE_FILTER_PASS
@@ -2298,7 +2303,7 @@ func present_casualties(events: Array):
 		if quote.is_empty():continue
 		shown.append(unit.id)
 		var card=Card.new()
-		card.configure(ui,unit,portraits.get_unit_portrait(unit),Card.mode_for(game,unit),quote,event.get("casualty_effects",{}))
+		card.configure(ui,unit,portraits.get_unit_portrait(unit),Card.mode_for(game,unit),quote,event.get("casualty_effects",{}),int(game.trials.sacrifice_tuning.attack))
 		if not vigil_played and unit.id in committed:
 			play_sfx("legacy-vigil");vigil_played=true
 		await card.play(func():return skip_combat)
@@ -3213,7 +3218,8 @@ func show_options(return_to: String):
 	for setting in CampaignSettings.SWITCHES:
 		var toggle=CheckButton.new();toggle.name=setting.key;toggle.text=setting.name;toggle.button_pressed=CampaignSettings.enabled(game,setting.key);panel.add_child(toggle)
 		toggle.toggled.connect(func(value):CampaignSettings.set_enabled(game,setting.key,value))
-		label_in(panel,setting.text,16)
+		var description=game.trials.sacrifice_description() if setting.key=="sacrifice_cost" and game.content.has("sacrifice_tuning") else setting.text
+		if not description.is_empty():label_in(panel,description,16)
 	var presentation_heading=label_in(panel,"Battle presentation",21,GOLD)
 	var mode=OptionButton.new();mode.name="CombatMode";mode.custom_minimum_size.y=42
 	for title in ["All 3D battles","3D for player attacks","Quick map battles"]:mode.add_item(title)
@@ -3846,7 +3852,7 @@ func show_phase_losses():
 	var leader_lost=game.leader_fall_is_defeat() and patients.any(func(unit):return unit.id=="lyra")
 	if not leader_lost and patients.any(func(unit):return game.trials.records_sacrifice(game,unit)):
 		if game.living("player").any(func(unit):return game.trials.extends_sacrifice_opening(game,unit)):
-			label_in(details,"Surviving allies gain +%d attack through player turn %d."%[game.trials.SACRIFICE_ATTACK,game.turn+1],19,GOLD).name="PhaseLossOpening"
+			label_in(details,"Surviving allies gain +%d attack through player turn %d."%[game.trials.sacrifice_tuning.attack,game.turn+1],19,GOLD).name="PhaseLossOpening"
 	for patient in patients:
 		label_in(details,patient.name,24,GOLD)
 		if patient.id=="lyra" and leader_lost:
@@ -3861,9 +3867,9 @@ func show_phase_losses():
 			if game.permadeath:
 				fate="Permanent loss, recorded this phase." if game.commits_losses_during_battle() else "Permanent loss if you win the battle."
 				if game.trials.awards_legacy_credit(game,patient):fate+=" Legacy supply credit +1."
-			elif game.trials.records_sacrifice(game,patient):
-				var hp=maxi(1,int(patient.max_hp)-game.trials.RECOVERY_HP_PENALTY)
-				fate+=" Recovery deployment starts at %d/%d HP with one field tonic."%[hp,patient.max_hp]
+			elif game.trials.records_sacrifice(game,patient) and game.trials.has_recovery_cost():
+				fate+=" Recovery deployment starts at %d/%d HP with %s."%[
+					game.trials.recovery_health(patient),patient.max_hp,game.trials.recovery_supplies(true)]
 			label_in(details,fate,18).name="PhaseLoss_"+patient.id
 		if aid[patient.id].is_empty():
 			label_in(details,"Out of reach for the selected ally." if pending_move else "Out of reach for ready allies this phase.",16)

@@ -57,7 +57,7 @@ static func quote_for(game,unit: Dictionary) -> String:
  if unit.get("team","")!="player":return ""
  return lines.get(unit.get("id",""),{}).get(mode_for(game,unit),"")
 
-func configure(parent: Control,unit: Dictionary,portrait: Texture2D,mode: String,quote: String,effects: Dictionary={}):
+func configure(parent: Control,unit: Dictionary,portrait: Texture2D,mode: String,quote: String,effects: Dictionary={},opening_attack=2):
  name="CasualtyCard";z_index=30;mouse_filter=Control.MOUSE_FILTER_STOP
  parent.add_child(self)
  var accent=ACCENTS.get(mode,ACCENTS.retreat)
@@ -76,7 +76,7 @@ func configure(parent: Control,unit: Dictionary,portrait: Texture2D,mode: String
   if effects.get("legacy_credit",false):details.append("Legacy credit +1")
   if effects.has("volunteer"):details.append(effects.volunteer+" joins early")
   if effects.has("replacement"):details.append(effects.replacement+" joins")
-  if effects.get("opening",false):details.append("Allies gain +2 attack")
+  if effects.get("opening",false):details.append("Allies gain +%d attack"%opening_attack)
   if effects.get("recovering",false):details.append("Recovery on redeployment")
   consequences=Label.new();consequences.name="Consequences";consequences.text=" · ".join(details)
   consequences.autowrap_mode=TextServer.AUTOWRAP_WORD_SMART;consequences.mouse_filter=Control.MOUSE_FILTER_IGNORE

@@ -58,6 +58,7 @@ func _init(campaign: Dictionary={}):
 		trials.scenes=content.trial_scenes
 		trials.scene_titles=content.trial_titles
 	if content.has("legacy_stock"):trials.legacy_stock=content.legacy_stock
+	if content.has("sacrifice_tuning"):trials.sacrifice_tuning=trials.resolved_sacrifice_tuning(content.sacrifice_tuning)
 	equipment = JSON.parse_string(FileAccess.get_file_as_string("res://data/equipment.json"))
 	promotions = JSON.parse_string(FileAccess.get_file_as_string("res://data/promotions.json"))
 	new_campaign()
@@ -458,7 +459,7 @@ func equip(u: Dictionary,id: String) -> bool:
 	return false
 
 func attack_power(u: Dictionary) -> int:
-	return int(u.pow)+int(item_for(u).might)+(trials.SACRIFICE_ATTACK if u.get("resolve_until",-1)>=turn else 0)
+	return int(u.pow)+int(item_for(u).might)+(int(trials.sacrifice_tuning.attack) if u.get("resolve_until",-1)>=turn else 0)
 
 func attack_speed(u: Dictionary) -> int:
 	return maxi(0,int(u.speed)-int(item_for(u).weight))

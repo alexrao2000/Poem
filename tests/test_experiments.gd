@@ -5,10 +5,43 @@ const Rules=preload("res://scripts/rules.gd")
 const Door=preload("res://scripts/death_door.gd")
 const Shutdown=preload("helpers/game_shutdown.gd")
 const Tactics=preload("res://scripts/tactics.gd")
+const Draft=preload("res://scripts/campaign_draft.gd")
 func _initialize():call_deferred("run")
 
 func casualty(game,unit):
  unit.hp=0;Door.fall(game,unit);game.commit_casualties()
+
+func verify_authored_sacrifice():
+ var draft=Draft.new();draft.data=draft.new_document(false)
+ draft.data.settings.sacrifice_cost=true
+ for tuning in [{"attack":5,"hp_penalty":8,"tonics":0},{"attack":0,"hp_penalty":20,"tonics":1},{"attack":4,"hp_penalty":0,"tonics":2}]:
+  draft.data.sacrifice_tuning=tuning
+  var imported=Draft.new();assert(imported.decode(draft.encode()).is_empty())
+  var compiled=imported.compile()
+  var game=Rules.new(compiled.content)
+  Draft.prepare_playtest(game,compiled.settings,0,17,0)
+  game.start_battle()
+  var ally=game.units.filter(func(unit):return unit.id=="lyra")[0]
+  var victim=game.units.filter(func(unit):return unit.id=="oren")[0]
+  var base_attack=game.attack_power(ally)
+  victim.hp=0
+  var effects=game.commit_casualties()[victim.id]
+  var recovering=tuning.hp_penalty>0 or tuning.tonics<2
+  assert(effects=={"opening":tuning.attack>0,"recovering":recovering})
+  assert(game.attack_power(ally)==base_attack+tuning.attack)
+  assert(ally.has("resolve_until")== (tuning.attack>0))
+  var copy=Rules.new(compiled.content)
+  assert(copy.import_code(game.export_code("battle"))=="battle")
+  assert(copy.trials.sacrifice_tuning==tuning)
+  assert(copy.trials.restart(copy));copy.start_battle()
+  var returned=copy.units.filter(func(unit):return unit.id=="oren")[0]
+  assert(returned.hp==maxi(1,int(returned.max_hp)-tuning.hp_penalty) and returned.potions==tuning.tonics)
+  assert(returned.get("recovering",false)==recovering)
+ var malformed=draft.data.duplicate(true)
+ for invalid in [{"attack":5},{"attack":5,"hp_penalty":8,"tonics":3},{"attack":-1,"hp_penalty":8,"tonics":0}]:
+  malformed.sacrifice_tuning=invalid
+  assert("sacrifice values" in draft.structural_problem(malformed))
+ print("PASS: authored opening and recovery values work together or independently, persist through a retry and reject invalid data")
 
 func verify_rules():
  var g=Rules.new();g.new_campaign(true);g.death_door=true;g.action_saves=true;g.start_battle()
@@ -145,6 +178,45 @@ func close_loss_review(app):
  var event=InputEventKey.new();event.keycode=KEY_ESCAPE;event.pressed=true;root.push_input(event,true)
  assert(app.screen=="battle" and app.side.get_node("ReviewPhaseLosses").has_focus())
 
+func verify_authored_sacrifice_feedback(app):
+ var draft=Draft.new();draft.data=draft.new_document(false)
+ draft.data.settings.death_door=true
+ draft.data.settings.sacrifice_cost=true
+ draft.data.sacrifice_tuning={"attack":5,"hp_penalty":8,"tonics":0}
+ var compiled=draft.compile()
+ var game=Rules.new(compiled.content)
+ Draft.prepare_playtest(game,compiled.settings,0,17,0)
+ game.start_battle();app.game=game
+ var oren=game.units.filter(func(unit):return unit.id=="oren")[0]
+ var lyra=game.units.filter(func(unit):return unit.id=="lyra")[0]
+ casualty(game,oren);oren.bleed_turns=1
+ var base_attack=game.attack_power(lyra)
+ app.make_map();app.show_battle()
+ app.show_options("battle")
+ var descriptions=app.ui.find_children("*","Label",true,false)
+ assert(descriptions.any(func(label):return "8 HP down, with no tonics" in label.text and "+5 attack" in label.text))
+ app.close_options()
+ app.side.get_node("ReviewPhaseLosses").pressed.emit()
+ assert(app.ui.find_child("PhaseLossOpening",true,false).text=="Surviving allies gain +5 attack through player turn 2.")
+ assert("24/32 HP with no field tonics" in app.ui.find_child("PhaseLoss_oren",true,false).text)
+ close_loss_review(app)
+ app.side.get_node("EndPlayerPhase").pressed.emit()
+ var card=app.ui.get_node_or_null("CasualtyCard")
+ var deadline=Time.get_ticks_msec()+6000
+ while card==null and app.busy and Time.get_ticks_msec()<deadline:
+  await process_frame
+  card=app.ui.get_node_or_null("CasualtyCard")
+ assert(card!=null and "Allies gain +5 attack" in card.consequences.text)
+ assert(game.attack_power(lyra)==base_attack+5 and oren.hp==0 and not Door.downed(oren))
+ card.dismissed=true
+ while app.busy:await process_frame
+ app.debug_session.begin(game,"battle",false)
+ var report=app.debug_session.report(game)
+ assert(report.sacrifice_tuning==draft.data.sacrifice_tuning)
+ assert(report.combatants.filter(func(unit):return unit.id=="lyra")[0].attack==base_attack+5)
+ app.debug_session.end(game)
+ print("PASS: the authored phase review predicts Oren at 24/32 HP with no tonic, and the casualty card and Debug report show the actual +5 attack")
+
 func observe_rescue_feedback(app,patient,skip=false):
  assert(app.busy and app.screen=="battle","Rescue feedback locks commands on the tactical field")
  var checkpoint=app.game.save_data("battle").duplicate(true);var visual=app.unit_nodes[patient.id]
@@ -248,6 +320,7 @@ func verify_drop_controls(app):
 
 func run():
  verify_rules()
+ verify_authored_sacrifice()
  verify_downed_objectives()
  verify_phase_aid_choices()
  root.size=Vector2i(1440,900)
@@ -359,6 +432,7 @@ func run():
   await process_frame;await process_frame
   assert(Rect2(Vector2.ZERO,Vector2(dimensions)).grow(1).encloses(recovery.get_global_rect()))
  await verify_victory_recovery(app)
+ await verify_authored_sacrifice_feedback(app)
  await Shutdown.dispose(app);await process_frame
  print("PASS: downed countdown, rescue/carry/drop, revival, carrier loss, evacuation, irreversible deaths and movement, current recovery saves, validation and interrupted phase continuation")
  quit()

@@ -460,6 +460,11 @@ func structural_problem(document) -> String:
   return "Choose unique legacy items with valid loss thresholds and credit costs."
  if document.has("legacy_arrivals") and not valid_legacy_arrivals(document.legacy_arrivals,people):
   return "Choose a unique recruit, a loss threshold and a valid class for each legacy arrival."
+ if document.has("sacrifice_tuning"):
+  var tuning=document.sacrifice_tuning
+  if not tuning is Dictionary or tuning.size()!=Trials.SACRIFICE_PARAMETERS.size():return "Set all three sacrifice values."
+  for key in Trials.SACRIFICE_PARAMETERS:
+   if not integer(tuning.get(key),0,Trials.SACRIFICE_PARAMETERS[key].maximum):return "Set sacrifice values within their limits."
  if not known.all(func(id):return people.has(id)):return "The company roster is incomplete."
  for chapter in document.chapters:
   for scene in chapter.level.get("site_scenes",[]):
@@ -838,6 +843,7 @@ func compile() -> Dictionary:
  if data.chapters.any(func(chapter):return chapter.has("section_scenes")):compile_section_scenes(content)
  if data.has("legacy_stock"):content.legacy_stock=data.legacy_stock.duplicate(true)
  if data.has("legacy_arrivals"):compile_legacy_arrivals(content)
+ if data.has("sacrifice_tuning"):content.sacrifice_tuning=data.sacrifice_tuning.duplicate()
  if not relief.is_empty():content.section_relief=relief
  return {"content":content,"story":{"chapters":scenes},"settings":data.settings.duplicate(true)}
 

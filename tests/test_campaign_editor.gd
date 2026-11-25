@@ -1181,6 +1181,20 @@ func verify_valley_roads_template(app):
  permanent.button_pressed=false
  assert(not draft.data.settings.permadeath and draft.data.settings.action_saves and draft.data.settings.hard_campaign)
  permanent.button_pressed=true
+ var baseline_code=draft.encode()
+ var knobs={}
+ for key in ["attack","hp_penalty","tonics"]:knobs[key]=editor.find_child("EditorSacrifice_"+key,true,false)
+ assert(knobs.attack.value==2 and knobs.hp_penalty.value==4 and knobs.tonics.value==1)
+ knobs.attack.value=5;knobs.hp_penalty.value=8;knobs.tonics.value=0
+ assert(draft.compile().content.sacrifice_tuning=={"attack":5,"hp_penalty":8,"tonics":0})
+ var sacrifice=editor.find_child("EditorRule_sacrifice_cost",true,false)
+ sacrifice.button_pressed=false
+ assert(not knobs.attack.is_visible_in_tree())
+ sacrifice.button_pressed=true
+ assert(knobs.attack.value==5 and knobs.hp_penalty.value==8 and knobs.tonics.value==0)
+ knobs.attack.value=2;knobs.hp_penalty.value=4;knobs.tonics.value=1
+ assert(draft.encode()==baseline_code)
+ print("PASS: the editor tunes sacrifice effects and restores the original draft when the controls return to default")
  controls(app,"Play chapter").pressed.emit();await finish_presentation(app)
  assert(app.screen=="camp" and app.game.chapter==11 and app.game.rng.seed==472019)
  assert(app.game.capture_tiles()==[Vector2i(21,2),Vector2i(6,9),Vector2i(9,5)])
