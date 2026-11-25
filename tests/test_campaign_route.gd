@@ -2,6 +2,7 @@ extends SceneTree
 const Shutdown=preload("helpers/game_shutdown.gd")
 const Valley=preload("res://scripts/world_map_battle.gd")
 const Route=preload("res://scripts/campaign_route.gd")
+const Rules=preload("res://scripts/rules.gd")
 ## Read-only route navigation preserves the campaign, prevents locked briefing
 ## access, and keeps fitted markers/standard inside the display at every size.
 func _initialize():call_deferred("run")
@@ -113,6 +114,7 @@ func run():
  await verify_longer_route(app)
  await verify_retreat_route(app)
  await verify_atlas_draws(app)
+ await verify_route_memorial(app)
  await Shutdown.dispose(app);await process_frame
  print("PASS: ",count," campaign route layouts, all twelve chapter markers selectable at 720, live focus and reflow, locked briefing protection, read-only campaign state and Escape return")
  print("PASS: unequal section ranges and reached rally points agree in the route, war council and Debug report")
@@ -128,6 +130,35 @@ func observe_atlas_draws(route,frames: int) -> Array:
  for _frame in frames:await process_frame
  route.draw.disconnect(atlas);active.draw.disconnect(pulse)
  return counts
+
+func verify_route_memorial(app):
+ app.game=Rules.new();app.game.new_campaign(true)
+ app.game.action_saves=true;app.game.chapter=3;app.game.start_battle()
+ var oren=app.game.units.filter(func(unit):return unit.id=="oren")[0]
+ var sera=app.game.units.filter(func(unit):return unit.id=="sera")[0]
+ oren.hp=0;app.game.commit_casualties()
+ app.game.death_door=true
+ sera.hp=0;app.game.DeathDoor.fall(app.game,sera);app.game.commit_casualties()
+ var snapshot=app.game.export_code("battle")
+ app.show_campaign_route();await process_frame
+ var atlas=app.ui.find_child("CampaignRoute",true,false)
+ var memorial=app.ui.find_child("RouteMemorial",true,false)
+ assert(memorial.visible and memorial.text=="Fallen here · Oren")
+ atlas.select_chapter(0)
+ assert(not memorial.visible and memorial.text.is_empty())
+ atlas.select_chapter(3)
+ assert(memorial.visible and app.game.export_code("battle")==snapshot)
+ for _phase in 2:app.game.DeathDoor.end_player_phase(app.game)
+ app.game.commit_casualties()
+ app.game.permadeath=false
+ app.show_campaign_route();await process_frame
+ assert(app.ui.find_child("RouteMemorial",true,false).text=="Fallen here · Oren, Sera")
+ app.game.chapter=2;app.game.start_battle()
+ app.show_campaign_route();await process_frame
+ atlas=app.ui.find_child("CampaignRoute",true,false)
+ atlas.select_chapter(3)
+ assert(atlas.selected==2 and not app.ui.find_child("RouteMemorial",true,false).visible)
+ print("PASS: reached atlas briefings remember committed deaths by chapter and keep downed allies out of the memorial")
 
 func verify_atlas_draws(app):
  app.show_campaign_route();await process_frame;await process_frame

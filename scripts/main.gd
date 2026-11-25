@@ -37,6 +37,7 @@ var map_facings: Dictionary={}
 const DISPLAY_FONT = preload("res://assets/fonts/CormorantGaramond.ttf")
 var portraits=Portraits.new()
 var story: Dictionary
+var roads_between_template: Dictionary
 var profiles: Dictionary
 var dialogue_lines: Array=[]
 var dialogue_index=0
@@ -664,9 +665,11 @@ func close_campaign_editor():
 	else:show_title()
 
 func roads_between_campaign() -> Dictionary:
-	var draft=CampaignDraftModel.new()
-	draft.load_poem_template(true)
-	return draft.compile()
+	if roads_between_template.is_empty():
+		var draft=CampaignDraftModel.new()
+		draft.load_poem_template(true)
+		roads_between_template=draft.compile()
+	return roads_between_template.duplicate(true)
 
 func roads_between_save_path() -> String:
 	return save_path+".roads-between"
@@ -968,6 +971,13 @@ func show_campaign_route(view: String="campaign_route"):
 	var briefing=label_in(reading,"",20)
 	var note_heading=label_in(reading,"Survey note",16,GOLD)
 	var note=label_in(reading,"",17);note.name="RouteNote"
+	var memorial=label_in(reading,"",16,Color("766e5e"));memorial.name="RouteMemorial"
+	var chapter_losses={}
+	for recruit in game.roster:
+		if not recruit.get("fallen",false):continue
+		var lost_at=int(recruit.fallen_chapter)
+		if not chapter_losses.has(lost_at):chapter_losses[lost_at]=[]
+		chapter_losses[lost_at].append(recruit.name)
 	var tactics_text=label_in(reading,"",17,Color("766e5e"))
 	var refresh=func(index):
 		var chapter=game.content.chapters[index]
@@ -982,6 +992,8 @@ func show_campaign_route(view: String="campaign_route"):
 		briefing.text=chapter.intro;tactics_text.text=chapter.get("tactical_brief","")
 		note.text=chapter.get("route_note","")
 		note.visible=not note.text.is_empty();note_heading.visible=note.visible
+		memorial.visible=chapter_losses.has(index)
+		memorial.text="Fallen here · "+", ".join(chapter_losses[index]) if memorial.visible else ""
 		objective.text="OBJECTIVE / "+objective_text(chapter)
 		chapter_choice.select(index)
 		reading.get_parent().scroll_vertical=0
