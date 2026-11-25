@@ -96,7 +96,17 @@ func verify_bleed_warning(app):
  assert(warning.text=="End phase · 1 will fall" and first.name in warning.tooltip_text and not second.name in warning.tooltip_text,"Only patients at their last phase ending appear in the warning")
  second.bleed_turns=1;app.update_side();warning=app.side.get_node("EndPlayerPhase")
  assert(warning.text=="End phase · 2 will fall" and first.name in warning.tooltip_text and second.name in warning.tooltip_text)
+ app.game.trials.flags.death_legacies=true
  var before=app.game.save_data("battle").duplicate(true)
+ var review=app.side.get_node("ReviewPhaseLosses")
+ review.pressed.emit();await process_frame
+ assert(app.screen=="phase_losses" and app.selected==medic)
+ for patient in [first,second]:
+  var fate=app.ui.find_child("PhaseLoss_"+patient.id,true,false)
+  assert(fate.text=="Permanent loss, recorded this phase. Legacy supply credit +1.")
+ assert(app.ui.find_child("PhaseLossOpening",true,false)==null)
+ close_loss_review(app)
+ assert(app.game.save_data("battle")==before and app.selected==medic)
  for dimensions in [Vector2(1024,640),Vector2(1280,720),Vector2(1440,900)]:
   app.ui.set_anchors_and_offsets_preset(Control.PRESET_TOP_LEFT);app.ui.size=dimensions;app.arrange_battle_side()
   await process_frame;await process_frame
@@ -106,6 +116,11 @@ func verify_bleed_warning(app):
  assert(warning.text=="End phase · 1 will fall" and second.name in warning.tooltip_text and not first.name in warning.tooltip_text,"Carried patients no longer face bleed-out")
  assert(app.game.heal(medic,second));app.refresh_pieces();app.update_side()
  assert(app.side.get_node("EndPlayerPhase").text=="End player phase","Healing the last urgent patient clears the warning")
+ assert(not app.side.has_node("ReviewPhaseLosses"))
+
+func close_loss_review(app):
+ var event=InputEventKey.new();event.keycode=KEY_ESCAPE;event.pressed=true;root.push_input(event,true)
+ assert(app.screen=="battle" and app.side.get_node("ReviewPhaseLosses").has_focus())
 
 func observe_rescue_feedback(app,patient,skip=false):
  assert(app.busy and app.screen=="battle","Rescue feedback locks commands on the tactical field")

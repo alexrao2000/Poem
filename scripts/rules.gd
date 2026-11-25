@@ -458,7 +458,7 @@ func equip(u: Dictionary,id: String) -> bool:
 	return false
 
 func attack_power(u: Dictionary) -> int:
-	return int(u.pow)+int(item_for(u).might)+(2 if u.get("resolve_until",-1)>=turn else 0)
+	return int(u.pow)+int(item_for(u).might)+(trials.SACRIFICE_ATTACK if u.get("resolve_until",-1)>=turn else 0)
 
 func attack_speed(u: Dictionary) -> int:
 	return maxi(0,int(u.speed)-int(item_for(u).weight))

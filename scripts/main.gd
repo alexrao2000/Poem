@@ -280,7 +280,7 @@ func tactical_field_ambience() -> String:
 	return "valley-table" if level.get("presentation","")=="valley_table" else level.get("environment","")
 
 func reset_ui():
-	field_audio.select(tactical_field_ambience() if screen in ["battle","triage","tile_units"] else "")
+	field_audio.select(tactical_field_ambience() if screen in ["battle","triage","tile_units","phase_losses"] else "")
 	objective_label=null
 	battle_header=null
 	portraits.expression_textures.clear()
@@ -1208,7 +1208,8 @@ func update_side():
 			var index=button_in(landmarks,"Index",show_battle_menu.bind(true),busy or game.phase!="player")
 			index.name="OpenLandmarkIndex";index.tooltip_text="Choose a landmark from an earlier chapter."
 	if save_failed and game.action_saves:button_in(side,"Retry autosave",retry_action_save,busy)
-	var expiring=patients.filter(func(unit):return unit.bleed_turns==1 and unit.get("carried_by","").is_empty()) if game.phase=="player" else []
+	var expiring=allies_bleeding_out(patients)
+	if not expiring.is_empty():button_in(side,"Review losses",show_phase_losses,busy).name="ReviewPhaseLosses"
 	var phase_button=button_in(side,"End player phase" if expiring.is_empty() else "End phase · %d will fall"%expiring.size(),end_turn,busy or game.phase!="player");phase_button.name="EndPlayerPhase"
 	if not expiring.is_empty():
 		phase_button.add_theme_color_override("font_color",Color("923e33"))
@@ -1450,6 +1451,8 @@ func _unhandled_input(event):
 		show_debug_tools(options_return);get_viewport().set_input_as_handled();return
 	if screen in ["triage","tile_units"] and event is InputEventKey and event.pressed and not event.echo and event.keycode==KEY_ESCAPE:
 		show_battle();get_viewport().set_input_as_handled();return
+	if screen=="phase_losses" and event is InputEventKey and event.pressed and not event.echo and event.keycode==KEY_ESCAPE:
+		close_phase_losses();get_viewport().set_input_as_handled();return
 	if screen=="debug_tools" and event is InputEventKey and event.pressed and not event.echo and event.keycode==KEY_ESCAPE:
 		show_options(options_return);get_viewport().set_input_as_handled();return
 	if screen in ["credits","campaign_rules"] and event is InputEventKey and event.pressed and not event.echo and event.keycode==KEY_ESCAPE:
@@ -3572,6 +3575,43 @@ func show_triage(focus_patient: Dictionary={}):
 		if blocked:label_in(panel,"No adjacent tile is free. Move to an open space before dropping your ally.",17)
 	button_in(frame,"Return to battle",show_battle)
 
+func show_phase_losses():
+	if screen!="battle" or busy:return
+	var patients=allies_bleeding_out(downed_allies())
+	if patients.is_empty():return
+	map_navigation.stop();screen="phase_losses";reset_ui()
+	var frame=menu_panel(740)
+	label_in(frame,"Before ending the phase",34,GOLD)
+	label_in(frame,"These allies will bleed out when the player phase ends. Rescue pauses bleeding. Staff healing revives them.",19)
+	var details=scrolling_column(frame)
+	var leader_lost=game.leader_fall_is_defeat() and patients.any(func(unit):return unit.id=="lyra")
+	if not leader_lost and patients.any(func(unit):return game.trials.records_sacrifice(game,unit)):
+		if game.living("player").any(func(unit):return game.trials.extends_sacrifice_opening(game,unit)):
+			label_in(details,"Surviving allies gain +%d attack through player turn %d."%[game.trials.SACRIFICE_ATTACK,game.turn+1],19,GOLD).name="PhaseLossOpening"
+	for patient in patients:
+		label_in(details,patient.name,24,GOLD)
+		if patient.id=="lyra" and leader_lost:
+			var retry=game.trials.restart_preview(game)
+			var rally=game.content.chapters[retry.chapter]
+			var destination=rally.place if not rally.place.is_empty() else rally.title
+			var summary="Defeat. Regroup at %s in Chapter %02d."%[destination,retry.chapter+1]
+			if game.trials.flags.reset_pressure:summary+=" Retry pressure %d → %d."%[game.trials.pressure,retry.pressure]
+			label_in(details,summary,18).name="PhaseLoss_lyra"
+			continue
+		var fate="Withdraws for this battle."
+		if game.permadeath:
+			fate="Permanent loss, recorded this phase." if game.commits_losses_during_battle() else "Permanent loss if you win the battle."
+			if game.trials.awards_legacy_credit(game,patient):fate+=" Legacy supply credit +1."
+		elif game.trials.records_sacrifice(game,patient):
+			var hp=maxi(1,int(patient.max_hp)-game.trials.RECOVERY_HP_PENALTY)
+			fate+=" Recovery deployment starts at %d/%d HP with one field tonic."%[hp,patient.max_hp]
+		label_in(details,fate,18).name="PhaseLoss_"+patient.id
+	button_in(frame,"Return to battle [Esc]",close_phase_losses).grab_focus()
+
+func close_phase_losses():
+	show_battle()
+	side.get_node("ReviewPhaseLosses").grab_focus()
+
 func begin_drop():
 	if busy or selected==null or not game.can_act(selected) or game.DeathDoor.passenger(game,selected)==null:return
 	var positions=game.DeathDoor.drop_positions(game,selected)
@@ -3817,6 +3857,9 @@ func focus_next_landmark():
 
 func downed_allies() -> Array:
 	return game.units.filter(func(unit):return unit.team=="player" and game.DeathDoor.downed(unit))
+
+func allies_bleeding_out(patients: Array) -> Array:
+	return patients.filter(func(unit):return unit.bleed_turns==1 and unit.get("carried_by","").is_empty()) if game.phase=="player" else []
 
 func focus_next_downed():
 	var patients=downed_allies()

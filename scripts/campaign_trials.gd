@@ -4,6 +4,9 @@ extends RefCounted
 # pressure survive a rewind. Default settings leave the original campaign intact.
 
 const FLAGS={"section_restarts":false,"reset_pressure":false,"hard_campaign":false,"death_legacies":false,"sacrifice_cost":false}
+const SACRIFICE_ATTACK=2
+const RECOVERY_HP_PENALTY=4
+const RECOVERY_TONICS=1
 const HARD_BONUS_STATS={"max_hp":"Maximum HP","pow":"Attack","speed":"Speed","defense":"Defense"}
 const LEGACY_STOCK=[{"id":"tempered_sword","cost":1,"losses":1},{"id":"war_hammer","cost":2,"losses":2},{"id":"longbow","cost":3,"losses":3},{"id":"rally_lance","cost":2,"losses":2},{"id":"vigil_staff","cost":2,"losses":2}]
 const LEGACY_ARRIVALS=[{"id":"faye","losses":1,"job":""},{"id":"noor","losses":3,"job":""}]
@@ -96,23 +99,32 @@ func capture_section(game):
  checkpoint=snapshot.save_data("camp").duplicate(true)
  checkpoint.erase("trials");checkpoint.version=5;checkpoint.units=[];checkpoint.phase="player";checkpoint.turn=1
 
+func records_sacrifice(game,unit: Dictionary) -> bool:
+ return flags.sacrifice_cost and int(injuries.get(unit.id,-1))<game.chapter+1
+
+func extends_sacrifice_opening(game,ally: Dictionary) -> bool:
+ return int(ally.get("resolve_until",-1))<game.turn+1
+
+func awards_legacy_credit(game,unit: Dictionary) -> bool:
+ return flags.death_legacies and game.permadeath and unit.id!="lyra" and not losses.has(unit.id)
+
 func record_losses(game) -> Dictionary:
  var consequences={}
  for unit in game.units:
   if unit.team!="player" or unit.hp>0 or game.DeathDoor.downed(unit):continue
-  if flags.sacrifice_cost and int(injuries.get(unit.id,-1))<game.chapter+1:
+  if records_sacrifice(game,unit):
    injuries[unit.id]=game.chapter+1
    var opening=false
    for ally in game.living("player"):
-    if int(ally.get("resolve_until",-1))<game.turn+1:opening=true
+    if extends_sacrifice_opening(game,ally):opening=true
     ally.resolve_until=game.turn+1
    if opening or not game.permadeath:consequences[unit.id]={"opening":opening,"recovering":not game.permadeath}
-   var dispatch=unit.name+" bought an opening. Surviving allies gain +2 attack through the next player turn." if opening else ""
+   var dispatch=unit.name+" bought an opening. Surviving allies gain +%d attack through the next player turn."%SACRIFICE_ATTACK if opening else ""
    if not game.permadeath:
     var subject=" They" if opening else unit.name
     dispatch+=subject+" will start deployments during recovery with reduced health and one tonic."
    if not dispatch.is_empty():log_event(dispatch)
-  if not flags.death_legacies or not game.permadeath or unit.id=="lyra" or losses.has(unit.id):continue
+  if not awards_legacy_credit(game,unit):continue
   losses[unit.id]=game.chapter;credits+=1
   var outcome=consequences.get(unit.id,{})
   outcome.legacy_credit=true;consequences[unit.id]=outcome
@@ -164,7 +176,7 @@ func restart_preview(game) -> Dictionary:
 func deployment_condition(game,unit: Dictionary,chapter=-1) -> Dictionary:
  var deployment_chapter=game.chapter if chapter<0 else chapter
  var recovering=flags.sacrifice_cost and not unit.get("fallen",false) and int(injuries.get(unit.id,-1))>=deployment_chapter
- return {"recovering":recovering,"hp":maxi(1,int(unit.max_hp)-4) if recovering else int(unit.max_hp),"tonics":1 if recovering else 2}
+ return {"recovering":recovering,"hp":maxi(1,int(unit.max_hp)-RECOVERY_HP_PENALTY) if recovering else int(unit.max_hp),"tonics":RECOVERY_TONICS if recovering else 2}
 
 func prepare_battle(game):
  if not flags.reset_pressure and not flags.hard_campaign and not flags.sacrifice_cost:return
