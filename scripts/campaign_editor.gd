@@ -4,6 +4,7 @@ signal playtest_requested(start: int, resume: bool)
 signal draft_selection_changed(key: String, chapter: int)
 const Draft=preload("res://scripts/campaign_draft.gd")
 const Grid=preload("res://scripts/campaign_editor_grid.gd")
+const Route=preload("res://scripts/campaign_route.gd")
 const Settings=preload("res://scripts/campaign_settings.gd")
 const TOOLS=["Terrain","Deployment","Enemy","Hard-mode enemy","Objective"]
 const GOLD=Color("896937")
@@ -65,6 +66,7 @@ func rebuild():
  build_battle(page(book,"Battle"))
  encounter_panel=page(book,"Encounters")
  build_story(page(book,"Story"))
+ build_route(page(book,"Route"))
  build_company(page(book,"Company"))
  build_bonds(page(book,"Bonds"))
  build_rules(page(book,"Rules"))
@@ -253,12 +255,24 @@ func build_story(panel: VBoxContainer):
   heading(panel,kind.capitalize()+" dialogue",17)
   var original_lines=record[kind].duplicate(true)
   panel.add_child(multiline(dialogue_text(original_lines),132,func(value):record[kind]=parse_dialogue(value,original_lines);changed()))
- var route=row(panel)
- var x=spin(roundi(layout.route_position[0]*100),0,100,func(value):layout.route_position[0]=value/100.0;changed())
- var y=spin(roundi(layout.route_position[1]*100),0,100,func(value):layout.route_position[1]=value/100.0;changed())
- field_label(route,"Route pin X %",x);field_label(route,"Y %",y)
  var events=VBoxContainer.new();events.add_theme_constant_override("separation",8);panel.add_child(events)
  build_phase_scenes(events,record)
+
+func build_route(panel: VBoxContainer):
+ heading(panel,"Click the chart to place this chapter’s pin. Select a seal to edit its chapter.",16)
+ var chart=Route.new();chart.name="EditorRouteChart";panel.add_child(chart)
+ chart.configure(draft.data.chapters.map(func(record):return record.level),selected,true)
+ chart.enable_pin_editor()
+ chart.chapter_selected.connect(select_chapter)
+ var position=level().route_position
+ var coordinates=row(panel)
+ var x=spin(roundi(position[0]*100),0,100,func(value):chart.place_pin(Vector2(value/100.0,chart.positions[chart.selected].y)))
+ var y=spin(roundi(position[1]*100),0,100,func(value):chart.place_pin(Vector2(chart.positions[chart.selected].x,value/100.0)))
+ x.name="EditorRouteX";y.name="EditorRouteY"
+ field_label(coordinates,"Pin X %",x);field_label(coordinates,"Pin Y %",y)
+ chart.pin_placed.connect(func(index,point):
+  draft.data.chapters[index].level.route_position=[point.x,point.y]
+  x.set_value_no_signal(roundi(point.x*100));y.set_value_no_signal(roundi(point.y*100));changed())
 
 func build_phase_scenes(panel: VBoxContainer,record: Dictionary):
  for child in panel.get_children():panel.remove_child(child);child.queue_free()
@@ -508,7 +522,7 @@ func open_library():
  for record in records:
   action(list,record.document.get("title","Campaign"),func():
    if dirty and not save_draft():return
-   var error=draft.decode(JSON.stringify(record.document))
+   var error=draft.decode(JSON.stringify(record.document,"",true,true))
    if not error.is_empty():status.text=error;return
    draft_key=record.key;dirty=false;select_chapter(0))
  action(list,"Copy Poem’s campaign",func():

@@ -163,6 +163,19 @@ func run():
    var control=editor.find_child(name,true,false)
    assert(Rect2(Vector2.ZERO,dimensions).grow(1).encloses(control.get_global_rect()),"Editor layout %s, %s, %s"%[dimensions,name,control.get_global_rect()])
  controls(app,"New draft").pressed.emit()
+ var route_tabs=editor.find_child("CampaignEditorTabs",true,false)
+ route_tabs.current_tab=route_tabs.get_tab_idx_from_control(editor.find_child("Route",true,false))
+ await process_frame;await process_frame
+ var route_chart=editor.find_child("EditorRouteChart",true,false)
+ var pin=InputEventMouseButton.new();pin.button_index=MOUSE_BUTTON_LEFT;pin.pressed=true
+ pin.position=route_chart.map_rect.position+route_chart.map_rect.size*Vector2(.21,.67)
+ route_chart._gui_input(pin)
+ assert(route_chart.positions[0].is_equal_approx(Vector2(.21,.67)))
+ assert(editor.find_child("EditorRouteX",true,false).value==21 and editor.find_child("EditorRouteY",true,false).value==67)
+ editor.find_child("EditorRouteX",true,false).value=27
+ assert(route_chart.positions[0].is_equal_approx(Vector2(.27,.67)))
+ route_tabs.current_tab=0
+ await process_frame
  var selection=editor.find_child("EditorTerrain",true,false)
  for index in selection.item_count:
   if selection.get_item_metadata(index)=="f":selection.select(index)
@@ -223,7 +236,8 @@ func run():
  var chart=editor.level()
  assert(chart.objective_position==Valley.CAPITAL and editor.draft.playtest_problem().is_empty())
  assert("~" in "".join(chart.map) and "=" in "".join(chart.map) and "h" in "".join(chart.map))
- editor.find_child("CampaignEditorTabs",true,false).current_tab=4
+ var bonds_tabs=editor.find_child("CampaignEditorTabs",true,false)
+ bonds_tabs.current_tab=bonds_tabs.get_tab_idx_from_control(editor.find_child("Bonds",true,false))
  await process_frame
  controls(app,"Add bond").pressed.emit()
  var first_bond=editor.draft.data.bonds[0]
@@ -238,8 +252,9 @@ func run():
  assert(first_bond.ending==paired_ending.text)
  controls(app,"Save draft").pressed.emit()
  assert(not editor.draft_key.is_empty() and app.campaign_draft_library.list_drafts().size()==1)
- var copy=Draft.new();assert(copy.decode(JSON.stringify(app.campaign_draft_library.list_drafts()[0].document)).is_empty())
+ var copy=Draft.new();assert(copy.decode(JSON.stringify(app.campaign_draft_library.list_drafts()[0].document,"",true,true)).is_empty())
  assert(copy.compile().content.authoring_signature==editor.draft.compile().content.authoring_signature)
+ assert(Vector2(copy.data.chapters[0].level.route_position[0],copy.data.chapters[0].level.route_position[1]).is_equal_approx(Vector2(.27,.67)))
  controls(app,"Transfer JSON").pressed.emit();await process_frame
  var transfer=editor.find_child("EditorTransferText",true,false)
  assert(transfer!=null and JSON.parse_string(transfer.text).title=="The Editor Chronicle")
@@ -434,5 +449,5 @@ func run():
  assert(app.screen=="campaign_route" and app.game==installed and app.game.save_data("camp")==route_state)
  assert(FileAccess.get_file_as_string(app.save_path)==disk)
  await Shutdown.dispose(app);await process_frame
- print("PASS: campaign JSON and chapter order, custom recruit presentation, phase scenes, timed reinforcements and durable replay, authored encounters and bonds, chapter 32 saves, two complete chapters, valley reveal and sites, and isolated resume")
+ print("PASS: campaign JSON, direct route pin placement, chapter order, custom recruit presentation, phase scenes, timed reinforcements and durable replay, authored encounters and bonds, chapter 32 saves, two complete chapters, valley reveal and sites, and isolated resume")
  quit()

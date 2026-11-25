@@ -24,7 +24,7 @@ func save(key: String,document: Dictionary) -> String:
  if index>=0:records.remove_at(index)
  elif records.size()>=LIMIT:return ""
  records.push_front({"key":key,"document":document})
- var encoded=JSON.stringify(records)
+ var encoded=JSON.stringify(records,"",true,true)
  var file=FileAccess.open(path+".tmp",FileAccess.WRITE)
  if file==null:return ""
  file.store_string(encoded);file.flush();file.close()

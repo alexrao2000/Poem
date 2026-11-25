@@ -3,6 +3,7 @@ extends Control
 ## marker never changes campaign state or reveals an unreached briefing.
 signal chapter_selected(index: int)
 signal seal_spacing_changed(crowded: bool)
+signal pin_placed(index: int,position: Vector2)
 const MAP=preload("res://assets/art/campaign-valley-v1.png")
 const SEAL_SIZE=36.0
 const SEAL_INSET=20.0
@@ -19,6 +20,7 @@ var crowded=false
 var clock=0.0
 var map_rect=Rect2()
 var seal_scale=1.0
+var editable=false
 
 func configure(chapters: Array,index: int,finished=false,rallies=PackedInt32Array(),retreat=0):
  for chapter in chapters:
@@ -47,6 +49,22 @@ func configure(chapters: Array,index: int,finished=false,rallies=PackedInt32Arra
 func select_chapter(index: int):
  if index<0 or index>=positions.size() or (index>current and not complete):return
  selected=index;queue_redraw();chapter_selected.emit(index)
+
+func enable_pin_editor():
+ editable=true
+ mouse_filter=Control.MOUSE_FILTER_STOP
+
+func place_pin(position: Vector2):
+ if not editable:return
+ positions[selected]=position.clamp(Vector2.ZERO,Vector2.ONE)
+ arrange()
+ pin_placed.emit(selected,positions[selected])
+
+func _gui_input(event):
+ if not editable or not event is InputEventMouseButton or event.button_index!=MOUSE_BUTTON_LEFT or not event.pressed:return
+ if not map_rect.has_point(event.position):return
+ place_pin((event.position-map_rect.position)/map_rect.size)
+ accept_event()
 
 func arrange():
  var available=(size-Vector2(32 if size.x<500 else 48,64)).max(Vector2.ONE)
