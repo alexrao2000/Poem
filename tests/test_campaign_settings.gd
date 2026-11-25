@@ -9,6 +9,64 @@ func press(app,text_value):
  assert(buttons.size()==1 and not buttons[0].disabled);buttons[0].pressed.emit()
 func skip(app):
  var key=InputEventKey.new();key.keycode=KEY_TAB;key.pressed=true;app._unhandled_input(key)
+
+func finish_presentation(app):
+ var deadline=Time.get_ticks_msec()+5000
+ while (app.busy or app.screen=="dialogue") and Time.get_ticks_msec()<deadline:
+  if app.screen=="dialogue":app.finish_dialogue()
+  skip(app);await process_frame
+ assert(not app.busy and app.screen!="dialogue")
+
+func verify_roads_chronicle(app,normal_disk: String):
+ app.show_title();await process_frame
+ assert(app.ui.find_children("*","Button",true,false).all(func(button):return button.text!="Continue The Roads Between"))
+ press(app,"Begin the chronicle")
+ var chronicle=app.ui.find_child("ChronicleChoice",true,false)
+ assert(chronicle.item_count==2 and chronicle.selected==0)
+ chronicle.select(1)
+ app.ui.find_child("Permadeath",true,false).button_pressed=true
+ app.ui.find_child("action_saves",true,false).button_pressed=true
+ press(app,"Begin the chronicle");await finish_presentation(app)
+ assert(app.screen=="camp" and app.game.chapter==0 and app.game.content.chapters.size()==13)
+ assert(app.game.permadeath and app.game.action_saves and app.game.run_id.length()==24)
+ var path=app.campaign_save_path()
+ assert(path==app.save_path+".roads-between" and not FileAccess.file_exists(path))
+ press(app,"Deploy company  >");await finish_presentation(app)
+ var first=canonical(app.game.save_data("battle"))
+ app.show_battle_menu();press(app,"Save and return to title");await process_frame
+ assert(app.screen=="title" and FileAccess.get_file_as_string(app.save_path)==normal_disk)
+ app.ui.set_anchors_and_offsets_preset(Control.PRESET_TOP_LEFT);app.ui.size=Vector2(720,640)
+ await process_frame;await process_frame
+ var variant_button=app.ui.find_children("*","Button",true,false).filter(func(button):return button.text=="Continue The Roads Between")[0]
+ assert(Rect2(Vector2.ZERO,app.ui.size).grow(1).encloses(variant_button.get_global_rect()))
+ press(app,"Continue The Roads Between");await finish_presentation(app)
+ assert(app.screen=="battle" and canonical(app.game.save_data("battle"))==first)
+
+ var late=Rules.new(app.game.content)
+ late.new_campaign(true);late.action_saves=true;late.chapter=11;late.start_battle()
+ var goal=late.objective_position()
+ var marshal=late.at(goal);marshal.x=22;marshal.y=3
+ var hero=late.living("player").filter(func(unit):return unit.id=="lyra")[0]
+ hero.x=22;hero.y=2
+ assert(late.reachable(hero).has(goal))
+ var near_capital=late.export_code("battle")
+ app.show_battle_menu();press(app,"Save and return to title");await process_frame
+ press(app,"Transfer a local save");await process_frame
+ app.transfer_text.text=near_capital
+ press(app,"Import pasted code");await finish_presentation(app)
+ assert(app.screen=="battle" and canonical(app.game.save_data("battle"))==late.decode_save_code(near_capital))
+ assert(app.campaign_save_path()==path)
+ assert(app.world.has_node("ValleyChart") and app.game.info().presentation=="valley_table")
+ app.click_tile(Vector2i(22,2),"lyra");app.click_tile(goal);await finish_presentation(app)
+ if app.screen=="battle":app.wait_action();await finish_presentation(app)
+ assert(app.screen=="result" and app.game.result()=="victory")
+ press(app,"Continue the chronicle");await finish_presentation(app)
+ assert(app.screen=="camp" and app.game.chapter==12 and app.game.info().title=="Dawn Without Kings")
+ assert(late.load_game(path)=="camp" and late.chapter==12)
+ press(app,"Save and return to title");await process_frame
+ assert(FileAccess.get_file_as_string(app.save_path)==normal_disk)
+ print("PASS: The Roads Between starts and resumes from title, imports into its own slot, and reaches the Sun Engine after the Valley battle")
+
 func run():
  root.size=Vector2i(1440,900)
  var app=load("res://main.tscn").instantiate();app.settings_path="";app.save_path="/private/tmp/poem-campaign-settings-%d.json"%Time.get_ticks_usec();root.add_child(app);await process_frame
@@ -82,6 +140,7 @@ func run():
  while app.busy:skip(app);await process_frame
  var debug_copy=Rules.new();assert(debug_copy.load_game(app.save_path+".debug")=="battle" and Settings.SWITCHES.all(func(setting):return not Settings.enabled(debug_copy,setting.key)))
  assert(FileAccess.get_file_as_string(app.save_path)==saved_original and app.debug_session.end(app.game)=="battle" and app.game.save_data("battle")==original)
+ await verify_roads_chronicle(app,saved_original)
  await Shutdown.dispose(app);await process_frame
  print("PASS: 18 actual new-campaign rule combinations, title-option inheritance, draft/cancel/file isolation, three-size reachable choices and fixed actions, exact first deployments/checkpoints, shared live Options and Debug-only new campaigns")
  quit()

@@ -472,10 +472,13 @@ func show_title():
 	label_in(v,"A TACTICAL CHRONICLE"+(" / DEBUG" if debug_session.active else ""),16,GOLD)
 	label_in(v,"POEM",64)
 	label_in(v,"A broken banner. A borrowed sun.\nTwenty-four lives caught between them.",22)
-	label_in(v,"Twelve chapters. Twenty-four paths to dawn.",17,Color("766e5e"))
 	var spacer=Control.new();spacer.size_flags_vertical=Control.SIZE_EXPAND_FILL;v.add_child(spacer)
 	button_in(v,"Begin the chronicle",show_campaign_rules)
 	button_in(v,"Continue saved campaign",load_campaign,game.read_saved_data(campaign_save_path()).is_empty())
+	if not debug_session.active and not save_path.is_empty():
+		var compiled=roads_between_campaign()
+		if not Rules.new(compiled.content).read_saved_data(roads_between_save_path()).is_empty():
+			button_in(v,"Continue The Roads Between",func():start_campaign_preview(compiled,0,true,"title"))
 	button_in(v,"Transfer a local save",func():show_save_transfer("title"))
 	var extras=HBoxContainer.new();extras.add_theme_constant_override("separation",8);v.add_child(extras)
 	button_in(extras,"Options",func():show_options("title")).size_flags_horizontal=Control.SIZE_EXPAND_FILL
@@ -491,6 +494,11 @@ func show_campaign_rules():
 	var frame=menu_panel(720);var panel=scrolling_column(frame)
 	label_in(panel,"A NEW CHRONICLE",17,GOLD)
 	label_in(panel,"Campaign options",38)
+	var chronicle=OptionButton.new();chronicle.name="ChronicleChoice"
+	chronicle.add_item("Poem · 12 chapters");chronicle.add_item("The Roads Between · 13 chapters")
+	chronicle.select(0);chronicle.custom_minimum_size.y=42;chronicle.visible=not debug_session.active
+	label_in(panel,"Chronicle",17,GOLD).visible=chronicle.visible
+	panel.add_child(chronicle)
 	var permanent=CheckButton.new();permanent.name="Permadeath";permanent.text="Permadeath";permanent.button_pressed=draft.permadeath;panel.add_child(permanent)
 	permanent.toggled.connect(func(value):draft.permadeath=value)
 	label_in(panel,"On: fallen allies stay lost after victory, and Lyra’s loss ends the attempt. Off: fallen allies recover for the next chapter. Additional experiments below can change these consequences.",20)
@@ -501,12 +509,19 @@ func show_campaign_rules():
 		toggle.toggled.connect(func(value):draft[setting.key]=value)
 		label_in(panel,setting.text,16)
 	button_in(frame,"Begin the chronicle",func():
+		if chronicle.selected==1:
+			var compiled=roads_between_campaign()
+			compiled.settings=draft
+			start_campaign_preview(compiled,0,false,"title");return
 		game.new_campaign(draft.permadeath)
-		var identity=RandomNumberGenerator.new();identity.randomize()
-		game.run_id="%08x%08x%08x"%[identity.randi(),identity.randi(),identity.randi()]
+		assign_run_id()
 		for setting in CampaignSettings.SWITCHES:CampaignSettings.set_enabled(game,setting.key,draft[setting.key])
 		music.play();show_camp())
 	button_in(frame,"Return to title",show_title)
+
+func assign_run_id():
+	var identity=RandomNumberGenerator.new();identity.randomize()
+	game.run_id="%08x%08x%08x"%[identity.randi(),identity.randi(),identity.randi()]
 
 func show_credits():
 	screen="credits";reset_ui()
@@ -648,6 +663,14 @@ func close_campaign_editor():
 	if campaign_editor_return=="debug_tools":show_debug_tools(options_return)
 	else:show_title()
 
+func roads_between_campaign() -> Dictionary:
+	var draft=CampaignDraftModel.new()
+	draft.load_poem_template(true)
+	return draft.compile()
+
+func roads_between_save_path() -> String:
+	return save_path+".roads-between"
+
 func start_campaign_preview(compiled: Dictionary,start: int,resume: bool,return_to: String,setup: Dictionary={}):
 	var prefix="valley-front-" if return_to=="route" else "campaign-playtest-"
 	if return_to=="chapter":
@@ -660,19 +683,24 @@ func start_campaign_preview(compiled: Dictionary,start: int,resume: bool,return_
 	var suffix=""
 	if seed_value>=0:suffix+="-seed-%d"%seed_value
 	if pressure>0:suffix+="-pressure-%d"%pressure
-	var path=campaign_preview_path(prefix,compiled.content.authoring_signature,suffix)
+	var path=roads_between_save_path() if return_to=="title" else campaign_preview_path(prefix,compiled.content.authoring_signature,suffix)
 	var existing=preview.read_saved_data(path) if resume else {}
 	if resume and existing.is_empty():
 		show_notice("No playtest has been saved for this version.");return
-	campaign_preview={"game":game,"story":story,"debug":debug_session,"path":path,"return":return_to,"save_failed":save_failed}
-	game=preview;story=compiled.story
-	save_failed=false
-	debug_session=DebugSession.new()
+	enter_campaign_preview(preview,compiled.story,path,return_to)
 	if resume:await load_campaign();return
 	CampaignDraftModel.prepare_playtest(game,compiled.settings,start,seed_value,pressure,return_to!="route")
 	if return_to=="route":carry_valley_company(campaign_preview.game)
-	persist_campaign("camp")
+	if return_to=="title":
+		assign_run_id();music.play()
+	else:persist_campaign("camp")
 	show_camp()
+
+func enter_campaign_preview(preview,preview_story: Dictionary,path: String,return_to: String):
+	campaign_preview={"game":game,"story":story,"debug":debug_session,"path":path,"return":return_to,"save_failed":save_failed}
+	game=preview;story=preview_story
+	save_failed=false
+	debug_session=DebugSession.new()
 
 func campaign_preview_path(prefix: String,signature: String,suffix="") -> String:
 	return campaign_playtest_directory.path_join(prefix+signature+suffix+".json")
@@ -708,6 +736,7 @@ func close_campaign_preview():
 	select_score_theme()
 	if context.return=="route":
 		make_map();show_campaign_route()
+	elif context.return=="title":show_title()
 	else:show_campaign_editor(campaign_editor_return)
 
 func add_valley_route_action(frame: Control):
@@ -726,9 +755,10 @@ func add_valley_route_action(frame: Control):
 	button_in(frame,"Resume the war table" if found else "Unroll the war table",func():
 		start_campaign_preview(compiled,index,found,"route")).name="OpenValleyFront"
 
-func save_and_return_to_route(stage_name: String):
+func save_and_return_from_preview(stage_name: String):
 	if screen=="battle_menu":cancel_selection()
-	if persist_campaign(stage_name,true,"return_to_route"):close_campaign_preview()
+	var reason="return_to_route" if campaign_preview.return=="route" else "return_to_title"
+	if persist_campaign(stage_name,true,reason):close_campaign_preview()
 
 func show_camp():
 	drop_mode=false
@@ -786,8 +816,9 @@ func show_camp():
 	button_in(tools_row,"Options",func():show_options("camp")).size_flags_horizontal=Control.SIZE_EXPAND_FILL
 	button_in(tools_row,"Route",show_campaign_route).size_flags_horizontal=Control.SIZE_EXPAND_FILL
 	button_in(left,"Transfer a local save",func():show_save_transfer("camp"))
-	if campaign_preview.get("return","")=="route":
-		button_in(left,"Save and return to route",save_and_return_to_route.bind("camp"))
+	var return_to=campaign_preview.get("return","")
+	if return_to in ["route","title"]:
+		button_in(left,"Save and return to "+return_to,save_and_return_from_preview.bind("camp"))
 	else:button_in(left,"Return to title" if campaign_preview.is_empty() else "Return to editor",show_title)
 	var roster_column=VBoxContainer.new();roster_column.size_flags_horizontal=Control.SIZE_EXPAND_FILL;roster_column.size_flags_stretch_ratio=1.35;row.add_child(roster_column)
 	label_in(roster_column,"YOUR COMPANY",20,GOLD)
@@ -1347,8 +1378,9 @@ func show_battle_menu(landmark_index=false):
 	button_in(commands,"Return to battle",close_battle_menu).grab_focus()
 	button_in(commands,"Save",func():close_battle_menu();save_with_feedback("battle"))
 	button_in(commands,"Transfer code",func():close_battle_menu();show_save_transfer("battle"))
-	if campaign_preview.get("return","")=="route":
-		button_in(commands,"Save and return to route",save_and_return_to_route.bind("battle"))
+	var return_to=campaign_preview.get("return","")
+	if return_to in ["route","title"]:
+		button_in(commands,"Save and return to "+return_to,save_and_return_from_preview.bind("battle"))
 	elif not campaign_preview.is_empty():button_in(commands,"Return to editor",close_campaign_preview)
 	var option_row=HBoxContainer.new();option_row.add_theme_constant_override("separation",8);commands.add_child(option_row)
 	var option_button=button_in(option_row,"Options / audio",func():close_battle_menu();show_options("battle"));option_button.size_flags_horizontal=Control.SIZE_EXPAND_FILL
@@ -2388,9 +2420,10 @@ func show_battle_result(outcome: String):
 		button_in(frame,"Retry autosave",func():
 			if persist_campaign("battle"):check_result())
 	button_in(frame,"Transfer code",func():show_save_transfer("result"))
-	if campaign_preview.get("return","")=="route":
-		button_in(frame,"Save and return to route",save_and_return_to_route.bind("battle"))
-	elif not campaign_preview.is_empty() and (outcome!="victory" or campaign_preview.return!="chapter"):
+	var return_to=campaign_preview.get("return","")
+	if return_to in ["route","title"]:
+		button_in(frame,"Save and return to "+return_to,save_and_return_from_preview.bind("battle"))
+	elif not campaign_preview.is_empty() and (outcome!="victory" or return_to!="chapter"):
 		button_in(frame,"Return to editor",close_campaign_preview)
 
 func close_retreat_route():
@@ -2529,7 +2562,7 @@ func show_ending():
 		label_in(list,u.name+" · "+game.class_name_for(u)+" · Level "+str(int(u.level)),19,Color(u.color))
 		label_in(list,"Fell in chapter %02d — %s. The company carries their memory."%[int(u.fallen_chapter)+1,game.content.chapters[int(u.fallen_chapter)].title] if u.get("fallen",false) else u.get("ending",profiles.get(u.id,{}).get("ending",u.bio)),17).name="Ending_"+u.id
 	if not game.trials.read_scenes.is_empty() or not game.trials.events.is_empty():button_in(v,"Company memories",show_campaign_trials)
-	button_in(v,"Return to title" if campaign_preview.is_empty() else "Return to editor",show_title)
+	button_in(v,"Return to title" if campaign_preview.is_empty() or campaign_preview.return=="title" else "Return to editor",show_title)
 
 func show_dialogue(lines: Array,on_complete: Callable,kind="opening",backdrop_chapter=-1,use_losses=true,revisit=-1):
 	screen="dialogue";reset_ui()
@@ -2855,7 +2888,9 @@ func show_save_transfer(return_screen: String):
 	label_in(panel,"LOCAL SAVE TRANSFER",36,GOLD)
 	var instructions="Paste a starter code to load a position into the temporary Debug campaign. Copy the code below to keep this test position." if debug_session.active else "Move your campaign between browsers or the desktop app. Copy the code below, then paste it into this screen on the other build."
 	label_in(panel,instructions,21).name="TransferInstructions"
-	label_in(panel,"Import replaces the current save in this slot. Copy its code first to keep a separate backup. Poem reads save codes locally.",17).name="TransferBackupHint"
+	var backup="Import replaces the save for the code’s chronicle. Copy a backup of that chronicle first."
+	if return_screen!="title" or debug_session.active:backup="Import replaces the current save in this slot. Copy its code first to keep a separate backup."
+	label_in(panel,backup+" Poem reads save codes locally.",17).name="TransferBackupHint"
 	transfer_text=TextEdit.new();transfer_text.name="SaveCode";transfer_text.size_flags_vertical=Control.SIZE_EXPAND_FILL
 	transfer_text.custom_minimum_size.y=160
 	transfer_text.wrap_mode=TextEdit.LINE_WRAPPING_BOUNDARY;transfer_text.add_theme_font_size_override("font_size",14);panel.add_child(transfer_text)
@@ -2912,15 +2947,21 @@ func insert_save_code_file(raw: String,field: TextEdit):
 func import_pasted_save():
 	var data=game.decode_save_code(transfer_text.text)
 	var campaign_id=data.get("campaign_id","")
+	var receiving=game
+	var compiled={}
 	if campaign_id is String and campaign_id!=game.content.get("authoring_signature","") and game.has_save_header(data):
 		if campaign_id.is_empty():
 			show_notice("This code belongs to Poem’s main campaign. Open Transfer a local save from the title screen.",7.0)
 			return
 		if campaign_id.length()==64 and campaign_id.is_valid_hex_number():
-			show_notice("This code belongs to a different campaign. Open the matching draft or war table, then import from its war council.",7.0)
-			return
-	var saved=game.restore_save(data)
+			if transfer_return=="title" and not debug_session.active:compiled=roads_between_campaign()
+			if compiled.is_empty() or campaign_id!=compiled.content.authoring_signature:
+				show_notice("This code belongs to a different campaign. Open the matching draft or war table, then import from its war council.",7.0)
+				return
+			receiving=Rules.new(compiled.content)
+	var saved=receiving.restore_save(data)
 	if saved=="":show_notice("This code is incomplete or invalid. Your campaign has not changed.");return
+	if receiving!=game:enter_campaign_preview(receiving,compiled.story,roads_between_save_path(),"title")
 	var persisted=persist_campaign(saved,false,"import")
 	if not music.playing:music.play()
 	if saved=="ending":show_ending()
@@ -3118,7 +3159,7 @@ func show_options(return_to: String):
 	permanent.toggled.connect(func(value):game.permadeath=value)
 	label_in(panel,"Turning this off keeps earlier losses. Use Debug tools to experiment with revival.",16)
 	var debugging=CheckButton.new();debugging.name="DebugMode";debugging.text="Debug mode · temporary sandbox";debugging.button_pressed=debug_session.active;panel.add_child(debugging)
-	debugging.disabled=not campaign_preview.is_empty() and campaign_preview.return!="editor"
+	debugging.disabled=not campaign_preview.is_empty() and campaign_preview.return not in ["editor","title"]
 	debugging.toggled.connect(func(value):
 		if value:debug_session.begin(game,options_return,preferences.values.character_models=="revised")
 		else:

@@ -2,6 +2,8 @@
 
 Poem campaigns are ordered sets of battles, recruit arrivals, section checkpoints, and story scenes. Choose a blank campaign with New draft, or open the draft library to copy Poem. Copy Poem with the Valley battle puts the war table between Crown Approach and the Sun Engine in a 13-chapter draft. In that battle, stop at Reed Crossing, Hallow Abbey, or Windscar Pass and finish an action to hear from the valley. The same versioned document can be exported as JSON and opened in either build.
 
+From the title, choose **Begin the chronicle → The Roads Between** to play that 13-chapter campaign. It uses the rules you choose and keeps its own local save. Use **Continue The Roads Between** to resume, or import a matching save code through **Transfer a local save** at the title.
+
 Copy Hold the Valley Roads opens a tested Hard campaign at Chapter 12 with a fixed playtest seed. Hold Reed Crossing, Hallow Abbey, and the capital at the same time. The draft includes Merrin’s relief company and Aster’s recruitment after two losses. Change individual switches in Rules to run the experiment with a different setup, or use Play from start to begin at Cinderford.
 
 **Copy Signals in the Valley** opens the version with a defense, three reserve enemies, and the abbey signal scene. Set the **Permadeath** toggle beside the button before copying. Both playtests start in the editor at Chapter 12 with the same seed, Harder enemy forces, retry pressure, and Death’s Door.

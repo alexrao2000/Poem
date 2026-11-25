@@ -36,7 +36,8 @@ func run():
  app.show_save_transfer("title");await process_frame
  assert(app.screen=="save_transfer" and is_instance_valid(app.transfer_text))
  assert(app.ui.find_child("TransferInstructions",true,false).text.contains("between browsers or the desktop app"))
- assert(app.ui.find_child("TransferBackupHint",true,false).text.contains("Copy its code first to keep a separate backup"))
+ var backup_hint=app.ui.find_child("TransferBackupHint",true,false).text
+ assert("Import replaces the save for the code’s chronicle" in backup_hint and "Copy a backup" in backup_hint)
  var title_chapter=app.game.chapter;var disk_before_return=FileAccess.get_file_as_string(app.save_path) if FileAccess.file_exists(app.save_path) else ""
  app.transfer_text.text=code;app.transfer_text.grab_focus();press_escape()
  assert(app.screen=="title" and app.game.chapter==title_chapter,"Title transfer Escape does not import the pasted campaign")
