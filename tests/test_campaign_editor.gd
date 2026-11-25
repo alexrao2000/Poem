@@ -2144,7 +2144,34 @@ func run():
   var exit_index=InputEventKey.new();exit_index.keycode=KEY_ESCAPE;exit_index.pressed=true
   app._input(exit_index);await process_frame
   assert(app.screen=="battle" and app.cursor_tile==Vector2i(6,9))
+  var view=app.map_navigation.capture_view()
+  open_index.pressed.emit();await process_frame
+  controls(app,"Review atlas").pressed.emit();await process_frame;await process_frame
+  assert(app.screen=="battle_route" and app.field_audio.requested_theme=="valley-table")
+  var atlas=app.ui.find_child("CampaignRoute",true,false)
+  var grid=app.ui.find_child("BattleRouteGrid",true,false)
+  var inspect=app.ui.find_child("BattleRouteInspect",true,false)
+  assert(atlas.selected==1 and atlas.map_picture==Valley.MAP and atlas.survey_terrain.is_empty())
+  assert(atlas.markers[12].disabled and app.ui.find_child("RouteSurveyMark",true,false).text=="G-10")
+  for control in [grid,inspect,app.ui.find_child("BattleRouteReturn",true,false)]:
+   assert(root.get_visible_rect().grow(1).encloses(control.get_global_rect()))
+  grid.button_pressed=true
+  assert(atlas.survey_terrain==app.game.info().map and atlas.survey_standards==app.game.capture_tiles())
+  grid.button_pressed=false
+  assert(atlas.survey_terrain.is_empty())
+  root.push_input(exit_index,true);await process_frame
+  assert(app.screen=="battle" and app.cursor_tile==Vector2i(6,9) and app.map_navigation.capture_view()==view)
+  var returned=app.ui.find_child("OpenLandmarkIndex",true,false)
+  assert(returned.has_focus())
+  returned.pressed.emit();await process_frame
+  controls(app,"Review atlas").pressed.emit();await process_frame
+  atlas=app.ui.find_child("CampaignRoute",true,false)
+  atlas.markers[5].pressed.emit()
+  assert(app.ui.find_child("RouteSurveyMark",true,false).text=="R-12")
+  app.ui.find_child("BattleRouteInspect",true,false).pressed.emit();await process_frame
+  assert(app.screen=="battle" and app.cursor_tile==Vector2i(17,11) and app.terrain_card.place.text=="Glass Harbor")
   assert(canonical(app.game.save_data("battle"))==atlas_state and FileAccess.get_file_as_string(valley_path)==atlas_disk)
+ print("PASS: the Valley atlas opens from battle, overlays its exact grid, and returns to the original view or the selected landmark without saving")
  root.size=original_size
  root.content_scale_size=original_scale
  await process_frame
