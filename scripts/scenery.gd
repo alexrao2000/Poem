@@ -27,6 +27,7 @@ const CinderfordMarket=preload("res://scripts/cinderford_market.gd")
 const CinderfordStream=preload("res://scripts/cinderford_stream.gd")
 const ReedTollhouse=preload("res://scripts/reed_tollhouse.gd")
 const AbbeyMosaic=preload("res://scripts/abbey_mosaic.gd")
+const AbbeyVigil=preload("res://scripts/abbey_vigil.gd")
 const ABBEY_GROVE_SITES=[
  Vector2(-7.9,-1.54),Vector2(-5.4,-.60),Vector2(-2.7,-1.70),Vector2(-1.05,-.43),
  Vector2(1.65,-1.50),Vector2(4.65,-.85),Vector2(6.85,-1.50),Vector2(8.15,-.55),
@@ -425,6 +426,7 @@ func landscape(parent,game):
   CinderfordMarket.build(self,parent,Vector3(1.5,0,2.5),.58)
  if theme=="abbey":
   AbbeyMosaic.build(self,parent,AbbeyMosaic.MAP_SITE,1.0)
+  AbbeyVigil.build(self,parent,AbbeyVigil.MAP_SITE,AbbeyVigil.MAP_SCALE,AbbeyVigil.lamp_count(game))
   abbey_grove(parent,Vector3(center.x-.5,-.15,-2.25),1.0,.84)
  if theme=="harbor":
   HarborNet.build(self,parent,HarborNet.MAP_SITE,HarborNet.MAP_SCALE)
@@ -630,8 +632,12 @@ func combat_context(game,a,b,screen_direction=1.0) -> Dictionary:
  if theme=="furnace" and tile!="=":
   context.slag_cart=midpoint.distance_to(Vector2(ReddeepCart.MAP_SITE.x,ReddeepCart.MAP_SITE.z))<=3.3
  if is_finite(tollhouse_x):context.tollhouse_x=tollhouse_x
- if theme=="abbey" and tile=="p" and midpoint.distance_to(Vector2(AbbeyMosaic.MAP_SITE.x,AbbeyMosaic.MAP_SITE.z))<=3.0:
-  context.mosaic_yaw=atan2(axis.y,axis.x)
+ if theme=="abbey":
+  if tile=="p" and midpoint.distance_to(Vector2(AbbeyMosaic.MAP_SITE.x,AbbeyMosaic.MAP_SITE.z))<=3.0:
+   context.mosaic_yaw=atan2(axis.y,axis.x)
+  if midpoint.distance_to(Vector2(AbbeyVigil.MAP_SITE.x,AbbeyVigil.MAP_SITE.z))<=6.0:
+   var lamps=AbbeyVigil.lamp_count(game)
+   if lamps>0:context.vigil_lamps=lamps
  return context
 
 func transfer_environment_motion(source: Node3D,destination: Node3D,theme: String):
@@ -665,6 +671,7 @@ func transfer_environment_motion(source: Node3D,destination: Node3D,theme: Strin
   var original=source.get_node_or_null("EmptyBelfry/AbbeyBanner")
   var counterpart=destination.get_node_or_null("EmptyBelfry/AbbeyBanner")
   if original!=null and counterpart!=null:counterpart.seek_phase(original.phase)
+  AbbeyVigil.transfer(source,destination)
  elif theme=="harbor":
   var flock=destination.get_node_or_null("AmbientDrift/HarborGulls")
   if flock!=null:flock.update_from_clock()
@@ -1088,6 +1095,8 @@ func battle_landscape(parent,center,context={}):
   abbey_grove(parent,center+Vector3(0,-.025,-14.6),1.85,2.24)
   abbey_arcade(parent,center+Vector3(0,0,-9.7))
   abbey_belfry(parent,center+Vector3(belfry_lateral,0,-6.5),1.35)
+  AbbeyVigil.build(self,parent,center+Vector3(belfry_lateral-signf(belfry_lateral)*3.78,0,-5.3),
+   AbbeyVigil.ARENA_SCALE,context.get("vigil_lamps",0))
   if context.has("mosaic_yaw") and tile=="p":
    AbbeyMosaic.build(self,parent,center+AbbeyMosaic.ARENA_SITE,AbbeyMosaic.ARENA_SCALE,context.mosaic_yaw)
  if theme=="castle":

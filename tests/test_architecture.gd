@@ -12,6 +12,7 @@ const CinderfordMarket=preload("res://scripts/cinderford_market.gd")
 const ReedTollhouse=preload("res://scripts/reed_tollhouse.gd")
 const RiverBank=preload("res://scripts/river_bank.gd")
 const AbbeyMosaic=preload("res://scripts/abbey_mosaic.gd")
+const AbbeyVigil=preload("res://scripts/abbey_vigil.gd")
 const KingsroadHoist=preload("res://scripts/kingsroad_hoist.gd")
 const AqueductWheel=preload("res://scripts/aqueduct_waterwheel.gd")
 const ReddeepCart=preload("res://scripts/reddeep_slag_cart.gd")
@@ -28,6 +29,7 @@ func run():
  await verify_abbey_arcade()
  await verify_abbey_belfry()
  await verify_abbey_mosaic()
+ verify_abbey_vigil()
  await verify_ruined_columns()
  await verify_village_groves()
  await verify_market_stall()
@@ -268,6 +270,59 @@ func verify_abbey_mosaic():
  viewport.free();field.free()
  assert(game.save_data("camp")==saved)
  print("PASS: worn 142-triangle Hallow Abbey floor mosaic, shared geometry with oriented arena placement and nine clear projections")
+
+func verify_abbey_vigil():
+ var scenery=Scenery.new();scenery.batching_enabled=false
+ var game=Rules.new();game.new_campaign(true);game.chapter=2
+ game.action_saves=true;game.trials.flags.death_legacies=true
+ game.deployed=["lyra","oren","ivo","sera","mara","tarin"];game.start_battle()
+ for unit in game.units:
+  if unit.id in ["mara","tarin","ivo"]:unit.hp=0
+  elif unit.team=="enemy":unit.hp=0
+ game.commit_casualties()
+ assert(game.trials.credits==3 and AbbeyVigil.lamp_count(game)==0,"The vigil begins at the next arrival")
+ assert(game.result()=="victory")
+ game.finish_chapter();game.start_battle()
+ var restored=Rules.new()
+ assert(restored.import_code(game.export_code("battle"))=="battle")
+ assert(restored.chapter==3 and restored.lost_ids().size()==3 and AbbeyVigil.lamp_count(restored)==3)
+ restored.trials.flags.death_legacies=false
+ assert(AbbeyVigil.lamp_count(restored)==0)
+ restored.trials.flags.death_legacies=true
+ restored.permadeath=false
+ assert(AbbeyVigil.lamp_count(restored)==0)
+ restored.permadeath=true
+ var saved=restored.save_data("battle").duplicate(true)
+ var rng=restored.rng.state
+ var field=Node3D.new();root.add_child(field);scenery.landscape(field,restored)
+ var vigil=field.get_node("AbbeyVigil")
+ var book=vigil.get_node("CompanyBook")
+ assert(book.mesh==AbbeyVigil.pages_mesh())
+ var lamps=vigil.find_children("Flame","Node3D",true,false)
+ assert(lamps.size()==3)
+ var plinth=vigil.get_node("VigilPlinth")
+ var footprint=plinth.global_transform*plinth.mesh.get_aabb()
+ assert(footprint.end.z<-.5 and is_equal_approx(footprint.position.y,-.15),"The plinth is grounded beyond the playable abbey courtyard")
+ var near=scenery.combat_context(restored,{"x":11,"y":4},{"x":12,"y":4})
+ var far=scenery.combat_context(restored,{"x":3,"y":7},{"x":4,"y":7})
+ assert(near.vigil_lamps==3 and not far.has("vigil_lamps"))
+ var center=Vector3(35,0,0)
+ var stage=Node3D.new();root.add_child(stage);scenery.battle_landscape(stage,center,near)
+ var arena=stage.get_node("AbbeyVigil")
+ assert(arena.get_node("CompanyBook").mesh==book.mesh)
+ for i in 3:lamps[i].seek_phase(float(i)*.5+.15)
+ scenery.batcher.combine(field);scenery.batcher.combine(stage)
+ scenery.transfer_environment_motion(field,stage,"abbey")
+ var counterparts=arena.find_children("Flame","Node3D",true,false)
+ assert(counterparts.size()==3)
+ for i in 3:
+  assert(counterparts[i].phase==lamps[i].phase,"The same candle phase follows the close-up")
+  counterparts[i].seek_phase(float(i)*.71+2.1)
+ scenery.transfer_environment_motion(stage,field,"abbey")
+ for i in 3:assert(lamps[i].phase==counterparts[i].phase)
+ assert(restored.rng.state==rng and restored.save_data("battle")==saved,"Presenting the vigil leaves the saved campaign untouched")
+ stage.free();field.free()
+ print("PASS: Abbey vigil counts committed losses from earlier chapters, survives export and import, and carries three flames into the close-up")
 
 func verify_abbey_belfry():
  var scenery=Scenery.new();scenery.batching_enabled=false
