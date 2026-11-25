@@ -624,8 +624,9 @@ func combat_context(game,a,b,screen_direction=1.0) -> Dictionary:
  var tabletop=game.info().get("presentation","")=="valley_table"
  var earlier_site={}
  if tabletop:
-  theme={"f":"forest","h":"mountain","=":"river","+":"abbey","o":"castle"}.get(tile,"road")
-  earlier_site=Valley.reached_chapter_at(game.content.chapters,game.chapter,point,theme)
+  var profile=Valley.arena_at(game.content.chapters,game.chapter,point,tile)
+  theme=profile.environment
+  earlier_site=profile.chapter
  var near_water=theme in ["road","harbor"] and nearby_channel(game,midpoint)
  var harbor_quayside=theme=="harbor" and tile!="=" and near_water
  var village_streamside=theme=="village" and CinderfordStream.borders_exchange(game,a,b)

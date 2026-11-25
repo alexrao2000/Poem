@@ -25,6 +25,7 @@ const ROADS=[
 const CAPITAL=[21,2]
 const ROUTE_TERRAIN={"Reed Crossing":"=","Hallow Abbey":"+","Kingsroad":"=","Windscar Pass":"h"}
 const LANDMARK_TERRAINS=["=","+","h","o","f"]
+const TERRAIN_ARENAS={"f":"forest","h":"mountain","=":"river","+":"abbey","o":"castle"}
 
 static func route_dialogue(route: Array) -> Array:
  var scenes={
@@ -196,12 +197,17 @@ static func reached_places(chapters: Array,chapter_index: int) -> Dictionary:
   if chapter.place not in places[tile]:places[tile].append(chapter.place)
  return places
 
-static func reached_chapter_at(chapters: Array,chapter_index: int,point: Vector2i,environment: String) -> Dictionary:
+static func arena_at(chapters: Array,chapter_index: int,point: Vector2i,terrain: String) -> Dictionary:
+ var theme=TERRAIN_ARENAS.get(terrain,"road")
+ var remembered={}
  for index in range(chapter_index-1,-1,-1):
   var chapter=chapters[index]
-  if chapter.get("presentation","")=="valley_table" or chapter.get("environment","village")!=environment:continue
-  if route_tile(chapter.route_position)==point:return chapter
- return {}
+  if chapter.get("presentation","")=="valley_table" or route_tile(chapter.route_position)!=point:continue
+  var environment=chapter.get("environment","village")
+  if chapter.get("route_arena",false):
+   return {"environment":environment,"chapter":chapter,"reused":true}
+  if remembered.is_empty() and environment==theme:remembered=chapter
+ return {"environment":theme,"chapter":remembered,"reused":false}
 
 static func reveal_corners(board: Vector2i) -> Array:
  return [Vector3(-.5,0,-.5),Vector3(board.x-.5,0,-.5),

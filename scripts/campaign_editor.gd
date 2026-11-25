@@ -655,6 +655,15 @@ func build_route(panel: VBoxContainer) -> Callable:
   for index in Draft.ROUTE_TERRAIN.size():
    site.set_item_text(index+1,Draft.Rules.TERRAIN_PROFILES[Draft.ROUTE_TERRAIN[index]].name)
   field_label(row(panel),"Terrain on later war tables",site)
+  var arena=CheckButton.new()
+  arena.name="EditorRouteArena"
+  arena.text="Reuse this environment on later war tables"
+  arena.button_pressed=level().get("route_arena",false)
+  panel.add_child(arena)
+  arena.toggled.connect(func(value):
+   if value:level().route_arena=true
+   else:level().erase("route_arena")
+   refresh_survey.call();changed())
  refresh_survey.call()
  return refresh_survey
 
@@ -682,8 +691,12 @@ func build_route_survey(panel: VBoxContainer,chart: Control) -> Callable:
   if index>=0:
    picker.set_item_text(picker.selected,"%02d · %s"%[index+1,draft.data.chapters[index].level.title])
    var tile=chart.survey_tile(chart.positions[selected])
-   var terrain=Draft.Rules.TERRAIN_PROFILES[chart.survey_terrain[tile.y][tile.x]].name
+   var terrain_symbol=chart.survey_terrain[tile.y][tile.x]
+   var terrain=Draft.Rules.TERRAIN_PROFILES[terrain_symbol].name
    location.text="Selected pin · %d, %d · %s"%[tile.x,tile.y,terrain]
+   var earlier=draft.data.chapters.map(func(record):return record.level)
+   var arena=Draft.Valley.arena_at(earlier,index,tile,terrain_symbol)
+   if arena.reused:location.text+=" · "+arena.environment.capitalize()+" arena"
    var authored=draft.data.chapters[index].level
    var pins=authored.get("extra_standard_pins",[])
    var pinned=chapter().key in pins

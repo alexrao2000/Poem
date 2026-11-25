@@ -25,7 +25,7 @@ const STRATEGIES=["pursue","sentry","guard"]
 const ROUTE_TERRAIN=["p","=","f","h","o","+"]
 const RECRUIT_STATS={"hp":[1,900],"pow":[0,200],"defense":[0,200],"resistance":[0,200],"speed":[0,200],"move":[1,20]}
 const LEVEL_FIELDS=["title","place","intro","outro","tactical_brief","map","route_position","environment","score_theme",
- "objective","objective_position","turn_limit","deployment_positions","enemies","hard_enemies","presentation","enemy_level","hard_bonuses","site_scenes","extra_standards"]
+ "objective","objective_position","turn_limit","deployment_positions","enemies","hard_enemies","presentation","enemy_level","hard_bonuses","site_scenes","extra_standards","route_arena"]
 const MIN_BOARD=Vector2i(6,5)
 const MAX_BOARD=Vector2i(32,24)
 
@@ -534,6 +534,7 @@ func map_structure_problem(level: Dictionary) -> String:
  if not level.get("route_position") is Array or level.route_position.size()!=2 or not level.route_position.all(
    func(value):return number(value) and value>=0 and value<=1):return "A route pin must stay on the map."
  if level.get("route_terrain","") not in ([""]+ROUTE_TERRAIN):return "Choose a terrain type for the route pin."
+ if not level.get("route_arena",false) is bool:return "Choose whether later war tables reuse the route location’s environment."
  if not level.get("map") is Array or level.map.size()<MIN_BOARD.y or level.map.size()>MAX_BOARD.y or not level.map[0] is String:
   return "A battle needs a rectangular terrain grid."
  var width=level.map[0].length()
