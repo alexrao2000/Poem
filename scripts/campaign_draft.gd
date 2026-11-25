@@ -108,6 +108,8 @@ func recruit_in_use(id: String) -> bool:
   if id in bond.members:return true
   for scene in bond.scenes:
    if dialogue_uses(scene.lines,id):return true
+ for arrival in data.get("legacy_arrivals",[]):
+  if arrival.id==id or dialogue_uses(arrival.lines,id):return true
  for chapter in data.chapters:
   if dialogue_uses(chapter.opening,id) or dialogue_uses(chapter.closing,id):return true
   for scene in chapter.get("phase_scenes",[]):
@@ -250,6 +252,8 @@ func structural_problem(document) -> String:
   people[recruit.id]=true
  if document.has("legacy_stock") and not valid_legacy_stock(document.legacy_stock,people.size()+templates.legacy_recruits.size()-1):
   return "Choose unique legacy items with valid loss thresholds and credit costs."
+ if document.has("legacy_arrivals") and not valid_legacy_arrivals(document.legacy_arrivals,people):
+  return "Choose a unique recruit, a loss threshold and a valid class for each legacy arrival."
  if not known.all(func(id):return people.has(id)):return "The company roster is incomplete."
  if document.has("bonds"):
   var bond_people=people.duplicate()
@@ -278,6 +282,24 @@ func valid_legacy_stock(entries,limit: int) -> bool:
   if not integer(stock.get("cost"),1,limit) or not integer(stock.get("losses"),1,limit):return false
   if not stock.get("legacy_only",false) is bool:return false
   ids.erase(stock.id)
+ return true
+
+func default_legacy_arrivals() -> Array:
+ var arrivals=Trials.LEGACY_ARRIVALS.duplicate(true)
+ for arrival in arrivals:
+  var key="volunteer_"+arrival.id
+  arrival.title=Trials.SCENE_TITLES[key];arrival.lines=base_trial_scenes[key].duplicate(true)
+ return arrivals
+
+func valid_legacy_arrivals(entries,people: Dictionary) -> bool:
+ if not entries is Array or entries.size()>=people.size():return false
+ var used={"lyra":true}
+ for arrival in entries:
+  if not arrival is Dictionary or not arrival.get("id") is String or not people.has(arrival.id) or used.has(arrival.id):return false
+  if not integer(arrival.get("losses"),1,people.size()+templates.legacy_recruits.size()-1):return false
+  if arrival.get("job") not in ([""]+templates.classes.keys()):return false
+  if not valid_text(arrival.get("title"),100) or not dialogue_valid(arrival.get("lines")):return false
+  used[arrival.id]=true
  return true
 
 func phase_scenes_valid(scenes) -> bool:
@@ -429,6 +451,7 @@ func compile() -> Dictionary:
   for bond in content.bonds:bond.chapters=bond.chapters.map(index_for)
  if data.chapters.any(func(chapter):return chapter.has("section_scenes")):compile_section_scenes(content)
  if data.has("legacy_stock"):content.legacy_stock=data.legacy_stock.duplicate(true)
+ if data.has("legacy_arrivals"):compile_legacy_arrivals(content)
  return {"content":content,"story":{"chapters":scenes},"settings":data.settings.duplicate(true)}
 
 func compile_section_scenes(content: Dictionary):
@@ -447,6 +470,19 @@ func compile_section_scenes(content: Dictionary):
    var id=kind+"_"+str(index)
    content.trial_scenes[id]=scene.lines.duplicate(true)
    content.trial_titles[id]=SECTION_SCENES[kind] if scene.title.is_empty() else scene.title
+
+func compile_legacy_arrivals(content: Dictionary):
+ if not content.has("trial_scenes"):
+  content.trial_scenes=base_trial_scenes.duplicate(true)
+  content.trial_titles=Trials.SCENE_TITLES.duplicate()
+ content.legacy_arrivals=data.legacy_arrivals.duplicate(true)
+ for arrival in content.legacy_arrivals:
+  var key="volunteer_"+arrival.id
+  if arrival.lines.is_empty():
+   content.trial_scenes.erase(key);content.trial_titles.erase(key)
+  else:
+   content.trial_scenes[key]=arrival.lines
+   content.trial_titles[key]="A recruit arrives" if arrival.title.is_empty() else arrival.title
 
 func apply_recruit(recruit: Dictionary,authored: Dictionary):
  var arrival=index_for(authored.chapter)

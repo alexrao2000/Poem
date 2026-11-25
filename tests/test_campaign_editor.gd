@@ -173,6 +173,34 @@ func check_legacy_catalogue():
  var restored=Rules.new(content)
  assert(restored.import_code(game.export_code("camp"))=="camp" and restored.trials.purchases==["pike"])
 
+func check_legacy_arrivals():
+ var draft=Draft.new()
+ var reserve=draft.data.recruits[draft.add_recruit(draft.data.recruits[2],"")]
+ reserve.name="Aster"
+ draft.data.chapters[-1].section=true
+ draft.data.legacy_arrivals=[{"id":reserve.id,"losses":2,"job":"Warden","title":"The keeper’s apprentice",
+  "lines":[{"speaker":reserve.id,"text":"The lamps will stay lit."}]}]
+ assert(draft.recruit_in_use(reserve.id) and draft.playtest_problem().is_empty())
+ var content=draft.compile().content
+ var late=Rules.new(content)
+ late.new_campaign(true);late.chapter=content.chapters.size()-1;late.trials.flags.section_restarts=true
+ late.trials.arrive(late)
+ assert(not late.available().any(func(member):return member.id==reserve.id))
+ var game=Rules.new(content)
+ game.new_campaign(true);game.trials.flags.death_legacies=true;game.start_battle()
+ for fallen in ["sera","ivo"]:
+  game.units.filter(func(member):return member.id==fallen)[0].hp=0
+  game.commit_casualties()
+  assert((reserve.id in game.trials.volunteers)==(fallen=="ivo"))
+ assert(game.trials.credits==2 and "maelin" in game.trials.volunteers and "tovin" in game.trials.volunteers)
+ var scene="volunteer_"+reserve.id
+ assert(game.trials.scene_title(scene)=="The keeper’s apprentice" and scene in game.trials.earned_scenes)
+ assert(game.trials.scene_lines(game,scene)[0].text=="The lamps will stay lit.")
+ var restored=Rules.new(content)
+ assert(restored.import_code(game.export_code("camp"))=="camp")
+ assert(restored.available().any(func(member):return member.id==reserve.id))
+ assert(restored.trials.earned_scenes==game.trials.earned_scenes)
+
 func use_brush(editor,index: int,point: Vector2i,erase=false):
  var mode=editor.find_child("EditorBrush",true,false)
  mode.select(index);mode.item_selected.emit(index)
@@ -198,6 +226,7 @@ func run():
  check_shrinking_board(scratch.path_join("smaller-finale.json"))
  check_section_story()
  check_legacy_catalogue()
+ check_legacy_arrivals()
  root.size=Vector2i(1440,900)
  var app=load("res://main.tscn").instantiate();app.settings_path="";app.save_path=scratch.path_join("normal.json")
  app.campaign_draft_library.path=scratch.path_join("drafts.json")
@@ -561,6 +590,22 @@ func run():
  assert(added_stock.id=="pike" and added_stock.cost==1 and added_stock.losses==1)
  app.campaign_editor.find_child("EditorLegacyExclusive",true,false).button_pressed=true
  assert(added_stock.legacy_only)
+ controls(app,"Add arrival").pressed.emit()
+ var recruit_choice=app.campaign_editor.find_child("EditorLegacyArrivalRecruit",true,false)
+ for index in recruit_choice.item_count:
+  if recruit_choice.get_item_metadata(index)=="rook":
+   recruit_choice.select(index);recruit_choice.item_selected.emit(index);break
+ var arrival_class=app.campaign_editor.find_child("EditorLegacyArrivalClass",true,false)
+ for index in arrival_class.item_count:
+  if arrival_class.get_item_metadata(index)=="Ranger":
+   arrival_class.select(index);arrival_class.item_selected.emit(index);break
+ var arrival_title=app.campaign_editor.find_child("EditorLegacyArrivalTitle",true,false)
+ arrival_title.text="Rook at the ridge";arrival_title.text_changed.emit(arrival_title.text)
+ var arrival_lines=app.campaign_editor.find_child("EditorLegacyArrivalLines",true,false)
+ arrival_lines.text="rook | I found the signal fire.";arrival_lines.text_changed.emit()
+ controls(app,"Higher priority").pressed.emit()
+ controls(app,"Higher priority").pressed.emit()
+ assert(app.campaign_editor.draft.data.legacy_arrivals[0].id=="rook")
  assert(app.campaign_editor.play_buttons[0].disabled and app.campaign_editor.selected==1)
  controls(app,"Test this battle").pressed.emit();await finish_presentation(app)
  assert(app.screen=="camp" and app.game.chapter==1 and app.campaign_preview.return=="chapter")
@@ -583,6 +628,8 @@ func run():
  controls(app,"Deploy company  >").pressed.emit();await finish_presentation(app)
  app.game.units.filter(func(unit):return unit.id=="sera")[0].hp=0
  app.game.commit_casualties();app.show_camp();await finish_presentation(app)
+ assert("rook" in app.game.trials.volunteers and "volunteer_rook" in app.game.trials.read_scenes)
+ assert(app.game.trials.scene_title("volunteer_rook")=="Rook at the ridge")
  app.show_campaign_trials();await process_frame
  controls(app,"Secure · Gatekeeper pike · 1 credit").pressed.emit();await process_frame
  assert(app.game.trials.purchases==["pike"] and app.game.trials.credits==0)
@@ -594,5 +641,5 @@ func run():
  assert(app.screen=="campaign_editor" and app.game==installed and app.campaign_editor.selected==1)
  assert(FileAccess.get_file_as_string(app.save_path)==disk)
  await Shutdown.dispose(app);await process_frame
- print("PASS: campaign JSON, route pins, custom recruits, phase scenes, timed reinforcements, chapter 32 saves, section dialogue, authored legacy stock and purchase persistence, Valley carryover, and single-battle tests")
+ print("PASS: campaign JSON, route pins, custom recruits, phase scenes, timed reinforcements, chapter 32 saves, section dialogue, authored legacy stock and purchase persistence, authored loss recruits, Valley carryover, and single-battle tests")
  quit()

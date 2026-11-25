@@ -5,6 +5,7 @@ extends RefCounted
 
 const FLAGS={"section_restarts":false,"reset_pressure":false,"hard_campaign":false,"death_legacies":false,"sacrifice_cost":false}
 const LEGACY_STOCK=[{"id":"tempered_sword","cost":1,"losses":1},{"id":"war_hammer","cost":2,"losses":2},{"id":"longbow","cost":3,"losses":3},{"id":"rally_lance","cost":2,"losses":2},{"id":"vigil_staff","cost":2,"losses":2}]
+const LEGACY_ARRIVALS=[{"id":"faye","losses":1,"job":""},{"id":"noor","losses":3,"job":""}]
 var legacy_stock: Array=LEGACY_STOCK
 const SCENE_TITLES={"relief_4":"Relief at the abbey","relief_8":"Relief at the monastery","retreat_0":"Regrouping at Cinderford","retreat_4":"Return to the abbey","retreat_8":"Return to Starfall","volunteer_faye":"Faye answers the call","volunteer_noor":"Noor leaves the observatory","volunteer_maelin":"The hospice road","volunteer_tovin":"The lanes beneath the hedge","memorial_0":"Names in the company book","memorial_4":"The abbey record","memorial_8":"The monastery bell"}
 var scenes: Dictionary=JSON.parse_string(FileAccess.get_file_as_string("res://data/campaign_trial_scenes.json"))
@@ -115,13 +116,8 @@ func record_losses(game) -> Dictionary:
   outcome.legacy_credit=true;consequences[unit.id]=outcome
   queue_scene("memorial_"+str(section_start(game.chapter)))
   log_event(unit.name+" is lost. Their last request brings one legacy supply credit to the company.")
-  var volunteer="faye" if losses.size()==1 else "noor" if losses.size()==3 else ""
-  if not volunteer.is_empty() and volunteer not in volunteers:
-   var recruits=game.roster.filter(func(recruit):return recruit.id==volunteer)
-   if not recruits.is_empty() and not recruits[0].get("fallen",false) and recruits[0].join>game.chapter:
-    volunteers.append(volunteer);queue_scene("volunteer_"+volunteer)
-    outcome.volunteer=recruits[0].name
-    log_event(recruits[0].name+" answers the company's loss and arrives ahead of the planned rendezvous.")
+  var volunteer=early_volunteer(game,unit.job)
+  if not volunteer.is_empty():outcome.volunteer=volunteer
   for legacy in game.content.legacy_recruits:
    var recruit=legacy.unit
    if legacy.after_loss_job!=unit.job or recruit.id in volunteers:continue
@@ -129,6 +125,22 @@ func record_losses(game) -> Dictionary:
    outcome.replacement=recruit.name
    log_event(recruit.name+" takes up "+unit.name+"'s work and joins the company.")
  return consequences
+
+func early_volunteer(game,fallen_job: String) -> String:
+ var authored=game.content.has("legacy_arrivals")
+ for arrival in game.content.get("legacy_arrivals",LEGACY_ARRIVALS):
+  if losses.size()<arrival.losses or arrival.id in volunteers:continue
+  if not authored and losses.size()!=arrival.losses:continue
+  if not arrival.job.is_empty() and arrival.job!=fallen_job:continue
+  var index=game.roster.find_custom(func(member):return member.id==arrival.id)
+  if index<0:continue
+  var recruit=game.roster[index]
+  if recruit.get("fallen",false) or joined(game,recruit):continue
+  volunteers.append(recruit.id);queue_scene("volunteer_"+recruit.id)
+  var arrival_text=" and joins the company." if recruit.join>=game.content.chapters.size() else " and arrives ahead of the planned rendezvous."
+  log_event(recruit.name+" answers the company's loss"+arrival_text)
+  return recruit.name
+ return ""
 
 func enemy_modifiers(chapter: int,pressure_override: int=-1) -> Dictionary:
  var extra=(pressure if pressure_override<0 else clampi(pressure_override,0,10)) if flags.reset_pressure else 0
@@ -215,10 +227,11 @@ func arrive(game):
  queue_scene("relief_"+str(game.chapter))
  var names=[]
  for unit in game.roster:
-  if unit.join>=game.chapter and unit.join<game.chapter+2 and not unit.get("fallen",false):
+  if unit.join>=game.chapter and unit.join<mini(game.chapter+2,game.content.chapters.size()) and not unit.get("fallen",false):
    if unit.id not in volunteers:volunteers.append(unit.id)
    names.append(unit.name)
- log_event("A new section begins. Relief columns reach the rally point: "+", ".join(names)+". The company carries its losses forward.")
+ var relief="" if names.is_empty() else "Relief columns reach the rally point: "+", ".join(names)+". "
+ log_event("A new section begins. "+relief+"The company carries its losses forward.")
 
 func can_buy(game,id: String) -> bool:
  if not flags.death_legacies or not game.permadeath or id in purchases:return false

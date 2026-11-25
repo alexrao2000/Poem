@@ -20,6 +20,7 @@ var selected_bond=0
 var selected_enemy=0
 var selected_scene=0
 var selected_stock=0
+var selected_arrival=0
 var encounter_panel: VBoxContainer
 var grid: Control
 var status: Label
@@ -412,6 +413,8 @@ func build_rules(panel: VBoxContainer):
   heading(panel,setting.text,15)
  var stock=VBoxContainer.new();stock.add_theme_constant_override("separation",8);panel.add_child(stock)
  build_legacy_stock(stock)
+ var arrivals=VBoxContainer.new();arrivals.add_theme_constant_override("separation",8);panel.add_child(arrivals)
+ build_legacy_arrivals(arrivals)
 
 func build_legacy_stock(panel: VBoxContainer):
  for child in panel.get_children():panel.remove_child(child);child.queue_free()
@@ -453,6 +456,63 @@ func build_legacy_stock(panel: VBoxContainer):
 
 func save_legacy_stock(entries: Array):
  draft.data.legacy_stock=entries
+ changed()
+
+func build_legacy_arrivals(panel: VBoxContainer):
+ for child in panel.get_children():panel.remove_child(child);child.queue_free()
+ heading(panel,"Legacy arrivals",21)
+ heading(panel,"The first eligible recruit joins after a matching permanent loss.",15)
+ var arrivals=draft.data.legacy_arrivals if draft.data.has("legacy_arrivals") else draft.default_legacy_arrivals()
+ var names={}
+ for person in draft.data.recruits:
+  if person.id!="lyra":names[person.id]=person.name
+ var listed=arrivals.map(func(arrival):return arrival.id)
+ var unlisted=names.keys().filter(func(id):return id not in listed)
+ var actions=row(panel)
+ action(actions,"Add arrival",func():
+  arrivals.append({"id":unlisted[0],"losses":1,"job":"","title":"","lines":[]})
+  selected_arrival=arrivals.size()-1;save_legacy_arrivals(arrivals);build_legacy_arrivals(panel),unlisted.is_empty()).name="EditorAddLegacyArrival"
+ if arrivals.is_empty():return
+ selected_arrival=clampi(selected_arrival,0,arrivals.size()-1)
+ var slot=selected_arrival
+ var arrival=arrivals[slot]
+ action(actions,"Remove arrival",func():
+  arrivals.remove_at(slot);save_legacy_arrivals(arrivals);build_legacy_arrivals(panel))
+ var priority=row(panel)
+ action(priority,"Higher priority",func():move_legacy_arrival(panel,arrivals,slot,-1),slot==0)
+ action(priority,"Lower priority",func():move_legacy_arrival(panel,arrivals,slot,1),slot==arrivals.size()-1)
+ var picker=choice(listed,arrival.id,func(value):selected_arrival=listed.find(value);build_legacy_arrivals(panel))
+ picker.fit_to_longest_item=false;picker.clip_text=true
+ picker.name="EditorLegacyArrival"
+ for index in listed.size():picker.set_item_text(index,names[listed[index]])
+ panel.add_child(picker)
+ var recruit_ids=[arrival.id]+unlisted
+ var recruit=choice(recruit_ids,arrival.id,func(value):arrival.id=value;save_legacy_arrivals(arrivals);build_legacy_arrivals(panel))
+ recruit.fit_to_longest_item=false;recruit.clip_text=true
+ recruit.name="EditorLegacyArrivalRecruit"
+ for index in recruit_ids.size():recruit.set_item_text(index,names[recruit_ids[index]])
+ field_label(row(panel),"Recruit",recruit)
+ var condition=row(panel)
+ var limit=draft.data.recruits.size()+draft.templates.legacy_recruits.size()-1
+ var count=spin(int(arrival.losses),1,limit,func(value):arrival.losses=int(value);save_legacy_arrivals(arrivals))
+ count.name="EditorLegacyArrivalLosses";field_label(condition,"Required losses",count)
+ var job=choice([""]+draft.templates.classes.keys(),arrival.job,func(value):arrival.job=value;save_legacy_arrivals(arrivals))
+ job.set_item_text(0,"Any class");job.name="EditorLegacyArrivalClass";field_label(condition,"Fallen class",job)
+ var title=line_edit(arrival.title,"Arrival scene title",100,func(value):arrival.title=value;save_legacy_arrivals(arrivals))
+ title.name="EditorLegacyArrivalTitle";panel.add_child(title)
+ heading(panel,"Enter each line as a speaker ID, a vertical bar, then their words.",15)
+ var original_lines=arrival.lines.duplicate(true)
+ var lines=multiline(dialogue_text(original_lines),110,func(value):arrival.lines=parse_dialogue(value,original_lines);save_legacy_arrivals(arrivals))
+ lines.name="EditorLegacyArrivalLines";panel.add_child(lines)
+
+func move_legacy_arrival(panel: VBoxContainer,arrivals: Array,slot: int,direction: int):
+ var arrival=arrivals.pop_at(slot)
+ selected_arrival=slot+direction
+ arrivals.insert(selected_arrival,arrival)
+ save_legacy_arrivals(arrivals);build_legacy_arrivals(panel)
+
+func save_legacy_arrivals(arrivals: Array):
+ draft.data.legacy_arrivals=arrivals
  changed()
 
 func build_bonds(panel: VBoxContainer):
