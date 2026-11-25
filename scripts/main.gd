@@ -539,7 +539,7 @@ func show_campaign_editor(return_to: String):
 	screen="campaign_editor";reset_ui();title_backdrop()
 	var panel=menu_panel(1180)
 	campaign_editor=preload("res://scripts/campaign_editor.gd").new();panel.add_child(campaign_editor)
-	campaign_editor.configure(campaign_draft,campaign_draft_library,campaign_editor_key,campaign_editor_chapter,campaign_playtest_setup)
+	campaign_editor.configure(campaign_draft,campaign_draft_library,campaign_editor_key,campaign_editor_chapter,campaign_playtest_setup,portraits,map_catalog)
 	campaign_editor.closed.connect(close_campaign_editor)
 	campaign_editor.score_preview_requested.connect(open_editor_score_preview)
 	campaign_editor.draft_selection_changed.connect(func(key,index):

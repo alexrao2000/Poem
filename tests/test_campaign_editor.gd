@@ -878,15 +878,33 @@ func verify_site_recruitment(app):
  await process_frame
  var job=editor.find_child("EditorRecruitClass",true,false)
  var gear=editor.find_child("EditorRecruitEquipment",true,false)
+ var appearance=editor.find_child("EditorRecruitAppearance",true,false)
+ var portrait=editor.find_child("EditorRecruitPortrait",true,false)
+ var sprite=editor.find_child("EditorRecruitSprite",true,false)
  var choose=func(field,value):
   for index in field.item_count:
    if field.get_item_metadata(index)!=value:continue
    field.select(index);field.item_selected.emit(index)
    return
   assert(false,"No editor option for "+value)
+ var original_sprite=app.map_catalog.preview_sprite(draft.build_recruit(recruit))
+ assert(portrait.texture==app.portraits.get_portrait("oren") and sprite.texture==original_sprite)
+ choose.call(appearance,"sera")
+ assert(portrait.texture==app.portraits.get_portrait("sera"))
+ assert(sprite.texture!=original_sprite and sprite.texture==app.map_catalog.preview_sprite(draft.build_recruit(recruit)))
+ choose.call(appearance,"oren")
+ for dimensions in [Vector2i(720,640),Vector2i(1440,900)]:
+  root.size=dimensions;root.content_scale_size=dimensions
+  await process_frame;await process_frame
+  var visible=editor.find_child("Company",true,false).get_global_rect()
+  for control in [portrait,sprite,appearance,job,gear]:
+   var bounds=control.get_global_rect()
+   assert(bounds.position.x>=visible.position.x and bounds.end.x<=visible.end.x)
+  assert(not portrait.get_global_rect().intersects(sprite.get_global_rect()))
  choose.call(gear,"javelin")
  choose.call(job,"Rider")
  assert(recruit.item=="javelin" and gear.get_selected_metadata()=="javelin")
+ assert(sprite.texture!=original_sprite and sprite.texture==app.map_catalog.preview_sprite(draft.build_recruit(recruit)))
  choose.call(job,"Duelist")
  assert(not recruit.has("item") and gear.get_selected_metadata()=="")
  choose.call(job,"Knight")
@@ -1943,5 +1961,5 @@ func run():
  await verify_route_arena_reuse(app)
  assert(FileAccess.get_file_as_string(app.save_path)==disk and app.game==installed)
  await Shutdown.dispose(app);await process_frame
- print("PASS: campaign JSON file transfer, draft library management, remembered playtest setup, campaign readiness, authored Hard bonuses, authored retry raiders, deployment comparison, authored formation previews, small deployment limits and save recovery, custom campaign atlas, terrain stroke undo, bulk terrain rows, editor dialogs at two viewport sizes, direct chapter reordering, continuous terrain strokes, connected terrain fill, placement moves and swaps, repeated placement copies, switching enemy difficulty groups, editor music preview, multiple standards and exact resume, standard navigation and live progress, standards that follow route pins, route pins, war-table site terrain, war-table overlay, blank war-table chapter, rising Valley landmarks, local war-table arena landmarks, authored route arenas, fading route seals, Valley reveal sound cues, battlefield site markers, custom recruits, phase scenes, tile dialogue and reload, recruitment on battlefield sites, authored recruit starting equipment, navigation between available sites, one-use field tonic caches, Valley landmark dialogue, dialogue that follows route pins, timed reinforcements, chapter 32 saves, section dialogue, authored section relief, authored legacy stock and purchase persistence, authored loss recruits, authored loss dialogue, reproducible playtest setup, Valley carryover and resume, thirteen-chapter Valley template, and single-battle tests")
+ print("PASS: campaign JSON file transfer, draft library management, remembered playtest setup, campaign readiness, authored Hard bonuses, authored retry raiders, deployment comparison, authored formation previews, small deployment limits and save recovery, custom campaign atlas, terrain stroke undo, bulk terrain rows, editor dialogs at two viewport sizes, direct chapter reordering, continuous terrain strokes, connected terrain fill, placement moves and swaps, repeated placement copies, switching enemy difficulty groups, editor music preview, multiple standards and exact resume, standard navigation and live progress, standards that follow route pins, route pins, war-table site terrain, war-table overlay, blank war-table chapter, rising Valley landmarks, local war-table arena landmarks, authored route arenas, fading route seals, Valley reveal sound cues, battlefield site markers, custom recruits, phase scenes, tile dialogue and reload, recruitment on battlefield sites, authored recruit starting equipment, live recruit art previews, navigation between available sites, one-use field tonic caches, Valley landmark dialogue, dialogue that follows route pins, timed reinforcements, chapter 32 saves, section dialogue, authored section relief, authored legacy stock and purchase persistence, authored loss recruits, authored loss dialogue, reproducible playtest setup, Valley carryover and resume, thirteen-chapter Valley template, and single-battle tests")
  quit()

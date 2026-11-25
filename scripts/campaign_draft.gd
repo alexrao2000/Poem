@@ -759,9 +759,7 @@ func compile() -> Dictionary:
   if roster_by_id.has(authored.id):
    apply_recruit(roster_by_id[authored.id],authored)
   else:
-   var recruit=templates.roster.filter(func(entry):return entry.id==authored.art_id)[0].duplicate(true)
-   recruit.id=authored.id;recruit.art_id=authored.art_id;recruit.art_job=recruit.job
-   apply_recruit(recruit,authored);content.roster.append(recruit)
+   content.roster.append(build_recruit(authored))
  if data.has("bonds"):
   content.bonds=data.bonds.duplicate(true)
   for bond in content.bonds:bond.chapters=bond.chapters.map(index_for)
@@ -809,6 +807,16 @@ func compile_legacy_arrivals(content: Dictionary):
   else:
    content.trial_scenes[key]=arrival.lines
    content.trial_titles[key]="A recruit arrives" if arrival.title.is_empty() else arrival.title
+
+func build_recruit(authored: Dictionary) -> Dictionary:
+ var art_id=authored.get("art_id",authored.id)
+ var recruit=templates.roster.filter(func(entry):return entry.id==art_id)[0].duplicate(true)
+ if authored.has("art_id"):
+  recruit.id=authored.id
+  recruit.art_id=art_id
+  recruit.art_job=recruit.job
+ apply_recruit(recruit,authored)
+ return recruit
 
 func apply_recruit(recruit: Dictionary,authored: Dictionary):
  var arrival=index_for(authored.chapter)

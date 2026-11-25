@@ -17,6 +17,8 @@ const COPY_PLACEMENT=7
 const GOLD=Color("896937")
 var draft: RefCounted
 var library: RefCounted
+var portrait_library: RefCounted
+var sprite_catalog: RefCounted
 var playtest_setup: Dictionary
 var browser_campaign_file_callback
 var draft_key=""
@@ -51,8 +53,9 @@ var dirty: bool:
  get:return draft.dirty
  set(value):draft.dirty=value
 
-func configure(model,storage,key: String,index: int,setup: Dictionary):
+func configure(model,storage,key: String,index: int,setup: Dictionary,faces: RefCounted,sprites: RefCounted):
  draft=model;library=storage;draft_key=key;playtest_setup=setup
+ portrait_library=faces;sprite_catalog=sprites
  selected=clampi(index,0,draft.data.chapters.size()-1)
  size_flags_vertical=SIZE_EXPAND_FILL
  add_theme_constant_override("separation",8)
@@ -630,8 +633,8 @@ func build_route(panel: VBoxContainer) -> Callable:
   draft.data.erase("route_atlas");changed();rebuild(),not draft.data.has("route_atlas")).name="EditorRestoreAtlas"
  action(atlas_actions,"Add blank war table",add_blank_war_table,draft.data.chapters.size()>=Draft.MAX_CHAPTERS).name="EditorAddBlankWarTable"
  var chart=Route.new();chart.name="EditorRouteChart"
- var refresh_survey=build_route_survey(panel,chart)
  panel.add_child(chart)
+ var refresh_survey=build_route_survey(panel,chart)
  chart.configure(draft.data.chapters.map(func(record):return record.level),selected,true,PackedInt32Array(),0,draft.route_texture())
  chart.enable_pin_editor()
  chart.chapter_selected.connect(select_chapter)
@@ -884,15 +887,40 @@ func build_company(panel: VBoxContainer):
  picker.name="EditorRecruit";picker.fit_to_longest_item=false;picker.clip_text=true
  for index in company.size():picker.set_item_text(index,company[index].name+" · "+company[index].id)
  panel.add_child(picker)
+ var profile=row(panel)
+ var portrait=TextureRect.new()
+ portrait.name="EditorRecruitPortrait";portrait.custom_minimum_size=Vector2(96,112)
+ portrait.tooltip_text="Recruit portrait"
+ var sprite=TextureRect.new()
+ sprite.name="EditorRecruitSprite";sprite.custom_minimum_size=Vector2(75,80)
+ sprite.tooltip_text="Tactical map sprite";sprite.texture_filter=TEXTURE_FILTER_NEAREST
+ for picture in [portrait,sprite]:
+  picture.expand_mode=TextureRect.EXPAND_IGNORE_SIZE
+  picture.stretch_mode=TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+  picture.size_flags_vertical=SIZE_SHRINK_CENTER
+  profile.add_child(picture)
+ var identity=GridContainer.new()
+ identity.columns=2
+ identity.size_flags_horizontal=SIZE_EXPAND_FILL
+ identity.add_theme_constant_override("h_separation",12)
+ identity.add_theme_constant_override("v_separation",8)
+ profile.add_child(identity)
+ var refresh_art=func():
+  var recruit=draft.build_recruit(person)
+  portrait.texture=portrait_library.get_unit_portrait(recruit)
+  sprite.texture=sprite_catalog.preview_sprite(recruit)
  if person.has("art_id"):
   var references=draft.templates.roster
-  var appearance=choice(references.map(func(recruit):return recruit.id),person.art_id,func(value):person.art_id=value;changed())
+  var appearance=choice(references.map(func(recruit):return recruit.id),person.art_id,func(value):
+   person.art_id=value;refresh_art.call();changed())
+  appearance.fit_to_longest_item=false;appearance.clip_text=true
   for index in references.size():appearance.set_item_text(index,references[index].name)
-  appearance.name="EditorRecruitAppearance";field_label(row(panel),"Catalogue appearance",appearance)
- heading(panel,"Display name",17)
+  appearance.name="EditorRecruitAppearance";field_label(identity,"Catalogue appearance",appearance)
  var display=line_edit(person.name,"Recruit name",80,func(value):
   person.name=value;picker.set_item_text(selected_person,value+" · "+person.id);changed())
- display.name="EditorRecruitName";panel.add_child(display)
+ display.name="EditorRecruitName";field_label(identity,"Display name",display)
+ build_recruit_kit(identity,person,refresh_art)
+ refresh_art.call()
  heading(panel,"Introduction",17)
  panel.add_child(multiline(person.bio,96,func(value):person.bio=value;changed()))
  heading(panel,"Epilogue",17)
@@ -917,12 +945,19 @@ func build_company(panel: VBoxContainer):
   changed())
  var attributes=GridContainer.new();attributes.columns=2
  attributes.add_theme_constant_override("h_separation",12);attributes.add_theme_constant_override("v_separation",8);panel.add_child(attributes)
+ var stat_names={"hp":"Base HP","pow":"Power","defense":"Defense","resistance":"Resistance","speed":"Speed","move":"Movement"}
+ for stat in Draft.RECRUIT_STATS:
+  var limits=Draft.RECRUIT_STATS[stat]
+  field_label(attributes,stat_names[stat],spin(int(person.stats[stat]),limits[0],limits[1],func(value):
+   person.stats[stat]=value;changed()))
+
+func build_recruit_kit(panel: Control,person: Dictionary,refresh_art: Callable):
  var job=choice(draft.templates.classes.keys(),person.job,Callable())
- job.name="EditorRecruitClass";field_label(attributes,"Class",job)
+ job.name="EditorRecruitClass";field_label(panel,"Class",job)
  var gear=OptionButton.new()
  gear.name="EditorRecruitEquipment";gear.custom_minimum_size.y=42
  gear.fit_to_longest_item=false;gear.clip_text=true
- field_label(attributes,"Starting equipment",gear)
+ field_label(panel,"Starting equipment",gear)
  var refresh_gear=func():
   gear.clear()
   gear.add_item("Use default");gear.set_item_metadata(0,"")
@@ -942,13 +977,9 @@ func build_company(panel: VBoxContainer):
   if person.has("item") and not draft.gear_for(person.job).any(func(item):return item.id==person.item):
    person.erase("item")
   refresh_gear.call()
+  refresh_art.call()
   changed())
  refresh_gear.call()
- var stat_names={"hp":"Base HP","pow":"Power","defense":"Defense","resistance":"Resistance","speed":"Speed","move":"Movement"}
- for stat in Draft.RECRUIT_STATS:
-  var limits=Draft.RECRUIT_STATS[stat]
-  field_label(attributes,stat_names[stat],spin(int(person.stats[stat]),limits[0],limits[1],func(value):
-   person.stats[stat]=value;changed()))
 
 func remove_custom_recruit():
  var recruit=draft.data.recruits[selected_person]
