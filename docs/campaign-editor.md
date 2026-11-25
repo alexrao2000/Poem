@@ -30,6 +30,8 @@ For a seize battle, use Extra standard in Battle to add more objectives. Win by 
 
 In Encounters, set a chapter’s Hard enemy bonuses for maximum HP, attack, speed, and defense. These apply to the on-map enemies and later reinforcements when Harder enemy forces is enabled. Retry pressure still adds its own bonuses and uses the rally chapter’s settings after a section restart.
 
+Use Hard only on a selected enemy to move it between difficulty groups. Its position, equipment, and arrival stay with it. The commander deploys in every difficulty.
+
 Set Retry deployment on an enemy who starts on the map to choose whether they advance as a raider. Class default uses the campaign’s usual raider classes. The commander stays at their deployment tile during retry preparation. Timed reinforcements enter on their assigned phase.
 
 Preview deployment compares the chapter’s initial enemies at pressure zero with a chosen pressure. The list includes positions, combat stats, and held tonics. It uses the authored chapter, its Hard settings, and a fresh company, with the same preparation rules as a playtest.

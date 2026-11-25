@@ -359,6 +359,21 @@ func build_encounters():
  strength.name="EditorEncounterLevel";field_label(fields,"Level override",strength)
  heading(encounter_panel,"Use 0 to inherit the chapter’s default level.",15)
  var is_commander=enemy_index==0 and not layout.enemies.is_empty()
+ var hard_only=enemy_index>=layout.enemies.size()
+ var group=layout.hard_enemies if hard_only else layout.enemies
+ var other=layout.enemies if hard_only else layout.hard_enemies
+ var membership=CheckButton.new();membership.name="EditorEnemyHardOnly";membership.text="Hard only"
+ membership.button_pressed=hard_only
+ membership.disabled=is_commander or other.size()>=Draft.MAX_ENEMY_PLACEMENTS
+ if is_commander:membership.tooltip_text="The commander deploys in every difficulty."
+ elif membership.disabled:membership.tooltip_text="The other placement group is full."
+ field_label(fields,"Difficulty",membership)
+ membership.toggled.connect(func(enabled):
+  if membership.disabled or enabled==hard_only:return
+  var source_index=enemy_index-layout.enemies.size() if hard_only else enemy_index
+  group.remove_at(source_index);other.append(enemy)
+  selected_enemy=layout.enemies.size()+layout.hard_enemies.size()-1 if enabled else layout.enemies.size()-1
+  grid.queue_redraw();changed();build_encounters())
  var turn=spin(int(enemy.get("arrival_turn",1)),1,99,func(value):
   if value==1:enemy.erase("arrival_turn")
   else:enemy.arrival_turn=int(value)

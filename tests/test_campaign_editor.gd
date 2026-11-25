@@ -570,6 +570,34 @@ func verify_moving_placements(app):
  grid._gui_input(escape)
  assert(grid.marked_placement.x<0)
 
+func verify_enemy_group_switch(app):
+ var editor=app.campaign_editor
+ var tabs=editor.find_child("CampaignEditorTabs",true,false)
+ tabs.current_tab=tabs.get_tab_idx_from_control(editor.find_child("Encounters",true,false))
+ await process_frame
+ var selector=editor.find_child("EditorEncounter",true,false)
+ selector.select(0);selector.item_selected.emit(0)
+ assert(editor.find_child("EditorEnemyHardOnly",true,false).disabled)
+ selector=editor.find_child("EditorEncounter",true,false)
+ var normal_count=editor.level().enemies.size()
+ var hard_copy=editor.level().hard_enemies[1].duplicate(true)
+ selector.select(normal_count+1);selector.item_selected.emit(normal_count+1)
+ var membership=editor.find_child("EditorEnemyHardOnly",true,false)
+ assert(membership.button_pressed and not membership.disabled)
+ membership.button_pressed=false
+ assert(editor.level().enemies.size()==normal_count+1 and editor.level().enemies[-1]==hard_copy)
+ assert(editor.level().hard_enemies.size()==2 and editor.selected_enemy==normal_count)
+ var content=editor.draft.compile().content
+ var standard=Rules.new(content);standard.chapter=editor.selected;standard.start_battle()
+ assert(standard.enemy_waves.size()==1 and standard.enemy_waves[0].turn==3 and standard.enemy_waves[0].phase=="enemy")
+ var hard=Rules.new(content);hard.chapter=editor.selected;hard.trials.flags.hard_campaign=true;hard.start_battle()
+ assert(hard.enemy_waves.size()==3)
+ membership=editor.find_child("EditorEnemyHardOnly",true,false)
+ assert(not membership.button_pressed and not membership.disabled)
+ membership.button_pressed=true
+ assert(editor.level().enemies.size()==normal_count and editor.level().hard_enemies[-1]==hard_copy)
+ assert(editor.draft.playtest_problem().is_empty())
+
 func run():
  check_document()
  check_small_section_deployment()
@@ -1466,8 +1494,9 @@ func run():
  await Shutdown.dispose(reopened);await process_frame
  await verify_custom_atlas(app,scratch)
  await verify_moving_placements(app)
+ await verify_enemy_group_switch(app)
  await verify_multiple_standards(app)
  assert(FileAccess.get_file_as_string(app.save_path)==disk and app.game==installed)
  await Shutdown.dispose(app);await process_frame
- print("PASS: campaign JSON file transfer, draft library management, remembered playtest setup, campaign readiness, authored Hard bonuses, authored retry raiders, deployment comparison, authored formation previews, small deployment limits and save recovery, custom campaign atlas, terrain stroke undo, continuous terrain strokes, connected terrain fill, placement moves and swaps, repeated placement copies, multiple standards and exact resume, standard navigation and live progress, standards that follow route pins, route pins, war-table site terrain, war-table overlay, blank war-table chapter, rising Valley landmarks, Valley reveal sound cues, battlefield site markers, custom recruits, phase scenes, tile dialogue and reload, one-use field tonic caches, Valley landmark dialogue, dialogue that follows route pins, timed reinforcements, chapter 32 saves, section dialogue, authored section relief, authored legacy stock and purchase persistence, authored loss recruits, authored loss dialogue, reproducible playtest setup, Valley carryover and resume, thirteen-chapter Valley template, and single-battle tests")
+ print("PASS: campaign JSON file transfer, draft library management, remembered playtest setup, campaign readiness, authored Hard bonuses, authored retry raiders, deployment comparison, authored formation previews, small deployment limits and save recovery, custom campaign atlas, terrain stroke undo, continuous terrain strokes, connected terrain fill, placement moves and swaps, repeated placement copies, switching enemy difficulty groups, multiple standards and exact resume, standard navigation and live progress, standards that follow route pins, route pins, war-table site terrain, war-table overlay, blank war-table chapter, rising Valley landmarks, Valley reveal sound cues, battlefield site markers, custom recruits, phase scenes, tile dialogue and reload, one-use field tonic caches, Valley landmark dialogue, dialogue that follows route pins, timed reinforcements, chapter 32 saves, section dialogue, authored section relief, authored legacy stock and purchase persistence, authored loss recruits, authored loss dialogue, reproducible playtest setup, Valley carryover and resume, thirteen-chapter Valley template, and single-battle tests")
  quit()
