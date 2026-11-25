@@ -1,0 +1,64 @@
+{
+  "sheets": [
+    {
+      "id": "maelin",
+      "tool": "Built-in image_gen",
+      "generated": "2026-11-24",
+      "reference": "assets/portraits/maelin-v1.png",
+      "output": "assets/portraits/dialogue-maelin-expressions-v1.png",
+      "expressions": [
+        "concerned",
+        "resolute"
+      ],
+      "width": 1774,
+      "height": 887,
+      "regions": [
+        [
+          0,
+          0,
+          887,
+          887
+        ],
+        [
+          887,
+          0,
+          887,
+          887
+        ]
+      ],
+      "prompt": "Create a two-cell transparent dialogue expression atlas for Poem’s original character Maelin. The supplied Poem portrait is the character and painting reference. Keep her warm tan skin, brown eyes, small wine-brown temple mark above her left eyebrow as seen on the viewer’s left, long chestnut braid with russet binding on the viewer’s left, midnight blue scarf, clay-red coat, ivory shoulder wrap and modest square bronze brooch. Retain the same three-quarter pose facing viewer’s right, soft painterly medieval-fantasy realism, light, torso crop and apparent age. Two equal square cells side by side, both with one full chest-up portrait at matching head and shoulder positions. Leave substantial genuinely transparent padding on all four sides of both cells, including below the aligned straight bottom torso crop, with a clean transparent corridor between the figures. Change only the face. LEFT quiet, practical concern, with subtly raised inner brows and a soft closed mouth. RIGHT steady, compassionate resolve as she volunteers to take over the hospice rounds, with focused open eyes and gently set closed lips. Keep the emotional change understated and readable. No backdrop, shadow outside the silhouettes, labels, watermark, graphic frame, or extra objects.",
+      "sha256": "9b5da47e15acf82479aac8616684bbbb1a0dcda2bb62bccb27350c20ce982baf",
+      "notes": "The PNG preserves the generated pixels and alpha. Both crop perimeters are transparent above the dialogue cutoff."
+    },
+    {
+      "id": "tovin",
+      "tool": "Built-in image_gen",
+      "generated": "2026-11-24",
+      "reference": "assets/portraits/tovin-v1.png",
+      "output": "assets/portraits/dialogue-tovin-expressions-v1.png",
+      "expressions": [
+        "somber",
+        "resolute"
+      ],
+      "width": 1774,
+      "height": 887,
+      "regions": [
+        [
+          0,
+          0,
+          887,
+          887
+        ],
+        [
+          887,
+          0,
+          887,
+          887
+        ]
+      ],
+      "prompt": "Create a two-cell transparent dialogue expression atlas for Poem’s original character Tovin. The supplied Poem portrait is the character and painting reference. Keep his deep copper-brown skin, brown eyes, short dark tightly curled hair, blue-gray tied cloth headband, slender notch in the brow on the viewer’s left, moss-green coat with ochre inner collar, faded dusty plum scarf, crossed worn leather straps and oval brass feather clasp. Retain the same three-quarter pose facing viewer’s right, soft painterly medieval-fantasy realism, light, torso crop and apparent age. Two equal square cells side by side, both with one full chest-up portrait at matching head and shoulder positions. Leave substantial genuinely transparent padding on all four sides of both cells, including below the aligned straight bottom torso crop, with a clean transparent corridor between the figures. Change only the face. LEFT subdued grief at noticing a companion has failed to return, with inner brows lightly lifted and a soft mouth without a smile. RIGHT quiet determination as he offers to guide the company after dark, with a level alert gaze and lightly set closed lips. Keep the emotional change understated and readable. No backdrop, shadow outside the silhouettes, labels, watermark, graphic frame, or extra objects.",
+      "sha256": "d9c251e92312aad72c739a69d11cd02f574b943a5d5da31d02d132dd4c7bc151",
+      "notes": "The PNG preserves the generated pixels and alpha. Both crop perimeters are transparent above the dialogue cutoff."
+    }
+  ]
+}

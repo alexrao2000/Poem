@@ -95,7 +95,9 @@ Nell, Bram, Esme, Rook, Faye and Cassian bring the total to twelve expressive re
 
 Vela, Dax, Una, Silas, Petra and Ari extend this system to the harbor, pass and aqueduct. Their [original sheets and prompts](third-company-expression-provenance.json) use the same measured crops and export compression.
 
-Noor, Galen, Yuna, Hale, Elian and Rhea complete the 24-recruit set. Their [original sheets and prompts](late-company-expression-provenance.json) document the source crops. Hale uses 723-pixel squares in a slightly different source canvas. The campaign assigns expressions to all 103 main lines, ten loss alternatives and 191 support lines.
+Noor, Galen, Yuna, Hale, Elian and Rhea complete the 24 regular recruits. Their [original sheets and prompts](late-company-expression-provenance.json) document the source crops. Hale uses 723-pixel squares in a slightly different source canvas. The campaign assigns expressions to all 103 main lines, ten loss alternatives and 191 support lines.
+
+Maelin and Tovin each have two expressions for their loss-triggered arrivals. The hospice Warden listens with concern before offering to take over the rounds. The Ranger’s grief gives way to resolve as he offers to guide the company. The eight lines in both scenes use the existing dialogue presentation. [Built-in image generation prompts and source crops](reserve-expression-provenance.json).
 
 ## Chapter light and weather
 

@@ -36,16 +36,16 @@
     {"speaker":"noor","text":"Then I will bring it with me. I am done asking other people to hold the road alone."}
   ],
   "volunteer_maelin": [
-    {"speaker":"maelin","text":"My rounds used to end at the hospice. Since the Wardens began traveling with you, people have been leaving addresses for them at my door."},
-    {"speaker":"lyra","text":"We came to tell you one of them will not make it home."},
-    {"speaker":"maelin","text":"Then give me the addresses they carried. Show me where you are going. I can take their round as far as the next village."},
-    {"speaker":"lyra","text":"We leave together at dawn. I'll make sure there is room for your bag."}
+    {"speaker":"maelin","text":"My rounds used to end at the hospice. Since the Wardens began traveling with you, people have been leaving addresses for them at my door.","expression":"concerned"},
+    {"speaker":"lyra","text":"We came to tell you one of them will not make it home.","expression":"concerned"},
+    {"speaker":"maelin","text":"Then give me the addresses they carried. Show me where you are going. I can take their round as far as the next village.","expression":"resolute"},
+    {"speaker":"lyra","text":"We leave together at dawn. I'll make sure there is room for your bag.","expression":"resolute"}
   ],
   "volunteer_tovin": [
-    {"speaker":"tovin","text":"I knew whose boots to look for when your company came by. Today I counted them twice."},
-    {"speaker":"lyra","text":"The lookout they were meant to meet is still waiting. I need someone who can find the old lane after dark."},
-    {"speaker":"tovin","text":"I set the waymarks there myself. Lend me a place in your line. We can tell the lookout together."},
-    {"speaker":"lyra","text":"Come with us. After we tell them, I'd like you to mark the road for whoever follows."}
+    {"speaker":"tovin","text":"I knew whose boots to look for when your company came by. Today I counted them twice.","expression":"somber"},
+    {"speaker":"lyra","text":"The lookout they were meant to meet is still waiting. I need someone who can find the old lane after dark.","expression":"concerned"},
+    {"speaker":"tovin","text":"I set the waymarks there myself. Lend me a place in your line. We can tell the lookout together.","expression":"resolute"},
+    {"speaker":"lyra","text":"Come with us. After we tell them, I'd like you to mark the road for whoever follows.","expression":"resolute"}
   ],
   "memorial_0": [
     {"speaker":"lyra","text":"We will enter their names in the company book tonight. Leave room beside each one for the people who should hear from us when the roads are open."},

@@ -14,11 +14,11 @@ func _initialize():call_deferred("run")
 func run():
  var faces=Portraits.new()
  var regions=0
- for id in Portraits.ORDER:
+ for id in Portraits.ORDER+Portraits.INDIVIDUAL_PORTRAITS.keys():
   var original=faces.get_dialogue_portrait(id)
   var expressions=faces.dialogue_expressions.get(id,{})
   assert(faces.get_dialogue_portrait(id,"missing")==original,"Unknown expressions use the original portrait")
-  assert(expressions.size()==3,"All recruits have a complete expression sheet")
+  assert(expressions.size()==(2 if Portraits.INDIVIDUAL_PORTRAITS.has(id) else 3),"All recruits have their authored expressions")
   var atlas=faces.get_dialogue_portrait(id,expressions.keys()[0]).atlas
   var source=atlas.get_image()
   if source.is_compressed():source.decompress()
@@ -37,7 +37,7 @@ func run():
    for y in range(crop.position.y,crop.end.y):
     assert(source.get_pixel(crop.position.x,y).a<.13 and source.get_pixel(crop.end.x-1,y).a<.13,"Transparent vertical gutters keep adjacent expressions out")
    regions+=1
- assert(regions==72)
+ assert(regions==76)
  faces.expression_textures.clear()
  assert(loaded_sheets(faces).is_empty(),"Assets checked in isolation release before testing actual scenes")
  var story=JSON.parse_string(FileAccess.get_file_as_string("res://data/story.json"))
@@ -123,5 +123,5 @@ func run():
  assert(JSON.stringify(app.game.save_data("camp"))==before and app.game.rng.state==state)
  assert(FileAccess.get_file_as_string(app.save_path)==disk and FileAccess.get_file_as_string(app.settings_path)==settings,"Portrait changes leave campaign and preference files byte-identical")
  await Shutdown.dispose(app);viewport.queue_free();await process_frame
- print("PASS: 72 transparent expression regions, 103 campaign, ten alternate and 191 support tags, 36 support replays, 24 actual dialogue transitions across three sizes, neutral and unknown fallback across the full roster, same-speaker slot/entrance stability, history, lazy sheet loading and release on Continue/Skip, exact state/file isolation")
+ print("PASS: 76 transparent expression regions, 103 campaign, ten alternate and 191 support tags, 36 support replays, 24 actual dialogue transitions across three sizes, neutral and unknown fallback for all 26 recruits, same-speaker slot/entrance stability, history, lazy sheet loading and release on Continue/Skip, exact state/file isolation")
  quit()

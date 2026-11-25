@@ -666,6 +666,26 @@
       ]
     }
   },
+  "maelin": {
+    "concerned": {
+      "path": "res://assets/portraits/dialogue-maelin-expressions-v1.png",
+      "region": [0, 0, 887, 887]
+    },
+    "resolute": {
+      "path": "res://assets/portraits/dialogue-maelin-expressions-v1.png",
+      "region": [887, 0, 887, 887]
+    }
+  },
+  "tovin": {
+    "somber": {
+      "path": "res://assets/portraits/dialogue-tovin-expressions-v1.png",
+      "region": [0, 0, 887, 887]
+    },
+    "resolute": {
+      "path": "res://assets/portraits/dialogue-tovin-expressions-v1.png",
+      "region": [887, 0, 887, 887]
+    }
+  },
   "rhea": {
     "resolute": {
       "path": "res://assets/portraits/dialogue-rhea-expressions-v1.png",

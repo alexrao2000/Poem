@@ -32,7 +32,7 @@ func get_dialogue_portrait(id: String,expression="") -> Texture2D:
  var key="dialogue."+id+("."+expression if expressive else "")
  var cache=expression_textures if expressive else textures
  if cache.has(key):return cache[key]
- if not dialogue_regions.has(id):return get_portrait(id)
+ if not expressive and not dialogue_regions.has(id):return get_portrait(id)
  var entry=variants[expression] if expressive else dialogue_regions[id]
  var texture=AtlasTexture.new();texture.atlas=load(entry.path);texture.filter_clip=true
  texture.region=Rect2(entry.region[0],entry.region[1],entry.region[2],entry.region[3])

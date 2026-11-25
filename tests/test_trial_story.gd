@@ -160,10 +160,9 @@ func verify_legacy_warden(app):
   if app.dialogue_lines[0].speaker=="maelin":break
   app.finish_dialogue()
  assert(app.screen=="dialogue" and app.dialogue_lines[0].speaker=="maelin")
- var portrait=app.portraits.get_portrait("maelin")
- assert(portrait!=null and app.dialogue_portrait.texture==portrait and app.dialogue_speaker_name("maelin")=="Maelin")
+ assert(app.dialogue_speaker_name("maelin")=="Maelin")
  assert(resumed.load_game(app.save_path)=="camp" and "volunteer_maelin" in resumed.trials.read_scenes)
- app.finish_dialogue()
+ await verify_legacy_expressions(app,"maelin","concerned")
  while app.screen=="dialogue":app.finish_dialogue()
  assert(app.screen=="camp" and app.ui.find_child("Company_maelin",true,false)!=null)
  game.deployed=["lyra","maelin"];game.start_battle();app.make_map();app.show_battle()
@@ -214,7 +213,7 @@ func verify_legacy_ranger(app):
   if app.dialogue_lines[0].speaker=="tovin":break
   app.finish_dialogue()
  assert(app.screen=="dialogue" and app.dialogue_lines[0].speaker=="tovin")
- assert(app.dialogue_portrait.texture==app.portraits.get_portrait("tovin"))
+ await verify_legacy_expressions(app,"tovin","somber")
  while app.screen=="dialogue":app.finish_dialogue()
  assert(app.screen=="camp" and app.ui.find_child("Company_tovin",true,false)!=null)
  game.deployed=["lyra","tovin"];game.start_battle()
@@ -243,3 +242,28 @@ func verify_legacy_ranger(app):
  var restored=Rules.new();assert(restored.load_game(app.save_path)=="battle")
  assert(restored.units.any(func(unit):return unit.id=="tovin" and unit.acted) and restored.lost_ids()==["sera"])
  print("PASS: permanent Ranger loss enlists Tovin with his own portrait and tactical sprite, survives the section rewind, and plays a saved revised 3D bow attack")
+
+func verify_legacy_expressions(app,id: String,first: String):
+ var neutral=app.portraits.get_dialogue_portrait(id)
+ var packed_path=app.portraits.dialogue_expressions[id][first].path
+ var declared=app.dialogue_lines.map(func(line):return line.expression)
+ assert(declared==[first,"concerned","resolute","resolute"])
+ var before=app.game.save_data("camp").duplicate(true)
+ var issued=[]
+ for line in app.dialogue_lines.duplicate(true):
+  var portrait=app.dialogue_portrait
+  assert(portrait.texture==app.portraits.get_dialogue_portrait(line.speaker,line.expression))
+  if line.speaker==id:
+   assert(portrait.texture!=neutral)
+   issued.append(portrait.texture.get_instance_id())
+  app.dialogue_label.visible_characters=-1
+  app.dialogue_stage.next_button.pressed.emit()
+ assert(issued.size()==2 and issued[0]!=issued[1])
+ await process_frame;await process_frame
+ var after=app.game.save_data("camp").duplicate(true)
+ if app.screen=="dialogue":
+  assert(after.trials.read_scenes.pop_back()=="retreat_0","The queued retreat scene follows the arrival")
+ else:assert(app.screen=="camp")
+ assert(after==before,"Expressions leave the campaign unchanged while the next earned scene opens normally")
+ assert(not ResourceLoader.has_cached(packed_path),"The arrival sheet is released with its conversation")
+ print("PASS: actual earned arrival expressions for ",id," advance smoothly and release the sheet")
