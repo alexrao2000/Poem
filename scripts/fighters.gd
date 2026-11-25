@@ -98,6 +98,9 @@ func build(parent,u,p) -> Node3D:
   preload("res://scripts/quiver_visuals.gd").build(self,torso,leather,gold)
  var cape=joint(torso,"Cape",Vector3(0,.35,.12));actor.register_bone("Cape",cape)
  cape_surface(cape,cape_color,company,gold,Capes.cut_for(u.job,appearance.get("cape_cut","")))
+ if company and u.id=="sera":
+  var clasp_fit=Basis.looking_at(Vector3(.33,-.34,.88),Vector3.UP)
+  preload("res://scripts/ranger_clasp.gd").add(self,torso,Transform3D(clasp_fit,Vector3(-.115,.32,-.149)))
  if company and u.id=="lyra":
   shell(torso,Vector3(0,0,.025),[[.34,.28,.16],[.43,.25,.15],[.47,.105,.085]],cape_color)
   for side_value in [-1,1]:
