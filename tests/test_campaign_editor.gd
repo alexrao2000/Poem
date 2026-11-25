@@ -156,6 +156,23 @@ func check_section_story():
  var memorial=game.trials.next_scene(game)
  assert(memorial[0].text=="Open the ridge record." and "Ivo" in memorial[1].text)
 
+func check_legacy_catalogue():
+ var draft=Draft.new()
+ draft.data.legacy_stock=[{"id":"pike","cost":1,"losses":1,"legacy_only":true}]
+ assert(draft.playtest_problem().is_empty())
+ var content=draft.compile().content
+ var game=Rules.new(content)
+ game.new_campaign(true);game.chapter=4;game.trials.flags.death_legacies=true
+ var oren=game.roster.filter(func(unit):return unit.id=="oren")[0]
+ assert(not game.equip(oren,"pike") and not game.trials.can_buy(game,"pike"))
+ game.start_battle()
+ game.units.filter(func(unit):return unit.id=="ivo")[0].hp=0
+ game.commit_casualties()
+ assert(game.trials.credits==1 and game.trials.can_buy(game,"pike") and game.trials.buy(game,"pike"))
+ assert(game.equip(oren,"pike") and game.trials.credits==0 and not game.trials.buy(game,"pike"))
+ var restored=Rules.new(content)
+ assert(restored.import_code(game.export_code("camp"))=="camp" and restored.trials.purchases==["pike"])
+
 func use_brush(editor,index: int,point: Vector2i,erase=false):
  var mode=editor.find_child("EditorBrush",true,false)
  mode.select(index);mode.item_selected.emit(index)
@@ -180,6 +197,7 @@ func run():
  check_reinforcement_collision(scratch.path_join("timed-reinforcement.json"))
  check_shrinking_board(scratch.path_join("smaller-finale.json"))
  check_section_story()
+ check_legacy_catalogue()
  root.size=Vector2i(1440,900)
  var app=load("res://main.tscn").instantiate();app.settings_path="";app.save_path=scratch.path_join("normal.json")
  app.campaign_draft_library.path=scratch.path_join("drafts.json")
@@ -525,6 +543,7 @@ func run():
  app.campaign_draft.data.chapters[ready].level.objective_position=[0,3]
  app.campaign_draft.data.settings.permadeath=true
  app.campaign_draft.data.settings.section_restarts=true
+ app.campaign_draft.data.settings.death_legacies=true
  app.show_campaign_editor("title");await process_frame
  app.campaign_editor.select_chapter(ready);await process_frame
  var section_book=app.campaign_editor.find_child("CampaignEditorTabs",true,false)
@@ -535,6 +554,13 @@ func run():
  withdrawal_title.text="Withdrawal to the ridge";withdrawal_title.text_changed.emit(withdrawal_title.text)
  var withdrawal_lines=app.campaign_editor.find_child("EditorSectionLines_retreat",true,false)
  withdrawal_lines.text="lyra | The ridge is still ours.";withdrawal_lines.text_changed.emit()
+ section_book.current_tab=section_book.get_tab_idx_from_control(app.campaign_editor.find_child("Rules",true,false))
+ await process_frame
+ controls(app,"Add item").pressed.emit()
+ var added_stock=app.campaign_editor.draft.data.legacy_stock[-1]
+ assert(added_stock.id=="pike" and added_stock.cost==1 and added_stock.losses==1)
+ app.campaign_editor.find_child("EditorLegacyExclusive",true,false).button_pressed=true
+ assert(added_stock.legacy_only)
  assert(app.campaign_editor.play_buttons[0].disabled and app.campaign_editor.selected==1)
  controls(app,"Test this battle").pressed.emit();await finish_presentation(app)
  assert(app.screen=="camp" and app.game.chapter==1 and app.campaign_preview.return=="chapter")
@@ -555,10 +581,18 @@ func run():
  await finish_presentation(app)
  controls(app,"Return to war council").pressed.emit();await finish_presentation(app)
  controls(app,"Deploy company  >").pressed.emit();await finish_presentation(app)
+ app.game.units.filter(func(unit):return unit.id=="sera")[0].hp=0
+ app.game.commit_casualties();app.show_camp();await finish_presentation(app)
+ app.show_campaign_trials();await process_frame
+ controls(app,"Secure · Gatekeeper pike · 1 credit").pressed.emit();await process_frame
+ assert(app.game.trials.purchases==["pike"] and app.game.trials.credits==0)
+ assert(app.game.read_saved_data(app.campaign_save_path()).trials.purchases==["pike"])
+ controls(app,"Return to war council").pressed.emit();await finish_presentation(app)
+ controls(app,"Deploy company  >").pressed.emit();await finish_presentation(app)
  await capture_tile(app,Vector2i(0,3))
  controls(app,"Return to editor").pressed.emit();await finish_presentation(app)
  assert(app.screen=="campaign_editor" and app.game==installed and app.campaign_editor.selected==1)
  assert(FileAccess.get_file_as_string(app.save_path)==disk)
  await Shutdown.dispose(app);await process_frame
- print("PASS: campaign JSON, route pins, custom recruits, phase scenes, timed reinforcements, chapter 32 saves, authored section withdrawal and memorials, Valley carryover, and single-battle tests")
+ print("PASS: campaign JSON, route pins, custom recruits, phase scenes, timed reinforcements, chapter 32 saves, section dialogue, authored legacy stock and purchase persistence, Valley carryover, and single-battle tests")
  quit()

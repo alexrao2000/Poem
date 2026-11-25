@@ -6,6 +6,7 @@ const Draft=preload("res://scripts/campaign_draft.gd")
 const Grid=preload("res://scripts/campaign_editor_grid.gd")
 const Route=preload("res://scripts/campaign_route.gd")
 const Settings=preload("res://scripts/campaign_settings.gd")
+const Trials=preload("res://scripts/campaign_trials.gd")
 const TOOLS=["Terrain","Deployment","Enemy","Hard-mode enemy","Objective"]
 const GOLD=Color("896937")
 var draft: RefCounted
@@ -18,6 +19,7 @@ var selected_person=0
 var selected_bond=0
 var selected_enemy=0
 var selected_scene=0
+var selected_stock=0
 var encounter_panel: VBoxContainer
 var grid: Control
 var status: Label
@@ -408,6 +410,50 @@ func build_rules(panel: VBoxContainer):
   var enabled=CheckButton.new();enabled.text=setting.name;enabled.button_pressed=draft.data.settings[key];panel.add_child(enabled)
   enabled.toggled.connect(func(value):draft.data.settings[key]=value;changed())
   heading(panel,setting.text,15)
+ var stock=VBoxContainer.new();stock.add_theme_constant_override("separation",8);panel.add_child(stock)
+ build_legacy_stock(stock)
+
+func build_legacy_stock(panel: VBoxContainer):
+ for child in panel.get_children():panel.remove_child(child);child.queue_free()
+ heading(panel,"Legacy supplies",21)
+ var catalogue=draft.legacy_items()
+ var entries=draft.data.legacy_stock if draft.data.has("legacy_stock") else Trials.LEGACY_STOCK.duplicate(true)
+ var listed=entries.map(func(entry):return entry.id)
+ var unlisted=catalogue.filter(func(item):return item.id not in listed)
+ var actions=row(panel)
+ action(actions,"Add item",func():
+  entries.append({"id":unlisted[0].id,"cost":1,"losses":1,"legacy_only":false})
+  selected_stock=entries.size()-1;save_legacy_stock(entries);build_legacy_stock(panel),unlisted.is_empty()).name="EditorAddLegacyItem"
+ if entries.is_empty():return
+ selected_stock=clampi(selected_stock,0,entries.size()-1)
+ var slot=selected_stock
+ var stock=entries[slot]
+ action(actions,"Remove item",func():
+  entries.remove_at(slot);save_legacy_stock(entries);build_legacy_stock(panel))
+ var picker=choice(listed,stock.id,func(value):selected_stock=listed.find(value);build_legacy_stock(panel))
+ picker.name="EditorLegacyStock"
+ for index in listed.size():
+  var item=catalogue.filter(func(entry):return entry.id==listed[index])[0]
+  picker.set_item_text(index,item.name)
+ panel.add_child(picker)
+ var choices=[catalogue.filter(func(item):return item.id==stock.id)[0]]+unlisted
+ var gear=choice(choices.map(func(item):return item.id),stock.id,func(value):
+  stock.id=value;save_legacy_stock(entries);build_legacy_stock(panel))
+ gear.name="EditorLegacyItem";field_label(row(panel),"Item",gear)
+ for index in choices.size():gear.set_item_text(index,choices[index].name)
+ var measurements=row(panel)
+ var limit=draft.data.recruits.size()+draft.templates.legacy_recruits.size()-1
+ var cost=spin(int(stock.cost),1,limit,func(value):stock.cost=int(value);save_legacy_stock(entries))
+ cost.name="EditorLegacyCost";field_label(measurements,"Credit cost",cost)
+ var losses=spin(int(stock.losses),1,limit,func(value):stock.losses=int(value);save_legacy_stock(entries))
+ losses.name="EditorLegacyLosses";field_label(measurements,"Required losses",losses)
+ var exclusive=CheckButton.new();exclusive.name="EditorLegacyExclusive";exclusive.text="Legacy purchase required"
+ exclusive.button_pressed=stock.get("legacy_only",false);panel.add_child(exclusive)
+ exclusive.toggled.connect(func(value):stock.legacy_only=value;save_legacy_stock(entries))
+
+func save_legacy_stock(entries: Array):
+ draft.data.legacy_stock=entries
+ changed()
 
 func build_bonds(panel: VBoxContainer):
  var bonds=draft.data.bonds if draft.data.has("bonds") else draft.stock_bonds(draft.data.chapters)

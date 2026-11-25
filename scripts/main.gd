@@ -2119,11 +2119,12 @@ func show_equipment(unit):
 		var reach=str(int(item.min_range)) if item.min_range==item.max_range else "%d–%d"%[item.min_range,item.max_range]
 		if item.kind=="staff":label_in(details,"Heal %d   Weight %d   Range %s"%[int(item.heal)+game.promotion_bonus(unit,"heal"),item.weight,reach],18)
 		else:label_in(details,"Might %d   Hit %+d   Crit +%d   Weight %d   Range %s"%[item.might,item.hit,item.crit,item.weight,reach],18)
-		var locked=int(item.unlock)>game.chapter and item.id not in game.trials.purchases;var equipped=unit.item==item.id
+		var locked=not game.item_accessible(item);var equipped=unit.item==item.id
 		if not equipped:
 			var comparison=label_in(details,EquipmentComparison.preview(game,unit,item).text,18)
 			comparison.name="EquipmentComparison_"+item.id
-		button_in(details,"Available in chapter %d"%(int(item.unlock)+1) if locked else ("Equipped" if equipped else "Equip"),func():
+		var label="Legacy purchase required" if game.trials.legacy_only(item.id) else "Available in chapter %d"%(int(item.unlock)+1)
+		button_in(details,label if locked else ("Equipped" if equipped else "Equip"),func():
 			if game.equip(unit,item.id):show_equipment(unit);persist_campaign("camp")
 		,locked or equipped)
 	button_in(panel,"Return to company record",func():show_dossier(unit))
@@ -3082,10 +3083,10 @@ func show_campaign_trials():
 		if legacy_enabled or game.trials.credits>0 or not game.trials.purchases.is_empty():
 			label_in(panel,"Legacy supply credits · %d"%game.trials.credits,22).name="LegacyCredits"
 	if legacy_enabled:
-		for stock in game.trials.LEGACY_STOCK:
+		for stock in game.trials.legacy_stock:
 			var item=game.equipment.filter(func(entry):return entry.id==stock.id)[0]
 			var bought=stock.id in game.trials.purchases
-			var available=int(item.unlock)<=game.chapter
+			var available=game.item_accessible(item)
 			var title: String
 			if bought:title="Secured · "+item.name
 			elif available:title="Available in arsenal · "+item.name

@@ -5,6 +5,7 @@ extends RefCounted
 
 const FLAGS={"section_restarts":false,"reset_pressure":false,"hard_campaign":false,"death_legacies":false,"sacrifice_cost":false}
 const LEGACY_STOCK=[{"id":"tempered_sword","cost":1,"losses":1},{"id":"war_hammer","cost":2,"losses":2},{"id":"longbow","cost":3,"losses":3},{"id":"rally_lance","cost":2,"losses":2},{"id":"vigil_staff","cost":2,"losses":2}]
+var legacy_stock: Array=LEGACY_STOCK
 const SCENE_TITLES={"relief_4":"Relief at the abbey","relief_8":"Relief at the monastery","retreat_0":"Regrouping at Cinderford","retreat_4":"Return to the abbey","retreat_8":"Return to Starfall","volunteer_faye":"Faye answers the call","volunteer_noor":"Noor leaves the observatory","volunteer_maelin":"The hospice road","volunteer_tovin":"The lanes beneath the hedge","memorial_0":"Names in the company book","memorial_4":"The abbey record","memorial_8":"The monastery bell"}
 var scenes: Dictionary=JSON.parse_string(FileAccess.get_file_as_string("res://data/campaign_trial_scenes.json"))
 var scene_titles: Dictionary=SCENE_TITLES
@@ -221,14 +222,17 @@ func arrive(game):
 
 func can_buy(game,id: String) -> bool:
  if not flags.death_legacies or not game.permadeath or id in purchases:return false
- for stock in LEGACY_STOCK:
+ for stock in legacy_stock:
   if stock.id==id and losses.size()>=stock.losses and credits>=stock.cost:
-   return game.equipment.any(func(item):return item.id==id and int(item.unlock)>game.chapter)
+   return stock.get("legacy_only",false) or game.equipment.any(func(item):return item.id==id and int(item.unlock)>game.chapter)
  return false
+
+func legacy_only(id: String) -> bool:
+ return legacy_stock.any(func(stock):return stock.id==id and stock.get("legacy_only",false))
 
 func buy(game,id: String) -> bool:
  if not can_buy(game,id):return false
- var stock=LEGACY_STOCK.filter(func(entry):return entry.id==id)[0]
+ var stock=legacy_stock.filter(func(entry):return entry.id==id)[0]
  credits-=stock.cost;purchases.append(id);log_event("Legacy supplies secured: "+game.equipment.filter(func(item):return item.id==id)[0].name)
  return true
 
@@ -263,7 +267,7 @@ func valid(game,data) -> bool:
   var seen=[]
   for id in data[key]:
    if not id is String or id in seen:return false
-   if id not in (ids if key=="volunteers" else LEGACY_STOCK.map(func(stock):return stock.id)):return false
+   if id not in (ids if key=="volunteers" else legacy_stock.map(func(stock):return stock.id)):return false
    seen.append(id)
  for legacy in game.content.legacy_recruits:
   if legacy.unit.id in data.volunteers:
@@ -271,7 +275,7 @@ func valid(game,data) -> bool:
    if not qualifying:return false
  var spent=0
  for id in data.purchases:
-  var stock=LEGACY_STOCK.filter(func(item):return item.id==id)[0]
+  var stock=legacy_stock.filter(func(item):return item.id==id)[0]
   if data.losses.size()<stock.losses:return false
   spent+=stock.cost
  if data.credits+spent!=data.losses.size():return false

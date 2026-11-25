@@ -248,6 +248,8 @@ func structural_problem(document) -> String:
     return "A recruit has an invalid base stat."
   if not recruit.chapter.is_empty() and not keys.has(recruit.chapter):return "A recruit arrives in a missing chapter."
   people[recruit.id]=true
+ if document.has("legacy_stock") and not valid_legacy_stock(document.legacy_stock,people.size()+templates.legacy_recruits.size()-1):
+  return "Choose unique legacy items with valid loss thresholds and credit costs."
  if not known.all(func(id):return people.has(id)):return "The company roster is incomplete."
  if document.has("bonds"):
   var bond_people=people.duplicate()
@@ -264,6 +266,19 @@ func structural_problem(document) -> String:
  for key in (["permadeath"]+Settings.SWITCHES.map(func(setting):return setting.key)):
   if not document.settings.get(key) is bool:return "A campaign rules switch is missing."
  return ""
+
+func legacy_items() -> Array:
+ return equipment.filter(func(item):return item.unlock>0)
+
+func valid_legacy_stock(entries,limit: int) -> bool:
+ var ids=legacy_items().map(func(item):return item.id)
+ if not entries is Array or entries.size()>ids.size():return false
+ for stock in entries:
+  if not stock is Dictionary or stock.get("id") not in ids:return false
+  if not integer(stock.get("cost"),1,limit) or not integer(stock.get("losses"),1,limit):return false
+  if not stock.get("legacy_only",false) is bool:return false
+  ids.erase(stock.id)
+ return true
 
 func phase_scenes_valid(scenes) -> bool:
  if not scenes is Array or scenes.size()>MAX_PHASE_SCENES:return false
@@ -413,6 +428,7 @@ func compile() -> Dictionary:
   content.bonds=data.bonds.duplicate(true)
   for bond in content.bonds:bond.chapters=bond.chapters.map(index_for)
  if data.chapters.any(func(chapter):return chapter.has("section_scenes")):compile_section_scenes(content)
+ if data.has("legacy_stock"):content.legacy_stock=data.legacy_stock.duplicate(true)
  return {"content":content,"story":{"chapters":scenes},"settings":data.settings.duplicate(true)}
 
 func compile_section_scenes(content: Dictionary):

@@ -51,6 +51,7 @@ func _init(campaign: Dictionary={}):
 	if content.has("trial_scenes"):
 		trials.scenes=content.trial_scenes
 		trials.scene_titles=content.trial_titles
+	if content.has("legacy_stock"):trials.legacy_stock=content.legacy_stock
 	equipment = JSON.parse_string(FileAccess.get_file_as_string("res://data/equipment.json"))
 	promotions = JSON.parse_string(FileAccess.get_file_as_string("res://data/promotions.json"))
 	rng.seed = 472019
@@ -361,10 +362,13 @@ func item_for(u: Dictionary) -> Dictionary:
 func normalize_equipment(u: Dictionary):
 	var item=item_for(u);u.item=item.id;u.reach=int(item.max_range)
 
+func item_accessible(item: Dictionary) -> bool:
+	return item.id in trials.purchases or (not trials.legacy_only(item.id) and int(item.unlock)<=chapter)
+
 func equip(u: Dictionary,id: String) -> bool:
 	if not roster.has(u) or not trials.joined(self,u) or u.get("fallen",false):return false
 	for item in equipment:
-		if item.id==id and item.kind==u.weapon and (int(item.unlock)<=chapter or id in trials.purchases):
+		if item.id==id and item.kind==u.weapon and item_accessible(item):
 			u.item=id;u.reach=int(item.max_range);return true
 	return false
 
