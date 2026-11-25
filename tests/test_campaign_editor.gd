@@ -1891,6 +1891,8 @@ func run():
  assert(visible_seals[0].center.is_equal_approx(app.camera.unproject_position(seal_point)))
  var ink=app.world.get_node("ValleyGrid").material_override
  var landmarks=app.world.get_node("ValleyLandmarks")
+ var rule=app.world.get_node("ValleySurveyRule")
+ assert(rule.is_visible_in_tree() and rule.get_node("Column_0").is_visible_in_tree())
  assert(landmarks.get_child_count()==2 and landmarks.get_children().all(func(marker):return not marker.visible))
  assert(ink.get_shader_parameter("front")<0.0 and app.camera.basis.z.is_equal_approx(Vector3.UP))
  assert(app.unit_nodes.values().all(func(piece):return not piece.visible))
@@ -1943,6 +1945,10 @@ func run():
  assert(table.material_override!=oak and rim.material_override!=oak and oak.get_shader_parameter("paint_weight")==.68)
  var fittings=app.world.get_node("ValleyFittings")
  assert(fittings.get_child_count()==16)
+ assert(rule==app.world.get_node("ValleySurveyRule") and rule.is_visible_in_tree())
+ assert(rule.get_node("Column_0").text=="A" and rule.get_node("Row_0").text=="1")
+ assert(rule.get_node("Column_23").text=="X" and rule.get_node("Row_15").text=="16")
+ assert(rule.get_node("SurveyTicks").mesh.get_faces().size()==(Valley.WIDTH+Valley.HEIGHT)*6)
  var sheet=paper.global_transform*paper.mesh.get_aabb()
  for fitting in fittings.get_children():
   var bounds=fitting.global_transform*fitting.mesh.get_aabb()

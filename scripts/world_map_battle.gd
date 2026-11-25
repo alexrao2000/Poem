@@ -3,6 +3,8 @@ extends RefCounted
 const MAP=preload("res://assets/art/campaign-valley-v1.png")
 const GRID_INK=preload("res://assets/shaders/valley-grid.gdshader")
 const RouteSeals=preload("res://scripts/route_seals.gd")
+const SURVEY_FONT=preload("res://assets/fonts/CormorantGaramond.ttf")
+const SURVEY_COLUMNS="ABCDEFGHIJKLMNOPQRSTUVWX"
 const REVEAL_SECONDS=1.75
 const WIDTH=24
 const HEIGHT=16
@@ -165,6 +167,40 @@ static func build_table(parent: Node3D,size: Vector2,center: Vector3,scenery):
    cap.name="BrassFastener"
    scenery.cylinder(fittings,anchor+Vector3.UP*.022,.014,.056,Color("c59e63")).name="FastenerHead"
    scenery.block(fittings,anchor+Vector3.UP*.030,Vector3(.064,.004,.010),Color("644a3a")).name="FastenerSlot"
+ build_survey_rule(parent,size,center,scenery)
+
+static func build_survey_rule(parent: Node3D,size: Vector2,center: Vector3,scenery):
+ var rule=Node3D.new();rule.name="ValleySurveyRule";parent.add_child(rule)
+ var wood=Color("624536")
+ var brass=Color("ccab73")
+ var bottom=size.y-.5
+ scenery.block(rule,Vector3(center.x,-.026,bottom+.166),Vector3(size.x,.016,.246),wood).name="ColumnRule"
+ scenery.block(rule,Vector3(-.666,-.026,center.z),Vector3(.246,.016,size.y),wood).name="RowRule"
+ var ticks=ImmediateMesh.new()
+ ticks.surface_begin(Mesh.PRIMITIVE_TRIANGLES)
+ for along_columns in [true,false]:
+  var count=int(size.x) if along_columns else int(size.y)
+  for index in count:
+   var numbered=index%4==0 or index==count-1
+   var width=.044 if numbered else .024
+   var length=.072 if numbered else .051
+   var rect=Rect2(index-width*.5,bottom+.05,width,length) if along_columns else Rect2(-.05-.5-length,index-width*.5,length,width)
+   var corners=[rect.position,Vector2(rect.end.x,rect.position.y),rect.end,Vector2(rect.position.x,rect.end.y)]
+   for corner in [0,1,2,0,2,3]:
+    var point=corners[corner]
+    ticks.surface_add_vertex(Vector3(point.x,-.014,point.y))
+   if not numbered:continue
+   var label=Label3D.new()
+   label.name="Column_%d"%index if along_columns else "Row_%d"%index
+   label.text=SURVEY_COLUMNS[index] if along_columns else str(index+1)
+   label.font=SURVEY_FONT;label.font_size=96;label.pixel_size=.002
+   label.outline_size=0;label.modulate=brass;label.cast_shadow=GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+   label.position=Vector3(index,-.012,bottom+.211) if along_columns else Vector3(-.696,-.012,index)
+   label.rotation.x=-PI*.5
+   rule.add_child(label)
+ ticks.surface_end()
+ var tick_paint: StandardMaterial3D=scenery.material(brass)
+ scenery.mesh(rule,ticks,Vector3.ZERO,Vector3.ONE,tick_paint).name="SurveyTicks"
 
 static func standard_node_name(index: int) -> String:
  return "ValleyStandard" if index==0 else "ValleyStandard%d"%(index+1)
@@ -229,7 +265,7 @@ static func route_tile(pin: Array) -> Vector2i:
  return Vector2i(floori(pin[0]*WIDTH),floori(pin[1]*HEIGHT)).clamp(Vector2i.ZERO,Vector2i(WIDTH-1,HEIGHT-1))
 
 static func survey_mark(point: Vector2i) -> String:
- return "%s-%d"%["ABCDEFGHIJKLMNOPQRSTUVWX"[point.x],point.y+1]
+ return "%s-%d"%[SURVEY_COLUMNS[point.x],point.y+1]
 
 static func reached_places(chapters: Array,chapter_index: int) -> Dictionary:
  var places={}
