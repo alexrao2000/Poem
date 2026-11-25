@@ -15,6 +15,8 @@ logs.mkdir(parents=True, exist_ok=True)
 for name in SUITES:
     if name == "saves":
         subprocess.run(["node", str(ROOT / "tests/test_browser_journal.cjs")], check=True)
+    if name == "campaign_editor":
+        subprocess.run(["node", str(ROOT / "tests/test_web_campaign_files.cjs")], check=True)
     script = ROOT / f"tests/test_{name}.gd"
     if not script.is_file():
         raise SystemExit(f"Unknown suite: {name}")

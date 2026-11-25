@@ -7,11 +7,13 @@ const Grid=preload("res://scripts/campaign_editor_grid.gd")
 const Route=preload("res://scripts/campaign_route.gd")
 const Settings=preload("res://scripts/campaign_settings.gd")
 const Trials=preload("res://scripts/campaign_trials.gd")
+const MAX_CAMPAIGN_FILE_BYTES=4*Draft.MAX_DRAFT_LENGTH
 const TOOLS=["Terrain","Deployment","Enemy","Hard-mode enemy","Objective"]
 const GOLD=Color("896937")
 var draft: RefCounted
 var library: RefCounted
 var playtest_setup: Dictionary
+var browser_campaign_file_callback
 var draft_key=""
 var selected=0
 var active_tab=0
@@ -798,13 +800,76 @@ func show_transfer():
  var source=multiline(draft.encode(),230,Callable());source.name="EditorTransferText";panel.add_child(source)
  var buttons=row(panel)
  action(buttons,"Copy JSON",func():DisplayServer.clipboard_set(source.text))
- action(buttons,"Import pasted JSON",func():
-  var raw=source.text
-  if dirty and not save_draft():return
-  var issue=draft.decode(raw)
-  if not issue.is_empty():status.text=issue;return
-  draft_key="";dirty=true;select_chapter(0))
+ var files=row(panel)
+ var feedback=heading(panel,"",15);feedback.name="EditorCampaignTransferStatus"
+ action(buttons,"Import pasted JSON",func():import_campaign_text(source.text,feedback))
+ action(files,"Open JSON file",func():open_campaign_file(dialog,feedback)).name="EditorOpenCampaignFile"
+ action(files,"Save JSON file",func():save_campaign_file(dialog,feedback)).name="EditorSaveCampaignFile"
  dialog.popup_centered(Vector2i(560,350))
+
+func import_campaign_text(raw: String,feedback: Label):
+ var incoming=Draft.new()
+ var issue=incoming.decode(raw)
+ if not issue.is_empty():feedback.text=issue;return
+ if dirty and not save_draft():feedback.text=status.text;return
+ draft.data=incoming.data;draft_key="";dirty=true;select_chapter(0)
+
+func open_campaign_file(parent: Window,feedback: Label):
+ if OS.has_feature("web"):
+  var bridge=JavaScriptBridge.get_interface("poemCampaignFiles")
+  if bridge==null:
+   JavaScriptBridge.eval(FileAccess.get_file_as_string("res://scripts/web_campaign_files.js"),true)
+   bridge=JavaScriptBridge.get_interface("poemCampaignFiles")
+  if bridge==null:feedback.text="The browser file picker is unavailable.";return
+  if not parent.has_meta("browser_file_picker"):
+   parent.set_meta("browser_file_picker",true)
+   parent.tree_exited.connect(func():bridge.cancel(),CONNECT_ONE_SHOT)
+  browser_campaign_file_callback=JavaScriptBridge.create_callback(func(arguments):
+   if not is_instance_valid(feedback) or arguments.size()!=2:return
+   var problem=str(arguments[0])
+   if not problem.is_empty():feedback.text=problem;return
+   import_campaign_text(str(arguments[1]),feedback))
+  bridge.open(MAX_CAMPAIGN_FILE_BYTES,browser_campaign_file_callback)
+  return
+ var picker=campaign_file_picker(parent,false)
+ picker.file_selected.connect(func(path):
+  var file=FileAccess.open(path,FileAccess.READ)
+  if file==null:feedback.text="Could not open the campaign file.";return
+  if file.get_length()>MAX_CAMPAIGN_FILE_BYTES:
+   feedback.text="This campaign document is too large.";file.close();return
+  var raw=file.get_as_text();file.close()
+  import_campaign_text(raw,feedback))
+ picker.popup_centered_ratio(.72)
+
+func save_campaign_file(parent: Window,feedback: Label):
+ var title=draft.data.title.validate_filename().strip_edges()
+ if title.is_empty():title="campaign"
+ var filename=title.left(80)+".campaign.json"
+ var payload=draft.encode()
+ if OS.has_feature("web"):
+  JavaScriptBridge.download_buffer(payload.to_utf8_buffer(),filename,"application/json")
+  return
+ var picker=campaign_file_picker(parent,true)
+ picker.current_file=filename
+ picker.file_selected.connect(func(path):
+  var temporary=path+".%d-%d.tmp"%[OS.get_process_id(),Time.get_ticks_usec()]
+  var file=FileAccess.open(temporary,FileAccess.WRITE)
+  if file==null:feedback.text="Could not save the campaign file.";return
+  file.store_string(payload);file.flush()
+  var written=file.get_error()==OK
+  file.close()
+  if written:written=DirAccess.rename_absolute(temporary,path)==OK
+  if not written:DirAccess.remove_absolute(temporary)
+  feedback.text="Saved "+path.get_file()+"." if written else "Could not save the campaign file.")
+ picker.popup_centered_ratio(.72)
+
+func campaign_file_picker(parent: Window,saving: bool) -> FileDialog:
+ var picker=FileDialog.new();picker.name="EditorCampaignFilePicker"
+ picker.access=FileDialog.ACCESS_FILESYSTEM;picker.file_mode=FileDialog.FILE_MODE_SAVE_FILE if saving else FileDialog.FILE_MODE_OPEN_FILE
+ picker.add_filter("*.json","Campaign JSON")
+ parent.add_child(picker);picker.canceled.connect(picker.queue_free)
+ picker.file_selected.connect(func(_path):picker.queue_free())
+ return picker
 
 func launch(index: int,resume: bool,allow_single=false):
  var single_battle=not draft.playtest_problem().is_empty()

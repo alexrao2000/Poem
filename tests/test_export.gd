@@ -16,6 +16,7 @@ func skip_packed_opening(app):
 
 func run():
  assert(FileAccess.get_file_as_string("res://scripts/browser_journal.js").contains("poemSaveJournal"),"Export includes browser checkpoint recovery")
+ assert(FileAccess.get_file_as_string("res://scripts/web_campaign_files.js").contains("poemCampaignFiles"),"Export includes the browser campaign file picker")
  var formation_rules=load("res://scripts/rules.gd").new()
  for chapter in [4,8,11]:
   formation_rules.chapter=chapter;formation_rules.trials.flags.hard_campaign=true;formation_rules.start_battle()

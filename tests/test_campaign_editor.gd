@@ -415,8 +415,29 @@ func run():
  controls(app,"Transfer JSON").pressed.emit();await process_frame
  var transfer=editor.find_child("EditorTransferText",true,false)
  assert(transfer!=null and JSON.parse_string(transfer.text).title=="The Editor Chronicle")
+ var exported_path=scratch.path_join("exported.campaign.json")
+ controls(app,"Save JSON file").pressed.emit();await process_frame
+ var picker=editor.find_child("EditorCampaignFilePicker",true,false)
+ assert(picker.file_mode==FileDialog.FILE_MODE_SAVE_FILE and picker.current_file.ends_with(".campaign.json"))
+ picker.file_selected.emit(exported_path);await process_frame
+ assert(FileAccess.get_file_as_string(exported_path)==editor.draft.encode())
+ assert(editor.find_child("EditorCampaignTransferStatus",true,false).text.contains("exported.campaign.json"))
+ var malformed=scratch.path_join("malformed.campaign.json")
+ var invalid_file=FileAccess.open(malformed,FileAccess.WRITE)
+ invalid_file.store_string("{invalid");invalid_file.close()
+ controls(app,"Open JSON file").pressed.emit();await process_frame
+ picker=editor.find_child("EditorCampaignFilePicker",true,false)
+ assert(picker.file_mode==FileDialog.FILE_MODE_OPEN_FILE)
+ picker.file_selected.emit(malformed);await process_frame
+ assert(editor.draft.encode()==transfer.text and editor.find_child("EditorCampaignTransferStatus",true,false).text.begins_with("JSON line"))
  controls(app,"Import pasted JSON").pressed.emit();await process_frame
  assert(editor.draft_key.is_empty() and editor.draft.dirty and editor.draft.data.chapters.size()==2)
+ controls(app,"Transfer JSON").pressed.emit();await process_frame
+ controls(app,"Open JSON file").pressed.emit();await process_frame
+ picker=editor.find_child("EditorCampaignFilePicker",true,false)
+ picker.file_selected.emit(exported_path);await process_frame
+ assert(editor.draft_key.is_empty() and editor.draft.dirty)
+ assert(editor.draft.compile().content.authoring_signature==copy.compile().content.authoring_signature)
  editor.select_chapter(1)
  use_brush(editor,0,Vector2i(2,9),true)
  use_brush(editor,4,Vector2i(2,9))
@@ -797,5 +818,5 @@ func run():
  controls(app,"Return to editor").pressed.emit();await process_frame
  assert(app.game==installed and FileAccess.get_file_as_string(app.save_path)==disk)
  await Shutdown.dispose(app);await process_frame
- print("PASS: campaign JSON, route pins, war-table site terrain, custom recruits, phase scenes, timed reinforcements, chapter 32 saves, section dialogue, authored section relief, authored legacy stock and purchase persistence, authored loss recruits, authored loss dialogue, reproducible playtest setup, Valley carryover, thirteen-chapter Valley template, and single-battle tests")
+ print("PASS: campaign JSON file transfer, route pins, war-table site terrain, custom recruits, phase scenes, timed reinforcements, chapter 32 saves, section dialogue, authored section relief, authored legacy stock and purchase persistence, authored loss recruits, authored loss dialogue, reproducible playtest setup, Valley carryover, thirteen-chapter Valley template, and single-battle tests")
  quit()
