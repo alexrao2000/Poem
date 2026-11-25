@@ -283,6 +283,14 @@ func check_terrain_undo():
  draft.remember_terrain(0);draft.paint(draft.data.chapters[0].level,point,"h")
  assert(not draft.can_step_terrain(0,true))
  assert(draft.decode(draft.encode()).is_empty() and not draft.can_step_terrain(0,false))
+ var level=draft.data.chapters[0].level
+ for y in level.map.size():draft.paint(level,Vector2i(6,y),"~")
+ var coast=level.map.duplicate()
+ var marked={Vector2i(3,2):true}
+ assert(draft.fill_terrain(0,Vector2i(1,1),"f",marked))
+ assert(level.map[1][1]=="f" and level.map[2][3]=="." and level.map[1][6]=="~" and level.map[1][7]==".")
+ assert(not draft.fill_terrain(0,Vector2i(3,2),"h",marked))
+ assert(draft.step_terrain(0,false) and level.map==coast)
 
 func check_chapter_hard_bonuses():
  var draft=Draft.new()
@@ -496,6 +504,16 @@ func run():
  var redo=InputEventKey.new();redo.keycode=KEY_Z;redo.pressed=true;redo.meta_pressed=true;redo.shift_pressed=true
  terrain_canvas._gui_input(redo)
  assert(editor.level().map[4][6]=="f" and editor.level().map[5][7]=="f")
+ var fill_control=editor.find_child("EditorTerrainFill",true,false)
+ fill_control.button_pressed=true
+ assert(not terrain_canvas.paint_on_drag)
+ for index in selection.item_count:
+  if selection.get_item_metadata(index)=="h":selection.select(index)
+ terrain_canvas.tile_edited.emit(Vector2i(6,4),false)
+ assert(editor.level().map[4][6]=="h" and editor.level().map[5][7]=="f")
+ controls(app,"Undo terrain").pressed.emit()
+ assert(editor.level().map[4][6]=="f")
+ fill_control.button_pressed=false
  use_brush(editor,4,Vector2i(0,3))
  editor.chapter().opening=[{"speaker":"lyra","text":"This is a new campaign."}]
  editor.level().title="River Gate"
@@ -1086,5 +1104,5 @@ func run():
  await verify_moving_placements(app)
  assert(FileAccess.get_file_as_string(app.save_path)==disk and app.game==installed)
  await Shutdown.dispose(app);await process_frame
- print("PASS: campaign JSON file transfer, draft library management, remembered playtest setup, campaign readiness, authored Hard bonuses, authored retry raiders, deployment comparison, custom campaign atlas, terrain stroke undo, placement moves and swaps, route pins, war-table site terrain, rising Valley landmarks, custom recruits, phase scenes, timed reinforcements, chapter 32 saves, section dialogue, authored section relief, authored legacy stock and purchase persistence, authored loss recruits, authored loss dialogue, reproducible playtest setup, Valley carryover, thirteen-chapter Valley template, and single-battle tests")
+ print("PASS: campaign JSON file transfer, draft library management, remembered playtest setup, campaign readiness, authored Hard bonuses, authored retry raiders, deployment comparison, custom campaign atlas, terrain stroke undo, connected terrain fill, placement moves and swaps, route pins, war-table site terrain, rising Valley landmarks, custom recruits, phase scenes, timed reinforcements, chapter 32 saves, section dialogue, authored section relief, authored legacy stock and purchase persistence, authored loss recruits, authored loss dialogue, reproducible playtest setup, Valley carryover, thirteen-chapter Valley template, and single-battle tests")
  quit()

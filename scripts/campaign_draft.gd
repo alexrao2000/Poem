@@ -264,6 +264,21 @@ func step_terrain(index: int,redo: bool) -> bool:
  chapter.level.map=previous.pop_back()
  return true
 
+func fill_terrain(index: int,start: Vector2i,symbol: String,route_marks: Dictionary) -> bool:
+ var level=data.chapters[index].level
+ var bounds=Rect2i(Vector2i.ZERO,Vector2i(level.map[0].length(),level.map.size()))
+ if not bounds.has_point(start) or route_marks.has(start):return false
+ var original=level.map[start.y][start.x]
+ if original==symbol:return false
+ remember_terrain(index)
+ var frontier=[start]
+ while not frontier.is_empty():
+  var point=frontier.pop_back()
+  if not bounds.has_point(point) or route_marks.has(point) or level.map[point.y][point.x]!=original:continue
+  paint(level,point,symbol)
+  for direction in Tactics.DIRECTIONS:frontier.append(point+direction)
+ return true
+
 static func placement_at(level: Dictionary,point: Vector2i) -> Dictionary:
  for group in ["deployment_positions","enemies","hard_enemies"]:
   var members=level[group]

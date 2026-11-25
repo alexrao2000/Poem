@@ -18,6 +18,8 @@ The map workspace combines a terrain brush with controls for deployment tiles, e
 
 Undo terrain and Redo terrain reverse whole brush strokes. On the focused Battle grid, use Command-Z or Control-Z to undo and add Shift to redo. Resizing a board starts a fresh terrain history for that chapter.
 
+Switch on Fill connected area to paint touching tiles of the same terrain in one step. The fill stops at different terrain and inherited route tiles. Undo terrain reverses the whole fill.
+
 Use Move placement to relocate a deployment tile or enemy with its equipment, level, strategy, and arrival settings. Select another placement to swap their tiles. Right-click or press Escape to cancel the selection.
 
 In Encounters, set a chapter’s Hard enemy bonuses for maximum HP, attack, speed, and defense. These apply to the on-map enemies and later reinforcements when Harder enemy forces is enabled. Retry pressure still adds its own bonuses and uses the rally chapter’s settings after a section restart.

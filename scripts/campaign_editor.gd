@@ -29,6 +29,8 @@ var selected_arrival=0
 var encounter_panel: VBoxContainer
 var grid: Control
 var terrain_changed=false
+var fill_connected=false
+var fill_terrain: CheckButton
 var undo_terrain: Button
 var redo_terrain: Button
 var placement_hint: Label
@@ -134,6 +136,11 @@ func build_battle(panel: VBoxContainer):
  for tile in terrains:
   terrain_choice.add_item(Draft.Rules.TERRAIN_PROFILES[tile].name)
   terrain_choice.set_item_metadata(terrain_choice.item_count-1,tile)
+ fill_terrain=CheckButton.new();fill_terrain.name="EditorTerrainFill";fill_terrain.text="Fill connected area"
+ fill_terrain.button_pressed=fill_connected;tools.add_child(fill_terrain)
+ fill_terrain.toggled.connect(func(value):
+  fill_connected=value
+  if brush==0:grid.paint_on_drag=not value)
  job_choice=choice(draft.templates.classes.keys(),"Vanguard",Callable());tools.add_child(job_choice)
  ai_choice=choice(Draft.STRATEGIES,"pursue",Callable());tools.add_child(ai_choice)
  enemy_name=line_edit("","Enemy name",80,Callable());tools.add_child(enemy_name)
@@ -164,10 +171,11 @@ func build_battle(panel: VBoxContainer):
 func show_brush_options():
  var enemy=brush in [2,3]
  terrain_choice.visible=brush==0
+ fill_terrain.visible=brush==0
  job_choice.visible=enemy;ai_choice.visible=enemy;enemy_name.visible=enemy
  placement_hint.visible=brush==MOVE_PLACEMENT
  grid_help.visible=brush!=MOVE_PLACEMENT
- grid.paint_on_drag=brush!=MOVE_PLACEMENT
+ grid.paint_on_drag=brush!=MOVE_PLACEMENT and (brush!=0 or not fill_connected)
  clear_placement_selection()
 
 func clear_placement_selection():
@@ -204,10 +212,13 @@ func edit_tile(point: Vector2i,erase: bool):
  var position=[point.x,point.y]
  if brush==0:
   var symbol="." if erase else terrain_choice.get_selected_metadata()
-  if layout.map[point.y][point.x]==symbol:return
-  if not grid.stroke_active or not terrain_changed:draft.remember_terrain(selected)
-  terrain_changed=grid.stroke_active
-  draft.paint(layout,point,symbol)
+  if fill_connected:
+   if not draft.fill_terrain(selected,point,symbol,grid.marks):return
+  else:
+   if layout.map[point.y][point.x]==symbol:return
+   if not grid.stroke_active or not terrain_changed:draft.remember_terrain(selected)
+   terrain_changed=grid.stroke_active
+   draft.paint(layout,point,symbol)
   update_terrain_history()
  elif erase:
   layout.deployment_positions=layout.deployment_positions.filter(func(site):return not same_tile(site,point))
