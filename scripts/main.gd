@@ -45,6 +45,7 @@ var dialogue_name: Label
 var dialogue_portrait: TextureRect
 var dialogue_stage: Control
 var dialogue_reveal=0.0
+var dialogue_preview_cast: Dictionary={}
 const CombatTrail=preload("res://scripts/combat_trail.gd")
 const CombatImpact=preload("res://scripts/combat_impact.gd")
 const CombatHitStop=preload("res://scripts/combat_hit_stop.gd")
@@ -281,6 +282,7 @@ func reset_ui():
 	objective_label=null
 	battle_header=null
 	portraits.expression_textures.clear()
+	dialogue_preview_cast.clear()
 	dialogue_label=null
 	dialogue_stage=null
 	dialogue_portrait=null
@@ -551,6 +553,7 @@ func show_campaign_editor(return_to: String,view_state: Dictionary={}):
 	campaign_editor.score_preview_requested.connect(open_editor_score_preview)
 	campaign_editor.recruit_preview_requested.connect(open_editor_recruit_preview)
 	campaign_editor.arena_preview_requested.connect(open_editor_arena_preview)
+	campaign_editor.dialogue_preview_requested.connect(open_editor_dialogue_preview)
 	campaign_editor.draft_selection_changed.connect(func(key,index):
 		campaign_editor_key=key;campaign_editor_chapter=index)
 	campaign_editor.playtest_requested.connect(func(index,resume,single_battle):
@@ -599,6 +602,25 @@ func open_editor_arena_preview(chapter_index: int,tile: Vector2i,from_route: boo
 	back.set_anchors_and_offsets_preset(Control.PRESET_BOTTOM_RIGHT)
 	back.offset_left=-256;back.offset_top=-66;back.offset_right=-22;back.offset_bottom=-22
 	back.grab_focus()
+
+func open_editor_dialogue_preview(lines: Array,kind: String,opener: Button):
+	if screen!="campaign_editor" or lines.is_empty():return
+	var editor_ui=ui
+	editor_ui.hide()
+	ui=Control.new();ui.name="EditorDialoguePreview";ui.theme=editor_ui.theme
+	canvas.add_child(ui)
+	ui.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	screen="dialogue"
+	for recruit in campaign_draft.data.recruits:dialogue_preview_cast[recruit.id]=recruit
+	var return_to_editor=func():
+		canvas.remove_child(ui);ui.queue_free()
+		ui=editor_ui;screen="campaign_editor"
+		dialogue_preview_cast.clear()
+		portraits.expression_textures.clear()
+		dialogue_lines=[];dialogue_label=null;dialogue_name=null;dialogue_stage=null;dialogue_portrait=null
+		ui.show();opener.grab_focus()
+	begin_dialogue(lines,return_to_editor,kind,campaign_editor.selected,[],true)
+	dialogue_stage.next_button.grab_focus()
 
 func restore_editor_after_preview(return_to: String,view_state: Dictionary):
 	show_campaign_editor(return_to,view_state)
@@ -2304,13 +2326,16 @@ func show_ending():
 
 func show_dialogue(lines: Array,on_complete: Callable,kind="opening",backdrop_chapter=-1,use_losses=true):
 	screen="dialogue";reset_ui()
-	var backdrop=preload("res://scripts/dialogue_backdrop.gd").new()
-	backdrop.begin(ui,[world,pieces,markers],game.chapter if backdrop_chapter<0 else backdrop_chapter,kind)
 	var losses=game.lost_ids(kind=="closing") if use_losses else []
+	begin_dialogue(lines,on_complete,kind,game.chapter if backdrop_chapter<0 else backdrop_chapter,losses)
+
+func begin_dialogue(lines: Array,on_complete: Callable,kind: String,backdrop_chapter: int,losses: Array,editor_preview=false):
+	var backdrop=preload("res://scripts/dialogue_backdrop.gd").new()
+	backdrop.begin(ui,[world,pieces,markers],backdrop_chapter,kind)
 	dialogue_lines=lines if kind=="support" else preload("res://scripts/story_survivors.gd").resolve(lines,losses)
 	dialogue_index=0;dialogue_callback=on_complete
 	dialogue_stage=preload("res://scripts/dialogue_stage.gd").new();ui.add_child(dialogue_stage)
-	dialogue_stage.configure(advance_dialogue,finish_dialogue,show_dialogue_history)
+	dialogue_stage.configure(advance_dialogue,finish_dialogue,show_dialogue_history,editor_preview)
 	dialogue_name=dialogue_stage.heading;dialogue_label=dialogue_stage.speech
 	refresh_dialogue()
 
@@ -2318,12 +2343,14 @@ func refresh_dialogue():
 	if dialogue_index>=dialogue_lines.size():finish_dialogue();return
 	var line=dialogue_lines[dialogue_index]
 	var display_name=dialogue_speaker_name(line.speaker)
-	var identity=game.recruit_templates.get(line.speaker,{}).get("art_id",line.speaker)
+	var speaker=dialogue_preview_cast.get(line.speaker,game.recruit_templates.get(line.speaker,{}))
+	var identity=speaker.get("art_id",line.speaker)
 	dialogue_portrait=dialogue_stage.show_speaker(line.speaker,display_name,portraits.get_dialogue_portrait(identity,line.get("expression","")))
 	dialogue_label.text=line.text;dialogue_label.visible_characters=-1 if preferences.values.text_speed==0 else 0;dialogue_reveal=0.0
 	dialogue_stage.refresh_prompt()
 
 func dialogue_speaker_name(id: String) -> String:
+	if dialogue_preview_cast.has(id):return dialogue_preview_cast[id].name
 	var speaker=game.roster.filter(func(u):return u.id==id)
 	return speaker[0].name if not speaker.is_empty() else id.capitalize()
 

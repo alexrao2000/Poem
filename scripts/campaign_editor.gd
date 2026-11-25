@@ -5,6 +5,7 @@ signal draft_selection_changed(key: String, chapter: int)
 signal score_preview_requested(theme_id: String)
 signal recruit_preview_requested(recruit: Dictionary)
 signal arena_preview_requested(chapter_index: int, tile: Vector2i, from_route: bool)
+signal dialogue_preview_requested(lines: Array, kind: String, button: Button)
 const Draft=preload("res://scripts/campaign_draft.gd")
 const Grid=preload("res://scripts/campaign_editor_grid.gd")
 const Route=preload("res://scripts/campaign_route.gd")
@@ -601,7 +602,7 @@ func build_story(panel: VBoxContainer):
  for kind in ["opening","closing"]:
   heading(panel,kind.capitalize()+" dialogue",17)
   dialogue_editor(panel,"EditorChapterDialogue_"+kind,132,func():return record[kind],func(lines):
-   record[kind]=lines;changed())
+   record[kind]=lines;changed(),kind)
  var events=VBoxContainer.new();events.add_theme_constant_override("separation",8);panel.add_child(events)
  build_phase_scenes(events,record)
  var tile_events=VBoxContainer.new();tile_events.add_theme_constant_override("separation",8);panel.add_child(tile_events)
@@ -1236,19 +1237,28 @@ func build_bonds(panel: VBoxContainer):
   var original_lines=scene.lines.duplicate(true)
   var lines=multiline(dialogue_text(original_lines),110,func(value):scene.lines=parse_dialogue(value,original_lines);save_bond_edits(bonds))
   lines.name="EditorBondLines"+str(rank);panel.add_child(lines)
+  dialogue_preview_button(panel,lines,func():return scene.lines,"support")
 
 func save_bond_edits(bonds: Array):
  draft.data.bonds=bonds
  changed()
 
-func dialogue_editor(panel: Control,field_name: String,height: int,read: Callable,write: Callable):
+func dialogue_editor(panel: Control,field_name: String,height: int,read: Callable,write: Callable,kind="opening"):
  var field=multiline(dialogue_text(read.call()),height,Callable())
  field.name=field_name;panel.add_child(field)
- var options=action(panel,"Edit loss dialogue",func():show_loss_dialogue(field,read.call(),write),read.call().is_empty())
+ var actions=row(panel)
+ var options=action(actions,"Edit loss dialogue",func():show_loss_dialogue(field,read.call(),write),read.call().is_empty())
  options.name=field_name+"LossOptions"
  field.text_changed.connect(func():
   write.call(parse_dialogue(field.text,read.call()))
   options.disabled=read.call().is_empty())
+ dialogue_preview_button(actions,field,read,kind)
+
+func dialogue_preview_button(parent: Control,field: TextEdit,read: Callable,kind: String):
+ var preview=action(parent,"Preview dialogue",Callable(),read.call().is_empty())
+ preview.name=str(field.name)+"Preview"
+ preview.pressed.connect(func():dialogue_preview_requested.emit(read.call(),kind,preview))
+ field.text_changed.connect(func():preview.disabled=read.call().is_empty())
 
 func show_loss_dialogue(field: TextEdit,source: Array,write: Callable):
  var lines=source.duplicate(true)
@@ -1624,7 +1634,8 @@ func row(parent: Control) -> HBoxContainer:
 func action(parent: Control,text: String,used: Callable,disabled=false) -> Button:
  var button=Button.new();button.text=text;button.disabled=disabled
  button.custom_minimum_size.y=42;button.size_flags_horizontal=SIZE_EXPAND_FILL
- button.pressed.connect(used);parent.add_child(button);return button
+ if used.is_valid():button.pressed.connect(used)
+ parent.add_child(button);return button
 
 func choice(choices: Array,current: String,used: Callable) -> OptionButton:
  var field=OptionButton.new();field.custom_minimum_size.y=42

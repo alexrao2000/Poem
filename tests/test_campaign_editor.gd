@@ -1347,6 +1347,46 @@ func verify_standards_through_enemy_phase(app):
  controls(app,"Return to editor").pressed.emit();await process_frame
  assert(app.screen=="campaign_editor" and app.game==ordinary and FileAccess.get_file_as_string(app.save_path)==disk)
 
+func verify_dialogue_preview(app,field: String,panel: String,speaker: String,words: String,kind: String,finish_line=false):
+ var editor=app.campaign_editor
+ var original_ui=app.ui
+ var document=editor.draft.encode()
+ var was_dirty=editor.draft.dirty
+ var battle=app.game.save_data("battle")
+ var disk=FileAccess.get_file_as_string(app.save_path)
+ var scroll=editor.find_child(panel,true,false)
+ var button=editor.find_child(field+"Preview",true,false)
+ assert(not button.disabled)
+ button.grab_focus();await process_frame
+ var position=scroll.scroll_vertical
+ button.pressed.emit();await process_frame
+ assert(app.screen=="dialogue" and app.ui.name=="EditorDialoguePreview" and not original_ui.visible)
+ assert(app.ui.get_node("DialogueBackdrop").context_id==kind+"_"+str(editor.selected))
+ assert(app.dialogue_name.text==speaker and app.dialogue_label.text==words)
+ assert(app.dialogue_stage.skip_button.text=="Return to editor")
+ if finish_line:
+  var old_size=root.size;var old_scale=root.content_scale_size
+  root.size=Vector2i(720,640);root.content_scale_size=Vector2i(720,640)
+  await process_frame;await process_frame
+  var viewport=app.get_viewport().get_visible_rect()
+  for command in [app.dialogue_stage.next_button,app.dialogue_stage.skip_button,app.dialogue_stage.history_button]:
+   assert(viewport.encloses(command.get_global_rect()))
+  app.advance_dialogue();await process_frame
+  if app.screen=="dialogue":
+   app.show_dialogue_history()
+   assert(app.dialogue_stage.history!=null)
+   app.dialogue_stage.close_history()
+   app.advance_dialogue()
+  root.size=old_size;root.content_scale_size=old_scale
+ else:
+  var esc=InputEventKey.new();esc.keycode=KEY_ESCAPE;esc.pressed=true
+  app._input(esc)
+ await process_frame
+ assert(app.screen=="campaign_editor" and app.ui==original_ui and original_ui.visible)
+ assert(app.campaign_editor==editor and button.has_focus() and scroll.scroll_vertical==position)
+ assert(editor.draft.encode()==document and editor.draft.dirty==was_dirty)
+ assert(app.game.save_data("battle")==battle and FileAccess.get_file_as_string(app.save_path)==disk)
+
 func run():
  check_document()
  check_small_section_deployment()
@@ -1488,7 +1528,9 @@ func run():
  await process_frame
  controls(app,"Add phase scene").pressed.emit();await process_frame
  var phase_text=editor.find_child("EditorPhaseSceneLines",true,false)
+ assert(editor.find_child("EditorPhaseSceneLinesPreview",true,false).disabled)
  phase_text.text=custom.id+" | The signal is ours.";phase_text.text_changed.emit()
+ await verify_dialogue_preview(app,"EditorPhaseSceneLines","Story","Linden","The signal is ours.","opening",true)
  controls(app,"Add phase scene").pressed.emit();await process_frame
  var side_picker=editor.find_child("EditorPhaseScenePhase",true,false)
  side_picker.select(1);side_picker.item_selected.emit(1)
@@ -1499,6 +1541,7 @@ func run():
  editor.find_child("EditorTileScene1",true,false).value=3
  var tile_lines=editor.find_child("EditorTileSceneLines",true,false)
  tile_lines.text="narrator | The old watch bell is still here.";tile_lines.text_changed.emit()
+ await verify_dialogue_preview(app,"EditorTileSceneLines","Story","Narrator","The old watch bell is still here.","opening")
  editor.find_child("EditorTileSceneTonics",true,false).button_pressed=true
  tile_x.value=31
  assert(editor.draft.playtest_problem().contains("Move the tile dialogue"))
@@ -1580,6 +1623,7 @@ func run():
  title.text="Watch on the river";title.text_changed.emit(title.text)
  var lines=editor.find_child("EditorBondLines0",true,false)
  lines.text="lyra | The bridge is quiet now.";lines.text_changed.emit()
+ await verify_dialogue_preview(app,"EditorBondLines0","Bonds","Lyra","The bridge is quiet now.","support")
  var paired_ending=editor.find_child("EditorBondEnding",true,false)
  paired_ending.text="They returned to watch the river.";paired_ending.text_changed.emit()
  assert(first_bond.scenes[0].title==title.text and first_bond.scenes[0].lines[0].text=="The bridge is quiet now.")
@@ -2054,6 +2098,7 @@ func run():
  withdrawal_title.text="Withdrawal to the ridge";withdrawal_title.text_changed.emit(withdrawal_title.text)
  var withdrawal_lines=app.campaign_editor.find_child("EditorSectionLines_retreat",true,false)
  withdrawal_lines.text="lyra | The ridge is still ours.";withdrawal_lines.text_changed.emit()
+ await verify_dialogue_preview(app,"EditorSectionLines_retreat","Story","Lyra","The ridge is still ours.","opening")
  section_book.current_tab=section_book.get_tab_idx_from_control(app.campaign_editor.find_child("Rules",true,false))
  await process_frame
  controls(app,"Add item").pressed.emit()
@@ -2074,6 +2119,7 @@ func run():
  arrival_title.text="Rook at the ridge";arrival_title.text_changed.emit(arrival_title.text)
  var arrival_lines=app.campaign_editor.find_child("EditorLegacyArrivalLines",true,false)
  arrival_lines.text="rook | I found the signal fire.";arrival_lines.text_changed.emit()
+ await verify_dialogue_preview(app,"EditorLegacyArrivalLines","Rules","Rook","I found the signal fire.","opening")
  controls(app,"Higher priority").pressed.emit()
  controls(app,"Higher priority").pressed.emit()
  assert(app.campaign_editor.draft.data.legacy_arrivals[0].id=="rook")
@@ -2170,6 +2216,7 @@ func run():
  opening_text.text+="\nnarrator | The companies look down at the roads.";opening_text.text_changed.emit()
  var opening=template.data.chapters[11].opening
  assert(opening[0].requires==["ivo"] and opening[0].when_absent.size()==2 and opening.size()==3)
+ await verify_dialogue_preview(app,"EditorChapterDialogue_opening","Story","Lyra",opening[0].text,"opening")
  var exported=Draft.new()
  assert(exported.decode(template.encode()).is_empty() and exported.data.chapters[11].opening==opening)
  template.data.settings.permadeath=true;template.data.settings.action_saves=true
@@ -2314,5 +2361,5 @@ func run():
  await verify_standards_through_enemy_phase(app)
  assert(FileAccess.get_file_as_string(app.save_path)==disk and app.game==installed)
  await Shutdown.dispose(app);await process_frame
- print("PASS: campaign JSON file transfer, draft library management, remembered playtest setup, campaign readiness, authored Hard bonuses, authored retry raiders, deployment comparison, authored formation previews, small deployment limits and save recovery, custom campaign atlas, terrain stroke undo, bulk terrain rows, editor dialogs at two viewport sizes, direct chapter reordering, continuous terrain strokes, connected terrain fill, placement moves and swaps, repeated placement copies, switching enemy difficulty groups, editor music preview, multiple standards and exact resume, standard navigation and live progress, standards that follow route pins, route pins, war-table site terrain, war-table overlay, blank war-table chapter, rising Valley landmarks, local war-table arena landmarks including Kingsroad and Windscar, authored route arenas, fading route seals, war-table landmark index and shared survey marks, Valley reveal sound cues, battlefield site markers, custom recruits, phase scenes, tile dialogue and reload, recruitment on battlefield sites, authored recruit starting equipment, live recruit art previews, 3D recruit preview and editor return, navigation between available sites, one-use field tonic caches, Valley landmark dialogue, dialogue that follows route pins, timed reinforcements, chapter 32 saves, section dialogue, authored section relief, authored legacy stock and purchase persistence, authored loss recruits, authored loss dialogue, reproducible playtest setup, Valley carryover and resume, thirteen-chapter Valley template, built-in Hold the Valley Roads and Signals in the Valley trials, 3D arena previews from Battle and Route, holding standards through an enemy phase, defense-triggered reserves, reserve stats in deployment previews, defense-triggered dialogue and exact resume, and single-battle tests")
+ print("PASS: campaign JSON file transfer, draft library management, remembered playtest setup, campaign readiness, authored Hard bonuses, authored retry raiders, deployment comparison, authored formation previews, small deployment limits and save recovery, custom campaign atlas, terrain stroke undo, bulk terrain rows, editor dialogs at two viewport sizes, direct chapter reordering, continuous terrain strokes, connected terrain fill, placement moves and swaps, repeated placement copies, switching enemy difficulty groups, editor music and draft dialogue previews, multiple standards and exact resume, standard navigation and live progress, standards that follow route pins, route pins, war-table site terrain, war-table overlay, blank war-table chapter, rising Valley landmarks, local war-table arena landmarks including Kingsroad and Windscar, authored route arenas, fading route seals, war-table landmark index and shared survey marks, Valley reveal sound cues, battlefield site markers, custom recruits, phase scenes, tile dialogue and reload, recruitment on battlefield sites, authored recruit starting equipment, live recruit art previews, 3D recruit preview and editor return, navigation between available sites, one-use field tonic caches, Valley landmark dialogue, dialogue that follows route pins, timed reinforcements, chapter 32 saves, section dialogue, authored section relief, authored legacy stock and purchase persistence, authored loss recruits, authored loss dialogue, reproducible playtest setup, Valley carryover and resume, thirteen-chapter Valley template, built-in Hold the Valley Roads and Signals in the Valley trials, 3D arena previews from Battle and Route, holding standards through an enemy phase, defense-triggered reserves, reserve stats in deployment previews, defense-triggered dialogue and exact resume, and single-battle tests")
  quit()

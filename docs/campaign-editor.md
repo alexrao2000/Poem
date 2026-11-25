@@ -64,6 +64,8 @@ The story workspace edits the chapter name, location, briefing, opening, and clo
 
 Use Edit loss dialogue to give a line an alternate if its speaker or a required recruit has fallen. This applies to chapter scenes, battle dialogue, section scenes, and legacy arrivals. The game uses the first alternate whose speaker and required recruits are still alive. Edit the original line in the same dialog to keep its conditions.
 
+Choose **Preview dialogue** below a scene to read the current draft with its names, portraits, and game dialogue controls. This also works for bond scenes and drafts with unfinished battles. Press **Esc** or choose **Return to editor** to resume editing at the same place.
+
 In Story, use Add tile scene to give a battlefield location its own dialogue. The Battle grid marks those tiles. A standing ally triggers the scene after finishing an action there, and the terrain card shows whether dialogue is still available. If you load a saved action that triggered an unfinished scene, it plays before you resume battle. On a war table, choose an earlier Route pin to move the scene whenever that pin moves. Deleting the linked chapter keeps the scene on its last tile.
 
 Enable Refill the visiting ally’s field tonics on a tile scene to bring that ally’s supply back to two. Hallow Abbey uses this in the Valley campaign draft. A cache without dialogue stays available until an ally who needs tonics finishes an action there.

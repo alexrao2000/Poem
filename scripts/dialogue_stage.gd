@@ -15,6 +15,7 @@ var history: Control
 var ready_indicator: Control
 var ready_to_continue=false
 var ready_clock=0.0
+var exit_action="skip"
 
 class ReadyIndicator extends Control:
 	func _draw():
@@ -25,7 +26,9 @@ class ReadyIndicator extends Control:
 		draw_line(center+Vector2(1,0),center+Vector2(-3,2),Color("fff1cc"),1.3,true)
 
 
-func configure(next_line: Callable,skip_scene: Callable,show_history=Callable()):
+func configure(next_line: Callable,skip_scene: Callable,show_history=Callable(),editor_preview=false):
+	var exit_caption="Return to editor" if editor_preview else "Skip scene"
+	exit_action="return" if editor_preview else "skip"
 	set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	var shade=ColorRect.new();shade.color=Color(.08,.10,.13,.20)
 	shade.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT);add_child(shade)
@@ -54,13 +57,13 @@ func configure(next_line: Callable,skip_scene: Callable,show_history=Callable())
 	var controls=HBoxContainer.new();controls.add_theme_constant_override("separation",12);column.add_child(controls)
 	hint=Label.new()
 	hint.add_theme_font_size_override("font_size",15);hint.size_flags_horizontal=Control.SIZE_EXPAND_FILL;controls.add_child(hint)
-	for entry in [["Skip scene",skip_scene],["History [H]",show_history],["Continue  >",next_line]]:
+	for entry in [[exit_caption,skip_scene],["History [H]",show_history],["Continue  >",next_line]]:
 		var button=Button.new();button.text=entry[0];button.custom_minimum_size.y=42
 		if entry[1].is_valid():button.pressed.connect(entry[1])
 		else:button.disabled=true
 		controls.add_child(button)
 		if entry[0]=="Continue  >":next_button=button;button.custom_minimum_size.x=140
-		elif entry[0]=="Skip scene":skip_button=button
+		elif entry[0]==exit_caption:skip_button=button
 		else:history_button=button
 	resized.connect(arrange);arrange();refresh_prompt()
 
@@ -71,7 +74,7 @@ func refresh_prompt():
 	next_button.text="Continue  >" if ready_to_continue else "Reveal text"
 	next_button.tooltip_text="Go to the next line" if ready_to_continue else "Show the rest of this line"
 	var action="continue" if ready_to_continue else "reveal"
-	hint.text=("Enter · %s\nEsc · skip" if size.x<840 else "Space / Enter: %s   ·   Escape: skip")%action
+	hint.text=("Enter · %s\nEsc · %s" if size.x<840 else "Space / Enter: %s   ·   Escape: %s")%[action,exit_action]
 	if not ready_to_continue:ready_clock=0;ready_indicator.modulate.a=1
 
 func _process(delta):
