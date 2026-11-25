@@ -108,6 +108,8 @@ Route briefings show each reached location’s survey mark. The same marks appea
 
 During a war-table battle, press **V** or select **Atlas** to reread the earlier briefings. **Show battle grid** overlays the terrain and standards. **Show units** marks your company, foes, downed allies, and control of the standards. With either layer on, select a tile with the pointer or use the arrow keys with the atlas focused to see its occupants, health, and standard holder. Open the atlas with a ready ally selected to trace legal routes and see their movement cost. **Inspect selected tile** returns to the battlefield at its survey mark.
 
+Choose **Replay reveal** in the battle atlas to watch the chart become the battlefield again. Click or press Tab to skip. The scene returns to the current camera and selected unit.
+
 When a defeat sends the company back to an earlier chapter, **Preview rally company** lists the starting deployment, available reserves, and permanent losses before regrouping. The same preview is available in **Review losses** if ending the phase would cause that retreat.
 
 With reset pressure enabled, **Compare enemy preparations** shows how the next pressure level changes each enemy’s starting position, combat stats, and held tonics at the rally.

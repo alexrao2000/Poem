@@ -2211,7 +2211,7 @@ func run():
   var inspect=app.ui.find_child("BattleRouteInspect",true,false)
   assert(atlas.selected==1 and atlas.map_picture==Valley.MAP and atlas.survey_terrain.is_empty())
   assert(atlas.markers[12].disabled and app.ui.find_child("RouteSurveyMark",true,false).text=="G-10")
-  for control in [grid,units,inspect,app.ui.find_child("BattleRouteReturn",true,false)]:
+  for control in [grid,units,inspect,app.ui.find_child("BattleRouteReplay",true,false),app.ui.find_child("BattleRouteReturn",true,false)]:
    assert(root.get_visible_rect().grow(1).encloses(control.get_global_rect()))
   grid.button_pressed=true
   assert(atlas.survey_terrain==app.game.info().map and atlas.survey_standards==app.game.capture_tiles())
@@ -2279,6 +2279,28 @@ func run():
  assert(app.map_navigation.capture_view()==move_view and canonical(app.game.save_data("battle"))==valley_state)
  assert(FileAccess.get_file_as_string(valley_path)==valley_disk)
  atlas_toggle.pressed=false;root.push_input(atlas_toggle,true)
+ var replay_ink=Valley.grid_material(app.world)
+ var front=replay_ink.get_shader_parameter("front")
+ var decoder=app.score_director.player.get_stream_playback()
+ assert(decoder!=null)
+ var pieces=app.unit_nodes.values().map(func(piece):return [piece,piece.position,piece.visible])
+ for skipping in [false,true]:
+  atlas_toggle.pressed=true;root.push_input(atlas_toggle,true);await process_frame
+  atlas_toggle.pressed=false;root.push_input(atlas_toggle,true)
+  assert(app.screen=="battle_route")
+  app.ui.find_child("BattleRouteReplay",true,false).pressed.emit()
+  assert(app.valley_reveal_active and app.busy and not app.ui.visible and not app.markers.visible)
+  assert(app.canvas.get_node("ValleyRouteSeals").projected_pins().size()==11 and replay_ink.get_shader_parameter("front")<0)
+  if skipping:
+   var tab=InputEventKey.new();tab.keycode=KEY_TAB;tab.pressed=true
+   app._input(tab)
+  await finish_presentation(app)
+  assert(app.screen=="battle" and not app.valley_reveal_active and app.selected==vanguard and app.origin==selected_move)
+  assert(app.map_navigation.capture_view()==move_view and replay_ink.get_shader_parameter("front")==front)
+  assert(app.score_director.player.get_stream_playback()==decoder)
+  assert(pieces==app.unit_nodes.values().map(func(piece):return [piece,piece.position,piece.visible]))
+  assert(canonical(app.game.save_data("battle"))==valley_state and FileAccess.get_file_as_string(valley_path)==valley_disk)
+ print("PASS: played and skipped atlas reveals restore the camera, pending move, pieces, grid and live score")
  app.cancel_selection()
  var atlas_button=app.ui.find_child("OpenBattleAtlas",true,false)
  atlas_button.pressed.emit();await process_frame

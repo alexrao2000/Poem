@@ -1041,6 +1041,8 @@ func show_campaign_route(view: String="campaign_route"):
 			var tile=route.battle_tile
 			close_battle_route();focus_map_point(tile))
 		inspect.name="BattleRouteInspect";inspect.size_flags_horizontal=Control.SIZE_EXPAND_FILL
+		var replay=button_in(actions,"Replay reveal",replay_valley_reveal)
+		replay.name="BattleRouteReplay";replay.size_flags_horizontal=Control.SIZE_EXPAND_FILL
 		var back=button_in(actions,"Return to battle",close_battle_route)
 		back.name="BattleRouteReturn";back.size_flags_horizontal=Control.SIZE_EXPAND_FILL;back.grab_focus()
 	else:
@@ -1108,7 +1110,7 @@ func deploy_company():
 	await present_phase_scenes()
 	busy=false;update_side()
 
-func reveal_valley_battle():
+func reveal_valley_battle(refit_on_resize=true):
 	valley_reveal_skip=false;valley_reveal_active=true
 	ui.hide();markers.hide()
 	var hint=valley_transition_hint()
@@ -1117,10 +1119,20 @@ func reveal_valley_battle():
 		if event=="paper":play_sfx("valley-unroll")
 		else:travel_audio.step("=","",0)
 	await ValleyBattle.play_reveal(map_navigation,game,world,unit_nodes.values(),hint,func():return valley_reveal_skip,cue)
-	if get_viewport().get_visible_rect().size!=viewport_size:map_camera()
+	if refit_on_resize and get_viewport().get_visible_rect().size!=viewport_size:map_camera()
 	canvas.remove_child(hint);hint.queue_free()
 	ui.show();markers.show()
 	valley_reveal_active=false
+
+func replay_valley_reveal():
+	if screen!="battle_route" or busy:return
+	var ink=ValleyBattle.grid_material(world)
+	var before=ink.get_shader_parameter("front")
+	busy=true
+	await reveal_valley_battle(map_navigation.at_home())
+	ink.set_shader_parameter("front",before)
+	busy=false
+	close_battle_route()
 
 func valley_transition_hint() -> Label:
 	var hint=label_in(canvas,"Click or press Tab to continue",16,Color("fff1d5"))
