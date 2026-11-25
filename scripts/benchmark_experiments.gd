@@ -13,6 +13,7 @@ const PROFILES=[
  {"id":"hard_committed","name":"Hard · permanent + sections/pressure/legacies","permadeath":true,"door":false,"flags":["hard_campaign","section_restarts","reset_pressure","death_legacies"]},
  {"id":"hard_permanent_all","name":"Hard · permanent losses, sections and pressure","permadeath":true,"door":true,"flags":["hard_campaign","death_legacies","section_restarts","reset_pressure"]},
  {"id":"hard_recoverable_all","name":"Hard · recovery, sacrifice and pressure","permadeath":false,"door":true,"flags":["hard_campaign","sacrifice_cost","reset_pressure"]},
+ {"id":"hard_recoverable_pressure","name":"Hard · recovery and pressure","permadeath":false,"door":true,"flags":["hard_campaign","reset_pressure"]},
 ]
 var output_path=""
 var report={"source":"unrecorded","source_dirty":true,"complete":false,"profiles":PROFILES,"seeds":[472019,17,309,2026,8675309],"method":"Rules-layer matched-seed comparison, not an app UI run. Same existing legal Tactics planner on both teams; action saves flag on, but no disk persistence exercised. Highest-level deployment with one healer, mandatory Lyra first when the selected rules require it. Ordinary earned first-branch promotions and available support conversations. Default equipment retained; eligible legacy purchases are recorded but not equipped by this heuristic. No carrying strategy. At most two retries, 18 battles and 50 player turns per battle. No altered stats, forced outcomes or balance edits. Five seeds do not establish human difficulty or statistical certainty.","runs":[]}
@@ -126,7 +127,18 @@ func action(game,unit,planner,battle):
   assert(rescued)
   battle.rescues+=1
   battle.patient_events.append({"event":"rescue","turn":game.turn,"patient":patient[0].id,"carrier":unit.id})
- else:planner.apply_plan(game,unit,choice)
+ else:
+  var bonus=0
+  if unit.team=="player" and choice.action=="attack" and int(unit.get("resolve_until",-1))>=game.turn:
+   var unboosted=unit.duplicate();unboosted.erase("resolve_until")
+   bonus=game.attack_power(unit)-game.attack_power(unboosted)
+  var events=planner.apply_plan(game,unit,choice)
+  if bonus>0 and not events.is_empty() and events[0].hit:
+   var strike=events[0];var hp=int(strike.remaining)+int(strike.damage)
+   var ordinary=maxi(1,int(strike.exchange_forecast[unit.id].damage)-bonus)*(3 if strike.crit else 1)
+   if strike.damage>ordinary:
+    battle.sacrifice_strikes.append({"turn":game.turn,"actor":unit.id,"target":strike.target,"hp_before":hp,
+     "unboosted_damage":ordinary,"damage":strike.damage,"critical":strike.crit,"secured_knockout":strike.remaining==0})
  assert(unit.acted,"Every chosen action resolves legally")
  for ally in game.units:
   if ally.id in before and ally.hp<=0:battle.incapacitations+=1
@@ -216,7 +228,7 @@ func run():
      "chapter":game.chapter+1,"pressure":game.trials.pressure,"deployment":game.deployed.duplicate(),
      "turns":0,"outcome":"","actions":0,"incapacitations":0,"player_heals":0,"enemy_heals":0,"revivals":0,
      "rescues":0,"carried_revivals":0,"carried_phase_endings":0,"bleed_outs":0,
-     "recovering":recovering,"terminal_falls":[],"downed_at_result":[],"patient_events":[],
+     "recovering":recovering,"terminal_falls":[],"downed_at_result":[],"patient_events":[],"sacrifice_strikes":[],
     }
     battle.equipment={}
     for ally in game.living("player"):battle.equipment[ally.id]=ally.item

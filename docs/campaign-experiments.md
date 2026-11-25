@@ -140,6 +140,16 @@ GODOT_BIN=godot python3 scripts/benchmark_experiments.py \
 
 For a matched baseline, run the same profiles and seeds without `--equip`, using a different output path. Invalid IDs, repeated profiles/seeds and conflicting items of the same weapon kind are rejected before starting the engine. Seeds from 0 through 2^63 − 1 retain their exact integer value. Existing completed comparison records are historical evidence; use separate output paths to preserve them.
 
+### Recoverable losses on Hard
+
+Compare Hard campaigns with recovery, death’s door and reset pressure. The two profiles differ only in **Sacrifice costs & openings**. Each battle records affected redeployments and opening strikes whose damage increased, including hits that secured a knockout. Follow-ups and counterattacks are outside that count.
+
+```sh
+GODOT_BIN=godot python3 scripts/benchmark_experiments.py \
+  --profile hard_recoverable_pressure --profile hard_recoverable_all \
+  --carry-patients --output build/review/hard-recovery-sacrifice.json
+```
+
 ### Carrying patients
 
 Use `--carry-patients` to give the benchmark planners a rescue strategy in profiles with death’s door. An ally can spend their action picking up a patient who is about to bleed out when no ready healer can reach them. Carriers try to reach healing range while avoiding exposed tiles. Each battle records rescues, revivals, phase endings with a paused countdown, and bleed-outs, with the units involved and the turn of each event.

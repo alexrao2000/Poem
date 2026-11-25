@@ -15,7 +15,7 @@ from test_process import run_engine
 ROOT = Path(__file__).resolve().parent.parent
 DEFAULT_PROFILE_IDS = ("ordinary", "hard_recoverable", "hard_permanent", "hard_death_door",
                        "hard_sacrifice", "hard_legacy", "hard_sections", "hard_pressure", "hard_committed")
-PROFILE_IDS = DEFAULT_PROFILE_IDS + ("hard_permanent_all", "hard_recoverable_all")
+PROFILE_IDS = DEFAULT_PROFILE_IDS + ("hard_permanent_all", "hard_recoverable_all", "hard_recoverable_pressure")
 DEFAULT_SEEDS = [472019, 17, 309, 2026, 8675309]
 
 
