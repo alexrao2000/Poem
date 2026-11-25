@@ -15,6 +15,8 @@ var active_tab=0
 var brush=0
 var selected_person=0
 var selected_bond=0
+var selected_enemy=0
+var encounter_panel: VBoxContainer
 var grid: Control
 var status: Label
 var source_chapter: OptionButton
@@ -60,11 +62,17 @@ func rebuild():
  action(steps,"Remove",confirm_remove,draft.data.chapters.size()<=1)
  var book=TabContainer.new();book.name="CampaignEditorTabs";book.size_flags_vertical=SIZE_EXPAND_FILL;add_child(book)
  build_battle(page(book,"Battle"))
+ encounter_panel=page(book,"Encounters")
  build_story(page(book,"Story"))
  build_company(page(book,"Company"))
- build_rules(page(book,"Rules"))
  build_bonds(page(book,"Bonds"))
- book.current_tab=active_tab;book.tab_changed.connect(func(index):active_tab=index)
+ build_rules(page(book,"Rules"))
+ var encounters_tab=book.get_tab_idx_from_control(encounter_panel.get_parent())
+ book.current_tab=active_tab
+ if active_tab==encounters_tab:build_encounters()
+ book.tab_changed.connect(func(index):
+  active_tab=index
+  if index==encounters_tab:build_encounters())
  status=heading(self,"",15);status.name="EditorStatus"
  var footer=row(self)
  play_buttons.append(action(footer,"Play from start",func():launch(0,false)))
@@ -130,7 +138,9 @@ func edit_tile(point: Vector2i,erase: bool):
   var group=layout.enemies if brush==2 else layout.hard_enemies
   var old=group.find_custom(func(enemy):return same_tile(enemy.position,point))
   var enemy={"position":position,"job":job_choice.get_selected_metadata(),"ai":ai_choice.get_selected_metadata(),"name":enemy_name.text}
-  if old>=0:group[old]=enemy
+  if old>=0:
+   if group[old].job!=enemy.job:group[old].erase("item")
+   group[old].merge(enemy,true)
   elif group.size()<24:group.append(enemy)
  else:
   layout.objective_position=position
@@ -139,6 +149,69 @@ func edit_tile(point: Vector2i,erase: bool):
 
 func same_tile(position: Array,point: Vector2i) -> bool:
  return int(position[0])==point.x and int(position[1])==point.y
+
+func build_encounters():
+ for child in encounter_panel.get_children():encounter_panel.remove_child(child);child.queue_free()
+ var layout=level()
+ var defaults=row(encounter_panel)
+ var base_level=spin(int(layout.get("enemy_level",0)),0,Draft.Rules.MAX_LEVEL,func(value):
+  if value==0:layout.erase("enemy_level")
+  else:layout.enemy_level=int(value)
+  changed())
+ base_level.name="EditorEncounterBaseLevel"
+ field_label(defaults,"Default enemy level",base_level)
+ heading(encounter_panel,"Use 0 to scale by chapter number.",15)
+ var enemies=layout.enemies+layout.hard_enemies
+ if enemies.is_empty():
+  heading(encounter_panel,"Place enemies on the Battle map to edit them here.",17)
+  return
+ selected_enemy=clampi(selected_enemy,0,enemies.size()-1)
+ var selector=OptionButton.new();selector.name="EditorEncounter"
+ selector.fit_to_longest_item=false;selector.clip_text=true;selector.custom_minimum_size.y=42
+ for index in enemies.size():selector.add_item(encounter_name(enemies[index],index,layout.enemies.size()))
+ selector.select(selected_enemy)
+ selector.item_selected.connect(func(index):selected_enemy=index;build_encounters())
+ encounter_panel.add_child(selector)
+ var enemy=enemies[selected_enemy]
+ var enemy_index=selected_enemy
+ var display=line_edit(enemy.get("name",""),"Enemy name",80,func(value):
+  enemy.name=value
+  selector.set_item_text(enemy_index,encounter_name(enemy,enemy_index,layout.enemies.size()))
+  changed())
+ field_label(row(encounter_panel),"Display name",display)
+ var fields=GridContainer.new();fields.columns=2
+ fields.add_theme_constant_override("h_separation",12);fields.add_theme_constant_override("v_separation",8)
+ encounter_panel.add_child(fields)
+ var job=choice(draft.templates.classes.keys(),enemy.job,func(value):
+  if enemy.job==value:return
+  enemy.job=value;enemy.erase("item");changed();build_encounters())
+ field_label(fields,"Class",job)
+ field_label(fields,"Strategy",choice(Draft.STRATEGIES,enemy.get("ai","pursue"),func(value):enemy.ai=value;changed()))
+ var gear=draft.gear_for(enemy.job)
+ var equipment_ids=[""]+gear.map(func(item):return item.id)
+ var gear_choice=choice(equipment_ids,enemy.get("item",""),func(value):
+  if value.is_empty():enemy.erase("item")
+  else:enemy.item=value
+  changed())
+ gear_choice.name="EditorEncounterEquipment"
+ gear_choice.set_item_text(0,"Class default")
+ for index in gear.size():gear_choice.set_item_text(index+1,gear[index].name)
+ field_label(fields,"Equipment",gear_choice)
+ var strength=spin(int(enemy.get("level",0)),0,Draft.Rules.MAX_LEVEL,func(value):
+  if value==0:enemy.erase("level")
+  else:enemy.level=int(value)
+  changed())
+ strength.name="EditorEncounterLevel";field_label(fields,"Level override",strength)
+ heading(encounter_panel,"Use 0 to inherit the chapter’s default level.",15)
+ action(encounter_panel,"Make commander",func():
+  layout.enemies.remove_at(enemy_index);layout.enemies.push_front(enemy)
+  selected_enemy=0;grid.queue_redraw();changed();build_encounters(),enemy_index==0 or enemy_index>=layout.enemies.size())
+
+func encounter_name(enemy: Dictionary,index: int,standard_count: int) -> String:
+ var name=enemy.get("name","").strip_edges()
+ if name.is_empty():name=enemy.job
+ var role=" · Commander" if index==0 and standard_count>0 else " · Hard only" if index>=standard_count else ""
+ return "%s · %d, %d%s"%[name,enemy.position[0],enemy.position[1],role]
 
 func build_story(panel: VBoxContainer):
  var record=chapter();var layout=level()
@@ -304,6 +377,7 @@ func parse_dialogue(text: String,original: Array) -> Array:
 
 func select_chapter(index: int):
  selected=index
+ selected_enemy=0
  draft_selection_changed.emit(draft_key,selected)
  rebuild()
 

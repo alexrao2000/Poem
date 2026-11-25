@@ -175,8 +175,12 @@ func start_battle():
 		var e=content.classes[job].duplicate(true)
 		e.id="enemy_"+str(i)
 		e.name=info().boss if i==0 else entry.get("name",["Ash guard","Crown scout","Sun sworn","Black pennant"][i%4])
-		e.job=job;e.color="#ce7771";e.level=1+chapter;e.xp=0
-		e.hp+=chapter*2;e.pow+=chapter;e.defense+=chapter/2;e.resistance+=chapter/2;e.max_hp=e.hp
+		var level=int(entry.get("level",0))
+		if level==0:level=int(info().get("enemy_level",0))
+		if level==0:level=chapter+1
+		var growth=level-1
+		e.job=job;e.color="#ce7771";e.level=level;e.xp=0
+		e.hp+=growth*2;e.pow+=growth;e.defense+=growth/2;e.resistance+=growth/2;e.max_hp=e.hp
 		e.team="enemy";e.acted=false;e.moved=false;e.boss=i==0
 		e.ai=entry.get("ai","pursue");e.alerted=false
 		e.x=int(entry.position[0]);e.y=int(entry.position[1])

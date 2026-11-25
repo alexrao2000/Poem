@@ -38,6 +38,8 @@ func check_document():
  assert(not draft.decode(JSON.stringify(broken)).is_empty())
  broken=canonical(draft.data);broken.bonds[1].members[0]="lyra"
  assert("unpaired" in draft.decode(JSON.stringify(broken)))
+ broken=canonical(draft.data);broken.chapters[0].level.enemies[0].item="field_staff"
+ assert("class cannot use" in draft.decode(JSON.stringify(broken)))
  assert(canonical(draft.data)==JSON.parse_string(original))
  var selected=draft.insert_chapter(2,true)
  assert(selected==3 and draft.data.chapters[selected].key!="chapter_03")
@@ -55,9 +57,9 @@ func check_document():
 func check_long_campaign(path: String):
  var draft=Draft.new()
  while draft.data.chapters.size()<Draft.MAX_CHAPTERS:draft.insert_chapter(draft.data.chapters.size()-1,false)
- draft.data.recruits[0].stats.hp=100
  var finale=draft.data.chapters[-1]
  finale.level.enemies[0].position=[1,2]
+ finale.level.enemy_level=4
  var bond=draft.data.bonds[0]
  bond.chapters[0]=finale.key
  assert(draft.playtest_problem().is_empty(),draft.playtest_problem())
@@ -65,7 +67,7 @@ func check_long_campaign(path: String):
  var game=Rules.new(content)
  game.chapter=31;game.start_battle()
  var hero=game.at(Vector2i(1,3));var enemy=game.at(Vector2i(1,2))
- assert(hero.id=="lyra" and game.can_attack(hero,enemy))
+ assert(hero.id=="lyra" and enemy.level==4 and game.can_attack(hero,enemy))
  game.combat(hero,enemy)
  var progress=game.supports.progress(bond.id)
  assert(progress.chapter==31 and progress.points==1 and game.supports.can_read(bond.id,31),str(progress))
@@ -175,6 +177,29 @@ func run():
  use_brush(editor,0,Vector2i(3,8))
  use_brush(editor,2,Vector2i(3,8))
  editor.level().deployment_positions.resize(2)
+ var tabs=editor.find_child("CampaignEditorTabs",true,false)
+ tabs.current_tab=tabs.get_tab_idx_from_control(editor.find_child("Encounters",true,false))
+ await process_frame
+ editor.find_child("EditorEncounterBaseLevel",true,false).value=6
+ editor.find_child("EditorEncounterLevel",true,false).value=5
+ var equipment=editor.find_child("EditorEncounterEquipment",true,false)
+ for index in equipment.item_count:
+  if equipment.get_item_metadata(index)=="javelin":equipment.select(index);equipment.item_selected.emit(index)
+ var encounter=editor.find_child("EditorEncounter",true,false)
+ encounter.select(1);encounter.item_selected.emit(1)
+ controls(app,"Make commander").pressed.emit()
+ assert(editor.level().enemies[0].name=="Capital garrison")
+ encounter=editor.find_child("EditorEncounter",true,false)
+ encounter.select(1);encounter.item_selected.emit(1)
+ controls(app,"Make commander").pressed.emit()
+ assert(editor.level().enemies[0].item=="javelin" and editor.level().enemies[0].level==5)
+ encounter=editor.find_child("EditorEncounter",true,false)
+ var reinforcement=encounter.item_count-1
+ encounter.select(reinforcement);encounter.item_selected.emit(reinforcement)
+ editor.find_child("EditorEncounterLevel",true,false).value=9
+ var hard=Rules.new(editor.draft.compile().content)
+ hard.chapter=1;hard.trials.flags.hard_campaign=true;hard.start_battle()
+ assert(hard.at(Vector2i(20,2)).level==9 and hard.at(Vector2i(20,2)).job=="Warden")
  assert(editor.draft.playtest_problem().is_empty(),editor.draft.playtest_problem())
  controls(app,"Play from start").pressed.emit()
  await finish_presentation(app)
@@ -226,7 +251,9 @@ func run():
  var hero=app.game.units.filter(func(unit):return unit.id=="lyra")[0]
  assert(Tactics.new().distance_field(app.game,hero,[Vector2i(Valley.CAPITAL[0],Valley.CAPITAL[1])]).has(app.game.pos(hero)))
  var guard=app.game.at(Vector2i(3,8))
- assert(guard.team=="enemy" and app.game.can_attack(hero,guard))
+ assert(guard.team=="enemy" and guard.level==6 and app.game.can_attack(hero,guard))
+ var commander=app.game.at(Vector2i(Valley.CAPITAL[0],Valley.CAPITAL[1]))
+ assert(commander.boss and commander.level==5 and commander.item=="javelin" and commander.reach==2)
  var before=app.game.save_data("battle").duplicate(true)
  var independently=Rules.new(app.game.content)
  assert(independently.restore_save(canonical(before))=="battle")
@@ -283,5 +310,5 @@ func run():
  assert(app.screen=="campaign_route" and app.game==installed and app.game.save_data("camp")==route_state)
  assert(FileAccess.get_file_as_string(app.save_path)==disk)
  await Shutdown.dispose(app);await process_frame
- print("PASS: campaign JSON and chapter order, three editor sizes, pointer terrain editing, authored bonds with chapter 32 saves, two complete authored chapters, valley reveal and route sites, isolated resume and late route entrance")
+ print("PASS: campaign JSON and chapter order, authored enemy levels and equipment, authored bonds with chapter 32 saves, two complete authored chapters, valley reveal and route sites, isolated resume and late route entrance")
  quit()

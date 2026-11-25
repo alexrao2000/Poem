@@ -12,13 +12,14 @@ const OBJECTIVES=["rout","boss","seize","survive"]
 const STRATEGIES=["pursue","sentry","guard"]
 const RECRUIT_STATS={"hp":[1,900],"pow":[0,200],"defense":[0,200],"resistance":[0,200],"speed":[0,200],"move":[1,20]}
 const LEVEL_FIELDS=["title","place","intro","outro","tactical_brief","map","route_position","environment","score_theme",
- "objective","objective_position","turn_limit","deployment_positions","enemies","hard_enemies","presentation"]
+ "objective","objective_position","turn_limit","deployment_positions","enemies","hard_enemies","presentation","enemy_level"]
 const MIN_BOARD=Vector2i(6,5)
 const MAX_BOARD=Vector2i(32,24)
 
 var templates: Dictionary
 var base_story: Dictionary
 var base_profiles: Dictionary
+var equipment: Array
 var music_ids: Array
 var data: Dictionary
 var dirty=false
@@ -27,6 +28,7 @@ func _init():
  templates=JSON.parse_string(FileAccess.get_file_as_string("res://data/campaign.json"))
  base_story=JSON.parse_string(FileAccess.get_file_as_string("res://data/story.json"))
  base_profiles=JSON.parse_string(FileAccess.get_file_as_string("res://data/characters.json"))
+ equipment=JSON.parse_string(FileAccess.get_file_as_string("res://data/equipment.json"))
  var themes=JSON.parse_string(FileAccess.get_file_as_string("res://assets/audio/themes.json"))
  music_ids=themes.profiles.map(func(profile):return profile.id)
  data=new_document(true)
@@ -234,6 +236,7 @@ func map_structure_problem(level: Dictionary) -> String:
  if level.get("presentation") not in ["battlefield","valley_table"] or level.get("objective") not in OBJECTIVES:
   return "A chapter references an unknown presentation or objective."
  if not integer(level.get("turn_limit"),1,99):return "A survival limit must be between 1 and 99 phases."
+ if not integer(level.get("enemy_level",0),0,Rules.MAX_LEVEL):return "Set a default enemy level from 0 to 99."
  if not level.get("route_position") is Array or level.route_position.size()!=2 or not level.route_position.all(
    func(value):return number(value) and value>=0 and value<=1):return "A route pin must stay on the map."
  if not level.get("map") is Array or level.map.size()<MIN_BOARD.y or level.map.size()>MAX_BOARD.y or not level.map[0] is String:
@@ -255,8 +258,14 @@ func map_structure_problem(level: Dictionary) -> String:
    if not enemy is Dictionary or not templates.classes.has(enemy.get("job")) or not point_valid(enemy.get("position")):
     return "An enemy needs a class and a tile."
    if enemy.get("ai","pursue") not in STRATEGIES or not valid_text(enemy.get("name",""),80):return "An enemy has an invalid strategy or name."
-   if enemy.has("item") and not valid_text(enemy.item,80):return "An enemy has an invalid equipment entry."
+   if not integer(enemy.get("level",0),0,Rules.MAX_LEVEL):return "Set an enemy level from 0 to 99."
+   if enemy.has("item") and not gear_for(enemy.job).any(func(item):return item.id==enemy.item):
+    return "An enemy has equipment their class cannot use."
  return ""
+
+func gear_for(job: String) -> Array:
+ var weapon=templates.classes[job].weapon
+ return equipment.filter(func(item):return item.kind==weapon)
 
 func battle_problem(level: Dictionary) -> String:
  var occupied={}
