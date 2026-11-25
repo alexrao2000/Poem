@@ -57,6 +57,14 @@ Exports are generated locally and ignored by Git. If `build/web/index.html` or t
 4. Use **Wait** to commit movement without attacking. Right-click or press **Escape** to undo an uncommitted move.
 5. End the player phase when ready. Complete the displayed objective to advance to the next chapter.
 
+## Campaign editor
+
+Open **Campaign editor** from the title screen or Debug tools. Start a new draft or copy Poem’s campaign from **Open drafts**. Organize up to 32 chapters and their section starts, paint terrain, place enemies and reinforcements, and write briefings and dialogue. The Company tab edits the roster’s classes, base stats, arrivals, opening deployment, and epilogues. The Rules tab sets the campaign’s starting switches.
+
+Use **Save draft** for the local library and **Transfer JSON** to copy a campaign between the browser and macOS builds. **Play from start**, **Play chapter**, and **Resume playtest** use a save tied to that edition of the draft. Return to the editor from the war council, battle menu, or ending.
+
+**Add valley battle** inserts a chapter that uses the illustrated campaign route as a tactical board. In Poem’s own campaign, reach Crown Approach and open **Route → Unroll the war table** to try the encounter with the current company.
+
 ## Controls
 
 These controls apply to campaign battles; menus and the visual workshop have their own context-sensitive actions. The attack forecast shows a numbered strike order; counters and follow-ups occur only while both units remain standing.

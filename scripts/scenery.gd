@@ -361,6 +361,9 @@ func house(parent,p,scale_value=1.0,roof_variant=-1,warehouse=false,vented=false
 
 func landscape(parent,game):
  cylinders.clear();cylinder_environment=""
+ if game.info().get("presentation","")=="valley_table":
+  preload("res://scripts/world_map_battle.gd").build(parent,game,self)
+  return
  # Keep ground under the whole camera envelope, including larger authored maps.
  var board=game.board_size()
  var center=Vector2(board)*.5
@@ -616,6 +619,8 @@ func combat_context(game,a,b,screen_direction=1.0) -> Dictionary:
  var depth=Vector2(-axis.y,axis.x)
  var theme=game.info().get("environment","village")
  var tile=game.terrain(game.pos(b))
+ if game.info().get("presentation","")=="valley_table":
+  theme={"f":"forest","h":"mountain","=":"river","o":"castle"}.get(tile,"road")
  var near_water=theme in ["road","harbor"] and nearby_channel(game,midpoint)
  var harbor_quayside=theme=="harbor" and tile!="=" and near_water
  var village_streamside=theme=="village" and CinderfordStream.borders_exchange(game,a,b)

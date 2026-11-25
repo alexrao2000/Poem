@@ -139,6 +139,14 @@ const INK = Color("e8e0cb")
 const SAVE = "user://campaign.json"
 var save_path=SAVE
 var debug_session=preload("res://scripts/debug_session.gd").new()
+var campaign_draft
+var campaign_draft_library=preload("res://scripts/campaign_draft_library.gd").new()
+var campaign_editor_key=""
+var campaign_editor_chapter=0
+var campaign_editor_return="title"
+var campaign_editor
+var campaign_preview={}
+var campaign_playtest_directory="user://"
 var debug_duelists=preload("res://scripts/debug_duelist_models.gd").new()
 var revised_enemies=preload("res://scripts/revised_enemy_models.gd").new()
 var debug_vanguard=preload("res://scripts/debug_source_models.gd").new(["vanguard","vanguard_male"])
@@ -432,6 +440,7 @@ func refresh_pieces():
 		unit_nodes[u.id]=visual;sprites.append(visual.sprite)
 
 func show_title():
+	if not campaign_preview.is_empty():close_campaign_preview();return
 	screen="title";game.start_battle();make_map();reset_ui()
 	title_backdrop()
 	var v=menu_panel(500,true)
@@ -446,7 +455,9 @@ func show_title():
 	var extras=HBoxContainer.new();extras.add_theme_constant_override("separation",8);v.add_child(extras)
 	button_in(extras,"Options",func():show_options("title")).size_flags_horizontal=Control.SIZE_EXPAND_FILL
 	button_in(extras,"Credits",show_credits).size_flags_horizontal=Control.SIZE_EXPAND_FILL
-	button_in(v,"Character & map workshop",show_visual_workshop)
+	var workshop_row=HBoxContainer.new();workshop_row.add_theme_constant_override("separation",8);v.add_child(workshop_row)
+	button_in(workshop_row,"Character & map workshop",show_visual_workshop).size_flags_horizontal=Control.SIZE_EXPAND_FILL
+	button_in(workshop_row,"Campaign editor",func():show_campaign_editor("title")).name="OpenCampaignEditor"
 	label_in(v,"Choose campaign rules when you begin.\nYour chronicle, your company.",14,Color("827b6c"))
 
 func show_campaign_rules():
@@ -498,6 +509,67 @@ func show_visual_workshop():
 	canvas.add_child(workshop)
 	workshop.closed.connect(func():
 		canvas.remove_child(workshop);workshop.queue_free();camera.current=true;show_title())
+
+func show_campaign_editor(return_to: String):
+	campaign_editor_return=return_to
+	if campaign_draft==null:
+		campaign_draft=preload("res://scripts/campaign_draft.gd").new()
+		var drafts=campaign_draft_library.list_drafts()
+		if not drafts.is_empty() and campaign_draft.decode(JSON.stringify(drafts[0].document)).is_empty():
+			campaign_editor_key=drafts[0].key
+	screen="campaign_editor";reset_ui();title_backdrop()
+	var panel=menu_panel(1180)
+	campaign_editor=preload("res://scripts/campaign_editor.gd").new();panel.add_child(campaign_editor)
+	campaign_editor.configure(campaign_draft,campaign_draft_library,campaign_editor_key,campaign_editor_chapter)
+	campaign_editor.closed.connect(close_campaign_editor)
+	campaign_editor.draft_selection_changed.connect(func(key,index):
+		campaign_editor_key=key;campaign_editor_chapter=index)
+	campaign_editor.playtest_requested.connect(func(index,resume):
+		start_campaign_preview(campaign_draft.compile(),index,resume,"editor"))
+
+func close_campaign_editor():
+	if campaign_editor_return=="debug_tools":show_debug_tools(options_return)
+	else:show_title()
+
+func start_campaign_preview(compiled: Dictionary,start: int,resume: bool,return_to: String):
+	var preview=Rules.new(compiled.content)
+	var path=campaign_playtest_directory.path_join("campaign-playtest-"+compiled.content.authoring_signature+".json")
+	var existing=preview.read_saved_data(path) if resume else {}
+	if resume and existing.is_empty():
+		show_notice("No playtest has been saved for this version.");return
+	campaign_preview={"game":game,"story":story,"debug":debug_session,"path":path,"return":return_to}
+	game=preview;story=compiled.story
+	debug_session=preload("res://scripts/debug_session.gd").new()
+	if resume:await load_campaign();return
+	game.new_campaign(compiled.settings.permadeath);game.chapter=start
+	for setting in CampaignSettings.SWITCHES:CampaignSettings.set_enabled(game,setting.key,compiled.settings[setting.key])
+	if return_to=="route":
+		var previous=campaign_preview.game
+		for recruit in game.roster:
+			var veteran=previous.roster.filter(func(unit):return unit.id==recruit.id)[0]
+			for field in ["hp","max_hp","pow","defense","resistance","speed","level","xp","item","reach","fallen","fallen_chapter"]:
+				recruit[field]=veteran[field]
+			if veteran.has("promotion"):recruit.promotion=veteran.promotion
+	if start>0:game.deployed=game.available().slice(0,int(game.info().deployment)).map(func(unit):return unit.id)
+	persist_campaign("camp")
+	show_camp()
+
+func close_campaign_preview():
+	if campaign_preview.is_empty():return
+	var context=campaign_preview
+	campaign_preview={}
+	game=context.game;story=context.story;debug_session=context.debug
+	select_score_theme()
+	if context.return=="route":
+		make_map();show_campaign_route()
+	else:show_campaign_editor(campaign_editor_return)
+
+func play_valley_front():
+	var valley=preload("res://scripts/campaign_draft.gd").new()
+	var index=valley.insert_chapter(10,false,true)
+	var compiled=valley.compile()
+	compiled.settings=CampaignSettings.snapshot(game)
+	start_campaign_preview(compiled,index,false,"route")
 
 func show_camp():
 	drop_mode=false
@@ -552,7 +624,8 @@ func show_camp():
 	button_in(tools_row,"Options",func():show_options("camp")).size_flags_horizontal=Control.SIZE_EXPAND_FILL
 	button_in(tools_row,"Route",show_campaign_route).size_flags_horizontal=Control.SIZE_EXPAND_FILL
 	button_in(left,"Transfer a local save",func():show_save_transfer("camp"))
-	button_in(left,"Return to title",show_title)
+	var back="Return to title" if campaign_preview.is_empty() else ("Return to campaign route" if campaign_preview.return=="route" else "Return to editor")
+	button_in(left,back,show_title)
 	var roster_column=VBoxContainer.new();roster_column.size_flags_horizontal=Control.SIZE_EXPAND_FILL;roster_column.size_flags_stretch_ratio=1.35;row.add_child(roster_column)
 	label_in(roster_column,"YOUR COMPANY",20,GOLD)
 	var scroll=ScrollContainer.new();scroll.name="CompanyScroll";scroll.custom_minimum_size.x=460;scroll.horizontal_scroll_mode=ScrollContainer.SCROLL_MODE_DISABLED
@@ -698,6 +771,8 @@ func show_campaign_route():
 	var route_hint="Numbered seals mark the road traveled. The standard marks your company’s current chapter."
 	if sectioned:route_hint="Diamonds mark section starts."+(" The chronicle is complete." if game.completed else " Your current retreat point is Chapter %02d."%(retreat+1))
 	var legend=label_in(frame,route_hint,15,Color("766e5e"));legend.name="RouteLegend"
+	if game.chapter>=10 and campaign_preview.is_empty():
+		button_in(frame,"Unroll the war table",play_valley_front).name="OpenValleyFront"
 	button_in(frame,"Return to war council",show_camp)
 	var fit_route=func():
 		var compact=ui.size.x<960
@@ -928,6 +1003,7 @@ func show_battle_menu():
 	button_in(commands,"Return to battle",close_battle_menu).grab_focus()
 	button_in(commands,"Save",func():close_battle_menu();save_with_feedback("battle"))
 	button_in(commands,"Transfer code",func():close_battle_menu();show_save_transfer("battle"))
+	if not campaign_preview.is_empty():button_in(commands,"Return to campaign route" if campaign_preview.return=="route" else "Return to editor",close_campaign_preview)
 	var option_row=HBoxContainer.new();option_row.add_theme_constant_override("separation",8);commands.add_child(option_row)
 	var option_button=button_in(option_row,"Options / audio",func():close_battle_menu();show_options("battle"));option_button.size_flags_horizontal=Control.SIZE_EXPAND_FILL
 	var encounter_button: Button
@@ -1035,6 +1111,8 @@ func _input(event):
 		get_viewport().set_input_as_handled()
 
 func _unhandled_input(event):
+	if screen=="campaign_editor" and event is InputEventKey and event.pressed and not event.echo and event.keycode==KEY_ESCAPE:
+		close_campaign_editor();get_viewport().set_input_as_handled();return
 	if screen=="formation" and event is InputEventKey and event.pressed and event.keycode==KEY_R:
 		if not event.echo:
 			var toggle=ui.find_child("FormationAllReach",true,false);toggle.button_pressed=not toggle.button_pressed;interface_audio.cue("select")
@@ -1403,8 +1481,8 @@ func cinematic(a,b,events,initial_hp={},challenge: Dictionary={}):
 	var opening_direction=1.0 if actor_on_left else -1.0
 	for n in stage.get_children():stage.remove_child(n);n.queue_free()
 	stage.process_mode=Node.PROCESS_MODE_INHERIT;stage.visible=true
-	var old_lighting=battle_lighting(game.info().get("environment","village"))
 	var arena_context=scenery.combat_context(game,a,b,opening_direction)
+	var old_lighting=battle_lighting(arena_context.environment)
 	scenery.battle_landscape(stage,Vector3(35,0,0),arena_context)
 	scenery.transfer_environment_motion(world,stage,arena_context.environment)
 	world.hide();pieces.hide()
@@ -1778,6 +1856,7 @@ func check_result() -> bool:
 		button_in(frame,"Continue the chronicle",func():
 			if not action_save_ready():return
 			var onward=func():
+				if campaign_preview.get("return","")=="route":close_campaign_preview();return
 				game.finish_chapter()
 				persist_campaign("ending" if game.completed else "camp")
 				if game.completed:show_ending()
@@ -1808,6 +1887,7 @@ func check_result() -> bool:
 		button_in(frame,"Retry autosave",func():
 			if persist_campaign("battle"):check_result())
 	button_in(frame,"Transfer code",func():show_save_transfer("result"))
+	if not campaign_preview.is_empty():button_in(frame,"Return to campaign route" if campaign_preview.return=="route" else "Return to editor",close_campaign_preview)
 	return true
 
 func play_crossing_chain_release():
@@ -1836,7 +1916,7 @@ func show_ending():
 			persist_campaign("ending");show_dialogue(trial_scene,show_ending,"closing");return
 	screen="ending";reset_ui()
 	var v=menu_panel()
-	label_in(v,"DAWN WITHOUT KINGS",40,GOLD)
+	label_in(v,game.content.get("title","DAWN WITHOUT KINGS"),40,GOLD)
 	label_in(v,game.content.chapters[-1].outro,22)
 	var scroll=ScrollContainer.new();scroll.size_flags_vertical=Control.SIZE_EXPAND_FILL;v.add_child(scroll)
 	var list=VBoxContainer.new();list.size_flags_horizontal=Control.SIZE_EXPAND_FILL;scroll.add_child(list)
@@ -1850,9 +1930,9 @@ func show_ending():
 			label_in(list,pair.ending,17).name="PairedEnding_"+pair.id
 			continue
 		label_in(list,u.name+" · "+game.class_name_for(u)+" · Level "+str(int(u.level)),19,Color(u.color))
-		label_in(list,"Fell in chapter %02d — %s. The company carries their memory."%[int(u.fallen_chapter)+1,game.content.chapters[int(u.fallen_chapter)].title] if u.get("fallen",false) else profiles.get(u.id,{}).get("ending",u.bio),17).name="Ending_"+u.id
+		label_in(list,"Fell in chapter %02d — %s. The company carries their memory."%[int(u.fallen_chapter)+1,game.content.chapters[int(u.fallen_chapter)].title] if u.get("fallen",false) else u.get("ending",profiles.get(u.id,{}).get("ending",u.bio)),17).name="Ending_"+u.id
 	if not game.trials.read_scenes.is_empty() or not game.trials.events.is_empty():button_in(v,"Company memories",show_campaign_trials)
-	button_in(v,"Return to title",show_title)
+	button_in(v,"Return to title" if campaign_preview.is_empty() else "Return to editor",show_title)
 
 func show_dialogue(lines: Array,on_complete: Callable,kind="opening",backdrop_chapter=-1,use_losses=true):
 	screen="dialogue";reset_ui()
@@ -2282,6 +2362,7 @@ func supports_ready(unit) -> bool:
 	return game.trials.joined(game,unit) and not unit.get("fallen",false) and game.supports.for_unit(unit.id).any(func(entry):return game.bond_available(entry) and game.supports.can_read(entry.id,game.chapter))
 
 func map_height(point: Vector2i) -> float:
+	if game.info().get("presentation","")=="valley_table":return 0.0
 	return MapSurface.height_for(game.terrain(point))
 
 func map_position(point: Vector2i) -> Vector3:
@@ -2368,6 +2449,7 @@ func show_options(return_to: String):
 	permanent.toggled.connect(func(value):game.permadeath=value)
 	label_in(panel,"Turning this off keeps earlier losses. Use Debug tools to experiment with revival.",16)
 	var debugging=CheckButton.new();debugging.name="DebugMode";debugging.text="Debug mode · temporary sandbox";debugging.button_pressed=debug_session.active;panel.add_child(debugging)
+	debugging.disabled=not campaign_preview.is_empty()
 	debugging.toggled.connect(func(value):
 		if value:debug_session.begin(game,options_return,preferences.values.character_models=="revised")
 		else:
@@ -2514,6 +2596,7 @@ func show_debug_tools(return_to: String):
 	).size_flags_horizontal=Control.SIZE_EXPAND_FILL
 	button_in(checkpoint_actions,"Restore experiment checkpoint",restore_debug_experiment,saved_test.is_empty()).size_flags_horizontal=Control.SIZE_EXPAND_FILL
 	button_in(panel,"Choose an experiment setup",show_debug_experiments)
+	button_in(panel,"Campaign editor",func():show_campaign_editor("debug_tools"))
 	button_in(panel,"Stage a combat encounter",show_debug_encounters)
 	button_in(panel,"Replay dialogue",show_debug_dialogue).name="DebugDialogueScenes"
 	var chapters=OptionButton.new();chapters.name="DebugChapter";chapters.custom_minimum_size.y=42
@@ -3027,6 +3110,7 @@ func heal_carried_ally(patient: Dictionary):
 	busy=false;finish_action()
 
 func campaign_save_path() -> String:
+	if not campaign_preview.is_empty():return campaign_preview.path
 	return save_path+".debug" if debug_session.active else save_path
 
 func map_contact_point(visual) -> Vector3:

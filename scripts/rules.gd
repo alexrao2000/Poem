@@ -38,8 +38,8 @@ var battle_supports: Dictionary={}
 var trials=preload("res://scripts/campaign_trials.gd").new()
 var story_seen: Array = []
 
-func _init():
-	content = JSON.parse_string(FileAccess.get_file_as_string("res://data/campaign.json"))
+func _init(campaign: Dictionary={}):
+	content = JSON.parse_string(FileAccess.get_file_as_string("res://data/campaign.json")) if campaign.is_empty() else campaign.duplicate(true)
 	for template in content.roster:recruit_templates[template.id]=template
 	for legacy in content.legacy_recruits:recruit_templates[legacy.unit.id]=legacy.unit
 	trials.configure_section_starts(content.section_starts,content.chapters.size())
@@ -61,7 +61,7 @@ func new_campaign(permadeath_enabled=false):
 	rng.seed = 472019
 	roster = content.roster.duplicate(true)
 	for u in roster:initialize_recruit(u)
-	deployed = ["lyra", "oren", "sera", "ivo"]
+	deployed = content.get("opening_company",["lyra", "oren", "sera", "ivo"]).duplicate()
 	formation_order.clear()
 
 func initialize_recruit(unit: Dictionary):
@@ -105,7 +105,7 @@ func objective_position() -> Vector2i:
 
 func ensure_leader():
 	if not (trials.flags.reset_pressure or (trials.flags.section_restarts and permadeath)):return
-	deployed.erase("lyra");deployed.push_front("lyra");deployed=deployed.slice(0,6)
+	deployed.erase("lyra");deployed.push_front("lyra");deployed=deployed.slice(0,int(info().deployment))
 
 func deployment_slots(use_formation=true) -> Array:
 	var chosen=deployed.duplicate()
@@ -460,8 +460,10 @@ func finish_chapter():
 		completed=true
 		chapter=content.chapters.size()-1
 	trials.arrive(self)
+	var capacity=int(info().deployment)
+	deployed=deployed.slice(0,capacity)
 	for u in available():
-		if deployed.size()<6 and u.id not in deployed:deployed.append(u.id)
+		if deployed.size()<capacity and u.id not in deployed:deployed.append(u.id)
 
 func retry_battle() -> bool:
 	if result()!="defeat":return false
@@ -494,7 +496,9 @@ func layout_signature() -> String:
 	return JSON.stringify([info().map,info().deployment_positions,placement,info().objective_position]).sha256_text()
 
 func save_data(stage: String) -> Dictionary:
-	return {"version":SAVE_VERSION,"trials":trials.to_data(),"death_door":death_door,"action_saves":action_saves,"permadeath":permadeath,"battle_supports":battle_supports,"layout_signature":layout_signature(),"story_seen":story_seen,"supports":supports.state,"chapter":chapter,"turn":turn,"phase":phase,"roster":roster,"units":units,"deployed":deployed,"formation_order":formation_order,"completed":completed,"rng":str(rng.state),"stage":stage}
+	var saved={"version":SAVE_VERSION,"trials":trials.to_data(),"death_door":death_door,"action_saves":action_saves,"permadeath":permadeath,"battle_supports":battle_supports,"layout_signature":layout_signature(),"story_seen":story_seen,"supports":supports.state,"chapter":chapter,"turn":turn,"phase":phase,"roster":roster,"units":units,"deployed":deployed,"formation_order":formation_order,"completed":completed,"rng":str(rng.state),"stage":stage}
+	if content.has("authoring_signature"):saved.campaign_id=content.authoring_signature
+	return saved
 
 func save_game(path: String,stage: String) -> bool:
 	var previous=read_saved_data(path)
@@ -526,6 +530,7 @@ func read_saved_data(path: String) -> Dictionary:
 
 func valid_save(data) -> bool:
 	if not data is Dictionary:return false
+	if data.get("campaign_id","")!=content.get("authoring_signature",""):return false
 	for key in ["version","chapter","turn","phase","roster","units","deployed","completed","rng","stage"]:
 		if not data.has(key):return false
 	for key in ["version","chapter","turn"]:

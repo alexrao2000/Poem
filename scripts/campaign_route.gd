@@ -88,6 +88,13 @@ func _process(dt):
 func _draw():
  if map_rect.size.x<=0:return
  draw_texture_rect(MAP,map_rect,false)
+ var tick=Color(.34,.23,.14,.53)
+ for index in range(1,24):
+  var x=map_rect.position.x+map_rect.size.x*index/24.0
+  draw_line(Vector2(x,map_rect.end.y-4),Vector2(x,map_rect.end.y),tick)
+ for index in range(1,16):
+  var y=map_rect.position.y+map_rect.size.y*index/16.0
+  draw_line(Vector2(map_rect.position.x,y),Vector2(map_rect.position.x+4,y),tick)
  for i in range(positions.size()-1):
   var a=point(i);var b=point(i+1);var delta=b-a
   var side=Vector2(-delta.y,delta.x).normalized()*minf(18,delta.length()*.1)

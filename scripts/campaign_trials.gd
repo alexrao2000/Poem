@@ -83,7 +83,7 @@ func capture_section(game):
  if not checkpoint.is_empty() and int(checkpoint.chapter)==start:return
  var snapshot=game
  if game.chapter!=start:
-  snapshot=game.get_script().new();snapshot.chapter=start
+  snapshot=game.get_script().new(game.content);snapshot.chapter=start
   snapshot.deployed=snapshot.available().slice(0,6).map(func(unit):return unit.id)
  checkpoint=snapshot.save_data("camp").duplicate(true)
  checkpoint.erase("trials");checkpoint.version=5;checkpoint.units=[];checkpoint.phase="player";checkpoint.turn=1
