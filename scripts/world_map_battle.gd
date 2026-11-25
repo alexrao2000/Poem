@@ -109,10 +109,7 @@ static func draw_road(cells: Array,from: Vector2i,to: Vector2i):
 static func build(parent: Node3D,game,scenery):
  var size=Vector2(game.board_size())
  var center=Vector3(size.x*.5-.5,0,size.y*.5-.5)
- var extent=Vector3(size.x,.76,size.y)
- scenery.block(parent,center+Vector3.DOWN*.95,Vector3(84,.27,84),Color("382c3b")).name="ValleyRoomFloor"
- scenery.block(parent,center+Vector3.DOWN*.43,extent+Vector3(.96,0,.96),Color("463044")).name="ValleyTable"
- scenery.block(parent,center+Vector3.DOWN*.10,Vector3(size.x+.38,.16,size.y+.38),Color("ad8555")).name="ValleyTableRim"
+ build_table(parent,size,center,scenery)
  var parchment=StandardMaterial3D.new()
  parchment.albedo_texture=game.content.get("route_atlas",MAP)
  parchment.shading_mode=BaseMaterial3D.SHADING_MODE_UNSHADED
@@ -142,6 +139,31 @@ static func build(parent: Node3D,game,scenery):
   marker.add_child(flag);flag.position=Vector3(0,.39,0)
   flag.configure(Vector2(.26,.19),STANDARD_COLORS.unheld,true,1.4)
  update_standard_claims(parent,standards,game.occupied_tiles(),scenery)
+
+static func build_table(parent: Node3D,size: Vector2,center: Vector3,scenery):
+ scenery.block(parent,center+Vector3.DOWN*.95,Vector3(84,.27,84),Color("382c3b")).name="ValleyRoomFloor"
+ var oak: ShaderMaterial=scenery.building_material(scenery.BuildingFinish.OAK)
+ var wood: ShaderMaterial=oak.duplicate()
+ wood.set_shader_parameter("base_color",Color("483238"))
+ wood.set_shader_parameter("paint_weight",.36)
+ scenery.block(parent,center+Vector3.DOWN*.43,Vector3(size.x+.96,.76,size.y+.96),wood).name="ValleyTable"
+ var rim: ShaderMaterial=oak.duplicate()
+ rim.set_shader_parameter("base_color",Color("ad8555"))
+ rim.set_shader_parameter("paint_weight",.22)
+ scenery.block(parent,center+Vector3.DOWN*.10,Vector3(size.x+.38,.16,size.y+.38),rim).name="ValleyTableRim"
+ var fittings=Node3D.new();fittings.name="ValleyFittings";parent.add_child(fittings)
+ fittings.position=center
+ var edge=size*.5+Vector2.ONE*.31
+ var trim=Color("ab8458")
+ for side in [-1,1]:
+  scenery.block(fittings,Vector3(0,-.044,edge.y*side),Vector3(edge.x*2,.012,.031),trim).name="BrassRail"
+  scenery.block(fittings,Vector3(edge.x*side,-.044,0),Vector3(.031,.012,edge.y*2),trim).name="BrassRail"
+  for end in [-1,1]:
+   var anchor=Vector3(edge.x*side,-.04,edge.y*end)
+   var cap=scenery.cylinder(fittings,anchor,.035,.088,Color("9b7447"))
+   cap.name="BrassFastener"
+   scenery.cylinder(fittings,anchor+Vector3.UP*.022,.014,.056,Color("c59e63")).name="FastenerHead"
+   scenery.block(fittings,anchor+Vector3.UP*.030,Vector3(.064,.004,.010),Color("644a3a")).name="FastenerSlot"
 
 static func standard_node_name(index: int) -> String:
  return "ValleyStandard" if index==0 else "ValleyStandard%d"%(index+1)
