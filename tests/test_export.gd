@@ -231,10 +231,12 @@ func run():
  assert(Geometry3D.get_closest_point_to_segment(enemy_point,enemy_edge[0],enemy_edge[1]).distance_to(enemy_point)<.006)
  app.close_model_view();await process_frame
  var support_curves=JSON.parse_string(FileAccess.get_file_as_string("res://data/authored_fall_fit.json"))
- assert(support_curves.size()==37,"Packaged full-outfit support includes 23 infantry recruits, seven enemy classes and their separately fitted promotions")
+ assert(support_curves.size()==39,"Packaged full-outfit support includes 23 infantry recruits, seven enemy classes and their separately fitted promotions")
  for support_key in ["promotion:dax:stormbreaker","promotion:dax:trailguard","promotion:hale:stormbreaker","recruit:maelin","promotion:maelin:luminary","promotion:maelin:wayfarer"]:
   assert(support_curves.has(support_key))
  for key in ["recruit:tovin","promotion:tovin:sharpshooter","promotion:tovin:pathfinder"]:
+  assert(support_curves.has(key))
+ for key in ["recruit:sera","promotion:sera:sharpshooter","promotion:sera:pathfinder"]:
   assert(support_curves.has(key))
  var enemy_metadata=JSON.parse_string(FileAccess.get_file_as_string("res://data/model_studies.json"))
  for job in ["Vanguard","Knight","Corsair","Ranger","Arcanist","Warden","Rider"]:
