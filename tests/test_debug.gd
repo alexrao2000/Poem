@@ -64,15 +64,17 @@ func verify_debug_casualties():
  assert(g.valid_save(g.save_data("battle")))
 
 func verify_retry_previews():
- for sample in [[false,0,6,1],[false,10,6,10],[true,2,5,3]]:
+ for sample in [[false,0,6,1,5],[false,10,6,10,5],[true,2,5,3,5],[false,1,8,2,7]]:
   var g=Rules.new();g.new_campaign(sample[0]);g.chapter=4
   g.trials.flags.section_restarts=sample[0];g.trials.flags.reset_pressure=true;g.trials.flags.hard_campaign=true
   g.trials.pressure=sample[1];g.start_battle()
-  g.chapter=5;g.start_battle()
+  g.chapter=sample[4];g.start_battle()
   var session=Session.new();session.begin(g,"battle")
   var saved=g.save_data("battle").duplicate(true);var history=session.trace.report()
   var preview=session.report(g).retry_deployment
+  var incremental=session.retry_deployment(saved,true)
   assert(preview.chapter==sample[2] and preview.pressure==sample[3] and preview.reference_pressure==0)
+  assert(incremental.chapter==preview.chapter and incremental.pressure==preview.pressure and incremental.reference_pressure==sample[1])
   assert(not preview.enemies.is_empty())
   var advances=0
   for enemy in preview.enemies:
@@ -83,6 +85,18 @@ func verify_retry_previews():
    if enemy.before.position!=enemy.after.position:
     assert(enemy.raider);advances+=1
   assert(advances>0,"At least one real raider advances under the chosen pressure")
+  var further_advances=0
+  for index in incremental.enemies.size():
+   var enemy=incremental.enemies[index]
+   var ordinary=preview.enemies[index]
+   assert(enemy.id==ordinary.id and enemy.after==ordinary.after)
+   var gain=incremental.pressure-incremental.reference_pressure
+   assert(enemy.after.hp-enemy.before.hp==gain*2 and enemy.after.attack-enemy.before.attack==gain)
+   assert(enemy.before.held_tonics==maxi(0,2-incremental.reference_pressure))
+   if enemy.before.position!=enemy.after.position:
+    assert(enemy.raider);further_advances+=1
+  if incremental.chapter==8:assert(further_advances>0,"The repeated Aqueduct preview shows the scout’s additional movement")
+  if sample[1]==10:assert(further_advances==0)
   assert(session.report(g).retry_deployment==preview and not session.report(g,"camp").has("retry_deployment"))
   assert(g.save_data("battle")==saved and session.trace.report()==history,"Retry inspection changes no campaign, RNG or trace")
   assert(g.trials.restart(g));g.start_battle()
@@ -108,10 +122,7 @@ func verify_experiment_checkpoint():
  assert(session.end(g)=="camp" and g.save_data("camp")==original)
  assert(session.experiment_checkpoint.is_empty(),"Leaving Debug discards the experiment checkpoint and restores the original")
 
-func verify_retry_table(app,preview: Dictionary):
- press(app,"Compare enemies")
- assert(app.screen=="debug_retry_deployment")
- var table=app.ui.find_child("DebugRetryEnemies",true,false)
+func verify_retry_cells(table: GridContainer,preview: Dictionary):
  var fields=["position","hp","attack","speed","defense","held_tonics"]
  assert(table.columns==7 and table.get_child_count()==7*(preview.enemies.size()+1))
  for index in preview.enemies.size():
@@ -122,18 +133,35 @@ func verify_retry_table(app,preview: Dictionary):
    var expected=("%d,%d"%after if field=="position" else str(int(after)))
    if before!=after:expected=("%d,%d"%before if field=="position" else str(int(before)))+" → "+expected
    assert(table.get_child(first+offset+1).text==expected)
+
+func verify_retry_table(app,preview: Dictionary):
+ press(app,"Compare enemies")
+ assert(app.screen=="debug_retry_deployment")
+ var table=app.ui.find_child("DebugRetryEnemies",true,false)
+ var baseline=app.ui.find_child("DebugRetryBaseline",true,false)
+ var pressure=app.ui.find_child("DebugRetryPressure",true,false)
+ var incremental=app.debug_session.retry_deployment(app.game.save_data("battle"),true)
+ assert(baseline.item_count==2 and baseline.selected==0 and pressure.text.contains("Pressure 0 → 6"))
+ verify_retry_cells(table,preview)
  for dimensions in [Vector2(720,480),Vector2(1024,640),Vector2(1280,720),Vector2(1440,900)]:
   app.ui.set_anchors_and_offsets_preset(Control.PRESET_TOP_LEFT);app.ui.size=dimensions
-  await process_frame;await process_frame
-  var scroll=table.get_parent().get_parent()
-  var bounds=table.get_global_rect()
-  assert(bounds.position.x>=scroll.global_position.x and bounds.end.x<=scroll.get_global_rect().end.x+1)
-  assert(Rect2(Vector2.ZERO,dimensions).grow(1).encloses(table.get_child(6).get_global_rect()))
-  var close=app.ui.find_children("*","Button",true,false).filter(func(button):return button.text=="Return to experiment report")[0]
-  assert(Rect2(Vector2.ZERO,dimensions).grow(1).encloses(close.get_global_rect()))
+  for option in [1,0]:
+   baseline.select(option);baseline.item_selected.emit(option)
+   await process_frame;await process_frame
+   assert(pressure.text.contains("Pressure %d → 6"%(5 if option==1 else 0)))
+   verify_retry_cells(table,incremental if option==1 else preview)
+   var scroll=table.get_parent().get_parent()
+   var bounds=table.get_global_rect()
+   var window=Rect2(Vector2.ZERO,dimensions).grow(1)
+   assert(bounds.position.x>=scroll.global_position.x and bounds.end.x<=scroll.get_global_rect().end.x+1)
+   assert(window.encloses(table.get_child(6).get_global_rect()) and window.encloses(baseline.get_global_rect()),
+    "Comparison controls in %s, header %s, baseline %s"%[window,table.get_child(6).get_global_rect(),baseline.get_global_rect()])
+   var close=app.ui.find_children("*","Button",true,false).filter(func(button):return button.text=="Return to experiment report")[0]
+   assert(window.encloses(close.get_global_rect()))
  escape_key(true);assert(app.screen=="debug_retry_deployment")
  escape_key();assert(app.screen=="debug_report")
  press(app,"Compare enemies");press(app,"Return to experiment report");assert(app.screen=="debug_report")
+ print("PASS: both retry table references across four viewports, including current pressure and a read-only return")
 
 func run():
  verify_debug_casualties()

@@ -183,12 +183,14 @@ func report(game,stage="battle") -> Dictionary:
   if not preview.is_empty():result.retry_deployment=preview
  return result
 
-func retry_deployment(snapshot: Dictionary) -> Dictionary:
+func retry_deployment(snapshot: Dictionary,compare_current=false) -> Dictionary:
  var retry=Rules.new()
- if retry.restore_save(snapshot)!="battle" or not retry.trials.restart(retry):return {}
+ if retry.restore_save(snapshot)!="battle":return {}
+ var reference_pressure=retry.trials.pressure if compare_current else 0
+ if not retry.trials.restart(retry):return {}
  var reference=Rules.new()
  if reference.restore_save(retry.save_data("camp"))!="camp":return {}
- reference.trials.pressure=0
+ reference.trials.pressure=reference_pressure
  reference.start_battle()
  retry.start_battle()
  var baseline={}
@@ -197,7 +199,7 @@ func retry_deployment(snapshot: Dictionary) -> Dictionary:
  for enemy in retry.living("enemy"):
   enemies.append({"id":enemy.id,"name":enemy.name,"raider":enemy.get("raider",false),
    "before":baseline[enemy.id],"after":enemy_deployment(retry,enemy)})
- return {"chapter":retry.chapter+1,"pressure":retry.trials.pressure,"reference_pressure":0,"enemies":enemies}
+ return {"chapter":retry.chapter+1,"pressure":retry.trials.pressure,"reference_pressure":reference_pressure,"enemies":enemies}
 
 func enemy_deployment(game,enemy: Dictionary) -> Dictionary:
  return {"position":[enemy.x,enemy.y],"hp":enemy.hp,"attack":game.attack_power(enemy),
