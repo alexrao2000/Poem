@@ -101,7 +101,7 @@ Maelin and Tovin each have two expressions for their loss-triggered arrivals. Th
 
 ## Chapter light and weather
 
-The twelve chapters define their own sky, sun and ambient light. Glass Harbor uses warm dusk, while Windscar Pass uses a cooler sky and pale blue sun. Map and arena share those colors. The arena adds distance haze beyond the fighters. Greywood has unlit slanted rain in the existing instanced atmosphere batch, with faded loop endpoints and a clock that pauses whenever the scene is hidden.
+The twelve chapters define their own sky, sun and ambient light. Glass Harbor uses warm dusk, while Windscar Pass uses a cooler sky and pale blue sun. Map and arena share those colors. The arena adds distance haze beyond the fighters. Greywood’s tactical map carries 36 slanted rain streaks. Close-ups add more rain for a total of 84. Both views share the wind direction, faded loop endpoints and ground ripples. The active scene continues the weather clock through the camera cut.
 
 Greywood mixes two original fir crowns with its broadleaf trees. Windscar Pass uses two sparse pine crowns behind its rocks. The same four cutouts appear on the tactical maps and behind the fighting lanes. Each tree has a tapered trunk and three crossed cards with root-pinned wind. The cards share a mipmapped atlas and join the existing static batches. [Source prompt and image hash](conifer-crown-prompt.json).
 

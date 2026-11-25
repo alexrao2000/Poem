@@ -26,7 +26,7 @@ func configure(theme: String,dimensions: Vector3,arena=false,seed_value=0):
   "observatory":kind="aether"
   _:kind="dust"
  var count=(26 if arena else 18) if kind=="leaves" else (32 if arena else 22) if kind=="embers" else (24 if arena else 14)
- if kind=="rain":count=56 if arena else 36
+ if kind=="rain":count=84 if arena else 36
  var random=RandomNumberGenerator.new();random.seed=7139+maxi(0,THEMES.find(theme))*4096+int(seed_value)
  var style=appearance_for(kind)
  cloud=MultiMeshInstance3D.new();cloud.name="DriftInstances";add_child(cloud)

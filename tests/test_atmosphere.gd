@@ -22,13 +22,13 @@ func run():
    source_meshes[mesh]=true;materials[paint]=true
    assert(mesh==b.cloud.multimesh.mesh and paint==b.cloud.material_override and a.cloud.multimesh!=b.cloud.multimesh,
     "Every repeated atmosphere shares immutable appearance and owns its own instances")
-   assert(a.get_child_count()==(2 if theme=="forest" else 1) and a.cloud.multimesh.instance_count<=(56 if theme=="forest" else 32),
+   assert(a.get_child_count()==(2 if theme=="forest" else 1) and a.cloud.multimesh.instance_count<=(84 if theme=="forest" else 32),
     "One batch covers the air, with one more batch for Greywood's ground rings")
    assert(a.cloud.cast_shadow==GeometryInstance3D.SHADOW_CASTING_SETTING_OFF and a.find_children("*","Light3D",true,false).is_empty(),"Atmosphere adds no lights or shadows")
    assert(a.cloud.material_override.disable_fog,"Fog cannot reveal fully faded particle quads")
    if a.kind!="leaves":assert(a.cloud.material_override.billboard_keep_scale,"Camera-facing particles retain their small instance scales")
    if theme=="forest":
-    assert(a.kind=="rain" and a.cloud.multimesh.instance_count==(56 if arena else 36))
+    assert(a.kind=="rain" and a.cloud.multimesh.instance_count==(84 if arena else 36))
     var surface=mesh.surface_get_arrays(0)
     assert(surface[Mesh.ARRAY_VERTEX].size()==6 and mesh==b.cloud.multimesh.mesh,"Greywood shares a lightweight rain streak mesh")
     for state in a.states:
