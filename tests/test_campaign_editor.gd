@@ -2150,15 +2150,26 @@ func run():
   assert(app.screen=="battle_route" and app.field_audio.requested_theme=="valley-table")
   var atlas=app.ui.find_child("CampaignRoute",true,false)
   var grid=app.ui.find_child("BattleRouteGrid",true,false)
+  var units=app.ui.find_child("BattleRouteUnits",true,false)
   var inspect=app.ui.find_child("BattleRouteInspect",true,false)
   assert(atlas.selected==1 and atlas.map_picture==Valley.MAP and atlas.survey_terrain.is_empty())
   assert(atlas.markers[12].disabled and app.ui.find_child("RouteSurveyMark",true,false).text=="G-10")
-  for control in [grid,inspect,app.ui.find_child("BattleRouteReturn",true,false)]:
+  for control in [grid,units,inspect,app.ui.find_child("BattleRouteReturn",true,false)]:
    assert(root.get_visible_rect().grow(1).encloses(control.get_global_rect()))
   grid.button_pressed=true
   assert(atlas.survey_terrain==app.game.info().map and atlas.survey_standards==app.game.capture_tiles())
   grid.button_pressed=false
   assert(atlas.survey_terrain.is_empty())
+  units.button_pressed=true;await process_frame
+  var occupied=app.game.occupied_tiles()
+  assert(atlas.survey_terrain.is_empty() and atlas.battle_counters.size()==occupied.size())
+  for point in occupied:
+   var counter=atlas.battle_counters[point]
+   assert(counter.team==occupied[point].team and counter.downed==app.game.DeathDoor.downed(occupied[point]))
+   assert(Rect2(Vector2.ZERO,atlas.size).has_point(atlas.battle_counter_point(point)))
+  for standard in app.game.capture_tiles():assert(atlas.battle_claims[standard]==Valley.standard_claim(occupied.get(standard)))
+  units.button_pressed=false
+  assert(atlas.battle_counters.is_empty() and atlas.battle_claims.is_empty())
   root.push_input(exit_index,true);await process_frame
   assert(app.screen=="battle" and app.cursor_tile==Vector2i(6,9) and app.map_navigation.capture_view()==view)
   var returned=app.ui.find_child("OpenLandmarkIndex",true,false)

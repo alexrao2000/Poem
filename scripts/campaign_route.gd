@@ -30,6 +30,8 @@ var editable=false
 var map_picture: Texture2D=MAP
 var survey_terrain: Array
 var survey_standards: Array[Vector2i]
+var battle_counters: Dictionary
+var battle_claims: Dictionary
 
 func configure(chapters: Array,index: int,finished=false,rallies=PackedInt32Array(),retreat=0,atlas: Texture2D=null):
  map_picture=MAP if atlas==null else atlas
@@ -70,6 +72,46 @@ func set_war_table_overlay(battle: Dictionary):
  survey_standards=Rules.standard_tiles(battle)
  queue_redraw()
 
+func set_battle_positions(occupants: Dictionary,standards: Array[Vector2i]):
+ battle_counters.clear();battle_claims.clear()
+ for tile in occupants:
+  var unit=occupants[tile]
+  battle_counters[tile]={"team":unit.team,"downed":Rules.DeathDoor.downed(unit)}
+ for tile in standards:battle_claims[tile]=Valley.standard_claim(occupants.get(tile))
+ queue_redraw()
+
+func battle_tile_box(tile: Vector2i) -> Rect2:
+ var cell=map_rect.size/Vector2(Valley.WIDTH,Valley.HEIGHT)
+ return Rect2(map_rect.position+Vector2(tile)*cell,cell)
+
+func battle_counter_point(tile: Vector2i) -> Vector2:
+ var seal=survey_cells.find(tile)
+ if seal>=0 and seal<=current:return point(seal)+Vector2(11,9)*seal_scale
+ return battle_tile_box(tile).get_center()
+
+func draw_battle_positions():
+ for tile in battle_claims:
+  var color=Valley.STANDARD_COLORS[battle_claims[tile]].lightened(.26)
+  draw_rect(battle_tile_box(tile).grow(-1),color,false,2.0)
+ var cell=map_rect.size/Vector2(Valley.WIDTH,Valley.HEIGHT)
+ var radius=clampf(minf(cell.x,cell.y)*.19,3.0,5.5)
+ var paper=Color("f9e8bb")
+ for tile in battle_counters:
+  var counter=battle_counters[tile]
+  var center=battle_counter_point(tile)
+  var color=Valley.STANDARD_COLORS[counter.team]
+  if counter.team=="player":
+   var square=Rect2(center-Vector2.ONE*radius,Vector2.ONE*radius*2)
+   draw_rect(square.grow(1),paper);draw_rect(square,color)
+  else:
+   for inset in [1.3,0.0]:
+    var edge=radius*1.24+inset
+    var diamond=PackedVector2Array([center+Vector2.UP*edge,center+Vector2.RIGHT*edge,center+Vector2.DOWN*edge,center+Vector2.LEFT*edge])
+    draw_colored_polygon(diamond,paper if inset>0 else color)
+  if counter.downed:
+   draw_line(center+Vector2.LEFT*radius*.62,center+Vector2.RIGHT*radius*.62,paper,1.4,true)
+   draw_line(center+Vector2.UP*radius*.62,center+Vector2.DOWN*radius*.62,paper,1.4,true)
+
 func draw_war_table_overlay():
  var cell=map_rect.size/Vector2(survey_terrain[0].length(),survey_terrain.size())
  var ink=Color(.22,.16,.12,.44)
@@ -82,7 +124,7 @@ func draw_war_table_overlay():
    tint.a=.44 if symbol in ["~","#","f","h"] else .25
    draw_rect(rect,tint)
    draw_rect(rect,ink,false,1.0)
-   if tile in survey_standards:draw_rect(rect.grow(-1),Color("ffe8a5"),false,2.0)
+   if tile in survey_standards and not battle_claims.has(tile):draw_rect(rect.grow(-1),Color("ffe8a5"),false,2.0)
 
 func place_pin(position: Vector2):
  if not editable:return
@@ -190,3 +232,4 @@ func _draw():
    draw_line(pole,pole+Vector2(0,-24),Color("51412c"),2,true)
    draw_colored_polygon(PackedVector2Array([pole+Vector2(0,-24),pole+Vector2(16,-21),pole+Vector2(12,-13),pole+Vector2(0,-15)]),Color("f1dfb5"))
  draw_set_transform(Vector2.ZERO)
+ if not battle_counters.is_empty() or not battle_claims.is_empty():draw_battle_positions()

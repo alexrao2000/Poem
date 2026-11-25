@@ -958,15 +958,26 @@ func show_campaign_route(view: String="campaign_route"):
 		var legend=label_in(frame,route_hint,15,Color("766e5e"));legend.name="RouteLegend"
 	if retreat_view:button_in(frame,"Return to result",close_retreat_route).grab_focus()
 	elif battle_view:
-		var actions=HBoxContainer.new();actions.add_theme_constant_override("separation",8);frame.add_child(actions)
-		var grid=CheckButton.new();grid.text="Show battle grid";grid.name="BattleRouteGrid";actions.add_child(grid)
+		var key=label_in(frame,"Blue squares mark the company. Red diamonds mark enemies. Crosses mark downed allies.",15,Color("766e5e"))
+		key.name="BattleRouteKey";key.hide()
+		var display_options=HBoxContainer.new();display_options.add_theme_constant_override("separation",8);frame.add_child(display_options)
+		var grid=CheckButton.new();grid.text="Show battle grid";grid.name="BattleRouteGrid";display_options.add_child(grid)
 		grid.toggled.connect(func(enabled):route.set_war_table_overlay(game.info() if enabled else {}))
 		interface_audio.watch(grid)
-		button_in(actions,"Inspect selected tile",func():
+		var company=CheckButton.new();company.text="Show units";company.name="BattleRouteUnits";display_options.add_child(company)
+		company.tooltip_text="Mark standing and downed units and show who holds each standard."
+		company.toggled.connect(func(enabled):
+			key.visible=enabled
+			if enabled:route.set_battle_positions(game.occupied_tiles(),game.capture_tiles())
+			else:route.set_battle_positions({},[]))
+		interface_audio.watch(company)
+		var actions=HBoxContainer.new();actions.add_theme_constant_override("separation",8);frame.add_child(actions)
+		var inspect=button_in(actions,"Inspect selected tile",func():
 			var tile=route.survey_cells[route.selected]
-			close_battle_route();focus_map_point(tile)).name="BattleRouteInspect"
+			close_battle_route();focus_map_point(tile))
+		inspect.name="BattleRouteInspect";inspect.size_flags_horizontal=Control.SIZE_EXPAND_FILL
 		var back=button_in(actions,"Return to battle",close_battle_route)
-		back.name="BattleRouteReturn";back.grab_focus()
+		back.name="BattleRouteReturn";back.size_flags_horizontal=Control.SIZE_EXPAND_FILL;back.grab_focus()
 	else:
 		if game.chapter>=10 and campaign_preview.is_empty():add_valley_route_action(frame)
 		button_in(frame,"Return to war council",show_camp)

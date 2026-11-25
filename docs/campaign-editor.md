@@ -98,7 +98,7 @@ Close-up battles at reached war-table sites can bring back local scenery. Reed C
 
 Route briefings show each reached location’s survey mark. The same marks appear in the editor’s war-table overlay and on the battlefield’s terrain card. Choose Next landmark or press L to inspect places from earlier chapters in campaign order. Use Index beside Next landmark to jump directly to a named place. Locations sharing a tile have separate entries in the index.
 
-During a war-table battle, open **Index → Review atlas** to reread the earlier briefings. **Show battle grid** overlays the current terrain and required standards. **Inspect selected tile** returns to the battlefield at its survey mark.
+During a war-table battle, open **Index → Review atlas** to reread the earlier briefings. **Show battle grid** overlays the current terrain and required standards. **Show units** marks your company, foes, downed allies, and control of the standards. **Inspect selected tile** returns to the battlefield at its survey mark.
 
 Use Reuse this environment on later war tables in Route to give the tile that chapter’s close-up surroundings and ambience. Built-in locations including Glass Harbor and Starfall offer their original arenas by default. The war-table overlay names the chosen arena. Use Preview arena below the overlay to open the actual close-up scenery at that pin. When several eligible pins share a tile, the latest preceding chapter supplies it.
 
