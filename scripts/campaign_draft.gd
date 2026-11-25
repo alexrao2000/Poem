@@ -676,6 +676,8 @@ func battle_level(index: int) -> Dictionary:
    if not scene.has("route_key"):return scene
    var resolved=scene.duplicate()
    resolved.position=site_position(index,scene)
+   var anchor=earlier_route_index(index,scene.route_key)
+   if anchor>=0:resolved.revisit_chapter=anchor
    resolved.erase("route_key")
    return resolved)
  return adjusted

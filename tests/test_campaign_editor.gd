@@ -1348,7 +1348,7 @@ func verify_standards_through_enemy_phase(app):
  controls(app,"Return to editor").pressed.emit();await process_frame
  assert(app.screen=="campaign_editor" and app.game==ordinary and FileAccess.get_file_as_string(app.save_path)==disk)
 
-func verify_dialogue_preview(app,field: String,panel: String,speaker: String,words: String,kind: String,finish_line=false):
+func verify_dialogue_preview(app,field: String,panel: String,speaker: String,words: String,kind: String,finish_line=false,location_art: Texture2D=null):
  var editor=app.campaign_editor
  var original_ui=app.ui
  var document=editor.draft.encode()
@@ -1363,7 +1363,8 @@ func verify_dialogue_preview(app,field: String,panel: String,speaker: String,wor
  button.pressed.emit();await process_frame
  assert(app.screen=="dialogue" and app.ui.name=="EditorDialoguePreview" and not original_ui.visible)
  assert(app.ui.get_node("DialogueBackdrop").context_id==kind+"_"+str(editor.selected))
- if editor.level().presentation=="valley_table":
+ if location_art!=null:assert(app.ui.get_node("DialogueBackdrop").artwork==location_art)
+ elif editor.level().presentation=="valley_table":
   assert(app.ui.get_node("DialogueBackdrop").artwork==Backdrop.VALLEY_ATLAS)
  assert(app.dialogue_name.text==speaker and app.dialogue_label.text==words)
  assert(app.dialogue_stage.skip_button.text=="Return to editor")
@@ -2212,6 +2213,8 @@ func run():
  var linked_copy=Draft.new()
  assert(linked_copy.decode(template.encode()).is_empty())
  assert(linked_copy.compile().content.chapters[11].site_scenes[0].position==[6,10])
+ assert(linked_copy.compile().content.chapters[11].site_scenes[0].revisit_chapter==crossing_chapter)
+ assert(not linked_copy.encode().contains("revisit_chapter"))
  var valley_key=template.data.chapters[11].key
  while linked_copy.index_for(source_key)<linked_copy.index_for(valley_key):
   linked_copy.move_chapter(linked_copy.index_for(source_key),1)
@@ -2229,9 +2232,13 @@ func run():
  assert(pin_picker.get_selected_metadata()==source_key)
  assert(not app.campaign_editor.find_child("EditorTileScene1",true,false).editable)
  assert(app.campaign_editor.find_child("EditorGrid",true,false).site_tiles.has([6,10]))
+ var crossing_line=landmark_dialogue[0].lines[0].text
+ var open_river=Backdrop.texture_for(1,"closing")
+ await verify_dialogue_preview(app,"EditorTileSceneLines","Story","Narrator",crossing_line,"opening",false,open_river)
  pin_picker.select(0);pin_picker.item_selected.emit(0)
  assert(not landmark_dialogue[0].has("route_key") and landmark_dialogue[0].position==[6,10])
  assert(app.campaign_editor.find_child("EditorTileScene1",true,false).editable)
+ await verify_dialogue_preview(app,"EditorTileSceneLines","Story","Narrator",crossing_line,"opening")
  pin_picker=app.campaign_editor.find_child("EditorTileSceneRoute",true,false)
  pin_picker.select(crossing_option);pin_picker.item_selected.emit(crossing_option)
  assert(landmark_dialogue[0].route_key==source_key)
@@ -2268,6 +2275,7 @@ func run():
  await app.click_tile(app.game.pos(visitors[0]));await app.click_tile(reed)
  app.wait_action()
  await await_phase_dialogue(app,landmark_dialogue[0].lines[0].text)
+ assert(app.ui.get_node("DialogueBackdrop").artwork==open_river)
  await finish_presentation(app)
  assert(app.game.site_scene_token(landmark_dialogue[0]) in app.game.read_saved_data(app.campaign_save_path()).story_seen)
  assert(app.markers.get_node("SiteBadges").mesh.surface_get_array_len(0)==48)
@@ -2394,5 +2402,5 @@ func run():
  await verify_standards_through_enemy_phase(app)
  assert(FileAccess.get_file_as_string(app.save_path)==disk and app.game==installed)
  await Shutdown.dispose(app);await process_frame
- print("PASS: campaign JSON file transfer, draft library management, remembered playtest setup, campaign readiness, authored Hard bonuses, authored retry raiders, deployment comparison, authored formation previews, small deployment limits and save recovery, custom campaign atlas, terrain stroke undo, bulk terrain rows, editor dialogs at two viewport sizes, direct chapter reordering, continuous terrain strokes, connected terrain fill, placement moves and swaps, repeated placement copies, switching enemy difficulty groups, editor music, draft dialogue previews and simulated losses, multiple standards and exact resume, standard navigation and live progress, standards that follow route pins, route pins, war-table site terrain, war-table overlay, blank war-table chapter, rising Valley landmarks, local war-table arena landmarks including Kingsroad and Windscar, authored route arenas, fading route seals, war-table landmark index and shared survey marks, Valley reveal sound cues, battlefield site markers, custom recruits, phase scenes, tile dialogue and reload, recruitment on battlefield sites, authored recruit starting equipment, live recruit art previews, 3D recruit preview and editor return, navigation between available sites, one-use field tonic caches, Valley landmark dialogue, dialogue that follows route pins, timed reinforcements, chapter 32 saves, section dialogue, authored section relief, authored legacy stock and purchase persistence, authored loss recruits, authored loss dialogue, reproducible playtest setup, Valley carryover and resume, thirteen-chapter Valley template, built-in Hold the Valley Roads and Signals in the Valley trials, 3D arena previews from Battle and Route, holding standards through an enemy phase, defense-triggered reserves, reserve stats in deployment previews, defense-triggered dialogue and exact resume, and single-battle tests")
+ print("PASS: campaign JSON file transfer, draft library management, remembered playtest setup, campaign readiness, authored Hard bonuses, authored retry raiders, deployment comparison, authored formation previews, small deployment limits and save recovery, custom campaign atlas, terrain stroke undo, bulk terrain rows, editor dialogs at two viewport sizes, direct chapter reordering, continuous terrain strokes, connected terrain fill, placement moves and swaps, repeated placement copies, switching enemy difficulty groups, editor music, draft dialogue previews and simulated losses, multiple standards and exact resume, standard navigation and live progress, standards that follow route pins, route pins, war-table site terrain, war-table overlay, blank war-table chapter, rising Valley landmarks, local war-table arena landmarks including Kingsroad and Windscar, authored route arenas, fading route seals, war-table landmark index and shared survey marks, Valley reveal sound cues, battlefield site markers, custom recruits, phase scenes, tile dialogue and reload, recruitment on battlefield sites, authored recruit starting equipment, live recruit art previews, 3D recruit preview and editor return, navigation between available sites, one-use field tonic caches, Valley landmark dialogue with revisited art, dialogue that follows route pins, timed reinforcements, chapter 32 saves, section dialogue, authored section relief, authored legacy stock and purchase persistence, authored loss recruits, authored loss dialogue, reproducible playtest setup, Valley carryover and resume, thirteen-chapter Valley template, built-in Hold the Valley Roads and Signals in the Valley trials, 3D arena previews from Battle and Route, holding standards through an enemy phase, defense-triggered reserves, reserve stats in deployment previews, defense-triggered dialogue and exact resume, and single-battle tests")
  quit()

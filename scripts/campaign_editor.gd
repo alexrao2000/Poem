@@ -5,7 +5,7 @@ signal draft_selection_changed(key: String, chapter: int)
 signal score_preview_requested(theme_id: String)
 signal recruit_preview_requested(recruit: Dictionary)
 signal arena_preview_requested(chapter_index: int, tile: Vector2i, from_route: bool)
-signal dialogue_preview_requested(lines: Array, kind: String, button: Button, losses: Array)
+signal dialogue_preview_requested(lines: Array, kind: String, button: Button, losses: Array, revisit: int)
 const Draft=preload("res://scripts/campaign_draft.gd")
 const Grid=preload("res://scripts/campaign_editor_grid.gd")
 const Route=preload("res://scripts/campaign_route.gd")
@@ -895,7 +895,8 @@ func build_tile_dialogue(panel: VBoxContainer,layout: Dictionary):
  recruit.name="EditorTileSceneRecruit";recruit.fit_to_longest_item=false;recruit.clip_text=true
  for option in recruit.item_count:recruit.set_item_text(option,recruit_names[recruit.get_item_metadata(option)])
  field_label(row(panel),"Recruit on visit",recruit)
- dialogue_editor(panel,"EditorTileSceneLines",132,func():return scene.lines,func(lines):scene.lines=lines;changed())
+ var revisit=draft.earlier_route_index(selected,scene.get("route_key",""))
+ dialogue_editor(panel,"EditorTileSceneLines",132,func():return scene.lines,func(lines):scene.lines=lines;changed(),"opening",revisit)
 
 func tile_scene_label(scene: Dictionary) -> String:
  return "Tile %d, %d"%draft.site_position(selected,scene)
@@ -1244,7 +1245,7 @@ func save_bond_edits(bonds: Array):
  draft.data.bonds=bonds
  changed()
 
-func dialogue_editor(panel: Control,field_name: String,height: int,read: Callable,write: Callable,kind="opening"):
+func dialogue_editor(panel: Control,field_name: String,height: int,read: Callable,write: Callable,kind="opening",revisit=-1):
  var field=multiline(dialogue_text(read.call()),height,Callable())
  field.name=field_name;panel.add_child(field)
  var actions=row(panel)
@@ -1252,19 +1253,19 @@ func dialogue_editor(panel: Control,field_name: String,height: int,read: Callabl
  options.name=field_name+"LossOptions"
  var loss_preview=action(actions,"Preview after losses",Callable(),dialogue_loss_candidates(read.call()).is_empty())
  loss_preview.name=field_name+"LossPreview"
- loss_preview.pressed.connect(func():show_dialogue_loss_preview(read.call(),kind,loss_preview))
+ loss_preview.pressed.connect(func():show_dialogue_loss_preview(read.call(),kind,loss_preview,revisit))
  var update_lines=func(lines):
   write.call(lines)
   options.disabled=lines.is_empty()
   loss_preview.disabled=dialogue_loss_candidates(lines).is_empty()
  options.pressed.connect(func():show_loss_dialogue(field,read.call(),update_lines))
  field.text_changed.connect(func():update_lines.call(parse_dialogue(field.text,read.call())))
- dialogue_preview_button(actions,field,read,kind)
+ dialogue_preview_button(actions,field,read,kind,revisit)
 
-func dialogue_preview_button(parent: Control,field: TextEdit,read: Callable,kind: String):
+func dialogue_preview_button(parent: Control,field: TextEdit,read: Callable,kind: String,revisit=-1):
  var preview=action(parent,"Preview dialogue",Callable(),read.call().is_empty())
  preview.name=str(field.name)+"Preview"
- preview.pressed.connect(func():dialogue_preview_requested.emit(read.call(),kind,preview,[]))
+ preview.pressed.connect(func():dialogue_preview_requested.emit(read.call(),kind,preview,[],revisit))
  field.text_changed.connect(func():preview.disabled=read.call().is_empty())
 
 func dialogue_loss_candidates(lines: Array) -> Array:
@@ -1276,7 +1277,7 @@ func dialogue_loss_candidates(lines: Array) -> Array:
  var company=draft.data.recruits+draft.templates.legacy_recruits.map(func(entry):return entry.unit)
  return company.filter(func(person):return mentioned.has(person.id))
 
-func show_dialogue_loss_preview(lines: Array,kind: String,opener: Button):
+func show_dialogue_loss_preview(lines: Array,kind: String,opener: Button,revisit: int):
  var dialog=AcceptDialog.new();dialog.name="EditorDialogueLossPreview";dialog.title="Preview after losses"
  dialog.ok_button_text="Preview";dialog.dialog_hide_on_ok=false
  add_child(dialog)
@@ -1298,7 +1299,7 @@ func show_dialogue_loss_preview(lines: Array,kind: String,opener: Button):
   if fallen.is_empty():feedback.text="Choose at least one recruit.";return
   if StorySurvivors.resolve(lines,fallen).is_empty():feedback.text="This scene has no surviving dialogue.";return
   dialog.hide();dialog.queue_free()
-  dialogue_preview_requested.emit(lines,kind,opener,fallen))
+  dialogue_preview_requested.emit(lines,kind,opener,fallen,revisit))
  popup_editor_dialog(dialog,Vector2i(448,296))
 
 func show_loss_dialogue(field: TextEdit,source: Array,write: Callable):

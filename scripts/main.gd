@@ -604,7 +604,7 @@ func open_editor_arena_preview(chapter_index: int,tile: Vector2i,from_route: boo
 	back.offset_left=-256;back.offset_top=-66;back.offset_right=-22;back.offset_bottom=-22
 	back.grab_focus()
 
-func open_editor_dialogue_preview(lines: Array,kind: String,opener: Button,losses: Array):
+func open_editor_dialogue_preview(lines: Array,kind: String,opener: Button,losses: Array,revisit: int):
 	if screen!="campaign_editor" or lines.is_empty():return
 	var editor_ui=ui
 	editor_ui.hide()
@@ -621,7 +621,9 @@ func open_editor_dialogue_preview(lines: Array,kind: String,opener: Button,losse
 		dialogue_lines=[];dialogue_label=null;dialogue_name=null;dialogue_stage=null;dialogue_portrait=null
 		ui.show();opener.grab_focus()
 	var chapter: int=campaign_editor.selected
-	var painting=DialogueBackdrop.location_texture(campaign_editor.level(),chapter,kind,campaign_draft.route_texture())
+	var art_chapter=revisit if revisit>=0 else chapter
+	var location=campaign_draft.data.chapters[art_chapter].level
+	var painting=DialogueBackdrop.location_texture(location,art_chapter,"closing" if revisit>=0 else kind,campaign_draft.route_texture())
 	begin_dialogue(lines,return_to_editor,kind,chapter,losses,painting,true)
 	dialogue_stage.next_button.grab_focus()
 
@@ -1038,7 +1040,8 @@ func present_site_scenes() -> bool:
 func present_battle_scene(scene: Dictionary,token: String,reason: String,site=false) -> bool:
 	if not scene.lines.is_empty():
 		var finished=[false]
-		show_dialogue(scene.lines,func():finished[0]=true)
+		var revisit=int(scene.get("revisit_chapter",-1)) if site else -1
+		show_dialogue(scene.lines,func():finished[0]=true,"opening",game.chapter,true,revisit)
 		while not finished[0]:await get_tree().process_frame
 	var effects={}
 	if site:effects=game.complete_site_scene(scene)
@@ -2327,12 +2330,13 @@ func show_ending():
 	if not game.trials.read_scenes.is_empty() or not game.trials.events.is_empty():button_in(v,"Company memories",show_campaign_trials)
 	button_in(v,"Return to title" if campaign_preview.is_empty() else "Return to editor",show_title)
 
-func show_dialogue(lines: Array,on_complete: Callable,kind="opening",backdrop_chapter=-1,use_losses=true):
+func show_dialogue(lines: Array,on_complete: Callable,kind="opening",backdrop_chapter=-1,use_losses=true,revisit=-1):
 	screen="dialogue";reset_ui()
 	var losses=game.lost_ids(kind=="closing") if use_losses else []
 	var chapter=game.chapter if backdrop_chapter<0 else backdrop_chapter
-	var location=game.content.chapters[clampi(chapter,0,game.content.chapters.size()-1)]
-	var painting=DialogueBackdrop.location_texture(location,chapter,kind,game.content.get("route_atlas"))
+	var art_chapter=revisit if revisit>=0 else chapter
+	var location=game.content.chapters[clampi(art_chapter,0,game.content.chapters.size()-1)]
+	var painting=DialogueBackdrop.location_texture(location,art_chapter,"closing" if revisit>=0 else kind,game.content.get("route_atlas"))
 	begin_dialogue(lines,on_complete,kind,chapter,losses,painting)
 
 func begin_dialogue(lines: Array,on_complete: Callable,kind: String,backdrop_chapter: int,losses: Array,painting: Texture2D,editor_preview=false):
