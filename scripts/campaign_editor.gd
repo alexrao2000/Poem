@@ -543,9 +543,13 @@ func show_deployment_preview():
   Draft.prepare_playtest(prepared,compiled.settings,index,seed_value,int(value));prepared.start_battle()
   var comparison=DebugSession.compare_deployments(reference,prepared)
   summary.text="Chapter %02d · Pressure %d → %d"%[comparison.chapter,comparison.reference_pressure,comparison.pressure]
-  for enemy in comparison.enemies:
+  for enemy in comparison.enemies+comparison.get("reserves",[]):
    var card=VBoxContainer.new();card.add_theme_constant_override("separation",4);list.add_child(card)
-   heading(card,enemy.name+(" · Raider" if enemy.raider else ""),17)
+   var note=" · Raider" if enemy.raider else ""
+   if enemy.has("arrival"):
+    var arrival=enemy.arrival
+    note=" · Arrives on defense" if arrival.arrive_on_defense else " · Turn %d %s"%[arrival.turn,arrival.phase]
+   heading(card,enemy.name+note,17)
    var placement="Tile %s · HP %s · Attack %s"%[deployment_change(enemy,"position"),deployment_change(enemy,"hp"),deployment_change(enemy,"attack")]
    heading(card,placement,15).name="EditorDeploymentPlacement_"+enemy.id
    var details="Speed %s · Defense %s · Tonics %s"%[deployment_change(enemy,"speed"),deployment_change(enemy,"defense"),deployment_change(enemy,"held_tonics")]

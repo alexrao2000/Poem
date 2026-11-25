@@ -202,7 +202,18 @@ static func compare_deployments(reference,prepared) -> Dictionary:
  for enemy in prepared.living("enemy"):
   enemies.append({"id":enemy.id,"name":enemy.name,"raider":enemy.get("raider",false),
    "before":baseline[enemy.id],"after":enemy_deployment(prepared,enemy)})
- return {"chapter":prepared.chapter+1,"pressure":prepared.trials.pressure,"reference_pressure":reference.trials.pressure,"enemies":enemies}
+ var result={"chapter":prepared.chapter+1,"pressure":prepared.trials.pressure,"reference_pressure":reference.trials.pressure,"enemies":enemies}
+ if prepared.enemy_waves.is_empty():return result
+ var waiting={}
+ for wave in reference.enemy_waves:waiting[wave.unit.id]=enemy_deployment(reference,wave.unit)
+ var reserves=[]
+ for wave in prepared.enemy_waves:
+  var unit=wave.unit
+  reserves.append({"id":unit.id,"name":unit.name,"raider":false,
+   "arrival":{"turn":wave.turn,"phase":wave.phase,"arrive_on_defense":wave.get("arrive_on_defense",false)},
+   "before":waiting[unit.id],"after":enemy_deployment(prepared,unit)})
+ result.reserves=reserves
+ return result
 
 static func enemy_deployment(game,enemy: Dictionary) -> Dictionary:
  return {"position":[enemy.x,enemy.y],"hp":enemy.hp,"attack":game.attack_power(enemy),
