@@ -15,6 +15,7 @@ func run():
  await verify_strike_order()
  await verify_fall_warning()
  await verify_experiment_fall_results()
+ await verify_sacrifice_opening()
  await verify_compact_cards()
  var game=Rules.new();game.chapter=5;game.start_battle();var portraits=Portraits.new()
  var favorable=[["sword","axe"],["axe","lance"],["lance","sword"]]
@@ -260,6 +261,42 @@ func verify_experiment_fall_results():
   if sample.get("passenger_hp",0)>0:assert(not passenger.has("carried_by") and passenger in game.living("player"))
  host.free()
  print("PASS: 11 live forecast-to-fall outcomes and 22 layouts cover immediate loss, leader defeat, rescue, released passengers and unchanged forecast RNG")
+
+func verify_sacrifice_opening():
+ var host=Control.new();root.add_child(host)
+ for kind in ["ordinary","opening","one_damage","no_damage","effective","fall_warning","expired","out_of_range"]:
+  var game=Rules.new();game.chapter=4;game.start_battle()
+  var actor=game.living("player").filter(func(unit):return unit.id=="oren")[0]
+  var foe=game.living("enemy")[0]
+  actor.x=8;actor.y=4;actor.item="riders_bane" if kind=="effective" else "pike"
+  foe.x=10 if kind=="out_of_range" else 9;foe.y=4;foe.defense=0
+  foe.hp=100;foe.max_hp=100;foe.pow=25
+  if kind=="one_damage":foe.defense=game.forecast(actor,foe).damage
+  if kind=="no_damage":foe.defense=255
+  if kind=="fall_warning":actor.hp=1
+  if kind!="ordinary":
+   game.trials.flags.sacrifice_cost=true
+   var casualty=game.living("player").filter(func(unit):return unit.id=="ivo")[0]
+   casualty.hp=0;game.commit_casualties()
+  if kind=="expired":game.turn=actor.resolve_until+1
+  var before=game.save_data("battle").duplicate(true)
+  var panel=Forecast.new();panel.configure(host,game,actor,foe,[null,null])
+  var expected={"opening":"Opening +2","one_damage":"Opening +1","effective":"Effective · +2","fall_warning":"Opening +2"}
+  var record=panel.records[0]
+  assert(record.stats[0].value.text==str(game.forecast(actor,foe).damage))
+  if kind=="fall_warning":assert(record.fall!=null)
+  if kind in expected:
+   assert(record.note.text==expected[kind] and "sacrifice opening" in record.card.tooltip_text)
+  else:
+   assert(not "Opening" in record.note.text and record.card.tooltip_text.is_empty())
+  for dimensions in [Vector2(720,640),Vector2(960,640),Vector2(1440,900)]:
+   host.size=dimensions;await process_frame
+   var width=record.note.get_theme_font("font").get_string_size(record.note.text,HORIZONTAL_ALIGNMENT_LEFT,-1,14).x
+   assert(width<=record.note.size.x,"Opening detail fits beside the fall warning across viewport sizes")
+  assert(game.save_data("battle")==before,"Forecasting sacrifice damage never changes the action state or RNG")
+  panel.free()
+ host.free()
+ print("PASS: sacrifice forecast marks exactly the extra damage while keeping effectiveness, fall warnings, and ordinary, expired, guarded and unavailable previews")
 
 func verify_compact_cards():
  var game=Rules.new();game.chapter=11;game.start_battle()

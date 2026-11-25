@@ -192,6 +192,26 @@ func run():
   app.show_debug_tools("battle");press(app,"Restore experiment checkpoint")
   await settle(app);saved_setup(app)
   assert(canonical(app.game.save_data("battle"))==pair_checkpoint,"Both legacy branches use the same initial company, RNG and casualties")
+ app.debug_session.set_combat_seed(app.game,472019)
+ for opening in [false,true]:
+  app.show_debug_experiments();app.ui.find_child("StartExperiment_sacrifice",true,false).pressed.emit()
+  if not opening:
+   app.show_options("battle");app.ui.find_child("sacrifice_cost",true,false).button_pressed=false
+   press(app,"Apply and return [Esc]")
+  assert(app.game.trials.flags.sacrifice_cost==opening and app.screen=="battle")
+  app.end_turn();await settle(app);saved_setup(app)
+  assert(unit(app.game,"oren").hp==0 and app.game.turn==2)
+  var sera=unit(app.game,"sera");var guard=unit(app.game,"enemy_4")
+  app.click_tile(app.game.pos(sera));app.click_tile(Vector2i(4,5));await settle(app);saved_setup(app)
+  assert(app.game.pos(sera)==Vector2i(4,5) and app.game.pos(guard)==Vector2i(5,6) and guard.hp==6)
+  var before=app.game.save_data("battle").duplicate(true)
+  app.click_tile(app.game.pos(guard));assert(is_instance_valid(app.forecast_panel))
+  var forecast=app.forecast_panel.records[0]
+  assert(forecast.stats[0].value.text==("7" if opening else "5"))
+  assert((forecast.note.text=="Opening +2")==opening and app.game.save_data("battle")==before)
+  app.player_attack();await settle(app);saved_setup(app)
+  assert(guard.hp==(0 if opening else 1) and FileAccess.get_file_as_string(app.save_path)==disk)
+ print("PASS: the actual sacrifice setup shows 5 or 7 damage and only the opening secures the knockout")
  app.show_options("battle");app.ui.find_child("DebugMode",true,false).button_pressed=false
  assert(not app.debug_session.active and app.game.save_data("camp")==live and FileAccess.get_file_as_string(app.save_path)==disk)
  await Shutdown.dispose(app);await process_frame

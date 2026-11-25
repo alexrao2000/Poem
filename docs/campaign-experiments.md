@@ -119,6 +119,8 @@ Before retreating, the battle menu and defeat screen show the destination chapte
 
 The victory report shows starting HP and tonics for each ally whose recovery penalty carries into the next chapter. This also applies to allies who returned after an earlier attempt and ended the battle standing. A downed ally can be evacuated and still have a prior injury to recover from.
 
+The attack forecast marks extra damage from a sacrifice opening when it affects the attack. Hover over that combatant’s forecast card for the breakdown. The displayed damage includes the bonus.
+
 ## Matched experiment comparison
 
 Run the bounded nine-configuration comparison with the project’s Godot binary:

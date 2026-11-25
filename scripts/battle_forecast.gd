@@ -132,7 +132,17 @@ func configure(parent: Control,rules,a: Dictionary,b: Dictionary,faces: Array):
   var hp=label(card,"%d / %d"%[unit.hp,unit.max_hp],29)
   var caption=label(card,"HP",13,Color("766546"))
   var meter=HUD.HealthMeter.new();meter.maximum=unit.max_hp;meter.accent=Color("b96268") if card.enemy else Color("5f9d91");card.add_child(meter);meter.change_to(unit.hp,true)
-  var note=label(card,"No counter" if not available else "Effective!" if result.effective else rules.class_name_for(unit),14,Color("8d4942") if result.effective else Color("766546"))
+  var note_text="No counter" if not available else "Effective!" if result.effective else rules.class_name_for(unit)
+  var note_color=Color("8d4942") if result.effective else Color("766546")
+  var opponent=b if index==0 else a
+  if available and unit.team=="player" and unit.get("resolve_until",-1)>=rules.turn and rules.can_attack(unit,opponent):
+   var ordinary=unit.duplicate();ordinary.erase("resolve_until")
+   var added_damage=int(result.damage)-int(rules.forecast(ordinary,opponent).damage)
+   if added_damage>0:
+    note_text=("Effective · +%d" if result.effective else "Opening +%d")%added_damage
+    if not result.effective:note_color=Color("375f4b")
+    card.tooltip_text="The forecast includes %d extra damage from the sacrifice opening."%added_damage
+  var note=label(card,note_text,14,note_color)
   var stats=[]
   var values=[str(result.damage),str(result.hit)+"%",str(result.crit)+"%"] if available else ["—","—","—"]
   for i in range(3):
