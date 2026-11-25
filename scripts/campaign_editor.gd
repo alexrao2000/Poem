@@ -1,6 +1,6 @@
 extends VBoxContainer
 signal closed
-signal playtest_requested(start: int, resume: bool)
+signal playtest_requested(start: int, resume: bool, single_battle: bool)
 signal draft_selection_changed(key: String, chapter: int)
 const Draft=preload("res://scripts/campaign_draft.gd")
 const Grid=preload("res://scripts/campaign_editor_grid.gd")
@@ -79,9 +79,9 @@ func rebuild():
  status=heading(self,"",15);status.name="EditorStatus"
  var footer=row(self)
  play_buttons.append(action(footer,"Play from start",func():launch(0,false)))
- play_buttons.append(action(footer,"Play chapter",func():launch(selected,false)))
+ play_buttons.append(action(footer,"Play chapter",func():launch(selected,false,true)))
  play_buttons[-1].name="PlayEditedChapter"
- play_buttons.append(action(footer,"Resume playtest",func():launch(selected,true)))
+ play_buttons.append(action(footer,"Resume playtest",func():launch(selected,true,true)))
  action(footer,"Return",func():closed.emit())
  validation()
 
@@ -547,10 +547,11 @@ func show_transfer():
   draft_key="";dirty=true;select_chapter(0))
  dialog.popup_centered(Vector2i(560,350))
 
-func launch(index: int,resume: bool):
- if not draft.playtest_problem().is_empty():return
+func launch(index: int,resume: bool,allow_single=false):
+ var single_battle=not draft.playtest_problem().is_empty()
+ if single_battle and (not allow_single or not draft.playtest_problem(index).is_empty()):return
  draft_selection_changed.emit(draft_key,selected)
- playtest_requested.emit(index,resume)
+ playtest_requested.emit(index,resume,single_battle)
 
 func changed():
  dirty=true
@@ -560,7 +561,12 @@ func validation():
  if not is_instance_valid(status):return
  var issue=draft.playtest_problem()
  status.text=("Unsaved draft" if dirty else "Ready to playtest") if issue.is_empty() else issue
- for button in play_buttons:button.disabled=not issue.is_empty()
+ var selected_ready=issue.is_empty() or draft.playtest_problem(selected).is_empty()
+ play_buttons[0].disabled=not issue.is_empty()
+ play_buttons[1].disabled=not selected_ready
+ play_buttons[2].disabled=not selected_ready
+ play_buttons[1].text="Test this battle" if not issue.is_empty() and selected_ready else "Play chapter"
+ play_buttons[2].text="Resume battle test" if not issue.is_empty() and selected_ready else "Resume playtest"
 
 func page(book: TabContainer,title: String) -> VBoxContainer:
  var scroll=ScrollContainer.new();scroll.name=title;scroll.horizontal_scroll_mode=ScrollContainer.SCROLL_MODE_DISABLED;book.add_child(scroll)

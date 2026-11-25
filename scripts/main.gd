@@ -528,16 +528,20 @@ func show_campaign_editor(return_to: String):
 	campaign_editor.closed.connect(close_campaign_editor)
 	campaign_editor.draft_selection_changed.connect(func(key,index):
 		campaign_editor_key=key;campaign_editor_chapter=index)
-	campaign_editor.playtest_requested.connect(func(index,resume):
-		start_campaign_preview(campaign_draft.compile(),index,resume,"editor"))
+	campaign_editor.playtest_requested.connect(func(index,resume,single_battle):
+		start_campaign_preview(campaign_draft.compile(),index,resume,"chapter" if single_battle else "editor"))
 
 func close_campaign_editor():
 	if campaign_editor_return=="debug_tools":show_debug_tools(options_return)
 	else:show_title()
 
 func start_campaign_preview(compiled: Dictionary,start: int,resume: bool,return_to: String):
-	var preview=Rules.new(compiled.content)
 	var prefix="valley-front-" if return_to=="route" else "campaign-playtest-"
+	if return_to=="chapter":
+		prefix="battle-test-%d-"%start
+		compiled.content.authoring_signature=(prefix+compiled.content.authoring_signature).sha256_text()
+		compiled.content.section_starts=[0,start] if start>0 else [0]
+	var preview=Rules.new(compiled.content)
 	var path=campaign_playtest_directory.path_join(prefix+compiled.content.authoring_signature+".json")
 	var existing=preview.read_saved_data(path) if resume else {}
 	if resume and existing.is_empty():
@@ -1928,10 +1932,11 @@ func check_result() -> bool:
 					var recovery="Next deployment · %d HP, %d tonic"%[condition.hp,condition.tonics]
 					status=status+"\n"+recovery if downed else recovery
 			label_in(row,"%s · Lv %d\n%s"%[unit.name,unit.level,status],16).size_flags_horizontal=Control.SIZE_EXPAND_FILL
-		button_in(frame,"Continue the chronicle",func():
+		var single_battle=campaign_preview.get("return","")=="chapter"
+		button_in(frame,"Return to editor" if single_battle else "Continue the chronicle",func():
 			if not action_save_ready():return
 			var onward=func():
-				if campaign_preview.get("return","")=="route":close_campaign_preview();return
+				if single_battle or campaign_preview.get("return","")=="route":close_campaign_preview();return
 				game.finish_chapter()
 				persist_campaign("ending" if game.completed else "camp")
 				if game.completed:show_ending()
@@ -1962,7 +1967,8 @@ func check_result() -> bool:
 		button_in(frame,"Retry autosave",func():
 			if persist_campaign("battle"):check_result())
 	button_in(frame,"Transfer code",func():show_save_transfer("result"))
-	if not campaign_preview.is_empty():button_in(frame,"Return to campaign route" if campaign_preview.return=="route" else "Return to editor",close_campaign_preview)
+	if not campaign_preview.is_empty() and (outcome!="victory" or campaign_preview.return!="chapter"):
+		button_in(frame,"Return to campaign route" if campaign_preview.return=="route" else "Return to editor",close_campaign_preview)
 	return true
 
 func play_crossing_chain_release():

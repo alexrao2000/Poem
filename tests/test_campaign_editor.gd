@@ -501,6 +501,27 @@ func run():
  controls(app,"Return to campaign route").pressed.emit();await process_frame
  assert(app.screen=="campaign_route" and app.game==installed and app.game.save_data("camp")==route_state)
  assert(FileAccess.get_file_as_string(app.save_path)==disk)
+ app.campaign_draft.data=app.campaign_draft.new_document(false)
+ app.campaign_draft.data.chapters[0].level.enemies.clear()
+ var ready=app.campaign_draft.insert_chapter(0,false)
+ app.campaign_draft.data.chapters[ready].level.objective_position=[0,3]
+ app.campaign_draft.data.settings.permadeath=true
+ app.campaign_draft.data.settings.section_restarts=true
+ app.show_campaign_editor("title");await process_frame
+ app.campaign_editor.select_chapter(ready);await process_frame
+ assert(app.campaign_editor.play_buttons[0].disabled and app.campaign_editor.selected==1)
+ controls(app,"Test this battle").pressed.emit();await finish_presentation(app)
+ assert(app.screen=="camp" and app.game.chapter==1 and app.campaign_preview.return=="chapter")
+ assert(app.campaign_save_path().get_file().begins_with("battle-test-1-"))
+ controls(app,"Return to editor").pressed.emit();await process_frame
+ controls(app,"Resume battle test").pressed.emit();await finish_presentation(app)
+ assert(app.screen=="camp" and app.game.chapter==1)
+ controls(app,"Deploy company  >").pressed.emit();await finish_presentation(app)
+ assert(app.game.trials.section_starts==PackedInt32Array([0,1]) and app.game.trials.checkpoint.chapter==1)
+ await capture_tile(app,Vector2i(0,3))
+ controls(app,"Return to editor").pressed.emit();await finish_presentation(app)
+ assert(app.screen=="campaign_editor" and app.game==installed and app.campaign_editor.selected==1)
+ assert(FileAccess.get_file_as_string(app.save_path)==disk)
  await Shutdown.dispose(app);await process_frame
- print("PASS: campaign JSON, route pins, custom recruits, phase scenes, timed reinforcements, chapter 32 saves, smaller-board migration, valley counters and current-company carryover, complete chapters and isolated resume")
+ print("PASS: campaign JSON, route pins, custom recruits, phase scenes, timed reinforcements, chapter 32 saves, smaller-board migration, Valley carryover and single-battle tests for unfinished campaigns")
  quit()

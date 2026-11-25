@@ -336,10 +336,11 @@ func battle_problem(level: Dictionary) -> String:
   occupied[point]=true
  return ""
 
-func playtest_problem() -> String:
+func playtest_problem(selected=-1) -> String:
  var issue=structural_problem(data)
  if not issue.is_empty():return issue
- for index in data.chapters.size():
+ var indices=range(data.chapters.size()) if selected<0 else [selected]
+ for index in indices:
   var level=data.chapters[index].level
   issue=battle_problem(level)
   if not issue.is_empty():return "Chapter %d · %s"%[index+1,issue]
@@ -367,7 +368,7 @@ func compile() -> Dictionary:
   level=level.duplicate(true)
   if chapter.has("phase_scenes"):level.phase_scenes=chapter.phase_scenes.duplicate(true)
   level.id=index
-  level.boss=level.enemies[0].get("name","")
+  level.boss=level.enemies[0].get("name","") if not level.enemies.is_empty() else ""
   if level.boss.is_empty():level.boss="Garrison commander"
   level.deployment=level.deployment_positions.size()
   level.enemy_count=level.enemies.size()
