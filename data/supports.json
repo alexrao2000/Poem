@@ -1,6 +1,7 @@
 [
   {
     "id": "lyra_oren",
+    "ending": "Lyra helped write the valley charter in Cinderford. Oren moved the gatehouse workshop’s largest table into the new meeting hall and set out two cups every night. One was for whoever had waited longest to speak.",
     "members": [
       "lyra",
       "oren"
@@ -115,6 +116,7 @@
   },
   {
     "id": "sera_ivo",
+    "ending": "Sera’s free atlas marked Ivo’s first infirmary with a blue cup. Other villages added the mark as they set aside beds and filled their wells. On later editions, Sera left the largest margin for roads she had yet to walk.",
     "members": [
       "sera",
       "ivo"
@@ -228,6 +230,7 @@
   },
   {
     "id": "mara_tarin",
+    "ending": "The Question carried grain for Mara’s river cooperative through three hard winters. Tarin made the boat part of the observatory school’s lessons. Every new class learned how to read a current, test a calculation, and bring the cargo home.",
     "members": [
       "mara",
       "tarin"
@@ -342,6 +345,7 @@
   },
   {
     "id": "nell_bram",
+    "ending": "Nell’s couriers got their first horses from Bram’s cooperative. Together they built the guild workshop around a spare key, with a bell for arrivals at any hour. Bram kept the second copy, and Nell handed the third to their youngest apprentice.",
     "members": [
       "nell",
       "bram"
@@ -456,6 +460,7 @@
   },
   {
     "id": "esme_rook",
+    "ending": "Rook taught the abbey children how to lay a sound wall, starting with the old belfry. Esme and the village founders cast a new bell for it, with names from both sides of the war inside. The children rang it for the first spring market.",
     "members": [
       "esme",
       "rook"
@@ -570,6 +575,7 @@
   },
   {
     "id": "faye_cassian",
+    "ending": "Faye’s woodland maps marked every flood path and every crew that kept a bank repaired. When Cassian lost his first election, he brought his notes and a shovel to the spring work. Faye put his name on the map beside the other volunteers.",
     "members": [
       "faye",
       "cassian"
@@ -684,6 +690,7 @@
   },
   {
     "id": "vela_dax",
+    "ending": "Vela’s warning lights joined the coast into a single watch. Dax got the dock councils to fund the lanterns, publish the watch lists, and keep a meal for every shift. The harbors kept a signal for hot supper beside the one for a rising storm.",
     "members": [
       "vela",
       "dax"
@@ -798,6 +805,7 @@
   },
   {
     "id": "una_silas",
+    "ending": "Una’s town delegates printed every clause of their new trade compact before they signed it. Silas testified about the old rules and helped them translate the phrases he had once made obscure. Their first reading drew so many questions that the meeting ran into the next market day.",
     "members": [
       "una",
       "silas"
@@ -912,6 +920,7 @@
   },
   {
     "id": "petra_ari",
+    "ending": "Petra rebuilt the lower aqueduct with a loft where Ari’s birds could land above the spray. Ari taught apprentices to carry their first letters along the ground. A plaque by the steps gives the maintenance schedule and asks travelers to leave the highest perch free.",
     "members": [
       "petra",
       "ari"
@@ -1026,6 +1035,7 @@
   },
   {
     "id": "noor_galen",
+    "ending": "Noor opened the observatory roof to the night sky and kept a second tray of cuttings on its stair. Galen took the strongest trees to the old furnace grounds. When the orchards first bore fruit, the former workers received a basket and a copy of the page with their names.",
     "members": [
       "noor",
       "galen"
@@ -1140,6 +1150,7 @@
   },
   {
     "id": "yuna_hale",
+    "ending": "Yuna’s school held its first performance in the miners’ surface orchard. Hale set out the benches and invited families from the closed shafts. When the students took their bows, he lifted his helmet and stayed to watch the sky change.",
     "members": [
       "yuna",
       "hale"
@@ -1254,6 +1265,7 @@
   },
   {
     "id": "elian_rhea",
+    "ending": "Elian and Rhea kept the surrender road open while the new civilian guard took its posts. The first wagon carried the engine records, including her family’s letters. Years later, people still brought a second copy of any important document to the old gate.",
     "members": [
       "elian",
       "rhea"
@@ -1368,6 +1380,7 @@
   },
   {
     "id": "maelin_tovin",
+    "ending": "Tovin drew the long way round every closed bridge on Maelin’s hospice maps. Her apprentices added the doors where someone needed a visit, and the guides learned those marks by heart. Every winter they made the last round together.",
     "members": ["maelin", "tovin"],
     "chapters": [0, 2, 4],
     "points": [1, 3, 6],

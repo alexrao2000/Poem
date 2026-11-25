@@ -139,6 +139,8 @@ The roster has 39 support conversations across 13 partnerships, including Maelin
 
 Read support ranks grant +5 Hit/Avoid per rank while the partner is nearby. Rank A also adds one damage.
 
+Pairs who read their Rank A conversation and both reach the ending share an epilogue. The company record also keeps the names of recruits lost along the way.
+
 ### Character viewer and workshop
 
 Open **View character** from a dossier to rotate a recruit's 3D preview and choose attack, reaction, defeat, or finishing poses. Staff users can preview healing. **Run / trot** loops the combat gait in place while you rotate or zoom the outfit. **Play again** restarts the selected action; **Escape** returns to the record or training choice.

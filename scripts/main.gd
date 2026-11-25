@@ -1839,9 +1839,17 @@ func show_ending():
 	label_in(v,game.content.chapters[-1].outro,22)
 	var scroll=ScrollContainer.new();scroll.size_flags_vertical=Control.SIZE_EXPAND_FILL;v.add_child(scroll)
 	var list=VBoxContainer.new();list.size_flags_horizontal=Control.SIZE_EXPAND_FILL;scroll.add_child(list)
+	var pairs=game.supports.ending_pairs(game)
 	for u in game.roster:
+		if pairs.has(u.id):
+			var pair=pairs[u.id]
+			if u.id!=pair.members[0]:continue
+			var partner=game.roster.filter(func(other):return other.id==pair.members[1])[0]
+			label_in(list,u.name+" and "+partner.name+" · Rank A",21,GOLD)
+			label_in(list,pair.ending,17).name="PairedEnding_"+pair.id
+			continue
 		label_in(list,u.name+" · "+game.class_name_for(u)+" · Level "+str(int(u.level)),19,Color(u.color))
-		label_in(list,"Fell in chapter %02d — %s. The company carries their memory."%[int(u.fallen_chapter)+1,game.content.chapters[int(u.fallen_chapter)].title] if u.get("fallen",false) else profiles.get(u.id,{}).get("ending",u.bio),17)
+		label_in(list,"Fell in chapter %02d — %s. The company carries their memory."%[int(u.fallen_chapter)+1,game.content.chapters[int(u.fallen_chapter)].title] if u.get("fallen",false) else profiles.get(u.id,{}).get("ending",u.bio),17).name="Ending_"+u.id
 	if not game.trials.read_scenes.is_empty() or not game.trials.events.is_empty():button_in(v,"Company memories",show_campaign_trials)
 	button_in(v,"Return to title",show_title)
 

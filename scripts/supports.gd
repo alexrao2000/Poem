@@ -15,6 +15,14 @@ func for_unit(id: String) -> Array:
 func progress(id: String) -> Dictionary:
  return state.get(id,{"points":0,"rank":0,"chapter":-1,"earned":0,"turn":-1})
 
+func ending_pairs(game) -> Dictionary:
+ var partners={}
+ if not game.completed:return partners
+ for entry in entries:
+  if entry.get("ending","").is_empty() or progress(entry.id).rank!=RANKS.size()-1 or not game.bond_available(entry):continue
+  for member in entry.members:partners[member]=entry
+ return partners
+
 func gains_since(before: Dictionary) -> Array:
  var gains=[]
  for entry in entries:

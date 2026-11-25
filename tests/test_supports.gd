@@ -6,6 +6,7 @@ func run():
  var g=Rules.new();var book=g.supports;var members=[];var lines=0
  for entry in book.entries:
   assert(entry.scenes.size()==3 and entry.chapters.size()==3 and entry.points.size()==3)
+  assert(entry.ending is String and entry.ending.length()>120)
   for id in entry.members:
    assert(id not in members,"Every recruit has one authored partner");members.append(id)
   for scene in entry.scenes:
@@ -69,6 +70,7 @@ func run():
  app.show_dossier(unit);await process_frame;await process_frame
  for control in app.ui.find_children("*","Button",true,false):assert(control.get_global_rect().end.y<=app.ui.size.y,"Dossier buttons stay within viewport")
  await verify_reserve_bond(app)
+ await verify_paired_endings(app)
  await Shutdown.dispose(app);await process_frame
  print("PASS: 39 support scenes / ",lines," lines, all 26 recruits, bounded progression, combat bonuses, save migration and dialogue/replay UI")
  quit()
@@ -132,3 +134,56 @@ func verify_reserve_bond(app):
  assert(app.dialogue_lines==entry.scenes[0].lines,"An earned memory retains the fallen partner's original lines")
  app.finish_dialogue();await process_frame
  print("PASS: reserve bond unlocks after both losses, reaches three earned ranks with original expressions, applies existing nearby bonuses, and preserves memories after loss")
+
+func verify_paired_endings(app):
+ var game=app.game
+ for mode in ["unread","recruited","fallen"]:
+  game.new_campaign(true);game.action_saves=true;game.trials.flags.death_legacies=true
+  game.start_battle()
+  if mode!="unread":
+   for unit in game.units:
+    if unit.id in ["sera","ivo"]:unit.hp=0
+   game.commit_casualties()
+   assert(game.bond_available(game.supports.entry_for("maelin_tovin")))
+  game.chapter=11
+  for entry in game.supports.entries:
+   if not game.bond_available(entry):continue
+   var rank=2 if mode=="unread" and entry.id=="lyra_oren" else 3
+   game.supports.state[entry.id]={"points":6,"rank":rank,"chapter":4,"earned":3,"turn":3}
+  assert(game.supports.ending_pairs(game).is_empty())
+  if mode=="fallen":
+   game.deployed=["lyra","tovin"];game.start_battle()
+   var tovin=game.living("player").filter(func(unit):return unit.id=="tovin")[0]
+   tovin.hp=0;game.commit_casualties()
+   assert(game.supports.progress("maelin_tovin").rank==3 and "tovin" in game.lost_ids())
+  game.trials.read_scenes=game.trials.earned_scenes.duplicate()
+  game.start_battle()
+  for foe in game.living("enemy"):foe.hp=0
+  assert(game.result()=="victory");game.finish_chapter()
+  assert(game.completed and app.persist_campaign("ending",false))
+  var before=game.save_data("ending").duplicate(true)
+  var disk=FileAccess.get_file_as_string(app.save_path)
+  var expected=[]
+  for entry in game.supports.entries:
+   if entry.id=="lyra_oren" and mode=="unread":continue
+   if entry.id=="sera_ivo" and mode!="unread":continue
+   if entry.id=="maelin_tovin" and mode!="recruited":continue
+   expected.append(entry)
+  app.show_ending()
+  assert(app.screen=="ending")
+  for dimensions in [Vector2(720,640),Vector2(1024,640),Vector2(1440,900)]:
+   app.ui.set_anchors_and_offsets_preset(Control.PRESET_TOP_LEFT);app.ui.size=dimensions
+   await process_frame;await process_frame
+   assert(app.ui.find_children("PairedEnding_*","Label",true,false).size()==expected.size())
+   for entry in expected:
+    var body=app.ui.find_child("PairedEnding_"+entry.id,true,false)
+    assert(body!=null and body.text==entry.ending and body.get_visible_line_count()==body.get_line_count())
+    for member in entry.members:assert(app.ui.find_child("Ending_"+member,true,false)==null)
+  if mode=="unread":
+   assert(app.ui.find_child("Ending_lyra",true,false)!=null and app.ui.find_child("Ending_oren",true,false)!=null)
+  else:assert(app.ui.find_child("Ending_ivo",true,false).text.contains("Fell in chapter 01"))
+  if mode=="fallen":
+   assert(app.ui.find_child("Ending_tovin",true,false).text.contains("Fell in chapter 12"))
+   assert(app.ui.find_child("Ending_maelin",true,false).text==app.profiles.maelin.ending)
+  assert(game.save_data("ending")==before and FileAccess.get_file_as_string(app.save_path)==disk)
+ print("PASS: thirteen authored epilogues across three viewport sizes, a full unread bond, recruited reserves, Rank A after loss and exact completed save isolation")
