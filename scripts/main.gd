@@ -1770,6 +1770,10 @@ func check_result() -> bool:
 	else:
 		label_in(v,"THE STANDARD FALLS",38,GOLD)
 		label_in(v,"Lyra has fallen. This chapter is lost." if (game.permadeath or game.trials.flags.reset_pressure) and game.units.any(func(u):return u.id=="lyra" and u.hp<=0) else "Your company is scattered.",24)
+		var committed=game.lost_ids()
+		var losses=game.units.filter(func(unit):return unit.team=="player" and unit.id in committed).map(func(unit):return unit.name)
+		if not losses.is_empty():
+			label_in(v,"Permanent losses on this attempt · "+", ".join(losses),18,GOLD).name="DefeatCommittedLosses"
 		label_in(v,"Retry from the beginning of this section. Deaths, legacy supplies and reset pressure remain." if game.trials.flags.section_restarts and game.permadeath else "Retry from preparation. Committed deaths remain lost." if (game.action_saves or game.trials.flags.death_legacies) and game.permadeath else "Retry from chapter preparation. Losses and gains from this failed attempt are discarded; earlier permanent losses remain." if game.permadeath else "Regroup at the war council and choose a new approach.",20)
 		var retreat=label_in(v,restart_summary(),18,GOLD);retreat.name="RestartPreview"
 		button_in(frame,"Regroup and retry",func():

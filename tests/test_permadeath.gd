@@ -122,7 +122,10 @@ func run():
  app.finish_dialogue();app.show_ending()
  assert(app.ui.find_children("*","Label",true,false).any(func(label):return "Fell in chapter 01" in label.text),"Ending honors lost recruits instead of showing a living epilogue")
  app.game.start_battle();app.game.units.filter(func(unit):return unit.id=="lyra")[0].hp=0
- await app.check_result();press(app,"Regroup and retry")
+ app.game.units.filter(func(unit):return unit.id=="sera")[0].hp=0
+ await app.check_result()
+ assert(app.ui.find_child("DefeatCommittedLosses",true,false)==null,"Earlier losses and recoverable casualties are excluded from the current attempt's permanent losses")
+ press(app,"Regroup and retry")
  assert(app.screen=="camp" and app.game.units.is_empty() and dead_recruit(app.game).fallen,"Real retry returns to preparation without reviving a previous chapter's casualty")
  var restored=Rules.new();assert(restored.load_game(app.save_path)=="camp" and restored.permadeath and dead_recruit(restored).fallen,"Retry autosave retains permadeath and its earlier memorials")
  app.show_campaign_rules();app.ui.find_child("Permadeath",true,false).button_pressed=false;press(app,"Begin the chronicle");assert(app.game.permadeath==false and app.game.lost_ids().is_empty(),"Starting recovery clears the previous campaign's memorials")
