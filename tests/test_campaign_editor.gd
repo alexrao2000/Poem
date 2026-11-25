@@ -1115,6 +1115,19 @@ func verify_valley_roads_template(app):
  assert(app.game.capture_tiles()==[Vector2i(21,2),Vector2i(6,9),Vector2i(9,5)])
  controls(app,"Return to editor").pressed.emit();await process_frame
  assert(app.screen=="campaign_editor" and app.game==saved and FileAccess.get_file_as_string(app.save_path)==disk)
+ controls(app,"Open drafts").pressed.emit();await process_frame
+ controls(app,"Copy Signals in the Valley").pressed.emit();await process_frame
+ editor=app.campaign_editor
+ assert(editor.selected==11 and editor.draft.data.chapters.size()==13 and editor.draft.playtest_problem().is_empty())
+ assert(editor.playtest_setup=={"fixed_seed":true,"seed":472019,"pressure":0})
+ var settings=editor.draft.compile()
+ var signals=Rules.new(settings.content)
+ Draft.prepare_playtest(signals,settings.settings,11,472019,0)
+ signals.start_battle()
+ assert(signals.capture_tiles()==[Vector2i(21,2),Vector2i(6,9),Vector2i(9,5)])
+ assert(signals.info().hold_enemy_phase and signals.info().phase_scenes[-1].on_defense)
+ assert(signals.enemy_waves.map(func(wave):return wave.unit.name)==["Abbey reserve","Capital relief","Abbey battlemage"])
+ assert(app.game==saved and FileAccess.get_file_as_string(app.save_path)==disk)
 
 func verify_arena_previews(app):
  var draft=app.campaign_editor.draft
@@ -2301,5 +2314,5 @@ func run():
  await verify_standards_through_enemy_phase(app)
  assert(FileAccess.get_file_as_string(app.save_path)==disk and app.game==installed)
  await Shutdown.dispose(app);await process_frame
- print("PASS: campaign JSON file transfer, draft library management, remembered playtest setup, campaign readiness, authored Hard bonuses, authored retry raiders, deployment comparison, authored formation previews, small deployment limits and save recovery, custom campaign atlas, terrain stroke undo, bulk terrain rows, editor dialogs at two viewport sizes, direct chapter reordering, continuous terrain strokes, connected terrain fill, placement moves and swaps, repeated placement copies, switching enemy difficulty groups, editor music preview, multiple standards and exact resume, standard navigation and live progress, standards that follow route pins, route pins, war-table site terrain, war-table overlay, blank war-table chapter, rising Valley landmarks, local war-table arena landmarks including Kingsroad and Windscar, authored route arenas, fading route seals, war-table landmark index and shared survey marks, Valley reveal sound cues, battlefield site markers, custom recruits, phase scenes, tile dialogue and reload, recruitment on battlefield sites, authored recruit starting equipment, live recruit art previews, 3D recruit preview and editor return, navigation between available sites, one-use field tonic caches, Valley landmark dialogue, dialogue that follows route pins, timed reinforcements, chapter 32 saves, section dialogue, authored section relief, authored legacy stock and purchase persistence, authored loss recruits, authored loss dialogue, reproducible playtest setup, Valley carryover and resume, thirteen-chapter Valley template, built-in Hold the Valley Roads trial, 3D arena previews from Battle and Route, holding standards through an enemy phase, defense-triggered reserves, reserve stats in deployment previews, defense-triggered dialogue and exact resume, and single-battle tests")
+ print("PASS: campaign JSON file transfer, draft library management, remembered playtest setup, campaign readiness, authored Hard bonuses, authored retry raiders, deployment comparison, authored formation previews, small deployment limits and save recovery, custom campaign atlas, terrain stroke undo, bulk terrain rows, editor dialogs at two viewport sizes, direct chapter reordering, continuous terrain strokes, connected terrain fill, placement moves and swaps, repeated placement copies, switching enemy difficulty groups, editor music preview, multiple standards and exact resume, standard navigation and live progress, standards that follow route pins, route pins, war-table site terrain, war-table overlay, blank war-table chapter, rising Valley landmarks, local war-table arena landmarks including Kingsroad and Windscar, authored route arenas, fading route seals, war-table landmark index and shared survey marks, Valley reveal sound cues, battlefield site markers, custom recruits, phase scenes, tile dialogue and reload, recruitment on battlefield sites, authored recruit starting equipment, live recruit art previews, 3D recruit preview and editor return, navigation between available sites, one-use field tonic caches, Valley landmark dialogue, dialogue that follows route pins, timed reinforcements, chapter 32 saves, section dialogue, authored section relief, authored legacy stock and purchase persistence, authored loss recruits, authored loss dialogue, reproducible playtest setup, Valley carryover and resume, thirteen-chapter Valley template, built-in Hold the Valley Roads and Signals in the Valley trials, 3D arena previews from Battle and Route, holding standards through an enemy phase, defense-triggered reserves, reserve stats in deployment previews, defense-triggered dialogue and exact resume, and single-battle tests")
  quit()

@@ -1402,6 +1402,7 @@ func open_library():
  action(list,"Copy Poem’s campaign",open_template.bind(draft.load_poem_template.bind(false)))
  action(list,"Copy Poem with the Valley battle",open_template.bind(draft.load_poem_template.bind(true))).name="EditorValleyTemplate"
  action(list,"Copy Hold the Valley Roads",open_template.bind(draft.load_valley_roads_trial,true))
+ action(list,"Copy Signals in the Valley",open_template.bind(draft.load_valley_signals_trial,true))
  heading(list,"Saved drafts",21)
  var records=library.list_drafts()
  if records.is_empty():heading(list,"Save a draft to add it here.",17)

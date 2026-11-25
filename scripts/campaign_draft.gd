@@ -246,6 +246,19 @@ func load_valley_roads_trial():
  data.legacy_stock=Trials.LEGACY_STOCK.duplicate(true)
  data.legacy_stock.append({"id":"pike","cost":1,"losses":2,"legacy_only":true})
 
+func load_valley_signals_trial():
+ load_valley_roads_trial()
+ data.title="Poem · Signals in the Valley · Permadeath on"
+ var chapter=data.chapters[-2]
+ chapter.level.hold_enemy_phase=true
+ chapter.phase_scenes.append({"id":"ridge_signal","turn":1,"phase":"enemy","on_defense":true,"lines":[
+  {"speaker":"narrator","text":"The old abbey lamps answer one another along the ridge. A fresh column is moving down the road."},
+  {"speaker":"lyra","text":"Keep the crossings open. If a standard falls, take it back together."}]})
+ chapter.level.enemies.append_array([
+  {"name":"Abbey reserve","job":"Ranger","position":[8,5],"level":24,"item":"longbow","ai":"pursue","arrive_on_defense":true},
+  {"name":"Capital relief","job":"Rider","position":[22,2],"level":21,"item":"javelin","ai":"pursue","arrive_on_defense":true},
+  {"name":"Abbey battlemage","job":"Arcanist","position":[10,5],"level":22,"item":"thunder","ai":"pursue","arrive_on_defense":true}])
+
 func move_chapter(index: int,direction: int) -> int:
  var destination=index+direction
  if destination<0 or destination>=data.chapters.size():return index
