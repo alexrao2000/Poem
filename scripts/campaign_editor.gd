@@ -5,13 +5,14 @@ signal draft_selection_changed(key: String, chapter: int)
 signal score_preview_requested(theme_id: String)
 signal recruit_preview_requested(recruit: Dictionary)
 signal arena_preview_requested(chapter_index: int, tile: Vector2i, from_route: bool)
-signal dialogue_preview_requested(lines: Array, kind: String, button: Button)
+signal dialogue_preview_requested(lines: Array, kind: String, button: Button, losses: Array)
 const Draft=preload("res://scripts/campaign_draft.gd")
 const Grid=preload("res://scripts/campaign_editor_grid.gd")
 const Route=preload("res://scripts/campaign_route.gd")
 const Settings=preload("res://scripts/campaign_settings.gd")
 const Trials=preload("res://scripts/campaign_trials.gd")
 const DebugSession=preload("res://scripts/debug_session.gd")
+const StorySurvivors=preload("res://scripts/story_survivors.gd")
 const MAX_CAMPAIGN_FILE_BYTES=4*Draft.MAX_DRAFT_LENGTH
 const TOOLS=["Terrain","Deployment","Enemy","Hard-mode enemy","Objective","Move placement","Extra standard","Copy placement"]
 const MOVE_PLACEMENT=5
@@ -1247,18 +1248,58 @@ func dialogue_editor(panel: Control,field_name: String,height: int,read: Callabl
  var field=multiline(dialogue_text(read.call()),height,Callable())
  field.name=field_name;panel.add_child(field)
  var actions=row(panel)
- var options=action(actions,"Edit loss dialogue",func():show_loss_dialogue(field,read.call(),write),read.call().is_empty())
+ var options=action(actions,"Edit loss dialogue",Callable(),read.call().is_empty())
  options.name=field_name+"LossOptions"
- field.text_changed.connect(func():
-  write.call(parse_dialogue(field.text,read.call()))
-  options.disabled=read.call().is_empty())
+ var loss_preview=action(actions,"Preview after losses",Callable(),dialogue_loss_candidates(read.call()).is_empty())
+ loss_preview.name=field_name+"LossPreview"
+ loss_preview.pressed.connect(func():show_dialogue_loss_preview(read.call(),kind,loss_preview))
+ var update_lines=func(lines):
+  write.call(lines)
+  options.disabled=lines.is_empty()
+  loss_preview.disabled=dialogue_loss_candidates(lines).is_empty()
+ options.pressed.connect(func():show_loss_dialogue(field,read.call(),update_lines))
+ field.text_changed.connect(func():update_lines.call(parse_dialogue(field.text,read.call())))
  dialogue_preview_button(actions,field,read,kind)
 
 func dialogue_preview_button(parent: Control,field: TextEdit,read: Callable,kind: String):
  var preview=action(parent,"Preview dialogue",Callable(),read.call().is_empty())
  preview.name=str(field.name)+"Preview"
- preview.pressed.connect(func():dialogue_preview_requested.emit(read.call(),kind,preview))
+ preview.pressed.connect(func():dialogue_preview_requested.emit(read.call(),kind,preview,[]))
  field.text_changed.connect(func():preview.disabled=read.call().is_empty())
+
+func dialogue_loss_candidates(lines: Array) -> Array:
+ var mentioned={}
+ for primary in lines:
+  for line in [primary]+primary.get("when_absent",[]):
+   mentioned[line.speaker]=true
+   for recruit in line.get("requires",[]):mentioned[recruit]=true
+ var company=draft.data.recruits+draft.templates.legacy_recruits.map(func(entry):return entry.unit)
+ return company.filter(func(person):return mentioned.has(person.id))
+
+func show_dialogue_loss_preview(lines: Array,kind: String,opener: Button):
+ var dialog=AcceptDialog.new();dialog.name="EditorDialogueLossPreview";dialog.title="Preview after losses"
+ dialog.ok_button_text="Preview";dialog.dialog_hide_on_ok=false
+ add_child(dialog)
+ dialog.canceled.connect(dialog.queue_free)
+ var panel=VBoxContainer.new();panel.add_theme_constant_override("separation",8);dialog.add_child(panel)
+ heading(panel,"Choose who has fallen in this preview.",16,false)
+ var scroll=ScrollContainer.new();scroll.custom_minimum_size.y=152
+ scroll.horizontal_scroll_mode=ScrollContainer.SCROLL_MODE_DISABLED
+ scroll.size_flags_vertical=SIZE_EXPAND_FILL;panel.add_child(scroll)
+ var choices=VBoxContainer.new();choices.size_flags_horizontal=SIZE_EXPAND_FILL;scroll.add_child(choices)
+ var candidates=dialogue_loss_candidates(lines)
+ for person in candidates:
+  var toggle=CheckBox.new();toggle.name="EditorDialogueFallen_"+person.id
+  toggle.text=person.name;toggle.set_meta("recruit",person.id)
+  toggle.custom_minimum_size.y=36;choices.add_child(toggle)
+ var feedback=heading(panel,"",15);feedback.name="EditorDialogueLossStatus"
+ dialog.confirmed.connect(func():
+  var fallen=choices.get_children().filter(func(toggle):return toggle.button_pressed).map(func(toggle):return toggle.get_meta("recruit"))
+  if fallen.is_empty():feedback.text="Choose at least one recruit.";return
+  if StorySurvivors.resolve(lines,fallen).is_empty():feedback.text="This scene has no surviving dialogue.";return
+  dialog.hide();dialog.queue_free()
+  dialogue_preview_requested.emit(lines,kind,opener,fallen))
+ popup_editor_dialog(dialog,Vector2i(448,296))
 
 func show_loss_dialogue(field: TextEdit,source: Array,write: Callable):
  var lines=source.duplicate(true)

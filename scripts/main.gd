@@ -604,7 +604,7 @@ func open_editor_arena_preview(chapter_index: int,tile: Vector2i,from_route: boo
 	back.offset_left=-256;back.offset_top=-66;back.offset_right=-22;back.offset_bottom=-22
 	back.grab_focus()
 
-func open_editor_dialogue_preview(lines: Array,kind: String,opener: Button):
+func open_editor_dialogue_preview(lines: Array,kind: String,opener: Button,losses: Array):
 	if screen!="campaign_editor" or lines.is_empty():return
 	var editor_ui=ui
 	editor_ui.hide()
@@ -622,7 +622,7 @@ func open_editor_dialogue_preview(lines: Array,kind: String,opener: Button):
 		ui.show();opener.grab_focus()
 	var chapter: int=campaign_editor.selected
 	var painting=DialogueBackdrop.location_texture(campaign_editor.level(),chapter,kind,campaign_draft.route_texture())
-	begin_dialogue(lines,return_to_editor,kind,chapter,[],painting,true)
+	begin_dialogue(lines,return_to_editor,kind,chapter,losses,painting,true)
 	dialogue_stage.next_button.grab_focus()
 
 func restore_editor_after_preview(return_to: String,view_state: Dictionary):

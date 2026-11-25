@@ -64,6 +64,8 @@ The story workspace edits the chapter name, location, briefing, opening, and clo
 
 Use Edit loss dialogue to give a line an alternate if its speaker or a required recruit has fallen. This applies to chapter scenes, battle dialogue, section scenes, and legacy arrivals. The game uses the first alternate whose speaker and required recruits are still alive. Edit the original line in the same dialog to keep its conditions.
 
+Use **Preview after losses** to select one or more fallen recruits and check which lines survive. In Chapter 1, select Oren to hear Lyra deliver the evacuation briefing. The simulation is local to that preview.
+
 Choose **Preview dialogue** below a scene to read the current draft with its names, portraits, and game dialogue controls. This also works for bond scenes and drafts with unfinished battles. Press **Esc** or choose **Return to editor** to resume editing at the same place.
 
 Dialogue art follows the chapter’s environment when you reorder chapters. War-table scenes show the campaign atlas, including any chart imported in Route.
