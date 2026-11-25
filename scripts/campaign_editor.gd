@@ -778,14 +778,46 @@ func open_library():
  heading(list,"Saved drafts",21)
  var records=library.list_drafts()
  if records.is_empty():heading(list,"Save a draft to add it here.",17)
+ var feedback=heading(list,"",15)
  for record in records:
-  action(list,record.document.get("title","Campaign"),func():
-   if dirty and not save_draft():return
-   if draft_key==record.key:dialog.queue_free();return
-   var error=draft.decode(JSON.stringify(record.document,"",true,true))
-   if not error.is_empty():status.text=error;return
-   draft_key=record.key;dirty=false;select_chapter(0))
+  var actions=row(list)
+  var title=record.document.get("title","Campaign")
+  var open=action(actions,title,func():open_saved_draft(record,false,dialog,feedback))
+  open.name="EditorOpenDraft_"+record.key
+  open.alignment=HORIZONTAL_ALIGNMENT_LEFT;open.text_overrun_behavior=TextServer.OVERRUN_TRIM_ELLIPSIS
+  var copy=action(actions,"Copy",func():open_saved_draft(record,true,dialog,feedback))
+  copy.name="EditorCopyDraft_"+record.key;copy.size_flags_horizontal=SIZE_FILL
+  var remove=action(actions,"Remove",func():confirm_remove_draft(record,dialog,feedback))
+  remove.name="EditorRemoveDraft_"+record.key;remove.size_flags_horizontal=SIZE_FILL
  dialog.popup_centered(Vector2i(440,320))
+
+func open_saved_draft(record: Dictionary,make_copy: bool,dialog: AcceptDialog,feedback: Label):
+ if dirty and not save_draft():feedback.text=status.text;return
+ if draft_key!=record.key:
+  var error=draft.decode(JSON.stringify(record.document,"",true,true))
+  if not error.is_empty():feedback.text=error;return
+ elif not make_copy:
+  dialog.queue_free();return
+ if make_copy:
+  draft.data.title=draft.data.title.left(113)+" (copy)"
+  draft_key="";dirty=true
+ else:
+  draft_key=record.key;dirty=false
+ select_chapter(0)
+
+func confirm_remove_draft(record: Dictionary,dialog: AcceptDialog,feedback: Label):
+ var confirm=ConfirmationDialog.new();confirm.name="EditorConfirmRemoveDraft"
+ confirm.title="Remove saved draft?";confirm.ok_button_text="Remove"
+ confirm.dialog_text="Remove the saved copy of “%s” from this device?"%record.document.get("title","Campaign")
+ dialog.add_child(confirm)
+ confirm.canceled.connect(confirm.queue_free)
+ confirm.confirmed.connect(func():
+  if not library.remove(record.key):
+   feedback.text="Could not remove the saved draft.";confirm.queue_free();return
+  if draft_key==record.key:
+   draft_key="";draft_selection_changed.emit(draft_key,selected);validation()
+  dialog.hide();dialog.queue_free();open_library())
+ confirm.popup_centered()
 
 func open_poem_template(valley: bool):
  if dirty and not save_draft():return

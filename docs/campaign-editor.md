@@ -22,6 +22,8 @@ Use Edit loss dialogue to give a line an alternate if its speaker or a required 
 
 The chapter picker and editing controls sit above the Battle, Encounters, Story, Route, Company, Bonds, and Rules workspaces. Click the illustrated chart in Route to place the active chapter’s pin, or use the percentage fields for precise positioning. Save draft keeps a local copy. Transfer JSON lets you open or save a campaign file on your device, and also accepts pasted JSON. Playtest can start at the first war council or the selected chapter. If another chapter is unfinished, Test this battle still opens a ready chapter with its own save. A single-battle test returns directly to the editor after victory.
 
+Use Copy in Open drafts to start a separate edition of a saved campaign. Use Remove to free its place in the library.
+
 In Rules, Playtest setup lets you override the combat seed or choose a starting level of retry pressure. Enable Enemies prepare after resets to set the starting pressure. These inputs stay with the current editor session and leave the draft’s campaign rules alone. Playtests use separate saves for each seed and pressure setup. Match the setup when you resume.
 
 ## When the map becomes a battlefield

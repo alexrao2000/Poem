@@ -24,10 +24,27 @@ func save(key: String,document: Dictionary) -> String:
  if index>=0:records.remove_at(index)
  elif records.size()>=LIMIT:return ""
  records.push_front({"key":key,"document":document})
+ return key if write_records(records) else ""
+
+func remove(key: String) -> bool:
+ var records=list_drafts()
+ var index=records.find_custom(func(item):return item.key==key)
+ if index<0:return false
+ records.remove_at(index)
+ return write_records(records)
+
+func write_records(records: Array) -> bool:
  var encoded=JSON.stringify(records,"",true,true)
- var file=FileAccess.open(path+".tmp",FileAccess.WRITE)
- if file==null:return ""
- file.store_string(encoded);file.flush();file.close()
- if not browser.write_record(path,encoded):return ""
- if FileAccess.file_exists(path) and DirAccess.copy_absolute(path,path+".bak")!=OK:return ""
- return key if DirAccess.rename_absolute(path+".tmp",path)==OK else ""
+ var temporary=path+".tmp"
+ var file=FileAccess.open(temporary,FileAccess.WRITE)
+ if file==null:return false
+ file.store_string(encoded);file.flush()
+ var prepared=file.get_error()==OK
+ file.close()
+ if prepared and FileAccess.file_exists(path):prepared=DirAccess.copy_absolute(path,path+".bak")==OK
+ if prepared and browser.write_record(path,encoded):
+  if DirAccess.rename_absolute(temporary,path)==OK:return true
+  DirAccess.remove_absolute(temporary)
+  return OS.has_feature("web")
+ DirAccess.remove_absolute(temporary)
+ return false

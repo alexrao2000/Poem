@@ -817,6 +817,31 @@ func run():
  app.show_battle_menu();await process_frame
  controls(app,"Return to editor").pressed.emit();await process_frame
  assert(app.game==installed and FileAccess.get_file_as_string(app.save_path)==disk)
+ controls(app,"Save draft").pressed.emit();await process_frame
+ var saved_key=app.campaign_editor.draft_key
+ var saved_title=app.campaign_editor.draft.data.title
+ assert(not saved_key.is_empty())
+ controls(app,"Open drafts").pressed.emit();await process_frame
+ app.campaign_editor.find_child("EditorCopyDraft_"+saved_key,true,false).pressed.emit();await process_frame
+ assert(app.campaign_editor.draft_key.is_empty() and app.campaign_editor.dirty)
+ assert(app.campaign_editor.draft.data.title==saved_title+" (copy)")
+ controls(app,"Save draft").pressed.emit();await process_frame
+ var copy_key=app.campaign_editor.draft_key
+ assert(not copy_key.is_empty() and copy_key!=saved_key)
+ controls(app,"Open drafts").pressed.emit();await process_frame
+ app.campaign_editor.find_child("EditorRemoveDraft_"+copy_key,true,false).pressed.emit();await process_frame
+ var remove_draft=app.campaign_editor.find_child("EditorConfirmRemoveDraft",true,false)
+ remove_draft.canceled.emit();await process_frame
+ assert(app.campaign_draft_library.list_drafts().any(func(entry):return entry.key==copy_key))
+ app.campaign_editor.find_child("EditorRemoveDraft_"+copy_key,true,false).pressed.emit();await process_frame
+ remove_draft=app.campaign_editor.find_child("EditorConfirmRemoveDraft",true,false)
+ remove_draft.confirmed.emit();await process_frame
+ var remaining=app.campaign_draft_library.list_drafts()
+ assert(remaining.any(func(entry):return entry.key==saved_key and entry.document.title==saved_title))
+ assert(not remaining.any(func(entry):return entry.key==copy_key))
+ assert(app.campaign_editor.draft_key.is_empty() and FileAccess.file_exists(experiment_path))
+ app.campaign_editor.find_child("EditorOpenDraft_"+saved_key,true,false).pressed.emit();await process_frame
+ assert(app.campaign_editor.draft_key==saved_key and app.campaign_editor.draft.data.title==saved_title)
  await Shutdown.dispose(app);await process_frame
- print("PASS: campaign JSON file transfer, route pins, war-table site terrain, custom recruits, phase scenes, timed reinforcements, chapter 32 saves, section dialogue, authored section relief, authored legacy stock and purchase persistence, authored loss recruits, authored loss dialogue, reproducible playtest setup, Valley carryover, thirteen-chapter Valley template, and single-battle tests")
+ print("PASS: campaign JSON file transfer, draft library management, route pins, war-table site terrain, custom recruits, phase scenes, timed reinforcements, chapter 32 saves, section dialogue, authored section relief, authored legacy stock and purchase persistence, authored loss recruits, authored loss dialogue, reproducible playtest setup, Valley carryover, thirteen-chapter Valley template, and single-battle tests")
  quit()
