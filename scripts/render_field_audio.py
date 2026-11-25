@@ -183,6 +183,31 @@ def render(profile):
     return np.rint(painted * 32767).astype("<i2")
 
 
+def render_table_unroll():
+    count = round(.72 * RATE)
+    time = np.arange(count) / RATE
+    window = np.sin(np.pi * np.arange(count) / (count - 1)) ** 2
+    random = np.random.default_rng(81629)
+    paper = band_noise(random, 240, 1650)[:count]
+    fibers = band_noise(random, 1050, 4650)[:count]
+    folds = [(.14, .037, .40), (.27, .041, .79), (.41, .027, .63), (.52, .044, .31)]
+    crinkles = sum(strength * np.exp(-((time - center) / width) ** 2)
+                   for center, width, strength in folds)
+    center = window * (.073 * paper + .067 * fibers * crinkles)
+    side = .009 * window * band_noise(random, 560, 2790)[:count]
+    stereo = np.stack((center - side, center + side), axis=-1)
+    return np.rint(stereo * 32767).astype("<i2")
+
+
+def write_audio(path, samples):
+    with wave.open(str(path), "wb") as stream:
+        stream.setnchannels(2)
+        stream.setsampwidth(2)
+        stream.setframerate(RATE)
+        stream.writeframes(samples.tobytes())
+    print(path)
+
+
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--output", type=Path,
@@ -190,14 +215,8 @@ def main():
     destination = parser.parse_args().output
     destination.mkdir(parents=True, exist_ok=True)
     for field, profile in PROFILES.items():
-        samples = render(profile)
-        path = destination / f"field-{field}.wav"
-        with wave.open(str(path), "wb") as stream:
-            stream.setnchannels(2)
-            stream.setsampwidth(2)
-            stream.setframerate(RATE)
-            stream.writeframes(samples.tobytes())
-        print(path)
+        write_audio(destination / f"field-{field}.wav", render(profile))
+    write_audio(destination / "valley-unroll.wav", render_table_unroll())
 
 
 if __name__ == "__main__":

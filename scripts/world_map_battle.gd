@@ -208,7 +208,7 @@ static func chart_view(camera: Camera3D,board: Vector2i,home: Dictionary) -> Dic
  view.h_offset=0.0;view.v_offset=0.0
  return view
 
-static func play_reveal(navigation,game,world: Node3D,actors: Array,hint: Control,skip: Callable):
+static func play_reveal(navigation,game,world: Node3D,actors: Array,hint: Control,skip: Callable,cue: Callable=Callable()):
  var camera: Camera3D=navigation.camera
  var home: Dictionary=navigation.capture_view()
  var chart=chart_view(camera,game.board_size(),home)
@@ -224,7 +224,10 @@ static func play_reveal(navigation,game,world: Node3D,actors: Array,hint: Contro
  props.append_array(world.get_node("ValleyLandmarks").get_children())
  var resting=props.map(func(piece):return piece.position)
  var seats=resting.map(func(point):return origin.distance_to(Vector2(point.x,point.z)))
- var apply_frame=func(weight: float):
+ var first_seat=INF
+ for index in actors.size():first_seat=minf(first_seat,seats[index])
+ var played=[false,false]
+ var apply_frame=func(weight: float,sound: bool):
   var front=lerpf(-.85,radius+4.8,smoothstep(.10,.86,weight))
   ink.set_shader_parameter("front",front)
   navigation.apply_return(smoothstep(.07,1.0,weight),chart,home)
@@ -234,9 +237,14 @@ static func play_reveal(navigation,game,world: Node3D,actors: Array,hint: Contro
    var offset=1.60*pow(1.0-arrival,2.0) if index<pieces_from_above else -.24*(1.0-arrival)
    props[index].position=resting[index]+Vector3.UP*offset
   hint.modulate.a=1.0-smoothstep(.88,1.0,weight)
- apply_frame.call(0.0)
+  if sound and cue.is_valid() and not skip.call():
+   if weight>=.12 and not played[0]:
+    played[0]=true;cue.call("paper")
+   if front>=first_seat+2.85 and not played[1]:
+    played[1]=true;cue.call("wood")
+ apply_frame.call(0.0,false)
  var motion=world.create_tween()
- motion.tween_method(apply_frame,0.0,1.0,REVEAL_SECONDS)
+ motion.tween_method(apply_frame.bind(true),0.0,1.0,REVEAL_SECONDS)
  while motion.is_running() and not skip.call():await world.get_tree().process_frame
  if motion.is_running():motion.kill()
- apply_frame.call(1.0)
+ apply_frame.call(1.0,false)

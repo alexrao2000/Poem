@@ -211,7 +211,7 @@ func setup_audio():
 	add_child(field_audio)
 	score_director=ScoreDirector.new();add_child(score_director);score_director.configure(preferences.volume_db("music"),campaign_score_profile(game.chapter))
 	music=score_director.player;score=score_director.score
-	for effect in ["select","swing","hit","critical","heal","magic","phase","guard","cutin","levelup","approach","legacy-vigil"]:
+	for effect in ["select","swing","hit","critical","heal","magic","phase","guard","cutin","levelup","approach","legacy-vigil","valley-unroll"]:
 		sfx_streams[effect]=load("res://assets/audio/"+effect+".wav")
 	for family in ["sword","axe","lance","bow","ember","gale","thunder"]:
 		sfx_streams["release_"+family]=load("res://assets/audio/release_"+family+".wav")
@@ -881,7 +881,10 @@ func reveal_valley_battle():
 	hint.add_theme_color_override("font_outline_color",Color("25313a"))
 	hint.add_theme_constant_override("outline_size",5)
 	var viewport_size=get_viewport().get_visible_rect().size
-	await ValleyBattle.play_reveal(map_navigation,game,world,unit_nodes.values(),hint,func():return valley_reveal_skip)
+	var cue=func(event):
+		if event=="paper":play_sfx("valley-unroll")
+		else:travel_audio.step("=","",0)
+	await ValleyBattle.play_reveal(map_navigation,game,world,unit_nodes.values(),hint,func():return valley_reveal_skip,cue)
 	if get_viewport().get_visible_rect().size!=viewport_size:map_camera()
 	canvas.remove_child(hint);hint.queue_free()
 	ui.show();markers.show()
