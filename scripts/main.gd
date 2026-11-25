@@ -2842,14 +2842,17 @@ func show_debug_dialogue(selection: Dictionary={}):
 	var pairs=OptionButton.new();pairs.name="ReplayPair";pairs.custom_minimum_size.y=42;panel.add_child(pairs)
 	for entry in game.supports.entries:
 		pairs.add_item("%s and %s"%[dialogue_speaker_name(entry.members[0]),dialogue_speaker_name(entry.members[1])])
-	pairs.select(int(selection.get("pair",0)))
+	var has_bonds=not game.supports.entries.is_empty()
+	pairs.disabled=not has_bonds
+	if has_bonds:pairs.select(clampi(int(selection.get("pair",0)),0,pairs.item_count-1))
 	var ranks=OptionButton.new();ranks.name="ReplayRank";ranks.custom_minimum_size.y=42;panel.add_child(ranks)
+	ranks.disabled=not has_bonds
 	var populate_ranks=func(pair_index: int,selected_rank: int):
 		ranks.clear()
 		var scenes=game.supports.entries[pair_index].scenes
 		for index in scenes.size():ranks.add_item("%s · %s"%[game.supports.RANKS[index+1],scenes[index].title])
 		ranks.select(selected_rank)
-	populate_ranks.call(pairs.selected,int(selection.get("rank",0)))
+	if has_bonds:populate_ranks.call(pairs.selected,int(selection.get("rank",0)))
 	pairs.item_selected.connect(func(index):populate_ranks.call(index,0))
 	var picker_state=func(focus_name: String) -> Dictionary:
 		return {"chapter":chapters.selected,"losses":losses.button_pressed,"pair":pairs.selected,"rank":ranks.selected,"focus":focus_name}
@@ -2862,7 +2865,7 @@ func show_debug_dialogue(selection: Dictionary={}):
 	var replay_support=button_in(panel,"Replay support",func():
 		var state: Dictionary=picker_state.call("ReplaySupport")
 		var entry=game.supports.entries[state.pair]
-		show_dialogue(entry.scenes[state.rank].lines,show_debug_dialogue.bind(state),"support",int(entry.chapters[state.rank])))
+		show_dialogue(entry.scenes[state.rank].lines,show_debug_dialogue.bind(state),"support",int(entry.chapters[state.rank])),not has_bonds)
 	replay_support.name="ReplaySupport"
 	button_in(frame,"Return to Debug tools",func():show_debug_tools(options_return)).name="ReplayReturn"
 	var focus=frame.find_child(str(selection.get("focus","ReplayChapter")),true,false)

@@ -8,9 +8,9 @@ The chapter list shows play order and section starts. Authors can insert, duplic
 
 The map workspace combines a terrain brush with controls for deployment tiles, enemy placements, the commander, hard-mode reinforcements, and the objective. Authors can resize a board and choose its battlefield environment and score. The editor identifies blocked tiles, overlapping placements, and missing objective markers before playtest. The runtime continues to use its regular tactical rules and its normal two-stage combat presentation.
 
-The story workspace edits the chapter name, location, briefing, opening, and closing. Dialogue lines use the campaign roster and portrait catalogue. The company workspace edits recruit names, introductions, arrival chapters, and initial deployment. Campaign settings record the draft’s default experiment switches.
+The story workspace edits the chapter name, location, briefing, opening, and closing. Dialogue lines use the campaign roster and portrait catalogue. The company workspace edits recruit names, introductions, classes, base stats, arrivals, epilogues, and initial deployment. The Bonds workspace pairs recruits, sets the chapter and points required for each rank, and edits its conversations and shared epilogue. The company earns those points in battle and reads the scenes at camp. Campaign settings record the draft’s default experiment switches.
 
-The editor shows the chapter list beside the workspace on wide displays and stacks the controls above the workspace at narrow widths. The toolbar provides Save draft, Import / export, and Playtest. Playtest can start at the first war council or the selected chapter. It uses its own save path and returns to the same draft and selected chapter.
+The chapter picker and editing controls sit above the Battle, Story, Company, Rules, and Bonds workspaces. Save draft keeps a local copy. Transfer JSON copies a draft for sharing and accepts a pasted document. Playtest can start at the first war council or the selected chapter. It uses its own save path and returns to the same draft and selected chapter.
 
 ## When the map becomes a battlefield
 
@@ -22,6 +22,6 @@ The editor offers a Valley war table chapter template. Its terrain and markers u
 
 ## Game data and playtest
 
-A campaign document contains its format and version, title, ordered chapters, roster settings, and defaults. Chapter entries carry the ordinary campaign fields for terrain, deployments, encounters, objectives, music, and scenery alongside their story scenes. The editor resolves stable keys to chapter indices when it makes a runtime copy. Each playtest runs against that copy. The normal campaign and the editor draft have separate lifecycles.
+A campaign document contains its format and version, title, ordered chapters, roster settings, bonds, and defaults. Chapter entries carry the campaign fields for terrain, deployments, encounters, objectives, music, and scenery alongside their story scenes. The editor resolves stable recruit arrival and bond chapter keys to chapter indices when it makes a runtime copy. Removing a chapter moves those arrivals and conversations to the next surviving chapter, or the previous chapter if it was the finale. Each playtest runs against its own copy and saves independently of the normal campaign.
 
 Verification covers draft import and export, chapter edits and arrival remapping, editor layout at narrow widths, a complete two-chapter playtest, and a turn on the valley grid. The world-map encounter must use the same image as the route view and enter its tactical and 3D combat paths through the normal controls.

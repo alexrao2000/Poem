@@ -14,6 +14,7 @@ var selected=0
 var active_tab=0
 var brush=0
 var selected_person=0
+var selected_bond=0
 var grid: Control
 var status: Label
 var source_chapter: OptionButton
@@ -62,6 +63,7 @@ func rebuild():
  build_story(page(book,"Story"))
  build_company(page(book,"Company"))
  build_rules(page(book,"Rules"))
+ build_bonds(page(book,"Bonds"))
  book.current_tab=active_tab;book.tab_changed.connect(func(index):active_tab=index)
  status=heading(self,"",15);status.name="EditorStatus"
  var footer=row(self)
@@ -157,9 +159,8 @@ func build_story(panel: VBoxContainer):
  heading(panel,"Dialogue uses one line per speaker. Enter an ID, a vertical bar, then their words.",15)
  for kind in ["opening","closing"]:
   heading(panel,kind.capitalize()+" dialogue",17)
-  var text_rows=[]
-  for line in record[kind]:text_rows.append(line.speaker+" | "+line.text.replace("\n"," "))
-  panel.add_child(multiline("\n".join(text_rows),132,func(value):record[kind]=parse_dialogue(value);changed()))
+  var original_lines=record[kind].duplicate(true)
+  panel.add_child(multiline(dialogue_text(original_lines),132,func(value):record[kind]=parse_dialogue(value,original_lines);changed()))
  var route=row(panel)
  var x=spin(roundi(layout.route_position[0]*100),0,100,func(value):layout.route_position[0]=value/100.0;changed())
  var y=spin(roundi(layout.route_position[1]*100),0,100,func(value):layout.route_position[1]=value/100.0;changed())
@@ -215,13 +216,90 @@ func build_rules(panel: VBoxContainer):
   enabled.toggled.connect(func(value):draft.data.settings[key]=value;changed())
   heading(panel,setting.text,15)
 
-func parse_dialogue(text: String) -> Array:
+func build_bonds(panel: VBoxContainer):
+ var bonds=draft.data.bonds if draft.data.has("bonds") else draft.stock_bonds(draft.data.chapters)
+ var names={}
+ for person in draft.data.recruits:names[person.id]=person.name
+ for legacy in draft.templates.legacy_recruits:names[legacy.unit.id]=legacy.unit.name
+ var paired=[]
+ for bond in bonds:paired.append_array(bond.members)
+ var unpaired=draft.bond_members().filter(func(id):return id not in paired)
+ var actions=row(panel)
+ action(actions,"Add bond",func():
+  var number=1
+  var keys=bonds.map(func(bond):return bond.id)
+  while "bond_%02d"%number in keys:number+=1
+  var scenes=[]
+  for rank in 3:scenes.append({"title":["First conversation","Second conversation","Third conversation"][rank],"lines":[]})
+  var chapter_key=chapter().key
+  bonds.append({"id":"bond_%02d"%number,"members":unpaired.slice(0,2),"chapters":[chapter_key,chapter_key,chapter_key],
+   "points":[1,3,6],"scenes":scenes,"ending":""})
+  selected_bond=bonds.size()-1
+  save_bond_edits(bonds);rebuild(),unpaired.size()<2).name="EditorAddBond"
+ if bonds.is_empty():
+  heading(panel,"Add a bond to write conversations and a paired epilogue for two recruits.",17)
+  return
+ selected_bond=clampi(selected_bond,0,bonds.size()-1)
+ action(actions,"Remove bond",func():
+  var dialog=ConfirmationDialog.new();dialog.title="Remove this bond?"
+  dialog.dialog_text="This removes its three conversations and paired epilogue."
+  add_child(dialog);dialog.popup_centered()
+  dialog.confirmed.connect(func():bonds.remove_at(selected_bond);save_bond_edits(bonds);rebuild())
+  dialog.canceled.connect(dialog.queue_free))
+ var bond=bonds[selected_bond]
+ var identities=bonds.map(func(entry):return entry.id)
+ var picker=choice(identities,bond.id,func(value):selected_bond=identities.find(value);rebuild());picker.name="EditorBond"
+ picker.fit_to_longest_item=false;picker.clip_text=true
+ for index in bonds.size():picker.set_item_text(index,"%s & %s"%[names[bonds[index].members[0]],names[bonds[index].members[1]]])
+ panel.add_child(picker)
+ var members=GridContainer.new();members.columns=2;members.add_theme_constant_override("h_separation",12);panel.add_child(members)
+ for index in 2:
+  var options=[bond.members[index]]+unpaired
+  var member=choice(options,bond.members[index],func(value):bond.members[index]=value;save_bond_edits(bonds);rebuild())
+  member.fit_to_longest_item=false;member.clip_text=true
+  for entry in options.size():member.set_item_text(entry,names[options[entry]])
+  field_label(members,"Member %d"%(index+1),member)
+ heading(panel,"Paired epilogue",17)
+ var ending=multiline(bond.ending,90,func(value):bond.ending=value;save_bond_edits(bonds));ending.name="EditorBondEnding"
+ panel.add_child(ending)
+ heading(panel,"Enter each line as a speaker ID, a vertical bar, then their words.",15)
+ var chapter_keys=draft.data.chapters.map(func(record):return record.key)
+ for rank in 3:
+  heading(panel,"Rank "+["C","B","A"][rank],21)
+  var gate=GridContainer.new();gate.columns=2;gate.add_theme_constant_override("h_separation",12);panel.add_child(gate)
+  var unlock=choice(chapter_keys,bond.chapters[rank],func(value):bond.chapters[rank]=value;save_bond_edits(bonds))
+  unlock.name="EditorBondChapter"+str(rank);unlock.fit_to_longest_item=false;unlock.clip_text=true
+  for index in chapter_keys.size():unlock.set_item_text(index,"%02d · %s"%[index+1,draft.data.chapters[index].level.title])
+  field_label(gate,"Opens in chapter",unlock)
+  var points=spin(int(bond.points[rank]),1,6,func(value):bond.points[rank]=value;save_bond_edits(bonds));points.name="EditorBondPoints"+str(rank)
+  field_label(gate,"Bond points",points)
+  var scene=bond.scenes[rank]
+  var title=line_edit(scene.title,"Conversation title",100,func(value):scene.title=value;save_bond_edits(bonds));title.name="EditorBondTitle"+str(rank)
+  panel.add_child(title)
+  var original_lines=scene.lines.duplicate(true)
+  var lines=multiline(dialogue_text(original_lines),110,func(value):scene.lines=parse_dialogue(value,original_lines);save_bond_edits(bonds))
+  lines.name="EditorBondLines"+str(rank);panel.add_child(lines)
+
+func save_bond_edits(bonds: Array):
+ draft.data.bonds=bonds
+ changed()
+
+func dialogue_text(lines: Array) -> String:
+ var rows=[]
+ for line in lines:rows.append(line.speaker+" | "+line.text.replace("\n"," "))
+ return "\n".join(rows)
+
+func parse_dialogue(text: String,original: Array) -> Array:
  var lines=[]
+ var remaining=original.duplicate()
  for row_text in text.split("\n",false):
   var parts=row_text.split("|",true,1)
   var speaker=parts[0].strip_edges() if parts.size()==2 else "narrator"
+  if speaker.is_empty():speaker="narrator"
   var words=parts[-1].strip_edges()
-  if not words.is_empty():lines.append({"speaker":speaker if not speaker.is_empty() else "narrator","text":words})
+  if words.is_empty():continue
+  var previous=remaining.find_custom(func(line):return line.speaker==speaker and line.text.replace("\n"," ")==words)
+  lines.append(remaining.pop_at(previous) if previous>=0 else {"speaker":speaker,"text":words})
  return lines
 
 func select_chapter(index: int):
@@ -238,7 +316,7 @@ func move_chapter(direction: int):
 
 func confirm_remove():
  var dialog=ConfirmationDialog.new();dialog.title="Remove chapter?"
- dialog.dialog_text="Recruit arrivals scheduled here move to the next surviving chapter."
+ dialog.dialog_text="Recruit arrivals and bond conversations scheduled here move to the next surviving chapter."
  add_child(dialog);dialog.popup_centered()
  dialog.confirmed.connect(func():dirty=true;select_chapter(draft.remove_chapter(selected)))
  dialog.canceled.connect(dialog.queue_free)

@@ -31,10 +31,13 @@ func check_document():
  var compiled=draft.compile()
  assert(compiled.content.chapters.size()==12 and compiled.content.section_starts==[0,4,8])
  assert(compiled.story.chapters==draft.base_story.chapters)
+ assert(canonical(compiled.content.bonds)==canonical(Rules.new().supports.entries))
  var original=draft.encode()
  assert(draft.decode(original).is_empty())
  var broken=canonical(draft.data);broken.chapters[0].level.map[0]="~"
  assert(not draft.decode(JSON.stringify(broken)).is_empty())
+ broken=canonical(draft.data);broken.bonds[1].members[0]="lyra"
+ assert("unpaired" in draft.decode(JSON.stringify(broken)))
  assert(canonical(draft.data)==JSON.parse_string(original))
  var selected=draft.insert_chapter(2,true)
  assert(selected==3 and draft.data.chapters[selected].key!="chapter_03")
@@ -44,8 +47,36 @@ func check_document():
  assert(draft.move_chapter(0,1)==1 and draft.index_for(person.chapter)==1 and draft.data.chapters[0].section)
  var authored=draft.compile()
  assert(authored.content.roster.filter(func(recruit):return recruit.id=="oren")[0].join==1)
+ assert(authored.content.bonds[0].chapters==[1,0,2])
  assert(draft.remove_chapter(1)==1 and draft.index_for(person.chapter)==1)
+ assert(draft.data.bonds[0].chapters[0]==draft.data.chapters[1].key)
  assert(draft.playtest_problem().is_empty())
+
+func check_long_campaign(path: String):
+ var draft=Draft.new()
+ while draft.data.chapters.size()<Draft.MAX_CHAPTERS:draft.insert_chapter(draft.data.chapters.size()-1,false)
+ draft.data.recruits[0].stats.hp=100
+ var finale=draft.data.chapters[-1]
+ finale.level.enemies[0].position=[1,2]
+ var bond=draft.data.bonds[0]
+ bond.chapters[0]=finale.key
+ assert(draft.playtest_problem().is_empty(),draft.playtest_problem())
+ var content=draft.compile().content
+ var game=Rules.new(content)
+ game.chapter=31;game.start_battle()
+ var hero=game.at(Vector2i(1,3));var enemy=game.at(Vector2i(1,2))
+ assert(hero.id=="lyra" and game.can_attack(hero,enemy))
+ game.combat(hero,enemy)
+ var progress=game.supports.progress(bond.id)
+ assert(progress.chapter==31 and progress.points==1 and game.supports.can_read(bond.id,31),str(progress))
+ assert(game.save_game(path,"battle"))
+ var restored=Rules.new(content)
+ var saved=restored.read_saved_data(path)
+ assert(not saved.is_empty(),"The chapter 32 save failed validation")
+ assert(restored.restore_save(saved)=="battle")
+ assert(canonical(restored.supports.progress(bond.id))==canonical(progress))
+ var malformed=saved.duplicate(true);malformed.supports[bond.id].chapter=32
+ assert(not restored.valid_save(malformed) and not Rules.new().supports.valid_state(saved.supports))
 
 func use_brush(editor,index: int,point: Vector2i,erase=false):
  var mode=editor.find_child("EditorBrush",true,false)
@@ -67,6 +98,7 @@ func run():
  check_document()
  var scratch="/private/tmp/poem-campaign-editor-%d"%OS.get_process_id()
  assert(DirAccess.make_dir_recursive_absolute(scratch)==OK)
+ check_long_campaign(scratch.path_join("long-campaign.json"))
  root.size=Vector2i(1440,900)
  var app=load("res://main.tscn").instantiate();app.settings_path="";app.save_path=scratch.path_join("normal.json")
  app.campaign_draft_library.path=scratch.path_join("drafts.json")
@@ -112,6 +144,19 @@ func run():
  var chart=editor.level()
  assert(chart.objective_position==Valley.CAPITAL and editor.draft.playtest_problem().is_empty())
  assert("~" in "".join(chart.map) and "=" in "".join(chart.map) and "h" in "".join(chart.map))
+ editor.find_child("CampaignEditorTabs",true,false).current_tab=4
+ await process_frame
+ controls(app,"Add bond").pressed.emit()
+ var first_bond=editor.draft.data.bonds[0]
+ assert(first_bond.members==["lyra","oren"] and first_bond.chapters[0]==editor.chapter().key)
+ var title=editor.find_child("EditorBondTitle0",true,false)
+ title.text="Watch on the river";title.text_changed.emit(title.text)
+ var lines=editor.find_child("EditorBondLines0",true,false)
+ lines.text="lyra | The bridge is quiet now.";lines.text_changed.emit()
+ var paired_ending=editor.find_child("EditorBondEnding",true,false)
+ paired_ending.text="They returned to watch the river.";paired_ending.text_changed.emit()
+ assert(first_bond.scenes[0].title==title.text and first_bond.scenes[0].lines[0].text=="The bridge is quiet now.")
+ assert(first_bond.ending==paired_ending.text)
  controls(app,"Save draft").pressed.emit()
  assert(not editor.draft_key.is_empty() and app.campaign_draft_library.list_drafts().size()==1)
  var copy=Draft.new();assert(copy.decode(JSON.stringify(app.campaign_draft_library.list_drafts()[0].document)).is_empty())
@@ -137,12 +182,20 @@ func run():
  var veteran=app.game.roster.filter(func(recruit):return recruit.id=="oren")[0]
  assert(veteran.name=="Captain Oren" and veteran.job=="Duelist" and veteran.max_hp==31 and veteran.weapon=="sword")
  assert(not installed.valid_save(app.game.save_data("camp")))
+ var playable_bond=app.game.supports.entry_for(first_bond.id)
+ assert(playable_bond.scenes[0].title=="Watch on the river" and playable_bond.chapters==[1,1,1])
  app.preferences.values.auto_end=false
  controls(app,"Deploy company  >").pressed.emit();await finish_presentation(app)
  await capture_tile(app,Vector2i(0,3))
  controls(app,"Continue the chronicle").pressed.emit();await finish_presentation(app)
  assert(app.screen=="camp" and app.game.chapter==1 and app.game.info().presentation=="valley_table")
  assert(app.game.deployed.size()==2 and app.game.read_saved_data(app.campaign_save_path()).stage=="camp")
+ app.game.supports.state[first_bond.id]={"points":1,"rank":0,"chapter":0,"earned":1,"turn":1}
+ app.read_support(veteran,playable_bond,0)
+ assert(app.screen=="dialogue" and app.dialogue_label.text=="The bridge is quiet now.")
+ app.finish_dialogue()
+ assert(app.game.supports.progress(first_bond.id).rank==1 and app.game.read_saved_data(app.campaign_save_path()).supports[first_bond.id].rank==1)
+ app.show_camp();await process_frame
  controls(app,"Deploy company  >").pressed.emit();await finish_presentation(app)
  assert(app.game.board_size()==Vector2i(24,16))
  var paper=app.world.get_node("ValleyChart")
@@ -178,6 +231,9 @@ func run():
  assert(FileAccess.get_file_as_string(app.save_path)==disk and app.campaign_editor.selected==1)
  controls(app,"Resume playtest").pressed.emit();await finish_presentation(app)
  assert(app.screen=="ending" and app.game.completed)
+ app.game.supports.state[first_bond.id]={"points":6,"rank":3,"chapter":1,"earned":3,"turn":3}
+ app.show_ending();await process_frame
+ assert(app.ui.find_child("PairedEnding_"+first_bond.id,true,false).text==first_bond.ending)
  controls(app,"Return to editor").pressed.emit();await process_frame
  app.game.chapter=10
  app.show_campaign_route();await process_frame
@@ -189,5 +245,5 @@ func run():
  assert(app.screen=="campaign_route" and app.game==installed and app.game.save_data("camp")==route_state)
  assert(FileAccess.get_file_as_string(app.save_path)==disk)
  await Shutdown.dispose(app);await process_frame
- print("PASS: campaign JSON and chapter order, three editor sizes, pointer terrain editing, saved draft, two complete authored chapters, valley geography, isolated resume and late route entrance")
+ print("PASS: campaign JSON and chapter order, three editor sizes, pointer terrain editing, authored bonds with chapter 32 saves, two complete authored chapters, valley geography, isolated resume and late route entrance")
  quit()

@@ -4,7 +4,8 @@ extends RefCounted
 var content: Dictionary
 var equipment: Array
 var promotions: Array
-var supports=preload("res://scripts/supports.gd").new()
+const Supports=preload("res://scripts/supports.gd")
+var supports: Supports
 var browser_journal=preload("res://scripts/browser_journal.gd").new()
 const MAX_LEVEL=99
 const STAT_CAPS={"max_hp":999,"pow":255,"defense":255,"resistance":255,"speed":255,"move":20}
@@ -40,6 +41,7 @@ var story_seen: Array = []
 
 func _init(campaign: Dictionary={}):
 	content = JSON.parse_string(FileAccess.get_file_as_string("res://data/campaign.json")) if campaign.is_empty() else campaign.duplicate(true)
+	supports=Supports.new(content.get("bonds"),content.chapters.size())
 	for template in content.roster:recruit_templates[template.id]=template
 	for legacy in content.legacy_recruits:recruit_templates[legacy.unit.id]=legacy.unit
 	trials.configure_section_starts(content.section_starts,content.chapters.size())

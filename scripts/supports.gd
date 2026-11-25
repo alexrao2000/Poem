@@ -1,8 +1,14 @@
 extends RefCounted
 # Relationship data and progress stay independent of rendering and audio.
-var entries: Array=JSON.parse_string(FileAccess.get_file_as_string("res://data/supports.json"))
+const DATA="res://data/supports.json"
+var entries: Array
+var chapter_count: int
 var state: Dictionary={}
 const RANKS=["—","C","B","A"]
+
+func _init(custom=null,count=12):
+ entries=JSON.parse_string(FileAccess.get_file_as_string(DATA)) if custom==null else custom.duplicate(true)
+ chapter_count=count
 
 func entry_for(id: String) -> Dictionary:
  for entry in entries:
@@ -66,6 +72,6 @@ func valid_state(value) -> bool:
   var record=value[id]
   for key in ["points","rank","chapter","earned","turn"]:
    if not (record.get(key) is int or record.get(key) is float) or not is_finite(float(record[key])) or record[key]!=int(record[key]):return false
-  if record.points<0 or record.points>6 or record.rank<0 or record.rank>3 or record.chapter< -1 or record.chapter>11 or record.earned<0 or record.earned>3 or record.turn< -1:return false
+  if record.points<0 or record.points>6 or record.rank<0 or record.rank>3 or record.chapter< -1 or record.chapter>=chapter_count or record.earned<0 or record.earned>3 or record.turn< -1:return false
   if record.rank>0 and record.points<entry_for(id).points[int(record.rank)-1]:return false
  return true

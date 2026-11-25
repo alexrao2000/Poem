@@ -2,6 +2,7 @@ extends RefCounted
 ## A draft uses stable chapter keys. Only its compiled copy uses runtime indices.
 const Rules=preload("res://scripts/rules.gd")
 const Settings=preload("res://scripts/campaign_settings.gd")
+const Supports=preload("res://scripts/supports.gd")
 const FORMAT="poem-campaign"
 const VERSION=1
 const MAX_CHAPTERS=32
@@ -32,7 +33,7 @@ func _init():
 
 func new_document(stock: bool) -> Dictionary:
  var result={"format":FORMAT,"version":VERSION,"title":"Poem" if stock else "Untitled campaign",
-  "chapters":[],"recruits":[],"opening_company":["lyra","oren","sera","ivo"],"settings":{"permadeath":false}}
+  "chapters":[],"recruits":[],"bonds":[],"opening_company":["lyra","oren","sera","ivo"],"settings":{"permadeath":false}}
  for setting in Settings.SWITCHES:result.settings[setting.key]=false
  if stock:
   for index in templates.chapters.size():
@@ -51,6 +52,7 @@ func new_document(stock: bool) -> Dictionary:
     "level":level,"opening":story.opening,"closing":story.closing})
  else:
   result.chapters.append({"key":"chapter_01","source":-1,"section":true,"level":blank_level(),"opening":[],"closing":[]})
+ if stock:result.bonds=stock_bonds(result.chapters)
  for recruit in templates.roster:
   var join=int(recruit.join)
   var chapter_key=result.chapters[join].key if join<result.chapters.size() else ""
@@ -59,6 +61,17 @@ func new_document(stock: bool) -> Dictionary:
   result.recruits.append({"id":recruit.id,"name":recruit.name,"bio":recruit.bio,"chapter":chapter_key,
    "job":recruit.job,"stats":stats,"ending":base_profiles[recruit.id].get("ending",recruit.bio)})
  return result.duplicate(true)
+
+func stock_bonds(chapters: Array) -> Array:
+ var bonds=Supports.new().entries
+ for bond in bonds:
+  bond.chapters=bond.chapters.map(func(index):return chapters[mini(int(index),chapters.size()-1)].key)
+ return bonds
+
+func bond_members() -> Array:
+ var members=data.recruits.map(func(person):return person.id)
+ members.append_array(templates.legacy_recruits.map(func(legacy):return legacy.unit.id))
+ return members
 
 func blank_level() -> Dictionary:
  var rows=[]
@@ -119,6 +132,9 @@ func remove_chapter(index: int) -> int:
  var next=mini(index,data.chapters.size()-1)
  for recruit in data.recruits:
   if recruit.chapter==removed.key:recruit.chapter=data.chapters[next].key
+ for bond in data.get("bonds",[]):
+  for rank in bond.chapters.size():
+   if bond.chapters[rank]==removed.key:bond.chapters[rank]=data.chapters[next].key
  data.chapters[0].section=true
  sync_opening_company()
  return next
@@ -169,6 +185,11 @@ func structural_problem(document) -> String:
     return "A recruit has an invalid base stat."
   if not recruit.chapter.is_empty() and not keys.has(recruit.chapter):return "A recruit arrives in a missing chapter."
   people[recruit.id]=true
+ if document.has("bonds"):
+  var bond_people=people.duplicate()
+  for legacy in templates.legacy_recruits:bond_people[legacy.unit.id]=true
+  var bond_issue=bond_structure_problem(document.bonds,bond_people,keys)
+  if not bond_issue.is_empty():return bond_issue
  if not document.get("opening_company") is Array or document.opening_company.is_empty() or document.opening_company.size()>6:
   return "Choose one to six opening company members."
  var deployed={}
@@ -178,6 +199,31 @@ func structural_problem(document) -> String:
  if not deployed.has("lyra"):return "The company leader must deploy in the opening chapter."
  for key in (["permadeath"]+Settings.SWITCHES.map(func(setting):return setting.key)):
   if not document.settings.get(key) is bool:return "A campaign rules switch is missing."
+ return ""
+
+func bond_structure_problem(bonds,people: Dictionary,chapter_keys: Dictionary) -> String:
+ if not bonds is Array or bonds.size()>people.size()/2.0:return "A company member can have one authored bond."
+ var identities={}
+ var paired={}
+ for bond in bonds:
+  if not bond is Dictionary or not valid_text(bond.get("id"),64) or not bond.id.is_valid_identifier() or identities.has(bond.id):
+   return "Every bond needs a unique key."
+  identities[bond.id]=true
+  if not bond.get("members") is Array or bond.members.size()!=2:return "A bond needs two company members."
+  for member in bond.members:
+   if not member is String or not people.has(member) or paired.has(member):return "Choose two unpaired company members for each bond."
+   paired[member]=true
+  if not valid_text(bond.get("ending"),1200):return "A bond has an invalid paired epilogue."
+  for field in ["chapters","points","scenes"]:
+   if not bond.get(field) is Array or bond[field].size()!=3:return "Every bond needs C, B, and A rank settings."
+  var minimum=1
+  for rank in 3:
+   if not bond.chapters[rank] is String or not chapter_keys.has(bond.chapters[rank]):return "A bond opens in a missing chapter."
+   if not integer(bond.points[rank],minimum,6):return "Bond ranks need one to six points in ascending order."
+   minimum=int(bond.points[rank])
+   var scene=bond.scenes[rank]
+   if not scene is Dictionary or not valid_text(scene.get("title"),100) or not dialogue_valid(scene.get("lines")):
+    return "A bond has an invalid conversation."
  return ""
 
 func map_structure_problem(level: Dictionary) -> String:
@@ -279,6 +325,9 @@ func compile() -> Dictionary:
    recruit.reach=content.classes[recruit.job].reach
    recruit.item=Rules.DEFAULT_ITEMS[recruit.weapon]
   for field in RECRUIT_STATS:recruit[field]=authored.stats[field]
+ if data.has("bonds"):
+  content.bonds=data.bonds.duplicate(true)
+  for bond in content.bonds:bond.chapters=bond.chapters.map(index_for)
  return {"content":content,"story":{"chapters":scenes},"settings":data.settings.duplicate(true)}
 
 static func point_valid(value) -> bool:
