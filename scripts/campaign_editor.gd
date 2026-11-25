@@ -901,7 +901,7 @@ func build_company(panel: VBoxContainer):
  var arrivals=[""]+draft.data.chapters.map(func(record):return record.key)
  var arrival=choice(arrivals,person.chapter,func(value):
   person.chapter=value;draft.sync_opening_company();changed();rebuild())
- arrival.set_item_text(0,"Reserve · outside this campaign")
+ arrival.set_item_text(0,"Reserve · no scheduled arrival")
  for index in draft.data.chapters.size():
   arrival.set_item_text(index+1,"%02d · %s"%[index+1,draft.data.chapters[index].level.title])
  arrival.disabled=person.id=="lyra"
@@ -917,7 +917,33 @@ func build_company(panel: VBoxContainer):
   changed())
  var attributes=GridContainer.new();attributes.columns=2
  attributes.add_theme_constant_override("h_separation",12);attributes.add_theme_constant_override("v_separation",8);panel.add_child(attributes)
- field_label(attributes,"Class",choice(draft.templates.classes.keys(),person.job,func(value):person.job=value;changed()))
+ var job=choice(draft.templates.classes.keys(),person.job,Callable())
+ job.name="EditorRecruitClass";field_label(attributes,"Class",job)
+ var gear=OptionButton.new()
+ gear.name="EditorRecruitEquipment";gear.custom_minimum_size.y=42
+ gear.fit_to_longest_item=false;gear.clip_text=true
+ field_label(attributes,"Starting equipment",gear)
+ var refresh_gear=func():
+  gear.clear()
+  gear.add_item("Use default");gear.set_item_metadata(0,"")
+  gear.select(0)
+  for item in draft.gear_for(person.job):
+   gear.add_item(item.name)
+   var index=gear.item_count-1
+   gear.set_item_metadata(index,item.id)
+   if person.get("item","")==item.id:gear.select(index)
+ gear.item_selected.connect(func(index):
+  var id=gear.get_item_metadata(index)
+  if id.is_empty():person.erase("item")
+  else:person.item=id
+  changed())
+ job.item_selected.connect(func(index):
+  person.job=job.get_item_metadata(index)
+  if person.has("item") and not draft.gear_for(person.job).any(func(item):return item.id==person.item):
+   person.erase("item")
+  refresh_gear.call()
+  changed())
+ refresh_gear.call()
  var stat_names={"hp":"Base HP","pow":"Power","defense":"Defense","resistance":"Resistance","speed":"Speed","move":"Movement"}
  for stat in Draft.RECRUIT_STATS:
   var limits=Draft.RECRUIT_STATS[stat]

@@ -6,6 +6,8 @@ Use Move to… above the Battle workspace to move the selected chapter to a spec
 
 Use Recruit on visit in Story’s Tile events to offer a reserve or a recruit scheduled for a later chapter. A standing ally recruits them by finishing an action on the tile. They join the company for the next deployment. The site can also play dialogue and replenish field tonics. In battle, choose Next site or press J to cycle through available tile events.
 
+Use Starting equipment in Company to assign any weapon compatible with the recruit’s class. The recruit arrives with it equipped. Chapter and legacy unlocks govern later choices from the shared arsenal.
+
 ## Authoring
 
 The chapter list shows play order and section starts. Authors can insert, duplicate, move, and remove chapters. A stable chapter key links its recruit arrivals, story scenes, and route pin, so reordering a battle moves its associated material with it. The first chapter always starts a section.

@@ -869,10 +869,32 @@ func verify_site_recruitment(app):
  recruit.name="Merrin"
  draft.insert_chapter(0,false)
  draft.data.chapters[0].level.objective_position=[0,4]
+ editor.selected_person=recruit_index
  editor.select_chapter(0);await process_frame
  var site=Vector2i(0,3)
  editor.grid.cursor=site
  var tabs=editor.find_child("CampaignEditorTabs",true,false)
+ tabs.current_tab=tabs.get_tab_idx_from_control(editor.find_child("Company",true,false))
+ await process_frame
+ var job=editor.find_child("EditorRecruitClass",true,false)
+ var gear=editor.find_child("EditorRecruitEquipment",true,false)
+ var choose=func(field,value):
+  for index in field.item_count:
+   if field.get_item_metadata(index)!=value:continue
+   field.select(index);field.item_selected.emit(index)
+   return
+  assert(false,"No editor option for "+value)
+ choose.call(gear,"javelin")
+ choose.call(job,"Rider")
+ assert(recruit.item=="javelin" and gear.get_selected_metadata()=="javelin")
+ choose.call(job,"Duelist")
+ assert(not recruit.has("item") and gear.get_selected_metadata()=="")
+ choose.call(job,"Knight")
+ choose.call(gear,"javelin")
+ var equipped_draft=Draft.new()
+ assert(equipped_draft.decode(draft.encode()).is_empty() and equipped_draft.data.recruits[recruit_index].item=="javelin")
+ equipped_draft.data.recruits[recruit_index].item="iron_sword"
+ assert(equipped_draft.structural_problem(equipped_draft.data)=="A recruit has starting equipment their class cannot use.")
  tabs.current_tab=tabs.get_tab_idx_from_control(editor.find_child("Story",true,false))
  await process_frame
  controls(app,"Add tile scene").pressed.emit()
@@ -946,8 +968,16 @@ func verify_site_recruitment(app):
  assert(app.screen=="camp" and app.game.chapter==1 and recruit.id in app.game.deployed)
  card=app.ui.find_child("Company_"+recruit.id,true,false)
  assert(card.state_label.text=="IN COMPANY")
+ var new_ally=app.game.available().filter(func(unit):return unit.id==recruit.id)[0]
+ assert(new_ally.item=="javelin" and new_ally.reach==2 and not app.game.item_accessible(app.game.item_for(new_ally)))
+ app.show_equipment(new_ally);await process_frame
+ var equipped=app.ui.find_children("*","Button",true,false).filter(func(button):return button.text=="Equipped")
+ assert(equipped.size()==1 and equipped[0].disabled)
+ controls(app,"Return to war council").pressed.emit();await process_frame
  controls(app,"Deploy company  >").pressed.emit();await finish_presentation(app)
  assert(app.game.units.any(func(unit):return unit.id==recruit.id) and app.unit_nodes.has(recruit.id))
+ var deployed=app.game.living("player").filter(func(unit):return unit.id==recruit.id)[0]
+ assert(deployed.item=="javelin" and deployed.reach==2)
  assert(app.ui.find_child("NextSite",true,false)==null)
  app.close_campaign_preview();await process_frame
 
@@ -1913,5 +1943,5 @@ func run():
  await verify_route_arena_reuse(app)
  assert(FileAccess.get_file_as_string(app.save_path)==disk and app.game==installed)
  await Shutdown.dispose(app);await process_frame
- print("PASS: campaign JSON file transfer, draft library management, remembered playtest setup, campaign readiness, authored Hard bonuses, authored retry raiders, deployment comparison, authored formation previews, small deployment limits and save recovery, custom campaign atlas, terrain stroke undo, bulk terrain rows, editor dialogs at two viewport sizes, direct chapter reordering, continuous terrain strokes, connected terrain fill, placement moves and swaps, repeated placement copies, switching enemy difficulty groups, editor music preview, multiple standards and exact resume, standard navigation and live progress, standards that follow route pins, route pins, war-table site terrain, war-table overlay, blank war-table chapter, rising Valley landmarks, local war-table arena landmarks, authored route arenas, fading route seals, Valley reveal sound cues, battlefield site markers, custom recruits, phase scenes, tile dialogue and reload, recruitment on battlefield sites, navigation between available sites, one-use field tonic caches, Valley landmark dialogue, dialogue that follows route pins, timed reinforcements, chapter 32 saves, section dialogue, authored section relief, authored legacy stock and purchase persistence, authored loss recruits, authored loss dialogue, reproducible playtest setup, Valley carryover and resume, thirteen-chapter Valley template, and single-battle tests")
+ print("PASS: campaign JSON file transfer, draft library management, remembered playtest setup, campaign readiness, authored Hard bonuses, authored retry raiders, deployment comparison, authored formation previews, small deployment limits and save recovery, custom campaign atlas, terrain stroke undo, bulk terrain rows, editor dialogs at two viewport sizes, direct chapter reordering, continuous terrain strokes, connected terrain fill, placement moves and swaps, repeated placement copies, switching enemy difficulty groups, editor music preview, multiple standards and exact resume, standard navigation and live progress, standards that follow route pins, route pins, war-table site terrain, war-table overlay, blank war-table chapter, rising Valley landmarks, local war-table arena landmarks, authored route arenas, fading route seals, Valley reveal sound cues, battlefield site markers, custom recruits, phase scenes, tile dialogue and reload, recruitment on battlefield sites, authored recruit starting equipment, navigation between available sites, one-use field tonic caches, Valley landmark dialogue, dialogue that follows route pins, timed reinforcements, chapter 32 saves, section dialogue, authored section relief, authored legacy stock and purchase persistence, authored loss recruits, authored loss dialogue, reproducible playtest setup, Valley carryover and resume, thirteen-chapter Valley template, and single-battle tests")
  quit()

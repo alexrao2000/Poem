@@ -2232,7 +2232,8 @@ func show_equipment(unit):
 			var comparison=label_in(details,EquipmentComparison.preview(game,unit,item).text,18)
 			comparison.name="EquipmentComparison_"+item.id
 		var label="Legacy purchase required" if game.trials.legacy_only(item.id) else "Available in chapter %d"%(int(item.unlock)+1)
-		button_in(details,label if locked else ("Equipped" if equipped else "Equip"),func():
+		var action_label="Equipped" if equipped else label if locked else "Equip"
+		button_in(details,action_label,func():
 			if game.equip(unit,item.id):show_equipment(unit);persist_campaign("camp")
 		,locked or equipped)
 	button_in(panel,"Return to company record",func():show_dossier(unit))

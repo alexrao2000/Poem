@@ -400,6 +400,8 @@ func structural_problem(document) -> String:
    return "A recruit is missing a name, introduction, or arrival."
   if not valid_text(recruit.get("ending"),1200):return "A recruit has an invalid epilogue."
   if not templates.classes.has(recruit.get("job")) or not recruit.get("stats") is Dictionary:return "A recruit has an unknown class or missing stats."
+  if recruit.has("item") and not gear_for(recruit.job).any(func(item):return item.id==recruit.item):
+   return "A recruit has starting equipment their class cannot use."
   for field in RECRUIT_STATS:
    if not integer(recruit.stats.get(field),RECRUIT_STATS[field][0],RECRUIT_STATS[field][1]):
     return "A recruit has an invalid base stat."
@@ -817,6 +819,7 @@ func apply_recruit(recruit: Dictionary,authored: Dictionary):
   var job=templates.classes[authored.job]
   recruit.job=authored.job;recruit.weapon=job.weapon;recruit.reach=job.reach
   recruit.item=Rules.DEFAULT_ITEMS[recruit.weapon]
+ if authored.has("item"):recruit.item=authored.item
  for field in RECRUIT_STATS:recruit[field]=authored.stats[field]
 
 static func point_valid(value) -> bool:
