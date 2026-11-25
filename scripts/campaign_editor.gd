@@ -95,7 +95,8 @@ func build_battle(panel: VBoxContainer):
  var layout=level()
  var parameters=GridContainer.new();parameters.columns=2
  parameters.add_theme_constant_override("h_separation",12);parameters.add_theme_constant_override("v_separation",8);panel.add_child(parameters)
- field_label(parameters,"Objective",choice(Draft.OBJECTIVES,layout.objective,func(value):layout.objective=value;grid.queue_redraw();changed()))
+ field_label(parameters,"Objective",choice(Draft.OBJECTIVES,layout.objective,func(value):
+  layout.objective=value;grid.marks=draft.valley_marks(selected);grid.queue_redraw();changed()))
  field_label(parameters,"Phase limit",spin(int(layout.turn_limit),1,99,func(value):layout.turn_limit=value;changed()))
  field_label(parameters,"Environment",choice(Draft.ENVIRONMENTS,layout.environment,func(value):layout.environment=value;changed()))
  field_label(parameters,"Score",choice(draft.music_ids,layout.score_theme,func(value):layout.score_theme=value;changed()))
@@ -121,7 +122,17 @@ func build_battle(panel: VBoxContainer):
  enemy_name=line_edit("","Enemy name",80,Callable());tools.add_child(enemy_name)
  show_brush_options()
  heading(panel,"Click or use the arrow keys and Enter. Right-click or Backspace erases. C marks the commander.",15)
- grid=Grid.new();grid.name="EditorGrid";panel.add_child(grid);grid.configure(layout);grid.tile_edited.connect(edit_tile)
+ grid=Grid.new();grid.name="EditorGrid";panel.add_child(grid);grid.configure(layout,draft.valley_marks(selected));grid.tile_edited.connect(edit_tile)
+ if fixed_chart:
+  var inspected=heading(panel,"",15)
+  inspected.name="EditorAtlasTile"
+  var show_tile=func(point):
+   var terrain_name=Draft.Rules.TERRAIN_PROFILES[grid.terrain_at(point)].name
+   var site=grid.marks.get(point,{}).get("place","")
+   inspected.text="%d, %d · %s"%[point.x,point.y,terrain_name]
+   if not site.is_empty():inspected.text+=" · "+site
+  grid.tile_inspected.connect(show_tile)
+  show_tile.call(grid.cursor)
 
 func show_brush_options():
  var enemy=brush in [2,3]
@@ -150,6 +161,7 @@ func edit_tile(point: Vector2i,erase: bool):
   elif group.size()<24:group.append(enemy)
  else:
   layout.objective_position=position
+  grid.marks=draft.valley_marks(selected)
  grid.queue_redraw()
  changed()
 
@@ -294,6 +306,16 @@ func build_route(panel: VBoxContainer):
  chart.pin_placed.connect(func(index,point):
   draft.data.chapters[index].level.route_position=[point.x,point.y]
   x.set_value_no_signal(roundi(point.x*100));y.set_value_no_signal(roundi(point.y*100));changed())
+ if level().presentation!="valley_table":
+  var site=choice([""]+Draft.ROUTE_TERRAIN,level().get("route_terrain",""),func(value):
+   if value.is_empty():level().erase("route_terrain")
+   else:level().route_terrain=value
+   changed())
+  site.name="EditorRouteTerrain"
+  site.set_item_text(0,"Use the table’s terrain")
+  for index in Draft.ROUTE_TERRAIN.size():
+   site.set_item_text(index+1,Draft.Rules.TERRAIN_PROFILES[Draft.ROUTE_TERRAIN[index]].name)
+  field_label(row(panel),"Terrain on later war tables",site)
 
 func build_phase_scenes(panel: VBoxContainer,record: Dictionary):
  for child in panel.get_children():panel.remove_child(child);child.queue_free()

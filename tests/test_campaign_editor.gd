@@ -201,6 +201,29 @@ func check_legacy_arrivals():
  assert(restored.available().any(func(member):return member.id==reserve.id))
  assert(restored.trials.earned_scenes==game.trials.earned_scenes)
 
+func check_war_table_sites():
+ var draft=Draft.new()
+ var stage=draft.insert_chapter(1,false,true)
+ var table=draft.data.chapters[stage].level
+ var first=draft.data.chapters[0].level
+ var second=draft.data.chapters[1].level
+ var base=table.map.duplicate()
+ first.route_position=[.2,.2];first.route_terrain="="
+ second.route_position=[.2,.2];second.route_terrain="+"
+ var shared=Valley.route_tile(first.route_position)
+ assert(draft.valley_marks(stage)[shared].place==second.place)
+ assert(draft.battle_level(stage).map[shared.y][shared.x]=="+")
+ second.route_position=[.5,.7]
+ var new_tile=Valley.route_tile(second.route_position)
+ assert(draft.battle_level(stage).map[shared.y][shared.x]=="=")
+ assert(draft.compile().content.chapters[stage].map[new_tile.y][new_tile.x]=="+")
+ assert(table.map==base)
+ first.route_position=table.route_position.duplicate()
+ var objective=Vector2i(table.objective_position[0],table.objective_position[1])
+ assert(not draft.valley_marks(stage).has(objective))
+ assert(draft.battle_level(stage).map[shared.y][shared.x]==base[shared.y][shared.x])
+ assert(draft.move_chapter(1,1)==stage and draft.valley_marks(1).is_empty())
+
 func use_brush(editor,index: int,point: Vector2i,erase=false):
  var mode=editor.find_child("EditorBrush",true,false)
  mode.select(index);mode.item_selected.emit(index)
@@ -227,6 +250,7 @@ func run():
  check_section_story()
  check_legacy_catalogue()
  check_legacy_arrivals()
+ check_war_table_sites()
  root.size=Vector2i(1440,900)
  var app=load("res://main.tscn").instantiate();app.settings_path="";app.save_path=scratch.path_join("normal.json")
  app.campaign_draft_library.path=scratch.path_join("drafts.json")
@@ -260,6 +284,10 @@ func run():
  assert(editor.find_child("EditorRouteX",true,false).value==21 and editor.find_child("EditorRouteY",true,false).value==67)
  editor.find_child("EditorRouteX",true,false).value=27
  assert(route_chart.positions[0].is_equal_approx(Vector2(.27,.67)))
+ var table_terrain=editor.find_child("EditorRouteTerrain",true,false)
+ for index in table_terrain.item_count:
+  if table_terrain.get_item_metadata(index)=="o":
+   table_terrain.select(index);table_terrain.item_selected.emit(index);break
  route_tabs.current_tab=0
  await process_frame
  var selection=editor.find_child("EditorTerrain",true,false)
@@ -275,6 +303,7 @@ func run():
  use_brush(editor,4,Vector2i(0,3))
  editor.chapter().opening=[{"speaker":"lyra","text":"This is a new campaign."}]
  editor.level().title="River Gate"
+ editor.level().place="River Gate"
  editor.draft.data.title="The Editor Chronicle"
  var renamed=editor.draft.data.recruits.filter(func(recruit):return recruit.id=="oren")[0]
  renamed.name="Captain Oren";renamed.job="Duelist";renamed.stats.hp=31
@@ -322,6 +351,16 @@ func run():
  var chart=editor.level()
  assert(chart.objective_position==Valley.CAPITAL and editor.draft.playtest_problem().is_empty())
  assert("~" in "".join(chart.map) and "=" in "".join(chart.map) and "h" in "".join(chart.map))
+ var site_tile=Valley.route_tile([.27,.67])
+ var table_grid=editor.find_child("EditorGrid",true,false)
+ assert(table_grid.terrain_at(site_tile)=="o" and chart.map[site_tile.y][site_tile.x]!="o")
+ var table_tabs=editor.find_child("CampaignEditorTabs",true,false)
+ table_tabs.current_tab=0
+ await process_frame;await process_frame
+ var hover=InputEventMouseMotion.new()
+ hover.position=table_grid.board_rect().position+(Vector2(site_tile)+Vector2(.5,.5))*table_grid.cell_size()
+ table_grid._gui_input(hover)
+ assert(editor.find_child("EditorAtlasTile",true,false).text=="6, 10 · Stronghold · River Gate")
  var bonds_tabs=editor.find_child("CampaignEditorTabs",true,false)
  bonds_tabs.current_tab=bonds_tabs.get_tab_idx_from_control(editor.find_child("Bonds",true,false))
  await process_frame
@@ -467,6 +506,9 @@ func run():
  assert(app.canvas.get_node_or_null("ValleyRevealHint")==null and ink.get_shader_parameter("front")>20.0)
  for piece in app.unit_nodes.values():assert(piece.visible and is_zero_approx(piece.position.y))
  assert(app.game.board_size()==Vector2i(24,16))
+ app.click_tile(site_tile);await process_frame
+ assert(app.game.terrain(site_tile)=="o" and app.terrain_card.place.text=="River Gate")
+ assert(app.terrain_card.heading.text=="STRONGHOLD")
  var paper=app.world.get_node("ValleyChart")
  assert(paper.material_override.albedo_texture==Route.MAP and Valley.MAP==Route.MAP)
  assert(app.world.has_node("ValleyTable") and app.world.has_node("ValleyGrid") and app.world.has_node("ValleyStandard"))
@@ -641,5 +683,5 @@ func run():
  assert(app.screen=="campaign_editor" and app.game==installed and app.campaign_editor.selected==1)
  assert(FileAccess.get_file_as_string(app.save_path)==disk)
  await Shutdown.dispose(app);await process_frame
- print("PASS: campaign JSON, route pins, custom recruits, phase scenes, timed reinforcements, chapter 32 saves, section dialogue, authored legacy stock and purchase persistence, authored loss recruits, Valley carryover, and single-battle tests")
+ print("PASS: campaign JSON, route pins, war-table site terrain, custom recruits, phase scenes, timed reinforcements, chapter 32 saves, section dialogue, authored legacy stock and purchase persistence, authored loss recruits, Valley carryover, and single-battle tests")
  quit()

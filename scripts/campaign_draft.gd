@@ -4,6 +4,7 @@ const Rules=preload("res://scripts/rules.gd")
 const Settings=preload("res://scripts/campaign_settings.gd")
 const Supports=preload("res://scripts/supports.gd")
 const Trials=preload("res://scripts/campaign_trials.gd")
+const Valley=preload("res://scripts/world_map_battle.gd")
 const FORMAT="poem-campaign"
 const VERSION=1
 const MAX_CHAPTERS=32
@@ -14,6 +15,7 @@ const MAX_DRAFT_LENGTH=1000000
 const ENVIRONMENTS=["village","river","forest","abbey","road","harbor","mountain","aqueduct","observatory","furnace","castle","engine"]
 const OBJECTIVES=["rout","boss","seize","survive"]
 const STRATEGIES=["pursue","sentry","guard"]
+const ROUTE_TERRAIN=["p","=","f","h","o","+"]
 const RECRUIT_STATS={"hp":[1,900],"pow":[0,200],"defense":[0,200],"resistance":[0,200],"speed":[0,200],"move":[1,20]}
 const LEVEL_FIELDS=["title","place","intro","outro","tactical_brief","map","route_position","environment","score_theme",
  "objective","objective_position","turn_limit","deployment_positions","enemies","hard_enemies","presentation","enemy_level"]
@@ -152,7 +154,7 @@ func insert_chapter(after: int,copy_current: bool,valley_table=false) -> int:
  if data.chapters.size()>=MAX_CHAPTERS:return -1
  var record={"source":-1,"section":false,"level":blank_level(),"opening":[],"closing":[]}
  if valley_table:
-  record.level=preload("res://scripts/world_map_battle.gd").chapter(templates.chapters)
+  record.level=Valley.chapter(templates.chapters)
   record.opening=[{"speaker":"lyra","text":"Pull the seals off the chart. I want to see every road into the capital."},
    {"speaker":"oren","text":"We drew those crossings at the same scale. Put a company on each road and see where they can meet."}]
   record.closing=[{"speaker":"lyra","text":"The capital’s road is open. Send word to every company still on the map."}]
@@ -349,6 +351,7 @@ func map_structure_problem(level: Dictionary) -> String:
  if not integer(level.get("enemy_level",0),0,Rules.MAX_LEVEL):return "Set a default enemy level from 0 to 99."
  if not level.get("route_position") is Array or level.route_position.size()!=2 or not level.route_position.all(
    func(value):return number(value) and value>=0 and value<=1):return "A route pin must stay on the map."
+ if level.get("route_terrain","") not in ([""]+ROUTE_TERRAIN):return "Choose a terrain type for the route pin."
  if not level.get("map") is Array or level.map.size()<MIN_BOARD.y or level.map.size()>MAX_BOARD.y or not level.map[0] is String:
   return "A battle needs a rectangular terrain grid."
  var width=level.map[0].length()
@@ -393,13 +396,35 @@ func battle_problem(level: Dictionary) -> String:
   occupied[point]=true
  return ""
 
+func valley_marks(index: int) -> Dictionary:
+ var level=data.chapters[index].level
+ if level.presentation!="valley_table":return {}
+ var objective=Vector2i(level.objective_position[0],level.objective_position[1])
+ var marks={}
+ for prior in index:
+  var route=data.chapters[prior].level
+  var terrain=route.get("route_terrain","")
+  if route.presentation=="valley_table" or terrain.is_empty():continue
+  var tile=Valley.route_tile(route.route_position)
+  if level.objective=="seize" and tile==objective:continue
+  marks[tile]={"terrain":terrain,"place":route.title if route.place.is_empty() else route.place}
+ return marks
+
+func battle_level(index: int) -> Dictionary:
+ var level=data.chapters[index].level
+ var marks=valley_marks(index)
+ if marks.is_empty():return level
+ var adjusted=level.duplicate()
+ adjusted.map=level.map.duplicate()
+ for tile in marks:paint(adjusted,tile,marks[tile].terrain)
+ return adjusted
+
 func playtest_problem(selected=-1) -> String:
  var issue=structural_problem(data)
  if not issue.is_empty():return issue
  var indices=range(data.chapters.size()) if selected<0 else [selected]
  for index in indices:
-  var level=data.chapters[index].level
-  issue=battle_problem(level)
+  issue=battle_problem(battle_level(index))
   if not issue.is_empty():return "Chapter %d · %s"%[index+1,issue]
  var leader=data.recruits.filter(func(recruit):return recruit.id=="lyra")[0]
  if leader.chapter!=data.chapters[0].key:return "Set the company leader’s arrival to the first chapter."
@@ -419,9 +444,10 @@ func compile() -> Dictionary:
  var scenes=[]
  for index in data.chapters.size():
   var chapter=data.chapters[index]
+  var authored=battle_level(index)
   var level={}
   for field in LEVEL_FIELDS:
-   if chapter.level.has(field):level[field]=chapter.level[field]
+   if authored.has(field):level[field]=authored[field]
   level=level.duplicate(true)
   if chapter.has("phase_scenes"):level.phase_scenes=chapter.phase_scenes.duplicate(true)
   level.id=index

@@ -1,15 +1,18 @@
 extends Control
 ## A single canvas stays usable for authored boards up to 32 by 24 tiles.
 signal tile_edited(point: Vector2i,erase: bool)
+signal tile_inspected(point: Vector2i)
 const Valley=preload("res://scripts/world_map_battle.gd")
 const COLORS={".":"bac08b","p":"ccb185","=":"bd9968","f":"547558","h":"9d937c","o":"ddbc68",
  "+":"85b29b","#":"474650","~":"6b9cad"}
 var level: Dictionary
+var marks: Dictionary
 var cursor=Vector2i.ZERO
 var last_tile=Vector2i(-1,-1)
 
-func configure(source: Dictionary):
+func configure(source: Dictionary,route_marks: Dictionary):
  level=source
+ marks=route_marks
  focus_mode=FOCUS_ALL;mouse_filter=MOUSE_FILTER_STOP
  mouse_default_cursor_shape=CURSOR_CROSS
  custom_minimum_size.y=306
@@ -27,6 +30,9 @@ func board_rect() -> Rect2:
  var extent=Vector2(board_size())*cell_size()
  return Rect2((size-extent)*.5,extent)
 
+func terrain_at(point: Vector2i) -> String:
+ return marks[point].terrain if marks.has(point) else level.map[point.y][point.x]
+
 func _draw():
  if level.is_empty() or cell_size()<=0:return
  var rect=board_rect()
@@ -37,10 +43,17 @@ func _draw():
  for y in board_size().y:
   for x in board_size().x:
    var square=Rect2(rect.position+Vector2(x,y)*cell,Vector2.ONE*cell)
-   var color=Color(COLORS[level.map[y][x]])
-   if table:color.a=.24 if level.map[y][x] in ["~","#","h","f"] else .09
+   var point=Vector2i(x,y)
+   var terrain=terrain_at(point)
+   var color=Color(COLORS[terrain])
+   if table:color.a=.24 if terrain in ["~","#","h","f"] else .09
+   if marks.has(point):color.a=.54
    draw_rect(square,color)
    draw_rect(square,Color(.20,.14,.10,.32),false,1)
+   if marks.has(point):
+    var marker=square.position+Vector2(cell*.78,cell*.22)
+    draw_circle(marker,maxf(1.5,cell*.13),Color("4a332c"))
+    draw_circle(marker,maxf(1.0,cell*.085),Color("ffe8a5"))
  for index in level.deployment_positions.size():
   draw_token(level.deployment_positions[index],str(index+1),Color("294f70"))
  for index in level.enemies.size():
@@ -70,21 +83,27 @@ func _gui_input(event: InputEvent):
   if not event.pressed:last_tile=Vector2i(-1,-1);return
   grab_focus()
   use_pointer(event.position,event.button_index==MOUSE_BUTTON_RIGHT)
- elif event is InputEventMouseMotion and (event.button_mask & (MOUSE_BUTTON_MASK_LEFT|MOUSE_BUTTON_MASK_RIGHT)):
-  use_pointer(event.position,(event.button_mask & MOUSE_BUTTON_MASK_RIGHT)!=0)
+ elif event is InputEventMouseMotion:
+  var point=tile_at(event.position)
+  if point.x>=0:tile_inspected.emit(point)
+  if event.button_mask & (MOUSE_BUTTON_MASK_LEFT|MOUSE_BUTTON_MASK_RIGHT):
+   use_pointer(event.position,(event.button_mask & MOUSE_BUTTON_MASK_RIGHT)!=0)
  elif event is InputEventKey and event.pressed:
   var edges={KEY_LEFT:Vector2i.LEFT,KEY_RIGHT:Vector2i.RIGHT,KEY_UP:Vector2i.UP,KEY_DOWN:Vector2i.DOWN}
   if edges.has(event.keycode):
    cursor=(cursor+edges[event.keycode]).clamp(Vector2i.ZERO,board_size()-Vector2i.ONE)
-   queue_redraw();accept_event()
+   tile_inspected.emit(cursor);queue_redraw();accept_event()
   elif event.keycode in [KEY_ENTER,KEY_SPACE,KEY_BACKSPACE] and not event.echo:
-   tile_edited.emit(cursor,event.keycode==KEY_BACKSPACE);accept_event()
+   tile_edited.emit(cursor,event.keycode==KEY_BACKSPACE);tile_inspected.emit(cursor);accept_event()
+
+func tile_at(position: Vector2) -> Vector2i:
+ var rect=board_rect()
+ if not rect.has_point(position) or cell_size()<=0:return Vector2i(-1,-1)
+ var relative=(position-rect.position)/cell_size()
+ return Vector2i(floori(relative.x),floori(relative.y))
 
 func use_pointer(position: Vector2,erase: bool):
- var rect=board_rect()
- if not rect.has_point(position):return
- var relative=(position-rect.position)/cell_size()
- var point=Vector2i(floori(relative.x),floori(relative.y))
- if point==last_tile:return
+ var point=tile_at(position)
+ if point.x<0 or point==last_tile:return
  cursor=point;last_tile=point
- tile_edited.emit(point,erase);queue_redraw();accept_event()
+ tile_edited.emit(point,erase);tile_inspected.emit(point);queue_redraw();accept_event()
