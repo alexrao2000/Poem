@@ -2181,8 +2181,25 @@ func run():
   assert(app.ui.find_child("RouteSurveyMark",true,false).text=="R-12")
   app.ui.find_child("BattleRouteInspect",true,false).pressed.emit();await process_frame
   assert(app.screen=="battle" and app.cursor_tile==Vector2i(17,11) and app.terrain_card.place.text=="Glass Harbor")
+  app.ui.find_child("OpenLandmarkIndex",true,false).pressed.emit();await process_frame
+  controls(app,"Review atlas").pressed.emit();await process_frame
+  atlas=app.ui.find_child("CampaignRoute",true,false)
+  app.ui.find_child("BattleRouteGrid",true,false).button_pressed=true
+  await process_frame;await process_frame
+  var atlas_click=InputEventMouseButton.new();atlas_click.button_index=MOUSE_BUTTON_LEFT;atlas_click.pressed=true
+  atlas_click.position=atlas.get_global_transform()*atlas.battle_tile_box(Vector2i(12,11)).get_center()
+  atlas_click.global_position=atlas_click.position;root.push_input(atlas_click,true);await process_frame
+  assert(atlas.has_focus() and atlas.battle_tile==Vector2i(12,11) and atlas.selected==5)
+  atlas_click.pressed=false;root.push_input(atlas_click,true)
+  var atlas_arrow=InputEventKey.new();atlas_arrow.keycode=KEY_RIGHT;atlas_arrow.pressed=true;root.push_input(atlas_arrow,true)
+  await process_frame
+  assert(atlas.battle_tile==Vector2i(13,11) and app.ui.find_child("BattleRouteTileSummary",true,false).text.begins_with("N-12"))
+  atlas_arrow.pressed=false;root.push_input(atlas_arrow,true)
+  app.ui.find_child("BattleRouteInspect",true,false).pressed.emit();await process_frame
+  assert(app.screen=="battle" and app.cursor_tile==Vector2i(13,11) and app.terrain_card.tile==app.cursor_tile)
   assert(canonical(app.game.save_data("battle"))==atlas_state and FileAccess.get_file_as_string(valley_path)==atlas_disk)
  print("PASS: the Valley atlas opens from battle, overlays its exact grid, and returns to the original view or the selected landmark without saving")
+ print("PASS: pointer and arrow keys choose any atlas tile, with exact terrain and a read-only return to the tactical cursor")
  root.size=original_size
  root.content_scale_size=original_scale
  await process_frame

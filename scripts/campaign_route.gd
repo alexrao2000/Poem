@@ -4,6 +4,7 @@ extends Control
 signal chapter_selected(index: int)
 signal seal_spacing_changed(crowded: bool)
 signal pin_placed(index: int,position: Vector2)
+signal battle_tile_selected(tile: Vector2i)
 const MAP=preload("res://assets/art/campaign-valley-v1.png")
 const Grid=preload("res://scripts/campaign_editor_grid.gd")
 const Rules=preload("res://scripts/rules.gd")
@@ -32,6 +33,8 @@ var survey_terrain: Array
 var survey_standards: Array[Vector2i]
 var battle_counters: Dictionary
 var battle_claims: Dictionary
+var battle_tile_picker=false
+var battle_tile=Vector2i(-1,-1)
 
 func configure(chapters: Array,index: int,finished=false,rallies=PackedInt32Array(),retreat=0,atlas: Texture2D=null):
  map_picture=MAP if atlas==null else atlas
@@ -89,6 +92,18 @@ func battle_counter_point(tile: Vector2i) -> Vector2:
  if seal>=0 and seal<=current:return point(seal)+Vector2(11,9)*seal_scale
  return battle_tile_box(tile).get_center()
 
+func enable_battle_tile_picker(enabled: bool):
+ battle_tile_picker=enabled
+ mouse_filter=Control.MOUSE_FILTER_STOP if enabled else Control.MOUSE_FILTER_IGNORE
+ focus_mode=Control.FOCUS_ALL if enabled else Control.FOCUS_NONE
+ tooltip_text="Click a tile or use the arrow keys with the atlas focused." if enabled else ""
+ queue_redraw()
+
+func select_battle_tile(tile: Vector2i):
+ battle_tile=tile.clamp(Vector2i.ZERO,Vector2i(Valley.WIDTH-1,Valley.HEIGHT-1))
+ battle_tile_selected.emit(battle_tile)
+ queue_redraw()
+
 func draw_battle_positions():
  for tile in battle_claims:
   var color=Valley.STANDARD_COLORS[battle_claims[tile]].lightened(.26)
@@ -135,9 +150,18 @@ func place_pin(position: Vector2):
  pin_placed.emit(selected,positions[selected])
 
 func _gui_input(event):
- if not editable or not event is InputEventMouseButton or event.button_index!=MOUSE_BUTTON_LEFT or not event.pressed:return
+ if battle_tile_picker and event is InputEventKey and event.pressed:
+  var steps={KEY_LEFT:Vector2i.LEFT,KEY_RIGHT:Vector2i.RIGHT,KEY_UP:Vector2i.UP,KEY_DOWN:Vector2i.DOWN}
+  if steps.has(event.keycode):
+   select_battle_tile(battle_tile+steps[event.keycode]);accept_event()
+  return
+ if not (editable or battle_tile_picker) or not event is InputEventMouseButton or event.button_index!=MOUSE_BUTTON_LEFT or not event.pressed:return
  if not map_rect.has_point(event.position):return
- place_pin((event.position-map_rect.position)/map_rect.size)
+ var pin=(event.position-map_rect.position)/map_rect.size
+ if editable:place_pin(pin)
+ else:
+  grab_focus()
+  select_battle_tile(Valley.route_tile([pin.x,pin.y]))
  accept_event()
 
 func arrange():
@@ -233,3 +257,7 @@ func _draw():
    draw_colored_polygon(PackedVector2Array([pole+Vector2(0,-24),pole+Vector2(16,-21),pole+Vector2(12,-13),pole+Vector2(0,-15)]),Color("f1dfb5"))
  draw_set_transform(Vector2.ZERO)
  if not battle_counters.is_empty() or not battle_claims.is_empty():draw_battle_positions()
+ if battle_tile_picker:
+  var selection=battle_tile_box(battle_tile).grow(-2)
+  draw_rect(selection,Color(1.0,.86,.60,.20))
+  draw_rect(selection,Color("fff1cc" if has_focus() else "d9b77c"),false,2.0)

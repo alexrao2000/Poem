@@ -958,11 +958,20 @@ func show_campaign_route(view: String="campaign_route"):
 		var legend=label_in(frame,route_hint,15,Color("766e5e"));legend.name="RouteLegend"
 	if retreat_view:button_in(frame,"Return to result",close_retreat_route).grab_focus()
 	elif battle_view:
+		var inspection=label_in(frame,"",16,GOLD);inspection.name="BattleRouteTileSummary";inspection.hide()
+		route.battle_tile_selected.connect(func(tile):
+			inspection.text="%s · %s"%[ValleyBattle.survey_mark(tile),game.terrain_profile(tile).name])
+		route.chapter_selected.connect(func(chapter):route.select_battle_tile(route.survey_cells[chapter]))
+		route.select_battle_tile(route.survey_cells[route.selected])
 		var key=label_in(frame,"Blue squares mark the company. Red diamonds mark enemies. Crosses mark downed allies.",15,Color("766e5e"))
 		key.name="BattleRouteKey";key.hide()
 		var display_options=HBoxContainer.new();display_options.add_theme_constant_override("separation",8);frame.add_child(display_options)
 		var grid=CheckButton.new();grid.text="Show battle grid";grid.name="BattleRouteGrid";display_options.add_child(grid)
-		grid.toggled.connect(func(enabled):route.set_war_table_overlay(game.info() if enabled else {}))
+		grid.tooltip_text="Show the tactical tiles and inspect them with the pointer or arrow keys."
+		grid.toggled.connect(func(enabled):
+			inspection.visible=enabled
+			route.set_war_table_overlay(game.info() if enabled else {})
+			route.enable_battle_tile_picker(enabled))
 		interface_audio.watch(grid)
 		var company=CheckButton.new();company.text="Show units";company.name="BattleRouteUnits";display_options.add_child(company)
 		company.tooltip_text="Mark standing and downed units and show who holds each standard."
@@ -973,7 +982,7 @@ func show_campaign_route(view: String="campaign_route"):
 		interface_audio.watch(company)
 		var actions=HBoxContainer.new();actions.add_theme_constant_override("separation",8);frame.add_child(actions)
 		var inspect=button_in(actions,"Inspect selected tile",func():
-			var tile=route.survey_cells[route.selected]
+			var tile=route.battle_tile
 			close_battle_route();focus_map_point(tile))
 		inspect.name="BattleRouteInspect";inspect.size_flags_horizontal=Control.SIZE_EXPAND_FILL
 		var back=button_in(actions,"Return to battle",close_battle_route)
