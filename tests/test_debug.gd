@@ -187,6 +187,10 @@ func run():
  app.show_options("camp");app.ui.find_child("DebugMode",true,false).button_pressed=true
  assert(app.debug_session.active and app.campaign_save_path()==app.save_path+".debug")
  await inspect(app)
+ app.show_save_transfer("camp");await inspect(app)
+ assert(app.ui.find_child("TransferInstructions",true,false).text.contains("temporary Debug campaign"))
+ assert(FileAccess.get_file_as_string(app.save_path)==disk)
+ app.close_save_transfer();app.show_options("camp")
  app.ui.find_child("Permadeath",true,false).button_pressed=false
  assert(not app.game.permadeath,"Experimental rule toggle applies immediately")
  press(app,"Open debug tools");await inspect(app);await verify_navigation(app)

@@ -2101,8 +2101,9 @@ func show_save_transfer(return_screen: String):
 	if return_screen=="title":title_backdrop()
 	var panel=menu_panel()
 	label_in(panel,"LOCAL SAVE TRANSFER",36,GOLD)
-	label_in(panel,"Move your campaign between browsers or the desktop app. Copy the code below, then paste it into this screen on the other build.",21)
-	label_in(panel,"Import replaces this device’s current campaign and keeps its previous save as a backup. No code is sent to a server.",17)
+	var instructions="Paste a starter code to load a position into the temporary Debug campaign. Copy the code below to keep this test position." if debug_session.active else "Move your campaign between browsers or the desktop app. Copy the code below, then paste it into this screen on the other build."
+	label_in(panel,instructions,21).name="TransferInstructions"
+	label_in(panel,"Import replaces the current save in this slot. Copy its code first to keep a separate backup. Poem reads save codes locally.",17).name="TransferBackupHint"
 	transfer_text=TextEdit.new();transfer_text.name="SaveCode";transfer_text.size_flags_vertical=Control.SIZE_EXPAND_FILL
 	transfer_text.custom_minimum_size.y=160
 	transfer_text.wrap_mode=TextEdit.LINE_WRAPPING_BOUNDARY;transfer_text.add_theme_font_size_override("font_size",14);panel.add_child(transfer_text)

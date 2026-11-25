@@ -35,6 +35,8 @@ func run():
  var app=load("res://main.tscn").instantiate();app.settings_path="";app.save_path="/private/tmp/poem-transfer-ui-save.json";root.add_child(app);await process_frame
  app.show_save_transfer("title");await process_frame
  assert(app.screen=="save_transfer" and is_instance_valid(app.transfer_text))
+ assert(app.ui.find_child("TransferInstructions",true,false).text.contains("between browsers or the desktop app"))
+ assert(app.ui.find_child("TransferBackupHint",true,false).text.contains("Copy its code first to keep a separate backup"))
  var title_chapter=app.game.chapter;var disk_before_return=FileAccess.get_file_as_string(app.save_path) if FileAccess.file_exists(app.save_path) else ""
  app.transfer_text.text=code;app.transfer_text.grab_focus();press_escape()
  assert(app.screen=="title" and app.game.chapter==title_chapter,"Title transfer Escape does not import the pasted campaign")
