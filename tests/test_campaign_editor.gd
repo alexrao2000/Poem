@@ -4,6 +4,7 @@ const Rules=preload("res://scripts/rules.gd")
 const Tactics=preload("res://scripts/tactics.gd")
 const Valley=preload("res://scripts/world_map_battle.gd")
 const Route=preload("res://scripts/campaign_route.gd")
+const Backdrop=preload("res://scripts/dialogue_backdrop.gd")
 const Shutdown=preload("helpers/game_shutdown.gd")
 
 func _initialize():call_deferred("run")
@@ -1362,6 +1363,8 @@ func verify_dialogue_preview(app,field: String,panel: String,speaker: String,wor
  button.pressed.emit();await process_frame
  assert(app.screen=="dialogue" and app.ui.name=="EditorDialoguePreview" and not original_ui.visible)
  assert(app.ui.get_node("DialogueBackdrop").context_id==kind+"_"+str(editor.selected))
+ if editor.level().presentation=="valley_table":
+  assert(app.ui.get_node("DialogueBackdrop").artwork==Backdrop.VALLEY_ATLAS)
  assert(app.dialogue_name.text==speaker and app.dialogue_label.text==words)
  assert(app.dialogue_stage.skip_button.text=="Return to editor")
  if finish_line:

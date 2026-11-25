@@ -46,6 +46,7 @@ var dialogue_portrait: TextureRect
 var dialogue_stage: Control
 var dialogue_reveal=0.0
 var dialogue_preview_cast: Dictionary={}
+const DialogueBackdrop=preload("res://scripts/dialogue_backdrop.gd")
 const CombatTrail=preload("res://scripts/combat_trail.gd")
 const CombatImpact=preload("res://scripts/combat_impact.gd")
 const CombatHitStop=preload("res://scripts/combat_hit_stop.gd")
@@ -619,7 +620,9 @@ func open_editor_dialogue_preview(lines: Array,kind: String,opener: Button):
 		portraits.expression_textures.clear()
 		dialogue_lines=[];dialogue_label=null;dialogue_name=null;dialogue_stage=null;dialogue_portrait=null
 		ui.show();opener.grab_focus()
-	begin_dialogue(lines,return_to_editor,kind,campaign_editor.selected,[],true)
+	var chapter: int=campaign_editor.selected
+	var painting=DialogueBackdrop.location_texture(campaign_editor.level(),chapter,kind,campaign_draft.route_texture())
+	begin_dialogue(lines,return_to_editor,kind,chapter,[],painting,true)
 	dialogue_stage.next_button.grab_focus()
 
 func restore_editor_after_preview(return_to: String,view_state: Dictionary):
@@ -2327,11 +2330,14 @@ func show_ending():
 func show_dialogue(lines: Array,on_complete: Callable,kind="opening",backdrop_chapter=-1,use_losses=true):
 	screen="dialogue";reset_ui()
 	var losses=game.lost_ids(kind=="closing") if use_losses else []
-	begin_dialogue(lines,on_complete,kind,game.chapter if backdrop_chapter<0 else backdrop_chapter,losses)
+	var chapter=game.chapter if backdrop_chapter<0 else backdrop_chapter
+	var location=game.content.chapters[clampi(chapter,0,game.content.chapters.size()-1)]
+	var painting=DialogueBackdrop.location_texture(location,chapter,kind,game.content.get("route_atlas"))
+	begin_dialogue(lines,on_complete,kind,chapter,losses,painting)
 
-func begin_dialogue(lines: Array,on_complete: Callable,kind: String,backdrop_chapter: int,losses: Array,editor_preview=false):
-	var backdrop=preload("res://scripts/dialogue_backdrop.gd").new()
-	backdrop.begin(ui,[world,pieces,markers],backdrop_chapter,kind)
+func begin_dialogue(lines: Array,on_complete: Callable,kind: String,backdrop_chapter: int,losses: Array,painting: Texture2D,editor_preview=false):
+	var backdrop=DialogueBackdrop.new()
+	backdrop.begin(ui,[world,pieces,markers],backdrop_chapter,kind,painting)
 	dialogue_lines=lines if kind=="support" else preload("res://scripts/story_survivors.gd").resolve(lines,losses)
 	dialogue_index=0;dialogue_callback=on_complete
 	dialogue_stage=preload("res://scripts/dialogue_stage.gd").new();ui.add_child(dialogue_stage)

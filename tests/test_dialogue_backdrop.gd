@@ -1,7 +1,35 @@
 extends SceneTree
 const Shutdown=preload("helpers/game_shutdown.gd")
 const Backdrop=preload("res://scripts/dialogue_backdrop.gd")
+const Draft=preload("res://scripts/campaign_draft.gd")
+const Rules=preload("res://scripts/rules.gd")
 func _initialize():call_deferred("run")
+
+func check_authored_locations(app):
+ var draft=Draft.new();draft.load_poem_template(true)
+ assert(draft.move_chapter(1,4)==5)
+ var compiled=draft.compile()
+ app.game=Rules.new(compiled.content)
+ app.story=compiled.story
+ app.game.chapter=5;app.game.start_battle();app.make_map();app.show_battle()
+ app.show_dialogue(app.story.chapters[5].closing,app.show_battle,"closing")
+ assert(app.ui.get_node("DialogueBackdrop").context_id=="closing_5")
+ assert(app.ui.get_node("DialogueBackdrop").artwork==Backdrop.texture_for(1,"closing"))
+ app.finish_dialogue();await process_frame
+ app.game.chapter=11;app.game.start_battle();app.make_map();app.show_battle()
+ var battle=app.game.save_data("battle")
+ app.show_dialogue(app.story.chapters[11].opening,app.show_battle)
+ assert(app.ui.get_node("DialogueBackdrop").artwork==Backdrop.VALLEY_ATLAS)
+ app.finish_dialogue();await process_frame
+ var image=Image.create_empty(32,24,false,Image.FORMAT_RGB8);image.fill(Color("d2bc91"))
+ var imported=ImageTexture.create_from_image(image)
+ app.game.content.route_atlas=imported
+ for kind in ["opening","closing","support"]:
+  app.show_dialogue(app.story.chapters[11].opening,app.show_battle,kind)
+  assert(app.ui.get_node("DialogueBackdrop").artwork==imported)
+  app.finish_dialogue();await process_frame
+ assert(app.game.save_data("battle")==battle and app.world.visible and app.pieces.visible)
+ print("PASS: reordered chapters use their location art and all war-table scenes use the active atlas")
 
 func run():
  var app=load("res://main.tscn").instantiate();app.settings_path="";app.save_path="/private/tmp/poem-dialogue-place-test.json"
@@ -44,6 +72,7 @@ func run():
    assert(app.game.chapter==2 and app.ui.get_node("DialogueBackdrop").context_id=="opening_2","Next chapter selects its own background without retaining the closing scene")
    app.finish_dialogue()
   else:assert(app.game.completed and app.screen=="ending" and not app.ui.has_node("DialogueBackdrop"),"Final dialogue restores the scene and reaches the epilogue")
+ await check_authored_locations(app)
  await Shutdown.dispose(app);await process_frame
  print("PASS: twelve distinct chapter locations, %d aspect-preserving layouts, two closing variants, scene restoration, actual victory transitions and unchanged simulation"%layouts)
  quit()
