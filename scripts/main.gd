@@ -2656,7 +2656,9 @@ func restart_summary() -> String:
 	if game.trials.flags.reset_pressure:text+=" · Pressure %d → %d"%[game.trials.pressure,preview.pressure]
 	if game.trials.flags.reset_pressure or game.trials.flags.hard_campaign:
 		text+="\nNext enemies: +%d HP · +%d attack · +%d speed · +%d defense"%[modifiers.max_hp,modifiers.pow,modifiers.speed,modifiers.defense]
-	if game.trials.flags.reset_pressure:text+="\nHeld tonics: %d · Raiders %s"%[modifiers.held_tonics,"advance before deployment" if modifiers.raiders_advance else "stay at their starting positions"]
+	if game.trials.flags.reset_pressure:
+		text+="\nHeld tonics: %d"%modifiers.held_tonics
+		if modifiers.raiders_advance:text+=" · "+CampaignSettings.raider_preparations(modifiers.raider_moves)
 	return text
 
 func restart_campaign_attempt():

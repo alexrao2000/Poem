@@ -19,7 +19,7 @@ const SWITCHES=[
  {
   "key": "reset_pressure",
   "name": "Enemies prepare after resets",
-  "text": "Enemies start with two tonics. Retries add stats, use up tonics and advance raiders. Lyra must deploy; her fall ends the attempt. Works with permadeath on or off."
+  "text": "Enemies start with two tonics. Retries add stats, spend tonics and give raiders another move before deployment. Lyra must deploy. Her fall ends the attempt."
  },
  {
   "key": "hard_campaign",
@@ -59,5 +59,8 @@ static func preparation_lines(game) -> Array[String]:
   var enemies=game.trials.enemy_modifiers(game.chapter)
   var stock=int(enemies.held_tonics)
   lines.append("Enemy pressure %d / 10 · %d held tonic%s per enemy"%[game.trials.pressure,stock,"" if stock==1 else "s"])
-  if enemies.raiders_advance:lines.append("Raiders may advance before deployment.")
+  if enemies.raiders_advance:lines.append(raider_preparations(enemies.raider_moves))
  return lines
+
+static func raider_preparations(moves: int) -> String:
+ return "Raiders get up to %d %s before deployment."%[moves,"move" if moves==1 else "moves"]

@@ -73,7 +73,7 @@ func rules():
    var modifiers=prepared.trials.enemy_modifiers(chapter)
    assert(modifiers.max_hp==6+chapter+pressure*2 and modifiers.pow==2+int(chapter/2)+pressure)
    assert(modifiers.speed==1+int(chapter/4) and modifiers.defense==int(chapter/3))
-   assert(modifiers.held_tonics==maxi(0,2-pressure) and modifiers.raiders_advance==(pressure>0))
+   assert(modifiers.held_tonics==maxi(0,2-pressure) and modifiers.raider_moves==pressure and modifiers.raiders_advance==(pressure>0))
    var occupied=[]
    for unit in prepared.units:
     assert(prepared.pos(unit) not in occupied,"Reset advances cannot overlap deployed units")
@@ -83,6 +83,21 @@ func rules():
     for key in ["max_hp","pow","speed","defense"]:assert(unit[key]==mini(prepared.STAT_CAPS[key],original_unit[key]+modifiers[key]),"Preparation preview matches actual enemy stats")
     assert(unit.held_tonics==modifiers.held_tonics)
    assert(prepared.valid_save(prepared.save_data("battle")),"Every pressure/chapter preparation remains loadable")
+ for permanent in [false,true]:
+  var attempt=Rules.new();attempt.new_campaign(permanent);attempt.trials.flags.reset_pressure=true;attempt.start_battle()
+  var rng=attempt.rng.state
+  fall(attempt,"lyra");assert(attempt.result()=="defeat" and attempt.retry_battle())
+  attempt.start_battle()
+  var first=attempt.living("enemy").filter(func(enemy):return enemy.id=="enemy_2")[0]
+  assert(attempt.trials.pressure==1 and attempt.pos(first)==Vector2i(7,4) and first.held_tonics==1)
+  var preview=attempt.trials.restart_preview(attempt)
+  assert(preview.pressure==2 and preview.enemies.raider_moves==2 and preview.enemies.held_tonics==0)
+  assert(attempt.trials.restart(attempt));attempt.start_battle()
+  var second=attempt.living("enemy").filter(func(enemy):return enemy.id=="enemy_2")[0]
+  assert(attempt.trials.pressure==2 and attempt.pos(second)==Vector2i(3,4),"The second retry gives the archer another legal move")
+  assert(second.held_tonics==0 and second.hp==first.hp+2 and second.pow==first.pow+1)
+  assert(not second.acted and not second.moved and not second.has("move_origin"))
+  assert(attempt.turn==1 and attempt.phase=="player" and attempt.rng.state==rng,"Preparations spend no combat action or roll")
  var g=Rules.new();g.new_campaign(true);g.action_saves=true
  for key in g.trials.flags:g.trials.flags[key]=true
  g.start_battle();var base=Rules.new();base.start_battle()
@@ -189,8 +204,8 @@ func verify_council_preparation(app):
    [false,true,false,false,0,[]],
    [true,true,false,false,0,["Section 2 · Rally point Chapter 05"]],
    [false,true,true,true,0,["Enemy pressure 0 / 10 · 2 held tonics per enemy"]],
-   [false,false,true,true,1,["Enemy pressure 1 / 10 · 1 held tonic per enemy","Raiders may advance before deployment."]],
-   [true,true,true,true,10,["Section 2 · Rally point Chapter 05","Enemy pressure 10 / 10 · 0 held tonics per enemy","Raiders may advance before deployment."]],
+   [false,false,true,true,1,["Enemy pressure 1 / 10 · 1 held tonic per enemy","Raiders get up to 1 move before deployment."]],
+   [true,true,true,true,10,["Section 2 · Rally point Chapter 05","Enemy pressure 10 / 10 · 0 held tonics per enemy","Raiders get up to 10 moves before deployment."]],
    [false,false,false,true,3,[]],
    ]:
    app.game.new_campaign(sample[0]);app.game.chapter=5;app.game.story_seen=["opening_5"]
@@ -228,7 +243,7 @@ func verify_trial_ledger(app):
   {"flags":["section_restarts"],"permadeath":true,"expected":["Section 2 · Rally point Chapter 05"]},
   {"flags":["section_restarts"],"pressure":7,"expected":[]},
   {"flags":["reset_pressure","hard_campaign"],"pressure":1,"expected":[
-   "Enemy pressure 1 / 10 · 1 held tonic per enemy","Raiders may advance before deployment.",
+   "Enemy pressure 1 / 10 · 1 held tonic per enemy","Raiders get up to 1 move before deployment.",
    "Enemy bonuses for the next deployment · +13 HP, +5 attack, +2 speed, +1 defense",
   ]},
   {"flags":["death_legacies"],"permadeath":true,"stock":true,"expected":[]},
@@ -310,7 +325,7 @@ func run():
  app.make_map();app.show_battle();var before_retreat=app.game.save_data("battle").duplicate(true)
  app.show_battle_menu();await inspect(app)
  var preview=app.ui.find_child("RestartPreview",true,false)
- assert("Pressure 0 → 1" in preview.text and "Held tonics: 1" in preview.text and "advance before deployment" in preview.text)
+ assert("Pressure 0 → 1" in preview.text and "Held tonics: 1" in preview.text and "Raiders get up to 1 move before deployment." in preview.text)
  assert(app.game.save_data("battle")==before_retreat,"Opening the visible retreat preview preserves the campaign")
  app.close_battle_menu();app.restart_campaign_attempt()
  assert(app.screen=="dialogue","A retreat enters its earned company scenes")

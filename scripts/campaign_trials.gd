@@ -127,7 +127,7 @@ func record_losses(game) -> Dictionary:
 
 func enemy_modifiers(chapter: int,pressure_override: int=-1) -> Dictionary:
  var extra=(pressure if pressure_override<0 else clampi(pressure_override,0,10)) if flags.reset_pressure else 0
- return {"max_hp":extra*2+(6+chapter if flags.hard_campaign else 0),"pow":extra+(2+int(chapter/2) if flags.hard_campaign else 0),"speed":1+int(chapter/4) if flags.hard_campaign else 0,"defense":int(chapter/3) if flags.hard_campaign else 0,"held_tonics":maxi(0,2-extra) if flags.reset_pressure else 0,"raiders_advance":extra>0}
+ return {"max_hp":extra*2+(6+chapter if flags.hard_campaign else 0),"pow":extra+(2+int(chapter/2) if flags.hard_campaign else 0),"speed":1+int(chapter/4) if flags.hard_campaign else 0,"defense":int(chapter/3) if flags.hard_campaign else 0,"held_tonics":maxi(0,2-extra) if flags.reset_pressure else 0,"raiders_advance":extra>0,"raider_moves":extra}
 
 func restart_preview(game) -> Dictionary:
  var chapter=section_start(game.chapter) if flags.section_restarts and game.permadeath else game.chapter
@@ -154,22 +154,33 @@ func prepare_battle(game):
   else:
    var condition=deployment_condition(game,unit)
    if condition.recovering:unit.hp=condition.hp;unit.potions=condition.tonics;unit.recovering=true
- if extra>0:
-  var planner=preload("res://scripts/tactics.gd").new()
-  var previous=game.phase;game.phase="enemy"
-  for unit in game.units:
-   if not unit.get("raider",false):continue
-   var choice=planner.plan(game,unit)
-   if choice.position!=game.pos(unit):game.move_unit(unit,choice.position)
-   unit.acted=false;unit.moved=false;unit.erase("move_origin");unit.alerted=true
-  game.phase=previous
+ if extra>0:advance_raiders(game,extra)
+
+func advance_raiders(game,moves: int):
+ var raiders=game.units.filter(func(unit):return unit.get("raider",false))
+ var planner=preload("res://scripts/tactics.gd").new()
+ var previous=game.phase;game.phase="enemy"
+ for step in range(moves):
+  var moved=false
+  for raider in raiders:
+   var choice=planner.plan(game,raider)
+   if choice.position!=game.pos(raider) and game.move_unit(raider,choice.position):
+    moved=true
+    raider.moved=false;raider.erase("move_origin")
+   raider.alerted=true
+  # The first round wakes sentries, which may create moves on the next.
+  if step>0 and not moved:break
+ game.phase=previous
 
 func restart(game) -> bool:
  if game.units.is_empty() or game.completed:return false
  record_losses(game);game.commit_casualties()
  if flags.reset_pressure:
   pressure=mini(10,pressure+1)
-  log_event("The enemy prepares for another attempt: pressure %d/10. Held tonics are spent; raiders advance before deployment."%pressure)
+  if pressure==1:
+   log_event("The enemy prepares for another attempt: pressure %d/10. Held tonics are spent; raiders advance before deployment."%pressure)
+  else:
+   log_event("Enemy pressure is %d/10. Each enemy has %d tonics left. Raiders may advance up to %d times before deployment."%[pressure,maxi(0,2-pressure),pressure])
  if flags.section_restarts and game.permadeath:
   capture_section(game)
   var preserved=to_data();var deaths=game.roster.filter(func(unit):return unit.get("fallen",false)).duplicate(true)
