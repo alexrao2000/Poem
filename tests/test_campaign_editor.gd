@@ -538,6 +538,7 @@ func verify_custom_atlas(app,scratch: String):
  assert(ordinary>=0)
  malformed.chapters[ordinary].level.reveal_position=[1,3]
  assert(restored.structural_problem(malformed).contains("reveal origin"))
+ await verify_editor_reveal_preview(app,scratch,picture,origin)
  controls(app,"Play chapter").pressed.emit();await finish_presentation(app)
  assert(app.screen=="camp" and app.game.chapter==start and app.game.info().title=="New war-table chapter")
  controls(app,"Route").pressed.emit();await process_frame
@@ -573,6 +574,49 @@ func verify_custom_atlas(app,scratch: String):
  chapters.select(start-1);chapters.item_selected.emit(start-1)
  await process_frame
  print("PASS: a custom atlas reveals and closes at the authored origin while the standards stay in place")
+
+func verify_editor_reveal_preview(app,scratch: String,picture: Texture2D,origin: Vector2i):
+ var editor=app.campaign_editor
+ var document=editor.draft.encode();var chapter=editor.selected
+ var cursor=editor.grid.cursor
+ var original=app.game;var state=original.save_data("battle").duplicate(true)
+ var files=DirAccess.get_files_at(scratch);var disk=FileAccess.get_file_as_string(app.save_path)
+ var camera=app.map_navigation.capture_view()
+ var size_before=root.size;var scale_before=root.content_scale_size
+ var playback=app.score_director.player.get_stream_playback()
+ controls(app,"Preview atlas reveal").pressed.emit()
+ assert(app.screen=="editor_reveal_preview" and app.valley_reveal_active and app.game!=original)
+ var layer=Valley.grid_material(app.world)
+ assert(layer.get_shader_parameter("origin")==Vector2(origin))
+ assert(app.world.get_node("ValleyChart").material_override.albedo_texture==picture)
+ assert(app.canvas.get_node("ValleyRouteSeals").origin==Vector2(origin))
+ assert(app.ui.find_child("EndPlayerPhase",true,false)==null)
+ await finish_presentation(app)
+ assert(layer.get_shader_parameter("front")>20 and app.world.get_node("ValleyStandard2").visible)
+ root.size=Vector2i(720,640);root.content_scale_size=root.size
+ await process_frame;await process_frame
+ var preview_rect=root.get_visible_rect()
+ var chart_bounds=app.TacticalCamera.board_bounds(app.camera,Valley.reveal_corners(app.game.board_size()))
+ assert(preview_rect.grow(-17).encloses(chart_bounds))
+ assert(absf(chart_bounds.get_center().x-preview_rect.get_center().x)<1.0)
+ for text in ["Replay reveal","Return to editor [Esc]"]:
+  assert(preview_rect.encloses(controls(app,text).get_global_rect()))
+ controls(app,"Replay reveal").pressed.emit()
+ assert(app.valley_reveal_active and layer.get_shader_parameter("front")<0)
+ var tab=InputEventKey.new();tab.keycode=KEY_TAB;tab.pressed=true
+ root.push_input(tab,true);await finish_presentation(app)
+ root.size=size_before;root.content_scale_size=scale_before
+ await process_frame
+ var escape=InputEventKey.new();escape.keycode=KEY_ESCAPE;escape.pressed=true
+ root.push_input(escape,true)
+ await process_frame;await process_frame;await process_frame
+ assert(app.screen=="campaign_editor" and app.game==original and app.game.save_data("battle")==state)
+ assert(app.campaign_editor.selected==chapter and app.campaign_editor.grid.cursor==cursor)
+ assert(app.campaign_editor.draft.encode()==document and app.map_navigation.capture_view()==camera)
+ assert(app.campaign_editor.find_child("EditorPreviewReveal",true,false).has_focus())
+ assert(app.score_director.player.get_stream_playback()==playback)
+ assert(DirAccess.get_files_at(scratch)==files and FileAccess.get_file_as_string(app.save_path)==disk)
+ print("PASS: the editor plays and skips the authored atlas reveal and returns to the exact draft without writing a playtest")
 
 func verify_multiple_standards(app):
  controls(app,"New draft").pressed.emit();await process_frame

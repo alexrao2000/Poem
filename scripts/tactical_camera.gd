@@ -23,13 +23,13 @@ func configure(value: Camera3D,dimensions: Vector2i):
 static func needs_map_clearance(size: Vector2) -> bool:
  return size.x<maxf(NARROW_MAP_WIDTH,size.y*NARROW_MAP_ASPECT)
 
-static func fit_home(view: Camera3D,dimensions: Vector2i):
+static func fit_home(view: Camera3D,dimensions: Vector2i,keep_hud_clear=true):
  var viewport=view.get_viewport().get_visible_rect()
  var margin=minf(20,minf(viewport.size.x,viewport.size.y)*.10)
  var frame=viewport.grow(-margin)
  # Keep the Home view clear of the terrain readout and command panel on narrow screens.
  var open_map=Rect2(viewport.position+Vector2(22,240),viewport.size-Vector2(365,320))
- if needs_map_clearance(viewport.size) and open_map.size.x>=200 and open_map.size.y>=160:
+ if keep_hud_clear and needs_map_clearance(viewport.size) and open_map.size.x>=200 and open_map.size.y>=160:
   frame=open_map
  if not frame.has_area():return
  var corners=[Vector3(-.5,0,-.5),Vector3(dimensions.x-.5,0,-.5),

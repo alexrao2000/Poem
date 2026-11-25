@@ -5,6 +5,7 @@ signal draft_selection_changed(key: String, chapter: int)
 signal score_preview_requested(theme_id: String)
 signal recruit_preview_requested(recruit: Dictionary)
 signal arena_preview_requested(chapter_index: int, tile: Vector2i, from_route: bool)
+signal reveal_preview_requested
 signal dialogue_preview_requested(lines: Array, kind: String, button: Button, losses: Array, revisit: int)
 const Draft=preload("res://scripts/campaign_draft.gd")
 const Grid=preload("res://scripts/campaign_editor_grid.gd")
@@ -159,6 +160,10 @@ func build_battle(panel: VBoxContainer):
  var width=spin(layout.map[0].length(),Draft.MIN_BOARD.x,Draft.MAX_BOARD.x,Callable())
  var height=spin(layout.map.size(),Draft.MIN_BOARD.y,Draft.MAX_BOARD.y,Callable())
  var fixed_chart=layout.presentation=="valley_table"
+ if fixed_chart:
+  var reveal=action(panel,"Preview atlas reveal",func():reveal_preview_requested.emit())
+  reveal.name="EditorPreviewReveal"
+  reveal.tooltip_text="Watch the current chart become the battlefield and return to this draft."
  width.editable=not fixed_chart;height.editable=not fixed_chart
  field_label(parameters,"Width",width);field_label(parameters,"Height",height)
  panel.add_child(hold)

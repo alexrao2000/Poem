@@ -406,6 +406,7 @@ func sphere(parent,position,radius,color) -> MeshInstance3D:
 
 func map_camera():
 	var dimensions=game.board_size()
+	var reveal_preview=screen=="editor_reveal_preview"
 	camera.projection=Camera3D.PROJECTION_ORTHOGONAL
 	camera.size=maxf(16,dimensions.x+2)
 	var center=Vector3((dimensions.x-1)*.5,0,(dimensions.y-1)*.5)
@@ -413,8 +414,8 @@ func map_camera():
 	var distance=maxf(1.0,Vector2(dimensions).length()/38.0)
 	camera.position=center+Vector3(2.5,22,11.5)*distance
 	camera.look_at(center)
-	camera.h_offset=2.0;camera.v_offset=0.0
-	TacticalCamera.fit_home(camera,dimensions)
+	camera.h_offset=0.0 if reveal_preview else 2.0;camera.v_offset=0.0
+	TacticalCamera.fit_home(camera,dimensions,not reveal_preview)
 	fit_home_forecast()
 	map_navigation.configure(camera,dimensions)
 
@@ -430,11 +431,12 @@ func fit_home_forecast():
 
 func resize_map_home():
 	if screen=="battle" and not busy and map_navigation.at_home():map_camera()
+	elif screen=="editor_reveal_preview" and not busy:map_camera()
 
-func make_map():
+func make_map(change_score=true):
 	drop_mode=false
 	atlas_grid_enabled=false;atlas_units_enabled=false
-	select_score_theme()
+	if change_score:select_score_theme()
 	cursor_visible=false
 	clear_world()
 	map_camera()
@@ -585,6 +587,7 @@ func show_campaign_editor(return_to: String,view_state: Dictionary={}):
 	campaign_editor.score_preview_requested.connect(open_editor_score_preview)
 	campaign_editor.recruit_preview_requested.connect(open_editor_recruit_preview)
 	campaign_editor.arena_preview_requested.connect(open_editor_arena_preview)
+	campaign_editor.reveal_preview_requested.connect(open_editor_reveal_preview)
 	campaign_editor.dialogue_preview_requested.connect(open_editor_dialogue_preview)
 	campaign_editor.draft_selection_changed.connect(func(key,index):
 		campaign_editor_key=key;campaign_editor_chapter=index)
@@ -634,6 +637,56 @@ func open_editor_arena_preview(chapter_index: int,tile: Vector2i,from_route: boo
 	back.set_anchors_and_offsets_preset(Control.PRESET_BOTTOM_RIGHT)
 	back.offset_left=-256;back.offset_top=-66;back.offset_right=-22;back.offset_bottom=-22
 	back.grab_focus()
+
+func open_editor_reveal_preview():
+	if screen!="campaign_editor" or campaign_editor.level().presentation!="valley_table":return
+	var issue=campaign_draft.structural_problem(campaign_draft.data)
+	if not issue.is_empty():show_notice(issue);return
+	var view_state=editor_preview_state("Battle","EditorPreviewReveal")
+	var return_to=campaign_editor_return
+	var original_game=game
+	var original_camera=map_navigation.capture_view()
+	var original_map={
+		"selected":selected,"dropping":drop_mode,"cursor_visible":cursor_visible,"cursor_tile":cursor_tile,
+		"atlas_grid":atlas_grid_enabled,"atlas_units":atlas_units_enabled
+	}
+	var compiled=campaign_draft.compile()
+	game=Rules.new(compiled.content)
+	var seed_value=int(campaign_playtest_setup.seed) if campaign_playtest_setup.fixed_seed else -1
+	var pressure=int(campaign_playtest_setup.pressure) if compiled.settings.reset_pressure else 0
+	CampaignDraftModel.prepare_playtest(game,compiled.settings,campaign_editor.selected,seed_value,pressure)
+	game.start_battle()
+	selected=null
+	screen="editor_reveal_preview";reset_ui();make_map(false)
+	preview_return=func():
+		game=original_game
+		screen="campaign_editor"
+		selected=original_map.selected
+		make_map(false)
+		drop_mode=original_map.dropping;cursor_visible=original_map.cursor_visible;cursor_tile=original_map.cursor_tile
+		atlas_grid_enabled=original_map.atlas_grid;atlas_units_enabled=original_map.atlas_units
+		camera.projection=original_camera.projection;camera.fov=original_camera.fov
+		map_navigation.apply_return(1.0,original_camera,original_camera)
+		map_navigation.stop()
+		restore_editor_after_preview(return_to,view_state)
+	var actions=HBoxContainer.new();actions.add_theme_constant_override("separation",8);ui.add_child(actions)
+	actions.set_anchors_and_offsets_preset(Control.PRESET_CENTER_BOTTOM)
+	actions.offset_left=-220;actions.offset_right=220;actions.offset_top=-70;actions.offset_bottom=-22
+	var replay=button_in(actions,"Replay reveal",preview_editor_reveal);replay.size_flags_horizontal=Control.SIZE_EXPAND_FILL
+	var back=button_in(actions,"Return to editor [Esc]",close_editor_reveal_preview)
+	back.size_flags_horizontal=Control.SIZE_EXPAND_FILL;back.grab_focus()
+	await preview_editor_reveal()
+
+func preview_editor_reveal():
+	if busy:return
+	busy=true
+	await reveal_valley_battle()
+	busy=false
+
+func close_editor_reveal_preview():
+	if busy:return
+	var back=preview_return;preview_return=Callable()
+	back.call()
 
 func open_editor_dialogue_preview(lines: Array,kind: String,opener: Button,losses: Array,revisit: int):
 	if screen!="campaign_editor" or lines.is_empty():return
@@ -1625,6 +1678,8 @@ func _unhandled_input(event):
 		interface_audio.cue("back");show_title();get_viewport().set_input_as_handled();return
 	if screen in ["model","arena_preview"] and event is InputEventKey and event.pressed and not event.echo and event.keycode==KEY_ESCAPE:
 		interface_audio.cue("back");close_model_view();get_viewport().set_input_as_handled();return
+	if screen=="editor_reveal_preview" and event is InputEventKey and event.pressed and not event.echo and event.keycode==KEY_ESCAPE:
+		interface_audio.cue("back");close_editor_reveal_preview();get_viewport().set_input_as_handled();return
 	if screen=="retreat_route" and event is InputEventKey and event.pressed and not event.echo and event.keycode==KEY_ESCAPE:
 		interface_audio.cue("back");close_retreat_route();get_viewport().set_input_as_handled();return
 	if screen=="rally_company" and event is InputEventKey and event.pressed and not event.echo and event.keycode==KEY_ESCAPE:
