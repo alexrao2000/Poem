@@ -268,10 +268,20 @@ func run():
  assert(app.valley_reveal_skip)
  await finish_presentation(app)
  assert(not app.valley_reveal_active and app.map_navigation.at_home() and app.ui.visible)
+ var places={"Reed Crossing":[Vector2i(6,9),"BRIDGE"],"Hallow Abbey":[Vector2i(9,5),"SANCTUARY"],
+  "Kingsroad":[Vector2i(12,8),"BRIDGE"],"Windscar Pass":[Vector2i(19,7),"HILL"]}
+ for name in places:
+  var site=places[name]
+  app.click_tile(site[0]);await process_frame
+  assert(app.terrain_card.place.visible and app.terrain_card.place.text==name and app.terrain_card.heading.text==site[1])
+ app.click_tile(Vector2i(21,1));await process_frame
+ assert(not app.terrain_card.place.visible and app.terrain_card.place.text.is_empty())
+ assert(Valley.route_tile([1.0,1.0])==Vector2i(23,15))
+ assert(Valley.reached_places(app.game.content.chapters,app.game.chapter).size()==11)
  app.show_battle_menu();await process_frame
  controls(app,"Return to campaign route").pressed.emit();await process_frame
  assert(app.screen=="campaign_route" and app.game==installed and app.game.save_data("camp")==route_state)
  assert(FileAccess.get_file_as_string(app.save_path)==disk)
  await Shutdown.dispose(app);await process_frame
- print("PASS: campaign JSON and chapter order, three editor sizes, pointer terrain editing, authored bonds with chapter 32 saves, two complete authored chapters, valley reveal and skip, isolated resume and late route entrance")
+ print("PASS: campaign JSON and chapter order, three editor sizes, pointer terrain editing, authored bonds with chapter 32 saves, two complete authored chapters, valley reveal and route sites, isolated resume and late route entrance")
  quit()

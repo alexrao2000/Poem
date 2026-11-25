@@ -852,6 +852,8 @@ func show_battle():
 	battle_hint=label_in(bottom,"",14,Color("eddfbd"))
 	battle_hint.autowrap_mode=TextServer.AUTOWRAP_OFF;battle_hint.text_overrun_behavior=TextServer.OVERRUN_TRIM_WORD_ELLIPSIS
 	terrain_card=TerrainCard.new();terrain_card.configure(ui)
+	if game.info().get("presentation","")=="valley_table":
+		terrain_card.places=ValleyBattle.reached_places(game.content.chapters,game.chapter)
 	var inspected=game.pos(selected) if selected!=null else game.pos(game.living("player")[0]) if not game.living("player").is_empty() else Vector2i.ZERO
 	terrain_card.inspect(game,cursor_tile if cursor_visible else inspected)
 	ui.resized.connect(arrange_battle_side)

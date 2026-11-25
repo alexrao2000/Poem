@@ -23,8 +23,9 @@ const ROADS=[
  [[4,10],[4,8],[5,6],[7,5],[10,5],[13,5],[15,6]],
  [[11,12],[12,10],[15,9],[17,8],[18,6],[20,4]]]
 const CAPITAL=[21,2]
+const ROUTE_TERRAIN={"Reed Crossing":"=","Hallow Abbey":"+","Kingsroad":"=","Windscar Pass":"h"}
 
-static func chapter() -> Dictionary:
+static func chapter(route: Array) -> Dictionary:
  var cells=[]
  for y in HEIGHT:
   var row=[]
@@ -39,6 +40,10 @@ static func chapter() -> Dictionary:
  for road in ROADS:
   for index in range(road.size()-1):
    draw_road(cells,Vector2i(road[index][0],road[index][1]),Vector2i(road[index+1][0],road[index+1][1]))
+ for location in route:
+  if ROUTE_TERRAIN.has(location.place):
+   var point=route_tile(location.route_position)
+   cells[point.y][point.x]=ROUTE_TERRAIN[location.place]
  var allies=[[3,9],[4,9],[3,10],[4,10],[3,11],[4,11]]
  var enemies=[
   {"job":"Knight","position":CAPITAL,"ai":"guard","name":"The Ivory Marshal"},
@@ -111,6 +116,19 @@ static func build(parent: Node3D,game,scenery):
 
 static func reveal_origin(game) -> Vector2i:
  return game.objective_position() if game.info().objective=="seize" else Vector2i(CAPITAL[0],CAPITAL[1])
+
+static func route_tile(pin: Array) -> Vector2i:
+ return Vector2i(floori(pin[0]*WIDTH),floori(pin[1]*HEIGHT)).clamp(Vector2i.ZERO,Vector2i(WIDTH-1,HEIGHT-1))
+
+static func reached_places(chapters: Array,chapter_index: int) -> Dictionary:
+ var places={}
+ for index in range(0,chapter_index):
+  var chapter=chapters[index]
+  if chapter.place.is_empty() or chapter.get("presentation","")=="valley_table":continue
+  var tile=route_tile(chapter.route_position)
+  if not places.has(tile):places[tile]=[]
+  if chapter.place not in places[tile]:places[tile].append(chapter.place)
+ return places
 
 static func reveal_corners(board: Vector2i) -> Array:
  return [Vector3(-.5,0,-.5),Vector3(board.x-.5,0,-.5),

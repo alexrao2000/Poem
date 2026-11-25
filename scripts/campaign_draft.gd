@@ -102,7 +102,7 @@ func insert_chapter(after: int,copy_current: bool,valley_table=false) -> int:
  if data.chapters.size()>=MAX_CHAPTERS:return -1
  var record={"source":-1,"section":false,"level":blank_level(),"opening":[],"closing":[]}
  if valley_table:
-  record.level=preload("res://scripts/world_map_battle.gd").chapter()
+  record.level=preload("res://scripts/world_map_battle.gd").chapter(templates.chapters)
   record.opening=[{"speaker":"lyra","text":"Pull the seals off the chart. I want to see every road into the capital."},
    {"speaker":"oren","text":"We drew those crossings at the same scale. Put a company on each road and see where they can meet."}]
   record.closing=[{"speaker":"lyra","text":"The capital’s road is open. Send word to every company still on the map."}]

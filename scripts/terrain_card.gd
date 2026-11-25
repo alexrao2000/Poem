@@ -6,6 +6,8 @@ var heading: Label
 var icon: TextureRect
 var values: Label
 var detail: Label
+var place: Label
+var places: Dictionary={}
 var tile=Vector2i(-1,-1)
 
 func configure(parent: Control):
@@ -19,7 +21,11 @@ func configure(parent: Control):
  heading.add_theme_color_override("font_color",Color("63543a"));heading.size_flags_vertical=Control.SIZE_SHRINK_CENTER;identity.add_child(heading)
  values=Label.new();values.add_theme_font_size_override("font_size",14);column.add_child(values)
  detail=Label.new();detail.add_theme_font_size_override("font_size",13);detail.add_theme_color_override("font_color",Color("777163"));column.add_child(detail)
- for label in [heading,values,detail]:label.mouse_filter=Control.MOUSE_FILTER_IGNORE
+ place=Label.new();place.name="TerrainLocation";place.hide()
+ place.add_theme_font_override("font",FONT);place.add_theme_font_size_override("font_size",17)
+ place.add_theme_color_override("font_color",Color("63543a"));place.text_overrun_behavior=TextServer.OVERRUN_TRIM_ELLIPSIS
+ column.add_child(place)
+ for label in [heading,values,detail,place]:label.mouse_filter=Control.MOUSE_FILTER_IGNORE
 
 func inspect(game,point: Vector2i):
  tile=point
@@ -30,3 +36,7 @@ func inspect(game,point: Vector2i):
  heading.text=terrain.name.to_upper()
  values.text="Move %d   Cover %d   Avoid +%d"%[terrain.move,terrain.cover,terrain.avoid] if terrain.move>0 else "Cannot enter"
  detail.text="Restores %d HP each turn"%terrain.heal if terrain.heal>0 else "Slows movement" if terrain.move>1 else "Passable ground" if terrain.move>0 else "Find a route around"
+ var had_place=place.visible
+ place.text=" · ".join(places.get(point,[]))
+ place.visible=not place.text.is_empty()
+ if had_place!=place.visible:reset_size()
