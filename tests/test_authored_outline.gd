@@ -17,7 +17,7 @@ func run():
  var transparent=StandardMaterial3D.new();transparent.transparency=BaseMaterial3D.TRANSPARENCY_ALPHA
  var glowing=StandardMaterial3D.new();glowing.emission_enabled=true
  assert(not Outline.eligible(transparent) and not Outline.eligible(glowing))
- for pair in [["vanguard","lyra"],["female","nell"],["male","silas"],["caster","tarin"],["caster_female","vela"]]:
+ for pair in [["vanguard","lyra"],["female","nell"],["male","silas"],["caster","tarin"],["caster_female","vela"],["knight_male","oren"]]:
   var spec=studies[pair[0]].duplicate(true);spec.appearance="Identity";var models=Models.new("");models.catalog={"characters":{pair[1]:spec}}
   var unit=rules.roster.filter(func(value):return value.id==pair[1])[0].duplicate(true);unit.team="player"
   var actor=models.build(stage,unit,Vector3(35,0,0));var other=models.build(stage,unit,Vector3(40,0,0));await process_frame
@@ -29,6 +29,7 @@ func run():
   assert(skin_parts.size()==1,"The authored face keeps one contoured skin surface")
   var skin=skin_parts[0].material_override
   assert(skin.next_pass!=null and skin.next_pass.shader==Outline.SHADER)
+  assert(skin.get_shader_parameter("stubble")== (Color("786457") if unit.id=="oren" else Color.TRANSPARENT))
   var plain_models=Models.new("");plain_models.catalog={"characters":{pair[1]:studies[pair[0]]}};var plain=plain_models.build(stage,unit,Vector3(45,0,0));await process_frame
   var original=[]
   for mesh in plain.model.get_node("Rig/Armature/Skeleton3D").get_children():
@@ -84,6 +85,7 @@ func run():
   assert_cloth(driver)
   var fading_skin=skin_parts[0].material_override
   assert(fading_skin!=skin and fading_skin.get_shader_parameter("tint")==skin.get_shader_parameter("tint"))
+  assert(fading_skin.get_shader_parameter("stubble")==skin.get_shader_parameter("stubble"))
   assert(is_equal_approx(fading_skin.get_shader_parameter("defeat_visibility"),.35))
   for entry in driver.pairs:
    assert(entry.shell not in old_shells and is_equal_approx(entry.shell.get_shader_parameter("defeat_visibility"),.35),"Defeat clones and fades every shell without leaving an opaque silhouette")

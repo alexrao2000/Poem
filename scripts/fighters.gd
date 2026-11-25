@@ -156,7 +156,9 @@ func build(parent,u,p) -> Node3D:
  var gaze=joint(body,"Gaze",Vector3(0,.69,0));actor.register_bone("Gaze",gaze)
  var head=joint(gaze,"Head",Vector3.ZERO);head.scale=Vector3(.86,.83,.86);actor.register_bone("Head",head);actor.gaze_motion.bind(actor)
  var head_shape=Head.shape_key(appearance.get("face_shape","tapered"));head.set_meta("face_shape",head_shape)
- var head_skin=geo.mesh(head,Head.mesh(head_shape),Vector3.ZERO,Vector3.ONE,skin_surface(skin));head_skin.name="SculptedHead"
+ var stubble=Color(appearance.get("stubble",Color.TRANSPARENT))
+ var head_skin=geo.mesh(head,Head.mesh(head_shape),Vector3.ZERO,Vector3.ONE,skin_surface(skin,stubble))
+ head_skin.name="SculptedHead"
  for x in [-.14,.14]:ellipsoid(head,Vector3(x,-.015,0),Vector3(.025,.05,.025),skin)
  if heavy and u.team!="player":
   var helmet=preload("res://scripts/knight_helmet.gd")
@@ -238,11 +240,11 @@ func painted(color: Color,tile: int,metal=false) -> ShaderMaterial:
  material.set_shader_parameter("metal",1.0 if metal else 0.0)
  surface_cache[key]=material;return material
 
-func skin_surface(color: Color) -> ShaderMaterial:
- var key="head:"+color.to_html()
+func skin_surface(color: Color,stubble: Color) -> ShaderMaterial:
+ var key="head:"+color.to_html()+stubble.to_html()
  if not surface_cache.has(key):
   var material=ShaderMaterial.new();material.shader=SKIN_CONTOUR
-  material.set_shader_parameter("tint",color);surface_cache[key]=material
+  material.set_shader_parameter("tint",color);material.set_shader_parameter("stubble",stubble);surface_cache[key]=material
  return surface_cache[key]
 
 func glove_surface() -> ShaderMaterial:

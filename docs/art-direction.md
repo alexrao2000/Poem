@@ -647,6 +647,8 @@ Standalone head geometry was inspected from front and oblique views. Tests cover
 
 The sculpted skin now has soft brow and jaw shadows, warmer cheeks and a small highlight along the nose. The depth mask confines those changes to the front of the head. Both combat model sets retain each recruit’s skin palette, fitted expressions and defeat fade. The face uses one separate material batch per actor, with the existing mesh and texture coordinates.
 
+Oren’s short beard follows the jawline from his portrait. It uses the same head material, with a soft edge around the mouth and fine grain that fades at a distance. Both model sets keep his original expression decals and the same head geometry.
+
 
 ## Clouded arena skies
 

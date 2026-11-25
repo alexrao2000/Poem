@@ -56,6 +56,7 @@ func run():
   assert(actor.bones.Head.get_meta("face_shape")==head_shape and actor.bones.Head.get_node("SculptedHead").mesh.surface_get_arrays(0)[Mesh.ARRAY_VERTEX]==Head.mesh(head_shape).surface_get_arrays(0)[Mesh.ARRAY_VERTEX],"Recruit binds its selected sculpted jaw and nose")
   var skin=actor.bones.Head.get_node("SculptedHead").material_override
   assert(skin.shader==Fighters.SKIN_CONTOUR and skin.get_shader_parameter("tint")==Color(painter.profiles[unit.id].appearance.skin))
+  assert(skin.get_shader_parameter("stubble")== (Color("786457") if unit.id=="oren" else Color.TRANSPARENT),"Only Oren carries his portrait’s fine jaw stubble")
   if unit.id in ["dax","galen","hale"]:
    var expected=preload("res://scripts/character_beard.gd").mesh(painter.profiles[unit.id].appearance.beard_style)
    var beard=actor.bones.Head.get_node("Beard")
