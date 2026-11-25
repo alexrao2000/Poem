@@ -3,6 +3,7 @@ extends SceneTree
 # Live counters update after displayed actions without revealing future damage.
 
 const Shutdown=preload("helpers/game_shutdown.gd")
+const Rules=preload("res://scripts/rules.gd")
 class WaitingTactics extends "res://scripts/tactics.gd":
  func plan(game,unit):return {"position":game.pos(unit),"target":"","action":"wait"}
 func _initialize():call_deferred("run")
@@ -74,9 +75,48 @@ func run():
   assert("5/6" in app.objective_label.text and app.game.result()=="")
   await app.end_turn()
   assert(app.game.turn==7 and app.game.result()=="victory" and app.screen=="result" and "6/6" in app.battle_objective_text())
+ await verify_chain_release(app,viewport)
  await Shutdown.dispose(app);viewport.queue_free();await process_frame
  print("PASS: %d chapter layouts and 72 Debug status layouts, separate chapter and phase plates at 720 pixels, inset text and readable palette; exact objective descriptions, phase counters, attack contact ordering and both survival finishes"%layouts)
  quit()
+
+func verify_chain_release(app,viewport: SubViewport):
+ for dimensions in [Vector2i(720,640),Vector2i(1440,900)]:
+  var skip=dimensions.x>1000
+  viewport.size=dimensions;await process_frame
+  app.game.new_campaign();app.game.chapter=1;app.game.action_saves=true;app.game.start_battle()
+  var lyra=app.game.units[0];var tollkeeper=app.game.living("enemy")[0]
+  lyra.x=11;lyra.y=4;tollkeeper.x=12;tollkeeper.y=5
+  app.make_map();app.show_battle();await process_frame
+  var links=app.world.get_node("CrossingChain/IronLinks")
+  var original=links.multimesh.buffer
+  assert(links.visible and app.game.result().is_empty() and app.game.at(app.game.objective_position())==null)
+  app.click_tile(app.game.pos(lyra),lyra.id);app.click_tile(app.game.objective_position())
+  while app.busy:await process_frame
+  assert(app.game.result()=="victory")
+  var camera_before=app.map_navigation.capture_view();var state_before=app.game.rng.state
+  var marker_state=app.markers.visible
+  app.wait_action()
+  assert(app.busy and not app.ui.visible and not app.markers.visible and lyra.acted)
+  var saved=Rules.new();assert(saved.load_game(app.save_path)=="battle" and saved.result()=="victory")
+  var saw_drop=false
+  if skip:
+   var event=InputEventKey.new();event.pressed=true;event.keycode=KEY_TAB;viewport.push_input(event,true)
+  while app.busy:
+   if links.visible and links.multimesh.buffer!=original:
+    saw_drop=true
+    assert(Rect2(Vector2.ZERO,Vector2(dimensions)).grow(-20).has_point(app.camera.unproject_position(links.global_position)))
+    assert(links.multimesh.buffer[7]<original[7],"The first anchor end falls before the rest of the links")
+   await process_frame
+  assert(saw_drop!=skip and not links.visible and app.screen=="result" and app.ui.visible)
+  assert(app.markers.visible==marker_state and app.map_navigation.capture_view()==camera_before)
+  assert(app.game.rng.state==state_before and canonical(saved.save_data("battle"))==canonical(app.game.save_data("battle")))
+  app.make_map();app.show_battle()
+  var restored=app.world.get_node("CrossingChain/IronLinks")
+  var restored_view=app.map_navigation.capture_view()
+  assert(not restored.visible and not app.busy and await app.check_result())
+  assert(app.screen=="result" and app.map_navigation.capture_view()==restored_view,"Reloaded victories show the open channel without a repeated camera shot")
+ print("PASS: two actual Reed Crossing captures, movable links, a framed victory camera, immediate Tab skip, exact committed save and settled reload")
 
 func verify_header(app,dimensions: Vector2i):
  var header=app.battle_header;var chapter=header.chapter_plate;var phase=header.phase_plate

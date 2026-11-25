@@ -3,8 +3,9 @@ extends RefCounted
 
 static var link_mesh: TorusMesh
 static var chain_iron: StandardMaterial3D
+const DROP_DISTANCE=.79
 
-static func build(painter,parent: Node3D,first: Vector3,second: Vector3,height: float,sag: float,link_size: float):
+static func build(painter,parent: Node3D,first: Vector3,second: Vector3,height: float,sag: float,link_size: float) -> MultiMeshInstance3D:
  var chain=Node3D.new();chain.name="CrossingChain";chain.position=(first+second)*.5
  parent.add_child(chain)
  if link_mesh==null:
@@ -43,3 +44,21 @@ static func build(painter,parent: Node3D,first: Vector3,second: Vector3,height: 
  instances.buffer=data;instances.custom_aabb=envelope.grow(.02)
  var mesh=MultiMeshInstance3D.new();mesh.name="IronLinks";mesh.multimesh=instances
  mesh.material_override=chain_iron;chain.add_child(mesh)
+ return mesh
+
+static func release(links: MultiMeshInstance3D,duration: float) -> Tween:
+ var chain=links.multimesh
+ var rest=chain.buffer
+ var bounds=chain.custom_aabb
+ chain.custom_aabb=bounds.merge(AABB(bounds.position-Vector3.UP*DROP_DISTANCE,bounds.size))
+ var motion=links.create_tween()
+ motion.tween_method(func(progress):
+  var falling=rest.duplicate()
+  for index in chain.instance_count:
+   var ratio=float(index)/(chain.instance_count-1)
+   var delay=ratio*.20
+   var drop=clampf((progress-delay)/(1.0-delay),0.0,1.0)
+   falling[index*12+7]-=DROP_DISTANCE*drop*drop
+  chain.buffer=falling
+ ,0.0,1.0,duration)
+ return motion

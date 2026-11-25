@@ -426,7 +426,9 @@ func landscape(parent,game):
   landmark(parent,position,item.kind,-1,Vector2.INF,vented)
   if theme=="road" and item.kind=="tower":Fortification.kingsroad_standard(self,parent,position,site)
   if vented:vents.append(ChimneySmoke.vent(position,HOUSE_SCALE,site))
- if theme=="river":RiverChain.build(self,parent,Vector3(4.32,0,4.52),Vector3(6.68,0,4.52),.44,.25,.105)
+ if theme=="river":
+  var links=RiverChain.build(self,parent,Vector3(4.32,0,4.52),Vector3(6.68,0,4.52),.44,.25,.105)
+  if game.result()=="victory":links.hide()
  if theme=="village":
   village_mill(parent,MILL_MAP_SITE,.69)
   CinderfordMarket.build(self,parent,Vector3(1.5,0,2.5),.58)

@@ -1750,6 +1750,7 @@ func check_result() -> bool:
 	var outcome=game.result()
 	if outcome=="":return false
 	persist_campaign("battle")
+	if outcome=="victory":await play_crossing_chain_release()
 	screen="result";reset_ui()
 	var frame=menu_panel(1000)
 	var v=scrolling_column(frame)
@@ -1807,6 +1808,25 @@ func check_result() -> bool:
 			if persist_campaign("battle"):check_result())
 	button_in(frame,"Transfer code",func():show_save_transfer("result"))
 	return true
+
+func play_crossing_chain_release():
+	var links=world.get_node_or_null("CrossingChain/IronLinks") as MultiMeshInstance3D
+	if links==null or not links.visible:return
+	if screen!="battle" or not world.is_visible_in_tree():
+		links.hide()
+		return
+	var previous_busy=busy;var previous_skip=skip_combat
+	var previous_ui=ui.visible;var previous_markers=markers.visible
+	var original_view=map_navigation.capture_view()
+	var pace=.5 if preferences.values.combat_speed=="fast" else 1.0
+	busy=true;skip_combat=false;ui.hide();markers.hide()
+	if await combat_wait(map_navigation.approach_combat(links.global_position,.28*pace)):
+		await combat_wait(scenery.RiverChain.release(links,.47*pace))
+	links.hide()
+	var close_view=map_navigation.capture_view()
+	if not skip_combat:await combat_wait(map_navigation.return_from_combat(close_view,original_view,.22*pace))
+	map_navigation.apply_return(1.0,close_view,original_view);map_navigation.stop()
+	ui.visible=previous_ui;markers.visible=previous_markers;busy=previous_busy;skip_combat=previous_skip
 
 func show_ending():
 	if game.completed:

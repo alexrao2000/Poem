@@ -65,6 +65,8 @@ The same map reference informs persistent HP bars and soft contact shadows benea
 
 At Reed Crossing, a narrow band of animated foam follows the shoreline triangles on the tactical map and in close-up combat. The band fades into deeper water and runs downstream. Fights on the deck retain the far bank’s foam at their own water level. The strips share a material in each view and join the existing scenery batches.
 
+Seizing the Reed Crossing tollhouse saves the victory, then cuts back to the chain as its near end drops into the channel. The camera restores the tactical view before the chapter report. Tab skips the shot, and a reloaded victory already shows the open water.
+
 The battle command panel now groups Save, local transfer, options and the war council inside a centered menu, leaving unit actions and End Phase on the map. M opens it; Escape resumes the same selection and uncommitted movement. Compact spacing is checked at 1024×640 and 1280×720 alongside the standard 1440×900 layout. Keyboard focus stays within the menu, and its buttons still use the existing save, transfer and options flows.
 
 Infantry pose endpoints lower the body and leg roots together using the lowest boot sole as support. Actual boot vertices are checked across seven classes and six poses to keep a supporting foot at ground level without sinking. Mounted actors keep their seated posture and horse gait. Approach locomotion remains a procedural stride rather than full foot-locking IK.
