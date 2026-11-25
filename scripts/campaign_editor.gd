@@ -241,8 +241,6 @@ func show_terrain_rows():
  var dialog=AcceptDialog.new()
  dialog.name="EditorTerrainRows";dialog.title="Edit terrain rows"
  dialog.ok_button_text="Apply terrain";dialog.dialog_hide_on_ok=false
- dialog.wrap_controls=false
- dialog.min_size=Vector2i(560,480)
  add_child(dialog)
  dialog.add_cancel_button("Cancel").name="EditorCancelTerrainRows"
  dialog.canceled.connect(dialog.queue_free)
@@ -250,24 +248,21 @@ func show_terrain_rows():
  panel.custom_minimum_size.x=400
  panel.add_theme_constant_override("separation",8)
  dialog.add_child(panel)
- heading(panel,"Enter %d rows of %d tiles each."%[dimensions.y,dimensions.x],16).autowrap_mode=TextServer.AUTOWRAP_OFF
+ heading(panel,"Enter %d rows of %d tiles each."%[dimensions.y,dimensions.x],16,false)
  var legend=GridContainer.new()
  legend.columns=3
  legend.add_theme_constant_override("h_separation",16)
  panel.add_child(legend)
  for tile in Draft.Rules.TERRAIN_PROFILES:
-  var key=heading(legend,tile+"  "+Draft.Rules.TERRAIN_PROFILES[tile].name,15)
-  key.autowrap_mode=TextServer.AUTOWRAP_OFF
+  heading(legend,tile+"  "+Draft.Rules.TERRAIN_PROFILES[tile].name,15,false)
  if not grid.marks.is_empty():
-  var underlay=heading(panel,"Route locations keep their assigned terrain.",15)
-  underlay.autowrap_mode=TextServer.AUTOWRAP_OFF
+  heading(panel,"Route locations keep their assigned terrain.",15,false)
  var field=TextEdit.new()
  field.name="EditorTerrainRowsText";field.custom_minimum_size.y=240
  field.size_flags_vertical=SIZE_EXPAND_FILL
  field.text="\n".join(layout.map)
  panel.add_child(field)
- var error=heading(panel,"",15)
- error.name="EditorTerrainRowsError";error.autowrap_mode=TextServer.AUTOWRAP_OFF
+ var error=heading(panel,"",15,false);error.name="EditorTerrainRowsError"
  dialog.confirmed.connect(func():
   var rows=Array(field.text.replace("\r\n","\n").trim_suffix("\n").split("\n"))
   if rows.size()!=dimensions.y:
@@ -292,7 +287,7 @@ func show_terrain_rows():
   dialog.hide()
   dialog.queue_free()
   grid.grab_focus())
- dialog.popup_centered(dialog.min_size)
+ popup_editor_dialog(dialog,Vector2i(560,480))
  field.grab_focus()
 
 func paint_terrain_segment(points: Array[Vector2i],erase: bool):
@@ -489,15 +484,21 @@ func show_deployment_preview():
  var panel=VBoxContainer.new();panel.add_theme_constant_override("separation",8);dialog.add_child(panel)
  var issue=draft.playtest_problem(selected)
  if not issue.is_empty():
-  heading(panel,issue,17);dialog.popup_centered(Vector2i(560,160));return
+  var note=RichTextLabel.new()
+  note.name="EditorDeploymentIssue";note.text=issue
+  note.add_theme_color_override("default_color",GOLD)
+  note.size_flags_vertical=SIZE_EXPAND_FILL;panel.add_child(note)
+  popup_editor_dialog(dialog,Vector2i(560,180))
+  return
  var compiled=draft.compile()
  var index=selected
  var seed_value=int(playtest_setup.seed) if playtest_setup.fixed_seed else -1
  var start_pressure=int(playtest_setup.pressure) if compiled.settings.reset_pressure else 0
  var reference=Draft.Rules.new(compiled.content)
  Draft.prepare_playtest(reference,compiled.settings,index,seed_value,0);reference.start_battle()
- var summary=heading(panel,"",19);summary.name="EditorDeploymentSummary"
- var scroll=ScrollContainer.new();scroll.horizontal_scroll_mode=ScrollContainer.SCROLL_MODE_DISABLED
+ var summary=heading(panel,"",19,false);summary.name="EditorDeploymentSummary"
+ var scroll=ScrollContainer.new();scroll.name="EditorDeploymentList"
+ scroll.horizontal_scroll_mode=ScrollContainer.SCROLL_MODE_DISABLED
  scroll.custom_minimum_size=Vector2(470,270);scroll.size_flags_vertical=SIZE_EXPAND_FILL
  var list=VBoxContainer.new();list.size_flags_horizontal=SIZE_EXPAND_FILL
  list.add_theme_constant_override("separation",12);scroll.add_child(list)
@@ -518,7 +519,7 @@ func show_deployment_preview():
  pressure.editable=compiled.settings.reset_pressure
  field_label(row(panel),"Starting retry pressure",pressure)
  panel.add_child(scroll);refresh.call(start_pressure)
- dialog.popup_centered(Vector2i(560,420))
+ popup_editor_dialog(dialog,Vector2i(560,420))
 
 func deployment_change(enemy: Dictionary,key: String) -> String:
  var previous=enemy.before[key];var current=enemy.after[key]
@@ -1124,10 +1125,10 @@ func show_loss_dialogue(field: TextEdit,source: Array,write: Callable):
   var line=lines[index]
   picker.add_item("%d · %s · %s"%[index+1,line.speaker,line.text.replace("\n"," ").left(64)])
  var words=multiline("",84,Callable());words.name="EditorLossWords";panel.add_child(words)
- heading(panel,"Also requires these recruits to survive",16)
+ heading(panel,"Also requires these recruits to survive",16,false)
  var needs=line_edit("","Recruit IDs separated by commas",1800,Callable());needs.name="EditorLossRequires";panel.add_child(needs)
- heading(panel,"Alternate lines if the speaker or a required recruit fell",16)
- heading(panel,"Enter a speaker ID, a vertical bar, then their words. The first surviving speaker is used.",15)
+ heading(panel,"Alternate lines if the speaker or a required recruit fell",16,false)
+ heading(panel,"Enter a speaker ID, a vertical bar, then their words.\nThe first surviving speaker is used.",15,false)
  var alternatives=multiline("",116,Callable());alternatives.name="EditorLossAlternatives";panel.add_child(alternatives)
  var error=heading(panel,"",15);error.name="EditorLossError"
  var select_line=func(index):
@@ -1158,7 +1159,7 @@ func show_loss_dialogue(field: TextEdit,source: Array,write: Callable):
   write.call(lines)
   field.set_block_signals(true);field.text=dialogue_text(lines);field.set_block_signals(false)
   dialog.hide();dialog.queue_free())
- dialog.popup_centered(Vector2i(560,440))
+ popup_editor_dialog(dialog,Vector2i(560,540))
 
 func dialogue_text(lines: Array) -> String:
  var rows=[]
@@ -1284,12 +1285,13 @@ func open_poem_template(valley: bool):
  draft.load_poem_template(valley);draft_key="";dirty=true;select_chapter(restore_editor_state({}))
 
 func show_transfer():
- var dialog=AcceptDialog.new();dialog.title="Campaign JSON";add_child(dialog)
- dialog.close_requested.connect(dialog.queue_free)
+ var dialog=AcceptDialog.new();dialog.name="EditorTransferDialog";dialog.title="Campaign JSON";add_child(dialog)
+ dialog.canceled.connect(dialog.queue_free)
  dialog.confirmed.connect(dialog.queue_free)
- var panel=VBoxContainer.new();dialog.add_child(panel)
- heading(panel,"Copy this campaign or paste another Poem campaign document.",16)
- var source=multiline(draft.encode(),230,Callable());source.name="EditorTransferText";panel.add_child(source)
+ var panel=VBoxContainer.new();panel.add_theme_constant_override("separation",8);dialog.add_child(panel)
+ heading(panel,"Copy this campaign or paste another Poem campaign document.",16,false)
+ var source=multiline(draft.encode(),208,Callable());source.name="EditorTransferText"
+ source.size_flags_vertical=SIZE_EXPAND_FILL;panel.add_child(source)
  var buttons=row(panel)
  action(buttons,"Copy JSON",func():DisplayServer.clipboard_set(source.text))
  var files=row(panel)
@@ -1297,7 +1299,7 @@ func show_transfer():
  action(buttons,"Import pasted JSON",func():import_campaign_text(source.text,feedback))
  action(files,"Open JSON file",func():open_campaign_file(dialog,feedback)).name="EditorOpenCampaignFile"
  action(files,"Save JSON file",func():save_campaign_file(dialog,feedback)).name="EditorSaveCampaignFile"
- dialog.popup_centered(Vector2i(560,350))
+ popup_editor_dialog(dialog,Vector2i(560,480))
 
 func show_readiness():
  var dialog=AcceptDialog.new();dialog.name="EditorCampaignReadiness";dialog.title="Campaign readiness";add_child(dialog)
@@ -1424,8 +1426,14 @@ func field_label(parent: Control,text: String,control: Control):
  label.autowrap_mode=TextServer.AUTOWRAP_OFF;label.size_flags_vertical=SIZE_SHRINK_CENTER
  control.size_flags_horizontal=SIZE_EXPAND_FILL;parent.add_child(control)
 
-func heading(parent: Control,text: String,font_size: int) -> Label:
- var label=Label.new();label.text=text;label.autowrap_mode=TextServer.AUTOWRAP_WORD_SMART
+func popup_editor_dialog(dialog: AcceptDialog,dimensions: Vector2i):
+ dialog.wrap_controls=false
+ dialog.min_size=dimensions
+ dialog.popup_centered(dimensions)
+
+func heading(parent: Control,text: String,font_size: int,wrap=true) -> Label:
+ var label=Label.new();label.text=text
+ label.autowrap_mode=TextServer.AUTOWRAP_WORD_SMART if wrap else TextServer.AUTOWRAP_OFF
  label.add_theme_font_size_override("font_size",font_size);label.add_theme_color_override("font_color",GOLD)
  parent.add_child(label);return label
 

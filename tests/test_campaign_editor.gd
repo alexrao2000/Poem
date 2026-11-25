@@ -709,6 +709,51 @@ func verify_terrain_rows(app):
  assert(editor.level().map[landmark.y][landmark.x]=="f" and grid.terrain_at(landmark)=="o")
  assert(editor.draft.battle_level(editor.selected).map[landmark.y][landmark.x]=="o")
 
+func verify_editor_dialog_layout(app):
+ var editor=app.campaign_editor
+ var before=editor.draft.encode()
+ var tabs=editor.find_child("CampaignEditorTabs",true,false)
+ var previous_tab=tabs.current_tab
+ for dimensions in [Vector2i(720,640),Vector2i(1440,900)]:
+  root.size=dimensions
+  root.content_scale_size=dimensions
+  tabs.current_tab=0;await process_frame
+  controls(app,"Transfer JSON").pressed.emit()
+  await verify_dialog_bounds(editor,"EditorTransferDialog",["EditorTransferText","EditorOpenCampaignFile","EditorSaveCampaignFile","EditorCampaignTransferStatus"])
+  controls(app,"Preview score").pressed.emit()
+  await verify_dialog_bounds(editor,"EditorScorePreview",["MusicRoomCalm","MusicRoomAblaze"])
+  tabs.current_tab=tabs.get_tab_idx_from_control(editor.find_child("Encounters",true,false))
+  await process_frame
+  controls(app,"Preview deployment").pressed.emit()
+  await verify_dialog_bounds(editor,"EditorDeploymentPreview",["EditorDeploymentSummary","EditorDeploymentPressure","EditorDeploymentList"])
+  var deployments=editor.level().deployment_positions
+  editor.level().deployment_positions=[]
+  controls(app,"Preview deployment").pressed.emit()
+  await verify_dialog_bounds(editor,"EditorDeploymentPreview",["EditorDeploymentIssue"])
+  editor.level().deployment_positions=deployments
+  tabs.current_tab=tabs.get_tab_idx_from_control(editor.find_child("Story",true,false))
+  await process_frame
+  editor.find_child("EditorChapterDialogue_openingLossOptions",true,false).pressed.emit()
+  await verify_dialog_bounds(editor,"EditorLossDialogue",["EditorLossLine","EditorLossWords","EditorLossRequires","EditorLossAlternatives","EditorLossError"])
+ tabs.current_tab=previous_tab
+ assert(editor.draft.encode()==before)
+
+func verify_dialog_bounds(editor,dialog_name: String,names: Array):
+ await process_frame;await process_frame
+ var dialog=editor.get_node(dialog_name)
+ var frame=Rect2(dialog.position,dialog.size)
+ assert(root.get_visible_rect().encloses(frame),"%s exceeds %s: %s"%[dialog_name,root.get_visible_rect(),frame])
+ var panel=Rect2(Vector2.ZERO,Vector2(dialog.size))
+ var confirm=dialog.get_ok_button().get_global_rect()
+ assert(panel.encloses(confirm))
+ for item in names:
+  var field=dialog.find_child(item,true,false)
+  var bounds=field.get_global_rect()
+  assert(panel.encloses(bounds) and bounds.end.y<=confirm.position.y,"%s exceeds dialog content: %s"%[item,bounds])
+ dialog.canceled.emit()
+ await process_frame
+ assert(not editor.has_node(dialog_name))
+
 func run():
  check_document()
  check_small_section_deployment()
@@ -741,6 +786,7 @@ func run():
  app.ui.find_child("OpenCampaignEditor",true,false).pressed.emit()
  await process_frame
  assert(app.screen=="campaign_editor" and app.campaign_editor.draft.data.chapters.size()==12)
+ await verify_editor_dialog_layout(app)
  var editor=app.campaign_editor
  for dimensions in [Vector2(720,640),Vector2(1024,640),Vector2(1440,900)]:
   app.ui.set_anchors_and_offsets_preset(Control.PRESET_TOP_LEFT);app.ui.size=dimensions
@@ -1611,5 +1657,5 @@ func run():
  await verify_terrain_rows(app)
  assert(FileAccess.get_file_as_string(app.save_path)==disk and app.game==installed)
  await Shutdown.dispose(app);await process_frame
- print("PASS: campaign JSON file transfer, draft library management, remembered playtest setup, campaign readiness, authored Hard bonuses, authored retry raiders, deployment comparison, authored formation previews, small deployment limits and save recovery, custom campaign atlas, terrain stroke undo, bulk terrain rows, continuous terrain strokes, connected terrain fill, placement moves and swaps, repeated placement copies, switching enemy difficulty groups, editor music preview, multiple standards and exact resume, standard navigation and live progress, standards that follow route pins, route pins, war-table site terrain, war-table overlay, blank war-table chapter, rising Valley landmarks, Valley reveal sound cues, battlefield site markers, custom recruits, phase scenes, tile dialogue and reload, one-use field tonic caches, Valley landmark dialogue, dialogue that follows route pins, timed reinforcements, chapter 32 saves, section dialogue, authored section relief, authored legacy stock and purchase persistence, authored loss recruits, authored loss dialogue, reproducible playtest setup, Valley carryover and resume, thirteen-chapter Valley template, and single-battle tests")
+ print("PASS: campaign JSON file transfer, draft library management, remembered playtest setup, campaign readiness, authored Hard bonuses, authored retry raiders, deployment comparison, authored formation previews, small deployment limits and save recovery, custom campaign atlas, terrain stroke undo, bulk terrain rows, editor dialogs at two viewport sizes, continuous terrain strokes, connected terrain fill, placement moves and swaps, repeated placement copies, switching enemy difficulty groups, editor music preview, multiple standards and exact resume, standard navigation and live progress, standards that follow route pins, route pins, war-table site terrain, war-table overlay, blank war-table chapter, rising Valley landmarks, Valley reveal sound cues, battlefield site markers, custom recruits, phase scenes, tile dialogue and reload, one-use field tonic caches, Valley landmark dialogue, dialogue that follows route pins, timed reinforcements, chapter 32 saves, section dialogue, authored section relief, authored legacy stock and purchase persistence, authored loss recruits, authored loss dialogue, reproducible playtest setup, Valley carryover and resume, thirteen-chapter Valley template, and single-battle tests")
  quit()

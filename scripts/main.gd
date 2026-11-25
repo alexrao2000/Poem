@@ -2712,10 +2712,10 @@ func open_editor_score_preview(theme_id: String):
 	var preview=preload("res://scripts/music_room.gd").new();dialog.add_child(preview)
 	preview.configure(score_director,music_transition,profile,preferences.volume_db("music"))
 	var panel=VBoxContainer.new();panel.add_theme_constant_override("separation",8);dialog.add_child(panel)
-	label_in(panel,"%d BPM"%int(profile.bpm),18,GOLD)
+	label_in(panel,"%d BPM"%int(profile.bpm),18,GOLD).autowrap_mode=TextServer.AUTOWRAP_OFF
 	add_arrangement_buttons(panel,preview)
 	dialog.confirmed.connect(dialog.queue_free);dialog.canceled.connect(dialog.queue_free)
-	dialog.popup_centered(Vector2i(400,156))
+	campaign_editor.popup_editor_dialog(dialog,Vector2i(400,196))
 
 func score_chapter_label(theme_id: String) -> String:
 	var spans=PackedStringArray()
