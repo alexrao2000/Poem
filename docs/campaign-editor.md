@@ -6,7 +6,7 @@ Use Move to… above the Battle workspace to move the selected chapter to a spec
 
 Use Recruit on visit in Story’s Tile events to offer a reserve or a recruit scheduled for a later chapter. A standing ally recruits them by finishing an action on the tile. They join the company for the next deployment. The site can also play dialogue and replenish field tonics. In battle, choose Next site or press J to cycle through available tile events.
 
-Company shows the recruit’s portrait and tactical sprite as you change appearance or class. Use Starting equipment to assign any weapon compatible with their class. The recruit arrives with it equipped. Chapter and legacy unlocks govern later choices from the shared arsenal.
+Company shows the recruit’s portrait and tactical sprite as you change appearance or class. Use Starting equipment to assign any weapon compatible with their class. The recruit arrives with it equipped. Chapter and legacy unlocks govern later choices from the shared arsenal. Preview 3D model opens the selected recruit with their equipped weapon. Choose a combat action to see the animation, then use Return to editor to resume editing the same recruit.
 
 ## Authoring
 

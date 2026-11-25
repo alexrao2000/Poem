@@ -3,6 +3,7 @@ signal closed
 signal playtest_requested(start: int, resume: bool, single_battle: bool)
 signal draft_selection_changed(key: String, chapter: int)
 signal score_preview_requested(theme_id: String)
+signal recruit_preview_requested(recruit: Dictionary)
 const Draft=preload("res://scripts/campaign_draft.gd")
 const Grid=preload("res://scripts/campaign_editor_grid.gd")
 const Route=preload("res://scripts/campaign_route.gd")
@@ -877,6 +878,7 @@ func build_company(panel: VBoxContainer):
  action(actions,"Add recruit",func():
   selected_person=draft.add_recruit(person,chapter().key)
   changed();rebuild(),company.size()>=draft.templates.roster.size()+Draft.MAX_CUSTOM_RECRUITS).name="EditorAddRecruit"
+ action(actions,"Preview 3D model",func():recruit_preview_requested.emit(draft.build_recruit(person))).name="EditorRecruitModel"
  if person.has("art_id"):
   var used=draft.recruit_in_use(person.id)
   var remove=action(actions,"Remove recruit",func():remove_custom_recruit(),used)

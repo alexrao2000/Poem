@@ -526,7 +526,7 @@ func show_visual_workshop():
 	workshop.closed.connect(func():
 		canvas.remove_child(workshop);workshop.queue_free();camera.current=true;show_title())
 
-func show_campaign_editor(return_to: String):
+func show_campaign_editor(return_to: String,view_state: Dictionary={}):
 	campaign_editor_return=return_to
 	if campaign_draft==null:
 		campaign_draft=CampaignDraftModel.new()
@@ -539,13 +539,43 @@ func show_campaign_editor(return_to: String):
 	screen="campaign_editor";reset_ui();title_backdrop()
 	var panel=menu_panel(1180)
 	campaign_editor=preload("res://scripts/campaign_editor.gd").new();panel.add_child(campaign_editor)
+	campaign_editor.active_tab=view_state.get("tab",0)
+	campaign_editor.selected_person=view_state.get("person",0)
 	campaign_editor.configure(campaign_draft,campaign_draft_library,campaign_editor_key,campaign_editor_chapter,campaign_playtest_setup,portraits,map_catalog)
+	if view_state.has("cursor"):campaign_editor.grid.cursor=view_state.cursor
 	campaign_editor.closed.connect(close_campaign_editor)
 	campaign_editor.score_preview_requested.connect(open_editor_score_preview)
+	campaign_editor.recruit_preview_requested.connect(open_editor_recruit_preview)
 	campaign_editor.draft_selection_changed.connect(func(key,index):
 		campaign_editor_key=key;campaign_editor_chapter=index)
 	campaign_editor.playtest_requested.connect(func(index,resume,single_battle):
 		start_campaign_preview(campaign_draft.compile(),index,resume,"chapter" if single_battle else "editor",campaign_playtest_setup))
+
+func open_editor_recruit_preview(unit: Dictionary):
+	if screen!="campaign_editor":return
+	var company=campaign_editor.find_child("Company",true,false)
+	var view_state={
+		"tab":campaign_editor.active_tab,
+		"person":campaign_editor.selected_person,
+		"cursor":campaign_editor.grid.cursor,
+		"scroll":company.scroll_vertical,
+	}
+	var return_to=campaign_editor_return
+	var preview_context={"environment":campaign_editor.level().environment}
+	game.normalize_equipment(unit)
+	show_model_view(unit,func():restore_editor_after_recruit_preview(return_to,view_state),{},"",preview_context)
+
+func restore_editor_after_recruit_preview(return_to: String,view_state: Dictionary):
+	show_campaign_editor(return_to,view_state)
+	var editor=weakref(campaign_editor)
+	var tree=get_tree()
+	await tree.process_frame
+	await tree.process_frame
+	var restored=editor.get_ref()
+	if restored==null or restored!=campaign_editor or restored.is_queued_for_deletion():return
+	var button=restored.find_child("EditorRecruitModel",true,false)
+	button.grab_focus()
+	restored.find_child("Company",true,false).scroll_vertical=view_state.scroll
 
 func close_campaign_editor():
 	if campaign_editor_return=="debug_tools":show_debug_tools(options_return)
@@ -2249,11 +2279,11 @@ func make_preview_fighter(unit,position,model_choice: String) -> Dictionary:
 		return {"actor":fighters.build(stage,visual,position),"available":false}
 	return {"actor":make_fighter(unit,position),"available":true}
 
-func show_model_view(unit,on_close=Callable(),model_spec: Dictionary={},model_choice=""):
+func show_model_view(unit,on_close=Callable(),model_spec: Dictionary={},model_choice="",editor_context: Dictionary={}):
 	screen="model";preview_unit=unit;preview_return=on_close;reset_ui()
 	for child in stage.get_children():stage.remove_child(child);child.queue_free()
 	world.hide();pieces.hide();markers.hide();stage.process_mode=Node.PROCESS_MODE_INHERIT;stage.show()
-	var theme=game.info().get("environment","village");battle_lighting(theme)
+	var theme=editor_context.get("environment",game.info().get("environment","village"));battle_lighting(theme)
 	scenery.battle_landscape(stage,Vector3(35,0,0),{"environment":theme})
 	var actor_data=unit.duplicate(true);actor_data.team="enemy" if model_spec.has("study_enemy_class") else "player"
 	var preview_available=true
@@ -2267,7 +2297,9 @@ func show_model_view(unit,on_close=Callable(),model_spec: Dictionary={},model_ch
 			close_model_view();show_notice("The model study could not load.");return
 	preview_actor.rotation.y=PI-.35
 	var panel=menu_panel(310,true)
-	label_in(panel,"DEBUG / MODEL STUDY" if not model_spec.is_empty() else "TRAINING / OUTFIT PREVIEW" if preview_return.is_valid() else "COMPANY / PREVIEW",15,GOLD);label_in(panel,unit.name,38)
+	var from_editor=not editor_context.is_empty()
+	var heading="CAMPAIGN EDITOR / MODEL" if from_editor else "DEBUG / MODEL STUDY" if not model_spec.is_empty() else "TRAINING / OUTFIT PREVIEW" if preview_return.is_valid() else "COMPANY / PREVIEW"
+	label_in(panel,heading,15,GOLD);label_in(panel,unit.name,38)
 	if model_spec.is_empty():
 		var artwork=HBoxContainer.new();artwork.add_theme_constant_override("separation",12);panel.add_child(artwork)
 		var portrait=TextureRect.new();portrait.texture=portraits.get_unit_portrait(unit)
@@ -2347,7 +2379,8 @@ func show_model_view(unit,on_close=Callable(),model_spec: Dictionary={},model_ch
 				if choice.get_item_metadata(at)==action:choice.select(at);break
 			action_player.play(action))
 	button_in(panel,"Play again",func():action_player.play(str(choice.get_item_metadata(choice.selected))))
-	button_in(panel,"Return to debug tools [Esc]" if not model_spec.is_empty() else "Return to training [Esc]" if preview_return.is_valid() else "Return to record [Esc]",close_model_view)
+	var return_label="Return to editor [Esc]" if from_editor else "Return to debug tools [Esc]" if not model_spec.is_empty() else "Return to training [Esc]" if preview_return.is_valid() else "Return to record [Esc]"
+	button_in(panel,return_label,close_model_view)
 	var framing=preload("res://scripts/preview_camera.gd").new();framing.name="PreviewCamera";stage.add_child(framing)
 	framing.configure(preview_actor,camera,panel.get_parent(),actions.map(func(entry):return entry[1]))
 	framing.add_hint(ui)
@@ -2355,7 +2388,7 @@ func show_model_view(unit,on_close=Callable(),model_spec: Dictionary={},model_ch
 		model_choice_control.item_selected.connect(func(index):
 			var yaw=preview_actor.rotation.y;var zoom=framing.zoom;var keep_focus=model_choice_control.has_focus()
 			var action=str(choice.get_item_metadata(choice.selected));var selected_model=str(model_choice_control.get_item_metadata(index))
-			show_model_view(unit,on_close,{},selected_model)
+			show_model_view(unit,on_close,{},selected_model,editor_context)
 			preview_actor.rotation.y=yaw
 			var next_camera=stage.get_node("PreviewCamera");next_camera.zoom=zoom;next_camera.reframe()
 			var next_choice=ui.find_child("PreviewAction",true,false)

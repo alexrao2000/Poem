@@ -913,6 +913,29 @@ func verify_site_recruitment(app):
  assert(equipped_draft.decode(draft.encode()).is_empty() and equipped_draft.data.recruits[recruit_index].item=="javelin")
  equipped_draft.data.recruits[recruit_index].item="iron_sword"
  assert(equipped_draft.structural_problem(equipped_draft.data)=="A recruit has starting equipment their class cannot use.")
+ var company=editor.find_child("Company",true,false)
+ company.scroll_vertical=48
+ await process_frame
+ var previous_scroll=company.scroll_vertical
+ var company_tab=tabs.current_tab
+ var draft_before=draft.encode()
+ var disk_before=FileAccess.get_file_as_string(app.save_path)
+ var backdrop=editor.level().environment
+ controls(app,"Preview 3D model").pressed.emit();await process_frame
+ assert(app.screen=="model" and app.preview_unit.id==recruit.id and app.preview_unit.item=="javelin")
+ assert(app.stage.get_meta("environment")==backdrop and app.stage.has_node("PreviewCamera"))
+ choose.call(app.ui.find_child("PreviewAction",true,false),"throw")
+ choose.call(app.ui.find_child("PreviewModels",true,false),"current")
+ assert(app.screen=="model" and app.preview_unit.id==recruit.id)
+ controls(app,"Return to editor [Esc]").pressed.emit()
+ for frame in 4:await process_frame
+ assert(app.screen=="campaign_editor" and app.campaign_editor.draft==draft)
+ editor=app.campaign_editor
+ tabs=editor.find_child("CampaignEditorTabs",true,false)
+ assert(tabs.current_tab==company_tab and editor.selected_person==recruit_index and editor.grid.cursor==site)
+ assert(editor.find_child("Company",true,false).scroll_vertical==previous_scroll)
+ assert(editor.find_child("EditorRecruitModel",true,false).has_focus())
+ assert(draft.encode()==draft_before and FileAccess.get_file_as_string(app.save_path)==disk_before)
  tabs.current_tab=tabs.get_tab_idx_from_control(editor.find_child("Story",true,false))
  await process_frame
  controls(app,"Add tile scene").pressed.emit()
@@ -1961,5 +1984,5 @@ func run():
  await verify_route_arena_reuse(app)
  assert(FileAccess.get_file_as_string(app.save_path)==disk and app.game==installed)
  await Shutdown.dispose(app);await process_frame
- print("PASS: campaign JSON file transfer, draft library management, remembered playtest setup, campaign readiness, authored Hard bonuses, authored retry raiders, deployment comparison, authored formation previews, small deployment limits and save recovery, custom campaign atlas, terrain stroke undo, bulk terrain rows, editor dialogs at two viewport sizes, direct chapter reordering, continuous terrain strokes, connected terrain fill, placement moves and swaps, repeated placement copies, switching enemy difficulty groups, editor music preview, multiple standards and exact resume, standard navigation and live progress, standards that follow route pins, route pins, war-table site terrain, war-table overlay, blank war-table chapter, rising Valley landmarks, local war-table arena landmarks, authored route arenas, fading route seals, Valley reveal sound cues, battlefield site markers, custom recruits, phase scenes, tile dialogue and reload, recruitment on battlefield sites, authored recruit starting equipment, live recruit art previews, navigation between available sites, one-use field tonic caches, Valley landmark dialogue, dialogue that follows route pins, timed reinforcements, chapter 32 saves, section dialogue, authored section relief, authored legacy stock and purchase persistence, authored loss recruits, authored loss dialogue, reproducible playtest setup, Valley carryover and resume, thirteen-chapter Valley template, and single-battle tests")
+ print("PASS: campaign JSON file transfer, draft library management, remembered playtest setup, campaign readiness, authored Hard bonuses, authored retry raiders, deployment comparison, authored formation previews, small deployment limits and save recovery, custom campaign atlas, terrain stroke undo, bulk terrain rows, editor dialogs at two viewport sizes, direct chapter reordering, continuous terrain strokes, connected terrain fill, placement moves and swaps, repeated placement copies, switching enemy difficulty groups, editor music preview, multiple standards and exact resume, standard navigation and live progress, standards that follow route pins, route pins, war-table site terrain, war-table overlay, blank war-table chapter, rising Valley landmarks, local war-table arena landmarks, authored route arenas, fading route seals, Valley reveal sound cues, battlefield site markers, custom recruits, phase scenes, tile dialogue and reload, recruitment on battlefield sites, authored recruit starting equipment, live recruit art previews, 3D recruit preview and editor return, navigation between available sites, one-use field tonic caches, Valley landmark dialogue, dialogue that follows route pins, timed reinforcements, chapter 32 saves, section dialogue, authored section relief, authored legacy stock and purchase persistence, authored loss recruits, authored loss dialogue, reproducible playtest setup, Valley carryover and resume, thirteen-chapter Valley template, and single-battle tests")
  quit()
