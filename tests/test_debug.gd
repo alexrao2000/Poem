@@ -4,6 +4,7 @@ extends SceneTree
 
 const Rules=preload("res://scripts/rules.gd")
 const Session=preload("res://scripts/debug_session.gd")
+const Draft=preload("res://scripts/campaign_draft.gd")
 const Shutdown=preload("helpers/game_shutdown.gd")
 func _initialize():call_deferred("run")
 
@@ -163,6 +164,62 @@ func verify_retry_table(app,preview: Dictionary):
  press(app,"Compare enemies");press(app,"Return to experiment report");assert(app.screen=="debug_report")
  print("PASS: both retry table references across four viewports, including current pressure and a read-only return")
 
+func verify_authored_debug(app):
+ var ordinary=app.game
+ var normal_disk=FileAccess.get_file_as_string(app.save_path)
+ var scratch="/private/tmp/poem-authored-debug-%d"%OS.get_process_id()
+ assert(DirAccess.make_dir_recursive_absolute(scratch)==OK)
+ app.campaign_playtest_directory=scratch
+ app.campaign_draft_library.path=scratch.path_join("drafts.json")
+ var draft=Draft.new();draft.data=draft.new_document(false)
+ var stage=draft.insert_blank_war_table(0)
+ draft.data.chapters[stage].section=true
+ draft.data.chapters[stage].level.enemies[0].name="Chart commander"
+ for flag in ["permadeath","action_saves","reset_pressure","section_restarts"]:draft.data.settings[flag]=true
+ app.campaign_draft=draft;app.campaign_editor_chapter=stage
+ app.show_campaign_editor("title");await process_frame
+ press(app,"Play chapter");await process_frame
+ assert(app.screen=="camp" and app.game.chapter==stage and app.campaign_preview.return=="editor")
+ press(app,"Deploy company  >")
+ app.valley_reveal_skip=true
+ var deadline=Time.get_ticks_msec()+5000
+ while app.busy and Time.get_ticks_msec()<deadline:
+  await process_frame
+  if app.chapter_card_active:app.chapter_card_skip=true
+  if app.phase_banner_active:app.phase_skip=true
+ assert(app.screen=="battle" and not app.busy)
+ var path=app.campaign_save_path()
+ var disk=FileAccess.get_file_as_string(path)
+ assert(not disk.is_empty())
+ app.game.roster[0].xp+=7
+ var live=app.game.export_code("battle")
+ app.show_options("battle")
+ var debugging=app.ui.find_child("DebugMode",true,false)
+ assert(not debugging.disabled);debugging.button_pressed=true
+ assert(app.campaign_save_path()==path+".debug")
+ press(app,"Open debug tools")
+ assert(app.ui.find_child("DebugChapter",true,false).item_count==2)
+ press(app,"Save experiment checkpoint")
+ app.ui.find_child("DebugPressure",true,false).value=2;press(app,"Test pressure and reset battle")
+ var loader=Rules.new(app.game.content)
+ assert(loader.load_game(path+".debug")=="battle" and loader.trials.pressure==2)
+ app.show_debug_tools("battle");press(app,"View experiment report")
+ var deployment=JSON.parse_string(app.ui.find_child("DebugReport",true,false).text).retry_deployment
+ assert(deployment.chapter==2 and deployment.pressure==3 and deployment.enemies[0].name=="Chart commander")
+ press(app,"Compare enemies")
+ var baseline=app.ui.find_child("DebugRetryBaseline",true,false)
+ assert(baseline.item_count==2)
+ baseline.select(1);baseline.item_selected.emit(1)
+ assert("Pressure 2 → 3" in app.ui.find_child("DebugRetryPressure",true,false).text)
+ app.show_debug_tools("battle");press(app,"Restore experiment checkpoint");await process_frame
+ assert(app.game.export_code("battle")==live and FileAccess.get_file_as_string(path)==disk)
+ app.show_options("battle");app.ui.find_child("DebugMode",true,false).button_pressed=false
+ assert(app.campaign_save_path()==path and app.game.export_code("battle")==live)
+ assert(FileAccess.get_file_as_string(path)==disk and FileAccess.get_file_as_string(app.save_path)==normal_disk)
+ app.close_options();app.show_battle_menu();press(app,"Return to editor");await process_frame
+ assert(app.screen=="campaign_editor" and app.game==ordinary and FileAccess.get_file_as_string(app.save_path)==normal_disk)
+ print("PASS: authored Debug checkpoints, pressure comparisons and writes stay in the draft’s separate sandbox")
+
 func run():
  verify_debug_casualties()
  verify_retry_previews()
@@ -312,6 +369,7 @@ func run():
  assert(loaded.load_game(app.save_path)=="camp" and loaded.roster[0].xp==17 and loaded.permadeath,"Normal saving resumes only after restoring the original campaign")
  app.show_options("camp");app.ui.find_child("Permadeath",true,false).button_pressed=false;app.close_options()
  assert(loaded.load_game(app.save_path)=="camp" and not loaded.permadeath,"Permadeath can be changed and saved outside debug as requested")
+ await verify_authored_debug(app)
  await Shutdown.dispose(app);await process_frame
  print("PASS: opt-in debug controls, repeatable experiment checkpoints, exact retry deployment previews, four retry table layouts, twelve-chapter chooser, heal/revive/reset, separate save slot, unsaved checkpoint restoration, guarded actions and live permadeath toggle persistence")
  quit()

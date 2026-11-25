@@ -1353,7 +1353,7 @@ func show_battle_menu(landmark_index=false):
 	var option_row=HBoxContainer.new();option_row.add_theme_constant_override("separation",8);commands.add_child(option_row)
 	var option_button=button_in(option_row,"Options / audio",func():close_battle_menu();show_options("battle"));option_button.size_flags_horizontal=Control.SIZE_EXPAND_FILL
 	var encounter_button: Button
-	if debug_session.active:
+	if debug_session.active and campaign_preview.is_empty():
 		encounter_button=button_in(option_row,"Combat encounters",func():close_battle_menu();show_debug_encounters("battle_menu"));encounter_button.size_flags_horizontal=Control.SIZE_EXPAND_FILL
 	var retreat=label_in(commands,restart_summary(),15,GOLD);retreat.name="RestartPreview"
 	button_in(commands,("War council (restart section)" if game.trials.flags.section_restarts and game.permadeath else "War council (restart map)"),func():close_battle_menu();restart_campaign_attempt())
@@ -3118,7 +3118,7 @@ func show_options(return_to: String):
 	permanent.toggled.connect(func(value):game.permadeath=value)
 	label_in(panel,"Turning this off keeps earlier losses. Use Debug tools to experiment with revival.",16)
 	var debugging=CheckButton.new();debugging.name="DebugMode";debugging.text="Debug mode · temporary sandbox";debugging.button_pressed=debug_session.active;panel.add_child(debugging)
-	debugging.disabled=not campaign_preview.is_empty()
+	debugging.disabled=not campaign_preview.is_empty() and campaign_preview.return!="editor"
 	debugging.toggled.connect(func(value):
 		if value:debug_session.begin(game,options_return,preferences.values.character_models=="revised")
 		else:
@@ -3281,9 +3281,10 @@ func show_debug_tools(return_to: String):
 		else:show_notice("Experiment checkpoint unavailable for this position.")
 	).size_flags_horizontal=Control.SIZE_EXPAND_FILL
 	button_in(checkpoint_actions,"Restore experiment checkpoint",restore_debug_experiment,saved_test.is_empty()).size_flags_horizontal=Control.SIZE_EXPAND_FILL
-	button_in(panel,"Choose an experiment setup",show_debug_experiments)
-	button_in(panel,"Campaign editor",func():show_campaign_editor("debug_tools"))
-	button_in(panel,"Stage a combat encounter",show_debug_encounters)
+	if campaign_preview.is_empty():
+		button_in(panel,"Choose an experiment setup",show_debug_experiments)
+		button_in(panel,"Campaign editor",func():show_campaign_editor("debug_tools"))
+		button_in(panel,"Stage a combat encounter",show_debug_encounters)
 	button_in(panel,"Replay dialogue",show_debug_dialogue).name="DebugDialogueScenes"
 	var chapters=OptionButton.new();chapters.name="DebugChapter";chapters.custom_minimum_size.y=42
 	for index in range(game.content.chapters.size()):chapters.add_item("%02d · %s"%[index+1,game.content.chapters[index].title])
@@ -3396,7 +3397,7 @@ func show_debug_report():
 		headline.name="DebugRetryPreview";headline.size_flags_horizontal=Control.SIZE_EXPAND_FILL
 		button_in(preview,"Compare enemies",func():
 			var current={}
-			if game.trials.pressure>0:current=debug_session.retry_deployment(game.save_data("battle"),true)
+			if game.trials.pressure>0:current=debug_session.retry_deployment(game.save_data("battle"),true,game.content)
 			show_debug_retry_deployment(retry,current)
 		).name="DebugCompareEnemies"
 	label_in(panel,"Copy rules, casualties and the last 64 action changes, including RNG and save results. History lasts only for this Debug session; the restore code carries the current position.",19)
@@ -3867,8 +3868,8 @@ func heal_carried_ally(patient: Dictionary):
 	busy=false;finish_action()
 
 func campaign_save_path() -> String:
-	if not campaign_preview.is_empty():return campaign_preview.path
-	return save_path+".debug" if debug_session.active else save_path
+	var path: String=campaign_preview.get("path",save_path)
+	return path+".debug" if debug_session.active else path
 
 func map_contact_point(visual) -> Vector3:
 	var height=(visual.sprite.texture.get_height()+visual.sprite.offset.y)*visual.sprite.pixel_size*visual.sprite.scale.y

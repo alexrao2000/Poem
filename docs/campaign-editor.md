@@ -84,6 +84,8 @@ Check campaign lists the battles that need edits and flags seize tiles with no p
 
 In Rules, Playtest setup lets you override the combat seed or choose a starting level of retry pressure. Enable Enemies prepare after resets to set the starting pressure. A saved draft remembers its selected chapter and setup when you save or start a playtest. Each setup opens its own playtest save. The campaign JSON carries the campaign rules while the local library remembers these playtest choices on this device.
 
+In a full campaign playtest, open **Options → Debug mode** to branch from the current war council or battlefield. Try enemy pressure, a different seed, or an ally’s fall in a separate Debug save for that draft. The Debug report compares the draft’s own enemies and rally chapters. Turn Debug mode off to restore the position where you enabled it.
+
 ## When the map becomes a battlefield
 
 The reveal uses the same illustrated valley shown during campaign briefings. Deploying for the late route battle opens on the familiar chart from directly overhead. The camera tilts toward the war table as the grid spreads from the capital and the army pieces arrive. Paper rustles as the chart opens, and a wooden contact sounds as the first piece settles. The score continues on the same playhead. Click or press Tab to move directly to the tactical view. Drawn roads become cheap approaches, mountain passes use hill movement, marked crossings carry troops over otherwise blocked water, and the illustrated capital becomes the objective stronghold.
