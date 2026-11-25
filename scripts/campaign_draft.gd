@@ -113,6 +113,7 @@ func recruit_in_use(id: String) -> bool:
  for arrival in data.get("legacy_arrivals",[]):
   if arrival.id==id or dialogue_uses(arrival.lines,id):return true
  for chapter in data.chapters:
+  if id in chapter.get("relief_company",[]):return true
   if dialogue_uses(chapter.opening,id) or dialogue_uses(chapter.closing,id):return true
   for scene in chapter.get("phase_scenes",[]):
    if dialogue_uses(scene.lines,id):return true
@@ -263,6 +264,14 @@ func structural_problem(document) -> String:
  if document.has("legacy_arrivals") and not valid_legacy_arrivals(document.legacy_arrivals,people):
   return "Choose a unique recruit, a loss threshold and a valid class for each legacy arrival."
  if not known.all(func(id):return people.has(id)):return "The company roster is incomplete."
+ for chapter in document.chapters:
+  if not chapter.has("relief_company"):continue
+  var relief=chapter.relief_company
+  if not relief is Array or relief.size()>=people.size():return "Choose a distinct roster member for each relief assignment."
+  var seen={"lyra":true}
+  for id in relief:
+   if not id is String or not people.has(id) or seen.has(id):return "Choose a distinct roster member for each relief assignment."
+   seen[id]=true
  if document.has("bonds"):
   var bond_people=people.duplicate()
   for legacy in templates.legacy_recruits:bond_people[legacy.unit.id]=true
@@ -447,6 +456,7 @@ func compile() -> Dictionary:
  content.opening_company=data.opening_company.duplicate()
  content.chapters=[]
  content.section_starts=[]
+ var relief={}
  var scenes=[]
  for index in data.chapters.size():
   var chapter=data.chapters[index]
@@ -466,7 +476,9 @@ func compile() -> Dictionary:
    if level.map==original.map and level.environment==original.environment:
     level.landmarks=original.get("landmarks",[]).duplicate(true)
     level.lighting=original.get("lighting",{}).duplicate(true)
-  if chapter.section:content.section_starts.append(index)
+  if chapter.section:
+   content.section_starts.append(index)
+   if chapter.has("relief_company"):relief[index]=chapter.relief_company.duplicate()
   content.chapters.append(level)
   scenes.append({"opening":chapter.opening.duplicate(true),"closing":chapter.closing.duplicate(true)})
  var roster_by_id={}
@@ -484,6 +496,7 @@ func compile() -> Dictionary:
  if data.chapters.any(func(chapter):return chapter.has("section_scenes")):compile_section_scenes(content)
  if data.has("legacy_stock"):content.legacy_stock=data.legacy_stock.duplicate(true)
  if data.has("legacy_arrivals"):compile_legacy_arrivals(content)
+ if not relief.is_empty():content.section_relief=relief
  return {"content":content,"story":{"chapters":scenes},"settings":data.settings.duplicate(true)}
 
 func compile_section_scenes(content: Dictionary):

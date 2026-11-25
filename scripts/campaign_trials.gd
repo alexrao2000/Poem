@@ -225,13 +225,21 @@ func restart(game) -> bool:
 func arrive(game):
  if not flags.section_restarts or not game.permadeath or not section_starts.has(game.chapter) or game.completed:return
  queue_scene("relief_"+str(game.chapter))
+ var authored=game.content.get("section_relief",{}).get(game.chapter,null)
  var names=[]
  for unit in game.roster:
-  if unit.join>=game.chapter and unit.join<mini(game.chapter+2,game.content.chapters.size()) and not unit.get("fallen",false):
+  if unit.get("fallen",false) or unit.join<game.chapter:continue
+  var assigned=unit.join<mini(game.chapter+2,game.content.chapters.size()) if authored==null else unit.id in authored and unit.id not in volunteers
+  if assigned:
    if unit.id not in volunteers:volunteers.append(unit.id)
    names.append(unit.name)
- var relief="" if names.is_empty() else "Relief columns reach the rally point: "+", ".join(names)+". "
- log_event("A new section begins. "+relief+"The company carries its losses forward.")
+ if names.size()>4:
+  log_event("A new section begins. The company carries its losses forward.")
+  for offset in range(0,names.size(),4):
+   log_event("Relief columns reach the rally point: "+", ".join(names.slice(offset,offset+4))+".")
+ else:
+  var relief="" if names.is_empty() else "Relief columns reach the rally point: "+", ".join(names)+". "
+  log_event("A new section begins. "+relief+"The company carries its losses forward.")
 
 func can_buy(game,id: String) -> bool:
  if not flags.death_legacies or not game.permadeath or id in purchases:return false

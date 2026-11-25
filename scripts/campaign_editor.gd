@@ -274,7 +274,43 @@ func build_story(panel: VBoxContainer):
  var section_story=VBoxContainer.new();section_story.add_theme_constant_override("separation",8);panel.add_child(section_story)
  section_story.visible=record.section
  section.toggled.connect(func(value):record.section=value;section_story.visible=value;changed())
+ if selected>0:
+  var relief=VBoxContainer.new();relief.add_theme_constant_override("separation",8);section_story.add_child(relief)
+  build_section_relief(relief,record)
  build_section_story(section_story,record)
+
+func build_section_relief(panel: VBoxContainer,record: Dictionary):
+ for child in panel.get_children():panel.remove_child(child);child.queue_free()
+ heading(panel,"Relief company",21)
+ var automatic=CheckButton.new();automatic.name="EditorSectionReliefDefault"
+ automatic.text="Use scheduled relief";automatic.button_pressed=not record.has("relief_company");panel.add_child(automatic)
+ automatic.toggled.connect(func(value):
+  if value:record.erase("relief_company")
+  else:record.relief_company=[]
+  changed();build_section_relief(panel,record)
+  panel.get_node("EditorSectionReliefDefault").grab_focus())
+ if automatic.button_pressed:
+  heading(panel,"Recruits scheduled for this chapter and the next can arrive when the section begins.",15)
+  return
+ heading(panel,"Choose which recruits reach this rally point under the section restart rules.",15)
+ var assigned=record.relief_company
+ var eligible=[]
+ for person in draft.data.recruits:
+  if person.id in assigned:
+   var entry=row(panel)
+   heading(entry,person.name,16).size_flags_horizontal=SIZE_EXPAND_FILL
+   action(entry,"Remove",func():
+    assigned.erase(person.id);changed();build_section_relief(panel,record)).name="EditorRemoveRelief_"+person.id
+  elif person.id!="lyra" and (person.chapter.is_empty() or draft.index_for(person.chapter)>=selected):
+   eligible.append(person)
+ if eligible.is_empty():return
+ var options=row(panel)
+ var picker=choice(eligible.map(func(person):return person.id),eligible[0].id,Callable())
+ picker.name="EditorReliefRecruit";picker.fit_to_longest_item=false;picker.clip_text=true;picker.size_flags_horizontal=SIZE_EXPAND_FILL
+ for index in eligible.size():picker.set_item_text(index,eligible[index].name)
+ options.add_child(picker)
+ action(options,"Add to relief",func():
+  assigned.append(picker.get_selected_metadata());changed();build_section_relief(panel,record)).name="EditorAddRelief"
 
 func build_section_story(panel: VBoxContainer,record: Dictionary):
  heading(panel,"Section dialogue",21)

@@ -553,7 +553,9 @@ func start_campaign_preview(compiled: Dictionary,start: int,resume: bool,return_
 	game.new_campaign(compiled.settings.permadeath);game.chapter=start
 	for setting in CampaignSettings.SWITCHES:CampaignSettings.set_enabled(game,setting.key,compiled.settings[setting.key])
 	if return_to=="route":carry_valley_company(campaign_preview.game)
-	elif start>0:game.deployed=game.available().slice(0,int(game.info().deployment)).map(func(unit):return unit.id)
+	elif start>0:
+		if compiled.content.get("section_relief",{}).has(start):game.trials.arrive(game)
+		game.deployed=game.available().slice(0,int(game.info().deployment)).map(func(unit):return unit.id)
 	persist_campaign("camp")
 	show_camp()
 

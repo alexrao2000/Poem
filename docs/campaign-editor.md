@@ -8,6 +8,8 @@ The chapter list shows play order and section starts. Authors can insert, duplic
 
 Each section can have its own relief, withdrawal, and memorial scenes. They follow the chapter when you reorder the campaign. Section restart rules trigger relief and withdrawal. Death events trigger memorials and add the names of the fallen. Read scenes can be replayed from the company’s records.
 
+At a section break, use Relief company in Story to assign specific recruits, including reserves without a scheduled chapter. With permadeath and section restarts enabled, those recruits join at the rally point and carry forward after withdrawal. Use scheduled relief to draw from that chapter and the next.
+
 In Rules, choose which items appear under Legacy supplies, how many permanent losses make each item available, and how many credits it costs. Legacy purchase required keeps an item out of the regular arsenal until the company secures it.
 
 Legacy arrivals can give a recruit an early or reserve-only entry after a loss. Set the number of recorded losses, choose which fallen class can trigger the arrival, and write the scene. Use Higher priority and Lower priority to choose which recruit arrives when multiple entries qualify for the same loss.

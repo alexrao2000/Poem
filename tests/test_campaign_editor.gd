@@ -224,6 +224,37 @@ func check_war_table_sites():
  assert(draft.battle_level(stage).map[shared.y][shared.x]==base[shared.y][shared.x])
  assert(draft.move_chapter(1,1)==stage and draft.valley_marks(1).is_empty())
 
+func check_authored_relief():
+ var draft=Draft.new()
+ var reserve=draft.data.recruits[draft.add_recruit(draft.data.recruits[3],"")]
+ reserve.name="Merrin"
+ var rally=draft.data.chapters[4]
+ rally.relief_company=[reserve.id,reserve.id]
+ assert(not draft.playtest_problem().is_empty())
+ rally.relief_company=[reserve.id]
+ assert(draft.recruit_in_use(reserve.id) and draft.playtest_problem().is_empty())
+ var content=draft.compile().content
+ var game=Rules.new(content)
+ game.new_campaign(true);game.chapter=3;game.trials.flags.section_restarts=true;game.start_battle()
+ for enemy in game.living("enemy"):enemy.hp=0
+ if game.info().objective=="seize":
+  var leader=game.living("player")[0]
+  leader.x=game.objective_position().x;leader.y=game.objective_position().y
+ assert(game.result()=="victory")
+ game.finish_chapter()
+ assert(game.chapter==4 and reserve.id in game.trials.volunteers and "vela" not in game.trials.volunteers)
+ assert(game.available().any(func(member):return member.id==reserve.id))
+ assert(game.trials.events[-1].contains("Merrin"))
+ game.deployed[-1]=reserve.id;game.start_battle()
+ assert(game.trials.checkpoint.chapter==4 and game.units.any(func(member):return member.id==reserve.id))
+ game.chapter=5;game.start_battle()
+ game.units.filter(func(member):return member.id=="lyra")[0].hp=0
+ assert(game.retry_battle() and game.chapter==4 and reserve.id in game.trials.volunteers)
+ var restored=Rules.new(content)
+ assert(restored.import_code(game.export_code("camp"))=="camp")
+ assert(restored.available().any(func(member):return member.id==reserve.id))
+ assert(draft.move_chapter(4,1)==5 and draft.compile().content.section_relief=={5:[reserve.id]})
+
 func use_brush(editor,index: int,point: Vector2i,erase=false):
  var mode=editor.find_child("EditorBrush",true,false)
  mode.select(index);mode.item_selected.emit(index)
@@ -251,6 +282,7 @@ func run():
  check_legacy_catalogue()
  check_legacy_arrivals()
  check_war_table_sites()
+ check_authored_relief()
  root.size=Vector2i(1440,900)
  var app=load("res://main.tscn").instantiate();app.settings_path="";app.save_path=scratch.path_join("normal.json")
  app.campaign_draft_library.path=scratch.path_join("drafts.json")
@@ -621,6 +653,12 @@ func run():
  section_book.current_tab=section_book.get_tab_idx_from_control(app.campaign_editor.find_child("Story",true,false))
  await process_frame
  controls(app,"Start a new campaign section").button_pressed=true
+ app.campaign_editor.find_child("EditorSectionReliefDefault",true,false).button_pressed=false
+ var relief_recruit=app.campaign_editor.find_child("EditorReliefRecruit",true,false)
+ for index in relief_recruit.item_count:
+  if relief_recruit.get_item_metadata(index)=="nell":relief_recruit.select(index);break
+ controls(app,"Add to relief").pressed.emit()
+ assert(app.campaign_editor.chapter().relief_company==["nell"])
  var withdrawal_title=app.campaign_editor.find_child("EditorSectionTitle_retreat",true,false)
  withdrawal_title.text="Withdrawal to the ridge";withdrawal_title.text_changed.emit(withdrawal_title.text)
  var withdrawal_lines=app.campaign_editor.find_child("EditorSectionLines_retreat",true,false)
@@ -651,6 +689,7 @@ func run():
  assert(app.campaign_editor.play_buttons[0].disabled and app.campaign_editor.selected==1)
  controls(app,"Test this battle").pressed.emit();await finish_presentation(app)
  assert(app.screen=="camp" and app.game.chapter==1 and app.campaign_preview.return=="chapter")
+ assert("nell" in app.game.trials.volunteers and "nell" in app.game.deployed)
  assert(app.campaign_save_path().get_file().begins_with("battle-test-1-"))
  controls(app,"Return to editor").pressed.emit();await process_frame
  controls(app,"Resume battle test").pressed.emit();await finish_presentation(app)
@@ -662,6 +701,7 @@ func run():
  await await_phase_dialogue(app,"The ridge is still ours.")
  await finish_presentation(app)
  assert(app.screen=="camp" and "retreat_1" in app.game.trials.read_scenes)
+ assert("nell" in app.game.trials.volunteers)
  app.show_campaign_trials();await process_frame
  controls(app,"Replay · Withdrawal to the ridge").pressed.emit()
  await await_phase_dialogue(app,"The ridge is still ours.")
@@ -696,5 +736,5 @@ func run():
  assert(app.screen=="campaign_editor" and app.game==installed and app.campaign_editor.selected==11)
  assert(FileAccess.get_file_as_string(app.save_path)==disk)
  await Shutdown.dispose(app);await process_frame
- print("PASS: campaign JSON, route pins, war-table site terrain, custom recruits, phase scenes, timed reinforcements, chapter 32 saves, section dialogue, authored legacy stock and purchase persistence, authored loss recruits, Valley carryover, thirteen-chapter Valley template, and single-battle tests")
+ print("PASS: campaign JSON, route pins, war-table site terrain, custom recruits, phase scenes, timed reinforcements, chapter 32 saves, section dialogue, authored section relief, authored legacy stock and purchase persistence, authored loss recruits, Valley carryover, thirteen-chapter Valley template, and single-battle tests")
  quit()

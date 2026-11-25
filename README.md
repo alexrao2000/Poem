@@ -59,11 +59,11 @@ Exports are generated locally and ignored by Git. If `build/web/index.html` or t
 
 ## Campaign editor
 
-Open **Campaign editor** from the title screen or Debug tools. Start a new draft or copy Poem’s campaign from **Open drafts**. Organize up to 32 chapters and their section starts, paint terrain, place enemies and reinforcements, and write briefings and dialogue. The Company tab edits the roster’s classes, base stats, arrivals, opening deployment, and epilogues. The Rules tab sets the campaign’s starting switches.
+Open **Campaign editor** from the title screen or Debug tools. Start a new draft or copy Poem’s campaign from **Open drafts**. Organize up to 32 chapters, paint terrain, place enemies and reinforcements, and write briefings and dialogue. Edit the roster and bonds, choose the recruits who arrive at section breaks, and set the starting rules, legacy supplies, and rewards for permanent losses. [Campaign editor guide](docs/campaign-editor.md)
 
 Use **Save draft** for the local library and **Transfer JSON** to copy a campaign between the browser and macOS builds. **Play from start**, **Play chapter**, and **Resume playtest** use a save tied to that edition of the draft. Return to the editor from the war council, battle menu, or ending.
 
-**Add valley battle** inserts a chapter that uses the illustrated campaign route as a tactical board. In Poem’s own campaign, reach Crown Approach and open **Route → Unroll the war table** to try the encounter with the current company.
+**Open drafts → Copy Poem with the Valley battle** puts the war table between Crown Approach and the Sun Engine in a 13-chapter draft. **Add valley battle** inserts that tactical board in any draft. Set terrain in Route to carry earlier chapter pins onto later war tables. In Poem’s regular campaign, reach Crown Approach and open **Route → Unroll the war table** to try the encounter with the current company.
 
 ## Controls
 
