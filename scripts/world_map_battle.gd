@@ -377,7 +377,7 @@ static func grid_material(world: Node3D) -> ShaderMaterial:
  var grid=world.get_node_or_null("ValleyGrid") as MeshInstance3D
  return grid.material_override as ShaderMaterial if grid!=null else null
 
-static func play_reveal(navigation,game,world: Node3D,actors: Array,hint: Control,skip: Callable,cue: Callable=Callable()):
+static func play_reveal(navigation,game,world: Node3D,actors: Array,hint: Control,skip: Callable,cue: Callable=Callable(),refresh_home: Callable=Callable()):
  var camera: Camera3D=navigation.camera
  var viewport=camera.get_viewport()
  var board=game.board_size()
@@ -399,9 +399,12 @@ static func play_reveal(navigation,game,world: Node3D,actors: Array,hint: Contro
  var first_seat=INF
  for index in actors.size():first_seat=minf(first_seat,seats[index])
  var played=[false,false]
+ var progress=[0.0]
  var apply_frame=func(weight: float,sound: bool):
+  progress[0]=weight
   var viewport_size=viewport.get_visible_rect().size
   if viewport_size!=chart.viewport:
+   if refresh_home.is_valid():home.merge(refresh_home.call(),true)
    chart.merge(chart_view(camera,board,home),true)
    chart.viewport=viewport_size
   var front=lerpf(-.85,radius,smoothstep(.10,.86,weight))
@@ -419,11 +422,14 @@ static func play_reveal(navigation,game,world: Node3D,actors: Array,hint: Contro
     played[0]=true;cue.call("paper")
    if front>=first_seat+2.85 and not played[1]:
     played[1]=true;cue.call("wood")
+ var resize=func():apply_frame.call(progress[0],false)
+ viewport.size_changed.connect(resize)
  apply_frame.call(0.0,false)
  var motion=world.create_tween()
  motion.tween_method(apply_frame.bind(true),0.0,1.0,REVEAL_SECONDS)
  while motion.is_running() and not skip.call():await world.get_tree().process_frame
  if motion.is_running():motion.kill()
+ viewport.size_changed.disconnect(resize)
  apply_frame.call(1.0,false)
  seals.get_parent().remove_child(seals)
  seals.queue_free()

@@ -1220,16 +1220,20 @@ func deploy_company():
 	await present_phase_scenes()
 	busy=false;update_side()
 
-func reveal_valley_battle(refit_on_resize=true):
+func reveal_valley_battle(follow_home=true):
+	if follow_home:refit_home_after_resize()
 	valley_reveal_skip=false;valley_reveal_active=true
 	ui.hide();markers.hide()
 	var hint=valley_transition_hint()
-	var viewport_size=get_viewport().get_visible_rect().size
 	var cue=func(event):
 		if event=="paper":play_sfx("valley-unroll")
 		else:travel_audio.step("=","",0)
-	await ValleyBattle.play_reveal(map_navigation,game,world,unit_nodes.values(),hint,func():return valley_reveal_skip,cue)
-	if refit_on_resize and get_viewport().get_visible_rect().size!=viewport_size:map_camera()
+	var refresh_home=Callable()
+	if follow_home:
+		refresh_home=func():
+			map_camera()
+			return map_navigation.capture_view()
+	await ValleyBattle.play_reveal(map_navigation,game,world,unit_nodes.values(),hint,func():return valley_reveal_skip,cue,refresh_home)
 	canvas.remove_child(hint);hint.queue_free()
 	ui.show();markers.show()
 	valley_reveal_active=false

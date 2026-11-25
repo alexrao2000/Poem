@@ -2485,6 +2485,29 @@ func run():
   await app.click_tile(Vector2i(3,9));await app.click_tile(destination)
   assert(canonical(app.game.save_data("battle"))==valley_state)
  print("PASS: Atlas and V open the battle chart directly, preserving a pending movement, camera view and save")
+ root.size=Vector2i(1440,900);root.content_scale_size=root.size
+ await process_frame;await process_frame
+ app.map_camera()
+ app.ui.find_child("OpenBattleAtlas",true,false).pressed.emit();await process_frame
+ var resize_connections=root.size_changed.get_connections().size()
+ app.ui.find_child("BattleRouteReplay",true,false).pressed.emit()
+ assert(app.valley_reveal_active)
+ root.size=Vector2i(720,640);root.content_scale_size=root.size
+ var last_reveal_size=0.0
+ var reveal_deadline=Time.get_ticks_msec()+5000
+ var corners=Valley.reveal_corners(app.game.board_size())
+ while app.valley_reveal_active and Time.get_ticks_msec()<reveal_deadline:
+  await process_frame
+  var viewport=root.get_visible_rect()
+  if not app.valley_reveal_active or viewport.size.x!=720:continue
+  assert(viewport.grow(1).encloses(app.TacticalCamera.board_bounds(app.camera,corners)))
+  last_reveal_size=app.camera.size
+ assert(app.screen=="battle" and app.map_navigation.at_home())
+ assert(last_reveal_size>0.0 and absf(last_reveal_size-app.camera.size)<1.0)
+ assert(root.size_changed.get_connections().size()==resize_connections)
+ assert(canonical(app.game.save_data("battle"))==valley_state and FileAccess.get_file_as_string(valley_path)==valley_disk)
+ assert(app.score_director.player.get_stream_playback()==decoder)
+ print("PASS: the atlas reveal keeps the entire board visible through a resize and lands on the fitted Home view")
  for manual in [false,true]:
   root.size=Vector2i(1440,900);root.content_scale_size=root.size
   await process_frame;await process_frame
