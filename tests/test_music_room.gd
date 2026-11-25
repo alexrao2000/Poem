@@ -48,8 +48,8 @@ func run():
   if act_running:assert(not act_fade.is_running())
   if battle_running:assert(not battle_fade.is_running())
   await inspect(app)
-  var chooser=app.ui.find_child("MusicRoomTheme",true,false);assert(chooser.item_count==12 and chooser.has_focus())
-  var assigned=["Chapter 01","Chapter 05","Chapter 10","Chapter 12","Chapter 04","Chapter 09","Chapter 03","Chapter 06","Chapter 07","Chapter 08","Chapter 11","Chapter 02"]
+  var chooser=app.ui.find_child("MusicRoomTheme",true,false);assert(chooser.item_count==13 and chooser.has_focus())
+  var assigned=["Chapter 01","Chapter 05","Chapter 10","Chapter 12","Chapter 04","Chapter 09","Chapter 03","Chapter 06","Chapter 07","Chapter 08","Chapter 11","Chapter 02","96 BPM"]
   for index in range(chooser.item_count):
    chooser.select(index);chooser.item_selected.emit(index)
    var voice=preview.director.player;var pair=preview.director.score
@@ -102,7 +102,7 @@ func run():
  assert(interrupted.get_ref()==null and not app.music.stream_paused,"Closing during simultaneous theme/arrangement fades releases the room and restores the campaign")
  await verify_authored_labels(app)
  await Shutdown.dispose(app);await process_frame
- print("PASS: twelve-theme music room, continuous Calm/Ablaze switching, bounded crossfades, twenty layout checks, muted preview, guarded navigation and playing/paused/stopped/fading campaign restoration without state changes")
+ print("PASS: thirteen-theme music room, continuous Calm/Ablaze switching, bounded crossfades, twenty layout checks, muted preview, guarded navigation and playing/paused/stopped/fading campaign restoration without state changes")
  quit()
 
 func verify_authored_labels(app):

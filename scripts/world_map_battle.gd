@@ -62,7 +62,7 @@ static func chapter(route: Array) -> Dictionary:
  return {"title":"The Roads Between","place":"Valley war table","intro":"The council map shows the armies closing on the capital. Take the crossings and seize its standard.",
   "outro":"The capital opens its gates. The valley’s companies can move toward the Sun Engine together.",
   "tactical_brief":"Follow the painted roads, use the crossings, and keep the company together through the hills.",
-  "presentation":"valley_table","map":rows,"environment":"castle","score_theme":"crown",
+  "presentation":"valley_table","map":rows,"environment":"castle","score_theme":"valley",
   "route_position":[.895,.15625],"objective":"seize","objective_position":CAPITAL.duplicate(),
   "turn_limit":12,"deployment_positions":allies,"enemies":enemies,"hard_enemies":reserves}
 

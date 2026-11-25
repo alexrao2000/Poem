@@ -245,7 +245,7 @@ A chapter’s optional `lighting` object overrides its environment palette. Use 
 - [author_maps.py](scripts/author_maps.py) authors map geometry, deployment, squads, landmarks, and tactical briefings.
 - [index_sprites.gd](scripts/index_sprites.gd) generates sprite-region metadata from alpha bounds without modifying source images.
 - [package_visuals.py](scripts/package_visuals.py) creates a clean starter project and `build/Reusable2DVisuals.zip` for reuse in another game.
-- [generate_score.py](scripts/generate_score.py) renders the initial score and effects; [render_campaign_music.py](scripts/render_campaign_music.py) renders the two later campaign themes. Both require NumPy. Run [fetch_score_samples.py](scripts/fetch_score_samples.py) first to populate the ignored local sample cache. The initial generator also supports `--synthetic` for oscillator-only rendering.
+- [generate_score.py](scripts/generate_score.py) renders the initial score and effects. [render_campaign_music.py](scripts/render_campaign_music.py) renders the later campaign themes and the Valley score. Both require NumPy. Populate the local sample cache with [fetch_score_samples.py](scripts/fetch_score_samples.py). The initial generator also supports `--synthetic` for oscillator-only rendering.
 
 **Regeneration warning:** [generate_content.py](scripts/generate_content.py) is a legacy full-content generator. Running it overwrites campaign data, original placeholder sprites, and audio. Use focused authoring scripts for normal edits.
 

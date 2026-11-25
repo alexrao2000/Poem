@@ -38,14 +38,20 @@ func run():
  await verify_chapter_exchange(app,8,"aqueduct","starfall",Vector2i(9,1),Vector2i(10,1))
  await verify_chapter_exchange(app,10,"dawnless","crown",Vector2i(7,4),Vector2i(8,4))
  await verify_chapter_exchange(app,11,"crown","sun_engine",Vector2i(9,2),Vector2i(10,2))
+ var regular_game=app.game
+ var draft=preload("res://scripts/campaign_draft.gd").new()
+ var valley=draft.insert_chapter(10,false,true)
+ app.game=preload("res://scripts/rules.gd").new(draft.compile().content)
+ await verify_chapter_exchange(app,valley,"crown","valley",Vector2i(8,8),Vector2i(9,8))
+ app.game=regular_game
  await verify_quick_battles(app)
  await Shutdown.dispose(app);await process_frame
- print("PASS: twelve exact Calm/Ablaze pairs, 12 unique chapter mappings, compensated arrangement curve and seamless reversal, continuous combat mixing, bounded theme crossfades, mute/interruption and independent effects")
+ print("PASS: thirteen exact Calm/Ablaze pairs, 12 main chapter mappings plus the Valley, compensated arrangement curve and seamless reversal, continuous combat mixing, bounded theme crossfades, mute/interruption and independent effects")
  quit()
 
 func verify_themes(app):
  var director=app.score_director
- assert(director.profiles.size()==12)
+ assert(director.profiles.size()==13)
  for profile in director.profiles:
   var pair=director.make_pair(profile)
   var calm=pair.get_sync_stream(0);var ablaze=pair.get_sync_stream(1)

@@ -290,6 +290,30 @@
         }
       },
       "composition_sha256": "b442f5a58f42060e4d250ddd1d00bd81ac9b6d8edc5922c8f9f2158af557f95f"
+    },
+    {
+      "id": "valley",
+      "title": "The Roads Between",
+      "bpm": 96,
+      "bars": 32,
+      "frames": 1764000,
+      "sample_rate": 22050,
+      "channels": 2,
+      "arrangements": {
+        "calm": {
+          "path": "res://assets/audio/valley-calm.wav",
+          "peak": 0.5761853542559789,
+          "rms": 0.12,
+          "boundary_step": 0.0037323293367654067
+        },
+        "ablaze": {
+          "path": "res://assets/audio/valley-ablaze.wav",
+          "peak": 0.87,
+          "rms": 0.14898844965640615,
+          "boundary_step": 0.004928187079994165
+        }
+      },
+      "composition_sha256": "94c3bf5c81ee28b851c93f1346f6cce9ecf4fbdbdf559e605ccb6b5390249c25"
     }
   ]
 }

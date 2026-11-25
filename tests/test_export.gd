@@ -121,6 +121,12 @@ func run():
  for element in ["ember","gale","thunder"]:assert(app.sfx_streams["impact_"+element].get_length()>.37,"Packaged spells include their elemental contact sound")
  for family in ["sword","axe","lance","bow","ember","gale","thunder"]:assert(app.sfx_streams["release_"+family].get_length()>.13,"Packaged combat includes every original weapon/element release cue")
  for job in app.CLASSES:assert(app.map_catalog.assets.has("enemy."+job.to_lower()),"Release includes every dedicated enemy class atlas")
+ var valley_score=app.score_director.profile_for(11,"valley")
+ assert(valley_score.id=="valley" and valley_score.frames==1764000)
+ var valley_pair=app.score_director.make_pair(valley_score)
+ for index in 2:
+  var track=valley_pair.get_sync_stream(index)
+  assert(track.stereo and track.mix_rate==22050 and track.loop_end==1764000 and is_equal_approx(track.get_length(),80.0))
  for chapter in range(12):
   app.game.chapter=chapter;app.game.start_battle();app.make_map();app.show_battle();await process_frame
   var theme={1:"reed_crossing",2:"greywood",3:"abbey",5:"glass_harbor",6:"windscar",7:"aqueduct",8:"starfall",10:"crown",11:"sun_engine"}.get(chapter,["standard","road","dawnless"][chapter/4])
