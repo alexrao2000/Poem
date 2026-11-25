@@ -31,15 +31,17 @@ for name in SUITES:
         command.extend(["--fixed-fps", "120"])
     if name == "export":
         command.extend(["--main-pack", str(ROOT / "build/web/index.pck")])
+    # The model preference suite plays 24 full 3D exchanges at normal speed.
+    timeout = 180 if name == "model_preferences" else 90
     try:
-        result = run_engine(command, cwd=ROOT, timeout=90)
+        result = run_engine(command, cwd=ROOT, timeout=timeout)
     except subprocess.TimeoutExpired as error:
         output = error.stdout or b""
         if isinstance(output, bytes):
             output = output.decode(errors="replace")
         (logs / f"{name}-output.log").write_text(output)
         print(output)
-        raise SystemExit(f"FAIL: {name} exceeded 90 seconds (possible script assertion)")
+        raise SystemExit(f"FAIL: {name} exceeded {timeout} seconds (possible script assertion)")
     (logs / f"{name}-output.log").write_text(result.stdout)
     print(result.stdout, end="", flush=True)
     engine_errors = [line for line in result.stdout.splitlines()

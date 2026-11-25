@@ -114,6 +114,7 @@ func run():
  await verify_longer_route(app)
  await verify_retreat_route(app)
  await verify_atlas_draws(app)
+ await verify_campaign_name(app)
  await verify_route_memorial(app)
  await Shutdown.dispose(app);await process_frame
  print("PASS: ",count," campaign route layouts, all twelve chapter markers selectable at 720, live focus and reflow, locked briefing protection, read-only campaign state and Escape return")
@@ -130,6 +131,22 @@ func observe_atlas_draws(route,frames: int) -> Array:
  for _frame in frames:await process_frame
  route.draw.disconnect(atlas);active.draw.disconnect(pulse)
  return counts
+
+func verify_campaign_name(app):
+ app.game=Rules.new();app.game.story_seen=["opening_0"]
+ var title="The Chronicle of the Western Shoals ".repeat(3).strip_edges()
+ app.game.content.title=title
+ for dimensions in [Vector2(720,640),Vector2(1280,720)]:
+  for view in ["camp","campaign_route"]:
+   if view=="camp":app.show_camp()
+   else:app.show_campaign_route()
+   app.ui.set_anchors_and_offsets_preset(Control.PRESET_TOP_LEFT);app.ui.size=dimensions
+   await process_frame;await process_frame
+   var label=app.ui.find_child("CouncilCampaignName" if view=="camp" else "RouteCampaignName",true,false)
+   assert(label.text.ends_with(title.to_upper()) and label.tooltip_text==label.text)
+   assert(Rect2(Vector2.ZERO,dimensions).grow(1).encloses(label.get_global_rect()))
+   assert(label.text_overrun_behavior==TextServer.OVERRUN_TRIM_ELLIPSIS and label.get_line_count()==1)
+ print("PASS: the authored campaign name fits on one line in the war council and atlas at both sizes")
 
 func verify_route_memorial(app):
  app.game=Rules.new();app.game.new_campaign(true)

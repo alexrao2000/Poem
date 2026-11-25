@@ -57,6 +57,10 @@ Exports are generated locally and ignored by Git. If `build/web/index.html` or t
 4. Use **Wait** to commit movement without attacking. Right-click or press **Escape** to undo an uncommitted move.
 5. End the player phase when ready. Complete the displayed objective to advance to the next chapter.
 
+## The Roads Between
+
+At the title, choose **Begin the chronicle → The Roads Between** to start the 13-chapter campaign. **Continue The Roads Between** opens its local save. In the Valley battle, press **V** for the atlas and choose **Replay reveal** to watch the chart become the battlefield again.
+
 ## Campaign editor
 
 Open **Campaign editor** from the title screen or Debug tools. Start a new draft or copy Poem’s campaign from **Open drafts**. Organize up to 32 chapters, paint terrain, place enemies and reinforcements, and write briefings and dialogue. Edit the roster and bonds, choose the recruits who arrive at section breaks, and set the starting rules, legacy supplies, and rewards for permanent losses. [Campaign editor guide](docs/campaign-editor.md)
@@ -201,7 +205,7 @@ Browser storage can be cleared by the browser. Returning to the war council rest
 2. Copy the `POEM1:` code. Battle transfer exports the live state and returns to the same map.
 3. In the destination build, open the transfer screen. Paste the code or choose **Open code file** to select its text file, then choose **Import pasted code**.
 
-To import a campaign draft’s code, start the matching draft version in **Campaign Editor** and open transfer from its war council. For a main campaign code, open transfer from the title screen.
+To import a campaign draft’s code, start the matching draft version in **Campaign Editor** and open transfer from its war council. Open transfer from the title screen for a code from Poem or The Roads Between.
 
 In a browser, **Open browser copy / paste** provides a native text field. Paste there, choose **Use code**, then **Import pasted code**. Nothing is uploaded.
 

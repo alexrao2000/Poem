@@ -327,6 +327,13 @@ func label_in(parent,text_value,size=18,color=Color("443e36")) -> Label:
 	parent.add_child(l)
 	return l
 
+func campaign_heading(parent: Control,text_value: String,size: int) -> Label:
+	var heading=label_in(parent,text_value,size,GOLD)
+	heading.autowrap_mode=TextServer.AUTOWRAP_OFF
+	heading.text_overrun_behavior=TextServer.OVERRUN_TRIM_ELLIPSIS
+	heading.mouse_filter=Control.MOUSE_FILTER_PASS;heading.tooltip_text=text_value
+	return heading
+
 func button_in(parent,text_value,action,disabled=false) -> Button:
 	var b=Button.new();b.text=text_value;b.custom_minimum_size.y=42;b.disabled=disabled
 	interface_audio.watch(b,interface_audio.button_tone(text_value))
@@ -792,7 +799,10 @@ func show_camp():
 	ui.add_child(shell)
 	var row=HBoxContainer.new();row.add_theme_constant_override("separation",24);shell.add_child(row)
 	var left=VBoxContainer.new();left.custom_minimum_size.x=320;left.size_flags_horizontal=Control.SIZE_EXPAND_FILL;left.size_flags_stretch_ratio=.85;row.add_child(left)
-	label_in(left,"POEM / WAR COUNCIL"+(" / DEBUG" if debug_session.active else ""),16,GOLD)
+	var campaign_name: String=game.content.get("title","").strip_edges()
+	var council_name="WAR COUNCIL"+(" / DEBUG" if debug_session.active else "")
+	council_name="POEM / "+council_name if campaign_name.is_empty() else council_name+" / "+campaign_name.to_upper()
+	campaign_heading(left,council_name,16).name="CouncilCampaignName"
 	label_in(left,"%02d  %s"%[game.chapter+1,game.info().title],34)
 	label_in(left,game.info().place.to_upper(),17,Color("79755f"))
 	var briefing=scrolling_column(left)
@@ -931,7 +941,9 @@ func show_campaign_route(view: String="campaign_route"):
 	reset_ui()
 	var frame=menu_panel(1320)
 	var retreat=game.trials.section_start(game.chapter)
-	label_in(frame,"WITHDRAWAL ROUTE" if retreat_view else "THE MARCH OF THE STANDARD",30,GOLD)
+	var campaign_name: String=game.content.get("title","").strip_edges()
+	var atlas_name="THE MARCH OF THE STANDARD" if campaign_name.is_empty() else "ATLAS / "+campaign_name.to_upper()
+	campaign_heading(frame,"WITHDRAWAL ROUTE" if retreat_view else atlas_name,30).name="RouteCampaignName"
 	var route_intro="A chronicle of the valley · Select a reached destination to review its briefing."
 	if retreat_view:
 		var rally=game.content.chapters[retreat]
