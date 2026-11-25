@@ -2,6 +2,8 @@ extends Control
 ## A single canvas stays usable for authored boards up to 32 by 24 tiles.
 signal tile_edited(point: Vector2i,erase: bool)
 signal tile_inspected(point: Vector2i)
+signal stroke_started
+signal terrain_step_requested(redo: bool)
 const Valley=preload("res://scripts/world_map_battle.gd")
 const COLORS={".":"bac08b","p":"ccb185","=":"bd9968","f":"547558","h":"9d937c","o":"ddbc68",
  "+":"85b29b","#":"474650","~":"6b9cad"}
@@ -10,6 +12,7 @@ var marks: Dictionary
 var atlas: Texture2D=Valley.MAP
 var cursor=Vector2i.ZERO
 var last_tile=Vector2i(-1,-1)
+var stroke_active=false
 
 func configure(source: Dictionary,route_marks: Dictionary,picture: Texture2D=null):
  level=source
@@ -82,7 +85,8 @@ func draw_token(position: Array,text: String,color: Color):
 
 func _gui_input(event: InputEvent):
  if event is InputEventMouseButton and event.button_index in [MOUSE_BUTTON_LEFT,MOUSE_BUTTON_RIGHT]:
-  if not event.pressed:last_tile=Vector2i(-1,-1);return
+  last_tile=Vector2i(-1,-1);stroke_active=false
+  if not event.pressed:return
   grab_focus()
   use_pointer(event.position,event.button_index==MOUSE_BUTTON_RIGHT)
  elif event is InputEventMouseMotion:
@@ -91,6 +95,8 @@ func _gui_input(event: InputEvent):
   if event.button_mask & (MOUSE_BUTTON_MASK_LEFT|MOUSE_BUTTON_MASK_RIGHT):
    use_pointer(event.position,(event.button_mask & MOUSE_BUTTON_MASK_RIGHT)!=0)
  elif event is InputEventKey and event.pressed:
+  if event.keycode==KEY_Z and (event.ctrl_pressed or event.meta_pressed) and not event.echo:
+   terrain_step_requested.emit(event.shift_pressed);accept_event();return
   var edges={KEY_LEFT:Vector2i.LEFT,KEY_RIGHT:Vector2i.RIGHT,KEY_UP:Vector2i.UP,KEY_DOWN:Vector2i.DOWN}
   if edges.has(event.keycode):
    cursor=(cursor+edges[event.keycode]).clamp(Vector2i.ZERO,board_size()-Vector2i.ONE)
@@ -107,5 +113,7 @@ func tile_at(position: Vector2) -> Vector2i:
 func use_pointer(position: Vector2,erase: bool):
  var point=tile_at(position)
  if point.x<0 or point==last_tile:return
+ if not stroke_active:
+  stroke_active=true;stroke_started.emit()
  cursor=point;last_tile=point
  tile_edited.emit(point,erase);tile_inspected.emit(point);queue_redraw();accept_event()

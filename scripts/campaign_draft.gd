@@ -12,6 +12,7 @@ const VERSION=1
 const MAX_CHAPTERS=32
 const MAX_CUSTOM_RECRUITS=16
 const MAX_PHASE_SCENES=8
+const TERRAIN_UNDO_LIMIT=32
 const SECTION_SCENES={"relief":"Relief arrivals","retreat":"Withdrawal","memorial":"Memorial"}
 const MAX_DRAFT_LENGTH=1000000
 const ENVIRONMENTS=["village","river","forest","abbey","road","harbor","mountain","aqueduct","observatory","furnace","castle","engine"]
@@ -30,7 +31,11 @@ var base_trial_scenes: Dictionary
 var base_profiles: Dictionary
 var equipment: Array
 var music_ids: Array
-var data: Dictionary
+var terrain_history={}
+var data: Dictionary:
+ set(value):
+  data=value
+  terrain_history.clear()
 var dirty=false
 var atlas_source=""
 var atlas_texture: ImageTexture
@@ -212,6 +217,7 @@ func move_chapter(index: int,direction: int) -> int:
 func remove_chapter(index: int) -> int:
  if data.chapters.size()==1:return index
  var removed=data.chapters.pop_at(index)
+ terrain_history.erase(removed.key)
  var next=mini(index,data.chapters.size()-1)
  for recruit in data.recruits:
   if recruit.chapter==removed.key:recruit.chapter=data.chapters[next].key
@@ -236,6 +242,27 @@ func resize_map(level: Dictionary,dimensions: Vector2i):
 func paint(level: Dictionary,point: Vector2i,symbol: String):
  var row: String=level.map[point.y]
  level.map[point.y]=row.left(point.x)+symbol+row.substr(point.x+1)
+
+func remember_terrain(index: int):
+ var chapter=data.chapters[index]
+ var history=terrain_history.get(chapter.key,{"undo":[],"redo":[]})
+ history.undo.append(chapter.level.map.duplicate())
+ if history.undo.size()>TERRAIN_UNDO_LIMIT:history.undo.pop_front()
+ history.redo.clear()
+ terrain_history[chapter.key]=history
+
+func can_step_terrain(index: int,redo: bool) -> bool:
+ return not terrain_history.get(data.chapters[index].key,{}).get("redo" if redo else "undo",[]).is_empty()
+
+func step_terrain(index: int,redo: bool) -> bool:
+ if not can_step_terrain(index,redo):return false
+ var chapter=data.chapters[index]
+ var history=terrain_history[chapter.key]
+ var previous=history.redo if redo else history.undo
+ var current=history.undo if redo else history.redo
+ current.append(chapter.level.map.duplicate())
+ chapter.level.map=previous.pop_back()
+ return true
 
 func structural_problem(document) -> String:
  if not document is Dictionary or document.get("format")!=FORMAT or document.get("version")!=VERSION:

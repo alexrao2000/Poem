@@ -27,6 +27,9 @@ var selected_stock=0
 var selected_arrival=0
 var encounter_panel: VBoxContainer
 var grid: Control
+var terrain_changed=false
+var undo_terrain: Button
+var redo_terrain: Button
 var status: Label
 var source_chapter: OptionButton
 var terrain_choice: OptionButton
@@ -114,9 +117,12 @@ func build_battle(panel: VBoxContainer):
  width.editable=not fixed_chart;height.editable=not fixed_chart
  field_label(parameters,"Width",width);field_label(parameters,"Height",height)
  action(panel,"Resize map",func():
-  draft.resize_map(layout,Vector2i(width.value,height.value))
+  var dimensions=Vector2i(width.value,height.value)
+  if dimensions==grid.board_size():return
+  draft.terrain_history.erase(chapter().key)
+  draft.resize_map(layout,dimensions)
   grid.cursor=grid.cursor.clamp(Vector2i.ZERO,grid.board_size()-Vector2i.ONE)
-  grid.queue_redraw();changed(),fixed_chart)
+  grid.queue_redraw();update_terrain_history();changed(),fixed_chart)
  var tools=row(panel)
  var mode=choice(TOOLS,TOOLS[brush],func(value):brush=TOOLS.find(value);show_brush_options())
  mode.name="EditorBrush";tools.add_child(mode)
@@ -129,9 +135,15 @@ func build_battle(panel: VBoxContainer):
  ai_choice=choice(Draft.STRATEGIES,"pursue",Callable());tools.add_child(ai_choice)
  enemy_name=line_edit("","Enemy name",80,Callable());tools.add_child(enemy_name)
  show_brush_options()
+ var history=row(panel)
+ undo_terrain=action(history,"Undo terrain",func():step_terrain(false));undo_terrain.name="EditorUndoTerrain"
+ redo_terrain=action(history,"Redo terrain",func():step_terrain(true));redo_terrain.name="EditorRedoTerrain"
+ update_terrain_history()
  heading(panel,"Click or use the arrow keys and Enter. Right-click or Backspace erases. C marks the commander.",15)
  grid=Grid.new();grid.name="EditorGrid";panel.add_child(grid)
  grid.configure(layout,draft.valley_marks(selected),draft.route_texture() if fixed_chart else null)
+ grid.stroke_started.connect(func():terrain_changed=false)
+ grid.terrain_step_requested.connect(step_terrain)
  grid.tile_edited.connect(edit_tile)
  if fixed_chart:
   var inspected=heading(panel,"",15)
@@ -149,11 +161,25 @@ func show_brush_options():
  terrain_choice.visible=brush==0
  job_choice.visible=enemy;ai_choice.visible=enemy;enemy_name.visible=enemy
 
+func update_terrain_history():
+ undo_terrain.disabled=not draft.can_step_terrain(selected,false)
+ redo_terrain.disabled=not draft.can_step_terrain(selected,true)
+
+func step_terrain(redo: bool):
+ if grid.stroke_active or not draft.step_terrain(selected,redo):return
+ grid.queue_redraw();grid.tile_inspected.emit(grid.cursor);grid.grab_focus()
+ update_terrain_history();changed()
+
 func edit_tile(point: Vector2i,erase: bool):
  var layout=level()
  var position=[point.x,point.y]
  if brush==0:
-  draft.paint(layout,point,"." if erase else terrain_choice.get_selected_metadata())
+  var symbol="." if erase else terrain_choice.get_selected_metadata()
+  if layout.map[point.y][point.x]==symbol:return
+  if not grid.stroke_active or not terrain_changed:draft.remember_terrain(selected)
+  terrain_changed=grid.stroke_active
+  draft.paint(layout,point,symbol)
+  update_terrain_history()
  elif erase:
   layout.deployment_positions=layout.deployment_positions.filter(func(site):return not same_tile(site,point))
   for group in ["enemies","hard_enemies"]:
@@ -913,6 +939,7 @@ func open_saved_draft(record: Dictionary,make_copy: bool,dialog: AcceptDialog,fe
  elif not make_copy:
   dialog.queue_free();return
  if make_copy:
+  draft.data=draft.data.duplicate(true)
   draft.data.title=draft.data.title.left(113)+" (copy)"
   draft_key="";dirty=true
  else:

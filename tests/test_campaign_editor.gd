@@ -267,6 +267,23 @@ func check_battle_readiness():
  level.enemies.clear()
  assert(draft.battle_readiness(0).title=="Needs edits")
 
+func check_terrain_undo():
+ var draft=Draft.new()
+ draft.data=draft.new_document(false)
+ var index=draft.insert_chapter(0,false)
+ var point=Vector2i(6,4)
+ draft.remember_terrain(index)
+ draft.paint(draft.data.chapters[index].level,point,"f")
+ draft.data.title="Terrain edit"
+ assert(draft.move_chapter(index,-1)==0 and draft.can_step_terrain(0,false))
+ assert(draft.step_terrain(0,false) and draft.data.chapters[0].level.map[4][6]==".")
+ assert(draft.data.title=="Terrain edit" and draft.step_terrain(0,true))
+ assert(draft.data.chapters[0].level.map[4][6]=="f")
+ assert(draft.step_terrain(0,false))
+ draft.remember_terrain(0);draft.paint(draft.data.chapters[0].level,point,"h")
+ assert(not draft.can_step_terrain(0,true))
+ assert(draft.decode(draft.encode()).is_empty() and not draft.can_step_terrain(0,false))
+
 func check_chapter_hard_bonuses():
  var draft=Draft.new()
  var bonuses={"max_hp":3,"pow":4,"speed":-1,"defense":2}
@@ -386,6 +403,7 @@ func run():
  check_war_table_sites()
  check_authored_relief()
  check_battle_readiness()
+ check_terrain_undo()
  check_chapter_hard_bonuses()
  check_authored_raiders()
  root.size=Vector2i(1440,900)
@@ -436,7 +454,16 @@ func run():
  var click=InputEventMouseButton.new();click.button_index=MOUSE_BUTTON_LEFT;click.pressed=true
  click.position=terrain_canvas.board_rect().position+Vector2(6.5,4.5)*cell
  terrain_canvas._gui_input(click)
- assert(editor.level().map[4][6]=="f")
+ var stroke=InputEventMouseMotion.new();stroke.button_mask=MOUSE_BUTTON_MASK_LEFT
+ stroke.position=terrain_canvas.board_rect().position+Vector2(7.5,5.5)*cell
+ terrain_canvas._gui_input(stroke)
+ click.pressed=false;terrain_canvas._gui_input(click)
+ assert(editor.level().map[4][6]=="f" and editor.level().map[5][7]=="f")
+ controls(app,"Undo terrain").pressed.emit()
+ assert(editor.level().map[4][6]=="." and editor.level().map[5][7]==".")
+ var redo=InputEventKey.new();redo.keycode=KEY_Z;redo.pressed=true;redo.meta_pressed=true;redo.shift_pressed=true
+ terrain_canvas._gui_input(redo)
+ assert(editor.level().map[4][6]=="f" and editor.level().map[5][7]=="f")
  use_brush(editor,4,Vector2i(0,3))
  editor.chapter().opening=[{"speaker":"lyra","text":"This is a new campaign."}]
  editor.level().title="River Gate"
@@ -1026,5 +1053,5 @@ func run():
  await verify_custom_atlas(app,scratch)
  assert(FileAccess.get_file_as_string(app.save_path)==disk and app.game==installed)
  await Shutdown.dispose(app);await process_frame
- print("PASS: campaign JSON file transfer, draft library management, remembered playtest setup, campaign readiness, authored Hard bonuses, authored retry raiders, deployment comparison, custom campaign atlas, route pins, war-table site terrain, rising Valley landmarks, custom recruits, phase scenes, timed reinforcements, chapter 32 saves, section dialogue, authored section relief, authored legacy stock and purchase persistence, authored loss recruits, authored loss dialogue, reproducible playtest setup, Valley carryover, thirteen-chapter Valley template, and single-battle tests")
+ print("PASS: campaign JSON file transfer, draft library management, remembered playtest setup, campaign readiness, authored Hard bonuses, authored retry raiders, deployment comparison, custom campaign atlas, terrain stroke undo, route pins, war-table site terrain, rising Valley landmarks, custom recruits, phase scenes, timed reinforcements, chapter 32 saves, section dialogue, authored section relief, authored legacy stock and purchase persistence, authored loss recruits, authored loss dialogue, reproducible playtest setup, Valley carryover, thirteen-chapter Valley template, and single-battle tests")
  quit()

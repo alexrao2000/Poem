@@ -16,6 +16,8 @@ Legacy arrivals can give a recruit an early or reserve-only entry after a loss. 
 
 The map workspace combines a terrain brush with controls for deployment tiles, enemy placements, hard-mode reinforcements, and the objective. Authors can resize a board and choose its battlefield environment and score. The Encounters workspace assigns the commander, chapter-wide enemy levels, individual level overrides, classes, strategies, and compatible equipment. Set an enemy’s arrival turn and phase to bring them in as reinforcements. Arrivals use the nearest open passable tile if the marked tile is occupied. The editor identifies blocked tiles, overlapping placements, and missing objective markers before playtest. The runtime uses its regular tactical rules and two-stage combat presentation.
 
+Undo terrain and Redo terrain reverse whole brush strokes. On the focused Battle grid, use Command-Z or Control-Z to undo and add Shift to redo. Resizing a board starts a fresh terrain history for that chapter.
+
 In Encounters, set a chapter’s Hard enemy bonuses for maximum HP, attack, speed, and defense. These apply to the on-map enemies and later reinforcements when Harder enemy forces is enabled. Retry pressure still adds its own bonuses and uses the rally chapter’s settings after a section restart.
 
 Set Retry deployment on an enemy who starts on the map to choose whether they advance as a raider. Class default uses the campaign’s usual raider classes. The commander stays at their deployment tile during retry preparation. Timed reinforcements enter on their assigned phase.
