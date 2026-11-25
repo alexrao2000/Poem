@@ -13,6 +13,7 @@ const MAX_CHAPTERS=32
 const MAX_CUSTOM_RECRUITS=16
 const MAX_PHASE_SCENES=8
 const MAX_SITE_SCENES=8
+const MAX_EXTRA_STANDARDS=5
 const TERRAIN_UNDO_LIMIT=32
 const SECTION_SCENES={"relief":"Relief arrivals","retreat":"Withdrawal","memorial":"Memorial"}
 const MAX_DRAFT_LENGTH=1000000
@@ -22,7 +23,7 @@ const STRATEGIES=["pursue","sentry","guard"]
 const ROUTE_TERRAIN=["p","=","f","h","o","+"]
 const RECRUIT_STATS={"hp":[1,900],"pow":[0,200],"defense":[0,200],"resistance":[0,200],"speed":[0,200],"move":[1,20]}
 const LEVEL_FIELDS=["title","place","intro","outro","tactical_brief","map","route_position","environment","score_theme",
- "objective","objective_position","turn_limit","deployment_positions","enemies","hard_enemies","presentation","enemy_level","hard_bonuses","site_scenes"]
+ "objective","objective_position","turn_limit","deployment_positions","enemies","hard_enemies","presentation","enemy_level","hard_bonuses","site_scenes","extra_standards"]
 const MIN_BOARD=Vector2i(6,5)
 const MAX_BOARD=Vector2i(32,24)
 
@@ -509,6 +510,9 @@ func map_structure_problem(level: Dictionary) -> String:
   for symbol in row:
    if not Rules.TERRAIN_PROFILES.has(symbol):return "A battle contains an unknown terrain tile."
  if not point_valid(level.get("objective_position")):return "An objective needs a tile."
+ var additional=level.get("extra_standards",[])
+ if not additional is Array or additional.size()>MAX_EXTRA_STANDARDS or not additional.all(point_valid):
+  return "Use up to five additional standard tiles."
  if not site_scenes_valid(level.get("site_scenes",[])):return "A chapter has invalid tile dialogue."
  if not level.get("deployment_positions") is Array or level.deployment_positions.size()>6 or not level.deployment_positions.all(point_valid):
   return "A battle supports up to six deployment tiles."
@@ -535,7 +539,13 @@ func battle_problem(level: Dictionary) -> String:
  if level.deployment_positions.is_empty():return "Place at least one deployment tile."
  if level.enemies.is_empty():return "Place at least one enemy. The first enemy is the commander."
  if Rules.delayed_enemy(level.enemies[0]):return "The commander must start on the board."
- if level.objective=="seize" and not walkable(level,level.objective_position):return "Put the seize objective on passable terrain."
+ var goals=Rules.standard_tiles(level)
+ if goals.size()>level.deployment_positions.size():return "Place at least %d deployment tiles to hold every standard."%goals.size()
+ var standard_tiles={}
+ for goal in goals:
+  if standard_tiles.has(goal):return "Put each standard on its own tile."
+  if not walkable(level,[goal.x,goal.y]):return "Put the seize objective on passable terrain." if goals.size()==1 else "Put all standards on passable terrain."
+  standard_tiles[goal]=true
  for scene in level.get("site_scenes",[]):
   if not scene.lines.is_empty() and not walkable(level,scene.position):return "Move the tile dialogue at %d, %d to passable terrain."%scene.position
  var positions=level.deployment_positions+level.enemies.map(func(enemy):return enemy.position)+level.hard_enemies.map(func(enemy):return enemy.position)
@@ -603,11 +613,14 @@ func battle_readiness(index: int) -> Dictionary:
  var issue=battle_problem(level)
  if not issue.is_empty():return {"title":"Needs edits","description":issue}
  if level.objective=="seize" and not seize_route_exists(level):
-  return {"title":"Check the route","description":"The seize tile is cut off from every deployment tile."}
+  var message="The seize tile is cut off from every deployment tile." if level.get("extra_standards",[]).is_empty() else "A required standard is cut off from every deployment tile."
+  return {"title":"Check the route","description":message}
  return {"title":"Ready","description":""}
 
 func seize_route_exists(level: Dictionary) -> bool:
- var goal=Vector2i(level.objective_position[0],level.objective_position[1])
+ return Rules.standard_tiles(level).all(func(goal):return route_from_deployment(level,goal))
+
+func route_from_deployment(level: Dictionary,goal: Vector2i) -> bool:
  var deployments=level.deployment_positions.map(func(point):return Vector2i(point[0],point[1]))
  var frontier=[goal]
  var visited={goal:true}

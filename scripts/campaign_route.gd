@@ -6,6 +6,7 @@ signal seal_spacing_changed(crowded: bool)
 signal pin_placed(index: int,position: Vector2)
 const MAP=preload("res://assets/art/campaign-valley-v1.png")
 const Grid=preload("res://scripts/campaign_editor_grid.gd")
+const Rules=preload("res://scripts/rules.gd")
 const SEAL_SIZE=36.0
 const SEAL_INSET=20.0
 const STANDARD_INSET=41.0
@@ -24,7 +25,7 @@ var seal_scale=1.0
 var editable=false
 var map_picture: Texture2D=MAP
 var survey_terrain: Array
-var survey_objective=Vector2i(-1,-1)
+var survey_standards: Array[Vector2i]
 
 func configure(chapters: Array,index: int,finished=false,rallies=PackedInt32Array(),retreat=0,atlas: Texture2D=null):
  map_picture=MAP if atlas==null else atlas
@@ -61,9 +62,7 @@ func enable_pin_editor():
 
 func set_war_table_overlay(battle: Dictionary):
  survey_terrain=battle.get("map",[])
- survey_objective=Vector2i(-1,-1)
- if battle.get("objective")=="seize":
-  survey_objective=Vector2i(battle.objective_position[0],battle.objective_position[1])
+ survey_standards=Rules.standard_tiles(battle)
  queue_redraw()
 
 func survey_tile(pin: Vector2) -> Vector2i:
@@ -82,7 +81,7 @@ func draw_war_table_overlay():
    tint.a=.44 if symbol in ["~","#","f","h"] else .25
    draw_rect(rect,tint)
    draw_rect(rect,ink,false,1.0)
-   if tile==survey_objective:draw_rect(rect.grow(-1),Color("ffe8a5"),false,2.0)
+   if tile in survey_standards:draw_rect(rect.grow(-1),Color("ffe8a5"),false,2.0)
 
 func place_pin(position: Vector2):
  if not editable:return

@@ -7,6 +7,7 @@ signal stroke_started
 signal terrain_step_requested(redo: bool)
 signal placement_canceled
 const Valley=preload("res://scripts/world_map_battle.gd")
+const Rules=preload("res://scripts/rules.gd")
 const COLORS={".":"bac08b","p":"ccb185","=":"bd9968","f":"547558","h":"9d937c","o":"ddbc68",
  "+":"85b29b","#":"474650","~":"6b9cad"}
 var level: Dictionary
@@ -78,8 +79,7 @@ func _draw():
   var mark=rect.position+Vector2(tile)*cell+Vector2.ONE*cell*.18
   draw_circle(mark,maxf(2.5,cell*.13),Color("246966"))
   draw_circle(mark,maxf(1.0,cell*.07),Color("cbf1da"))
- if level.objective=="seize":
-  var point=Vector2i(level.objective_position[0],level.objective_position[1])
+ for point in Rules.standard_tiles(level):
   if Rect2i(Vector2i.ZERO,board_size()).has_point(point):
    draw_rect(Rect2(rect.position+Vector2(point)*cell,Vector2.ONE*cell).grow(-2),Color("ffe8a5"),false,2)
  if marked_placement.x>=0:

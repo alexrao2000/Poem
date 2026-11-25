@@ -93,10 +93,13 @@ func plan(game,unit: Dictionary) -> Dictionary:
   if p==here or not occupants.has(p):free.append(p)
  var foes=game.living("enemy" if unit.team=="player" else "player")
  if unit.team=="player":
-  if game.info().objective=="seize" and game.objective_position() in free:
-   return {"position":game.objective_position(),"action":"wait","target":"","alert":true}
-  if game.info().objective=="seize" and foes.is_empty():
-   var field=_reverse_field(game,unit,[game.objective_position()],occupants)
+  var goals=game.capture_tiles()
+  if here in goals:return {"position":here,"action":"wait","target":"","alert":true}
+  var reachable_goal=goals.find_custom(func(point):return point in free)
+  if reachable_goal>=0:return {"position":goals[reachable_goal],"action":"wait","target":"","alert":true}
+  if not goals.is_empty() and foes.is_empty():
+   var unoccupied=goals.filter(func(point):return not occupants.has(point))
+   var field=_reverse_field(game,unit,unoccupied,occupants)
    var best=game.pos(unit);var remaining=field.get(best,INF)
    for p in free:
     if field.get(p,INF)<remaining:best=p;remaining=field[p]

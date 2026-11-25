@@ -142,6 +142,16 @@ func objective_position() -> Vector2i:
 	var point=info().get("objective_position",[12,4])
 	return Vector2i(point[0],point[1])
 
+static func standard_tiles(level: Dictionary) -> Array[Vector2i]:
+	var result: Array[Vector2i]=[]
+	if level.get("objective")!="seize":return result
+	for point in [level.get("objective_position",[12,4])]+level.get("extra_standards",[]):
+		result.append(Vector2i(point[0],point[1]))
+	return result
+
+func capture_tiles() -> Array[Vector2i]:
+	return standard_tiles(info())
+
 func ensure_leader():
 	if not (trials.flags.reset_pressure or (trials.flags.section_restarts and permadeath)):return
 	deployed.erase("lyra");deployed.push_front("lyra");deployed=deployed.slice(0,int(info().deployment))
@@ -528,8 +538,10 @@ func result() -> String:
 		"survive":
 			if turn>info().turn_limit or (enemy_waves.is_empty() and living("enemy").is_empty()):return "victory"
 		"seize":
-			var occupant = at(objective_position())
-			if occupant!=null and occupant.team=="player" and occupant.hp>0: return "victory"
+			if capture_tiles().all(func(point):
+				var occupant=at(point)
+				return occupant!=null and occupant.team=="player" and occupant.hp>0):
+				return "victory"
 	return ""
 
 func finish_chapter():
@@ -583,7 +595,10 @@ func layout_data() -> Array:
 	# Equipment changes are safe for an existing battle: each unit saves its item.
 	var placement=info().enemies.duplicate(true)
 	for entry in placement:entry.erase("item")
-	return [info().map,info().deployment_positions,placement,info().objective_position]
+	var result=[info().map,info().deployment_positions,placement,info().objective_position]
+	var standards=info().get("extra_standards",[])
+	if not standards.is_empty():result.append(standards)
+	return result
 
 func layout_signature() -> String:
 	# Draft coordinates have integer values before editing and JSON numbers after reload.

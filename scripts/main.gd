@@ -842,7 +842,10 @@ func objective_text(chapter: Dictionary={}) -> String:
 	if chapter.is_empty():chapter=game.info()
 	match chapter.objective:
 		"rout":return "Defeat every enemy"
-		"seize":return "Occupy the golden standard with any standing ally"
+		"seize":
+			var required=Rules.standard_tiles(chapter).size()
+			if required>1:return "Hold all %d standards with standing allies"%required
+			return "Occupy the golden standard with any standing ally"
 		"survive":return "Survive %d enemy phases or defeat every enemy"%chapter.turn_limit
 		_:return "Defeat "+chapter.boss
 
@@ -1140,6 +1143,9 @@ func highlight():
 	route_preview=null;last_hover=Vector2i(-1,-1)
 	for n in markers.get_children():
 		markers.remove_child(n);n.queue_free()
+	var standards=game.capture_tiles()
+	if standards.size()>1:
+		MapOverlay.tiles(markers,standards,Color(.90,.68,.21,.39),.023,"RequiredStandards",map_height)
 	var danger={}
 	if show_danger:
 		for enemy in game.living("enemy"):danger.merge(tactics.threatened_tiles(game,enemy))

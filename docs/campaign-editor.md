@@ -24,6 +24,8 @@ Use Move placement to relocate a deployment tile or enemy with its equipment, le
 
 The war council and section rallies use the number of deployment tiles you placed for that chapter. The Positions screen previews the authored map and its prepared enemies.
 
+For a seize battle, use Extra standard in Battle to add more objectives. Win by holding every standard at once with standing allies. Right-click or press Backspace to remove an extra standard. The Battle grid, Positions screen, and war table show all required tiles. Check campaign flags standards cut off from deployment.
+
 In Encounters, set a chapter’s Hard enemy bonuses for maximum HP, attack, speed, and defense. These apply to the on-map enemies and later reinforcements when Harder enemy forces is enabled. Retry pressure still adds its own bonuses and uses the rally chapter’s settings after a section restart.
 
 Set Retry deployment on an enemy who starts on the map to choose whether they advance as a raider. Class default uses the campaign’s usual raider classes. The commander stays at their deployment tile during retry preparation. Timed reinforcements enter on their assigned phase.

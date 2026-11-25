@@ -4,6 +4,7 @@ extends Control
 
 signal changed
 const Icons=preload("res://scripts/terrain_icons.gd")
+const Rules=preload("res://scripts/rules.gd")
 const COLORS={".":"aeb58f","p":"cab58d","=":"ad9371","f":"758d70","h":"a19a79","o":"9b9c8c","+":"b7c5aa","#":"6e7471","~":"799da7"}
 var chapter={}
 var draft=[]
@@ -137,8 +138,7 @@ func _draw():
  for enemy in enemy_markers:
   var point=map_rect.position+(Vector2(enemy.position[0],enemy.position[1])+Vector2.ONE*.5)*cell_size
   draw_circle(point,cell_size*.15,Color("8c3c3e"));draw_arc(point,cell_size*.15,0,TAU,16,Color("f2c9a4"),1,true)
- var objective=chapter.objective_position
- var center=map_rect.position+(Vector2(objective[0],objective[1])+Vector2.ONE*.5)*cell_size
- if chapter.objective=="seize":
+ for objective in Rules.standard_tiles(chapter):
+  var center=map_rect.position+(Vector2(objective)+Vector2.ONE*.5)*cell_size
   var radius=cell_size*.30
   draw_colored_polygon(PackedVector2Array([center+Vector2(0,-radius),center+Vector2(radius,0),center+Vector2(0,radius),center+Vector2(-radius,0)]),Color("f0d180"))

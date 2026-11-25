@@ -415,6 +415,8 @@ func verify_custom_atlas(app,scratch: String):
  assert("".join(editor.level().map).replace(".","")=="o")
  var empty_grid=editor.find_child("EditorGrid",true,false)
  assert(empty_grid.atlas==picture and empty_grid.board_size()==Vector2i(24,16))
+ use_brush(editor,6,Vector2i(9,4))
+ assert(editor.level().extra_standards==[[9,4]])
  var restored=Draft.new()
  assert(restored.decode(editor.draft.encode()).is_empty())
  assert(restored.route_texture().get_image().get_pixel(600,400).is_equal_approx(center))
@@ -429,6 +431,7 @@ func verify_custom_atlas(app,scratch: String):
  controls(app,"Deploy company  >").pressed.emit()
  app.valley_reveal_skip=true;await finish_presentation(app)
  assert(app.world.get_node("ValleyChart").material_override.albedo_texture==picture and app.game.board_size()==Vector2i(24,16))
+ assert(app.world.get_node("ValleyStandard2").visible and app.game.capture_tiles()==[Vector2i(11,4),Vector2i(9,4)])
  app.show_battle_menu();await process_frame
  controls(app,"Return to editor").pressed.emit();await process_frame
  editor=app.campaign_editor
@@ -440,6 +443,50 @@ func verify_custom_atlas(app,scratch: String):
  var chapters=editor.find_child("EditorChapter",true,false)
  chapters.select(start-1);chapters.item_selected.emit(start-1)
  await process_frame
+
+func verify_multiple_standards(app):
+ controls(app,"New draft").pressed.emit();await process_frame
+ var editor=app.campaign_editor
+ var tabs=editor.find_child("CampaignEditorTabs",true,false)
+ tabs.current_tab=0;await process_frame
+ var primary=Vector2i(0,3)
+ var secondary=Vector2i(0,4)
+ use_brush(editor,4,primary)
+ use_brush(editor,6,secondary)
+ use_brush(editor,6,secondary,true)
+ assert(not editor.level().has("extra_standards"))
+ use_brush(editor,6,secondary)
+ use_brush(editor,4,secondary)
+ assert(editor.level().objective_position==[0,4] and editor.level().extra_standards==[[0,3]])
+ use_brush(editor,4,primary)
+ assert(editor.draft.playtest_problem().is_empty())
+ var isolated=Draft.new()
+ assert(isolated.decode(editor.draft.encode()).is_empty())
+ var level=isolated.data.chapters[0].level
+ level.extra_standards=[[13,9]]
+ isolated.paint(level,Vector2i(12,9),"#")
+ isolated.paint(level,Vector2i(13,8),"#")
+ assert(isolated.battle_readiness(0).description=="A required standard is cut off from every deployment tile.")
+ level.deployment_positions.resize(1)
+ assert(isolated.playtest_problem().contains("Place at least 2 deployment tiles"))
+ editor.draft.data.settings.action_saves=true
+ controls(app,"Play from start").pressed.emit();await finish_presentation(app)
+ assert(app.objective_text()=="Hold all 2 standards with standing allies")
+ controls(app,"Deploy company  >").pressed.emit();await finish_presentation(app)
+ assert(app.screen=="battle" and app.markers.has_node("RequiredStandards"))
+ assert(app.game.capture_tiles()==[primary,secondary])
+ await app.click_tile(Vector2i(1,3));await app.click_tile(primary)
+ app.wait_action();await finish_presentation(app)
+ assert(app.screen=="battle" and app.game.result().is_empty() and app.game.at(primary).id=="lyra")
+ var resumed=Rules.new(app.game.content)
+ assert(resumed.import_code(app.game.export_code("battle"))=="battle")
+ assert(resumed.result().is_empty() and resumed.at(primary).id=="lyra")
+ assert(Tactics.new().plan(app.game,app.game.at(Vector2i(1,4))).position==secondary)
+ await app.click_tile(Vector2i(1,4));await app.click_tile(secondary)
+ app.wait_action();await finish_presentation(app)
+ assert(app.screen=="result" and app.game.result()=="victory")
+ assert(app.game.at(primary).team=="player" and app.game.at(secondary).team=="player")
+ controls(app,"Return to editor").pressed.emit();await process_frame
 
 func verify_moving_placements(app):
  var editor=app.campaign_editor
@@ -660,7 +707,7 @@ func run():
  assert(overlay.item_count==2 and overlay.selected==0)
  overlay.select(1);overlay.item_selected.emit(1)
  var survey=editor.find_child("EditorRouteChart",true,false)
- assert(survey.survey_terrain==editor.draft.battle_level(1).map and survey.survey_objective==Vector2i(21,2))
+ assert(survey.survey_terrain==editor.draft.battle_level(1).map and survey.survey_standards==[Vector2i(21,2)])
  assert(survey.survey_tile(survey.positions[0])==site_tile)
  survey.markers[0].pressed.emit()
  await process_frame;await process_frame
@@ -1324,7 +1371,8 @@ func run():
  await Shutdown.dispose(reopened);await process_frame
  await verify_custom_atlas(app,scratch)
  await verify_moving_placements(app)
+ await verify_multiple_standards(app)
  assert(FileAccess.get_file_as_string(app.save_path)==disk and app.game==installed)
  await Shutdown.dispose(app);await process_frame
- print("PASS: campaign JSON file transfer, draft library management, remembered playtest setup, campaign readiness, authored Hard bonuses, authored retry raiders, deployment comparison, authored formation previews, small deployment limits and save recovery, custom campaign atlas, terrain stroke undo, continuous terrain strokes, connected terrain fill, placement moves and swaps, route pins, war-table site terrain, war-table overlay, blank war-table chapter, rising Valley landmarks, custom recruits, phase scenes, tile dialogue and reload, Valley landmark dialogue, dialogue that follows route pins, timed reinforcements, chapter 32 saves, section dialogue, authored section relief, authored legacy stock and purchase persistence, authored loss recruits, authored loss dialogue, reproducible playtest setup, Valley carryover and resume, thirteen-chapter Valley template, and single-battle tests")
+ print("PASS: campaign JSON file transfer, draft library management, remembered playtest setup, campaign readiness, authored Hard bonuses, authored retry raiders, deployment comparison, authored formation previews, small deployment limits and save recovery, custom campaign atlas, terrain stroke undo, continuous terrain strokes, connected terrain fill, placement moves and swaps, multiple standards and exact resume, route pins, war-table site terrain, war-table overlay, blank war-table chapter, rising Valley landmarks, custom recruits, phase scenes, tile dialogue and reload, Valley landmark dialogue, dialogue that follows route pins, timed reinforcements, chapter 32 saves, section dialogue, authored section relief, authored legacy stock and purchase persistence, authored loss recruits, authored loss dialogue, reproducible playtest setup, Valley carryover and resume, thirteen-chapter Valley template, and single-battle tests")
  quit()

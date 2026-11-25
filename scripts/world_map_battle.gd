@@ -127,15 +127,19 @@ static func build(parent: Node3D,game,scenery):
  grid.surface_end()
  var overlay=MeshInstance3D.new();overlay.name="ValleyGrid";overlay.mesh=grid;overlay.material_override=ink;parent.add_child(overlay)
  build_landmarks(parent,game,scenery)
- if game.info().objective=="seize":
-  var point=game.objective_position()
-  var marker=Node3D.new();marker.name="ValleyStandard";parent.add_child(marker)
+ var standards=game.capture_tiles()
+ for index in standards.size():
+  var point=standards[index]
+  var marker=Node3D.new();marker.name=standard_node_name(index);parent.add_child(marker)
   marker.position=Vector3(point.x+.30,0,point.y-.27)
   scenery.cylinder(marker,Vector3(0,.017,0),.034,.143,Color("b38b51"))
   scenery.cylinder(marker,Vector3(0,.21,0),.41,.015,Color("e2bc78"))
   var flag=preload("res://scripts/wind_cloth.gd").new()
   marker.add_child(flag);flag.position=Vector3(0,.39,0)
   flag.configure(Vector2(.26,.19),Color("ad5549"),true,1.4)
+
+static func standard_node_name(index: int) -> String:
+ return "ValleyStandard" if index==0 else "ValleyStandard%d"%(index+1)
 
 static func build_landmarks(parent: Node3D,game,scenery):
  var group=Node3D.new();group.name="ValleyLandmarks";parent.add_child(group)
@@ -212,9 +216,10 @@ static func play_reveal(navigation,game,world: Node3D,actors: Array,hint: Contro
  var radius=0.0
  for corner in reveal_corners(game.board_size()):radius=maxf(radius,origin.distance_to(Vector2(corner.x,corner.z)))
  var ink: ShaderMaterial=world.get_node("ValleyGrid").material_override
- var standard=world.get_node_or_null("ValleyStandard")
  var props=actors.duplicate()
- if standard!=null:props.append(standard)
+ for index in game.capture_tiles().size():
+  var standard=world.get_node_or_null(standard_node_name(index))
+  if standard!=null:props.append(standard)
  var pieces_from_above=props.size()
  props.append_array(world.get_node("ValleyLandmarks").get_children())
  var resting=props.map(func(piece):return piece.position)

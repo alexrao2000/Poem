@@ -9,8 +9,9 @@ const Settings=preload("res://scripts/campaign_settings.gd")
 const Trials=preload("res://scripts/campaign_trials.gd")
 const DebugSession=preload("res://scripts/debug_session.gd")
 const MAX_CAMPAIGN_FILE_BYTES=4*Draft.MAX_DRAFT_LENGTH
-const TOOLS=["Terrain","Deployment","Enemy","Hard-mode enemy","Objective","Move placement"]
+const TOOLS=["Terrain","Deployment","Enemy","Hard-mode enemy","Objective","Move placement","Extra standard"]
 const MOVE_PLACEMENT=5
+const EXTRA_STANDARD=6
 const GOLD=Color("896937")
 var draft: RefCounted
 var library: RefCounted
@@ -117,7 +118,7 @@ func build_battle(panel: VBoxContainer):
  var parameters=GridContainer.new();parameters.columns=2
  parameters.add_theme_constant_override("h_separation",12);parameters.add_theme_constant_override("v_separation",8);panel.add_child(parameters)
  field_label(parameters,"Objective",choice(Draft.OBJECTIVES,layout.objective,func(value):
-  layout.objective=value;grid.marks=draft.valley_marks(selected);grid.queue_redraw();changed()))
+  layout.objective=value;grid.marks=draft.valley_marks(selected);show_brush_options();changed()))
  field_label(parameters,"Phase limit",spin(int(layout.turn_limit),1,99,func(value):layout.turn_limit=value;changed()))
  field_label(parameters,"Environment",choice(Draft.ENVIRONMENTS,layout.environment,func(value):layout.environment=value;changed()))
  field_label(parameters,"Score",choice(draft.music_ids,layout.score_theme,func(value):layout.score_theme=value;changed()))
@@ -155,7 +156,7 @@ func build_battle(panel: VBoxContainer):
  undo_terrain=action(history,"Undo terrain",func():step_terrain(false));undo_terrain.name="EditorUndoTerrain"
  redo_terrain=action(history,"Redo terrain",func():step_terrain(true));redo_terrain.name="EditorRedoTerrain"
  update_terrain_history()
- grid_help=heading(panel,"Click or use the arrow keys and Enter. Right-click or Backspace erases. C marks the commander.",15)
+ grid_help=heading(panel,"",15)
  placement_hint=heading(panel,"",15);placement_hint.name="EditorMovePlacementStatus"
  grid=Grid.new();grid.name="EditorGrid";panel.add_child(grid)
  grid.configure(layout,draft.valley_marks(selected),draft.route_texture() if fixed_chart else null)
@@ -184,7 +185,10 @@ func show_brush_options():
  job_choice.visible=enemy;ai_choice.visible=enemy;enemy_name.visible=enemy
  placement_hint.visible=brush==MOVE_PLACEMENT
  grid_help.visible=brush!=MOVE_PLACEMENT
- grid.paint_on_drag=brush!=MOVE_PLACEMENT and (brush!=0 or not fill_connected)
+ grid_help.text="Click or use the arrow keys and Enter. Right-click or Backspace erases. C marks the commander."
+ if brush==EXTRA_STANDARD:
+  grid_help.text="Place an extra standard. Right-click or Backspace removes it." if level().objective=="seize" else "Choose the seize objective to place standards."
+ grid.paint_on_drag=brush not in [MOVE_PLACEMENT,EXTRA_STANDARD] and (brush!=0 or not fill_connected)
  grid.connect_terrain_strokes=brush==0 and not fill_connected
  clear_placement_selection()
 
@@ -236,6 +240,8 @@ func edit_tile(point: Vector2i,erase: bool):
   move_placement(point,erase);return
  var layout=level()
  var position=[point.x,point.y]
+ if brush==EXTRA_STANDARD:
+  edit_extra_standard(layout,point,erase);return
  if brush==0:
   if not fill_connected:
    paint_terrain_segment([point],erase);return
@@ -258,10 +264,25 @@ func edit_tile(point: Vector2i,erase: bool):
    group[old].merge(enemy,true)
   elif group.size()<24:group.append(enemy)
  else:
+  var standards=layout.get("extra_standards",[])
+  var overlap=standards.find_custom(func(tile):return same_tile(tile,point))
+  if overlap>=0:standards[overlap]=layout.objective_position
   layout.objective_position=position
   grid.marks=draft.valley_marks(selected)
  grid.queue_redraw()
  changed()
+
+func edit_extra_standard(layout: Dictionary,point: Vector2i,erase: bool):
+ if layout.objective!="seize" or same_tile(layout.objective_position,point):return
+ var standards=layout.get("extra_standards",[])
+ var existing=standards.find_custom(func(tile):return same_tile(tile,point))
+ if erase and existing>=0:
+  standards.remove_at(existing)
+  if standards.is_empty():layout.erase("extra_standards")
+ elif not erase and existing<0 and standards.size()<Draft.MAX_EXTRA_STANDARDS:
+  standards.append([point.x,point.y]);layout.extra_standards=standards
+ else:return
+ grid.queue_redraw();changed()
 
 func same_tile(position: Array,point: Vector2i) -> bool:
  return int(position[0])==point.x and int(position[1])==point.y
