@@ -67,6 +67,26 @@ static func tower() -> ArrayMesh:
   quad(tool,[low_a,high_a,high_b,low_b],Vector3(cos((a+b)*.5),0,sin((a+b)*.5)),stone.darkened(.20))
  tower_mesh=tool.commit();return tower_mesh
 
+static func kingsroad_standard(painter,parent: Node3D,position: Vector3,site: Vector2):
+ var fixture=Node3D.new();fixture.name="KingsroadStandardFixture"
+ fixture.position=position;fixture.rotation.y=.28;parent.add_child(fixture,true)
+ var rail=painter.cylinder(fixture,Vector3(0,1.835,.688),.84,.025,Color("a38556"))
+ rail.rotation.z=PI/2;rail.name="StandardRail"
+ for side in [-1,1]:
+  painter.block(fixture,Vector3(side*.29,1.835,.563),Vector3(.064,.068,.278),Color("595047")).name="StandardBracket"
+ var banner=GateCloth.new();fixture.add_child(banner)
+ banner.position=rail.position;banner.rotation.z=-PI/2
+ banner.configure(Vector2(1.24,.68),Color("93473d"),true,site.x*.71+site.y*.37)
+ banner.name="KingsroadStandard";banner.set_meta("tower_site",site)
+
+static func transfer_kingsroad_standards(source: Node3D,destination: Node3D):
+ var phases={}
+ for standard in source.find_children("KingsroadStandard","Node3D",true,false):
+  phases[standard.get_meta("tower_site")]=standard.phase
+ for standard in destination.find_children("KingsroadStandard","Node3D",true,false):
+  var site=standard.get_meta("tower_site")
+  if phases.has(site):standard.seek_phase(phases[site])
+
 static var gate_mesh: ArrayMesh
 static func gate_wall() -> ArrayMesh:
  if gate_mesh!=null:return gate_mesh

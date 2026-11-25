@@ -424,6 +424,7 @@ func landscape(parent,game):
   var position=Vector3(site.x,0,site.y)
   var vented=theme=="village" and item.kind=="house"
   landmark(parent,position,item.kind,-1,Vector2.INF,vented)
+  if theme=="road" and item.kind=="tower":Fortification.kingsroad_standard(self,parent,position,site)
   if vented:vents.append(ChimneySmoke.vent(position,HOUSE_SCALE,site))
  if theme=="river":RiverChain.build(self,parent,Vector3(4.32,0,4.52),Vector3(6.68,0,4.52),.44,.25,.105)
  if theme=="village":
@@ -670,6 +671,8 @@ func transfer_environment_motion(source: Node3D,destination: Node3D,theme: Strin
   var original=source.get_node_or_null("AqueductWaterwheel")
   var counterpart=destination.get_node_or_null("AqueductWaterwheel")
   if original!=null and counterpart!=null:counterpart.seek_phase(original.phase)
+ elif theme=="road":
+  Fortification.transfer_kingsroad_standards(source,destination)
  elif theme=="castle":
   for standard in ["WindStandardLeft","WindStandardRight"]:
    var address="CastleGate/"+standard
@@ -1131,6 +1134,7 @@ func battle_landscape(parent,center,context={}):
   if vented:group.scale=Vector3.ONE*VILLAGE_HOUSE_BACKDROP_SCALE
   if item.kind=="camp":group.scale=Vector3.ONE*2.5
   landmark(group,Vector3.ZERO,item.kind,item.get("roof_variant",0),map_site,vented)
+  if theme=="road" and item.kind=="tower" and map_site!=Vector2.INF:Fortification.kingsroad_standard(self,group,Vector3.ZERO,map_site)
   if vented:vents.append(ChimneySmoke.vent(group.position,group.scale.x*HOUSE_SCALE,map_site))
  if theme in ["village","road"]:
   cart(parent,center+Vector3(-6,0,-3.8));fence(parent,center+Vector3(3,0,-4),5.0)

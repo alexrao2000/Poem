@@ -20,6 +20,7 @@ func _initialize():call_deferred("run")
 func run():
  await verify_gate()
  await verify_towers()
+ await verify_kingsroad_standards()
  await verify_fountain()
  await verify_harbor_boats()
  await verify_harbor_quay()
@@ -91,7 +92,7 @@ func run():
    world.queue_free();arena.queue_free();await process_frame;cases+=1
  assert(cases>0 and game.rng.state==state,"Architecture never consumes gameplay RNG")
  await verify_cloth()
- print("PASS: arched castle gate/portcullis, tiered fountain basins/jets, six shared fortified towers, battlement/deck rays, three cached roofs, 204 gable intersections, ",cases," house identities, 17 pinned map-cloth placements, bounded motion parameters and cleanup")
+ print("PASS: arched castle gate/portcullis, tiered fountain basins/jets, six shared fortified towers, battlement/deck rays, three cached roofs, 204 gable intersections, ",cases," house identities, 19 pinned map-cloth placements, bounded motion parameters and cleanup")
  quit()
 
 func verify_ruined_columns():
@@ -1500,6 +1501,7 @@ func verify_cloth():
   if game.info().environment=="castle":expected_flags+=2
   for landmark in game.info().landmarks:
    if landmark.kind=="belfry":expected_flags+=1
+   if landmark.kind=="tower" and game.info().environment=="road":expected_flags+=1
    if landmark.kind=="boat":
     expected_sails+=1
     var at=landmark.position;var context=scenery.combat_context(game,{"x":int(at[0])-1,"y":int(at[1])},{"x":int(at[0]),"y":int(at[1])})
@@ -1511,8 +1513,8 @@ func verify_cloth():
   flags+=expected_flags;sails+=expected_sails
   var references=pieces.map(func(piece):return weakref(piece));world.queue_free();await process_frame
   for reference in references:assert(reference.get_ref()==null,"Cloth resources release with their map")
- assert(flags==15 and sails==2 and game.rng.state==state,"All campaign cloth is bounded and independent of gameplay RNG")
- assert(shapes.size()==4 and private_materials.size()==17,"Campaign cloth shares four shapes with private materials for each piece")
+ assert(flags==17 and sails==2 and game.rng.state==state,"All campaign cloth is bounded and independent of gameplay RNG")
+ assert(shapes.size()==5 and private_materials.size()==19,"Campaign cloth shares five shapes with private materials for each piece")
  var original_meshes=Cloth.cloth_meshes.duplicate()
  for n in range(Cloth.MAX_CACHED_MESHES+3):
   Cloth.mesh_for(Vector2(3+n*.13,.52),true)
@@ -1819,6 +1821,62 @@ func verify_towers():
    for node in visible:assert(node.mesh==shape)
    world.queue_free();arena.queue_free();await process_frame;count+=1
  assert(count==6,"Every authored castle tower is covered")
+
+func verify_kingsroad_standards():
+ var scenery=Scenery.new();scenery.batching_enabled=false
+ var game=Rules.new();game.chapter=4;var state=game.save_data("camp")
+ var field=Node3D.new();root.add_child(field);scenery.landscape(field,game)
+ var mapped={}
+ for banner in field.find_children("KingsroadStandard","Node3D",true,false):
+  var site=banner.get_meta("tower_site");mapped[site]=banner;banner.set_process(false)
+  var fixture=banner.get_parent()
+  assert(fixture.position==Vector3(site.x,0,site.y))
+  var rail=fixture.get_node("StandardRail")
+  var rail_bounds=rail.transform*rail.mesh.get_aabb()
+  for bracket in fixture.find_children("StandardBracket*","MeshInstance3D",false,false):
+   assert((bracket.transform*bracket.mesh.get_aabb()).intersects(rail_bounds))
+   var seated=Vector2(bracket.position.x,bracket.position.z-bracket.scale.z*.5)
+   assert(seated.length()<.55,"Both hardware brackets seat into the stone drum")
+  var cloth_bounds=banner.transform*banner.cloth.custom_aabb
+  assert(cloth_bounds.position.z>.55 and cloth_bounds.position.y>.24 and cloth_bounds.end.y<1.98,"The full wind envelope clears the shaft and both cornices")
+  var arrays=banner.cloth.mesh.surface_get_arrays(0)
+  var pins=0
+  for index in arrays[Mesh.ARRAY_VERTEX].size():
+   if arrays[Mesh.ARRAY_TEX_UV][index].x!=0:continue
+   var pin=banner.transform*arrays[Mesh.ARRAY_VERTEX][index];pins+=1
+   assert(rail_bounds.has_point(pin) and is_equal_approx(pin.y,rail.position.y))
+  assert(pins>0)
+ assert(mapped.size()==2 and mapped[Vector2(8,2)].phase!=mapped[Vector2(8,7)].phase)
+ var center=Vector3(35,0,0)
+ var view=SubViewport.new();view.render_target_update_mode=SubViewport.UPDATE_DISABLED;root.add_child(view)
+ var camera=Camera3D.new();view.add_child(camera);camera.current=true
+ for direction in [1.0,-1.0]:
+  var context=scenery.combat_context(game,{"x":9,"y":4},{"x":9,"y":3},direction)
+  var stage=Node3D.new();root.add_child(stage);scenery.battle_landscape(stage,center,context)
+  var staged=stage.find_children("KingsroadStandard","Node3D",true,false)
+  assert(staged.size()==2)
+  for banner in staged:
+   banner.set_process(false)
+   var source=mapped[banner.get_meta("tower_site")]
+   assert(banner.cloth.mesh==source.cloth.mesh and banner.material!=source.material)
+  scenery.transfer_environment_motion(field,stage,"road");field.hide()
+  for banner in staged:
+   var source=mapped[banner.get_meta("tower_site")]
+   assert(banner.phase==source.phase)
+   banner._process(.46);source._process(.46)
+   assert(is_equal_approx(banner.phase-source.phase,.46),"The hidden map clock holds while its matching arena cloth moves")
+  scenery.transfer_environment_motion(stage,field,"road");field.show()
+  for banner in staged:assert(mapped[banner.get_meta("tower_site")].phase==banner.phase)
+  var shot=CombatCamera.frame_pair(center+Vector3.LEFT*1.6,center+Vector3.RIGHT*1.6,"wide",false,false)
+  camera.position=shot.anchor;camera.fov=shot.lens;camera.look_at(shot.focus)
+  for dimensions in [Vector2i(1024,640),Vector2i(1280,720),Vector2i(1440,900)]:
+   view.size=dimensions;await process_frame
+   var safe=Rect2(Vector2(15,15),Vector2(dimensions)-Vector2(30,160))
+   assert(staged.any(func(banner):return safe.has_point(camera.unproject_position(banner.to_global(Vector3(.62,0,0))))),"At least one banner reads behind the fighters in either direction")
+  stage.queue_free();await process_frame
+ assert(game.save_data("camp")==state)
+ field.queue_free();view.queue_free();await process_frame
+ print("PASS: two anchored Kingsroad standards, shared meshes/private phases, six wide projections and two-way phase transfer by tower site")
 
 func mesh_top(shape: ArrayMesh,point: Vector2) -> float:
  var vertices=shape.surface_get_arrays(0)[Mesh.ARRAY_VERTEX];var highest=-INF
