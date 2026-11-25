@@ -32,7 +32,7 @@ func run():
  var legacy=source.save_data("battle").duplicate(true)
  for unit in legacy.roster+legacy.units:unit.erase("item")
  assert(copy.restore_save(legacy)=="battle" and copy.roster[2].item=="scout_bow","Older equipment-free saves receive defaults")
- var app=load("res://main.tscn").instantiate();app.settings_path="";app.save_path="/private/tmp/poem-transfer-ui-save.json";root.add_child(app);await process_frame
+ var app=load("res://main.tscn").instantiate();app.settings_path="";app.save_path="/private/tmp/poem-transfer-ui-save-%d.json"%OS.get_process_id();root.add_child(app);await process_frame
  app.show_save_transfer("title");await process_frame
  assert(app.screen=="save_transfer" and is_instance_valid(app.transfer_text))
  assert(app.ui.find_child("TransferInstructions",true,false).text.contains("between browsers or the desktop app"))
@@ -42,8 +42,10 @@ func run():
  assert(app.screen=="title" and app.game.chapter==title_chapter,"Title transfer Escape does not import the pasted campaign")
  assert((FileAccess.get_file_as_string(app.save_path) if FileAccess.file_exists(app.save_path) else "")==disk_before_return)
  app.show_save_transfer("title");await process_frame
- app.transfer_text.text=code;await app.import_pasted_save();await process_frame
- assert(app.screen=="battle" and app.game.chapter==4,"Paste/import flow restores the battle")
+ await verify_code_files(app,code)
+ assert(app.game.chapter==title_chapter and (FileAccess.get_file_as_string(app.save_path) if FileAccess.file_exists(app.save_path) else "")==disk_before_return)
+ await app.import_pasted_save();await process_frame
+ assert(app.screen=="battle" and app.game.chapter==4,"File and Import restore the battle")
  var restored=Rules.new();assert(restored.load_game(app.save_path)=="battle" and restored.chapter==4,"Imported state is persisted")
  # Force a write failure using an existing file as the would-be parent directory.
  var working_path=app.save_path;var previous_file=FileAccess.get_file_as_string(working_path)
@@ -110,6 +112,35 @@ func run():
  await Shutdown.dispose(app);await process_frame
  print("PASS: local transfer, equipment/RNG continuity, bounded validation, legacy migration, failed autosave recovery and live battle export")
  quit()
+
+func verify_code_files(app,code: String):
+ var previous=app.transfer_text.text
+ var prefix="/private/tmp/poem-code-picker-%d"%OS.get_process_id()
+ var paths={
+  prefix+"-valid.txt":"\uFEFF"+code+"\r\n",
+  prefix+"-empty.txt":" \n",
+  prefix+"-too-large.txt":"A".repeat(Rules.MAX_SAVE_CODE_LENGTH+1),
+ }
+ for path in paths:
+  var file=FileAccess.open(path,FileAccess.WRITE);file.store_string(paths[path]);file.close()
+ var before=root.size;var old_scale=root.content_scale_size
+ root.size=Vector2i(720,640);root.content_scale_size=root.size
+ await process_frame;await process_frame
+ var open_button=app.ui.find_child("OpenSaveCodeFile",true,false)
+ assert(Rect2(Vector2.ZERO,Vector2(720,640)).encloses(open_button.get_global_rect()))
+ for suffix in ["missing","empty","too-large","valid"]:
+  open_button.pressed.emit()
+  var picker=app.ui.get_node("SaveCodeFilePicker")
+  assert(picker.visible and picker.file_mode==FileDialog.FILE_MODE_OPEN_FILE)
+  picker.file_selected.emit(prefix+"-"+suffix+".txt")
+  await process_frame
+  assert(app.screen=="save_transfer" and app.transfer_text.text==(code if suffix=="valid" else previous))
+ assert(app.transfer_text.has_focus())
+ open_button.pressed.emit()
+ app.ui.get_node("SaveCodeFilePicker").canceled.emit();await process_frame
+ assert(app.transfer_text.text==code)
+ root.size=before;root.content_scale_size=old_scale
+ print("PASS: file picker stages valid save codes and preserves the previous text on missing, empty, oversized, or canceled files")
 
 func press_escape(echo=false):
  var event=InputEventKey.new();event.keycode=KEY_ESCAPE;event.pressed=true;event.echo=echo;root.push_input(event,true)

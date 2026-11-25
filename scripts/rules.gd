@@ -646,6 +646,7 @@ func commit_casualties() -> Dictionary:
 	return consequences
 
 const SAVE_VERSION=6
+const MAX_SAVE_CODE_LENGTH=1000000
 
 func layout_data() -> Array:
 	# Equipment changes are safe for an existing battle: each unit saves its item.
@@ -919,7 +920,7 @@ func export_saved_code(path: String) -> String:
 
 func import_code(code: String) -> String:
 	code=code.strip_edges().replace("\n","").replace("\r","").replace(" ","").replace("\t","")
-	if code.length()>1000000:return ""
+	if code.length()>MAX_SAVE_CODE_LENGTH:return ""
 	var prefix=code.get_slice(":",0)
 	if prefix not in ["POEM1","ASHEN1"]:return ""
 	var encoded=code.substr(prefix.length()+1)

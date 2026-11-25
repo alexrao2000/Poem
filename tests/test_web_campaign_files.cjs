@@ -80,7 +80,27 @@ async function run() {
   image.files = [{ size: 3, arrayBuffer: async () => Uint8Array.of(0, 255, 127).buffer }];
   await image.listeners.get('change')();
   assert.deepEqual(results.at(-1), { error: '', text: 'AP9/' });
-  console.log('PASS: browser campaign file chooser, atlas bytes, read limits, cancel focus, and stale read isolation');
+
+  function chooseCode(file) {
+    files.open(32, (error, text) => results.push({ error, text }), '.txt,text/plain', false, true);
+    const picker = elements.get(pickerId);
+    assert.equal(picker.accept, '.txt,text/plain');
+    picker.files = [file];
+    return picker.listeners.get('change')();
+  }
+  await chooseCode({ size: 10, text: async () => 'POEM1:e30=' });
+  assert.deepEqual(results.at(-1), { error: '', text: 'POEM1:e30=' });
+  await chooseCode({ size: 33, text: () => assert.fail('Oversized save code was read.') });
+  assert.deepEqual(results.at(-1), { error: 'This save code file is too large.', text: '' });
+  await chooseCode({ size: 16, text: async () => { throw new Error('read'); } });
+  assert.deepEqual(results.at(-1), { error: 'Could not read the save code file.', text: '' });
+  const reading = chooseCode({ size: 10, text: () => new Promise((resolve) => { complete = resolve; }) });
+  const resultCount = results.length;
+  files.cancel();
+  complete('old code');
+  await reading;
+  assert.equal(results.length, resultCount);
+  console.log('PASS: browser campaign file chooser, atlas bytes, read limits, cancel focus, and stale read isolation for campaign and save files');
 }
 
 run().catch((error) => { console.error(error); process.exitCode = 1; });

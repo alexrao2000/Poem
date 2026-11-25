@@ -196,7 +196,7 @@ Browser storage can be cleared by the browser. Returning to the war council rest
 
 1. Choose **Transfer a local save** on the title screen or at the war council, or **Transfer code** from the battle menu or result screen.
 2. Copy the `POEM1:` code. Battle transfer exports the live state and returns to the same map.
-3. In the destination build, open the transfer screen, paste the code, and choose **Import pasted code**.
+3. In the destination build, open the transfer screen. Paste the code or choose **Open code file** to select its text file, then choose **Import pasted code**.
 
 In a browser, **Open browser copy / paste** provides a native text field. Paste there, choose **Use code**, then **Import pasted code**. Nothing is uploaded.
 

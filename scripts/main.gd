@@ -141,6 +141,7 @@ var reward_skip=false
 var transfer_text: TextEdit
 var transfer_return="title"
 var browser_transfer_callback
+var browser_save_file_callback
 const GOLD = Color("8d6a32")
 const INK = Color("e8e0cb")
 const SAVE = "user://campaign.json"
@@ -2692,11 +2693,51 @@ func show_save_transfer(return_screen: String):
 	transfer_text.placeholder_text="Paste a POEM1: save code here."
 	var code_actions=HBoxContainer.new();code_actions.add_theme_constant_override("separation",10);panel.add_child(code_actions)
 	button_in(code_actions,"Copy code",func():DisplayServer.clipboard_set(transfer_text.text);show_notice("Save code copied. Keep it in a local text file or paste it into another build.")).size_flags_horizontal=Control.SIZE_EXPAND_FILL
+	var open_file=button_in(code_actions,"Open code file",open_save_code_file)
+	open_file.name="OpenSaveCodeFile";open_file.size_flags_horizontal=Control.SIZE_EXPAND_FILL
 	if OS.has_feature("web"):button_in(code_actions,"Open browser copy / paste",open_browser_transfer).size_flags_horizontal=Control.SIZE_EXPAND_FILL
 	else:button_in(code_actions,"Select all text",func():transfer_text.grab_focus();transfer_text.select_all()).size_flags_horizontal=Control.SIZE_EXPAND_FILL
 	var actions=HBoxContainer.new();actions.add_theme_constant_override("separation",10);panel.add_child(actions)
 	button_in(actions,"Import pasted code",import_pasted_save).size_flags_horizontal=Control.SIZE_EXPAND_FILL
 	button_in(actions,"Return [Esc]",close_save_transfer).size_flags_horizontal=Control.SIZE_EXPAND_FILL
+
+func open_save_code_file():
+	var field=transfer_text
+	if OS.has_feature("web"):
+		var bridge=JavaScriptBridge.get_interface("poemCampaignFiles")
+		if bridge==null:
+			JavaScriptBridge.eval(FileAccess.get_file_as_string("res://scripts/web_campaign_files.js"),true)
+			bridge=JavaScriptBridge.get_interface("poemCampaignFiles")
+		if bridge==null:show_notice("The browser file picker is unavailable.");return
+		if not field.has_meta("browser_file_picker"):
+			field.set_meta("browser_file_picker",true)
+			field.tree_exited.connect(func():bridge.cancel(),CONNECT_ONE_SHOT)
+		browser_save_file_callback=JavaScriptBridge.create_callback(func(arguments):
+			if not is_instance_valid(field) or field!=transfer_text or screen!="save_transfer" or arguments.size()!=2:return
+			if str(arguments[0]).is_empty():insert_save_code_file(str(arguments[1]),field)
+			else:show_notice(str(arguments[0])))
+		bridge.open(Rules.MAX_SAVE_CODE_LENGTH,browser_save_file_callback,".txt,text/plain",false,true)
+		return
+	var picker=FileDialog.new();picker.name="SaveCodeFilePicker"
+	picker.title="Open a save code file";picker.access=FileDialog.ACCESS_FILESYSTEM
+	picker.file_mode=FileDialog.FILE_MODE_OPEN_FILE;picker.add_filter("*.txt","Poem save codes")
+	ui.add_child(picker);picker.canceled.connect(picker.queue_free)
+	picker.file_selected.connect(func(path):
+		picker.queue_free()
+		var file=FileAccess.open(path,FileAccess.READ)
+		if file==null:show_notice("Could not read the save code file.");return
+		if file.get_length()>Rules.MAX_SAVE_CODE_LENGTH:
+			file.close();show_notice("This save code file is too large.");return
+		var raw=file.get_as_text();file.close()
+		insert_save_code_file(raw,field))
+	picker.popup_centered_ratio(.72)
+
+func insert_save_code_file(raw: String,field: TextEdit):
+	if not is_instance_valid(field) or field!=transfer_text or screen!="save_transfer":return
+	var code=raw.trim_prefix("\uFEFF").strip_edges()
+	if code.is_empty():show_notice("This save code file is empty.");return
+	field.text=code;field.grab_focus()
+	show_notice("Save code loaded. Choose Import pasted code to use it.")
 
 func import_pasted_save():
 	var saved=game.import_code(transfer_text.text)

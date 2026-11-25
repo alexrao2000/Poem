@@ -6,7 +6,11 @@
       request++;
       document.getElementById('poem-campaign-file')?.remove();
     },
-    open(maxBytes, receive, accept = '.json,application/json', binary = false) {
+    open(maxBytes, receive, accept = '.json,application/json', binary = false, saveCode = false) {
+      const tooLarge = saveCode ? 'This save code file is too large.'
+        : binary ? 'The atlas image exceeds 6 MB.' : 'This campaign document is too large.';
+      const unreadable = saveCode ? 'Could not read the save code file.'
+        : binary ? 'Could not read the atlas image.' : 'Could not read the campaign file.';
       const selection = ++request;
       document.getElementById('poem-campaign-file')?.remove();
       const picker = document.createElement('input');
@@ -24,7 +28,7 @@
         closePicker();
         if (!file || selection !== request) return;
         if (file.size > maxBytes) {
-          receive(binary ? 'The atlas image exceeds 6 MB.' : 'This campaign document is too large.', '');
+          receive(tooLarge, '');
           return;
         }
         let raw;
@@ -40,7 +44,7 @@
             raw = await file.text();
           }
         } catch {
-          if (selection === request) receive(binary ? 'Could not read the atlas image.' : 'Could not read the campaign file.', '');
+          if (selection === request) receive(unreadable, '');
           return;
         }
         if (selection === request) receive('', raw);
