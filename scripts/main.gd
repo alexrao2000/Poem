@@ -75,6 +75,7 @@ var valley_reveal_skip=false
 var atlas_return_control=""
 var atlas_grid_enabled=false
 var atlas_units_enabled=false
+var atlas_reach_enabled=false
 var rally_company_return=""
 var rally_company_state: Rules
 const CriticalCutin=preload("res://scripts/critical_cutin.gd")
@@ -436,7 +437,7 @@ func resize_map_home():
 
 func make_map(change_score=true):
 	drop_mode=false
-	atlas_grid_enabled=false;atlas_units_enabled=false
+	atlas_grid_enabled=false;atlas_units_enabled=false;atlas_reach_enabled=false
 	if change_score:select_score_theme()
 	cursor_visible=false
 	clear_world()
@@ -650,7 +651,7 @@ func open_editor_reveal_preview():
 	var original_home_extent=get_viewport().get_visible_rect().size if map_navigation.at_home() else Vector2.ZERO
 	var original_map={
 		"selected":selected,"dropping":drop_mode,"cursor_visible":cursor_visible,"cursor_tile":cursor_tile,
-		"atlas_grid":atlas_grid_enabled,"atlas_units":atlas_units_enabled
+		"atlas_grid":atlas_grid_enabled,"atlas_units":atlas_units_enabled,"atlas_reach":atlas_reach_enabled
 	}
 	var compiled=campaign_draft.compile(false)
 	game=Rules.new(compiled.content)
@@ -667,6 +668,7 @@ func open_editor_reveal_preview():
 		make_map(false)
 		drop_mode=original_map.dropping;cursor_visible=original_map.cursor_visible;cursor_tile=original_map.cursor_tile
 		atlas_grid_enabled=original_map.atlas_grid;atlas_units_enabled=original_map.atlas_units
+		atlas_reach_enabled=original_map.atlas_reach
 		camera.projection=original_camera.projection;camera.fov=original_camera.fov
 		if original_home_extent==Vector2.ZERO or original_home_extent==get_viewport().get_visible_rect().size:
 			map_navigation.apply_return(1.0,original_camera,original_camera)
@@ -1086,31 +1088,52 @@ func show_campaign_route(view: String="campaign_route"):
 		route.battle_tile_selected.connect(func(tile):
 			var path=game.movement_path(selected,tile) if selection_can_move() else []
 			route.set_battle_path(path)
-			inspection.text=battle_atlas_tile_summary(tile,path))
+			var threats=int(route.battle_enemy_reach.get(tile,0)) if atlas_reach_enabled else -1
+			inspection.text=battle_atlas_tile_summary(tile,path,threats))
 		route.chapter_selected.connect(func(chapter):route.select_battle_tile(route.survey_cells[chapter]))
 		route.select_battle_tile(route.survey_cells[route.selected])
-		var key=label_in(frame,"Blue squares mark the company. Red diamonds mark enemies. Crosses mark downed allies.",15,Color("766e5e"))
+		var counter_key="Blue squares mark the company. Red diamonds mark enemies. Crosses mark downed allies."
+		var reach_key="Red shading marks tiles enemies can attack."
+		var key=label_in(frame,"",15,Color("766e5e"))
 		key.name="BattleRouteKey";key.hide()
 		var display_options=HBoxContainer.new();display_options.add_theme_constant_override("separation",8);frame.add_child(display_options)
 		var grid=CheckButton.new();grid.text="Show battle grid";grid.name="BattleRouteGrid";display_options.add_child(grid)
 		grid.tooltip_text="Show the tactical tiles and inspect them with the pointer or arrow keys."
 		var company=CheckButton.new();company.text="Show units";company.name="BattleRouteUnits";display_options.add_child(company)
 		company.tooltip_text="Mark standing and downed units and show who holds each standard."
+		var reach=CheckButton.new();reach.text="Show enemy reach";reach.name="BattleRouteReach";display_options.add_child(reach)
+		reach.tooltip_text="Show where enemies can move and then attack from their current positions."
 		grid.set_pressed_no_signal(atlas_grid_enabled)
 		company.set_pressed_no_signal(atlas_units_enabled)
+		reach.set_pressed_no_signal(atlas_reach_enabled)
+		var enemy_reach={}
 		var update_layers=func(_pressed: bool):
 			atlas_grid_enabled=grid.button_pressed
 			atlas_units_enabled=company.button_pressed
+			atlas_reach_enabled=reach.button_pressed
 			route.set_war_table_overlay(game.info() if atlas_grid_enabled else {})
 			if atlas_units_enabled:route.set_battle_positions(game.occupied_tiles(),game.capture_tiles())
 			else:route.set_battle_positions({},[])
-			key.visible=atlas_units_enabled
-			inspection.visible=atlas_grid_enabled or atlas_units_enabled
+			if atlas_reach_enabled and not enemy_reach.has("tiles"):
+				var counts={}
+				for enemy in game.living("enemy"):
+					for tile in tactics.threatened_tiles(game,enemy):counts[tile]=int(counts.get(tile,0))+1
+				enemy_reach.tiles=counts
+			route.set_battle_enemy_reach(enemy_reach.get("tiles",{}) if atlas_reach_enabled else {})
+			var legend=PackedStringArray()
+			if atlas_units_enabled:legend.append(counter_key)
+			if atlas_reach_enabled:legend.append(reach_key)
+			key.text=" ".join(legend)
+			key.visible=not legend.is_empty()
+			inspection.visible=atlas_grid_enabled or atlas_units_enabled or atlas_reach_enabled
 			route.enable_battle_tile_picker(inspection.visible)
+			route.select_battle_tile(route.battle_tile)
 		grid.toggled.connect(update_layers)
 		company.toggled.connect(update_layers)
+		reach.toggled.connect(update_layers)
 		interface_audio.watch(grid)
 		interface_audio.watch(company)
+		interface_audio.watch(reach)
 		update_layers.call(false)
 		var actions=HBoxContainer.new();actions.add_theme_constant_override("separation",8);frame.add_child(actions)
 		var inspect=button_in(actions,"Inspect selected tile",func():
@@ -1131,7 +1154,7 @@ func show_campaign_route(view: String="campaign_route"):
 	ui.resized.connect(fit_route)
 	fit_route.call()
 
-func battle_atlas_tile_summary(tile: Vector2i,path: Array) -> String:
+func battle_atlas_tile_summary(tile: Vector2i,path: Array,threats: int=-1) -> String:
 	var parts=PackedStringArray([ValleyBattle.survey_mark(tile),game.terrain_profile(tile).name])
 	for unit in game.occupants(tile):
 		if game.DeathDoor.downed(unit):
@@ -1142,6 +1165,9 @@ func battle_atlas_tile_summary(tile: Vector2i,path: Array) -> String:
 		if passenger!=null:health+=", carrying "+passenger.name
 		parts.append(health)
 	if tile in game.capture_tiles():parts.append(TerrainCard.STANDARD_STATUS[ValleyBattle.standard_claim(game.at(tile))])
+	if threats==0:parts.append("Outside enemy reach")
+	elif threats==1:parts.append("1 enemy can attack here")
+	elif threats>1:parts.append("%d enemies can attack here"%threats)
 	if path.size()>1:
 		var cost=0
 		for step in path.slice(1):cost+=game.terrain_profile(step).move

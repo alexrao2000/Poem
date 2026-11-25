@@ -114,11 +114,11 @@ Close-up battles at reached war-table sites can bring back local scenery. Reed C
 
 Route briefings show each reached location’s survey mark. The same marks appear in the editor’s war-table overlay and on the battlefield’s terrain card. Choose Next landmark or press L to inspect places from earlier chapters in campaign order. Use Index beside Next landmark to jump directly to a named place. Locations sharing a tile have separate entries in the index.
 
-During a war-table battle, press **V** or select **Atlas** to reread the earlier briefings. **Show battle grid** overlays the terrain and standards. **Show units** marks your company, foes, downed allies, and control of the standards. With either layer on, select a tile with the pointer or use the arrow keys with the atlas focused to see its occupants, health, and standard holder. Open the atlas with a ready ally selected to trace legal routes and see their movement cost. **Inspect selected tile** returns to the battlefield at its survey mark.
+During a war-table battle, press **V** or select **Atlas** to reread the earlier briefings. **Show battle grid** overlays the terrain and standards. **Show units** marks your company, foes, downed allies, and control of the standards. **Show enemy reach** shades tiles enemies can attack from their current positions, including after they move. With any layer on, select a tile with the pointer or use the arrow keys with the atlas focused to see its occupants, health, and standard holder. With enemy reach on, the readout also gives the number of enemies that can attack that tile. Open the atlas with a ready ally selected to trace legal routes and see their movement cost. **Inspect selected tile** returns to the battlefield at its survey mark.
 
 Choose **Replay reveal** in the battle atlas to watch the chart become the battlefield again. Click or press Tab to skip. The scene returns to the current camera and selected unit.
 
-The atlas remembers **Show battle grid** and **Show units** while you move between it and the same battlefield. Loading a battle opens the atlas with both layers off.
+The atlas remembers its layers while you move between it and the same battlefield. Loading a battle opens the atlas with all layers off.
 
 When a defeat sends the company back to an earlier chapter, **Preview rally company** lists the starting deployment, available reserves, and permanent losses before regrouping. The same preview is available in **Review losses** if ending the phase would cause that retreat.
 

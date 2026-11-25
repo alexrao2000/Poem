@@ -33,6 +33,7 @@ var survey_terrain: Array
 var survey_standards: Array[Vector2i]
 var battle_counters: Dictionary
 var battle_claims: Dictionary
+var battle_enemy_reach: Dictionary
 var battle_tile_picker=false
 var battle_tile=Vector2i(-1,-1)
 var battle_path: Array[Vector2i]
@@ -84,6 +85,10 @@ func set_battle_positions(occupants: Dictionary,standards: Array[Vector2i]):
   var unit=occupants[tile]
   battle_counters[tile]={"team":unit.team,"downed":Rules.DeathDoor.downed(unit)}
  for tile in standards:battle_claims[tile]=Valley.standard_claim(occupants.get(tile))
+ queue_redraw()
+
+func set_battle_enemy_reach(tiles: Dictionary):
+ battle_enemy_reach=tiles
  queue_redraw()
 
 func battle_tile_box(tile: Vector2i) -> Rect2:
@@ -218,6 +223,8 @@ func _draw():
  if map_rect.size.x<=0:return
  draw_texture_rect(map_picture,map_rect,false)
  if not survey_terrain.is_empty():draw_war_table_overlay()
+ var danger=Color(.57,.17,.25,.42)
+ for tile in battle_enemy_reach:draw_rect(battle_tile_box(tile).grow(-.5),danger)
  if battle_tile_picker and battle_path.size()>1:
   var path=PackedVector2Array(battle_path.map(func(tile):return battle_tile_box(tile).get_center()))
   draw_polyline(path,Color("674c30"),4.0,true)

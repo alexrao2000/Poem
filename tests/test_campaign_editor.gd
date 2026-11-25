@@ -584,6 +584,7 @@ func verify_editor_reveal_preview(app,scratch: String,picture: Texture2D,origin:
  var camera=app.map_navigation.capture_view()
  var size_before=root.size;var scale_before=root.content_scale_size
  var playback=app.score_director.player.get_stream_playback()
+ app.atlas_reach_enabled=true
  controls(app,"Preview atlas reveal").pressed.emit()
  assert(app.screen=="editor_reveal_preview" and app.valley_reveal_active and app.game!=original)
  var layer=Valley.grid_material(app.world)
@@ -618,6 +619,7 @@ func verify_editor_reveal_preview(app,scratch: String,picture: Texture2D,origin:
  assert(app.campaign_editor.draft.encode()==document and app.map_navigation.capture_view()==camera)
  assert(app.campaign_editor.find_child("EditorPreviewReveal",true,false).has_focus())
  assert(app.score_director.player.get_stream_playback()==playback)
+ assert(app.atlas_reach_enabled)
  assert(DirAccess.get_files_at(scratch)==files and FileAccess.get_file_as_string(app.save_path)==disk)
  print("PASS: the editor plays and skips the authored atlas reveal and Escape returns mid-reveal to the exact draft without writing a playtest")
  app.map_camera()
@@ -2334,13 +2336,14 @@ func run():
   var atlas=app.ui.find_child("CampaignRoute",true,false)
   var grid=app.ui.find_child("BattleRouteGrid",true,false)
   var units=app.ui.find_child("BattleRouteUnits",true,false)
+  var reach=app.ui.find_child("BattleRouteReach",true,false)
   var inspect=app.ui.find_child("BattleRouteInspect",true,false)
   var retained_grid=grid.button_pressed
   assert(atlas.survey_terrain.is_empty()!=retained_grid and not units.button_pressed)
   grid.button_pressed=false
   assert(atlas.selected==1 and atlas.map_picture==Valley.MAP and atlas.survey_terrain.is_empty())
   assert(atlas.markers[12].disabled and app.ui.find_child("RouteSurveyMark",true,false).text=="G-10")
-  for control in [grid,units,inspect,app.ui.find_child("BattleRouteReplay",true,false),app.ui.find_child("BattleRouteReturn",true,false)]:
+  for control in [grid,units,reach,inspect,app.ui.find_child("BattleRouteReplay",true,false),app.ui.find_child("BattleRouteReturn",true,false)]:
    assert(root.get_visible_rect().grow(1).encloses(control.get_global_rect()))
   grid.button_pressed=true
   assert(atlas.survey_terrain==app.game.info().map and atlas.survey_standards==app.game.capture_tiles())
@@ -2356,6 +2359,28 @@ func run():
   for standard in app.game.capture_tiles():assert(atlas.battle_claims[standard]==Valley.standard_claim(occupied.get(standard)))
   units.button_pressed=false
   assert(atlas.battle_counters.is_empty() and atlas.battle_claims.is_empty() and not atlas.battle_tile_picker)
+  assert(not reach.button_pressed and atlas.battle_enemy_reach.is_empty())
+  reach.button_pressed=true
+  var expected_reach={}
+  for enemy in app.game.living("enemy"):
+   for point in app.tactics.threatened_tiles(app.game,enemy):expected_reach[point]=expected_reach.get(point,0)+1
+  assert(atlas.battle_enemy_reach==expected_reach and atlas.battle_tile_picker)
+  assert(atlas.survey_terrain.is_empty() and atlas.battle_counters.is_empty())
+  var summary=app.ui.find_child("BattleRouteTileSummary",true,false)
+  var unsafe_tile=expected_reach.find_key(1)
+  assert(unsafe_tile!=null)
+  atlas.select_battle_tile(unsafe_tile)
+  assert("1 enemy can attack here" in summary.text)
+  atlas.select_battle_tile(Vector2i.ZERO)
+  assert(not expected_reach.has(Vector2i.ZERO) and "Outside enemy reach" in summary.text)
+  grid.button_pressed=true;units.button_pressed=true
+  await process_frame;await process_frame
+  assert(root.get_visible_rect().grow(1).encloses(summary.get_global_rect()))
+  assert(root.get_visible_rect().grow(1).encloses(app.ui.find_child("BattleRouteKey",true,false).get_global_rect()))
+  assert(root.get_visible_rect().grow(1).encloses(inspect.get_global_rect()))
+  assert(atlas.battle_enemy_reach==expected_reach and atlas.survey_terrain==app.game.info().map)
+  reach.button_pressed=false;grid.button_pressed=false;units.button_pressed=false
+  assert(atlas.battle_enemy_reach.is_empty() and not atlas.battle_tile_picker)
   root.push_input(exit_index,true);await process_frame
   assert(app.screen=="battle" and app.cursor_tile==Vector2i(6,9) and app.map_navigation.capture_view()==view)
   var returned=app.ui.find_child("OpenLandmarkIndex",true,false)
@@ -2402,6 +2427,7 @@ func run():
  assert(app.screen=="battle_route" and app.selected==vanguard and app.origin==selected_move)
  assert(app.ui.find_child("BattleRouteGrid",true,false).button_pressed)
  app.ui.find_child("BattleRouteUnits",true,false).button_pressed=true
+ app.ui.find_child("BattleRouteReach",true,false).button_pressed=true
  var held=atlas_toggle.duplicate();held.echo=true;root.push_input(held,true)
  assert(app.screen=="battle_route")
  atlas_toggle.pressed=false;root.push_input(atlas_toggle,true)
@@ -2421,6 +2447,7 @@ func run():
   assert(app.screen=="battle_route")
   assert(app.ui.find_child("BattleRouteGrid",true,false).button_pressed)
   assert(app.ui.find_child("BattleRouteUnits",true,false).button_pressed)
+  assert(app.ui.find_child("BattleRouteReach",true,false).button_pressed)
   app.ui.find_child("BattleRouteReplay",true,false).pressed.emit()
   assert(app.valley_reveal_active and app.busy and not app.ui.visible and not app.markers.visible)
   assert(app.canvas.get_node("ValleyRouteSeals").projected_pins().size()==11 and replay_ink.get_shader_parameter("front")<0)
@@ -2463,9 +2490,11 @@ func run():
  assert(app.screen=="battle_route")
  assert(not app.ui.find_child("BattleRouteGrid",true,false).button_pressed)
  assert(not app.ui.find_child("BattleRouteUnits",true,false).button_pressed)
+ assert(not app.ui.find_child("BattleRouteReach",true,false).button_pressed)
  app.ui.find_child("BattleRouteReturn",true,false).pressed.emit();await process_frame
  assert(app.screen=="battle" and FileAccess.get_file_as_string(valley_path)==resumed_disk)
- print("PASS: the atlas remembers both layer switches through visits and replays and reloads a fresh view")
+ print("PASS: the atlas remembers its layers through visits and replays and reloads a fresh view")
+ print("PASS: the atlas shows exact enemy reach on its own or with units and terrain, without changing the save or camera")
  for unit in app.game.units:
   if unit.id in ["sera","lyra"]:unit.hp=0
  app.game.commit_casualties()
