@@ -44,6 +44,14 @@ func legacy_stock_ui(app):
   assert(control.disabled and control.text.begins_with("Available in arsenal · ") and not control.text.contains("credit"))
   control.pressed.emit()
  assert(app.game.save_data("battle")==before and FileAccess.get_file_as_string(app.save_path)==disk,"Disabled shop callbacks cannot consume credits or write a checkpoint")
+ fixture=legacy_fixture(0);assert(fixture.trials.buy(fixture,"war_hammer"))
+ assert(app.game.restore_save(fixture.save_data("battle"))=="battle")
+ app.show_campaign_trials();await inspect(app)
+ var bow=app.ui.find_child("LegacyStock_longbow",true,false)
+ assert(bow.disabled and bow.text=="Watchtower bow · Legacy credits 1/3")
+ var sword=app.ui.find_child("LegacyStock_tempered_sword",true,false)
+ assert(not sword.disabled and sword.text=="Secure · Tempered sword · 1 credit")
+ assert(FileAccess.get_file_as_string(app.save_path)==disk)
  assert(app.game.restore_save(original)=="battle");app.show_campaign_trials()
 func rules():
  for chapter in [2,5,11]:
@@ -283,14 +291,17 @@ func run():
  rules()
  verify_authored_section_lengths()
  root.size=Vector2i(1440,900)
- var app=load("res://main.tscn").instantiate();app.settings_path="";app.save_path="/private/tmp/poem-trials-ui.json"
+ var app=load("res://main.tscn").instantiate();app.settings_path="";app.save_path="/private/tmp/poem-trials-ui-%d.json"%OS.get_process_id()
  root.add_child(app);await process_frame
  await verify_council_preparation(app)
  await verify_trial_ledger(app)
  app.game.new_campaign(true);app.game.story_seen=["opening_0"];app.show_camp();app.show_options("camp")
  for key in app.game.trials.flags:app.ui.find_child(key,true,false).button_pressed=true
  await inspect(app)
- app.close_options();app.game.start_battle();fall(app.game,"oren")
+ app.close_options();app.game.start_battle();app.show_campaign_trials();await inspect(app)
+ var first_stock=app.ui.find_child("LegacyStock_tempered_sword",true,false)
+ assert(first_stock.disabled and first_stock.text=="Tempered sword · Recorded losses 0/1")
+ fall(app.game,"oren")
  app.show_campaign_trials();await inspect(app)
  var purchase=app.ui.find_children("*","Button",true,false).filter(func(b):return b.text.begins_with("Secure · Tempered"))
  assert(purchase.size()==1 and not purchase[0].disabled);purchase[0].pressed.emit()

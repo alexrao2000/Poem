@@ -2838,7 +2838,14 @@ func show_campaign_trials():
 			var item=game.equipment.filter(func(entry):return entry.id==stock.id)[0]
 			var bought=stock.id in game.trials.purchases
 			var available=int(item.unlock)<=game.chapter
-			var title="Secured · "+item.name if bought else "Available in arsenal · "+item.name if available else "Secure · "+item.name+" · %d credit(s), %d loss(es)"%[stock.cost,stock.losses]
+			var title: String
+			if bought:title="Secured · "+item.name
+			elif available:title="Available in arsenal · "+item.name
+			elif game.trials.losses.size()<stock.losses:
+				title="%s · Recorded losses %d/%d"%[item.name,game.trials.losses.size(),stock.losses]
+			elif game.trials.credits<stock.cost:
+				title="%s · Legacy credits %d/%d"%[item.name,game.trials.credits,stock.cost]
+			else:title="Secure · %s · %d %s"%[item.name,stock.cost,"credit" if stock.cost==1 else "credits"]
 			var stock_button=button_in(panel,title,func():
 				if game.trials.buy(game,stock.id):persist_campaign("camp");show_campaign_trials()
 			,not game.trials.can_buy(game,stock.id))
