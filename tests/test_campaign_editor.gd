@@ -141,6 +141,23 @@ func run():
  renamed.name="Captain Oren";renamed.job="Duelist";renamed.stats.hp=31
  renamed.ending="Oren led the next company across the gate."
  editor.changed()
+ var book=editor.find_child("CampaignEditorTabs",true,false)
+ book.current_tab=book.get_tab_idx_from_control(editor.find_child("Company",true,false))
+ await process_frame
+ var recruits=editor.find_child("EditorRecruit",true,false)
+ recruits.select(2);recruits.item_selected.emit(2)
+ await process_frame
+ controls(app,"Add recruit").pressed.emit()
+ await process_frame
+ var custom=editor.draft.data.recruits[-1]
+ assert(custom.id=="recruit_01" and custom.art_id=="sera" and custom.chapter==editor.chapter().key)
+ var recruit_name=editor.find_child("EditorRecruitName",true,false)
+ recruit_name.text="Linden";recruit_name.text_changed.emit(recruit_name.text)
+ custom.bio="A signal scout who came down from the ridge."
+ custom.ending="Linden marked the old roads for the next company."
+ controls(app,"Deploy in the opening chapter").button_pressed=true
+ editor.chapter().opening=[{"speaker":custom.id,"text":"We can take the upper road."}]
+ assert(editor.draft.recruit_in_use(custom.id))
  editor.find_child("AddValleyBattle",true,false).pressed.emit()
  assert(editor.selected==1 and editor.level().map.size()==16 and editor.level().map[0].length()==24)
  var chart=editor.level()
@@ -202,15 +219,32 @@ func run():
  assert(hard.at(Vector2i(20,2)).level==9 and hard.at(Vector2i(20,2)).job=="Warden")
  assert(editor.draft.playtest_problem().is_empty(),editor.draft.playtest_problem())
  controls(app,"Play from start").pressed.emit()
+ assert(app.screen=="dialogue" and app.dialogue_name.text=="Linden" and app.dialogue_label.text=="We can take the upper road.")
+ assert(app.dialogue_portrait.texture==app.portraits.get_dialogue_portrait("sera"))
  await finish_presentation(app)
  assert(app.screen=="camp" and app.game!=installed and app.game.info().title=="River Gate")
  var veteran=app.game.roster.filter(func(recruit):return recruit.id=="oren")[0]
  assert(veteran.name=="Captain Oren" and veteran.job=="Duelist" and veteran.max_hp==31 and veteran.weapon=="sword")
+ var linden=app.game.roster.filter(func(recruit):return recruit.id==custom.id)[0]
+ assert(linden.name=="Linden" and linden.job=="Ranger" and linden.id in app.game.deployed)
+ app.show_dossier(linden);await process_frame
+ assert(app.ui.find_children("*","Label",true,false).any(func(label):return label.text==custom.bio))
+ controls(app,"Return to war council").pressed.emit();await process_frame
  assert(not installed.valid_save(app.game.save_data("camp")))
  var playable_bond=app.game.supports.entry_for(first_bond.id)
  assert(playable_bond.scenes[0].title=="Watch on the river" and playable_bond.chapters==[1,1,1])
  app.preferences.values.auto_end=false
  controls(app,"Deploy company  >").pressed.emit();await finish_presentation(app)
+ var deployed_linden=app.game.units.filter(func(unit):return unit.id==custom.id)[0]
+ assert(app.unit_nodes[custom.id].visual_id=="recruit.sera")
+ var actor=app.make_preview_fighter(deployed_linden,Vector3(35,0,0),"revised")
+ assert(actor.available and actor.actor.has_meta("source_model"))
+ app.stage.remove_child(actor.actor);actor.actor.queue_free()
+ var custom_save=app.game.read_saved_data(app.campaign_save_path())
+ assert(custom_save.units.any(func(unit):return unit.id==custom.id and unit.art_id=="sera"))
+ var edited_save=custom_save.duplicate(true)
+ edited_save.roster.filter(func(unit):return unit.id==custom.id)[0].art_id="lyra"
+ assert(not app.game.valid_save(edited_save))
  await capture_tile(app,Vector2i(0,3))
  controls(app,"Continue the chronicle").pressed.emit();await finish_presentation(app)
  assert(app.screen=="camp" and app.game.chapter==1 and app.game.info().presentation=="valley_table")
@@ -271,6 +305,8 @@ func run():
  controls(app,"Continue the chronicle").pressed.emit();await finish_presentation(app)
  assert(app.screen=="ending" and app.game.completed)
  assert(app.ui.find_child("Ending_oren",true,false).text==renamed.ending)
+ assert(app.ui.find_child("Ending_"+custom.id,true,false).text==custom.ending)
+ assert(app.ui.find_child("Ending_rhea",true,false)==null)
  var record=app.game.read_saved_data(app.campaign_save_path())
  assert(record.stage=="ending" and record.campaign_id==app.game.content.authoring_signature)
  controls(app,"Return to editor").pressed.emit();await process_frame
@@ -310,5 +346,5 @@ func run():
  assert(app.screen=="campaign_route" and app.game==installed and app.game.save_data("camp")==route_state)
  assert(FileAccess.get_file_as_string(app.save_path)==disk)
  await Shutdown.dispose(app);await process_frame
- print("PASS: campaign JSON and chapter order, authored enemy levels and equipment, authored bonds with chapter 32 saves, two complete authored chapters, valley reveal and route sites, isolated resume and late route entrance")
+ print("PASS: campaign JSON and chapter order, custom recruit portrait, map sprite, 3D model and ending, authored encounters and bonds, chapter 32 saves, two complete chapters, valley reveal and sites, and isolated resume")
  quit()

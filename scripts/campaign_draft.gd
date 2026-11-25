@@ -6,6 +6,7 @@ const Supports=preload("res://scripts/supports.gd")
 const FORMAT="poem-campaign"
 const VERSION=1
 const MAX_CHAPTERS=32
+const MAX_CUSTOM_RECRUITS=16
 const MAX_DRAFT_LENGTH=1000000
 const ENVIRONMENTS=["village","river","forest","abbey","road","harbor","mountain","aqueduct","observatory","furnace","castle","engine"]
 const OBJECTIVES=["rout","boss","seize","survive"]
@@ -74,6 +75,33 @@ func bond_members() -> Array:
  var members=data.recruits.map(func(person):return person.id)
  members.append_array(templates.legacy_recruits.map(func(legacy):return legacy.unit.id))
  return members
+
+func add_recruit(source: Dictionary,arrival: String) -> int:
+ if data.recruits.size()>=templates.roster.size()+MAX_CUSTOM_RECRUITS:return -1
+ var ids=data.recruits.map(func(person):return person.id)
+ var number=1
+ while "recruit_%02d"%number in ids:number+=1
+ var recruit=source.duplicate(true)
+ recruit.art_id=source.get("art_id",source.id)
+ recruit.id="recruit_%02d"%number
+ recruit.name="New recruit";recruit.bio="";recruit.ending="";recruit.chapter=arrival
+ data.recruits.append(recruit)
+ return data.recruits.size()-1
+
+func recruit_in_use(id: String) -> bool:
+ if id in data.opening_company:return true
+ for bond in data.get("bonds",[]):
+  if id in bond.members:return true
+  for scene in bond.scenes:
+   if dialogue_uses(scene.lines,id):return true
+ for chapter in data.chapters:
+  if dialogue_uses(chapter.opening,id) or dialogue_uses(chapter.closing,id):return true
+ return false
+
+static func dialogue_uses(lines: Array,id: String) -> bool:
+ for line in lines:
+  if line.speaker==id or id in line.get("requires",[]) or dialogue_uses(line.get("when_absent",[]),id):return true
+ return false
 
 func blank_level() -> Dictionary:
  var rows=[]
@@ -175,9 +203,15 @@ func structural_problem(document) -> String:
  if not document.chapters[0].section:return "The opening chapter must start a section."
  var known=templates.roster.map(func(recruit):return recruit.id)
  var people={}
- if document.recruits.size()!=known.size():return "The company roster is incomplete."
+ if document.recruits.size()<known.size() or document.recruits.size()>known.size()+MAX_CUSTOM_RECRUITS:
+  return "Keep the catalogue roster and up to sixteen additional recruits."
  for recruit in document.recruits:
-  if not recruit is Dictionary or recruit.get("id") not in known or people.has(recruit.id):return "Each company recruit needs a unique catalogue identity."
+  if not recruit is Dictionary or not valid_text(recruit.get("id"),40) or people.has(recruit.id):
+   return "Each company recruit needs a unique identity."
+  if recruit.id in known:
+   if recruit.has("art_id"):return "Catalogue recruits retain their original appearance."
+  elif not recruit.id.begins_with("recruit_") or not recruit.id.is_valid_identifier() or recruit.get("art_id") not in known:
+   return "Each new recruit needs a valid identity and catalogue appearance."
   if not valid_text(recruit.get("name"),80) or not valid_text(recruit.get("bio"),800) or not recruit.get("chapter") is String:
    return "A recruit is missing a name, introduction, or arrival."
   if not valid_text(recruit.get("ending"),1200):return "A recruit has an invalid epilogue."
@@ -187,6 +221,7 @@ func structural_problem(document) -> String:
     return "A recruit has an invalid base stat."
   if not recruit.chapter.is_empty() and not keys.has(recruit.chapter):return "A recruit arrives in a missing chapter."
   people[recruit.id]=true
+ if not known.all(func(id):return people.has(id)):return "The company roster is incomplete."
  if document.has("bonds"):
   var bond_people=people.duplicate()
   for legacy in templates.legacy_recruits:bond_people[legacy.unit.id]=true
@@ -322,22 +357,30 @@ func compile() -> Dictionary:
   if chapter.section:content.section_starts.append(index)
   content.chapters.append(level)
   scenes.append({"opening":chapter.opening.duplicate(true),"closing":chapter.closing.duplicate(true)})
- for recruit in content.roster:
-  var authored=data.recruits.filter(func(entry):return entry.id==recruit.id)[0]
-  var arrival=index_for(authored.chapter)
-  recruit.join=arrival if arrival>=0 else data.chapters.size()
-  recruit.name=authored.name;recruit.bio=authored.bio
-  recruit.ending=authored.ending
-  if recruit.job!=authored.job:
-   recruit.job=authored.job
-   recruit.weapon=content.classes[recruit.job].weapon
-   recruit.reach=content.classes[recruit.job].reach
-   recruit.item=Rules.DEFAULT_ITEMS[recruit.weapon]
-  for field in RECRUIT_STATS:recruit[field]=authored.stats[field]
+ var roster_by_id={}
+ for recruit in content.roster:roster_by_id[recruit.id]=recruit
+ for authored in data.recruits:
+  if roster_by_id.has(authored.id):
+   apply_recruit(roster_by_id[authored.id],authored)
+  else:
+   var recruit=templates.roster.filter(func(entry):return entry.id==authored.art_id)[0].duplicate(true)
+   recruit.id=authored.id;recruit.art_id=authored.art_id;recruit.art_job=recruit.job
+   apply_recruit(recruit,authored);content.roster.append(recruit)
  if data.has("bonds"):
   content.bonds=data.bonds.duplicate(true)
   for bond in content.bonds:bond.chapters=bond.chapters.map(index_for)
  return {"content":content,"story":{"chapters":scenes},"settings":data.settings.duplicate(true)}
+
+func apply_recruit(recruit: Dictionary,authored: Dictionary):
+ var arrival=index_for(authored.chapter)
+ recruit.join=arrival if arrival>=0 else data.chapters.size()
+ recruit.name=authored.name;recruit.bio=authored.bio
+ recruit.ending=authored.ending
+ if recruit.job!=authored.job:
+  var job=templates.classes[authored.job]
+  recruit.job=authored.job;recruit.weapon=job.weapon;recruit.reach=job.reach
+  recruit.item=Rules.DEFAULT_ITEMS[recruit.weapon]
+ for field in RECRUIT_STATS:recruit[field]=authored.stats[field]
 
 static func point_valid(value) -> bool:
  return value is Array and value.size()==2 and value.all(func(coordinate):return integer(coordinate,0,99))

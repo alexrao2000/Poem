@@ -241,14 +241,31 @@ func build_story(panel: VBoxContainer):
 
 func build_company(panel: VBoxContainer):
  var company=draft.data.recruits
+ selected_person=clampi(selected_person,0,company.size()-1)
+ var person=company[selected_person]
+ var actions=row(panel)
+ action(actions,"Add recruit",func():
+  selected_person=draft.add_recruit(person,chapter().key)
+  changed();rebuild(),company.size()>=draft.templates.roster.size()+Draft.MAX_CUSTOM_RECRUITS).name="EditorAddRecruit"
+ if person.has("art_id"):
+  var used=draft.recruit_in_use(person.id)
+  var remove=action(actions,"Remove recruit",func():remove_custom_recruit(),used)
+  if used:remove.tooltip_text="Clear this recruit’s dialogue, bond and opening deployment first."
  var picker=choice(company.map(func(person):return person.id),company[selected_person].id,func(value):
   selected_person=company.find_custom(func(person):return person.id==value)
   rebuild())
+ picker.name="EditorRecruit";picker.fit_to_longest_item=false;picker.clip_text=true
  for index in company.size():picker.set_item_text(index,company[index].name+" · "+company[index].id)
  panel.add_child(picker)
- var person=company[selected_person]
+ if person.has("art_id"):
+  var references=draft.templates.roster
+  var appearance=choice(references.map(func(recruit):return recruit.id),person.art_id,func(value):person.art_id=value;changed())
+  for index in references.size():appearance.set_item_text(index,references[index].name)
+  appearance.name="EditorRecruitAppearance";field_label(row(panel),"Catalogue appearance",appearance)
  heading(panel,"Display name",17)
- panel.add_child(line_edit(person.name,"Recruit name",80,func(value):person.name=value;changed()))
+ var display=line_edit(person.name,"Recruit name",80,func(value):
+  person.name=value;picker.set_item_text(selected_person,value+" · "+person.id);changed())
+ display.name="EditorRecruitName";panel.add_child(display)
  heading(panel,"Introduction",17)
  panel.add_child(multiline(person.bio,96,func(value):person.bio=value;changed()))
  heading(panel,"Epilogue",17)
@@ -279,6 +296,15 @@ func build_company(panel: VBoxContainer):
   var limits=Draft.RECRUIT_STATS[stat]
   field_label(attributes,stat_names[stat],spin(int(person.stats[stat]),limits[0],limits[1],func(value):
    person.stats[stat]=value;changed()))
+
+func remove_custom_recruit():
+ var recruit=draft.data.recruits[selected_person]
+ if not recruit.has("art_id") or draft.recruit_in_use(recruit.id):return
+ var dialog=ConfirmationDialog.new();dialog.title="Remove this recruit?"
+ dialog.dialog_text="This removes the recruit’s record from the draft."
+ add_child(dialog);dialog.popup_centered()
+ dialog.confirmed.connect(func():draft.data.recruits.remove_at(selected_person);changed();rebuild())
+ dialog.canceled.connect(dialog.queue_free)
 
 func build_rules(panel: VBoxContainer):
  heading(panel,"Campaign title",17)

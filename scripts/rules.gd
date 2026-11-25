@@ -563,6 +563,7 @@ func valid_save(data) -> bool:
 		if not valid_unit(unit,false) or ids.has(unit.id):return false
 		var original=recruit_templates.get(unit.id,{})
 		if original.is_empty():return false
+		if not matches_appearance(unit,original):return false
 		if not unit.get("bio") is String or unit.bio.length()>2000:return false
 		if not (unit.get("join") is int or unit.get("join") is float) or unit.join!=original.join:return false
 		if unit.get("fallen",false):
@@ -593,6 +594,7 @@ func valid_save(data) -> bool:
 		combat_ids[unit.id]=true
 		if unit.team=="player":
 			if not ids.has(unit.id):return false
+			if not matches_appearance(unit,ids[unit.id]):return false
 			if ids[unit.id].get("fallen",false) and unit.hp>0:return false
 		var grid=content.chapters[int(data.chapter)].map
 		if unit.x<0 or unit.y<0 or unit.x>=grid[0].length() or unit.y>=grid.size():return false
@@ -605,6 +607,9 @@ func valid_save(data) -> bool:
 			if carrier.x!=unit.x or carrier.y!=unit.y:return false
 			if data.units.filter(func(other):return other.get("carried_by","")==carrier.id).size()!=1:return false
 	return true
+
+func matches_appearance(unit: Dictionary,original: Dictionary) -> bool:
+	return unit.get("art_id","")==original.get("art_id","") and unit.get("art_job","")==original.get("art_job","")
 
 func valid_unit(unit,in_battle: bool) -> bool:
 	if not unit is Dictionary:return false

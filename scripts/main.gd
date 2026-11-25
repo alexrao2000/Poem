@@ -657,7 +657,7 @@ func show_camp():
 	for u in game.roster:
 		var unlocked=game.trials.joined(game,u) and not u.get("fallen",false)
 		var card=preload("res://scripts/company_card.gd").new();cards.add_child(card)
-		card.configure(u,game.class_name_for(u),portraits.get_portrait(u.id) if unlocked or u.get("fallen",false) else map_catalog.preview_sprite(u),game.item_for(u),u.id in game.deployed,unlocked,unlocked and supports_ready(u),game.deployed.size()>=6,game.trials.deployment_condition(game,u))
+		card.configure(u,game.class_name_for(u),portraits.get_unit_portrait(u) if unlocked or u.get("fallen",false) else map_catalog.preview_sprite(u),game.item_for(u),u.id in game.deployed,unlocked,unlocked and supports_ready(u),game.deployed.size()>=6,game.trials.deployment_condition(game,u))
 		if u.id=="lyra" and (game.trials.flags.reset_pressure or (game.trials.flags.section_restarts and game.permadeath)):
 			card.deploy_button.disabled=true;card.deploy_button.tooltip_text="The lord leads the company in this experiment."
 		interface_audio.watch(card.portrait_button);interface_audio.watch(card.deploy_button)
@@ -1378,14 +1378,22 @@ func prefetch_battle_models():
 	if preferences.values.combat=="map":return
 	# Pay first-use source loading during setup, before chapter/phase animations.
 	# This also covers restored battles and enabling revised models in Options.
+	var visuals=game.units.map(model_identity)
 	for builder in selected_model_builders():
-		for unit in game.units:builder.prefetch(unit)
+		for unit in visuals:builder.prefetch(unit)
+
+func model_identity(unit: Dictionary) -> Dictionary:
+	if not unit.has("art_id"):return unit
+	var visual=unit.duplicate()
+	visual.id=unit.art_id
+	return visual
 
 func make_fighter(u,position) -> Node3D:
+	var visual=model_identity(u)
 	for builder in selected_model_builders():
-		var actor=builder.build(stage,u,position)
+		var actor=builder.build(stage,visual,position)
 		if actor!=null:return actor
-	return fighters.build(stage,u,position)
+	return fighters.build(stage,visual,position)
 
 func staff_healing(healer,recipient,amount: int,before: Dictionary={}):
 	var revived=amount>0 and recipient.hp==amount
@@ -1767,7 +1775,7 @@ func present_casualties(events: Array):
 		if quote.is_empty():continue
 		shown.append(unit.id)
 		var card=Card.new()
-		card.configure(ui,unit,portraits.get_portrait(unit.id),Card.mode_for(game,unit),quote,event.get("casualty_effects",{}))
+		card.configure(ui,unit,portraits.get_unit_portrait(unit),Card.mode_for(game,unit),quote,event.get("casualty_effects",{}))
 		if not vigil_played and unit.id in committed:
 			play_sfx("legacy-vigil");vigil_played=true
 		await card.play(func():return skip_combat)
@@ -1869,7 +1877,7 @@ func check_result() -> bool:
 		for unit in game.units:
 			if unit.team!="player":continue
 			var row=HBoxContainer.new();row.size_flags_horizontal=Control.SIZE_EXPAND_FILL;summary.add_child(row)
-			var portrait=TextureRect.new();portrait.texture=portraits.get_portrait(unit.id);portrait.custom_minimum_size=Vector2(55,55);portrait.expand_mode=TextureRect.EXPAND_IGNORE_SIZE;portrait.stretch_mode=TextureRect.STRETCH_KEEP_ASPECT_CENTERED;row.add_child(portrait)
+			var portrait=TextureRect.new();portrait.texture=portraits.get_unit_portrait(unit);portrait.custom_minimum_size=Vector2(55,55);portrait.expand_mode=TextureRect.EXPAND_IGNORE_SIZE;portrait.stretch_mode=TextureRect.STRETCH_KEEP_ASPECT_CENTERED;row.add_child(portrait)
 			var downed=game.DeathDoor.downed(unit)
 			var lost=unit.hp<=0 and not downed and game.permadeath
 			var status="Rescued after battle" if downed else "Ready for the next march"
@@ -1949,6 +1957,7 @@ func show_ending():
 	var list=VBoxContainer.new();list.size_flags_horizontal=Control.SIZE_EXPAND_FILL;scroll.add_child(list)
 	var pairs=game.supports.ending_pairs(game)
 	for u in game.roster:
+		if not game.trials.joined(game,u) and not u.get("fallen",false):continue
 		if pairs.has(u.id):
 			var pair=pairs[u.id]
 			if u.id!=pair.members[0]:continue
@@ -1977,7 +1986,8 @@ func refresh_dialogue():
 	if dialogue_index>=dialogue_lines.size():finish_dialogue();return
 	var line=dialogue_lines[dialogue_index]
 	var display_name=dialogue_speaker_name(line.speaker)
-	dialogue_portrait=dialogue_stage.show_speaker(line.speaker,display_name,portraits.get_dialogue_portrait(line.speaker,line.get("expression","")))
+	var identity=game.recruit_templates.get(line.speaker,{}).get("art_id",line.speaker)
+	dialogue_portrait=dialogue_stage.show_speaker(line.speaker,display_name,portraits.get_dialogue_portrait(identity,line.get("expression","")))
 	dialogue_label.text=line.text;dialogue_label.visible_characters=-1 if preferences.values.text_speed==0 else 0;dialogue_reveal=0.0
 	dialogue_stage.refresh_prompt()
 
@@ -2009,7 +2019,7 @@ func show_dossier(unit):
 	var panel=menu_panel()
 	label_in(panel,"COMPANY RECORD",17,GOLD)
 	var row=HBoxContainer.new();row.add_theme_constant_override("separation",36);row.size_flags_vertical=Control.SIZE_EXPAND_FILL;panel.add_child(row)
-	var portrait=TextureRect.new();portrait.texture=portraits.get_portrait(unit.id)
+	var portrait=TextureRect.new();portrait.texture=portraits.get_unit_portrait(unit)
 	var size_portrait=func():portrait.custom_minimum_size=Vector2(minf(380,ui.size.x*.28),0)
 	ui.resized.connect(size_portrait);size_portrait.call()
 	portrait.expand_mode=TextureRect.EXPAND_IGNORE_SIZE;portrait.stretch_mode=TextureRect.STRETCH_KEEP_ASPECT_CENTERED;row.add_child(portrait)
@@ -2020,7 +2030,7 @@ func show_dossier(unit):
 	label_in(info,"HP %d    ATK %d    DEF %d    RES %d    SPD %d    MOV %d"%[unit.max_hp,game.attack_power(unit),unit.defense,game.resistance_for(unit),game.attack_speed(unit),unit.move],21)
 	var condition=game.trials.deployment_condition(game,unit)
 	if condition.recovering:label_in(info,"RECOVERY · Next deployment starts at %d/%d HP with %d tonic. Healing can restore full health."%[condition.hp,unit.max_hp,condition.tonics],19,GOLD)
-	label_in(info,profile.get("biography",unit.bio),22)
+	label_in(info,unit.bio if game.content.has("authoring_signature") else profile.get("biography",unit.bio),22)
 	label_in(info,"PERSONAL NOTE",16,GOLD);label_in(info,profile.get("note",""),20)
 	if unit.get("fallen",false):label_in(info,"IN MEMORIAM · Fell in chapter %02d — %s"%[int(unit.fallen_chapter)+1,game.content.chapters[int(unit.fallen_chapter)].title],22,GOLD)
 	var records=HBoxContainer.new();records.add_theme_constant_override("separation",12);panel.add_child(records)
@@ -2047,7 +2057,7 @@ func show_equipment(unit):
 	label_in(panel,"Equipment is shared freely. New supplies become available as the campaign advances.",19)
 	var row=HBoxContainer.new();row.add_theme_constant_override("separation",28);row.size_flags_vertical=Control.SIZE_EXPAND_FILL;panel.add_child(row)
 	var summary=scrolling_column(row,250);summary.get_parent().size_flags_horizontal=Control.SIZE_FILL
-	var portrait=TextureRect.new();portrait.texture=portraits.get_portrait(unit.id);portrait.custom_minimum_size=Vector2(230,200)
+	var portrait=TextureRect.new();portrait.texture=portraits.get_unit_portrait(unit);portrait.custom_minimum_size=Vector2(230,200)
 	portrait.expand_mode=TextureRect.EXPAND_IGNORE_SIZE;portrait.stretch_mode=TextureRect.STRETCH_KEEP_ASPECT_CENTERED;summary.add_child(portrait)
 	label_in(summary,"EQUIPPED",16,GOLD);weapon_label(summary,unit.weapon,game.item_for(unit).name,25,game.item_for(unit).id)
 	label_in(summary,"%s %d   Speed %d\nRange %s"%["Healing" if unit.weapon=="staff" else "Attack",game.healing_power(unit) if unit.weapon=="staff" else game.attack_power(unit),game.attack_speed(unit),game.range_text(unit)],21)
@@ -2074,12 +2084,13 @@ func show_equipment(unit):
 	button_in(panel,"Return to war council",show_camp)
 
 func make_preview_fighter(unit,position,model_choice: String) -> Dictionary:
-	if model_choice=="current":return {"actor":fighters.build(stage,unit,position),"available":true}
+	if model_choice=="current":return {"actor":fighters.build(stage,model_identity(unit),position),"available":true}
 	if model_choice=="revised":
+		var visual=model_identity(unit)
 		for builder in [debug_vanguard,debug_duelists,debug_caster,debug_warden,debug_corsair,debug_ranger,debug_knight,debug_rider]:
-			var actor=builder.build(stage,unit,position)
+			var actor=builder.build(stage,visual,position)
 			if actor!=null:return {"actor":actor,"available":true}
-		return {"actor":fighters.build(stage,unit,position),"available":false}
+		return {"actor":fighters.build(stage,visual,position),"available":false}
 	return {"actor":make_fighter(unit,position),"available":true}
 
 func show_model_view(unit,on_close=Callable(),model_spec: Dictionary={},model_choice=""):
@@ -2103,7 +2114,7 @@ func show_model_view(unit,on_close=Callable(),model_spec: Dictionary={},model_ch
 	label_in(panel,"DEBUG / MODEL STUDY" if not model_spec.is_empty() else "TRAINING / OUTFIT PREVIEW" if preview_return.is_valid() else "COMPANY / PREVIEW",15,GOLD);label_in(panel,unit.name,38)
 	if model_spec.is_empty():
 		var artwork=HBoxContainer.new();artwork.add_theme_constant_override("separation",12);panel.add_child(artwork)
-		var portrait=TextureRect.new();portrait.texture=portraits.get_portrait(unit.id)
+		var portrait=TextureRect.new();portrait.texture=portraits.get_unit_portrait(unit)
 		var size_portrait=func():portrait.custom_minimum_size.y=150 if ui.size.y<760 else 220
 		ui.resized.connect(size_portrait);size_portrait.call()
 		portrait.size_flags_horizontal=Control.SIZE_EXPAND_FILL
@@ -2245,7 +2256,7 @@ func show_progress(before: Dictionary,bonds_before=null,participant=""):
 		if not bond.is_empty() and change.unit.id==participant:change.bond=bond
 		reward_skip=false
 		reward_panel=ProgressReward.new()
-		reward_panel.configure(ui,change,portraits.get_dialogue_portrait(change.unit.id),game.class_name_for(change.unit),game.MAX_LEVEL,profiles.get(change.unit.id,{}).get("growth_quote",""))
+		reward_panel.configure(ui,change,portraits.get_dialogue_portrait(change.unit.get("art_id",change.unit.id)),game.class_name_for(change.unit),game.MAX_LEVEL,profiles.get(change.unit.id,{}).get("growth_quote",""))
 		interface_audio.watch_navigation(reward_panel.close_button)
 		reward_panel.continue_requested.connect(func():interface_audio.cue("confirm"))
 		reward_panel.begin(func():play_sfx("levelup"))
@@ -2306,7 +2317,7 @@ func show_promotions(unit):
 	label_in(panel,unit.name+"  /  "+game.class_name_for(unit),40,GOLD)
 	label_in(panel,"Choose one path at level 10. The choice is permanent; level, experience and equipment are retained.",19)
 	var row=HBoxContainer.new();row.add_theme_constant_override("separation",28);row.size_flags_vertical=Control.SIZE_EXPAND_FILL;panel.add_child(row)
-	var portrait=TextureRect.new();portrait.texture=portraits.get_portrait(unit.id)
+	var portrait=TextureRect.new();portrait.texture=portraits.get_unit_portrait(unit)
 	var size_portrait=func():portrait.custom_minimum_size=Vector2(minf(300,ui.size.x*.25),0)
 	ui.resized.connect(size_portrait);size_portrait.call()
 	portrait.expand_mode=TextureRect.EXPAND_IGNORE_SIZE;portrait.stretch_mode=TextureRect.STRETCH_KEEP_ASPECT_CENTERED;row.add_child(portrait)
@@ -2359,7 +2370,7 @@ func show_supports(unit):
 		var partner=partners[0]
 		var record=game.supports.progress(entry.id);var available=game.bond_available(entry)
 		var row=HBoxContainer.new();row.add_theme_constant_override("separation",24);list.add_child(row)
-		var portrait=TextureRect.new();portrait.texture=portraits.get_portrait(partner.id);portrait.custom_minimum_size=Vector2(250,300)
+		var portrait=TextureRect.new();portrait.texture=portraits.get_unit_portrait(partner);portrait.custom_minimum_size=Vector2(250,300)
 		portrait.expand_mode=TextureRect.EXPAND_IGNORE_SIZE;portrait.stretch_mode=TextureRect.STRETCH_KEEP_ASPECT_CENTERED;row.add_child(portrait)
 		var details=VBoxContainer.new();details.size_flags_horizontal=Control.SIZE_EXPAND_FILL;details.add_theme_constant_override("separation",10);row.add_child(details)
 		label_in(details,partner.name+" · Rank "+game.supports.RANKS[int(record.rank)],32,GOLD)

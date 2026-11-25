@@ -53,7 +53,8 @@ func add_supplement(path: String,prefix: String,issues: Array[String]) -> bool:
  return true
 
 func asset_id_for(unit: Dictionary) -> String:
- var individual="recruit."+unit.id
+ var identity=unit.get("art_id",unit.id) if unit.get("art_job",unit.job)==unit.job else unit.id
+ var individual="recruit."+identity
  var enemy="enemy."+unit.job.to_lower()
  var team=unit.get("team","player")
  if team=="player" and assets.has(individual):return individual

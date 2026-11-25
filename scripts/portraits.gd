@@ -12,7 +12,7 @@ var dialogue_expressions=JSON.parse_string(FileAccess.get_file_as_string("res://
 var critical_focus=JSON.parse_string(FileAccess.get_file_as_string("res://data/critical_portraits.json"))
 
 func get_critical_portrait(unit: Dictionary) -> Texture2D:
- var identity="enemy."+unit.job if unit.get("team","player")=="enemy" else unit.id
+ var identity="enemy."+unit.job if unit.get("team","player")=="enemy" else unit.get("art_id",unit.id)
  var commander=Commanders.profile(unit)
  if not commander.is_empty():identity="commander."+commander.id
  var key="critical."+identity
@@ -39,10 +39,10 @@ func get_dialogue_portrait(id: String,expression="") -> Texture2D:
  cache[key]=texture;return texture
 
 func get_forecast_portrait(unit: Dictionary) -> Texture2D:
- return get_unit_portrait(unit) if unit.get("team","player")=="enemy" else get_dialogue_portrait(unit.id)
+ return get_unit_portrait(unit) if unit.get("team","player")=="enemy" else get_dialogue_portrait(unit.get("art_id",unit.id))
 
 func get_unit_portrait(unit: Dictionary) -> Texture2D:
- if unit.get("team","player")!="enemy":return get_portrait(unit.id)
+ if unit.get("team","player")!="enemy":return get_portrait(unit.get("art_id",unit.id))
  var commander=Commanders.profile(unit)
  if not commander.is_empty():
   var identity="commander."+commander.id
