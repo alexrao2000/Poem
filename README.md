@@ -1,6 +1,6 @@
 # Poem
 
-A playable tactical RPG prototype built with Godot 4.5.1 and GDScript. Lead 24 regular recruits through a 12-chapter campaign, choose their equipment and promotions, and build relationships between battles. The death legacies experiment can also enlist Maelin or Tovin after a permanent Warden or Ranger loss.
+A playable tactical RPG prototype built with Godot 4.5.1 and GDScript. Lead a company of 24 regular recruits through the 12-chapter original campaign or the 13-chapter Roads Between. Choose equipment and promotions, and build relationships between battles. The death legacies experiment can also enlist Maelin or Tovin after a permanent Warden or Ranger loss.
 
 The campaign uses animated 2D sprites over textured 3D terrain. Combat zooms enlarge the sprites with tactical indicators hidden. The fighters emerge before the surrounding 3D arena, and the return opens on the same spot on the map with updated health and status. Browser and macOS exports run locally.
 
@@ -59,7 +59,7 @@ Exports are generated locally and ignored by Git. If `build/web/index.html` or t
 
 ## The Roads Between
 
-At the title, choose **Begin the chronicle → The Roads Between** to start the 13-chapter campaign. **Continue The Roads Between** opens its local save. In the Valley battle, press **V** for the atlas and choose **Replay reveal** to watch the chart become the battlefield again.
+At the title, choose **Begin the chronicle → The Roads Between** to start the 13-chapter campaign. **Continue The Roads Between** opens its local save. Late in the campaign, the same atlas used in briefings becomes the Valley battlefield. Mountains and crossings shape how the companies advance, and the capital holds the standard. Press **V** to review the atlas during that battle. Use **Show enemy reach** to plan around exposed tiles or choose **Replay reveal** to see the transformation again.
 
 ## Campaign editor
 
