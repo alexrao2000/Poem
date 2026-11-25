@@ -957,13 +957,7 @@ func deploy_company():
 func reveal_valley_battle():
 	valley_reveal_skip=false;valley_reveal_active=true
 	ui.hide();markers.hide()
-	var hint=label_in(canvas,"Click or press Tab to continue",16,Color("fff1d5"))
-	hint.name="ValleyRevealHint"
-	hint.set_anchors_and_offsets_preset(Control.PRESET_BOTTOM_WIDE)
-	hint.offset_top=-48;hint.offset_bottom=-16
-	hint.horizontal_alignment=HORIZONTAL_ALIGNMENT_CENTER
-	hint.add_theme_color_override("font_outline_color",Color("25313a"))
-	hint.add_theme_constant_override("outline_size",5)
+	var hint=valley_transition_hint()
 	var viewport_size=get_viewport().get_visible_rect().size
 	var cue=func(event):
 		if event=="paper":play_sfx("valley-unroll")
@@ -973,6 +967,16 @@ func reveal_valley_battle():
 	canvas.remove_child(hint);hint.queue_free()
 	ui.show();markers.show()
 	valley_reveal_active=false
+
+func valley_transition_hint() -> Label:
+	var hint=label_in(canvas,"Click or press Tab to continue",16,Color("fff1d5"))
+	hint.name="ValleyRevealHint"
+	hint.set_anchors_and_offsets_preset(Control.PRESET_BOTTOM_WIDE)
+	hint.offset_top=-48;hint.offset_bottom=-16
+	hint.horizontal_alignment=HORIZONTAL_ALIGNMENT_CENTER
+	hint.add_theme_color_override("font_outline_color",Color("25313a"))
+	hint.add_theme_constant_override("outline_size",5)
+	return hint
 
 func announce_chapter():
 	chapter_card_skip=false;chapter_card_active=true
@@ -2157,11 +2161,14 @@ func projectile(from: Vector3,to: Vector3,kind: String,spell="",appearance={},mi
 func show_impact(point,event,spell="",ground=null):
 	var impact=CombatImpact.new();stage.add_child(impact);impact.configure(point,event,camera,spell,ground)
 
-func check_result() -> bool:
+func check_result(present_victory=true) -> bool:
 	var outcome=game.result()
 	if outcome=="":return false
 	persist_campaign("battle")
-	if outcome=="victory":await play_crossing_chain_release()
+	if outcome=="victory":
+		if game.info().get("presentation","")=="valley_table":
+			if present_victory and screen=="battle":await close_valley_battle()
+		else:await play_crossing_chain_release()
 	screen="result";reset_ui()
 	var frame=menu_panel(1000)
 	var v=scrolling_column(frame)
@@ -2227,6 +2234,25 @@ func check_result() -> bool:
 	elif not campaign_preview.is_empty() and (outcome!="victory" or campaign_preview.return!="chapter"):
 		button_in(frame,"Return to editor",close_campaign_preview)
 	return true
+
+func close_valley_battle():
+	var was_home=map_navigation.at_home()
+	var viewport_size=get_viewport().get_visible_rect().size
+	var previous_busy=busy
+	var previous_ui=ui.visible;var previous_markers=markers.visible
+	map_navigation.stop()
+	valley_reveal_skip=false;valley_reveal_active=true
+	busy=true
+	ui.hide();markers.hide()
+	var hint=valley_transition_hint()
+	var duration=.66 if preferences.values.combat_speed=="fast" else 1.06
+	await ValleyBattle.play_conclusion(map_navigation,game,world,unit_nodes.values(),hint,duration,
+		func():return valley_reveal_skip,func():play_sfx("valley-unroll"))
+	map_navigation.stop()
+	if was_home and get_viewport().get_visible_rect().size!=viewport_size:map_camera()
+	canvas.remove_child(hint);hint.queue_free()
+	ui.visible=previous_ui;markers.visible=previous_markers
+	valley_reveal_active=false;busy=previous_busy
 
 func play_crossing_chain_release():
 	var links=world.get_node_or_null("CrossingChain/IronLinks") as MultiMeshInstance3D
@@ -3157,7 +3183,7 @@ func retry_action_save():
 func resume_saved_battle():
 	make_map();show_battle()
 	if not await present_site_scenes():return
-	if await check_result():return
+	if await check_result(false):return
 	if game.phase=="enemy":await end_turn(true)
 	elif not game.pending_phase_scenes().is_empty():
 		busy=true;await present_phase_scenes();busy=false;update_side()

@@ -233,6 +233,18 @@ static func reserve_view(camera: Camera3D,board: Vector2i,home: Dictionary) -> D
  view.transform=Transform3D(Basis.looking_at(-offset,Vector3.UP),center+offset)
  return view
 
+static func ink_radius(board: Vector2i,origin: Vector2) -> float:
+ var radius=0.0
+ for corner in reveal_corners(board):radius=maxf(radius,origin.distance_to(Vector2(corner.x,corner.z)))
+ return radius+4.8
+
+static func tabletop_pieces(game,world: Node3D,actors: Array) -> Array:
+ var props=actors.duplicate()
+ for index in game.capture_tiles().size():
+  var standard=world.get_node_or_null(standard_node_name(index))
+  if standard!=null:props.append(standard)
+ return props
+
 static func play_reveal(navigation,game,world: Node3D,actors: Array,hint: Control,skip: Callable,cue: Callable=Callable()):
  var camera: Camera3D=navigation.camera
  var home: Dictionary=navigation.capture_view()
@@ -241,13 +253,9 @@ static func play_reveal(navigation,game,world: Node3D,actors: Array,hint: Contro
  var seals=RouteSeals.new()
  hint.get_parent().add_child(seals)
  seals.configure(camera,game,origin)
- var radius=0.0
- for corner in reveal_corners(game.board_size()):radius=maxf(radius,origin.distance_to(Vector2(corner.x,corner.z)))
+ var radius=ink_radius(game.board_size(),origin)
  var ink: ShaderMaterial=world.get_node("ValleyGrid").material_override
- var props=actors.duplicate()
- for index in game.capture_tiles().size():
-  var standard=world.get_node_or_null(standard_node_name(index))
-  if standard!=null:props.append(standard)
+ var props=tabletop_pieces(game,world,actors)
  var pieces_from_above=props.size()
  props.append_array(world.get_node("ValleyLandmarks").get_children())
  var resting=props.map(func(piece):return piece.position)
@@ -256,7 +264,7 @@ static func play_reveal(navigation,game,world: Node3D,actors: Array,hint: Contro
  for index in actors.size():first_seat=minf(first_seat,seats[index])
  var played=[false,false]
  var apply_frame=func(weight: float,sound: bool):
-  var front=lerpf(-.85,radius+4.8,smoothstep(.10,.86,weight))
+  var front=lerpf(-.85,radius,smoothstep(.10,.86,weight))
   ink.set_shader_parameter("front",front)
   navigation.apply_return(smoothstep(.07,1.0,weight),chart,home)
   seals.front=front
@@ -277,5 +285,47 @@ static func play_reveal(navigation,game,world: Node3D,actors: Array,hint: Contro
  while motion.is_running() and not skip.call():await world.get_tree().process_frame
  if motion.is_running():motion.kill()
  apply_frame.call(1.0,false)
+ seals.get_parent().remove_child(seals)
+ seals.queue_free()
+
+static func play_conclusion(navigation,game,world: Node3D,actors: Array,hint: Control,duration: float,skip: Callable,cue: Callable):
+ var home: Dictionary=navigation.capture_view()
+ var board: Vector2i=game.board_size()
+ var origin=Vector2(reveal_origin(game))
+ var radius=ink_radius(board,origin)
+ var ink: ShaderMaterial=world.get_node("ValleyGrid").material_override
+ var tactical_front=ink.get_shader_parameter("front")
+ var seals=RouteSeals.new()
+ hint.get_parent().add_child(seals)
+ seals.configure(navigation.camera,game,origin)
+ var props=tabletop_pieces(game,world,actors)
+ props.append_array(world.get_node("ValleyLandmarks").get_children())
+ var resting=props.map(func(piece):return piece.position)
+ var visible=props.map(func(piece):return piece.visible)
+ var seats=resting.map(func(point):return origin.distance_to(Vector2(point.x,point.z)))
+ var apply_frame=func(weight: float):
+  var chart=chart_view(navigation.camera,board,home)
+  navigation.apply_return(smoothstep(0.0,.49,weight),home,chart)
+  var front=lerpf(radius,-.85,smoothstep(.21,.87,weight))
+  ink.set_shader_parameter("front",front)
+  seals.front=front
+  for index in props.size():
+   var relief=smoothstep(seats[index]+.26,seats[index]+2.65,front)
+   props[index].visible=visible[index] and relief>0.0
+   props[index].position=resting[index]+Vector3.DOWN*.42*(1.0-relief)
+  hint.modulate.a=1.0-smoothstep(.87,1.0,weight)
+ apply_frame.call(0.0)
+ var motion=world.create_tween().set_parallel(true)
+ motion.tween_method(apply_frame,0.0,1.0,duration)
+ motion.tween_callback(func():
+  if not skip.call():cue.call()
+ ).set_delay(duration*.21)
+ while motion.is_running() and not skip.call():await world.get_tree().process_frame
+ if motion.is_running():motion.kill()
+ navigation.apply_return(1.0,home,home)
+ ink.set_shader_parameter("front",tactical_front)
+ for index in props.size():
+  props[index].position=resting[index]
+  props[index].visible=visible[index]
  seals.get_parent().remove_child(seals)
  seals.queue_free()
