@@ -164,7 +164,7 @@ func fall_unit(game,id: String) -> bool:
  return true
 
 func set_bleed_turns(game,id: String,value) -> bool:
- if not active or not game.trials.integer(value,1,2):return false
+ if not active or not game.trials.integer(value,1,game.rescue_window):return false
  var candidates=game.units.filter(func(unit):return unit.id==id and game.DeathDoor.downed(unit) and unit.get("carried_by","").is_empty())
  if candidates.is_empty():return false
  candidates[0].bleed_turns=int(value)
@@ -178,6 +178,7 @@ func report(game,stage="battle") -> Dictionary:
  for unit in game.units:
   combatants.append({"id":unit.id,"name":unit.name,"team":unit.team,"class":game.class_name_for(unit),"position":[unit.x,unit.y],"hp":unit.hp,"max_hp":unit.max_hp,"attack":game.attack_power(unit),"defense":unit.defense,"resistance":game.resistance_for(unit),"speed":game.attack_speed(unit),"equipment":unit.item,"level":unit.level,"xp":unit.xp,"acted":unit.acted,"downed":unit.get("downed",false),"bleed_turns":unit.get("bleed_turns",0),"carried_by":unit.get("carried_by",""),"tonics":unit.get("potions",unit.get("held_tonics",0))})
  var result={"report_version":2,"recent_actions":trace.report(),"debug":true,"chapter":game.chapter+1,"title":game.info().title,"section":game.trials.section_index(game.chapter)+1,"turn":game.turn,"phase":game.phase,"outcome":game.result() if stage=="battle" and not game.units.is_empty() else "preparation","settings":settings,"seed_for_new_attempts":combat_seed,"rng_state":str(game.rng.state),"pressure":game.trials.pressure,"next_deployment_enemy_bonuses":game.trials.enemy_modifiers(game.chapter),"casualties":game.lost_ids(true),"legacy_credits":game.trials.credits,"dispatches":game.trials.events.duplicate(),"combatants":combatants,"save_code":game.export_code(stage)}
+ if game.content.has("rescue_window"):result.rescue_window=game.rescue_window
  if game.content.has("sacrifice_tuning"):result.sacrifice_tuning=game.trials.sacrifice_tuning.duplicate()
  if stage=="battle" and settings.reset_pressure:
   var preview=retry_deployment(game.save_data("battle"),false,game.content)

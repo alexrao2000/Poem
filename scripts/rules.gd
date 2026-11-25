@@ -36,6 +36,7 @@ var rng := RandomNumberGenerator.new()
 var completed: bool = false
 var run_id=""
 const DeathDoor=preload("res://scripts/death_door.gd")
+var rescue_window: int
 var death_door=false
 var action_saves=false
 var permadeath=false
@@ -46,6 +47,7 @@ var story_limit=128
 
 func _init(campaign: Dictionary={}):
 	content = JSON.parse_string(FileAccess.get_file_as_string("res://data/campaign.json")) if campaign.is_empty() else campaign.duplicate(true)
+	rescue_window=int(content.get("rescue_window",DeathDoor.DEFAULT_RESCUE_WINDOW))
 	supports=Supports.new(content.get("bonds"),content.chapters.size())
 	for index in content.chapters.size():
 		var level=content.chapters[index]
@@ -823,7 +825,7 @@ func matches_appearance(unit: Dictionary,original: Dictionary) -> bool:
 
 func valid_unit(unit,in_battle: bool) -> bool:
 	if not unit is Dictionary:return false
-	if not DeathDoor.valid(unit):return false
+	if not DeathDoor.valid(unit,rescue_window):return false
 	for key in ["id","name","job","weapon","color"]:
 		if not unit.get(key) is String:return false
 	if unit.name.length()>80 or not Color.html_is_valid(unit.color):return false

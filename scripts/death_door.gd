@@ -1,7 +1,9 @@
 extends RefCounted
 # A downed recruit occupies a tile but cannot act, counter or be attacked.
-# Two player-phase endings remain to reach them. Carrying pauses the countdown;
+# The campaign sets how many player-phase endings remain. Carrying pauses it,
 # staff healing revives them spent, and dropping requires a free adjacent tile.
+const DEFAULT_RESCUE_WINDOW=2
+const MAX_RESCUE_WINDOW=4
 
 static func downed(unit: Dictionary) -> bool:
  return unit.get("downed",false)
@@ -10,7 +12,7 @@ static func fall(game,unit: Dictionary):
  if unit.team!="player":return
  release_passenger(game,unit)
  if not game.death_door:return
- unit.downed=true;unit.bleed_turns=2;unit.acted=true
+ unit.downed=true;unit.bleed_turns=game.rescue_window;unit.acted=true
 
 static func passenger(game,carrier: Dictionary):
  for unit in game.units:
@@ -75,12 +77,12 @@ static func end_player_phase(game):
   unit.bleed_turns-=1
   if unit.bleed_turns<=0:unit.erase("downed");unit.erase("bleed_turns")
 
-static func valid(unit: Dictionary) -> bool:
+static func valid(unit: Dictionary,rescue_window=DEFAULT_RESCUE_WINDOW) -> bool:
  if unit.has("downed") and not unit.downed is bool:return false
  if unit.has("carried_by") and (not unit.carried_by is String or unit.carried_by.is_empty()):return false
  if downed(unit):
   var turns=unit.get("bleed_turns",0)
-  if not (turns is int or turns is float) or turns!=int(turns) or turns<1 or turns>2:return false
+  if not (turns is int or turns is float) or turns<1 or turns>rescue_window or turns!=int(turns):return false
   if unit.get("hp",-1)!=0 or unit.get("team","")!="player" or not unit.get("acted",false):return false
  elif unit.has("bleed_turns"):return false
  return true

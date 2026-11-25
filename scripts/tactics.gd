@@ -191,7 +191,7 @@ func plan_healer(game,unit: Dictionary,free: Array,foes: Array) -> Dictionary:
    var value=mini(healing,ally.max_hp-ally.hp)*4-threat
    if game.DeathDoor.downed(ally):
     value+=100
-    if ally.get("carried_by","").is_empty():value+=(3-int(ally.bleed_turns))*30
+    if ally.get("carried_by","").is_empty():value+=maxi(0,3-int(ally.bleed_turns))*30
    if value>best_score:
     best_score=value;best={"position":p,"action":"heal","target":ally.id,"alert":true}
  if best.action=="heal":return best

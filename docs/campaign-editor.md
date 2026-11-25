@@ -90,6 +90,8 @@ To share a reproducible setup, choose **Transfer JSON → Include playtest setup
 
 Enable **Sacrifice costs & openings** in Rules to set the allied attack bonus, the recovery HP penalty, and the tonics returning allies start with. The defaults are +2 attack, 4 HP missing, and one tonic. Set the attack to zero to test recovery by itself. Set the HP penalty to zero and tonics to two to test the opening by itself.
 
+Enable **Death’s door & rescue** in Rules to give downed allies one to four player phases for treatment. The default is two. Rescue pauses the countdown, and staff healing revives the ally. The battlefield badge shows the remaining phases.
+
 In a full campaign playtest, open **Options → Debug mode** to branch from the current war council or battlefield. Try enemy pressure, a different seed, or an ally’s fall in a separate Debug save for that draft. The Debug report compares the draft’s own enemies and rally chapters. Turn Debug mode off to restore the position where you enabled it.
 
 ## When the map becomes a battlefield

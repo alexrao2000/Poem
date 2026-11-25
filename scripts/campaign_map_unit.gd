@@ -6,6 +6,12 @@ extends "res://visuals/unit_3d.gd"
 const TACTICAL_PIXEL_SIZE=1.0/48.0
 const CONTACT_SIZE=Vector2(.58,.40)
 const HEALTH_COLORS=[Color("e87c63"),Color("f2c45e"),Color("acd86b")]
+const RESCUE_BADGES=[
+ preload("res://assets/ui/rescue-one.svg"),
+ preload("res://assets/ui/rescue-two.svg"),
+ preload("res://assets/ui/rescue-three.png"),
+ preload("res://assets/ui/rescue-four.png"),
+]
 const CUTAWAY_TINT=Color(.66,.73,.79)
 static var contact_material: StandardMaterial3D
 static var contact_mesh: PlaneMesh
@@ -75,7 +81,7 @@ func show_rescue_countdown(turns: int):
   rescue_marker.billboard=BaseMaterial3D.BILLBOARD_ENABLED;rescue_marker.texture_filter=BaseMaterial3D.TEXTURE_FILTER_LINEAR
   rescue_marker.pixel_size=1.0/80;rescue_marker.no_depth_test=true;rescue_marker.render_priority=4
   rescue_marker.cast_shadow=GeometryInstance3D.SHADOW_CASTING_SETTING_OFF;add_child(rescue_marker)
- rescue_marker.texture=preload("res://assets/ui/rescue-one.svg") if turns==1 else preload("res://assets/ui/rescue-two.svg")
+ rescue_marker.texture=RESCUE_BADGES[clampi(turns,1,RESCUE_BADGES.size())-1]
  rescue_marker.set_meta("turns",turns);rescue_marker.visible=tactical_details_visible
  rescue_marker.position.y=(sprite.texture.get_height()+sprite.offset.y)*sprite.pixel_size*sprite.scale.y+.29
 

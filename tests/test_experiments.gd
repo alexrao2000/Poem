@@ -217,6 +217,65 @@ func verify_authored_sacrifice_feedback(app):
  app.debug_session.end(game)
  print("PASS: the authored phase review predicts Oren at 24/32 HP with no tonic, and the casualty card and Debug report show the actual +5 attack")
 
+func verify_authored_rescue_window(app):
+ var draft=Draft.new();draft.data=draft.new_document(false)
+ draft.data.settings.death_door=true
+ draft.data.settings.permadeath=true
+ draft.data.settings.action_saves=true
+ for invalid in [0,5,1.5,"four"]:
+  draft.data.rescue_window=invalid
+  assert("rescue window" in draft.structural_problem(draft.data))
+ for phases in [1,4]:
+  draft.data.rescue_window=phases
+  var incoming=Draft.new();assert(incoming.decode(draft.encode()).is_empty())
+  var compiled=incoming.compile()
+  var game=Rules.new(compiled.content)
+  Draft.prepare_playtest(game,compiled.settings,0,17,0)
+  game.start_battle()
+  var oren=game.units.filter(func(unit):return unit.id=="oren")[0]
+  casualty(game,oren)
+  assert(Door.downed(oren) and oren.bleed_turns==phases)
+  var copy=Rules.new(compiled.content)
+  assert(copy.import_code(game.export_code("battle"))=="battle")
+  var saved=copy.save_data("battle").duplicate(true)
+  assert(copy.valid_save(saved))
+  var invalid_patient=saved.units.filter(func(unit):return unit.id=="oren")[0]
+  invalid_patient.bleed_turns=phases+1
+  assert(not copy.valid_save(saved))
+  if phases==1:
+   game.begin_enemy_phase()
+   assert(not Door.downed(oren) and game.lost_ids()==["oren"])
+   continue
+  var carrier=copy.units.filter(func(unit):return unit.id=="lyra")[0]
+  var patient=copy.units.filter(func(unit):return unit.id=="oren")[0]
+  carrier.x=2;carrier.y=3;patient.x=3;patient.y=3
+  assert(Door.rescue(copy,carrier,patient))
+  copy.begin_enemy_phase();copy.next_player_turn()
+  assert(patient.bleed_turns==4 and Door.drop(copy,carrier,Vector2i(3,3)))
+  copy.begin_enemy_phase()
+  assert(patient.bleed_turns==3)
+  app.game=game;app.make_map();app.show_battle()
+  assert(app.unit_nodes.oren.rescue_marker.texture.resource_path.ends_with("rescue-four.png"))
+  assert(app.side.get_node("EndPlayerPhase").text=="End player phase")
+  assert(app.persist_campaign("battle"))
+  var ordinary=FileAccess.get_file_as_string(app.save_path)
+  app.show_options("battle")
+  assert(app.ui.find_children("*","Label",true,false).any(func(label):return "4 player phases for rescue or staff healing" in label.text))
+  app.ui.find_child("DebugMode",true,false).button_pressed=true
+  app.show_debug_tools("battle")
+  var countdown=app.ui.find_child("DebugBleedTurns",true,false)
+  assert(countdown.max_value==4);countdown.value=3
+  var set_countdown=app.ui.find_children("*","Button",true,false).filter(func(button):return button.text=="Set rescue countdown")[0]
+  set_countdown.pressed.emit()
+  assert(app.screen=="battle" and oren.bleed_turns==3)
+  assert(app.unit_nodes.oren.rescue_marker.texture.resource_path.ends_with("rescue-three.png"))
+  assert(copy.load_game(app.save_path+".debug")=="battle" and app.debug_session.report(game).rescue_window==4)
+  app.show_options("battle")
+  app.ui.find_child("DebugMode",true,false).button_pressed=false
+  assert(game.units.filter(func(unit):return unit.id=="oren")[0].bleed_turns==4)
+  assert(FileAccess.get_file_as_string(app.save_path)==ordinary)
+ print("PASS: one- and four-phase rescue windows drive actual loss timing, badges, portable saves and an isolated Debug countdown")
+
 func observe_rescue_feedback(app,patient,skip=false):
  assert(app.busy and app.screen=="battle","Rescue feedback locks commands on the tactical field")
  var checkpoint=app.game.save_data("battle").duplicate(true);var visual=app.unit_nodes[patient.id]
@@ -433,6 +492,7 @@ func run():
   assert(Rect2(Vector2.ZERO,Vector2(dimensions)).grow(1).encloses(recovery.get_global_rect()))
  await verify_victory_recovery(app)
  await verify_authored_sacrifice_feedback(app)
+ verify_authored_rescue_window(app)
  await Shutdown.dispose(app);await process_frame
  print("PASS: downed countdown, rescue/carry/drop, revival, carrier loss, evacuation, irreversible deaths and movement, current recovery saves, validation and interrupted phase continuation")
  quit()

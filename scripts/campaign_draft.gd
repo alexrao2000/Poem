@@ -480,6 +480,8 @@ func structural_problem(document) -> String:
   return "Choose unique legacy items with valid loss thresholds and credit costs."
  if document.has("legacy_arrivals") and not valid_legacy_arrivals(document.legacy_arrivals,people):
   return "Choose a unique recruit, a loss threshold and a valid class for each legacy arrival."
+ if document.has("rescue_window") and not integer(document.rescue_window,1,Rules.DeathDoor.MAX_RESCUE_WINDOW):
+  return "Choose one to four player phases for the rescue window."
  if document.has("sacrifice_tuning"):
   var tuning=document.sacrifice_tuning
   if not tuning is Dictionary or tuning.size()!=Trials.SACRIFICE_PARAMETERS.size():return "Set all three sacrifice values."
@@ -863,6 +865,7 @@ func compile() -> Dictionary:
  if data.chapters.any(func(chapter):return chapter.has("section_scenes")):compile_section_scenes(content)
  if data.has("legacy_stock"):content.legacy_stock=data.legacy_stock.duplicate(true)
  if data.has("legacy_arrivals"):compile_legacy_arrivals(content)
+ if data.has("rescue_window"):content.rescue_window=int(data.rescue_window)
  if data.has("sacrifice_tuning"):content.sacrifice_tuning=data.sacrifice_tuning.duplicate()
  if not relief.is_empty():content.section_relief=relief
  return {"content":content,"story":{"chapters":scenes},"settings":data.settings.duplicate(true)}

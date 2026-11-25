@@ -1073,13 +1073,26 @@ func build_rules(panel: VBoxContainer):
   enabled.name="EditorRule_"+key
   enabled.toggled.connect(func(value):draft.data.settings[key]=value;changed())
   if key=="reset_pressure":pressure_option=enabled
-  if key=="sacrifice_cost":build_sacrifice_tuning(panel,enabled)
+  if key=="death_door":build_rescue_window(panel,enabled)
+  elif key=="sacrifice_cost":build_sacrifice_tuning(panel,enabled)
   else:heading(panel,setting.text,15)
  build_playtest_setup(panel,pressure_option)
  var stock=VBoxContainer.new();stock.add_theme_constant_override("separation",8);panel.add_child(stock)
  build_legacy_stock(stock)
  var arrivals=VBoxContainer.new();arrivals.add_theme_constant_override("separation",8);panel.add_child(arrivals)
  build_legacy_arrivals(arrivals)
+
+func build_rescue_window(panel: VBoxContainer,switch: CheckButton):
+ var controls=VBoxContainer.new();controls.visible=switch.button_pressed;panel.add_child(controls)
+ switch.toggled.connect(func(value):controls.visible=value)
+ var default_window=Draft.Rules.DeathDoor.DEFAULT_RESCUE_WINDOW
+ var value=spin(draft.data.get("rescue_window",default_window),1,Draft.Rules.DeathDoor.MAX_RESCUE_WINDOW,func(amount):
+  if int(amount)==default_window:draft.data.erase("rescue_window")
+  else:draft.data.rescue_window=int(amount)
+  changed())
+ value.name="EditorRescueWindow"
+ field_label(row(controls),"Player phases to rescue",value)
+ heading(controls,"Carrying pauses bleeding and costs 2 movement. Staff healing revives the ally.",15)
 
 func build_sacrifice_tuning(panel: VBoxContainer,switch: CheckButton):
  var controls=VBoxContainer.new();controls.visible=switch.button_pressed;panel.add_child(controls)

@@ -1221,6 +1221,18 @@ func verify_valley_roads_template(app):
  assert(not draft.data.settings.permadeath and draft.data.settings.action_saves and draft.data.settings.hard_campaign)
  permanent.button_pressed=true
  var baseline_code=draft.encode()
+ var rescue_switch=editor.find_child("EditorRule_death_door",true,false)
+ var rescue_window=editor.find_child("EditorRescueWindow",true,false)
+ assert(rescue_window.value==2 and rescue_window.is_visible_in_tree())
+ rescue_window.value=4
+ assert(draft.compile().content.rescue_window==4)
+ rescue_switch.button_pressed=false
+ assert(not rescue_window.is_visible_in_tree())
+ rescue_switch.button_pressed=true
+ assert(rescue_window.value==4)
+ rescue_window.value=2
+ assert(draft.encode()==baseline_code)
+ print("PASS: the campaign editor sets the rescue window and restores the exact stock draft at two phases")
  var knobs={}
  for key in ["attack","hp_penalty","tonics"]:knobs[key]=editor.find_child("EditorSacrifice_"+key,true,false)
  assert(knobs.attack.value==2 and knobs.hp_penalty.value==4 and knobs.tonics.value==1)

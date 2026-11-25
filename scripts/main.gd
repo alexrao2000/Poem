@@ -3219,6 +3219,9 @@ func show_options(return_to: String):
 		var toggle=CheckButton.new();toggle.name=setting.key;toggle.text=setting.name;toggle.button_pressed=CampaignSettings.enabled(game,setting.key);panel.add_child(toggle)
 		toggle.toggled.connect(func(value):CampaignSettings.set_enabled(game,setting.key,value))
 		var description=game.trials.sacrifice_description() if setting.key=="sacrifice_cost" and game.content.has("sacrifice_tuning") else setting.text
+		if setting.key=="death_door" and game.content.has("rescue_window"):
+			var phases="%d player phase%s"%[game.rescue_window,"" if game.rescue_window==1 else "s"]
+			description="Downed allies have "+phases+" for rescue or staff healing. Carrying pauses the countdown and costs 2 movement."
 		if not description.is_empty():label_in(panel,description,16)
 	var presentation_heading=label_in(panel,"Battle presentation",21,GOLD)
 	var mode=OptionButton.new();mode.name="CombatMode";mode.custom_minimum_size.y=42
@@ -3413,7 +3416,7 @@ func show_debug_tools(return_to: String):
 		if game.DeathDoor.downed(unit) and unit.get("carried_by","").is_empty():
 			patients.add_item("%s · %d phases left"%[unit.name,unit.bleed_turns]);patients.set_item_metadata(patients.item_count-1,unit.id)
 	panel.add_child(patients)
-	var countdown=SpinBox.new();countdown.name="DebugBleedTurns";countdown.min_value=1;countdown.max_value=2;countdown.step=1;countdown.value=1;countdown.custom_minimum_size.y=42;panel.add_child(countdown)
+	var countdown=SpinBox.new();countdown.name="DebugBleedTurns";countdown.min_value=1;countdown.max_value=game.rescue_window;countdown.step=1;countdown.value=1;countdown.custom_minimum_size.y=42;panel.add_child(countdown)
 	label_in(panel,"Set a downed ally’s remaining player-phase endings. One tests the last rescue opportunity without advancing the turn. Carried allies are paused and excluded.",16)
 	button_in(panel,"Set rescue countdown",func():
 		if patients.selected<0 or not debug_session.set_bleed_turns(game,patients.get_item_metadata(patients.selected),countdown.value):return
@@ -4149,8 +4152,8 @@ func allies_bleeding_out(patients: Array) -> Array:
 func focus_next_downed():
 	var patients=downed_allies()
 	patients.sort_custom(func(first,second):
-		var first_wait=int(first.bleed_turns) if first.get("carried_by","").is_empty() else 3
-		var second_wait=int(second.bleed_turns) if second.get("carried_by","").is_empty() else 3
+		var first_wait=int(first.bleed_turns) if first.get("carried_by","").is_empty() else game.rescue_window+1
+		var second_wait=int(second.bleed_turns) if second.get("carried_by","").is_empty() else game.rescue_window+1
 		return first_wait<second_wait)
 	var positions: Array[Vector2i]=[]
 	for patient in patients:
