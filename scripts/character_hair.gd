@@ -1,13 +1,18 @@
 extends RefCounted
 # Original hair silhouettes follow each recruit's portrait identity. All pieces
 # remain children of the head; loose lengths get a fixed-root motion joint.
+const CAP_CENTER=Vector3(0,.085,.025)
+const CAP_RADII=Vector3(.157,.145,.155)
+const BRAID_ROWS=24
+const BRAID_SIDES=6
+static var braid_mesh: ArrayMesh
 
 static func build(painter,head,appearance,gold):
  var hair=Color(appearance.get("hair","623c31"));var style=appearance.get("hair_style","short")
  head.set_meta("hair_style",style)
  if style!="bald":
   if appearance.get("hair_fringe","")!="receding":
-   painter.ellipsoid(head,Vector3(0,.085,.025),Vector3(.157,.145,.155),hair)
+   painter.ellipsoid(head,CAP_CENTER,CAP_RADII,hair)
   else:
    painter.ellipsoid(head,Vector3(0,.055,.095),Vector3(.15,.125,.095),hair)
   if style=="curls":
@@ -17,6 +22,12 @@ static func build(painter,head,appearance,gold):
   else:
    fringe(painter,head,hair,appearance.get("hair_fringe","swept"))
  if style=="long":
+  if appearance.get("temple_braid",false):
+   var material=painter.geo.material(hair.lightened(.095)).duplicate()
+   material.vertex_color_use_as_albedo=true;material.vertex_color_is_srgb=true
+   material.diffuse_mode=BaseMaterial3D.DIFFUSE_TOON
+   material.set_meta("no_character_outline",true)
+   painter.geo.mesh(head,temple_braid(),Vector3.ZERO,Vector3.ONE,material).name="TempleBraid"
   var lengths=[]
   for i in range(7):
    var x=(i-3)*.038
@@ -50,6 +61,48 @@ static func build(painter,head,appearance,gold):
  elif style in ["beard","bald"]:
   var beard=preload("res://scripts/character_beard.gd").mesh(appearance.get("beard_style","full"))
   var piece=painter.geo.mesh(head,beard,Vector3.ZERO,Vector3.ONE,painter.geo.material(hair));piece.name="Beard"
+
+static func braid_direction(t: float) -> Vector3:
+ var angle=lerpf(.32,2.12,t)
+ var elevation=lerpf(1.01,.29,t)
+ return Vector3(-sin(angle)*cos(elevation),sin(elevation),-cos(angle)*cos(elevation))
+
+static func temple_braid() -> ArrayMesh:
+ if braid_mesh!=null:return braid_mesh
+ var surface=SurfaceTool.new();surface.begin(Mesh.PRIMITIVE_TRIANGLES)
+ # Three narrow strands weave around an arc on the crown. Both ends taper
+ # into the existing hair cap so the braid follows the head as one piece.
+ for strand in range(3):
+  var rings=[]
+  for row in range(BRAID_ROWS+1):
+   var t=float(row)/BRAID_ROWS
+   var direction=braid_direction(t)
+   var normal=(direction/CAP_RADII).normalized()
+   var tangent=(braid_direction(t+.01)-braid_direction(t-.01))*CAP_RADII
+   var lateral=normal.cross(tangent).normalized()
+   var blend=smoothstep(0,.18,t)*smoothstep(0,.18,1-t)
+   var wave=TAU*(t*3.1+strand/3.0)
+   var center=CAP_CENTER+direction*CAP_RADII+normal*lerpf(-.014,.013,blend)
+   center+=(lateral*sin(wave)*.014+normal*cos(wave)*.008)*blend
+   var ring=[]
+   for side in BRAID_SIDES:
+    var angle=TAU*side/BRAID_SIDES
+    var radial=lateral*cos(angle)+normal*sin(angle)
+    ring.append([center+radial*lerpf(.003,.0085,blend),radial])
+   rings.append(ring)
+  var shade=[.76,.89,1.0][strand]
+  surface.set_color(Color(shade,shade,shade))
+  for row in range(BRAID_ROWS):
+   for side in BRAID_SIDES:
+    var next=(side+1)%BRAID_SIDES
+    var corners=[rings[row][side],rings[row][next],rings[row+1][next],rings[row+1][side]]
+    var order=[0,1,2,0,2,3]
+    if (corners[1][0]-corners[0][0]).cross(corners[2][0]-corners[0][0]).dot(corners[0][1])>0:
+     order=[0,2,1,0,3,2]
+    for index in order:
+     surface.set_normal(corners[index][1]);surface.add_vertex(corners[index][0])
+ braid_mesh=surface.commit()
+ return braid_mesh
 
 static func fringe(painter,head,color,style):
  head.set_meta("hair_fringe",style)

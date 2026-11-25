@@ -62,6 +62,19 @@ func run():
   assert(face.mesh==Head.features(actor.bones.Head.get_meta("face_variant"),head_shape),"Recruit expression surface matches its personal head mesh")
   assert(face!=null and face.material_override.get_shader_parameter("open_face")==painter.face_atlas,"Every recruit uses the fitted original feature atlas")
   var head=actor.bones.Head;var locks=head.get_children().filter(func(child):return str(child.name).begins_with("Fringe"))
+  var braid=head.get_node_or_null("TempleBraid")
+  assert((braid!=null)==(unit.id=="lyra"),"The portrait selects Lyra's braid independently of her long hair")
+  if braid!=null:
+   var arrays=braid.mesh.surface_get_arrays(0)
+   var points=arrays[Mesh.ARRAY_VERTEX];var normals=arrays[Mesh.ARRAY_NORMAL]
+   assert(points.size()==2592 and normals.size()==points.size())
+   var colors={}
+   for color in arrays[Mesh.ARRAY_COLOR]:colors[color]=true
+   assert(colors.size()==3 and braid.material_override.vertex_color_use_as_albedo)
+   for point in points:
+    assert(point.x<.025 and point.y>.10 and point.y<.26 and absf(point.z)<.19,"The woven strands sit above the brow and wrap toward the temple")
+   for index in range(0,points.size(),3):
+    assert((points[index+2]-points[index]).cross(points[index+1]-points[index]).length()>.0000001,"The braid has no collapsed triangles")
   if not locks.is_empty():
    fringe_actors+=1;var signature="";var style=head.get_meta("hair_fringe");fringes[style]=true
    assert(locks.size()==7,"Each front retains seven material-batched locks")
@@ -85,7 +98,7 @@ func run():
  for signature in shapes.values():distinct[signature]=true
  assert(distinct.size()==5,"Front styles differ in actual geometry rather than names or colors")
  stage.queue_free();await process_frame
- print("PASS: four closed sculpted head profiles / 32 fitted face variants, outward jaw/crown, integrated nose, eight fitted decal UV regions, clean original alpha all 24 recruit bindings, two closed mouth-framing beards, fitted hollow knight helmets / recessed eye slits / closed nasal trim, five smoothed hair fronts, eye clearance and deterministic 21-recruit selection")
+ print("PASS: four head profiles, 32 fitted face variants, exact decal placement, 24 recruit bindings, sculpted beards and helmets, five hair fronts, clear eyes and Lyra's 864-triangle temple braid")
  quit()
 
 func verify_beards():

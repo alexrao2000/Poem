@@ -634,6 +634,8 @@ Twenty-one recruits now select swept, parted, tousled, cropped or receding front
 
 Three shared strand shades replace five near-duplicate shades in the fronts, preserving the same 1,780 rigid source meshes while reducing the full roster to 1,021 joint batches, plus three dynamic rein meshes. Head checks cover nondegenerate strand triangles, eye clearance, five distinct deterministic shapes and every recruit binding. Hair motion, batching equivalence, promotion outfits and full-mesh viewer bounds remain required. Assembled character rendering remains unreviewed.
 
+Lyra’s portrait braid uses three tapered strands that weave from the crown past her left temple. The ends sit inside her existing hair cap. The braid follows the head and leaves the loose hair’s motion independent. It uses one mesh and one material in both combat model sets.
+
 
 ## Individual jaw and nose profiles
 
