@@ -4,6 +4,7 @@ signal tile_edited(point: Vector2i,erase: bool)
 signal tile_inspected(point: Vector2i)
 signal stroke_started
 signal terrain_step_requested(redo: bool)
+signal placement_canceled
 const Valley=preload("res://scripts/world_map_battle.gd")
 const COLORS={".":"bac08b","p":"ccb185","=":"bd9968","f":"547558","h":"9d937c","o":"ddbc68",
  "+":"85b29b","#":"474650","~":"6b9cad"}
@@ -13,6 +14,8 @@ var atlas: Texture2D=Valley.MAP
 var cursor=Vector2i.ZERO
 var last_tile=Vector2i(-1,-1)
 var stroke_active=false
+var paint_on_drag=true
+var marked_placement=Vector2i(-1,-1)
 
 func configure(source: Dictionary,route_marks: Dictionary,picture: Texture2D=null):
  level=source
@@ -69,7 +72,11 @@ func _draw():
   var point=Vector2i(level.objective_position[0],level.objective_position[1])
   if Rect2i(Vector2i.ZERO,board_size()).has_point(point):
    draw_rect(Rect2(rect.position+Vector2(point)*cell,Vector2.ONE*cell).grow(-2),Color("ffe8a5"),false,2)
- if has_focus():
+ if marked_placement.x>=0:
+  var selection=Rect2(rect.position+Vector2(marked_placement)*cell,Vector2.ONE*cell).grow(-2)
+  draw_rect(selection,Color(.90,.65,.24,.24))
+  draw_rect(selection,Color("ffdea0"),false,2)
+ if has_focus() and cursor!=marked_placement:
   draw_rect(Rect2(rect.position+Vector2(cursor)*cell,Vector2.ONE*cell).grow(-1),Color("fcf5d8"),false,2)
 
 func draw_token(position: Array,text: String,color: Color):
@@ -92,9 +99,11 @@ func _gui_input(event: InputEvent):
  elif event is InputEventMouseMotion:
   var point=tile_at(event.position)
   if point.x>=0:tile_inspected.emit(point)
-  if event.button_mask & (MOUSE_BUTTON_MASK_LEFT|MOUSE_BUTTON_MASK_RIGHT):
+  if paint_on_drag and event.button_mask & (MOUSE_BUTTON_MASK_LEFT|MOUSE_BUTTON_MASK_RIGHT):
    use_pointer(event.position,(event.button_mask & MOUSE_BUTTON_MASK_RIGHT)!=0)
  elif event is InputEventKey and event.pressed:
+  if event.keycode==KEY_ESCAPE and marked_placement.x>=0:
+   placement_canceled.emit();accept_event();return
   if event.keycode==KEY_Z and (event.ctrl_pressed or event.meta_pressed) and not event.echo:
    terrain_step_requested.emit(event.shift_pressed);accept_event();return
   var edges={KEY_LEFT:Vector2i.LEFT,KEY_RIGHT:Vector2i.RIGHT,KEY_UP:Vector2i.UP,KEY_DOWN:Vector2i.DOWN}

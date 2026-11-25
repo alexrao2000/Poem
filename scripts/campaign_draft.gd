@@ -264,6 +264,33 @@ func step_terrain(index: int,redo: bool) -> bool:
  chapter.level.map=previous.pop_back()
  return true
 
+static func placement_at(level: Dictionary,point: Vector2i) -> Dictionary:
+ for group in ["deployment_positions","enemies","hard_enemies"]:
+  var members=level[group]
+  for index in members.size():
+   var location=members[index] if group=="deployment_positions" else members[index].position
+   if Vector2i(location[0],location[1])==point:return {"group":group,"index":index}
+ return {}
+
+func move_placement(index: int,from: Vector2i,to: Vector2i) -> bool:
+ var level=data.chapters[index].level
+ var selected=placement_at(level,from)
+ if selected.is_empty() or from==to:return false
+ var effective=battle_level(index)
+ if not walkable(effective,[to.x,to.y]):return false
+ var displaced=placement_at(level,to)
+ if not displaced.is_empty():
+  if not walkable(effective,[from.x,from.y]):return false
+  set_placement(level,displaced,from)
+ set_placement(level,selected,to)
+ return true
+
+static func set_placement(level: Dictionary,placement: Dictionary,point: Vector2i):
+ var target=[point.x,point.y]
+ var group=level[placement.group]
+ if placement.group=="deployment_positions":group[placement.index]=target
+ else:group[placement.index].position=target
+
 func structural_problem(document) -> String:
  if not document is Dictionary or document.get("format")!=FORMAT or document.get("version")!=VERSION:
   return "Choose a Poem campaign document with format version 1."

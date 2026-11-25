@@ -390,6 +390,38 @@ func verify_custom_atlas(app,scratch: String):
  app.campaign_editor.find_child("EditorRestoreAtlas",true,false).pressed.emit();await process_frame
  assert(app.campaign_editor.find_child("EditorRouteChart",true,false).map_picture==Route.MAP)
 
+func verify_moving_placements(app):
+ var editor=app.campaign_editor
+ var tabs=editor.find_child("CampaignEditorTabs",true,false)
+ tabs.current_tab=0;await process_frame
+ var mode=editor.find_child("EditorBrush",true,false)
+ mode.select(5);mode.item_selected.emit(5)
+ var grid=editor.find_child("EditorGrid",true,false)
+ assert(not grid.paint_on_drag)
+ var level=editor.level()
+ var commander=level.enemies[0]
+ var reinforcement=level.hard_enemies[0]
+ commander.item="javelin";commander.level=9
+ reinforcement.arrival_turn=3;reinforcement.arrival_phase="enemy"
+ var original_commander=commander.duplicate(true)
+ var original_wave=reinforcement.duplicate(true)
+ var capital=Vector2i(21,2);var reserve=Vector2i(20,2)
+ grid.tile_edited.emit(capital,false)
+ assert(grid.marked_placement==capital)
+ grid.tile_edited.emit(reserve,false)
+ original_commander.position=[reserve.x,reserve.y];original_wave.position=[capital.x,capital.y]
+ assert(commander==original_commander and reinforcement==original_wave and grid.marked_placement.x<0)
+ assert(editor.draft.playtest_problem().is_empty())
+ var water=Vector2i(-1,-1)
+ for y in level.map.size():
+  var x=level.map[y].find("~")
+  if x>=0:water=Vector2i(x,y);break
+ grid.tile_edited.emit(reserve,false);grid.tile_edited.emit(water,false)
+ assert(commander==original_commander and grid.marked_placement==reserve)
+ var escape=InputEventKey.new();escape.keycode=KEY_ESCAPE;escape.pressed=true
+ grid._gui_input(escape)
+ assert(grid.marked_placement.x<0 and app.screen=="campaign_editor")
+
 func run():
  check_document()
  var scratch="/private/tmp/poem-campaign-editor-%d"%OS.get_process_id()
@@ -1051,7 +1083,8 @@ func run():
  assert(FileAccess.get_file_as_string(app.save_path)==disk)
  await Shutdown.dispose(reopened);await process_frame
  await verify_custom_atlas(app,scratch)
+ await verify_moving_placements(app)
  assert(FileAccess.get_file_as_string(app.save_path)==disk and app.game==installed)
  await Shutdown.dispose(app);await process_frame
- print("PASS: campaign JSON file transfer, draft library management, remembered playtest setup, campaign readiness, authored Hard bonuses, authored retry raiders, deployment comparison, custom campaign atlas, terrain stroke undo, route pins, war-table site terrain, rising Valley landmarks, custom recruits, phase scenes, timed reinforcements, chapter 32 saves, section dialogue, authored section relief, authored legacy stock and purchase persistence, authored loss recruits, authored loss dialogue, reproducible playtest setup, Valley carryover, thirteen-chapter Valley template, and single-battle tests")
+ print("PASS: campaign JSON file transfer, draft library management, remembered playtest setup, campaign readiness, authored Hard bonuses, authored retry raiders, deployment comparison, custom campaign atlas, terrain stroke undo, placement moves and swaps, route pins, war-table site terrain, rising Valley landmarks, custom recruits, phase scenes, timed reinforcements, chapter 32 saves, section dialogue, authored section relief, authored legacy stock and purchase persistence, authored loss recruits, authored loss dialogue, reproducible playtest setup, Valley carryover, thirteen-chapter Valley template, and single-battle tests")
  quit()

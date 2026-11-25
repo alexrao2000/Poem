@@ -9,7 +9,8 @@ const Settings=preload("res://scripts/campaign_settings.gd")
 const Trials=preload("res://scripts/campaign_trials.gd")
 const DebugSession=preload("res://scripts/debug_session.gd")
 const MAX_CAMPAIGN_FILE_BYTES=4*Draft.MAX_DRAFT_LENGTH
-const TOOLS=["Terrain","Deployment","Enemy","Hard-mode enemy","Objective"]
+const TOOLS=["Terrain","Deployment","Enemy","Hard-mode enemy","Objective","Move placement"]
+const MOVE_PLACEMENT=5
 const GOLD=Color("896937")
 var draft: RefCounted
 var library: RefCounted
@@ -30,6 +31,8 @@ var grid: Control
 var terrain_changed=false
 var undo_terrain: Button
 var redo_terrain: Button
+var placement_hint: Label
+var grid_help: Label
 var status: Label
 var source_chapter: OptionButton
 var terrain_choice: OptionButton
@@ -134,16 +137,17 @@ func build_battle(panel: VBoxContainer):
  job_choice=choice(draft.templates.classes.keys(),"Vanguard",Callable());tools.add_child(job_choice)
  ai_choice=choice(Draft.STRATEGIES,"pursue",Callable());tools.add_child(ai_choice)
  enemy_name=line_edit("","Enemy name",80,Callable());tools.add_child(enemy_name)
- show_brush_options()
  var history=row(panel)
  undo_terrain=action(history,"Undo terrain",func():step_terrain(false));undo_terrain.name="EditorUndoTerrain"
  redo_terrain=action(history,"Redo terrain",func():step_terrain(true));redo_terrain.name="EditorRedoTerrain"
  update_terrain_history()
- heading(panel,"Click or use the arrow keys and Enter. Right-click or Backspace erases. C marks the commander.",15)
+ grid_help=heading(panel,"Click or use the arrow keys and Enter. Right-click or Backspace erases. C marks the commander.",15)
+ placement_hint=heading(panel,"",15);placement_hint.name="EditorMovePlacementStatus"
  grid=Grid.new();grid.name="EditorGrid";panel.add_child(grid)
  grid.configure(layout,draft.valley_marks(selected),draft.route_texture() if fixed_chart else null)
  grid.stroke_started.connect(func():terrain_changed=false)
  grid.terrain_step_requested.connect(step_terrain)
+ grid.placement_canceled.connect(clear_placement_selection)
  grid.tile_edited.connect(edit_tile)
  if fixed_chart:
   var inspected=heading(panel,"",15)
@@ -155,11 +159,34 @@ func build_battle(panel: VBoxContainer):
    if not site.is_empty():inspected.text+=" · "+site
   grid.tile_inspected.connect(show_tile)
   show_tile.call(grid.cursor)
+ show_brush_options()
 
 func show_brush_options():
  var enemy=brush in [2,3]
  terrain_choice.visible=brush==0
  job_choice.visible=enemy;ai_choice.visible=enemy;enemy_name.visible=enemy
+ placement_hint.visible=brush==MOVE_PLACEMENT
+ grid_help.visible=brush!=MOVE_PLACEMENT
+ grid.paint_on_drag=brush!=MOVE_PLACEMENT
+ clear_placement_selection()
+
+func clear_placement_selection():
+ grid.marked_placement=Vector2i(-1,-1)
+ placement_hint.text="Select a deployment tile or enemy to move it."
+ grid.queue_redraw()
+
+func move_placement(point: Vector2i,erase: bool):
+ if erase or grid.marked_placement==point:
+  clear_placement_selection();return
+ if grid.marked_placement.x<0:
+  if Draft.placement_at(level(),point).is_empty():return
+  grid.marked_placement=point
+  placement_hint.text="Choose an empty tile or a placement to swap."
+  grid.queue_redraw();return
+ if not draft.move_placement(selected,grid.marked_placement,point):
+  placement_hint.text="Choose a passable destination."
+  return
+ clear_placement_selection();changed()
 
 func update_terrain_history():
  undo_terrain.disabled=not draft.can_step_terrain(selected,false)
@@ -171,6 +198,8 @@ func step_terrain(redo: bool):
  update_terrain_history();changed()
 
 func edit_tile(point: Vector2i,erase: bool):
+ if brush==MOVE_PLACEMENT:
+  move_placement(point,erase);return
  var layout=level()
  var position=[point.x,point.y]
  if brush==0:
