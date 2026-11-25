@@ -463,6 +463,7 @@ func site_scenes_valid(scenes) -> bool:
   if not scene is Dictionary or not valid_text(scene.get("id"),32) or not scene.id.is_valid_identifier() or identities.has(scene.id):
    return false
   if not point_valid(scene.get("position")) or not dialogue_valid(scene.get("lines")):return false
+  if not scene.get("refill_tonics",false) is bool:return false
   if scene.has("route_key") and (not valid_text(scene.route_key,64) or not scene.route_key.is_valid_identifier()):return false
   identities[scene.id]=true
  return true
@@ -565,7 +566,9 @@ func battle_problem(level: Dictionary) -> String:
   if not walkable(level,[goal.x,goal.y]):return "Put the seize objective on passable terrain." if goals.size()==1 else "Put all standards on passable terrain."
   standard_tiles[goal]=true
  for scene in level.get("site_scenes",[]):
-  if not scene.lines.is_empty() and not walkable(level,scene.position):return "Move the tile dialogue at %d, %d to passable terrain."%scene.position
+  if (not scene.lines.is_empty() or scene.get("refill_tonics",false)) and not walkable(level,scene.position):
+   var event="tonic cache" if scene.lines.is_empty() else "tile dialogue"
+   return "Move the %s at %d, %d to passable terrain."%[event,scene.position[0],scene.position[1]]
  var positions=level.deployment_positions+level.enemies.map(func(enemy):return enemy.position)+level.hard_enemies.map(func(enemy):return enemy.position)
  for position in positions:
   if not walkable(level,position):return "Move the placement at %d, %d to passable terrain."%position

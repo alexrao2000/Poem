@@ -58,6 +58,19 @@ func check_small_section_deployment():
  assert(game.chapter==0 and game.deployed.size()==2 and game.trials.pressure==1)
  assert(restored.import_code(game.export_code("camp"))=="camp" and restored.deployed==game.deployed)
 
+func check_tonic_cache_without_dialogue():
+ var game=Rules.new()
+ game.start_battle()
+ var visitor=game.living("player")[0]
+ var scene={"id":"tonic_cache","position":[visitor.x,visitor.y],"lines":[],"refill_tonics":true}
+ game.info().site_scenes=[scene]
+ assert(game.wait_unit(visitor))
+ assert(game.pending_site_scenes().is_empty() and game.site_events_at(game.pos(visitor)).size()==1)
+ visitor.potions=0
+ assert(game.pending_site_scenes().size()==1 and game.complete_site_scene(scene)==visitor.name)
+ assert(visitor.potions==2 and game.complete_site_scene(scene).is_empty())
+ assert(game.story_seen.count(game.site_scene_token(scene))==1)
+
 func check_document():
  var draft=Draft.new()
  assert(draft.playtest_problem().is_empty())
@@ -533,6 +546,7 @@ func verify_moving_placements(app):
 func run():
  check_document()
  check_small_section_deployment()
+ check_tonic_cache_without_dialogue()
  var scratch="/private/tmp/poem-campaign-editor-%d"%OS.get_process_id()
  assert(DirAccess.make_dir_recursive_absolute(scratch)==OK)
  check_long_campaign(scratch.path_join("long-campaign.json"))
@@ -679,6 +693,7 @@ func run():
  editor.find_child("EditorTileScene1",true,false).value=3
  var tile_lines=editor.find_child("EditorTileSceneLines",true,false)
  tile_lines.text="narrator | The old watch bell is still here.";tile_lines.text_changed.emit()
+ editor.find_child("EditorTileSceneTonics",true,false).button_pressed=true
  tile_x.value=31
  assert(editor.draft.playtest_problem().contains("Move the tile dialogue"))
  tile_x.value=1
@@ -910,14 +925,18 @@ func run():
  assert(not app.game.valid_save(edited_save))
  var scene_tile=Vector2i(1,3)
  assert(app.game.pending_site_scenes().is_empty())
+ var caller=app.game.at(scene_tile)
+ caller.hp-=6
+ assert(caller.potions==2)
  await app.click_tile(scene_tile)
- assert(app.terrain_card.dialogue.visible and app.game.pending_site_scenes().is_empty())
- app.wait_action()
+ assert(app.terrain_card.dialogue.visible and app.terrain_card.dialogue.text=="Dialogue · Tonic refill")
+ assert(app.game.pending_site_scenes().is_empty())
+ app.tonic()
  await await_phase_dialogue(app,"The old watch bell is still here.")
  var site_scene=app.game.pending_site_scenes()[0]
  var site_key=app.game.site_scene_token(site_scene)
  var stopped=app.game.read_saved_data(app.campaign_save_path())
- assert(site_key not in stopped.story_seen and stopped.units.any(func(unit):return unit.x==1 and unit.y==3 and unit.acted))
+ assert(site_key not in stopped.story_seen and stopped.units.any(func(unit):return unit.x==1 and unit.y==3 and unit.acted and unit.potions==1))
  await finish_presentation(app)
  assert(site_key in app.game.read_saved_data(app.campaign_save_path()).story_seen)
  assert(app.game.restore_save(stopped)=="battle")
@@ -925,6 +944,7 @@ func run():
  await await_phase_dialogue(app,"The old watch bell is still here.")
  await finish_presentation(app)
  assert(app.game.pending_site_scenes().is_empty() and app.game.story_seen.count(site_key)==1)
+ assert(app.game.at(scene_tile).potions==2)
  await app.click_tile(scene_tile)
  assert(not app.terrain_card.dialogue.visible)
  app.end_turn()
@@ -1218,6 +1238,7 @@ func run():
  var landmark_dialogue=template.data.chapters[11].level.site_scenes
  assert(landmark_dialogue.map(func(scene):return scene.id)==["reed_crossing","hallow_abbey","windscar_pass"])
  assert(landmark_dialogue.map(func(scene):return scene.position)==[[6,9],[9,5],[19,7]])
+ assert(landmark_dialogue[1].refill_tonics)
  var source_key=landmark_dialogue[0].route_key
  var crossing_chapter=template.index_for(source_key)
  var chapters=app.campaign_editor.find_child("EditorChapter",true,false)
@@ -1278,7 +1299,7 @@ func run():
  app.valley_reveal_skip=true;await finish_presentation(app)
  var reed=Vector2i(6,10)
  var visitors=app.game.living("player").filter(func(unit):return app.game.reachable(unit).has(reed))
- assert(not visitors.is_empty() and app.game.has_tile_dialogue(reed) and not app.game.has_tile_dialogue(Vector2i(6,9)))
+ assert(not visitors.is_empty() and not app.game.site_events_at(reed).is_empty() and app.game.site_events_at(Vector2i(6,9)).is_empty())
  await app.click_tile(app.game.pos(visitors[0]));await app.click_tile(reed)
  app.wait_action()
  await await_phase_dialogue(app,landmark_dialogue[0].lines[0].text)
@@ -1398,5 +1419,5 @@ func run():
  await verify_multiple_standards(app)
  assert(FileAccess.get_file_as_string(app.save_path)==disk and app.game==installed)
  await Shutdown.dispose(app);await process_frame
- print("PASS: campaign JSON file transfer, draft library management, remembered playtest setup, campaign readiness, authored Hard bonuses, authored retry raiders, deployment comparison, authored formation previews, small deployment limits and save recovery, custom campaign atlas, terrain stroke undo, continuous terrain strokes, connected terrain fill, placement moves and swaps, multiple standards and exact resume, standard navigation and live progress, standards that follow route pins, route pins, war-table site terrain, war-table overlay, blank war-table chapter, rising Valley landmarks, custom recruits, phase scenes, tile dialogue and reload, Valley landmark dialogue, dialogue that follows route pins, timed reinforcements, chapter 32 saves, section dialogue, authored section relief, authored legacy stock and purchase persistence, authored loss recruits, authored loss dialogue, reproducible playtest setup, Valley carryover and resume, thirteen-chapter Valley template, and single-battle tests")
+ print("PASS: campaign JSON file transfer, draft library management, remembered playtest setup, campaign readiness, authored Hard bonuses, authored retry raiders, deployment comparison, authored formation previews, small deployment limits and save recovery, custom campaign atlas, terrain stroke undo, continuous terrain strokes, connected terrain fill, placement moves and swaps, multiple standards and exact resume, standard navigation and live progress, standards that follow route pins, route pins, war-table site terrain, war-table overlay, blank war-table chapter, rising Valley landmarks, custom recruits, phase scenes, tile dialogue and reload, one-use field tonic caches, Valley landmark dialogue, dialogue that follows route pins, timed reinforcements, chapter 32 saves, section dialogue, authored section relief, authored legacy stock and purchase persistence, authored loss recruits, authored loss dialogue, reproducible playtest setup, Valley carryover and resume, thirteen-chapter Valley template, and single-battle tests")
  quit()

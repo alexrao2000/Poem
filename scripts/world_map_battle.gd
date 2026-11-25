@@ -30,7 +30,7 @@ static func route_dialogue(route: Array) -> Array:
  var scenes={
   "Reed Crossing":{"id":"reed_crossing","lines":[
    {"speaker":"narrator","text":"The ferrymen wind the last length of chain onto the bank. From here, the next company can see your standard."}]},
-  "Hallow Abbey":{"id":"hallow_abbey","lines":[
+  "Hallow Abbey":{"id":"hallow_abbey","refill_tonics":true,"lines":[
    {"speaker":"oren","text":"Raise the abbey lamp. The next garrison will know the river road is open.","when_absent":[
     {"speaker":"narrator","text":"The keeper raises the signal lamp. Every road out of the abbey answers."}]}]},
   "Windscar Pass":{"id":"windscar_pass","lines":[

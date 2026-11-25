@@ -911,18 +911,22 @@ func present_site_scenes() -> bool:
 	if scenes.is_empty() or game.result()=="defeat":return true
 	busy=true
 	for scene in scenes:
-		if not await present_battle_scene(scene,game.site_scene_token(scene),"site_scene"):return false
+		if not await present_battle_scene(scene,game.site_scene_token(scene),"site_scene",true):return false
 	busy=false;update_side()
 	return true
 
-func present_battle_scene(scene: Dictionary,token: String,reason: String) -> bool:
-	var finished=[false]
-	show_dialogue(scene.lines,func():finished[0]=true)
-	while not finished[0]:await get_tree().process_frame
-	game.story_seen.append(token)
+func present_battle_scene(scene: Dictionary,token: String,reason: String,site=false) -> bool:
+	if not scene.lines.is_empty():
+		var finished=[false]
+		show_dialogue(scene.lines,func():finished[0]=true)
+		while not finished[0]:await get_tree().process_frame
+	var resupplied=""
+	if site:resupplied=game.complete_site_scene(scene)
+	else:game.story_seen.append(token)
 	show_battle()
 	if not persist_campaign("battle",true,reason) and game.action_saves:
 		busy=false;update_side();return false
+	if not resupplied.is_empty():show_notice(resupplied+" replenished their field tonics.")
 	return true
 
 func show_battle():

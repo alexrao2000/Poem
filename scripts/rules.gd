@@ -122,18 +122,31 @@ func site_scene_token(scene: Dictionary) -> String:
 	return "site_scene_%d_%s"%[chapter,scene.id]
 
 func unread_site_scene(scene: Dictionary) -> bool:
-	return not scene.lines.is_empty() and site_scene_token(scene) not in story_seen
+	return (not scene.lines.is_empty() or scene.get("refill_tonics",false)) and site_scene_token(scene) not in story_seen
 
-func has_tile_dialogue(tile: Vector2i) -> bool:
-	return info().get("site_scenes",[]).any(func(scene):
+func site_events_at(tile: Vector2i) -> Array:
+	return info().get("site_scenes",[]).filter(func(scene):
 		return Vector2i(scene.position[0],scene.position[1])==tile and unread_site_scene(scene))
+
+func site_visitor(scene: Dictionary):
+	var unit=at(Vector2i(scene.position[0],scene.position[1]))
+	if phase!="player" or unit==null or unit.team!="player" or unit.hp<=0 or not unit.acted:return null
+	if scene.lines.is_empty() and unit.potions>=2:return null
+	return unit
 
 func pending_site_scenes() -> Array:
 	if phase!="player":return []
 	return info().get("site_scenes",[]).filter(func(scene):
-		if not unread_site_scene(scene):return false
-		var unit=at(Vector2i(scene.position[0],scene.position[1]))
-		return unit!=null and unit.team=="player" and unit.hp>0 and unit.acted)
+		return unread_site_scene(scene) and site_visitor(scene)!=null)
+
+func complete_site_scene(scene: Dictionary) -> String:
+	if not unread_site_scene(scene):return ""
+	var visitor=site_visitor(scene)
+	if visitor==null:return ""
+	story_seen.append(site_scene_token(scene))
+	if not scene.get("refill_tonics",false) or visitor.potions>=2:return ""
+	visitor.potions=2
+	return visitor.name
 
 func board_size() -> Vector2i:
 	return Vector2i(info().map[0].length(),info().map.size())

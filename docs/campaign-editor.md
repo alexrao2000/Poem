@@ -38,6 +38,8 @@ Use Edit loss dialogue to give a line an alternate if its speaker or a required 
 
 In Story, use Add tile scene to give a battlefield location its own dialogue. The Battle grid marks those tiles. A standing ally triggers the scene after finishing an action there, and the terrain card shows whether dialogue is still available. If you load a saved action that triggered an unfinished scene, it plays before you resume battle. On a war table, choose an earlier Route pin to move the scene whenever that pin moves. Deleting the linked chapter keeps the scene on its last tile.
 
+Enable Refill the visiting ally’s field tonics on a tile scene to bring that ally’s supply back to two. Hallow Abbey uses this in the Valley campaign draft. A cache without dialogue stays available until an ally who needs tonics finishes an action there.
+
 The chapter picker and editing controls sit above the Battle, Encounters, Story, Route, Company, Bonds, and Rules workspaces. Click the illustrated chart in Route to place the active chapter’s pin, or use the percentage fields for precise positioning. Save draft keeps a local copy. Transfer JSON lets you open or save a campaign file on your device, and also accepts pasted JSON. Playtest can start at the first war council or the selected chapter. If another chapter is unfinished, Test this battle still opens a ready chapter with its own save. A single-battle test returns directly to the editor after victory.
 
 Use Copy in Open drafts to start a separate edition of a saved campaign. Use Remove to free its place in the library.

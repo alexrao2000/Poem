@@ -714,6 +714,12 @@ func build_tile_dialogue(panel: VBoxContainer,layout: Dictionary):
   coordinate.editable=not scene.has("route_key")
   coordinate.name="EditorTileScene"+str(axis)
   field_label(trigger,title,coordinate)
+ var refill=CheckButton.new();refill.name="EditorTileSceneTonics";refill.text="Refill the visiting ally’s field tonics"
+ refill.button_pressed=scene.get("refill_tonics",false);panel.add_child(refill)
+ refill.toggled.connect(func(value):
+  if value:scene.refill_tonics=true
+  else:scene.erase("refill_tonics")
+  changed())
  dialogue_editor(panel,"EditorTileSceneLines",132,func():return scene.lines,func(lines):scene.lines=lines;changed())
 
 func tile_scene_label(scene: Dictionary) -> String:

@@ -26,7 +26,7 @@ func configure(parent: Control):
  place.add_theme_font_override("font",FONT);place.add_theme_font_size_override("font_size",17)
  place.add_theme_color_override("font_color",Color("63543a"));place.text_overrun_behavior=TextServer.OVERRUN_TRIM_ELLIPSIS
  column.add_child(place)
- dialogue=Label.new();dialogue.name="TerrainDialogue";dialogue.text="Dialogue on action";dialogue.hide()
+ dialogue=Label.new();dialogue.name="TerrainDialogue";dialogue.hide()
  dialogue.add_theme_font_size_override("font_size",13);dialogue.add_theme_color_override("font_color",Color("35655b"))
  column.add_child(dialogue)
  for label in [heading,values,detail,place,dialogue]:label.mouse_filter=Control.MOUSE_FILTER_IGNORE
@@ -44,5 +44,9 @@ func inspect(game,point: Vector2i):
  var had_dialogue=dialogue.visible
  place.text=" · ".join(places.get(point,[]))
  place.visible=not place.text.is_empty()
- dialogue.visible=game.has_tile_dialogue(point)
+ var events=game.site_events_at(point)
+ var can_refill=events.any(func(scene):return scene.get("refill_tonics",false))
+ var has_dialogue=events.any(func(scene):return not scene.lines.is_empty())
+ dialogue.text="Dialogue · Tonic refill" if has_dialogue and can_refill else "Dialogue on action" if has_dialogue else "Field tonic refill"
+ dialogue.visible=not events.is_empty()
  if had_place!=place.visible or had_dialogue!=dialogue.visible:reset_size()
