@@ -901,6 +901,10 @@ func verify_kingsroad_canal():
  var mast=map_hoist.get_node("HoistMast")
  var mast_bounds=mast.global_transform*mast.mesh.get_aabb()
  assert(not mast_bounds.has_point(Vector3(9,mast_bounds.get_center().y,3)),"The crane leaves the adjacent tactical cell center open")
+ var map_landing=field.get_node("KingsroadCargoLanding")
+ assert(map_landing.position==KingsroadHoist.MAP_LANDING and is_equal_approx(map_landing.scale.x,KingsroadHoist.MAP_LANDING_SCALE))
+ var map_deck=inspect_landing(scenery,map_landing,map_hoist,2.5,Scenery.MAP_WATER_LEVEL,.095)
+ assert(map_deck.position.z>2 and map_deck.end.z<3 and map_deck.end.x<9.5,"The landing straddles the bank without covering a water, road or bridge tile center")
  field.queue_free();await process_frame
  var center=Vector3(35,0,0)
  var viewport=SubViewport.new();viewport.render_target_update_mode=SubViewport.UPDATE_DISABLED;root.add_child(viewport)
@@ -909,8 +913,13 @@ func verify_kingsroad_canal():
   var stage=Node3D.new();root.add_child(stage);scenery.battle_landscape(stage,center,context)
   var water=stage.get_node_or_null("KingsroadCanalWater")
   var hoist=stage.get_node_or_null("KingsroadCargoHoist")
+  var landing=stage.get_node_or_null("KingsroadCargoLanding")
   assert((hoist!=null)==(context==normal or context==mirrored))
-  if hoist!=null:inspect_hoist(hoist,Scenery.ROAD_CANAL_NEAR,Scenery.ROAD_CANAL_FAR)
+  assert((landing!=null)==(hoist!=null))
+  var deck_bounds=AABB()
+  if hoist!=null:
+   inspect_hoist(hoist,Scenery.ROAD_CANAL_NEAR,Scenery.ROAD_CANAL_FAR)
+   deck_bounds=inspect_landing(scenery,landing,hoist,Scenery.ROAD_CANAL_NEAR,Scenery.ROAD_CANAL_LEVEL,.11)
   if context==dry:
    assert(water==null and stage.get_node("ArenaGround").mesh.size==Vector2(70,70))
   elif context==deck:
@@ -954,10 +963,36 @@ func verify_kingsroad_canal():
       assert(safe.has_point(camera.unproject_position(eye)))
       var visible=absf(camera.unproject_position(head).x-camera.unproject_position(hoist.get_node("HoistMast").global_position).x)
       assert(visible>=24,"The projecting crane arm can be read in the wide shot")
+      var deck_center=deck_bounds.get_center()
+      assert(not camera.is_position_behind(deck_center) and safe.has_point(camera.unproject_position(deck_center)),"The landing reads below the crane in wide shots")
+      assert(camera.unproject_position(deck_center).y>camera.unproject_position(eye).y)
   stage.queue_free();await process_frame
  viewport.queue_free();await process_frame
  assert(game.rng.state==rng)
- print("PASS: Kingsroad channel follows actual terrain, exact split banks and waterline, existing bridge/deck and dry cases, planted towers, the anchored cargo hoist and eighteen wide-shot projections")
+ print("PASS: Kingsroad channel follows actual terrain, exact split banks and waterline, existing bridge/deck and dry cases, planted towers, anchored cargo hoist and landing, and eighteen wide-shot projections")
+
+func inspect_landing(scenery,landing: Node3D,hoist: Node3D,bank: float,water: float,coping: float) -> AABB:
+ var planks=landing.find_children("LandingPlank*","MeshInstance3D",false,false)
+ var stringers=landing.find_children("LandingStringer*","MeshInstance3D",false,false)
+ var piles=landing.find_children("LandingPile*","MeshInstance3D",false,false)
+ var joists=landing.find_children("LandingJoist*","MeshInstance3D",false,false)
+ assert(planks.size()==7 and stringers.size()==2 and piles.size()==2 and joists.size()==2)
+ var bounds=func(piece):return piece.global_transform*piece.mesh.get_aabb()
+ var deck=bounds.call(planks[0])
+ for plank in planks:
+  assert(plank.material_override==scenery.building_material(scenery.BuildingFinish.DECK_WOOD))
+  var section=bounds.call(plank)
+  assert(section.position.z<bank and section.end.z>bank and section.end.y>coping)
+  assert(joists.all(func(beam):return section.intersects(bounds.call(beam))))
+  deck=deck.merge(section)
+ var crossbeam=bounds.call(landing.get_node("LandingCrossbeam"))
+ for index in 2:
+  var pile=bounds.call(piles[index]);var beam=bounds.call(stringers[index]);assert(pile.position.y<water and pile.end.y>water)
+  assert(pile.end.z<bank and pile.intersects(crossbeam) and pile.intersects(beam) and beam.intersects(crossbeam))
+  assert(joists.all(func(joist):return beam.intersects(bounds.call(joist))))
+ var hook=hoist.get_node("HoistEye").global_position
+ assert(hook.x>deck.position.x and hook.x<deck.end.x and hook.y>deck.end.y and absf(hook.z-clampf(hook.z,deck.position.z,deck.end.z))<.18)
+ return deck
 
 func inspect_hoist(hoist: Node3D,bank: float,far_bank: float):
  var footing=hoist.get_node("HoistFooting")

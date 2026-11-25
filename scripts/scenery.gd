@@ -437,7 +437,9 @@ func landscape(parent,game):
  if theme=="harbor":
   HarborNet.build(self,parent,HarborNet.MAP_SITE,HarborNet.MAP_SCALE)
   HarborSignal.build(self,parent,HarborSignal.MAP_SITE,HarborSignal.MAP_SCALE)
- if theme=="road":KingsroadHoist.build(self,parent,KingsroadHoist.MAP_SITE,KingsroadHoist.MAP_SCALE,-.16)
+ if theme=="road":
+  KingsroadHoist.build(self,parent,KingsroadHoist.MAP_SITE,KingsroadHoist.MAP_SCALE,-.16)
+  KingsroadHoist.build_landing(self,parent,KingsroadHoist.MAP_LANDING,KingsroadHoist.MAP_LANDING_SCALE)
  if theme=="aqueduct":AqueductWheel.new().build(self,parent,AqueductWheel.MAP_SITE,AqueductWheel.MAP_SCALE,-.28)
  if theme=="castle":Fortification.build_map_gate(self,parent)
  if theme=="furnace":
@@ -1031,6 +1033,7 @@ func battle_landscape(parent,center,context={}):
    kingsroad_canal(parent,center,paint)
    if context.get("road_hoist",false):
     KingsroadHoist.build(self,parent,center+Vector3(-3.68,0,ROAD_CANAL_NEAR+.69),1.48,1.02)
+    KingsroadHoist.build_landing(self,parent,center+Vector3(-5.02,0,ROAD_CANAL_NEAR),1.18)
   elif village_stream_direction!=0:CinderfordStream.arena(self,parent,center,paint,village_stream_direction)
   else:ground(parent,center,Vector2(70,70),0,paint).name="ArenaGround"
  else:

@@ -2,6 +2,8 @@ extends RefCounted
 
 const MAP_SITE=Vector3(9.26,0,2.75)
 const MAP_SCALE=.65
+const MAP_LANDING=Vector3(9.16,.05,2.50)
+const MAP_LANDING_SCALE=.45
 const BOOM_TIP=Vector3(0,2.06,-1.16)
 const BRASS=Color("937142")
 static var ring: TorusMesh
@@ -39,6 +41,23 @@ static func build(scenery,parent: Node3D,site: Vector3,size: float,yaw: float):
   link.name="HoistChainLink"
  var eye=scenery.mesh(hoist,ring_shape(),pulley_center-Vector3.UP*.916,Vector3(.079,.055,.107),brass)
  eye.rotation.x=PI*.5;eye.name="HoistEye"
+
+static func build_landing(scenery,parent: Node3D,bank: Vector3,size: float):
+ var landing=Node3D.new();landing.name="KingsroadCargoLanding"
+ landing.position=bank;landing.scale=Vector3.ONE*size
+ parent.add_child(landing)
+ var deck=scenery.building_material(scenery.BuildingFinish.DECK_WOOD)
+ var oak=scenery.building_material(scenery.BuildingFinish.OAK)
+ for column in range(-3,4):
+  var end=-.76+(.018 if column%2 else 0.0)
+  var length=.40-end
+  scenery.block(landing,Vector3(column*.204,.142,.40-length*.5),Vector3(.192,.096,length),deck).name="LandingPlank"
+ for x in [-.47,.47]:
+  scenery.block(landing,Vector3(x,.056,-.169),Vector3(.14,.105,1.09),oak).name="LandingStringer"
+  scenery.block(landing,Vector3(x,-.171,-.595),Vector3(.145,.51,.145),oak).name="LandingPile"
+ for z in [-.594,.19]:
+  scenery.block(landing,Vector3(0,.073,z),Vector3(1.39,.064,.13),oak).name="LandingJoist"
+ scenery.block(landing,Vector3(0,-.025,-.595),Vector3(1.23,.12,.17),oak).name="LandingCrossbeam"
 
 static func ring_shape() -> TorusMesh:
  if ring==null:

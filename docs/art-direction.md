@@ -109,6 +109,8 @@ Cinderford’s market stall sits between tile centers west of the fountain. Its 
 
 Reed Crossing’s dry-ground arenas join the fight floor to a winding bank. Fourteen small reeds sit where the ground slopes into the river. The distant bank supports the trees and towers, and towers keep their left-to-right order from the map. Bridge fights retain the raised deck, rail, and lower water level.
 
+At Kingsroad, a seven-plank landing sits beside the canal hoist. The timber piles reach below the waterline, and the landing carries through from the tactical map into nearby 3D battles.
+
 Six chapters have authored water palettes with their own swell size, direction and pace. Reed Crossing has quick, green ripples. Glass Harbor has broader blue-gray swells, and Old Aqueduct runs slowly along the stone channels. The map and its close-up arena use the same chapter material. The opening fountain keeps its soft basin ripples.
 
 Five outdoor arenas have their own skyline. Reed Crossing sits below low, cool banks, Kingsroad has warm open hills, and Greywood rises behind its firs. Cinderford and Windscar Pass keep the rolling foothill and mountain profiles. Each skyline uses three distant layers with a palette that lightens toward the horizon.
