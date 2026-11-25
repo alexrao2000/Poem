@@ -221,6 +221,31 @@ func load_poem_template(valley: bool):
   var stage=insert_chapter(data.chapters.size()-2,false,true)
   data.chapters[stage].level.site_scenes=Valley.route_dialogue(data.chapters.slice(0,stage))
 
+func load_valley_roads_trial():
+ load_poem_template(true)
+ data.title="Poem · Hold the Valley Roads · Permanent losses"
+ var valley=data.chapters[-2].level
+ valley.extra_standards=[[6,9],[9,5]]
+ valley.tactical_brief="Leave companies at Reed Crossing and Hallow Abbey while a third claims the capital. Hold all three standards at once."
+ for key in ["hard_campaign","reset_pressure","death_door","sacrifice_cost","permadeath","section_restarts","action_saves","death_legacies"]:
+  data.settings[key]=true
+ var medic=data.recruits[add_recruit(data.recruits[3],"")]
+ medic.name="Merrin"
+ medic.bio="A lamp keeper who brings the western hospice company to the ridge."
+ medic.ending="Merrin kept the road lamps lit for travellers who arrived after dark."
+ data.chapters[4].relief_company=[medic.id,"faye","cassian"]
+ data.chapters[4].section_scenes.relief={"title":"Lamps from the west","lines":[
+  {"speaker":medic.id,"text":"I brought oil and bandages. Tell the first company to take the sheltered road."},
+  {"speaker":"lyra","text":"Keep a lamp at the rally point. We may have to come this way again."}]}
+ var scout=data.recruits[add_recruit(data.recruits[2],"")]
+ scout.name="Aster"
+ scout.bio="A surveyor who knows the valley’s crossings by the stones below the water."
+ scout.ending="Aster walked the valley roads again and marked the crossings on a chart anyone could read."
+ data.legacy_arrivals=[{"id":scout.id,"losses":2,"job":"","title":"Aster’s chart","lines":[
+  {"speaker":scout.id,"text":"I heard who was lost. Put your map here and I’ll show you another crossing."}]}]
+ data.legacy_stock=Trials.LEGACY_STOCK.duplicate(true)
+ data.legacy_stock.append({"id":"pike","cost":1,"losses":2,"legacy_only":true})
+
 func move_chapter(index: int,direction: int) -> int:
  var destination=index+direction
  if destination<0 or destination>=data.chapters.size():return index

@@ -1347,8 +1347,9 @@ func open_library():
  var scroll=ScrollContainer.new();scroll.custom_minimum_size=Vector2(360,240);dialog.add_child(scroll)
  var list=VBoxContainer.new();list.size_flags_horizontal=SIZE_EXPAND_FILL;scroll.add_child(list)
  heading(list,"Campaign templates",21)
- action(list,"Copy Poem’s campaign",func():open_poem_template(false))
- action(list,"Copy Poem with the Valley battle",func():open_poem_template(true)).name="EditorValleyTemplate"
+ action(list,"Copy Poem’s campaign",open_template.bind(draft.load_poem_template.bind(false)))
+ action(list,"Copy Poem with the Valley battle",open_template.bind(draft.load_poem_template.bind(true))).name="EditorValleyTemplate"
+ action(list,"Copy Hold the Valley Roads",open_template.bind(draft.load_valley_roads_trial,true))
  heading(list,"Saved drafts",21)
  var records=library.list_drafts()
  if records.is_empty():heading(list,"Save a draft to add it here.",17)
@@ -1401,9 +1402,15 @@ func confirm_remove_draft(record: Dictionary,dialog: AcceptDialog,feedback: Labe
   dialog.hide();dialog.queue_free();open_library())
  confirm.popup_centered()
 
-func open_poem_template(valley: bool):
+func open_template(load_draft: Callable,trial=false):
  if dirty and not save_draft():return
- draft.load_poem_template(valley);draft_key="";dirty=true;select_chapter(restore_editor_state({}))
+ load_draft.call();draft_key="";dirty=true
+ var start=restore_editor_state({})
+ if trial:
+  playtest_setup.fixed_seed=true
+  playtest_setup.seed=472019
+  start=draft.data.chapters.size()-2
+ select_chapter(start)
 
 func show_transfer():
  var dialog=AcceptDialog.new();dialog.name="EditorTransferDialog";dialog.title="Campaign JSON";add_child(dialog)
