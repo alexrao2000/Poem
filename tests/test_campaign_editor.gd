@@ -94,6 +94,12 @@ func check_document():
  assert("unpaired" in draft.decode(JSON.stringify(broken)))
  broken=canonical(draft.data);broken.chapters[0].level.enemies[0].item="field_staff"
  assert("class cannot use" in draft.decode(JSON.stringify(broken)))
+ broken=canonical(draft.data);broken.chapters[0].level.route_note=15
+ assert("atlas note" in draft.decode(JSON.stringify(broken)))
+ broken.chapters[0].level.route_note="Two\nlines"
+ assert("atlas note" in draft.decode(JSON.stringify(broken)))
+ broken.chapters[0].level.route_note="a".repeat(Draft.MAX_ROUTE_NOTE+1)
+ assert("atlas note" in draft.decode(JSON.stringify(broken)))
  broken=canonical(draft.data);broken.chapters[0].phase_scenes=[{"id":"scene_01","phase":"invalid","turn":2,"lines":[]}]
  assert("phase scene" in draft.decode(JSON.stringify(broken)))
  broken=canonical(draft.data);broken.chapters[0].level.enemies[0].arrival_turn=2
@@ -1073,6 +1079,8 @@ func verify_route_arena_reuse(app):
  var survey=editor.find_child("EditorRouteSurvey",true,false)
  survey.select(1);survey.item_selected.emit(1)
  var caption=editor.find_child("EditorRouteSurveyTile",true,false)
+ var entry=editor.find_child("EditorRouteNote",true,false)
+ assert("same chain" in entry.text and not editor.level().has("route_note"))
  assert(caption.text=="Selected pin · G-10 · Path" and arena_at.call(draft,crossing).environment=="road")
  var toggle=editor.find_child("EditorRouteArena",true,false)
  toggle.button_pressed=true
@@ -1085,6 +1093,13 @@ func verify_route_arena_reuse(app):
  assert(copy.structural_problem(copy.data)=="Choose whether later war tables reuse the route location’s environment.")
  var chart=editor.find_child("EditorRouteChart",true,false)
  chart.place_pin(Vector2(.265,.64))
+ assert(entry.text.is_empty() and not editor.level().has("route_note"))
+ entry.text="Count the stones below the ford.";entry.text_changed.emit(entry.text)
+ var note_copy=Draft.new()
+ assert(note_copy.decode(draft.encode()).is_empty())
+ assert(note_copy.move_chapter(1,1)==2 and note_copy.compile().content.chapters[2].route_note==entry.text)
+ entry.clear();entry.text_changed.emit(entry.text)
+ assert(editor.level().route_note=="" and not draft.compile().content.chapters[1].has("route_note"))
  assert(caption.text=="Selected pin · G-11 · Path · River arena")
  assert(arena_at.call(draft,crossing).environment=="road" and arena_at.call(draft,moved_crossing).environment=="river")
  var abbey=draft.data.chapters[3].level
@@ -1095,6 +1110,7 @@ func verify_route_arena_reuse(app):
  toggle.button_pressed=false
  assert(not editor.level().has("route_arena"))
  assert(caption.text=="Selected pin · G-11 · Path" and arena_at.call(draft,moved_crossing).environment=="road")
+ print("PASS: authored atlas notes transfer with their chapter and replace or remove inherited survey text")
  editor.select_chapter(5);await process_frame
  survey=editor.find_child("EditorRouteSurvey",true,false)
  survey.select(1);survey.item_selected.emit(1)

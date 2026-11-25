@@ -16,6 +16,7 @@ const MAX_SITE_SCENES=8
 const MAX_EXTRA_STANDARDS=5
 const MAX_ENEMY_PLACEMENTS=24
 const MAX_DEPLOYMENTS=6
+const MAX_ROUTE_NOTE=240
 const TERRAIN_UNDO_LIMIT=32
 const SECTION_SCENES={"relief":"Relief arrivals","retreat":"Withdrawal","memorial":"Memorial"}
 const MAX_DRAFT_LENGTH=1000000
@@ -163,6 +164,15 @@ func decode(raw: String) -> String:
 
 func index_for(key: String) -> int:
  return data.chapters.find_custom(func(chapter):return chapter.key==key)
+
+func route_note(index: int) -> String:
+ var chapter=data.chapters[index]
+ var level=chapter.level
+ if level.has("route_note"):return level.route_note.strip_edges()
+ if chapter.source<0 or data.has("route_atlas"):return ""
+ var original=templates.chapters[int(chapter.source)]
+ if original.place!=level.place or Valley.route_tile(original.route_position)!=Valley.route_tile(level.route_position):return ""
+ return original.get("route_note","")
 
 func route_texture() -> Texture2D:
  if not data.has("route_atlas"):
@@ -576,6 +586,9 @@ func map_structure_problem(level: Dictionary) -> String:
    if not integer(bonuses.get(stat),0,Rules.STAT_CAPS[stat]):return "Set each Hard enemy bonus within its stat limit."
  if not level.get("route_position") is Array or level.route_position.size()!=2 or not level.route_position.all(
    func(value):return number(value) and value>=0 and value<=1):return "A route pin must stay on the map."
+ var note=level.get("route_note","")
+ if not valid_text(note,MAX_ROUTE_NOTE) or "\n" in note or "\r" in note:
+  return "An atlas note must be one line of up to %d characters."%MAX_ROUTE_NOTE
  if level.get("route_terrain","") not in ([""]+ROUTE_TERRAIN):return "Choose a terrain type for the route pin."
  if not level.get("route_arena",false) is bool:return "Choose whether later war tables reuse the route location’s environment."
  if not level.get("map") is Array or level.map.size()<MIN_BOARD.y or level.map.size()>MAX_BOARD.y or not level.map[0] is String:
@@ -790,6 +803,8 @@ func compile() -> Dictionary:
   for field in LEVEL_FIELDS:
    if authored.has(field):level[field]=authored[field]
   level=level.duplicate(true)
+  var note=route_note(index)
+  if not note.is_empty():level.route_note=note
   if chapter.has("phase_scenes"):level.phase_scenes=chapter.phase_scenes.duplicate(true)
   level.id=index
   level.boss=level.enemies[0].get("name","") if not level.enemies.is_empty() else ""

@@ -9,6 +9,8 @@ func run():
  var app=load("res://main.tscn").instantiate();app.settings_path="";app.save_path="/private/tmp/poem-route-test-%d.json"%OS.get_process_id();root.add_child(app);await process_frame
  for chapter in range(12):app.game.story_seen.append("opening_"+str(chapter))
  app.game.permadeath=true;app.game.trials.flags.section_restarts=true
+ assert(app.game.content.chapters.filter(func(chapter):return chapter.has("route_note")).map(
+  func(chapter):return chapter.place)==["Reed Crossing","Hallow Abbey","Old Aqueduct","Starfall"])
  var count=0
  for dimensions in [Vector2(720,640),Vector2(768,900),Vector2(900,640),Vector2(959,640),Vector2(960,640),Vector2(1024,640),Vector2(1280,720),Vector2(1440,900)]:
   for chapter in range(12):
@@ -46,6 +48,8 @@ func run():
     var active_pin=app.game.content.chapters[route.selected].route_position
     var active_mark=Valley.survey_mark(Valley.route_tile(active_pin))
     assert(app.ui.find_child("RouteSurveyMark",true,false).text==active_mark)
+    var note=app.ui.find_child("RouteNote",true,false)
+    assert(note.text==app.game.content.chapters[route.selected].get("route_note","") and note.visible==not note.text.is_empty())
     assert(app.ui.find_child("RouteObjective",true,false).text=="OBJECTIVE / "+app.objective_text(app.game.content.chapters[route.selected]),"Historical objective follows the selected briefing without changing the current chapter")
     if index>chapter:assert(marker.tooltip_text=="Unreached destination")
     elif index%4==0:
@@ -112,6 +116,7 @@ func run():
  await Shutdown.dispose(app);await process_frame
  print("PASS: ",count," campaign route layouts, all twelve chapter markers selectable at 720, live focus and reflow, locked briefing protection, read-only campaign state and Escape return")
  print("PASS: unequal section ranges and reached rally points agree in the route, war council and Debug report")
+ print("PASS: four stock survey notes stay with their reached briefings at all eight viewport sizes")
  quit()
 
 func observe_atlas_draws(route,frames: int) -> Array:

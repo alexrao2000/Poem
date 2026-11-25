@@ -682,9 +682,14 @@ func build_route(panel: VBoxContainer) -> Callable:
  var y=spin(roundi(position[1]*100),0,100,func(value):chart.place_pin(Vector2(chart.positions[chart.selected].x,value/100.0)))
  x.name="EditorRouteX";y.name="EditorRouteY"
  field_label(coordinates,"Pin X %",x);field_label(coordinates,"Pin Y %",y)
+ var note=line_edit(draft.route_note(selected),"Optional note for the chapter briefing",Draft.MAX_ROUTE_NOTE,func(value):
+  level().route_note=value.strip_edges();changed())
+ note.name="EditorRouteNote"
+ field_label(row(panel),"Atlas note",note)
  chart.pin_placed.connect(func(index,point):
   draft.data.chapters[index].level.route_position=[point.x,point.y]
   x.set_value_no_signal(roundi(point.x*100));y.set_value_no_signal(roundi(point.y*100))
+  note.text=draft.route_note(index)
   refresh_survey.call();changed())
  if level().presentation!="valley_table":
   var site=choice([""]+Draft.ROUTE_TERRAIN,level().get("route_terrain",""),func(value):

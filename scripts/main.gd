@@ -935,6 +935,8 @@ func show_campaign_route(view: String="campaign_route"):
 	var reading=scrolling_column(details)
 	var objective=label_in(reading,"",17,GOLD);objective.name="RouteObjective"
 	var briefing=label_in(reading,"",20)
+	var note_heading=label_in(reading,"Survey note",16,GOLD)
+	var note=label_in(reading,"",17);note.name="RouteNote"
 	var tactics_text=label_in(reading,"",17,Color("766e5e"))
 	var refresh=func(index):
 		var chapter=game.content.chapters[index]
@@ -947,6 +949,8 @@ func show_campaign_route(view: String="campaign_route"):
 		var last=game.trials.section_end(index,game.content.chapters.size())
 		section_label.text="SECTION %d · CHAPTERS %02d–%02d"%[game.trials.section_index(index)+1,start+1,last+1]
 		briefing.text=chapter.intro;tactics_text.text=chapter.get("tactical_brief","")
+		note.text=chapter.get("route_note","")
+		note.visible=not note.text.is_empty();note_heading.visible=note.visible
 		objective.text="OBJECTIVE / "+objective_text(chapter)
 		chapter_choice.select(index)
 		reading.get_parent().scroll_vertical=0
