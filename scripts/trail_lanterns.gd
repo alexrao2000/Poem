@@ -43,14 +43,18 @@ static func build(parent: Node3D,point: Vector3,scale_value: float,heading: floa
  paper.name="LanternPaper";paper.position=WINDOW
  if paper_mesh==null:
   paper_mesh=BoxMesh.new();paper_mesh.size=Vector3(.244,.298,.244)
+ paper.mesh=paper_mesh;paper.material_override=paper_paint()
+ paper.cast_shadow=GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+ lantern.add_child(paper)
+ return lantern
+
+static func paper_paint() -> StandardMaterial3D:
+ if paper_material==null:
   paper_material=StandardMaterial3D.new()
   paper_material.albedo_color=Color("f8bf75")
   paper_material.emission_enabled=true;paper_material.emission=Color("ed9545")
   paper_material.emission_energy_multiplier=.36;paper_material.roughness=.87
- paper.mesh=paper_mesh;paper.material_override=paper_material
- paper.cast_shadow=GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
- lantern.add_child(paper)
- return lantern
+ return paper_material
 
 static func paint() -> StandardMaterial3D:
  if frame_material==null:

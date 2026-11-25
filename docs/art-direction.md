@@ -103,7 +103,7 @@ The twelve chapters define their own sky, sun and ambient light. Glass Harbor us
 
 Greywood mixes two original fir crowns with its broadleaf trees. Windscar Pass uses two sparse pine crowns behind its rocks. The same four cutouts appear on the tactical maps and behind the fighting lanes. Each tree has a tapered trunk and three crossed cards with root-pinned wind. The cards share a mipmapped atlas and join the existing static batches. [Source prompt and image hash](conifer-crown-prompt.json).
 
-Greywood’s pitched canvas refuge sits in the clearing northwest of the lantern road. The front opens between two folded flaps and faces the road. Nearby 3D battles use the same canvas and timber frame behind the fighters.
+Greywood’s pitched canvas refuge sits in the clearing northwest of the lantern road. The front opens between two folded flaps and faces the road. A small paper lamp rests on a strapped supply chest at the entrance. Nearby 3D battles use the same shelter and supplies behind the fighters.
 
 Cinderford’s market stall sits between tile centers west of the fountain. Its rust and linen canopy hangs between two wooden rails. The arena places the same stall behind the fighters, clear of the houses, cart and fence.
 

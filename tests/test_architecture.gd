@@ -832,7 +832,7 @@ func verify_greywood_shelter():
   var roof=barrel_hit(fabric.mesh,Vector3(side*.3,2,0),Vector3.DOWN)
   assert(roof!=null and absf(roof.y-lerpf(1.08,.045,.3/.66))<.0001)
  for child in refuge.get_children():
-  if child==fabric:continue
+  if child==fabric or not child is MeshInstance3D:continue
   var support=child.transform*child.mesh.get_aabb()
   if child.name=="RidgePole":
    assert(support.end.y>1.07 and support.size.z>1.44)
@@ -842,6 +842,10 @@ func verify_greywood_shelter():
  for x in [3,4]:
   for z in [1,2]:
    assert(game.terrain(Vector2i(x,z))=="." and not covered.has_point(Vector3(x,.20,z)))
+ var paper=verify_refuge_supplies(refuge)
+ var chest=refuge.get_node("RefugeSupplies/SupplyChest")
+ var chest_bounds=chest.global_transform*chest.mesh.get_aabb()
+ assert(chest_bounds.position.x>3.5 and chest_bounds.end.x<4.0 and chest_bounds.position.z>2.0 and chest_bounds.end.z<3.0)
  var viewport=SubViewport.new();viewport.render_target_update_mode=SubViewport.UPDATE_DISABLED;root.add_child(viewport)
  var camera=Camera3D.new();viewport.add_child(camera);camera.current=true
  var center=Vector3((game.board_size().x-1)*.5,0,(game.board_size().y-1)*.5)
@@ -861,6 +865,8 @@ func verify_greywood_shelter():
   var shelter=stage.find_children("GreywoodShelter","Node3D",true,false)[0]
   var arena_fabric=shelter.get_node("Canvas")
   assert(arena_fabric.mesh==fabric.mesh and arena_fabric.material_override==fabric.material_override)
+  var arena_paper=verify_refuge_supplies(shelter)
+  assert(arena_paper.mesh==paper.mesh and arena_paper.material_override==paper.material_override)
   var frame=CombatCamera.frame_pair(center+Vector3.LEFT*1.6,center+Vector3.RIGHT*1.6,"wide",false,mirror<0)
   camera.position=frame.anchor;camera.fov=frame.lens;camera.look_at(frame.focus)
   for size in sizes:
@@ -870,7 +876,27 @@ func verify_greywood_shelter():
   stage.free()
  viewport.free();field.free()
  assert(game.save_data("camp")==snapshot)
- print("PASS: Greywood's map and close-up shelter share a pitched canvas, open entrance, grounded supports and nine projections")
+ print("PASS: Greywood's map and close-up shelter share a pitched canvas, open entrance, grounded supports, paper lamp and nine projections")
+
+func verify_refuge_supplies(refuge: Node3D) -> MeshInstance3D:
+ var supplies=refuge.get_node("RefugeSupplies")
+ var chest=supplies.get_node("SupplyChest")
+ var lid=supplies.get_node("SupplyLid")
+ var lamp=supplies.get_node("LampPaper")
+ var bounds=func(part):return part.transform*part.mesh.get_aabb()
+ var crate_bounds=bounds.call(chest)
+ var lid_bounds=bounds.call(lid)
+ assert(is_zero_approx(crate_bounds.position.y) and lid_bounds.intersects(crate_bounds))
+ assert(supplies.position.z+lid_bounds.position.z>.79,"The crate sits in front of the folded flaps")
+ var base=bounds.call(supplies.get_node("LampBase"))
+ var hood=bounds.call(supplies.get_node("LampHood"))
+ var paper=bounds.call(lamp)
+ assert(is_equal_approx(lid_bounds.end.y,base.position.y) and base.intersects(paper) and hood.intersects(paper))
+ var posts=supplies.find_children("LampPost*","MeshInstance3D",false,false)
+ assert(posts.size()==4 and posts.all(func(post):return bounds.call(post).intersects(paper)))
+ assert(lamp.material_override.emission_enabled and lamp.cast_shadow==GeometryInstance3D.SHADOW_CASTING_SETTING_OFF)
+ assert(supplies.find_children("*","Light3D",true,false).is_empty())
+ return lamp
 
 func shelter_ridge_visible(camera: Camera3D,shelter: Node3D,landscape: Node3D,frame: Rect2) -> bool:
  var trees=landscape.find_children("Conifer*","MeshInstance3D",true,false)

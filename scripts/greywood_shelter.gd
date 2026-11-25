@@ -2,6 +2,7 @@ extends RefCounted
 # The pitched canvas shelters the Greywood refugees. The open side faces the
 # road. A low foot rail and two upright poles hold the cloth above damp ground.
 const Roof=preload("res://scripts/architecture.gd")
+const Lantern=preload("res://scripts/trail_lanterns.gd")
 const HALF_WIDTH=.66
 const HALF_LENGTH=.72
 const TOP=1.08
@@ -26,6 +27,26 @@ static func build(scenery,parent: Node3D,position: Vector3,extent: float) -> voi
  for side in [-1,1]:
   var rail=scenery.block(shelter,Vector3(side*(HALF_WIDTH-.018),.04,0),Vector3(.067,.08,HALF_LENGTH*2+.06),WOOD)
   rail.name="EaveRail"
+ build_supply(scenery,shelter)
+
+static func build_supply(scenery,shelter: Node3D):
+ var supplies=Node3D.new();supplies.name="RefugeSupplies";supplies.position=Vector3(.237,0,.96)
+ shelter.add_child(supplies)
+ var oak=scenery.building_material(scenery.BuildingFinish.OAK)
+ var straps=Color("67574a")
+ scenery.block(supplies,Vector3(0,.106,0),Vector3(.37,.212,.31),oak).name="SupplyChest"
+ scenery.block(supplies,Vector3(0,.218,0),Vector3(.39,.033,.33),oak).name="SupplyLid"
+ for side in [-1,1]:
+  scenery.block(supplies,Vector3(side*.129,.126,.157),Vector3(.037,.184,.016),straps).name="ChestStrap"
+  scenery.block(supplies,Vector3(side*.129,.237,0),Vector3(.037,.011,.33),straps).name="LidStrap"
+ var iron=Color("544d40")
+ scenery.block(supplies,Vector3(0,.245,0),Vector3(.147,.021,.147),iron).name="LampBase"
+ var window=scenery.block(supplies,Vector3(0,.323,0),Vector3(.119,.148,.119),Lantern.paper_paint())
+ window.name="LampPaper";window.cast_shadow=GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+ for x in [-.058,.058]:
+  for z in [-.058,.058]:
+   scenery.block(supplies,Vector3(x,.325,z),Vector3(.017,.154,.017),iron).name="LampPost"
+ scenery.cylinder(supplies,Vector3(0,.407,0),.051,.103,iron,.046).name="LampHood"
 
 static func paint() -> StandardMaterial3D:
  if canvas_paint==null:
