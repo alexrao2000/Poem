@@ -122,7 +122,7 @@ static func build(parent: Node3D,game,scenery):
  scenery.mesh(parent,scenery.plane_shape(size),center,Vector3.ONE,parchment).name="ValleyChart"
  var grid=ImmediateMesh.new()
  var ink=ShaderMaterial.new();ink.shader=GRID_INK
- ink.set_shader_parameter("origin",Vector2(reveal_origin(game)))
+ ink.set_shader_parameter("origin",Vector2(reveal_origin(game.info())))
  ink.set_shader_parameter("combat_strength",0.0)
  grid.surface_begin(Mesh.PRIMITIVE_LINES)
  for x in range(int(size.x)+1):
@@ -301,8 +301,10 @@ static func build_landmarks(parent: Node3D,game,scenery):
     scenery.cylinder(marker,Vector3(-.043,.152,-.015),.087,.017,clay,.014)
     scenery.cylinder(marker,Vector3(.048,.169,-.015),.125,.022,clay,.016)
 
-static func reveal_origin(game) -> Vector2i:
- return game.objective_position() if game.info().objective=="seize" else Vector2i(CAPITAL[0],CAPITAL[1])
+static func reveal_origin(level: Dictionary) -> Vector2i:
+ var fallback=level.objective_position if level.objective=="seize" else CAPITAL
+ var position=level.get("reveal_position",fallback)
+ return Vector2i(position[0],position[1])
 
 static func route_tile(pin: Array) -> Vector2i:
  return Vector2i(floori(pin[0]*WIDTH),floori(pin[1]*HEIGHT)).clamp(Vector2i.ZERO,Vector2i(WIDTH-1,HEIGHT-1))
@@ -379,7 +381,7 @@ static func play_reveal(navigation,game,world: Node3D,actors: Array,hint: Contro
  var camera: Camera3D=navigation.camera
  var home: Dictionary=navigation.capture_view()
  var chart=chart_view(camera,game.board_size(),home)
- var origin=Vector2(reveal_origin(game))
+ var origin=Vector2(reveal_origin(game.info()))
  var seals=RouteSeals.new()
  hint.get_parent().add_child(seals)
  seals.configure(camera,game,origin)
@@ -421,7 +423,7 @@ static func play_reveal(navigation,game,world: Node3D,actors: Array,hint: Contro
 static func play_conclusion(navigation,game,world: Node3D,actors: Array,hint: Control,duration: float,skip: Callable,cue: Callable):
  var home: Dictionary=navigation.capture_view()
  var board: Vector2i=game.board_size()
- var origin=Vector2(reveal_origin(game))
+ var origin=Vector2(reveal_origin(game.info()))
  var radius=ink_radius(board,origin)
  var ink=grid_material(world)
  var tactical_front=ink.get_shader_parameter("front")

@@ -14,10 +14,11 @@ const Trials=preload("res://scripts/campaign_trials.gd")
 const DebugSession=preload("res://scripts/debug_session.gd")
 const StorySurvivors=preload("res://scripts/story_survivors.gd")
 const MAX_CAMPAIGN_FILE_BYTES=4*Draft.MAX_DRAFT_LENGTH
-const TOOLS=["Terrain","Deployment","Enemy","Hard-mode enemy","Objective","Move placement","Extra standard","Copy placement"]
+const TOOLS=["Terrain","Deployment","Enemy","Hard-mode enemy","Objective","Move placement","Extra standard","Copy placement","Reveal origin"]
 const MOVE_PLACEMENT=5
 const EXTRA_STANDARD=6
 const COPY_PLACEMENT=7
+const REVEAL_ORIGIN=8
 const GOLD=Color("896937")
 var draft: RefCounted
 var library: RefCounted
@@ -169,7 +170,9 @@ func build_battle(panel: VBoxContainer):
   grid.cursor=grid.cursor.clamp(Vector2i.ZERO,grid.board_size()-Vector2i.ONE)
   grid.queue_redraw();update_terrain_history();changed(),fixed_chart)
  var tools=row(panel)
- var mode=choice(TOOLS,TOOLS[brush],func(value):brush=TOOLS.find(value);show_brush_options())
+ var available=TOOLS if fixed_chart else TOOLS.slice(0,REVEAL_ORIGIN)
+ if brush>=available.size():brush=0
+ var mode=choice(available,available[brush],func(value):brush=TOOLS.find(value);show_brush_options())
  mode.name="EditorBrush";tools.add_child(mode)
  var terrains=Draft.Rules.TERRAIN_PROFILES.keys()
  terrain_choice=OptionButton.new();terrain_choice.name="EditorTerrain";terrain_choice.custom_minimum_size.y=42;tools.add_child(terrain_choice)
@@ -224,7 +227,11 @@ func show_brush_options():
  grid_help.text="Click or use the arrow keys and Enter. Right-click or Backspace erases. C marks the commander."
  if brush==EXTRA_STANDARD:
   grid_help.text="Place an extra standard. Right-click or Backspace removes it." if level().objective=="seize" else "Choose the seize objective to place standards."
- grid.paint_on_drag=not placement_hint.visible and brush!=EXTRA_STANDARD and (brush!=0 or not fill_connected)
+ if brush==REVEAL_ORIGIN:
+  var mark=Draft.Valley.survey_mark(Draft.Valley.reveal_origin(level()))
+  grid_help.text="The grid reveals from %s. Choose a tile to move the origin. Right-click or press Backspace to restore the default."%mark
+ grid.show_reveal_origin=brush==REVEAL_ORIGIN
+ grid.paint_on_drag=not placement_hint.visible and brush not in [EXTRA_STANDARD,REVEAL_ORIGIN] and (brush!=0 or not fill_connected)
  grid.connect_terrain_strokes=brush==0 and not fill_connected
  clear_placement_selection()
 
@@ -338,6 +345,10 @@ func edit_tile(point: Vector2i,erase: bool):
   use_placement_tool(point,erase);return
  var layout=level()
  var position=[point.x,point.y]
+ if brush==REVEAL_ORIGIN:
+  if erase:layout.erase("reveal_position")
+  else:layout.reveal_position=position
+  show_brush_options();changed();return
  if brush==EXTRA_STANDARD:
   edit_extra_standard(layout,point,erase);return
  if brush==0:

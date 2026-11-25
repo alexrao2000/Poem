@@ -21,6 +21,7 @@ var connect_terrain_strokes=false
 var marked_placement=Vector2i(-1,-1)
 var site_tiles: Array
 var linked_standards: Array[Vector2i]
+var show_reveal_origin=false
 
 func configure(source: Dictionary,route_marks: Dictionary,picture: Texture2D=null):
  level=source
@@ -85,6 +86,9 @@ func _draw():
  for point in standards:
   if Rect2i(Vector2i.ZERO,board_size()).has_point(point):
    draw_rect(Rect2(rect.position+Vector2(point)*cell,Vector2.ONE*cell).grow(-2),Color("ffe8a5"),false,2)
+ if show_reveal_origin:
+  var center=rect.position+(Vector2(Valley.reveal_origin(level))+Vector2.ONE*.5)*cell
+  draw_arc(center,cell*.43,0,TAU,24,Color("cbf1da"),2,true)
  if marked_placement.x>=0:
   var selection=Rect2(rect.position+Vector2(marked_placement)*cell,Vector2.ONE*cell).grow(-2)
   draw_rect(selection,Color(.90,.65,.24,.24))

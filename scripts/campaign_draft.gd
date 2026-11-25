@@ -26,7 +26,7 @@ const STRATEGIES=["pursue","sentry","guard"]
 const ROUTE_TERRAIN=["p","=","f","h","o","+"]
 const RECRUIT_STATS={"hp":[1,900],"pow":[0,200],"defense":[0,200],"resistance":[0,200],"speed":[0,200],"move":[1,20]}
 const LEVEL_FIELDS=["title","place","intro","outro","tactical_brief","map","route_position","environment","score_theme",
- "objective","objective_position","turn_limit","deployment_positions","enemies","hard_enemies","presentation","enemy_level","hard_bonuses","site_scenes","extra_standards","route_arena","hold_enemy_phase"]
+ "objective","objective_position","turn_limit","deployment_positions","enemies","hard_enemies","presentation","enemy_level","hard_bonuses","site_scenes","extra_standards","route_arena","hold_enemy_phase","reveal_position"]
 const MIN_BOARD=Vector2i(6,5)
 const MAX_BOARD=Vector2i(32,24)
 
@@ -597,6 +597,10 @@ func map_structure_problem(level: Dictionary) -> String:
  if width<MIN_BOARD.x or width>MAX_BOARD.x:return "A battle grid must be 6–32 tiles wide."
  if level.presentation=="valley_table" and (width!=24 or level.map.size()!=16):
   return "The valley chart uses a 24 by 16 grid."
+ if level.has("reveal_position"):
+  var origin=level.reveal_position
+  if level.presentation!="valley_table" or not point_valid(origin) or origin[0]>=Valley.WIDTH or origin[1]>=Valley.HEIGHT:
+   return "Choose a reveal origin inside a war table."
  for row in level.map:
   if not row is String or row.length()!=width:return "Terrain rows must have the same width."
   for symbol in row:

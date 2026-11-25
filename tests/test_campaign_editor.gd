@@ -511,23 +511,54 @@ func verify_custom_atlas(app,scratch: String):
  assert("".join(editor.level().map).replace(".","")=="o")
  var empty_grid=editor.find_child("EditorGrid",true,false)
  assert(empty_grid.atlas==picture and empty_grid.board_size()==Vector2i(24,16))
+ var reveal_tool=editor.find_child("EditorBrush",true,false).item_count-1
+ var origin=Vector2i(1,3)
+ var default_origin=Vector2i(11,4)
+ assert(Valley.reveal_origin(editor.level())==default_origin)
+ use_brush(editor,reveal_tool,origin)
+ assert(editor.level().reveal_position==[1,3] and empty_grid.show_reveal_origin)
+ assert("B-4" in editor.grid_help.text and not empty_grid.paint_on_drag)
+ use_brush(editor,reveal_tool,origin,true)
+ assert(not editor.level().has("reveal_position") and Valley.reveal_origin(editor.level())==default_origin)
+ use_brush(editor,reveal_tool,origin)
  use_brush(editor,6,Vector2i(9,4))
+ assert(not empty_grid.show_reveal_origin)
  assert(editor.level().extra_standards==[[9,4]])
  var restored=Draft.new()
  assert(restored.decode(editor.draft.encode()).is_empty())
  assert(restored.route_texture().get_image().get_pixel(600,400).is_equal_approx(center))
  assert(restored.data.chapters[start].level.map==editor.level().map)
+ assert(Valley.reveal_origin(restored.compile().content.chapters[start])==origin)
  var malformed=restored.data.duplicate();malformed.route_atlas="AAAAAAAA"
  assert(restored.structural_problem(malformed).contains("invalid route atlas"))
+ malformed=restored.data.duplicate(true);malformed.chapters[start].level.reveal_position=[24,16]
+ assert(restored.structural_problem(malformed).contains("reveal origin"))
+ malformed=restored.data.duplicate(true)
+ var ordinary=malformed.chapters.find_custom(func(record):return record.level.presentation=="battlefield")
+ assert(ordinary>=0)
+ malformed.chapters[ordinary].level.reveal_position=[1,3]
+ assert(restored.structural_problem(malformed).contains("reveal origin"))
  controls(app,"Play chapter").pressed.emit();await finish_presentation(app)
  assert(app.screen=="camp" and app.game.chapter==start and app.game.info().title=="New war-table chapter")
  controls(app,"Route").pressed.emit();await process_frame
  assert(app.ui.find_child("CampaignRoute",true,false).map_picture==picture)
  controls(app,"Return to war council").pressed.emit();await process_frame
  controls(app,"Deploy company  >").pressed.emit()
+ var ink=Valley.grid_material(app.world)
+ assert(app.valley_reveal_active and ink.get_shader_parameter("origin")==Vector2(origin))
+ assert(app.canvas.get_node("ValleyRouteSeals").origin==Vector2(origin))
  app.valley_reveal_skip=true;await finish_presentation(app)
  assert(app.world.get_node("ValleyChart").material_override.albedo_texture==picture and app.game.board_size()==Vector2i(24,16))
- assert(app.world.get_node("ValleyStandard2").visible and app.game.capture_tiles()==[Vector2i(11,4),Vector2i(9,4)])
+ assert(app.world.get_node("ValleyStandard2").visible and app.game.capture_tiles()==[default_origin,Vector2i(9,4)])
+ var checked=[false]
+ var inspect_conclusion=func():
+  checked[0]=app.canvas.get_node("ValleyRouteSeals").origin==Vector2(origin)
+  return true
+ var hint=Label.new();app.canvas.add_child(hint)
+ var battle=app.game.export_code("battle")
+ await Valley.play_conclusion(app.map_navigation,app.game,app.world,app.unit_nodes.values(),hint,.12,inspect_conclusion,func():pass)
+ hint.queue_free()
+ assert(checked[0] and app.game.export_code("battle")==battle)
  app.show_battle_menu();await process_frame
  controls(app,"Return to editor").pressed.emit();await process_frame
  editor=app.campaign_editor
@@ -536,9 +567,12 @@ func verify_custom_atlas(app,scratch: String):
  await process_frame
  editor.find_child("EditorRestoreAtlas",true,false).pressed.emit();await process_frame
  assert(editor.find_child("EditorRouteChart",true,false).map_picture==Route.MAP)
+ editor.select_chapter(ordinary);await process_frame
+ assert(editor.find_child("EditorBrush",true,false).item_count==reveal_tool)
  var chapters=editor.find_child("EditorChapter",true,false)
  chapters.select(start-1);chapters.item_selected.emit(start-1)
  await process_frame
+ print("PASS: a custom atlas reveals and closes at the authored origin while the standards stay in place")
 
 func verify_multiple_standards(app):
  controls(app,"New draft").pressed.emit();await process_frame
