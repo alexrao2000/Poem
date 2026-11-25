@@ -41,6 +41,7 @@ func run():
  for setting in Settings.SWITCHES:profiles.append([setting.key])
  profiles.append(Settings.SWITCHES.map(func(setting):return setting.key))
  var starts=0
+ var runs={}
  for permanent in [false,true]:
   for enabled in profiles:
    app.game.new_campaign(not permanent);app.game.chapter=4;app.game.roster[1].fallen=true;app.game.roster[1].fallen_chapter=1;app.game.trials.pressure=4
@@ -52,6 +53,9 @@ func run():
    assert(canonical(app.game.save_data("camp"))==previous)
    assert((FileAccess.get_file_as_string(app.save_path) if FileAccess.file_exists(app.save_path) else "")==disk)
    press(app,"Begin the chronicle");assert(app.screen=="dialogue" and app.game.permadeath==permanent and app.game.chapter==0)
+   var run_id=app.game.run_id
+   assert(run_id.length()==24 and run_id.is_valid_hex_number() and not runs.has(run_id))
+   runs[run_id]=true
    for setting in Settings.SWITCHES:assert(Settings.enabled(app.game,setting.key)==(setting.key in enabled))
    assert(app.game.lost_ids().is_empty() and app.game.trials.pressure==0 and app.game.trials.credits==0 and app.game.trials.volunteers.is_empty() and app.game.trials.injuries.is_empty() and app.game.trials.purchases.is_empty())
    app.finish_dialogue();assert(app.screen=="camp");press(app,"Deploy company  >")
@@ -59,6 +63,7 @@ func run():
    while app.busy and Time.get_ticks_msec()<deadline:skip(app);await process_frame
    assert(not app.busy and app.screen=="battle")
    var expected=Rules.new();expected.new_campaign(permanent);expected.story_seen=["opening_0"]
+   expected.run_id=run_id
    for setting in Settings.SWITCHES:Settings.set_enabled(expected,setting.key,setting.key in enabled)
    expected.start_battle()
    assert(canonical(app.game.save_data("battle"))==canonical(expected.save_data("battle")),"First deployment uses exactly the chosen rules and fresh campaign consequences")

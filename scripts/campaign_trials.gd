@@ -216,9 +216,11 @@ func restart(game) -> bool:
   capture_section(game)
   var preserved=to_data();var deaths=game.roster.filter(func(unit):return unit.get("fallen",false)).duplicate(true)
   var permanent=game.permadeath;var actions=game.action_saves;var door=game.death_door
+  var run_id=game.run_id
   if game.restore_save(checkpoint)!="camp":return false
   game.trials.from_data(preserved)
   game.permadeath=permanent;game.action_saves=actions;game.death_door=door
+  game.run_id=run_id
   for legacy in game.content.legacy_recruits:
    if legacy.unit.id in volunteers:game.enlist_legacy_recruit(legacy.unit)
   for casualty in deaths:

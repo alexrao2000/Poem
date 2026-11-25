@@ -484,6 +484,8 @@ func show_campaign_rules():
 		label_in(panel,setting.text,16)
 	button_in(frame,"Begin the chronicle",func():
 		game.new_campaign(draft.permadeath)
+		var identity=RandomNumberGenerator.new();identity.randomize()
+		game.run_id="%08x%08x%08x"%[identity.randi(),identity.randi(),identity.randi()]
 		for setting in CampaignSettings.SWITCHES:CampaignSettings.set_enabled(game,setting.key,draft[setting.key])
 		music.play();show_camp())
 	button_in(frame,"Return to title",show_title)
@@ -553,18 +555,22 @@ func start_campaign_preview(compiled: Dictionary,start: int,resume: bool,return_
 	var suffix=""
 	if seed_value>=0:suffix+="-seed-%d"%seed_value
 	if pressure>0:suffix+="-pressure-%d"%pressure
-	var path=campaign_playtest_directory.path_join(prefix+compiled.content.authoring_signature+suffix+".json")
+	var path=campaign_preview_path(prefix,compiled.content.authoring_signature,suffix)
 	var existing=preview.read_saved_data(path) if resume else {}
 	if resume and existing.is_empty():
 		show_notice("No playtest has been saved for this version.");return
-	campaign_preview={"game":game,"story":story,"debug":debug_session,"path":path,"return":return_to}
+	campaign_preview={"game":game,"story":story,"debug":debug_session,"path":path,"return":return_to,"save_failed":save_failed}
 	game=preview;story=compiled.story
+	save_failed=false
 	debug_session=preload("res://scripts/debug_session.gd").new()
 	if resume:await load_campaign();return
 	CampaignDraftModel.prepare_playtest(game,compiled.settings,start,seed_value,pressure,return_to!="route")
 	if return_to=="route":carry_valley_company(campaign_preview.game)
 	persist_campaign("camp")
 	show_camp()
+
+func campaign_preview_path(prefix: String,signature: String,suffix="") -> String:
+	return campaign_playtest_directory.path_join(prefix+signature+suffix+".json")
 
 func carry_valley_company(previous):
 	var trials=previous.trials.to_data()
@@ -593,17 +599,31 @@ func close_campaign_preview():
 	var context=campaign_preview
 	campaign_preview={}
 	game=context.game;story=context.story;debug_session=context.debug
+	save_failed=context.save_failed
 	select_score_theme()
 	if context.return=="route":
 		make_map();show_campaign_route()
 	else:show_campaign_editor(campaign_editor_return)
 
-func play_valley_front():
+func add_valley_route_action(frame: Control):
 	var valley=CampaignDraftModel.new()
 	var index=valley.insert_chapter(10,false,true)
 	var compiled=valley.compile()
 	compiled.settings=CampaignSettings.snapshot(game)
-	start_campaign_preview(compiled,index,false,"route")
+	var signature=compiled.content.authoring_signature
+	if not game.run_id.is_empty() or debug_session.active:
+		signature=("%s|%s|%s"%[signature,game.run_id,debug_session.active]).sha256_text()
+		compiled.content.authoring_signature=signature
+	compiled.content.section_starts.append(index)
+	compiled.content.section_starts.sort()
+	var preview=Rules.new(compiled.content)
+	var found=not preview.read_saved_data(campaign_preview_path("valley-front-",signature)).is_empty()
+	button_in(frame,"Resume the war table" if found else "Unroll the war table",func():
+		start_campaign_preview(compiled,index,found,"route")).name="OpenValleyFront"
+
+func save_and_return_to_route(stage_name: String):
+	if screen=="battle_menu":cancel_selection()
+	if persist_campaign(stage_name,true,"return_to_route"):close_campaign_preview()
 
 func show_camp():
 	drop_mode=false
@@ -658,8 +678,9 @@ func show_camp():
 	button_in(tools_row,"Options",func():show_options("camp")).size_flags_horizontal=Control.SIZE_EXPAND_FILL
 	button_in(tools_row,"Route",show_campaign_route).size_flags_horizontal=Control.SIZE_EXPAND_FILL
 	button_in(left,"Transfer a local save",func():show_save_transfer("camp"))
-	var back="Return to title" if campaign_preview.is_empty() else ("Return to campaign route" if campaign_preview.return=="route" else "Return to editor")
-	button_in(left,back,show_title)
+	if campaign_preview.get("return","")=="route":
+		button_in(left,"Save and return to route",save_and_return_to_route.bind("camp"))
+	else:button_in(left,"Return to title" if campaign_preview.is_empty() else "Return to editor",show_title)
 	var roster_column=VBoxContainer.new();roster_column.size_flags_horizontal=Control.SIZE_EXPAND_FILL;roster_column.size_flags_stretch_ratio=1.35;row.add_child(roster_column)
 	label_in(roster_column,"YOUR COMPANY",20,GOLD)
 	var scroll=ScrollContainer.new();scroll.name="CompanyScroll";scroll.custom_minimum_size.x=460;scroll.horizontal_scroll_mode=ScrollContainer.SCROLL_MODE_DISABLED
@@ -805,8 +826,7 @@ func show_campaign_route():
 	var route_hint="Numbered seals mark the road traveled. The standard marks your company’s current chapter."
 	if sectioned:route_hint="Diamonds mark section starts."+(" The chronicle is complete." if game.completed else " Your current retreat point is Chapter %02d."%(retreat+1))
 	var legend=label_in(frame,route_hint,15,Color("766e5e"));legend.name="RouteLegend"
-	if game.chapter>=10 and campaign_preview.is_empty():
-		button_in(frame,"Unroll the war table",play_valley_front).name="OpenValleyFront"
+	if game.chapter>=10 and campaign_preview.is_empty():add_valley_route_action(frame)
 	button_in(frame,"Return to war council",show_camp)
 	var fit_route=func():
 		var compact=ui.size.x<960
@@ -1072,7 +1092,9 @@ func show_battle_menu():
 	button_in(commands,"Return to battle",close_battle_menu).grab_focus()
 	button_in(commands,"Save",func():close_battle_menu();save_with_feedback("battle"))
 	button_in(commands,"Transfer code",func():close_battle_menu();show_save_transfer("battle"))
-	if not campaign_preview.is_empty():button_in(commands,"Return to campaign route" if campaign_preview.return=="route" else "Return to editor",close_campaign_preview)
+	if campaign_preview.get("return","")=="route":
+		button_in(commands,"Save and return to route",save_and_return_to_route.bind("battle"))
+	elif not campaign_preview.is_empty():button_in(commands,"Return to editor",close_campaign_preview)
 	var option_row=HBoxContainer.new();option_row.add_theme_constant_override("separation",8);commands.add_child(option_row)
 	var option_button=button_in(option_row,"Options / audio",func():close_battle_menu();show_options("battle"));option_button.size_flags_horizontal=Control.SIZE_EXPAND_FILL
 	var encounter_button: Button
@@ -1976,8 +1998,10 @@ func check_result() -> bool:
 		button_in(frame,"Retry autosave",func():
 			if persist_campaign("battle"):check_result())
 	button_in(frame,"Transfer code",func():show_save_transfer("result"))
-	if not campaign_preview.is_empty() and (outcome!="victory" or campaign_preview.return!="chapter"):
-		button_in(frame,"Return to campaign route" if campaign_preview.return=="route" else "Return to editor",close_campaign_preview)
+	if campaign_preview.get("return","")=="route":
+		button_in(frame,"Save and return to route",save_and_return_to_route.bind("battle"))
+	elif not campaign_preview.is_empty() and (outcome!="victory" or campaign_preview.return!="chapter"):
+		button_in(frame,"Return to editor",close_campaign_preview)
 	return true
 
 func play_crossing_chain_release():

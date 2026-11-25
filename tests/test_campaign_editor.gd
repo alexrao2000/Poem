@@ -864,6 +864,9 @@ func run():
  controls(app,"Return to editor").pressed.emit();await process_frame
  app.game.chapter=10
  app.game.permadeath=true
+ app.game.action_saves=true
+ app.game.run_id="02468ace02468ace02468ace"
+ app.game.trials.flags.section_restarts=true
  app.game.trials.flags.death_legacies=true;app.game.trials.flags.reset_pressure=true;app.game.trials.flags.sacrifice_cost=true
  app.game.trials.pressure=2
  app.game.start_battle()
@@ -876,10 +879,15 @@ func run():
  app.game.formation_order=["oren","maelin","lyra","sera"]
  app.show_campaign_route();await process_frame
  var route_state=app.game.save_data("camp").duplicate(true)
- app.ui.find_child("OpenValleyFront",true,false).pressed.emit()
+ var ordinary=Rules.new()
+ assert(ordinary.import_code(app.game.export_code("camp"))=="camp" and ordinary.run_id==app.game.run_id)
+ var enter_valley=app.ui.find_child("OpenValleyFront",true,false)
+ assert(enter_valley.text=="Unroll the war table")
+ enter_valley.pressed.emit()
  await finish_presentation(app)
  assert(app.screen=="camp" and app.game.info().presentation=="valley_table" and app.game.chapter==11)
- assert(app.campaign_save_path().get_file().begins_with("valley-front-"))
+ var valley_path=app.campaign_save_path()
+ assert(valley_path.get_file().begins_with("valley-front-") and app.game.trials.section_start(app.game.chapter)==11)
  assert(app.game.deployed==route_state.deployed and app.game.formation_order==route_state.formation_order)
  assert(app.game.lost_ids()==["ivo"] and app.game.trials.pressure==2 and app.game.trials.credits==1)
  assert(app.game.supports.progress("lyra_oren").rank==1 and app.game.rng.state==installed.rng.state)
@@ -911,8 +919,31 @@ func run():
  assert(not app.terrain_card.place.visible and app.terrain_card.place.text.is_empty())
  assert(Valley.route_tile([1.0,1.0])==Vector2i(23,15))
  assert(Valley.reached_places(app.game.content.chapters,app.game.chapter).size()==11)
+ var vanguard=app.game.at(Vector2i(3,9))
+ var destination=app.game.reachable(vanguard).keys().filter(func(point):return app.game.at(point)==null)[0]
+ await app.click_tile(Vector2i(3,9));await app.click_tile(destination)
+ assert(app.game.at(destination).id=="oren")
+ var valley_state=canonical(app.game.save_data("battle"))
  app.show_battle_menu();await process_frame
- controls(app,"Return to campaign route").pressed.emit();await process_frame
+ controls(app,"Save and return to route").pressed.emit();await process_frame
+ assert(app.screen=="campaign_route" and app.game==installed and app.game.save_data("camp")==route_state)
+ assert(FileAccess.get_file_as_string(app.save_path)==disk)
+ installed.run_id="13579bdf13579bdf13579bdf"
+ app.show_campaign_route();await process_frame
+ assert(app.ui.find_child("OpenValleyFront",true,false).text=="Unroll the war table")
+ installed.run_id=route_state.run_id
+ app.show_campaign_route();await process_frame
+ controls(app,"Resume the war table").pressed.emit();await finish_presentation(app)
+ assert(app.screen=="battle" and app.campaign_save_path()==valley_path)
+ assert(canonical(app.game.save_data("battle"))==valley_state and app.game.at(destination).id=="oren")
+ for unit in app.game.units:
+  if unit.id in ["sera","lyra"]:unit.hp=0
+ app.game.commit_casualties()
+ assert(await app.check_result())
+ controls(app,"Regroup and retry").pressed.emit();await finish_presentation(app)
+ assert(app.screen=="camp" and app.game.chapter==11 and app.game.trials.pressure==3)
+ assert(app.game.lost_ids().has("sera") and app.game.lost_ids().has("ivo"))
+ controls(app,"Save and return to route").pressed.emit();await process_frame
  assert(app.screen=="campaign_route" and app.game==installed and app.game.save_data("camp")==route_state)
  assert(FileAccess.get_file_as_string(app.save_path)==disk)
  app.campaign_draft.data=app.campaign_draft.new_document(false)
@@ -1150,5 +1181,5 @@ func run():
  await verify_moving_placements(app)
  assert(FileAccess.get_file_as_string(app.save_path)==disk and app.game==installed)
  await Shutdown.dispose(app);await process_frame
- print("PASS: campaign JSON file transfer, draft library management, remembered playtest setup, campaign readiness, authored Hard bonuses, authored retry raiders, deployment comparison, custom campaign atlas, terrain stroke undo, continuous terrain strokes, connected terrain fill, placement moves and swaps, route pins, war-table site terrain, war-table overlay, rising Valley landmarks, custom recruits, phase scenes, timed reinforcements, chapter 32 saves, section dialogue, authored section relief, authored legacy stock and purchase persistence, authored loss recruits, authored loss dialogue, reproducible playtest setup, Valley carryover, thirteen-chapter Valley template, and single-battle tests")
+ print("PASS: campaign JSON file transfer, draft library management, remembered playtest setup, campaign readiness, authored Hard bonuses, authored retry raiders, deployment comparison, custom campaign atlas, terrain stroke undo, continuous terrain strokes, connected terrain fill, placement moves and swaps, route pins, war-table site terrain, war-table overlay, rising Valley landmarks, custom recruits, phase scenes, timed reinforcements, chapter 32 saves, section dialogue, authored section relief, authored legacy stock and purchase persistence, authored loss recruits, authored loss dialogue, reproducible playtest setup, Valley carryover and resume, thirteen-chapter Valley template, and single-battle tests")
  quit()

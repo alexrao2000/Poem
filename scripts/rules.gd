@@ -33,6 +33,7 @@ var deployed: Array = []
 var formation_order: Array = []
 var rng := RandomNumberGenerator.new()
 var completed: bool = false
+var run_id=""
 const DeathDoor=preload("res://scripts/death_door.gd")
 var death_door=false
 var action_saves=false
@@ -61,6 +62,7 @@ func _init(campaign: Dictionary={}):
 	new_campaign()
 
 func new_campaign(permadeath_enabled=false):
+	run_id=""
 	permadeath=permadeath_enabled
 	death_door=false;action_saves=false;trials.reset()
 	chapter = 0
@@ -576,6 +578,7 @@ func matches_layout_signature(signature: String) -> bool:
 func save_data(stage: String) -> Dictionary:
 	var saved={"version":SAVE_VERSION,"trials":trials.to_data(),"death_door":death_door,"action_saves":action_saves,"permadeath":permadeath,"battle_supports":battle_supports,"layout_signature":layout_signature(),"story_seen":story_seen,"supports":supports.state,"chapter":chapter,"turn":turn,"phase":phase,"roster":roster,"units":units,"deployed":deployed,"formation_order":formation_order,"completed":completed,"rng":str(rng.state),"stage":stage}
 	if content.has("authoring_signature"):saved.campaign_id=content.authoring_signature
+	if not run_id.is_empty():saved.run_id=run_id
 	if stage=="battle" and not enemy_waves.is_empty():saved.enemy_waves=enemy_waves
 	return saved
 
@@ -609,6 +612,9 @@ func read_saved_data(path: String) -> Dictionary:
 
 func valid_save(data) -> bool:
 	if not data is Dictionary:return false
+	var saved_run=data.get("run_id","")
+	if not saved_run is String:return false
+	if not saved_run.is_empty() and (saved_run.length()!=24 or not saved_run.is_valid_hex_number()):return false
 	if data.get("campaign_id","")!=content.get("authoring_signature",""):return false
 	for key in ["version","chapter","turn","phase","roster","units","deployed","completed","rng","stage"]:
 		if not data.has(key):return false
@@ -756,6 +762,7 @@ func load_game(path: String) -> String:
 func restore_save(data) -> String:
 	if not valid_save(data):return ""
 	data=data.duplicate(true)
+	run_id=data.get("run_id","")
 	permadeath=data.get("permadeath",false)
 	death_door=data.get("death_door",false);action_saves=data.get("action_saves",false)
 	trials.from_data(data.get("trials",{}))
