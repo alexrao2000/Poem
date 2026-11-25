@@ -119,6 +119,26 @@ func check_reinforcement_collision(path: String):
  restored.at(Vector2i(0,2)).hp=0
  assert(restored.result()=="victory")
 
+func check_shrinking_board(path: String):
+ var draft=Draft.new()
+ var stage=draft.insert_chapter(10,false,true)
+ var content=draft.compile().content
+ var game=Rules.new(content)
+ game.chapter=stage;game.start_battle()
+ var hero=game.living("player")[0]
+ var capital=game.objective_position()
+ game.at(capital).hp=0;hero.x=capital.x;hero.y=capital.y
+ assert(game.result()=="victory")
+ var old_battle=game.units.duplicate(true)
+ game.finish_chapter()
+ assert(game.chapter==stage+1 and game.info().place=="The Sun Engine" and game.units.is_empty())
+ assert(game.save_game(path,"camp"))
+ var restored=Rules.new(content)
+ assert(restored.load_game(path)=="camp" and restored.chapter==game.chapter and restored.units.is_empty())
+ var earlier_save=restored.save_data("camp").duplicate(true)
+ earlier_save.units=old_battle
+ assert(restored.restore_save(canonical(earlier_save))=="camp" and restored.units.is_empty())
+
 func use_brush(editor,index: int,point: Vector2i,erase=false):
  var mode=editor.find_child("EditorBrush",true,false)
  mode.select(index);mode.item_selected.emit(index)
@@ -141,6 +161,7 @@ func run():
  assert(DirAccess.make_dir_recursive_absolute(scratch)==OK)
  check_long_campaign(scratch.path_join("long-campaign.json"))
  check_reinforcement_collision(scratch.path_join("timed-reinforcement.json"))
+ check_shrinking_board(scratch.path_join("smaller-finale.json"))
  root.size=Vector2i(1440,900)
  var app=load("res://main.tscn").instantiate();app.settings_path="";app.save_path=scratch.path_join("normal.json")
  app.campaign_draft_library.path=scratch.path_join("drafts.json")
@@ -463,5 +484,5 @@ func run():
  assert(app.screen=="campaign_route" and app.game==installed and app.game.save_data("camp")==route_state)
  assert(FileAccess.get_file_as_string(app.save_path)==disk)
  await Shutdown.dispose(app);await process_frame
- print("PASS: campaign JSON, direct route pin placement, chapter order, custom recruit presentation, phase scenes, timed reinforcements and durable replay, authored encounters and bonds, chapter 32 saves, two complete chapters, valley reveal, company counters and sites, and isolated resume")
+ print("PASS: campaign JSON, direct route pin placement, chapter order, custom recruit presentation, phase scenes, timed reinforcements, chapter 32 saves, smaller-board save migration, valley reveal and counters, complete chapters and isolated resume")
  quit()

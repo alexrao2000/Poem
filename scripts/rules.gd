@@ -516,6 +516,8 @@ func finish_chapter():
 	if chapter>=content.chapters.size():
 		completed=true
 		chapter=content.chapters.size()-1
+	else:
+		units.clear()
 	trials.arrive(self)
 	var capacity=int(info().deployment)
 	deployed=deployed.slice(0,capacity)
@@ -642,6 +644,8 @@ func valid_save(data) -> bool:
 		if not ids.has(id) or placement_ids.has(id):return false
 		placement_ids[id]=true
 	var combat_ids={}
+	var bounds=content.chapters[int(data.chapter)].map
+	var old_authored_camp=data.stage=="camp" and content.has("authoring_signature")
 	for unit in data.units:
 		if not valid_unit(unit,true) or combat_ids.has(unit.id):return false
 		combat_ids[unit.id]=true
@@ -649,8 +653,8 @@ func valid_save(data) -> bool:
 			if not ids.has(unit.id):return false
 			if not matches_appearance(unit,ids[unit.id]):return false
 			if ids[unit.id].get("fallen",false) and unit.hp>0:return false
-		var grid=content.chapters[int(data.chapter)].map
-		if unit.x<0 or unit.y<0 or unit.x>=grid[0].length() or unit.y>=grid.size():return false
+		if unit.x<0 or unit.y<0:return false
+		if not old_authored_camp and (unit.x>=bounds[0].length() or unit.y>=bounds.size()):return false
 	if not valid_enemy_waves(data,combat_ids):return false
 	for unit in data.units:
 		if not unit.get("carried_by","").is_empty():
@@ -743,6 +747,10 @@ func restore_save(data) -> String:
 	chapter=int(data.chapter);turn=int(data.turn);phase=data.phase;roster=data.roster;units=data.units;deployed=data.deployed;completed=data.completed;rng.state=int(data.rng)
 	formation_order=data.get("formation_order",[])
 	enemy_waves=data.get("enemy_waves",[])
+	if data.stage=="camp" and content.has("authoring_signature"):
+		var size=board_size()
+		# Older chapter transitions could save combat positions from the previous board.
+		if units.any(func(unit):return unit.x>=size.x or unit.y>=size.y):units.clear()
 	for unit in roster:
 		normalize_equipment(unit);unit.resistance=resistance_for(unit)
 		unit.fallen=unit.get("fallen",false);unit.fallen_chapter=int(unit.get("fallen_chapter",-1))
