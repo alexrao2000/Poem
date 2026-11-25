@@ -699,11 +699,11 @@ func build_route(panel: VBoxContainer) -> Callable:
   var arena=CheckButton.new()
   arena.name="EditorRouteArena"
   arena.text="Reuse this environment on later war tables"
-  arena.button_pressed=level().get("route_arena",false)
+  arena.button_pressed=Draft.Valley.reuses_route_arena(level())
   panel.add_child(arena)
   arena.toggled.connect(func(value):
-   if value:level().route_arena=true
-   else:level().erase("route_arena")
+   if value==Draft.Valley.default_route_arena(level()):level().erase("route_arena")
+   else:level().route_arena=value
    refresh_survey.call();changed())
  refresh_survey.call()
  return refresh_survey

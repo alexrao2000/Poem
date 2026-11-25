@@ -1090,6 +1090,21 @@ func verify_route_arena_reuse(app):
  toggle.button_pressed=false
  assert(not editor.level().has("route_arena"))
  assert(caption.text=="Selected pin · G-11 · Path" and arena_at.call(draft,moved_crossing).environment=="road")
+ editor.select_chapter(5);await process_frame
+ survey=editor.find_child("EditorRouteSurvey",true,false)
+ survey.select(1);survey.item_selected.emit(1)
+ toggle=editor.find_child("EditorRouteArena",true,false)
+ caption=editor.find_child("EditorRouteSurveyTile",true,false)
+ var harbor=Vector2i(17,11)
+ var unsigned=draft.compile().content.authoring_signature
+ assert(toggle.button_pressed and not editor.level().has("route_arena"))
+ assert(caption.text=="Selected pin · R-12 · Plain · Harbor arena" and arena_at.call(draft,harbor).environment=="harbor")
+ toggle.button_pressed=false
+ assert(editor.level().has("route_arena") and not editor.level().route_arena)
+ assert(caption.text=="Selected pin · R-12 · Plain" and arena_at.call(draft,harbor).environment=="road")
+ assert(copy.decode(draft.encode()).is_empty() and arena_at.call(copy,harbor).environment=="road")
+ toggle.button_pressed=true
+ assert(not editor.level().has("route_arena") and draft.compile().content.authoring_signature==unsigned)
 
 func verify_valley_roads_template(app):
  var saved=app.game

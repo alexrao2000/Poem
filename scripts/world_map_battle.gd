@@ -31,6 +31,8 @@ const ROUTE_TERRAIN={"Reed Crossing":"=","Hallow Abbey":"+","Kingsroad":"=","Win
 const LANDMARK_TERRAINS=["=","+","h","o","f"]
 const LOCATION_MODELS={"village":"cottages","forest":"grove","harbor":"harbor","aqueduct":"aqueduct",
  "observatory":"dome","furnace":"foundry","castle":"o"}
+const ROUTE_ARENAS={"Cinderford":"village","Greywood":"forest","Glass Harbor":"harbor","Old Aqueduct":"aqueduct",
+ "Starfall":"observatory","Reddeep":"furnace","Crown Approach":"castle"}
 const TERRAIN_ARENAS={"f":"forest","h":"mountain","=":"river","+":"abbey","o":"castle"}
 
 static func route_dialogue(route: Array) -> Array:
@@ -318,6 +320,13 @@ static func reached_places(chapters: Array,chapter_index: int) -> Dictionary:
   if chapter.place not in places[tile]:places[tile].append(chapter.place)
  return places
 
+static func default_route_arena(chapter: Dictionary) -> bool:
+ # Resolve this in presentation so existing authored campaign signatures stay valid.
+ return ROUTE_ARENAS.get(chapter.get("place",""),"")==chapter.get("environment","village")
+
+static func reuses_route_arena(chapter: Dictionary) -> bool:
+ return chapter.get("route_arena",default_route_arena(chapter))
+
 static func arena_at(chapters: Array,chapter_index: int,point: Vector2i,terrain: String) -> Dictionary:
  var theme=TERRAIN_ARENAS.get(terrain,"road")
  var remembered={}
@@ -325,7 +334,7 @@ static func arena_at(chapters: Array,chapter_index: int,point: Vector2i,terrain:
   var chapter=chapters[index]
   if chapter.get("presentation","")=="valley_table" or route_tile(chapter.route_position)!=point:continue
   var environment=chapter.get("environment","village")
-  if chapter.get("route_arena",false):
+  if reuses_route_arena(chapter):
    return {"environment":environment,"chapter":chapter,"reused":true}
   if remembered.is_empty() and (environment==theme or (terrain=="=" and environment=="road")):
    remembered=chapter
