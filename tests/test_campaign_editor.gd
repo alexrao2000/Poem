@@ -607,8 +607,11 @@ func verify_editor_reveal_preview(app,scratch: String,picture: Texture2D,origin:
  root.push_input(tab,true);await finish_presentation(app)
  root.size=size_before;root.content_scale_size=scale_before
  await process_frame
+ controls(app,"Replay reveal").pressed.emit()
+ assert(app.valley_reveal_active)
  var escape=InputEventKey.new();escape.keycode=KEY_ESCAPE;escape.pressed=true
  root.push_input(escape,true)
+ await finish_presentation(app)
  await process_frame;await process_frame;await process_frame
  assert(app.screen=="campaign_editor" and app.game==original and app.game.save_data("battle")==state)
  assert(app.campaign_editor.selected==chapter and app.campaign_editor.grid.cursor==cursor)
@@ -616,7 +619,7 @@ func verify_editor_reveal_preview(app,scratch: String,picture: Texture2D,origin:
  assert(app.campaign_editor.find_child("EditorPreviewReveal",true,false).has_focus())
  assert(app.score_director.player.get_stream_playback()==playback)
  assert(DirAccess.get_files_at(scratch)==files and FileAccess.get_file_as_string(app.save_path)==disk)
- print("PASS: the editor plays and skips the authored atlas reveal and returns to the exact draft without writing a playtest")
+ print("PASS: the editor plays and skips the authored atlas reveal and Escape returns mid-reveal to the exact draft without writing a playtest")
 
 func verify_multiple_standards(app):
  controls(app,"New draft").pressed.emit();await process_frame

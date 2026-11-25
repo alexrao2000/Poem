@@ -102,7 +102,7 @@ Use **Atlas note** in Route to add a short survey entry to a chapter’s briefin
 
 On a war table, select **Reveal origin** in the Battle tools and choose the tile where the tactical grid should first appear. The same point closes the chart after a victory. Right-click or press Backspace to restore the default. A seize battle starts the reveal at its primary standard by default.
 
-Choose **Preview atlas reveal** in Battle to watch the current chart unfold with your selected origin, standards, and starting company. Use **Replay reveal** to see it again and **Return to editor** to keep working.
+Choose **Preview atlas reveal** in Battle to watch the current chart unfold with your selected origin, standards, and starting company. Use **Replay reveal** to see it again, or press **Esc** whenever you want to return to the editor.
 
 The route battle keeps the existing classes, weapons, forecasting, and rules switches. Allied sprites stand on octagonal counters and enemy sprites stand on hexagonal counters. Each piece represents a company led by a character. Miniature crossings, abbeys, forests, hills, and strongholds rise with the grid at reached sites. Their tiles come from the same chapter pins used on the route screen and the terrain card gives their names. The close-up shows the commanders and the terrain where their pieces met. The original score, “The Roads Between,” moves from Calm to Ablaze on the same playhead during each exchange. Earlier route screens hint at the grid with a faint cartographer’s scale.
 

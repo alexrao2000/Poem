@@ -70,6 +70,7 @@ var chapter_card_active=false
 var chapter_card_skip=false
 const ValleyBattle=preload("res://scripts/world_map_battle.gd")
 var valley_reveal_active=false
+var editor_reveal_close_pending=false
 var valley_reveal_skip=false
 var atlas_return_control=""
 var atlas_grid_enabled=false
@@ -679,9 +680,11 @@ func open_editor_reveal_preview():
 
 func preview_editor_reveal():
 	if busy:return
+	editor_reveal_close_pending=false
 	busy=true
 	await reveal_valley_battle()
 	busy=false
+	if editor_reveal_close_pending:close_editor_reveal_preview()
 
 func close_editor_reveal_preview():
 	if busy:return
@@ -1206,7 +1209,9 @@ func replay_valley_reveal():
 	close_battle_route()
 
 func valley_transition_hint() -> Label:
-	var hint=label_in(canvas,"Click or press Tab to continue",16,Color("fff1d5"))
+	var help="Click or press Tab to continue"
+	if screen=="editor_reveal_preview":help+=" · Esc to return to editor"
+	var hint=label_in(canvas,help,16,Color("fff1d5"))
 	hint.name="ValleyRevealHint"
 	hint.set_anchors_and_offsets_preset(Control.PRESET_BOTTOM_WIDE)
 	hint.offset_top=-48;hint.offset_bottom=-16
@@ -1592,7 +1597,10 @@ func toggle_tracked_threat():
 
 func _input(event):
 	if valley_reveal_active:
-		if event is InputEventKey and event.keycode==KEY_TAB and event.pressed and not event.echo:valley_reveal_skip=true
+		if event is InputEventKey and event.pressed and not event.echo:
+			if event.keycode==KEY_TAB:valley_reveal_skip=true
+			elif event.keycode==KEY_ESCAPE and screen=="editor_reveal_preview":
+				editor_reveal_close_pending=true;valley_reveal_skip=true
 		if event is InputEventMouseButton and event.button_index==MOUSE_BUTTON_LEFT and event.pressed:valley_reveal_skip=true
 		get_viewport().set_input_as_handled();return
 	if screen=="dialogue" and event is InputEventKey and dialogue_stage.history!=null and event.keycode in [KEY_UP,KEY_DOWN,KEY_PAGEUP,KEY_PAGEDOWN,KEY_HOME,KEY_END]:
