@@ -1554,6 +1554,10 @@ func end_turn(resuming=false):
 		var bleeding=game.units.filter(func(unit):return game.DeathDoor.downed(unit)).map(func(unit):return unit.id)
 		var had_downed=game.units.any(func(unit):return game.DeathDoor.downed(unit))
 		var pending=game.enemy_waves.size()
+		var waiting_defense: Array[String]=[]
+		if game.info().get("presentation","")=="valley_table":
+			for wave in game.enemy_waves:
+				if wave.get("arrive_on_defense",false):waiting_defense.append(wave.unit.id)
 		var consequences=game.begin_enemy_phase()
 		var reinforced=game.enemy_waves.size()<pending
 		if not checkpoint_action("enemy_phase"):return
@@ -1565,7 +1569,14 @@ func end_turn(resuming=false):
 		if had_downed or reinforced:refresh_pieces();highlight()
 		await present_casualties(losses)
 		if await check_result():busy=false;return
+		var arriving: Array[Node3D]=[]
+		if reinforced:
+			for id in waiting_defense:
+				if not unit_nodes.has(id):continue
+				var actor=unit_nodes[id]
+				actor.hide();arriving.append(actor)
 		update_side();await announce_phase("enemy")
+		if not arriving.is_empty():await present_table_reserves(arriving)
 		if reinforced:show_notice("Enemy reinforcements arrived.")
 	if not await present_phase_scenes():return
 	for e in game.living("enemy"):
@@ -1611,6 +1622,36 @@ func end_turn(resuming=false):
 	await show_terrain_recovery(recovery_before)
 	busy=false;update_side()
 	persist_campaign("battle")
+
+func present_table_reserves(arriving: Array[Node3D]):
+	if phase_skip:
+		for actor in arriving:actor.show()
+		return
+	var view=map_navigation.capture_view()
+	var viewport_size=get_viewport().get_visible_rect().size
+	var began_at_home=map_navigation.at_home()
+	var overview=ValleyBattle.reserve_view(camera,game.board_size(),view)
+	var resting=arriving.map(func(actor):return actor.position)
+	var ui_visible=ui.visible;var marks_visible=markers.visible
+	ui.hide();markers.hide();skip_combat=false
+	if await combat_wait(map_navigation.return_from_combat(view,overview,.22)):
+		var placement=create_tween().set_parallel(true)
+		var delay=.16/maxi(1,arriving.size()-1)
+		for index in arriving.size():
+			var actor=arriving[index]
+			actor.position=resting[index]+Vector3.UP*.84
+			actor.show()
+			var moment=index*delay
+			placement.tween_property(actor,"position",resting[index],.22).set_delay(moment).set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_IN)
+			if index<3:placement.tween_callback(func():travel_audio.step("=","",index)).set_delay(moment+.22)
+		await combat_wait(placement)
+	for index in arriving.size():
+		arriving[index].position=resting[index];arriving[index].show()
+	var current=map_navigation.capture_view()
+	await combat_wait(map_navigation.return_from_combat(current,view,.22))
+	map_navigation.apply_return(1,current,view)
+	if began_at_home and get_viewport().get_visible_rect().size!=viewport_size:map_camera()
+	ui.visible=ui_visible;markers.visible=marks_visible;skip_combat=false
 
 func selected_model_builders() -> Array:
 	var revised=preferences.values.character_models=="revised"

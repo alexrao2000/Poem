@@ -226,6 +226,13 @@ static func chart_view(camera: Camera3D,board: Vector2i,home: Dictionary) -> Dic
  view.h_offset=0.0;view.v_offset=0.0
  return view
 
+static func reserve_view(camera: Camera3D,board: Vector2i,home: Dictionary) -> Dictionary:
+ var view=chart_view(camera,board,home)
+ var center=Vector3((board.x-1)*.5,0,(board.y-1)*.5)
+ var offset=Vector3(0,24,10)
+ view.transform=Transform3D(Basis.looking_at(-offset,Vector3.UP),center+offset)
+ return view
+
 static func play_reveal(navigation,game,world: Node3D,actors: Array,hint: Control,skip: Callable,cue: Callable=Callable()):
  var camera: Camera3D=navigation.camera
  var home: Dictionary=navigation.capture_view()
