@@ -90,6 +90,8 @@ func run():
    var map_cells=verify_conduits(landmarks[0],-.07,Rect2(4.5,2.5,5,4))
    var area=Rect2(Vector2(basin.position.x,basin.position.z)-basin.mesh.size*.5,basin.mesh.size)
    var arena_cells=verify_conduits(backdrops[0],basin.position.y,area)
+   verify_engine_vault(world.get_node("SunEngineVault"),-.5)
+   verify_engine_vault(arena.get_node("SunEngineVault"),area.position.y)
    assert(map_cells[0].mesh==arena_cells[0].mesh and landmarks[0].conduit_light!=backdrops[0].conduit_light)
    await verify_conduit_projections(map_cells,true)
    await verify_conduit_projections(arena_cells,false)
@@ -150,6 +152,18 @@ func verify_sun_surface():
   seam+=absf(previous-first)
  assert(interior>10 and seam<interior/(width-1)*1.3,"The wrapping seam has the same contrast as adjacent pixels")
  print("PASS: mipmapped Sun Engine marbling wraps continuously around its core")
+
+func verify_engine_vault(vault: Node3D,forward_limit: float):
+ var coping=vault.find_children("VaultCoping*","MeshInstance3D",false,false)
+ var buttresses=vault.find_children("VaultButtressFoot*","MeshInstance3D",false,false)
+ assert(vault.get_child_count()==47 and coping.size()==10 and buttresses.size()==4)
+ assert(coping[0].position.z>coping[4].position.z and coping[-1].position.z>coping[5].position.z)
+ assert(coping[0].position.y>coping[4].position.y and coping[-1].position.y>coping[5].position.y)
+ for piece in vault.get_children():
+  var bounds=piece.global_transform*piece.mesh.get_aabb()
+  assert(bounds.end.z<forward_limit,"The receiving wall stays behind the board and the combat basin")
+ for foot in buttresses:assert(foot.position.y<.15 and foot.mesh==buttresses[0].mesh)
+ print("PASS: the curved Sun Engine vault stays grounded behind the fight")
 
 func verify_clockwork_cache_boundaries(host: Node3D):
  var before_rings=Orbit.rings.duplicate()

@@ -45,6 +45,7 @@ const HearthFire=preload("res://scripts/hearth_fire.gd")
 const ReddeepWorks=preload("res://scripts/reddeep_works.gd")
 const ARENA_GROVE_CACHE_LIMIT=4
 const EngineConduits=preload("res://scripts/sun_engine_conduits.gd")
+const EngineVault=preload("res://scripts/sun_engine_vault.gd")
 const MAX_CACHED_CYLINDERS=256
 const HOUSE_SCALE=1.2
 const VILLAGE_HOUSE_BACKDROP_SCALE=1.7
@@ -468,6 +469,7 @@ func landscape(parent,game):
   var sea=plane_shape(Vector2(55,35))
   mesh(parent,sea,Vector3(7,-.12,26),Vector3.ONE,water_material(theme))
   HarborBreakwater.build(self,parent,HarborBreakwater.MAP_SITE,HarborBreakwater.MAP_SCALE,PI)
+ elif theme=="engine":EngineVault.build(self,parent,Vector3(center.x-.5,-.15,-.88),EngineVault.MAP_SCALE)
 
  ground_cover.add_map(parent,game,building_cells)
  if batching_enabled:batcher.combine(parent)
@@ -1172,6 +1174,7 @@ func battle_landscape(parent,center,context={}):
  if theme=="engine":
   sun_engine_basin(parent,mechanism)
   sun_engine(parent,mechanism)
+  EngineVault.build(self,parent,mechanism+Vector3(0,-.06,-5.0),Vector3.ONE)
  ground_cover.add_arena(parent,center,context)
  if batching_enabled:batcher.combine(parent)
  var atmosphere=AmbientDrift.new();parent.add_child(atmosphere);atmosphere.position=center+Vector3(0,0,-3)
