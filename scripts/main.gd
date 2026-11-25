@@ -75,6 +75,7 @@ var valley_reveal_active=false
 var editor_reveal_close_pending=false
 var valley_reveal_skip=false
 var atlas_return_control=""
+var atlas_open_extent=Vector2.ZERO
 var atlas_grid_enabled=false
 var atlas_units_enabled=false
 var atlas_reach_enabled=false
@@ -1558,11 +1559,17 @@ func open_battle_atlas(opener: String):
 	if busy or game.phase!="player" or game.info().get("presentation","")!="valley_table":return
 	if screen=="battle_menu":close_battle_menu()
 	if screen!="battle":return
+	atlas_open_extent=get_viewport().get_visible_rect().size
 	atlas_return_control=opener;map_navigation.stop()
 	show_campaign_route("battle_route")
 
 func close_battle_route():
+	var viewport_size=get_viewport().get_visible_rect().size
+	var resized=atlas_open_extent!=Vector2.ZERO and viewport_size!=atlas_open_extent
+	var refit=resized and map_navigation.at_home()
+	atlas_open_extent=Vector2.ZERO
 	show_battle()
+	if refit:map_camera()
 	var opener=side.find_child(atlas_return_control,true,false)
 	atlas_return_control=""
 	if opener!=null:opener.grab_focus()

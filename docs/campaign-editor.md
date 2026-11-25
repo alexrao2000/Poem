@@ -120,6 +120,8 @@ During a war-table battle, press **V** or select **Atlas** to reread the earlier
 
 Choose **Replay reveal** in the battle atlas to watch the chart become the battlefield again. Click or press Tab to skip. The scene returns to the current camera and selected unit.
 
+If you resize the window in the atlas, returning to battle fits the Home view to the new size. A manual pan or zoom stays where you left it.
+
 The atlas remembers its layers while you move between it and the same battlefield. Loading a battle opens the atlas with all layers off.
 
 When a defeat sends the company back to an earlier chapter, **Preview rally company** lists the starting deployment, available reserves, and permanent losses before regrouping. The same preview is available in **Review losses** if ending the phase would cause that retreat.

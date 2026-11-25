@@ -2485,6 +2485,34 @@ func run():
   await app.click_tile(Vector2i(3,9));await app.click_tile(destination)
   assert(canonical(app.game.save_data("battle"))==valley_state)
  print("PASS: Atlas and V open the battle chart directly, preserving a pending movement, camera view and save")
+ for manual in [false,true]:
+  root.size=Vector2i(1440,900);root.content_scale_size=root.size
+  await process_frame;await process_frame
+  app.map_camera()
+  if manual:app.camera.size-=2
+  var current_view=app.map_navigation.capture_view()
+  app.ui.find_child("OpenBattleAtlas",true,false).pressed.emit();await process_frame
+  root.size=Vector2i(720,750);root.content_scale_size=root.size
+  await process_frame;await process_frame
+  if manual:
+   var escape=InputEventKey.new();escape.keycode=KEY_ESCAPE;escape.pressed=true
+   root.push_input(escape,true)
+   escape.pressed=false;root.push_input(escape,true)
+  else:app.ui.find_child("BattleRouteReturn",true,false).pressed.emit()
+  await process_frame;await process_frame
+  assert(app.screen=="battle" and app.ui.find_child("OpenBattleAtlas",true,false).has_focus())
+  var returned_view=app.map_navigation.capture_view()
+  assert(app.map_navigation.at_home()==not manual)
+  if manual:assert(returned_view==current_view)
+  else:
+   app.map_camera()
+   assert(returned_view==app.map_navigation.capture_view() and returned_view!=current_view)
+  assert(canonical(app.game.save_data("battle"))==valley_state and FileAccess.get_file_as_string(valley_path)==valley_disk)
+  assert(app.score_director.player.get_stream_playback()==decoder)
+ root.size=original_size;root.content_scale_size=original_scale
+ await process_frame;await process_frame
+ app.map_camera()
+ print("PASS: closing the battle atlas after resizing refits Home and preserves a manual camera")
  app.show_battle_menu();await process_frame
  controls(app,"Save and return to route").pressed.emit();await process_frame
  assert(app.screen=="campaign_route" and app.game==installed and app.game.save_data("camp")==route_state)
