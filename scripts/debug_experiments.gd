@@ -7,7 +7,8 @@ const SETUPS=[
  {"id":"rescue","title":"Rescue at death’s door","chapter":0,"permadeath":true,"action_saves":true,"death_door":true,"flags":[],"rules":"Chapter 1 · Permadeath, action saves and death’s door ON. Lyra, Oren and Ivo begin together for rescue practice. Other experiments OFF.","steps":"In Debug, test Oren falling. Select Lyra, then Oren to rescue him. Select Ivo and heal the carried Oren. Carrying pauses the two-phase countdown; healing returns Oren to the field with his action spent."},
  {"id":"last_rescue","title":"Last chance rescue","chapter":0,"permadeath":true,"action_saves":true,"death_door":true,"flags":[],"rules":"Chapter 1 · Permadeath, action saves and death’s door ON. Oren is already down with one countdown tick left; Ivo has spent his action. Other experiments OFF.","steps":"Select Lyra, then adjacent Oren, and rescue him before ending the phase. Carrying pauses the countdown. Next turn, move Lyra west beside Ivo and heal Oren while he is carried. Restart this setup and end the first phase without rescuing him to compare the permanent loss."},
  {"id":"legacy_recruits","title":"Who answers the loss","chapter":3,"permadeath":true,"action_saves":true,"death_door":true,"flags":["section_restarts","death_legacies"],"rules":"Hallow Abbey · Permadeath, action saves, death’s door and death legacies ON. Ivo and Sera each have one phase ending left.","steps":"Select Esme and heal one patient before ending the phase. Move Lyra beside the other patient if you want to rescue both. Return to the war council to read any arrival scenes."},
- {"id":"sacrifice","title":"Sacrifice & recovery","chapter":0,"permadeath":false,"action_saves":true,"death_door":false,"flags":["hard_campaign","sacrifice_cost"],"rules":"Cinderford · Permadeath OFF. Action saves, Hard forces and sacrifice costs ON. Oren starts at 1 HP and the Ash guard is wounded.","steps":"End the phase. After Oren withdraws, move Sera to (4, 5) and target the Ash guard at (5, 6). The opening raises her forecast from 5 to 7 damage. Retreat and deploy to see Oren return with 4 HP missing and one tonic. Start this setup again and turn off Sacrifice costs & openings before ending the phase to compare."}
+ {"id":"sacrifice","title":"Sacrifice & recovery","chapter":0,"permadeath":false,"action_saves":true,"death_door":false,"flags":["hard_campaign","sacrifice_cost"],"rules":"Cinderford · Permadeath OFF. Action saves, Hard forces and sacrifice costs ON. Oren starts at 1 HP and the Ash guard is wounded.","steps":"End the phase. After Oren withdraws, move Sera to (4, 5) and target the Ash guard at (5, 6). The opening raises her forecast from 5 to 7 damage. Retreat and deploy to see Oren return with 4 HP missing and one tonic. Start this setup again and turn off Sacrifice costs & openings before ending the phase to compare."},
+ {"id":"aqueduct_retry","title":"Rescue or retry at Old Aqueduct","chapter":7,"permadeath":false,"action_saves":true,"death_door":true,"flags":["hard_campaign","reset_pressure","sacrifice_cost"],"rules":"Old Aqueduct · Permadeath OFF. Hard forces, action saves, death’s door, reset preparation and sacrifice costs ON. Pressure starts at one.","steps":"Lyra and Tarin each have one phase ending left. Have Ivo heal Lyra and Oren carry Tarin to save both. To test the other outcome, end the phase and choose Regroup and retry. Deploy at Old Aqueduct again with injuries, pressure two, no enemy tonics and further raider movement."}
 ]
 
 static func start(game,id: String,seed_value: int) -> bool:
@@ -23,6 +24,9 @@ static func start(game,id: String,seed_value: int) -> bool:
   game.trials.arrive(game);game.trials.capture_section(game)
  game.chapter=setup.chapter
  if id=="legacy_recruits":game.deployed=["lyra","sera","ivo","esme"]
+ if id=="aqueduct_retry":
+  game.deployed=["lyra","oren","sera","ivo","tarin","ari"]
+  game.trials.pressure=1
  game.story_seen.append("opening_"+str(game.chapter));game.start_battle()
  if id=="reset_pressure":
   var lyra=game.living("player").filter(func(unit):return unit.id=="lyra")[0]
@@ -50,5 +54,13 @@ static func start(game,id: String,seed_value: int) -> bool:
    var cell=positions[unit.id]
    unit.x=cell.x;unit.y=cell.y
    if unit.id in ["ivo","sera"]:
+    unit.hp=0;game.DeathDoor.fall(game,unit);unit.bleed_turns=1
+ elif id=="aqueduct_retry":
+  var positions={"ivo":Vector2i(1,3),"lyra":Vector2i(1,4),"tarin":Vector2i(1,5),
+   "ari":Vector2i(2,3),"sera":Vector2i(2,4),"oren":Vector2i(2,5)}
+  for unit in game.living("player"):
+   var cell=positions[unit.id]
+   unit.x=cell.x;unit.y=cell.y
+   if unit.id in ["lyra","tarin"]:
     unit.hp=0;game.DeathDoor.fall(game,unit);unit.bleed_turns=1
  return true

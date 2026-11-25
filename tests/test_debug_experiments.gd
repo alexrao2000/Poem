@@ -3,7 +3,7 @@ const Rules=preload("res://scripts/rules.gd")
 const Session=preload("res://scripts/debug_session.gd")
 const Tactics=preload("res://scripts/tactics.gd")
 const Shutdown=preload("helpers/game_shutdown.gd")
-const SETUP_IDS=["committed_losses","reset_pressure","section_retreat","rescue","last_rescue","legacy_recruits","sacrifice"]
+const SETUP_IDS=["committed_losses","reset_pressure","section_retreat","rescue","last_rescue","legacy_recruits","sacrifice","aqueduct_retry"]
 func _initialize():call_deferred("run")
 func canonical(data):return JSON.parse_string(JSON.stringify(data))
 func unit(game,id):return game.units.filter(func(u):return u.id==id)[0]
@@ -76,12 +76,64 @@ func consequences(game,session,id):
    assert(branch.trials.restart(branch) and branch.chapter==0 and branch.available().any(func(unit):return unit.id==expected))
   game.begin_enemy_phase()
   assert(game.trials.credits==2 and game.trials.earned_scenes.has("volunteer_maelin") and game.trials.earned_scenes.has("volunteer_tovin"))
- else:
+ elif id=="sacrifice":
   assert(unit(game,"oren").hp==1 and unit(game,"enemy_4").hp==6 and game.action_saves)
   var attack=game.attack_power(unit(game,"lyra"))
   assert(session.fall_unit(game,"oren") and game.attack_power(unit(game,"lyra"))==attack+2)
   assert(game.trials.restart(game));game.start_battle();var patient=unit(game,"oren")
   assert(not game.permadeath and patient.hp==patient.max_hp-4 and patient.potions==1 and patient.recovering)
+ else:
+  assert(id=="aqueduct_retry" and game.chapter==7 and not game.permadeath and game.trials.pressure==1)
+  var lyra=unit(game,"lyra");var tarin=unit(game,"tarin")
+  assert(game.DeathDoor.downed(lyra) and lyra.bleed_turns==1 and game.can_heal(unit(game,"ivo"),lyra))
+  assert(game.DeathDoor.downed(tarin) and tarin.bleed_turns==1 and game.DeathDoor.can_rescue(game,unit(game,"oren"),tarin))
+  var enemy_preparation={}
+  for enemy in game.living("enemy"):
+   assert(enemy.held_tonics==1)
+   enemy_preparation[enemy.id]={"pos":game.pos(enemy),"hp":enemy.max_hp,"pow":enemy.pow}
+  game.begin_enemy_phase()
+  assert(game.result()=="defeat" and game.lost_ids().is_empty() and game.trials.credits==0)
+  assert(game.retry_battle() and game.chapter==7 and game.trials.pressure==2)
+  game.start_battle()
+  assert(game.living("enemy").all(func(enemy):return enemy.held_tonics==0))
+  assert(game.living("enemy").any(func(enemy):return enemy.get("raider",false) and game.pos(enemy)!=enemy_preparation[enemy.id].pos))
+  for enemy in game.living("enemy"):
+   assert(enemy.max_hp==mini(game.STAT_CAPS.max_hp,enemy_preparation[enemy.id].hp+2))
+   assert(enemy.pow==mini(game.STAT_CAPS.pow,enemy_preparation[enemy.id].pow+1))
+  for patient in [unit(game,"lyra"),unit(game,"tarin")]:
+   assert(patient.hp==patient.max_hp-4 and patient.potions==1 and patient.recovering)
+
+func verify_aqueduct(app,disk):
+ var game=app.game
+ app.show_debug_experiments();app.ui.find_child("StartExperiment_aqueduct_retry",true,false).pressed.emit()
+ await process_frame;await process_frame
+ assert(app.ui.find_child("EndPlayerPhase",true,false).text=="End phase · 2 will fall")
+ app.click_tile(game.pos(unit(game,"ivo")));app.click_tile(game.pos(unit(game,"lyra")))
+ await settle(app);saved_setup(app)
+ assert(unit(game,"lyra").hp>0 and not game.DeathDoor.downed(unit(game,"lyra")))
+ app.click_tile(game.pos(unit(game,"oren")));app.click_tile(game.pos(unit(game,"tarin")))
+ assert(app.screen=="triage");press(app,"Rescue Tarin")
+ await settle(app);saved_setup(app)
+ assert(unit(game,"tarin").carried_by=="oren" and unit(game,"tarin").bleed_turns==1)
+ assert(app.screen=="battle" and game.trials.pressure==1)
+ app.show_debug_experiments();app.ui.find_child("StartExperiment_aqueduct_retry",true,false).pressed.emit()
+ await process_frame;await process_frame
+ app.ui.find_child("EndPlayerPhase",true,false).pressed.emit()
+ await settle(app);saved_setup(app)
+ assert(app.screen=="result" and game.result()=="defeat")
+ assert(app.ui.find_child("RestartPreview",true,false).text.contains("Return to Chapter 08 · Pressure 1 → 2"))
+ assert(app.ui.find_child("DefeatRecovery",true,false).text.contains("Tarin"))
+ press(app,"Regroup and retry")
+ assert(app.screen=="camp" and game.chapter==7 and game.trials.pressure==2)
+ var camp=Rules.new();assert(camp.load_game(app.save_path+".debug")=="camp")
+ assert(canonical(camp.save_data("camp"))==canonical(game.save_data("camp")))
+ press(app,"Deploy company  >");await settle(app);saved_setup(app)
+ assert(app.screen=="battle" and game.chapter==7 and game.trials.pressure==2)
+ assert(unit(game,"tarin").hp==unit(game,"tarin").max_hp-4 and unit(game,"tarin").potions==1)
+ assert(game.lost_ids().is_empty() and game.living("enemy").all(func(enemy):return enemy.held_tonics==0))
+ assert(FileAccess.get_file_as_string(app.save_path)==disk)
+ print("PASS: the actual Old Aqueduct setup rescues both patients or advances the same chapter to pressure two with recoverable injuries")
+
 func run():
  var rules=Rules.new();rules.start_battle();var session=Session.new();var original=rules.save_data("battle").duplicate(true)
  assert(not session.start_experiment(rules,"rescue") and rules.save_data("battle")==original)
@@ -212,8 +264,9 @@ func run():
   app.player_attack();await settle(app);saved_setup(app)
   assert(guard.hp==(0 if opening else 1) and FileAccess.get_file_as_string(app.save_path)==disk)
  print("PASS: the actual sacrifice setup shows 5 or 7 damage and only the opening secures the knockout")
+ await verify_aqueduct(app,disk)
  app.show_options("battle");app.ui.find_child("DebugMode",true,false).button_pressed=false
  assert(not app.debug_session.active and app.game.save_data("camp")==live and FileAccess.get_file_as_string(app.save_path)==disk)
  await Shutdown.dispose(app);await process_frame
- print("PASS: seven deterministic experiment starters, five-seed rescue/bleed-out branches, matched Warden and Ranger replacement paths, carrier badge triage, four-size menus, separate saves, traces and exact campaign restoration")
+ print("PASS: eight deterministic experiment starters, five-seed rescue/bleed-out branches, matched Warden and Ranger replacement paths, recoverable late retry, carrier badge triage, four-size menus, separate saves, traces and exact campaign restoration")
  quit()
