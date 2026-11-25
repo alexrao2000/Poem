@@ -24,6 +24,7 @@ var selected_person=0
 var selected_bond=0
 var selected_enemy=0
 var selected_scene=0
+var selected_site_scene=0
 var selected_stock=0
 var selected_arrival=0
 var survey_chapter=""
@@ -441,6 +442,8 @@ func build_story(panel: VBoxContainer):
    record[kind]=lines;changed())
  var events=VBoxContainer.new();events.add_theme_constant_override("separation",8);panel.add_child(events)
  build_phase_scenes(events,record)
+ var tile_events=VBoxContainer.new();tile_events.add_theme_constant_override("separation",8);panel.add_child(tile_events)
+ build_tile_dialogue(tile_events,layout)
  var section_story=VBoxContainer.new();section_story.add_theme_constant_override("separation",8);panel.add_child(section_story)
  section_story.visible=record.section
  section.toggled.connect(func(value):record.section=value;section_story.visible=value;changed())
@@ -603,7 +606,7 @@ func build_phase_scenes(panel: VBoxContainer,record: Dictionary):
  selected_scene=clampi(selected_scene,0,scenes.size()-1)
  var index=selected_scene
  var scene=scenes[index]
- action(actions,"Remove phase scene",func():confirm_remove_phase_scene(scenes,index,build_phase_scenes.bind(panel,record)))
+ action(actions,"Remove phase scene",func():confirm_remove_battle_scene(scenes,index,"phase",build_phase_scenes.bind(panel,record)))
  var picker=OptionButton.new();picker.name="EditorPhaseScene";picker.custom_minimum_size.y=42
  for stored in scenes:picker.add_item(phase_scene_label(stored))
  picker.select(index);picker.item_selected.connect(func(value):selected_scene=value;build_phase_scenes(panel,record));panel.add_child(picker)
@@ -619,12 +622,47 @@ func build_phase_scenes(panel: VBoxContainer,record: Dictionary):
 func phase_scene_label(scene: Dictionary) -> String:
  return "Turn %d · %s phase"%[scene.turn,scene.phase.capitalize()]
 
-func confirm_remove_phase_scene(scenes: Array,index: int,refresh: Callable):
- var dialog=ConfirmationDialog.new();dialog.title="Remove this phase scene?"
- dialog.dialog_text="This removes its dialogue and phase trigger."
+func confirm_remove_battle_scene(scenes: Array,index: int,trigger: String,refresh: Callable):
+ var dialog=ConfirmationDialog.new();dialog.title="Remove this %s scene?"%trigger
+ dialog.dialog_text="This removes its dialogue and trigger."
  add_child(dialog);dialog.popup_centered()
- dialog.confirmed.connect(func():scenes.remove_at(index);changed();refresh.call();dialog.queue_free())
+ dialog.confirmed.connect(func():scenes.remove_at(index);grid.queue_redraw();changed();refresh.call();dialog.queue_free())
  dialog.canceled.connect(dialog.queue_free)
+
+func build_tile_dialogue(panel: VBoxContainer,layout: Dictionary):
+ for child in panel.get_children():panel.remove_child(child);child.queue_free()
+ heading(panel,"Tile dialogue",21)
+ var scenes=layout.get("site_scenes",[])
+ var actions=row(panel)
+ action(actions,"Add tile scene",func():
+  var ids=scenes.map(func(scene):return scene.id)
+  var number=1
+  while "site_%02d"%number in ids:number+=1
+  scenes.append({"id":"site_%02d"%number,"position":[grid.cursor.x,grid.cursor.y],"lines":[]})
+  layout.site_scenes=scenes
+  selected_site_scene=scenes.size()-1;grid.queue_redraw();changed()
+  build_tile_dialogue(panel,layout),scenes.size()>=Draft.MAX_SITE_SCENES).name="EditorAddTileScene"
+ if scenes.is_empty():return
+ heading(panel,"Plays once when a standing ally finishes an action on the tile.",15)
+ selected_site_scene=clampi(selected_site_scene,0,scenes.size()-1)
+ var index=selected_site_scene
+ var scene=scenes[index]
+ action(actions,"Remove tile scene",func():confirm_remove_battle_scene(scenes,index,"tile",build_tile_dialogue.bind(panel,layout)))
+ var picker=OptionButton.new();picker.name="EditorTileScene";picker.custom_minimum_size.y=42
+ for stored in scenes:picker.add_item(tile_scene_label(stored))
+ picker.select(index);picker.item_selected.connect(func(value):selected_site_scene=value;build_tile_dialogue(panel,layout));panel.add_child(picker)
+ var trigger=row(panel)
+ for axis in 2:
+  var title="X tile" if axis==0 else "Y tile"
+  var bounds=Draft.MAX_BOARD.x if axis==0 else Draft.MAX_BOARD.y
+  var coordinate=spin(int(scene.position[axis]),0,bounds-1,func(value):
+   scene.position[axis]=int(value);picker.set_item_text(index,tile_scene_label(scene));grid.queue_redraw();changed())
+  coordinate.name="EditorTileScene"+str(axis)
+  field_label(trigger,title,coordinate)
+ dialogue_editor(panel,"EditorTileSceneLines",132,func():return scene.lines,func(lines):scene.lines=lines;changed())
+
+func tile_scene_label(scene: Dictionary) -> String:
+ return "Tile %d, %d"%scene.position
 
 func build_company(panel: VBoxContainer):
  var company=draft.data.recruits
@@ -969,6 +1007,7 @@ func select_chapter(index: int):
  selected=index
  selected_enemy=0
  selected_scene=0
+ selected_site_scene=0
  draft_selection_changed.emit(draft_key,selected)
  rebuild()
 

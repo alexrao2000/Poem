@@ -893,13 +893,26 @@ func announce_phase(side: String):
 
 func present_phase_scenes() -> bool:
 	for scene in game.pending_phase_scenes():
-		var finished=[false]
-		show_dialogue(scene.lines,func():finished[0]=true)
-		while not finished[0]:await get_tree().process_frame
-		game.story_seen.append(game.phase_scene_token(scene))
-		show_battle()
-		if not persist_campaign("battle",true,"phase_scene") and game.action_saves:
-			busy=false;update_side();return false
+		if not await present_battle_scene(scene,game.phase_scene_token(scene),"phase_scene"):return false
+	return true
+
+func present_site_scenes() -> bool:
+	var scenes=game.pending_site_scenes()
+	if scenes.is_empty() or game.result()=="defeat":return true
+	busy=true
+	for scene in scenes:
+		if not await present_battle_scene(scene,game.site_scene_token(scene),"site_scene"):return false
+	busy=false;update_side()
+	return true
+
+func present_battle_scene(scene: Dictionary,token: String,reason: String) -> bool:
+	var finished=[false]
+	show_dialogue(scene.lines,func():finished[0]=true)
+	while not finished[0]:await get_tree().process_frame
+	game.story_seen.append(token)
+	show_battle()
+	if not persist_campaign("battle",true,reason) and game.action_saves:
+		busy=false;update_side();return false
 	return true
 
 func show_battle():
@@ -1373,6 +1386,7 @@ func player_attack():
 func finish_action():
 	drop_mode=false
 	selected=null;target=null;origin=null;refresh_pieces();highlight();update_side()
+	if not await present_site_scenes():return
 	if await check_result():return
 	persist_campaign("battle")
 	if preferences.values.auto_end and game.living("player").all(func(u):return u.acted):end_turn()
@@ -2904,6 +2918,7 @@ func retry_action_save():
 
 func resume_saved_battle():
 	make_map();show_battle()
+	if not await present_site_scenes():return
 	if await check_result():return
 	if game.phase=="enemy":await end_turn(true)
 	elif not game.pending_phase_scenes().is_empty():

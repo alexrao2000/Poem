@@ -48,7 +48,7 @@ func _init(campaign: Dictionary={}):
 	supports=Supports.new(content.get("bonds"),content.chapters.size())
 	for index in content.chapters.size():
 		var level=content.chapters[index]
-		story_limit+=level.get("phase_scenes",[]).size()
+		story_limit+=level.get("phase_scenes",[]).size()+level.get("site_scenes",[]).size()
 		if level.has("hard_bonuses"):trials.chapter_hard_bonuses[index]=level.hard_bonuses
 	for template in content.roster:recruit_templates[template.id]=template
 	for legacy in content.legacy_recruits:recruit_templates[legacy.unit.id]=legacy.unit
@@ -117,6 +117,23 @@ func phase_scene_token(scene: Dictionary) -> String:
 func pending_phase_scenes() -> Array:
 	return info().get("phase_scenes",[]).filter(func(scene):
 		return scene.turn==turn and scene.phase==phase and not scene.lines.is_empty() and phase_scene_token(scene) not in story_seen)
+
+func site_scene_token(scene: Dictionary) -> String:
+	return "site_scene_%d_%s"%[chapter,scene.id]
+
+func unread_site_scene(scene: Dictionary) -> bool:
+	return not scene.lines.is_empty() and site_scene_token(scene) not in story_seen
+
+func has_tile_dialogue(tile: Vector2i) -> bool:
+	return info().get("site_scenes",[]).any(func(scene):
+		return Vector2i(scene.position[0],scene.position[1])==tile and unread_site_scene(scene))
+
+func pending_site_scenes() -> Array:
+	if phase!="player":return []
+	return info().get("site_scenes",[]).filter(func(scene):
+		if not unread_site_scene(scene):return false
+		var unit=at(Vector2i(scene.position[0],scene.position[1]))
+		return unit!=null and unit.team=="player" and unit.hp>0 and unit.acted)
 
 func board_size() -> Vector2i:
 	return Vector2i(info().map[0].length(),info().map.size())

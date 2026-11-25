@@ -7,6 +7,7 @@ var icon: TextureRect
 var values: Label
 var detail: Label
 var place: Label
+var dialogue: Label
 var places: Dictionary={}
 var tile=Vector2i(-1,-1)
 
@@ -25,7 +26,10 @@ func configure(parent: Control):
  place.add_theme_font_override("font",FONT);place.add_theme_font_size_override("font_size",17)
  place.add_theme_color_override("font_color",Color("63543a"));place.text_overrun_behavior=TextServer.OVERRUN_TRIM_ELLIPSIS
  column.add_child(place)
- for label in [heading,values,detail,place]:label.mouse_filter=Control.MOUSE_FILTER_IGNORE
+ dialogue=Label.new();dialogue.name="TerrainDialogue";dialogue.text="Dialogue on action";dialogue.hide()
+ dialogue.add_theme_font_size_override("font_size",13);dialogue.add_theme_color_override("font_color",Color("35655b"))
+ column.add_child(dialogue)
+ for label in [heading,values,detail,place,dialogue]:label.mouse_filter=Control.MOUSE_FILTER_IGNORE
 
 func inspect(game,point: Vector2i):
  tile=point
@@ -37,6 +41,8 @@ func inspect(game,point: Vector2i):
  values.text="Move %d   Cover %d   Avoid +%d"%[terrain.move,terrain.cover,terrain.avoid] if terrain.move>0 else "Cannot enter"
  detail.text="Restores %d HP each turn"%terrain.heal if terrain.heal>0 else "Slows movement" if terrain.move>1 else "Passable ground" if terrain.move>0 else "Find a route around"
  var had_place=place.visible
+ var had_dialogue=dialogue.visible
  place.text=" · ".join(places.get(point,[]))
  place.visible=not place.text.is_empty()
- if had_place!=place.visible:reset_size()
+ dialogue.visible=game.has_tile_dialogue(point)
+ if had_place!=place.visible or had_dialogue!=dialogue.visible:reset_size()

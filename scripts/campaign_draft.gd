@@ -12,6 +12,7 @@ const VERSION=1
 const MAX_CHAPTERS=32
 const MAX_CUSTOM_RECRUITS=16
 const MAX_PHASE_SCENES=8
+const MAX_SITE_SCENES=8
 const TERRAIN_UNDO_LIMIT=32
 const SECTION_SCENES={"relief":"Relief arrivals","retreat":"Withdrawal","memorial":"Memorial"}
 const MAX_DRAFT_LENGTH=1000000
@@ -21,7 +22,7 @@ const STRATEGIES=["pursue","sentry","guard"]
 const ROUTE_TERRAIN=["p","=","f","h","o","+"]
 const RECRUIT_STATS={"hp":[1,900],"pow":[0,200],"defense":[0,200],"resistance":[0,200],"speed":[0,200],"move":[1,20]}
 const LEVEL_FIELDS=["title","place","intro","outro","tactical_brief","map","route_position","environment","score_theme",
- "objective","objective_position","turn_limit","deployment_positions","enemies","hard_enemies","presentation","enemy_level","hard_bonuses"]
+ "objective","objective_position","turn_limit","deployment_positions","enemies","hard_enemies","presentation","enemy_level","hard_bonuses","site_scenes"]
 const MIN_BOARD=Vector2i(6,5)
 const MAX_BOARD=Vector2i(32,24)
 
@@ -124,7 +125,7 @@ func recruit_in_use(id: String) -> bool:
  for chapter in data.chapters:
   if id in chapter.get("relief_company",[]):return true
   if dialogue_uses(chapter.opening,id) or dialogue_uses(chapter.closing,id):return true
-  for scene in chapter.get("phase_scenes",[]):
+  for scene in chapter.get("phase_scenes",[])+chapter.level.get("site_scenes",[]):
    if dialogue_uses(scene.lines,id):return true
   for scene in chapter.get("section_scenes",{}).values():
    if dialogue_uses(scene.lines,id):return true
@@ -433,6 +434,16 @@ func phase_scenes_valid(scenes) -> bool:
   found[scene.id]=true
  return true
 
+func site_scenes_valid(scenes) -> bool:
+ if not scenes is Array or scenes.size()>MAX_SITE_SCENES:return false
+ var identities={}
+ for scene in scenes:
+  if not scene is Dictionary or not valid_text(scene.get("id"),32) or not scene.id.is_valid_identifier() or identities.has(scene.id):
+   return false
+  if not point_valid(scene.get("position")) or not dialogue_valid(scene.get("lines")):return false
+  identities[scene.id]=true
+ return true
+
 func bond_structure_problem(bonds,people: Dictionary,chapter_keys: Dictionary) -> String:
  if not bonds is Array or bonds.size()>people.size()/2.0:return "A company member can have one authored bond."
  var identities={}
@@ -486,6 +497,7 @@ func map_structure_problem(level: Dictionary) -> String:
   for symbol in row:
    if not Rules.TERRAIN_PROFILES.has(symbol):return "A battle contains an unknown terrain tile."
  if not point_valid(level.get("objective_position")):return "An objective needs a tile."
+ if not site_scenes_valid(level.get("site_scenes",[])):return "A chapter has invalid tile dialogue."
  if not level.get("deployment_positions") is Array or level.deployment_positions.size()>6 or not level.deployment_positions.all(point_valid):
   return "A battle supports up to six deployment tiles."
  for key in ["enemies","hard_enemies"]:
@@ -512,6 +524,8 @@ func battle_problem(level: Dictionary) -> String:
  if level.enemies.is_empty():return "Place at least one enemy. The first enemy is the commander."
  if Rules.delayed_enemy(level.enemies[0]):return "The commander must start on the board."
  if level.objective=="seize" and not walkable(level,level.objective_position):return "Put the seize objective on passable terrain."
+ for scene in level.get("site_scenes",[]):
+  if not scene.lines.is_empty() and not walkable(level,scene.position):return "Move the tile dialogue at %d, %d to passable terrain."%scene.position
  var positions=level.deployment_positions+level.enemies.map(func(enemy):return enemy.position)+level.hard_enemies.map(func(enemy):return enemy.position)
  for position in positions:
   if not walkable(level,position):return "Move the placement at %d, %d to passable terrain."%position

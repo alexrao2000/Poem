@@ -591,6 +591,15 @@ func run():
  side_picker.select(1);side_picker.item_selected.emit(1)
  phase_text=editor.find_child("EditorPhaseSceneLines",true,false)
  phase_text.text="narrator | Their line is already moving.";phase_text.text_changed.emit()
+ controls(app,"Add tile scene").pressed.emit();await process_frame
+ var tile_x=editor.find_child("EditorTileScene0",true,false)
+ editor.find_child("EditorTileScene1",true,false).value=3
+ var tile_lines=editor.find_child("EditorTileSceneLines",true,false)
+ tile_lines.text="narrator | The old watch bell is still here.";tile_lines.text_changed.emit()
+ tile_x.value=31
+ assert(editor.draft.playtest_problem().contains("Move the tile dialogue"))
+ tile_x.value=1
+ assert(editor.level().site_scenes[0].position==[1,3])
  editor.draft.data.settings.action_saves=true
  assert(editor.chapter().phase_scenes.size()==2 and editor.chapter().phase_scenes[1].phase=="enemy")
  book.current_tab=book.get_tab_idx_from_control(editor.find_child("Encounters",true,false))
@@ -776,6 +785,25 @@ func run():
  var edited_save=custom_save.duplicate(true)
  edited_save.roster.filter(func(unit):return unit.id==custom.id)[0].art_id="lyra"
  assert(not app.game.valid_save(edited_save))
+ var scene_tile=Vector2i(1,3)
+ assert(app.game.pending_site_scenes().is_empty())
+ await app.click_tile(scene_tile)
+ assert(app.terrain_card.dialogue.visible and app.game.pending_site_scenes().is_empty())
+ app.wait_action()
+ await await_phase_dialogue(app,"The old watch bell is still here.")
+ var site_scene=app.game.pending_site_scenes()[0]
+ var site_key=app.game.site_scene_token(site_scene)
+ var stopped=app.game.read_saved_data(app.campaign_save_path())
+ assert(site_key not in stopped.story_seen and stopped.units.any(func(unit):return unit.x==1 and unit.y==3 and unit.acted))
+ await finish_presentation(app)
+ assert(site_key in app.game.read_saved_data(app.campaign_save_path()).story_seen)
+ assert(app.game.restore_save(stopped)=="battle")
+ app.resume_saved_battle()
+ await await_phase_dialogue(app,"The old watch bell is still here.")
+ await finish_presentation(app)
+ assert(app.game.pending_site_scenes().is_empty() and app.game.story_seen.count(site_key)==1)
+ await app.click_tile(scene_tile)
+ assert(not app.terrain_card.dialogue.visible)
  app.end_turn()
  await await_phase_dialogue(app,"Their line is already moving.")
  var enemy_scene=app.game.pending_phase_scenes()[0]
@@ -1199,5 +1227,5 @@ func run():
  await verify_moving_placements(app)
  assert(FileAccess.get_file_as_string(app.save_path)==disk and app.game==installed)
  await Shutdown.dispose(app);await process_frame
- print("PASS: campaign JSON file transfer, draft library management, remembered playtest setup, campaign readiness, authored Hard bonuses, authored retry raiders, deployment comparison, custom campaign atlas, terrain stroke undo, continuous terrain strokes, connected terrain fill, placement moves and swaps, route pins, war-table site terrain, war-table overlay, blank war-table chapter, rising Valley landmarks, custom recruits, phase scenes, timed reinforcements, chapter 32 saves, section dialogue, authored section relief, authored legacy stock and purchase persistence, authored loss recruits, authored loss dialogue, reproducible playtest setup, Valley carryover and resume, thirteen-chapter Valley template, and single-battle tests")
+ print("PASS: campaign JSON file transfer, draft library management, remembered playtest setup, campaign readiness, authored Hard bonuses, authored retry raiders, deployment comparison, custom campaign atlas, terrain stroke undo, continuous terrain strokes, connected terrain fill, placement moves and swaps, route pins, war-table site terrain, war-table overlay, blank war-table chapter, rising Valley landmarks, custom recruits, phase scenes, tile dialogue and reload, timed reinforcements, chapter 32 saves, section dialogue, authored section relief, authored legacy stock and purchase persistence, authored loss recruits, authored loss dialogue, reproducible playtest setup, Valley carryover and resume, thirteen-chapter Valley template, and single-battle tests")
  quit()

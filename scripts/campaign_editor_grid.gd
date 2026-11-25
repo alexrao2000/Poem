@@ -71,6 +71,12 @@ func _draw():
   var symbol="C" if index==0 else str(level.enemies[index].job).left(1)
   draw_token(level.enemies[index].position,symbol,Color("803c40"))
  for enemy in level.hard_enemies:draw_token(enemy.position,"H",Color("745076"))
+ for scene in level.get("site_scenes",[]):
+  var tile=Vector2i(scene.position[0],scene.position[1])
+  if not Rect2i(Vector2i.ZERO,board_size()).has_point(tile):continue
+  var mark=rect.position+Vector2(tile)*cell+Vector2.ONE*cell*.18
+  draw_circle(mark,maxf(2.5,cell*.13),Color("246966"))
+  draw_circle(mark,maxf(1.0,cell*.07),Color("cbf1da"))
  if level.objective=="seize":
   var point=Vector2i(level.objective_position[0],level.objective_position[1])
   if Rect2i(Vector2i.ZERO,board_size()).has_point(point):
