@@ -443,6 +443,9 @@ func refresh_pieces():
 		tile_counts[tile]=tile_counts.get(tile,0)+1
 	var first_occupants=game.occupied_tiles()
 	var tabletop=game.info().get("presentation","")=="valley_table"
+	if tabletop:
+		ValleyBattle.update_standard_claims(world,game.capture_tiles(),first_occupants,scenery)
+		if is_instance_valid(terrain_card) and screen=="battle":terrain_card.inspect(game,terrain_card.tile)
 	for u in visible_units:
 		var tile=game.pos(u)
 		var visual=MapUnit.new();visual.name=str(u.id).validate_node_name();visual.position=map_position(tile)

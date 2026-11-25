@@ -6,6 +6,7 @@ const RouteSeals=preload("res://scripts/route_seals.gd")
 const REVEAL_SECONDS=1.75
 const WIDTH=24
 const HEIGHT=16
+const STANDARD_COLORS={"player":Color("456d87"),"enemy":Color("a95143"),"unheld":Color("c4a16a")}
 const WATER=[
  [[.2,8.2],[2,8.8],[4,9.5],[6,9.1],[8,9.4],[10,9.8],[12,10.3],[15,10.7],[17,11.4],
   [17.5,12.6],[16,13.3],[14,13],[12,11.8],[9.5,10.7],[7,10.4],[5,11],[3,12.1],[2.3,11.1],[3,10],[1,9.3]],
@@ -135,13 +136,29 @@ static func build(parent: Node3D,game,scenery):
   var marker=Node3D.new();marker.name=standard_node_name(index);parent.add_child(marker)
   marker.position=Vector3(point.x+.30,0,point.y-.27)
   scenery.cylinder(marker,Vector3(0,.017,0),.034,.143,Color("b38b51"))
+  scenery.cylinder(marker,Vector3(0,.040,0),.012,.112,STANDARD_COLORS.unheld).name="ClaimInlay"
   scenery.cylinder(marker,Vector3(0,.21,0),.41,.015,Color("e2bc78"))
   var flag=preload("res://scripts/wind_cloth.gd").new()
   marker.add_child(flag);flag.position=Vector3(0,.39,0)
-  flag.configure(Vector2(.26,.19),Color("ad5549"),true,1.4)
+  flag.configure(Vector2(.26,.19),STANDARD_COLORS.unheld,true,1.4)
+ update_standard_claims(parent,standards,game.occupied_tiles(),scenery)
 
 static func standard_node_name(index: int) -> String:
  return "ValleyStandard" if index==0 else "ValleyStandard%d"%(index+1)
+
+static func standard_claim(occupant) -> String:
+ return occupant.team if occupant!=null and occupant.hp>0 else "unheld"
+
+static func update_standard_claims(world: Node3D,standards: Array[Vector2i],occupants: Dictionary,scenery):
+ for index in standards.size():
+  var marker=world.get_node(standard_node_name(index))
+  var claim=standard_claim(occupants.get(standards[index]))
+  var tint=STANDARD_COLORS[claim]
+  var flag=marker.get_node("WindStandard")
+  flag.material.set_shader_parameter("tint",tint)
+  flag.rotation.y=PI if claim=="enemy" else 0.0
+  flag.scale.x=.46 if claim=="unheld" else 1.0
+  marker.get_node("ClaimInlay").material_override=scenery.material(tint)
 
 static func build_landmarks(parent: Node3D,game,scenery):
  var group=Node3D.new();group.name="ValleyLandmarks";parent.add_child(group)

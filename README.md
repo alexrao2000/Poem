@@ -65,7 +65,7 @@ Use **Save draft** for the local library and **Transfer JSON** to copy a campaig
 
 **Open drafts → Copy Poem with the Valley battle** puts the war table between Crown Approach and the Sun Engine in a 13-chapter draft. **Add valley battle** inserts that tactical board in any draft. Set terrain in Route to carry earlier chapter pins onto later war tables. In Poem’s regular campaign, reach Crown Approach and open **Route → Unroll the war table** to try the encounter with the current company.
 
-After a Valley victory the camera returns to the atlas as the grid fades and earlier chapter seals reappear. Click or press **Tab** to go directly to the result.
+On the war table, each standard shows its current holder on its flag and terrain card. A furled flag marks an unheld standard. After a Valley victory the camera returns to the atlas as the grid fades and earlier chapter seals reappear. Click or press **Tab** to go directly to the result.
 
 ## Controls
 

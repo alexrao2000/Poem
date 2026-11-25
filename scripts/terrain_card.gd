@@ -3,11 +3,13 @@ extends PanelContainer
 const Icons=preload("res://scripts/terrain_icons.gd")
 const FONT=preload("res://assets/fonts/CormorantGaramond.ttf")
 const Valley=preload("res://scripts/world_map_battle.gd")
+const STANDARD_STATUS={"player":"Standard held by your company","enemy":"Standard occupied by enemy","unheld":"Standard unheld"}
 var heading: Label
 var icon: TextureRect
 var values: Label
 var detail: Label
 var place: Label
+var standard: Label
 var dialogue: Label
 var survey: Label
 var show_survey=false
@@ -33,10 +35,13 @@ func configure(parent: Control):
  place.add_theme_font_override("font",FONT);place.add_theme_font_size_override("font_size",17)
  place.add_theme_color_override("font_color",Color("63543a"));place.text_overrun_behavior=TextServer.OVERRUN_TRIM_ELLIPSIS
  column.add_child(place)
+ standard=Label.new();standard.name="TerrainStandard";standard.hide()
+ standard.add_theme_font_size_override("font_size",13);standard.add_theme_color_override("font_color",Color("63543a"))
+ column.add_child(standard)
  dialogue=Label.new();dialogue.name="TerrainDialogue";dialogue.hide()
  dialogue.add_theme_font_size_override("font_size",13);dialogue.add_theme_color_override("font_color",Color("35655b"))
  column.add_child(dialogue)
- for label in [heading,values,detail,place,dialogue,survey]:label.mouse_filter=Control.MOUSE_FILTER_IGNORE
+ for label in [heading,values,detail,place,standard,dialogue,survey]:label.mouse_filter=Control.MOUSE_FILTER_IGNORE
 
 func inspect(game,point: Vector2i):
  tile=point
@@ -50,9 +55,12 @@ func inspect(game,point: Vector2i):
  values.text="Move %d   Cover %d   Avoid +%d"%[terrain.move,terrain.cover,terrain.avoid] if terrain.move>0 else "Cannot enter"
  detail.text="Restores %d HP each turn"%terrain.heal if terrain.heal>0 else "Slows movement" if terrain.move>1 else "Passable ground" if terrain.move>0 else "Find a route around"
  var had_place=place.visible
+ var had_standard=standard.visible
  var had_dialogue=dialogue.visible
  place.text=" · ".join(places.get(point,[]))
  place.visible=not place.text.is_empty()
+ standard.visible=show_survey and point in game.capture_tiles()
+ if standard.visible:standard.text=STANDARD_STATUS[Valley.standard_claim(game.at(point))]
  var events=game.site_events_at(point)
  var can_refill=events.any(func(scene):return scene.get("refill_tonics",false))
  var has_dialogue=events.any(func(scene):return not scene.lines.is_empty())
@@ -64,4 +72,4 @@ func inspect(game,point: Vector2i):
   if can_refill:benefits.append("Tonic refill")
   dialogue.text=" · ".join(benefits) if benefits.size()>1 else "Recruit on action"
  dialogue.visible=not events.is_empty()
- if had_place!=place.visible or had_dialogue!=dialogue.visible:reset_size()
+ if had_place!=place.visible or had_standard!=standard.visible or had_dialogue!=dialogue.visible:reset_size()
