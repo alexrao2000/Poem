@@ -627,6 +627,7 @@ func combat_context(game,a,b,screen_direction=1.0) -> Dictionary:
   var profile=Valley.arena_at(game.content.chapters,game.chapter,point,tile)
   theme=profile.environment
   earlier_site=profile.chapter
+ var road_bridge=tabletop and tile=="=" and earlier_site.get("environment","")=="road"
  var near_water=theme in ["road","harbor"] and nearby_channel(game,midpoint)
  var harbor_quayside=theme=="harbor" and tile!="=" and near_water
  var village_streamside=theme=="village" and CinderfordStream.borders_exchange(game,a,b)
@@ -646,12 +647,13 @@ func combat_context(game,a,b,screen_direction=1.0) -> Dictionary:
   candidates.append({"kind":item.kind,"map_site":site,"roof_variant":Architecture.variant_at(Vector3(site.x,0,site.y)),"distance":delta.length(),"x":clampf(delta.dot(axis)*2.2,-11,11),"z":backdrop_edge-clampf(absf(delta.dot(depth))*1.8,0,10)})
  candidates.sort_custom(func(left,right):return left.distance<right.distance)
  var context={"chapter":game.chapter,"environment":theme,"terrain":tile,
-  "landmarks":candidates.slice(0,2),"road_canal":theme=="road" and near_water,"harbor_quay":harbor_quayside}
+  "landmarks":candidates.slice(0,2),"road_canal":theme=="road" and (near_water or road_bridge),"harbor_quay":harbor_quayside}
  if theme=="village":
   context.chimney_wind=Vector2(ChimneySmoke.WIND.dot(axis),ChimneySmoke.WIND.dot(depth))
   if village_streamside:context.village_stream_direction=int(signf(axis.y))
  if context.road_canal:
-  context.road_hoist=midpoint.distance_to(Vector2(KingsroadHoist.MAP_SITE.x,KingsroadHoist.MAP_SITE.z))<=3.5
+  context.road_hoist=road_bridge or midpoint.distance_to(Vector2(KingsroadHoist.MAP_SITE.x,KingsroadHoist.MAP_SITE.z))<=3.5
+  if road_bridge:context.road_bridge=true
  if theme=="castle":
   if tabletop:
    context.raised_gate=(game.info().objective=="seize" and point==game.objective_position()) or not earlier_site.is_empty()
@@ -1039,7 +1041,7 @@ func battle_landscape(parent,center,context={}):
  var stone=theme in ["abbey","aqueduct","observatory","castle","engine","furnace"]
  var wooden_floor=tile=="="
  var continuous_floor=not wooden_floor and theme in MapGround.CONTINUOUS_ARENAS
- var road_canal=theme=="road" and not wooden_floor and context.get("road_canal",false)
+ var road_canal=theme=="road" and context.get("road_canal",false) and (not wooden_floor or context.get("road_bridge",false))
  var village_stream_direction=int(context.get("village_stream_direction",0)) if theme=="village" and not wooden_floor else 0
  var harbor_quayside=theme=="harbor" and not wooden_floor and context.get("harbor_quay",false)
  var surface=maxi(0,MapGround.surface_for(tile,theme))
@@ -1048,16 +1050,17 @@ func battle_landscape(parent,center,context={}):
  var rain_soaked=theme=="forest"
  if harbor_quayside:
   harbor_quay(parent,center,surface)
- elif continuous_floor:
+ elif road_canal or continuous_floor:
   var paint=MapGround.arena_material(surface,center,atlas) if surface!=0 else null
   if rain_soaked:
    if paint==null:paint=ground_material(0,true)
    else:paint.set_shader_parameter("rain_soaked",true)
   if road_canal:
-   kingsroad_canal(parent,center,paint)
+   var bank_center=center-Vector3.UP*.06 if wooden_floor else center
+   kingsroad_canal(parent,bank_center,paint)
    if context.get("road_hoist",false):
-    KingsroadHoist.build(self,parent,center+Vector3(-3.68,0,ROAD_CANAL_NEAR+.69),1.48,1.02)
-    KingsroadHoist.build_landing(self,parent,center+Vector3(-5.02,0,ROAD_CANAL_NEAR),1.18)
+    KingsroadHoist.build(self,parent,bank_center+Vector3(-3.68,0,ROAD_CANAL_NEAR+.69),1.48,1.02)
+    KingsroadHoist.build_landing(self,parent,bank_center+Vector3(-5.02,0,ROAD_CANAL_NEAR),1.18)
   elif village_stream_direction!=0:CinderfordStream.arena(self,parent,center,paint,village_stream_direction)
   else:ground(parent,center,Vector2(70,70),0,paint).name="ArenaGround"
  else:
@@ -1072,13 +1075,13 @@ func battle_landscape(parent,center,context={}):
    var floor_paint=ground_material(surface,false,true) if theme=="furnace" and surface==3 else null
    ground(parent,center,Vector2(24,6),surface,floor_paint)
  var water_level=-.055 if wooden_floor else RiverBank.ARENA_WATER_LEVEL
- if river or theme=="aqueduct" or wooden_floor:
+ if river or theme=="aqueduct" or (wooden_floor and not road_canal):
   var water=water_material(theme)
   var plane=plane_shape(Vector2(RiverBank.ARENA_WIDTH,60 if wooden_floor else 40))
   var water_depth=-12.0 if wooden_floor else -23.0 if river else -22.0
   var water_surface=mesh(parent,plane,center+Vector3(0,water_level,water_depth),Vector3.ONE,water);water_surface.name="ArenaWater"
-  if wooden_floor:arena_deck(parent,center)
-  elif theme=="aqueduct":aqueduct_parapet(parent,center)
+  if not wooden_floor and theme=="aqueduct":aqueduct_parapet(parent,center)
+ if wooden_floor:arena_deck(parent,center)
  if theme=="harbor" and (harbor_quayside or wooden_floor):
   HarborBreakwater.build(self,parent,center+HarborBreakwater.ARENA_SITE+Vector3.UP*(water_level if wooden_floor else HARBOR_QUAY_LEVEL),1.0,0.0)
  if river:

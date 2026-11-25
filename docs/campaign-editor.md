@@ -74,7 +74,7 @@ The editor offers a Valley war table chapter template. Its terrain and markers u
 
 To carry an earlier location into a war table battle, set its terrain in Route. Moving that chapter’s pin moves the terrain on each later table. The Battle grid marks inherited tiles and names them when inspected. If entries share a tile, the latest preceding chapter with assigned terrain takes priority. The table keeps the terrain painted under each inherited tile so the paint returns if the pin moves or the assignment is cleared. The seize objective keeps its painted terrain.
 
-Close-up battles at reached war-table sites can bring back local scenery. Reed Crossing’s tollhouse returns on its bridge tile. Fighting at Hallow Abbey brings back its floor mosaic and any memorial lamps, while the table’s capital stronghold uses the raised gate.
+Close-up battles at reached war-table sites can bring back local scenery. Reed Crossing’s tollhouse returns on its bridge tile, and Kingsroad’s bridge overlooks the canal and cargo hoist. Hallow Abbey brings back its floor mosaic and any memorial lamps. Windscar Pass shows the ridge and signal fires, and the capital stronghold uses the raised gate.
 
 Route briefings show each reached location’s survey mark. The same marks appear in the editor’s war-table overlay and on the battlefield’s terrain card. Choose Next landmark or press L to inspect places from earlier chapters in campaign order. Use Index beside Next landmark to jump directly to a named place. Locations sharing a tile have separate entries in the index.
 

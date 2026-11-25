@@ -210,8 +210,9 @@ static func arena_at(chapters: Array,chapter_index: int,point: Vector2i,terrain:
   var environment=chapter.get("environment","village")
   if chapter.get("route_arena",false):
    return {"environment":environment,"chapter":chapter,"reused":true}
-  if remembered.is_empty() and environment==theme:remembered=chapter
- return {"environment":theme,"chapter":remembered,"reused":false}
+  if remembered.is_empty() and (environment==theme or (terrain=="=" and environment=="road")):
+   remembered=chapter
+ return {"environment":remembered.get("environment",theme),"chapter":remembered,"reused":false}
 
 static func reveal_corners(board: Vector2i) -> Array:
  return [Vector3(-.5,0,-.5),Vector3(board.x-.5,0,-.5),
