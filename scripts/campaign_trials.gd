@@ -7,6 +7,7 @@ const FLAGS={"section_restarts":false,"reset_pressure":false,"hard_campaign":fal
 const LEGACY_STOCK=[{"id":"tempered_sword","cost":1,"losses":1},{"id":"war_hammer","cost":2,"losses":2},{"id":"longbow","cost":3,"losses":3},{"id":"rally_lance","cost":2,"losses":2},{"id":"vigil_staff","cost":2,"losses":2}]
 const SCENE_TITLES={"relief_4":"Relief at the abbey","relief_8":"Relief at the monastery","retreat_0":"Regrouping at Cinderford","retreat_4":"Return to the abbey","retreat_8":"Return to Starfall","volunteer_faye":"Faye answers the call","volunteer_noor":"Noor leaves the observatory","volunteer_maelin":"The hospice road","volunteer_tovin":"The lanes beneath the hedge","memorial_0":"Names in the company book","memorial_4":"The abbey record","memorial_8":"The monastery bell"}
 var scenes: Dictionary=JSON.parse_string(FileAccess.get_file_as_string("res://data/campaign_trial_scenes.json"))
+var scene_titles: Dictionary=SCENE_TITLES
 var earned_scenes: Array=[]
 var read_scenes: Array=[]
 var flags=FLAGS.duplicate()
@@ -34,6 +35,9 @@ func reset():
 
 func queue_scene(id: String):
  if scenes.has(id) and id not in earned_scenes:earned_scenes.append(id)
+
+func scene_title(id: String) -> String:
+ return scene_titles.get(id,id.replace("_"," ").capitalize())
 
 func next_scene(game) -> Array:
  for id in earned_scenes:

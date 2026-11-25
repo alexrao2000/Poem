@@ -40,6 +40,7 @@ func check_document():
  assert(compiled.content.chapters.size()==12 and compiled.content.section_starts==[0,4,8])
  assert(compiled.story.chapters==draft.base_story.chapters)
  assert(canonical(compiled.content.bonds)==canonical(Rules.new().supports.entries))
+ assert(compiled.content.trial_scenes==draft.base_trial_scenes)
  var original=draft.encode()
  assert(draft.decode(original).is_empty())
  var broken=canonical(draft.data);broken.chapters[0].level.map[0]="~"
@@ -139,6 +140,22 @@ func check_shrinking_board(path: String):
  earlier_save.units=old_battle
  assert(restored.restore_save(canonical(earlier_save))=="camp" and restored.units.is_empty())
 
+func check_section_story():
+ var draft=Draft.new()
+ var edited=draft.data.chapters[4]
+ edited.section_scenes.relief={"title":"Relief at the ridge","lines":[{"speaker":"lyra","text":"The ridge companies are here."}]}
+ edited.section_scenes.memorial={"title":"The ridge roll","lines":[{"speaker":"lyra","text":"Open the ridge record."}]}
+ assert(draft.move_chapter(4,1)==5)
+ var game=Rules.new(draft.compile().content)
+ assert(game.trials.scenes.has("relief_5") and not game.trials.scenes.has("relief_4"))
+ game.chapter=5;game.permadeath=true;game.trials.flags.section_restarts=true
+ game.trials.arrive(game)
+ assert(game.trials.next_scene(game)[0].text=="The ridge companies are here.")
+ assert(game.trials.scene_title("relief_5")=="Relief at the ridge")
+ game.trials.losses.ivo=5;game.trials.queue_scene("memorial_5")
+ var memorial=game.trials.next_scene(game)
+ assert(memorial[0].text=="Open the ridge record." and "Ivo" in memorial[1].text)
+
 func use_brush(editor,index: int,point: Vector2i,erase=false):
  var mode=editor.find_child("EditorBrush",true,false)
  mode.select(index);mode.item_selected.emit(index)
@@ -162,6 +179,7 @@ func run():
  check_long_campaign(scratch.path_join("long-campaign.json"))
  check_reinforcement_collision(scratch.path_join("timed-reinforcement.json"))
  check_shrinking_board(scratch.path_join("smaller-finale.json"))
+ check_section_story()
  root.size=Vector2i(1440,900)
  var app=load("res://main.tscn").instantiate();app.settings_path="";app.save_path=scratch.path_join("normal.json")
  app.campaign_draft_library.path=scratch.path_join("drafts.json")
@@ -509,6 +527,14 @@ func run():
  app.campaign_draft.data.settings.section_restarts=true
  app.show_campaign_editor("title");await process_frame
  app.campaign_editor.select_chapter(ready);await process_frame
+ var section_book=app.campaign_editor.find_child("CampaignEditorTabs",true,false)
+ section_book.current_tab=section_book.get_tab_idx_from_control(app.campaign_editor.find_child("Story",true,false))
+ await process_frame
+ controls(app,"Start a new campaign section").button_pressed=true
+ var withdrawal_title=app.campaign_editor.find_child("EditorSectionTitle_retreat",true,false)
+ withdrawal_title.text="Withdrawal to the ridge";withdrawal_title.text_changed.emit(withdrawal_title.text)
+ var withdrawal_lines=app.campaign_editor.find_child("EditorSectionLines_retreat",true,false)
+ withdrawal_lines.text="lyra | The ridge is still ours.";withdrawal_lines.text_changed.emit()
  assert(app.campaign_editor.play_buttons[0].disabled and app.campaign_editor.selected==1)
  controls(app,"Test this battle").pressed.emit();await finish_presentation(app)
  assert(app.screen=="camp" and app.game.chapter==1 and app.campaign_preview.return=="chapter")
@@ -518,10 +544,21 @@ func run():
  assert(app.screen=="camp" and app.game.chapter==1)
  controls(app,"Deploy company  >").pressed.emit();await finish_presentation(app)
  assert(app.game.trials.section_starts==PackedInt32Array([0,1]) and app.game.trials.checkpoint.chapter==1)
+ app.show_battle_menu();await process_frame
+ controls(app,"War council (restart section)").pressed.emit()
+ await await_phase_dialogue(app,"The ridge is still ours.")
+ await finish_presentation(app)
+ assert(app.screen=="camp" and "retreat_1" in app.game.trials.read_scenes)
+ app.show_campaign_trials();await process_frame
+ controls(app,"Replay · Withdrawal to the ridge").pressed.emit()
+ await await_phase_dialogue(app,"The ridge is still ours.")
+ await finish_presentation(app)
+ controls(app,"Return to war council").pressed.emit();await finish_presentation(app)
+ controls(app,"Deploy company  >").pressed.emit();await finish_presentation(app)
  await capture_tile(app,Vector2i(0,3))
  controls(app,"Return to editor").pressed.emit();await finish_presentation(app)
  assert(app.screen=="campaign_editor" and app.game==installed and app.campaign_editor.selected==1)
  assert(FileAccess.get_file_as_string(app.save_path)==disk)
  await Shutdown.dispose(app);await process_frame
- print("PASS: campaign JSON, route pins, custom recruits, phase scenes, timed reinforcements, chapter 32 saves, smaller-board migration, Valley carryover and single-battle tests for unfinished campaigns")
+ print("PASS: campaign JSON, route pins, custom recruits, phase scenes, timed reinforcements, chapter 32 saves, authored section withdrawal and memorials, Valley carryover, and single-battle tests")
  quit()

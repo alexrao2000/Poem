@@ -3103,7 +3103,7 @@ func show_campaign_trials():
 	for event in game.trials.events:label_in(panel,event,19)
 	if not game.trials.read_scenes.is_empty():label_in(panel,"Recorded scenes",24,GOLD)
 	for id in game.trials.read_scenes:
-		button_in(panel,"Replay · "+game.trials.SCENE_TITLES.get(id,id.replace("_"," ").capitalize()),func():show_dialogue(game.trials.scene_lines(game,id),show_campaign_trials,"support"))
+		button_in(panel,"Replay · "+game.trials.scene_title(id),func():show_dialogue(game.trials.scene_lines(game,id),show_campaign_trials,"support"))
 	button_in(frame,"Return to epilogue" if game.completed else "Return to war council",show_ending if game.completed else show_camp).name="TrialsReturn"
 
 func show_tile_units(tile: Vector2i):

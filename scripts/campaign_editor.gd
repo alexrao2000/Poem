@@ -245,7 +245,6 @@ func build_story(panel: VBoxContainer):
    changed()))
  var section=CheckButton.new();section.text="Start a new campaign section";section.button_pressed=record.section
  section.disabled=selected==0;panel.add_child(section)
- section.toggled.connect(func(value):record.section=value;changed())
  for field in [["intro","Briefing"],["tactical_brief","Tactical notes"],["outro","Outcome and finale text"]]:
   var key=field[0]
   heading(panel,field[1],17)
@@ -257,6 +256,25 @@ func build_story(panel: VBoxContainer):
   panel.add_child(multiline(dialogue_text(original_lines),132,func(value):record[kind]=parse_dialogue(value,original_lines);changed()))
  var events=VBoxContainer.new();events.add_theme_constant_override("separation",8);panel.add_child(events)
  build_phase_scenes(events,record)
+ var section_story=VBoxContainer.new();section_story.add_theme_constant_override("separation",8);panel.add_child(section_story)
+ section_story.visible=record.section
+ section.toggled.connect(func(value):record.section=value;section_story.visible=value;changed())
+ build_section_story(section_story,record)
+
+func build_section_story(panel: VBoxContainer,record: Dictionary):
+ heading(panel,"Section dialogue",21)
+ var definitions=record.section_scenes if record.has("section_scenes") else draft.section_scene_defaults(int(record.source))
+ for kind in Draft.SECTION_SCENES:
+  if selected==0 and kind=="relief" and not definitions.has(kind):continue
+  var scene=definitions.get(kind,{"title":"","lines":[]})
+  heading(panel,Draft.SECTION_SCENES[kind],17)
+  var title=line_edit(scene.title,"Scene title",100,func(value):
+   scene.title=value;definitions[kind]=scene;record.section_scenes=definitions;changed())
+  title.name="EditorSectionTitle_"+kind;panel.add_child(title)
+  var original_lines=scene.lines.duplicate(true)
+  var lines=multiline(dialogue_text(original_lines),110,func(value):
+   scene.lines=parse_dialogue(value,original_lines);definitions[kind]=scene;record.section_scenes=definitions;changed())
+  lines.name="EditorSectionLines_"+kind;panel.add_child(lines)
 
 func build_route(panel: VBoxContainer):
  heading(panel,"Click the chart to place this chapter’s pin. Select a seal to edit its chapter.",16)

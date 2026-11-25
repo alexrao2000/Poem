@@ -3,11 +3,13 @@ extends RefCounted
 const Rules=preload("res://scripts/rules.gd")
 const Settings=preload("res://scripts/campaign_settings.gd")
 const Supports=preload("res://scripts/supports.gd")
+const Trials=preload("res://scripts/campaign_trials.gd")
 const FORMAT="poem-campaign"
 const VERSION=1
 const MAX_CHAPTERS=32
 const MAX_CUSTOM_RECRUITS=16
 const MAX_PHASE_SCENES=8
+const SECTION_SCENES={"relief":"Relief arrivals","retreat":"Withdrawal","memorial":"Memorial"}
 const MAX_DRAFT_LENGTH=1000000
 const ENVIRONMENTS=["village","river","forest","abbey","road","harbor","mountain","aqueduct","observatory","furnace","castle","engine"]
 const OBJECTIVES=["rout","boss","seize","survive"]
@@ -20,6 +22,7 @@ const MAX_BOARD=Vector2i(32,24)
 
 var templates: Dictionary
 var base_story: Dictionary
+var base_trial_scenes: Dictionary
 var base_profiles: Dictionary
 var equipment: Array
 var music_ids: Array
@@ -29,6 +32,7 @@ var dirty=false
 func _init():
  templates=JSON.parse_string(FileAccess.get_file_as_string("res://data/campaign.json"))
  base_story=JSON.parse_string(FileAccess.get_file_as_string("res://data/story.json"))
+ base_trial_scenes=JSON.parse_string(FileAccess.get_file_as_string("res://data/campaign_trial_scenes.json"))
  base_profiles=JSON.parse_string(FileAccess.get_file_as_string("res://data/characters.json"))
  equipment=JSON.parse_string(FileAccess.get_file_as_string("res://data/equipment.json"))
  var themes=JSON.parse_string(FileAccess.get_file_as_string("res://assets/audio/themes.json"))
@@ -54,8 +58,9 @@ func new_document(stock: bool) -> Dictionary:
    var opens_section=templates.section_starts.any(func(value):return int(value)==index)
    result.chapters.append({"key":"chapter_%02d"%(index+1),"source":index,"section":opens_section,
     "level":level,"opening":story.opening,"closing":story.closing})
+   if opens_section:result.chapters[-1].section_scenes=section_scene_defaults(index)
  else:
-  result.chapters.append({"key":"chapter_01","source":-1,"section":true,"level":blank_level(),"opening":[],"closing":[]})
+  result.chapters.append({"key":"chapter_01","source":-1,"section":true,"level":blank_level(),"opening":[],"closing":[],"section_scenes":{}})
  if stock:result.bonds=stock_bonds(result.chapters)
  for recruit in templates.roster:
   var join=int(recruit.join)
@@ -65,6 +70,14 @@ func new_document(stock: bool) -> Dictionary:
   result.recruits.append({"id":recruit.id,"name":recruit.name,"bio":recruit.bio,"chapter":chapter_key,
    "job":recruit.job,"stats":stats,"ending":base_profiles[recruit.id].get("ending",recruit.bio)})
  return result.duplicate(true)
+
+func section_scene_defaults(source: int) -> Dictionary:
+ var definitions={}
+ for kind in SECTION_SCENES:
+  var key=kind+"_"+str(source)
+  if base_trial_scenes.has(key):
+   definitions[kind]={"title":Trials.SCENE_TITLES.get(key,SECTION_SCENES[kind]),"lines":base_trial_scenes[key].duplicate(true)}
+ return definitions
 
 func stock_bonds(chapters: Array) -> Array:
  var bonds=Supports.new().entries
@@ -98,6 +111,8 @@ func recruit_in_use(id: String) -> bool:
  for chapter in data.chapters:
   if dialogue_uses(chapter.opening,id) or dialogue_uses(chapter.closing,id):return true
   for scene in chapter.get("phase_scenes",[]):
+   if dialogue_uses(scene.lines,id):return true
+  for scene in chapter.get("section_scenes",{}).values():
    if dialogue_uses(scene.lines,id):return true
  return false
 
@@ -206,6 +221,11 @@ func structural_problem(document) -> String:
   if not level_issue.is_empty():return level_issue
   if not dialogue_valid(chapter.get("opening")) or not dialogue_valid(chapter.get("closing")):return "A chapter has an invalid dialogue line."
   if not phase_scenes_valid(chapter.get("phase_scenes",[])):return "A chapter has an invalid phase scene."
+  var section=chapter.get("section_scenes",{})
+  if not section is Dictionary:return "A chapter has invalid section dialogue."
+  for kind in section:
+   if not SECTION_SCENES.has(kind) or not section[kind] is Dictionary or not valid_text(section[kind].get("title"),100) or not dialogue_valid(section[kind].get("lines")):
+    return "A chapter has invalid section dialogue."
   keys[chapter.key]=true
  if not document.chapters[0].section:return "The opening chapter must start a section."
  var known=templates.roster.map(func(recruit):return recruit.id)
@@ -392,7 +412,25 @@ func compile() -> Dictionary:
  if data.has("bonds"):
   content.bonds=data.bonds.duplicate(true)
   for bond in content.bonds:bond.chapters=bond.chapters.map(index_for)
+ if data.chapters.any(func(chapter):return chapter.has("section_scenes")):compile_section_scenes(content)
  return {"content":content,"story":{"chapters":scenes},"settings":data.settings.duplicate(true)}
+
+func compile_section_scenes(content: Dictionary):
+ content.trial_scenes={}
+ content.trial_titles={}
+ for id in base_trial_scenes:
+  if id.begins_with("volunteer_"):
+   content.trial_scenes[id]=base_trial_scenes[id].duplicate(true)
+   content.trial_titles[id]=Trials.SCENE_TITLES[id]
+ for index in content.section_starts:
+  var chapter=data.chapters[index]
+  var definitions=chapter.section_scenes if chapter.has("section_scenes") else section_scene_defaults(int(chapter.source))
+  for kind in definitions:
+   var scene=definitions[kind]
+   if scene.lines.is_empty() or (kind=="relief" and index==0):continue
+   var id=kind+"_"+str(index)
+   content.trial_scenes[id]=scene.lines.duplicate(true)
+   content.trial_titles[id]=SECTION_SCENES[kind] if scene.title.is_empty() else scene.title
 
 func apply_recruit(recruit: Dictionary,authored: Dictionary):
  var arrival=index_for(authored.chapter)

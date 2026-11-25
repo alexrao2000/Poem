@@ -48,6 +48,9 @@ func _init(campaign: Dictionary={}):
 	for template in content.roster:recruit_templates[template.id]=template
 	for legacy in content.legacy_recruits:recruit_templates[legacy.unit.id]=legacy.unit
 	trials.configure_section_starts(content.section_starts,content.chapters.size())
+	if content.has("trial_scenes"):
+		trials.scenes=content.trial_scenes
+		trials.scene_titles=content.trial_titles
 	equipment = JSON.parse_string(FileAccess.get_file_as_string("res://data/equipment.json"))
 	promotions = JSON.parse_string(FileAccess.get_file_as_string("res://data/promotions.json"))
 	rng.seed = 472019
