@@ -1,6 +1,7 @@
 extends SceneTree
 const Shutdown=preload("helpers/game_shutdown.gd")
 const Valley=preload("res://scripts/world_map_battle.gd")
+const Route=preload("res://scripts/campaign_route.gd")
 ## Read-only route navigation preserves the campaign, prevents locked briefing
 ## access, and keeps fitted markers/standard inside the display at every size.
 func _initialize():call_deferred("run")
@@ -107,10 +108,39 @@ func run():
  app.debug_session.end(app.game)
  await verify_longer_route(app)
  await verify_retreat_route(app)
+ await verify_atlas_draws(app)
  await Shutdown.dispose(app);await process_frame
  print("PASS: ",count," campaign route layouts, all twelve chapter markers selectable at 720, live focus and reflow, locked briefing protection, read-only campaign state and Escape return")
  print("PASS: unequal section ranges and reached rally points agree in the route, war council and Debug report")
  quit()
+
+func observe_atlas_draws(route,frames: int) -> Array:
+ var counts=[0,0]
+ var atlas=func():counts[0]+=1
+ var pulse=func():counts[1]+=1
+ var active=route.markers[route.current]
+ route.draw.connect(atlas);active.draw.connect(pulse)
+ for _frame in frames:await process_frame
+ route.draw.disconnect(atlas);active.draw.disconnect(pulse)
+ return counts
+
+func verify_atlas_draws(app):
+ app.show_campaign_route();await process_frame;await process_frame
+ var reading=app.ui.find_child("CampaignRoute",true,false)
+ var live=await observe_atlas_draws(reading,12)
+ assert(live[0]==0 and live[1]>0,"The current seal animates separately from the atlas")
+ reading.select_chapter(0)
+ var changed=await observe_atlas_draws(reading,4)
+ assert(changed[0]>0,"Selecting a chapter redraws the atlas")
+ var editor=Route.new();root.add_child(editor);editor.size=Vector2(640,420)
+ editor.configure(app.game.content.chapters,3,true);editor.enable_pin_editor()
+ await process_frame;await process_frame
+ assert(await observe_atlas_draws(editor,12)==[0,0],"An idle authoring chart is static")
+ editor.place_pin(Vector2(.37,.48))
+ changed=await observe_atlas_draws(editor,4)
+ assert(changed[0]>0,"Placing an authored pin redraws the chart")
+ editor.queue_free();await process_frame
+ print("PASS: the active seal animates without redrawing the atlas, and authored pins redraw only when changed")
 
 func verify_retreat_route(app):
  app.game.chapter=11

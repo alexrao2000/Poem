@@ -745,10 +745,19 @@ func route_from_deployment(level: Dictionary,goal: Vector2i) -> bool:
 
 func playtest_problem(selected=-1) -> String:
  var issue=structural_problem(data)
- if not issue.is_empty():return issue
+ return _playtest_content_problem(selected) if issue.is_empty() else issue
+
+func playtest_readiness(selected: int) -> Array[String]:
+ var structure=structural_problem(data)
+ if not structure.is_empty():return [structure,structure]
+ var campaign_problem=_playtest_content_problem(-1)
+ var selected_problem=_playtest_content_problem(selected) if not campaign_problem.is_empty() else ""
+ return [campaign_problem,selected_problem]
+
+func _playtest_content_problem(selected: int) -> String:
  var indices=range(data.chapters.size()) if selected<0 else [selected]
  for index in indices:
-  issue=route_link_problem(index)
+  var issue=route_link_problem(index)
   if not issue.is_empty():return "Chapter %d · %s"%[index+1,issue]
   issue=battle_problem(battle_level(index))
   if not issue.is_empty():return "Chapter %d · %s"%[index+1,issue]

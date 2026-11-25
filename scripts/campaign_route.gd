@@ -60,8 +60,10 @@ func configure(chapters: Array,index: int,finished=false,rallies=PackedInt32Arra
   marker.add_theme_font_size_override("font_size",14)
   for state in ["font_color","font_hover_color","font_pressed_color","font_focus_color"]:marker.add_theme_color_override(state,Color("fff1cc"))
   marker.add_theme_color_override("font_disabled_color",Color("b4ad99"))
+  if i==current and not complete:marker.draw.connect(func():draw_current_pulse(marker))
   marker.pressed.connect(func():select_chapter(i));add_child(marker);markers.append(marker)
  resized.connect(arrange);arrange()
+ set_process(not complete)
 
 func select_chapter(index: int):
  if index<0 or index>=positions.size() or (index>current and not complete):return
@@ -204,7 +206,13 @@ func point(index: int) -> Vector2:
  return map_rect.position+positions[index]*map_rect.size
 
 func _process(dt):
- clock+=dt;queue_redraw()
+ if markers.is_empty():return
+ clock+=dt
+ markers[current].queue_redraw()
+
+func draw_current_pulse(marker: Button):
+ var pulse=Color("f5dc94");pulse.a=.35+.22*sin(clock*2.2)
+ marker.draw_arc(marker.size*.5,20.0*seal_scale,0,TAU,48,pulse,2.0*seal_scale,true)
 
 func _draw():
  if map_rect.size.x<=0:return
@@ -259,8 +267,6 @@ func _draw():
   RouteSeals.draw_seal(self,Vector2.ZERO,1.0,reached,i==current,1.0)
   if i==selected:draw_arc(Vector2.ZERO,17,0,TAU,40,Color("f5dc94"),2,true)
   if i==current and not complete:
-   var pulse=Color("f5dc94");pulse.a=.35+.22*sin(clock*2.2)
-   draw_arc(Vector2.ZERO,20,0,TAU,48,pulse,2,true)
    var pole=Vector2(0,-17)
    draw_line(pole,pole+Vector2(0,-24),Color("51412c"),2,true)
    draw_colored_polygon(PackedVector2Array([pole+Vector2(0,-24),pole+Vector2(16,-21),pole+Vector2(12,-13),pole+Vector2(0,-15)]),Color("f1dfb5"))

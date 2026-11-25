@@ -1634,8 +1634,9 @@ func campaign_file_picker(parent: Node,saving: bool,extensions="*.json",descript
  return picker
 
 func launch(index: int,resume: bool,allow_single=false):
- var single_battle=not draft.playtest_problem().is_empty()
- if single_battle and (not allow_single or not draft.playtest_problem(index).is_empty()):return
+ var issues=draft.playtest_readiness(index)
+ var single_battle=not issues[0].is_empty()
+ if single_battle and (not allow_single or not issues[1].is_empty()):return
  if not draft_key.is_empty() and not dirty:library.remember_playtest(draft_key,playtest_setup,chapter().key)
  draft_selection_changed.emit(draft_key,selected)
  playtest_requested.emit(index,resume,single_battle)
@@ -1646,9 +1647,10 @@ func changed():
 
 func validation():
  if not is_instance_valid(status):return
- var issue=draft.playtest_problem()
+ var issues=draft.playtest_readiness(selected)
+ var issue=issues[0]
  status.text=("Unsaved draft" if dirty else "Ready to playtest") if issue.is_empty() else issue
- var selected_ready=issue.is_empty() or draft.playtest_problem(selected).is_empty()
+ var selected_ready=issues[1].is_empty()
  play_buttons[0].disabled=not issue.is_empty()
  play_buttons[1].disabled=not selected_ready
  play_buttons[2].disabled=not selected_ready

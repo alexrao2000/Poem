@@ -80,6 +80,7 @@ func check_tonic_cache_without_dialogue():
 func check_document():
  var draft=Draft.new()
  assert(draft.playtest_problem().is_empty())
+ assert(draft.playtest_readiness(0)==["",""])
  var compiled=draft.compile()
  assert(compiled.content.chapters.size()==12 and compiled.content.section_starts==[0,4,8])
  assert(compiled.story.chapters==draft.base_story.chapters)
@@ -98,6 +99,10 @@ func check_document():
  broken=canonical(draft.data);broken.chapters[0].level.enemies[0].arrival_turn=2
  var late_commander=Draft.new();assert(late_commander.decode(JSON.stringify(broken)).is_empty())
  assert("commander must start" in late_commander.playtest_problem())
+ assert(late_commander.playtest_readiness(1)==[late_commander.playtest_problem(),""])
+ late_commander.data.chapters[0].level.map[0]="~"
+ var structure=late_commander.structural_problem(late_commander.data)
+ assert(not structure.is_empty() and late_commander.playtest_readiness(1)==[structure,structure])
  assert(canonical(draft.data)==JSON.parse_string(original))
  var selected=draft.insert_chapter(2,true)
  assert(selected==3 and draft.data.chapters[selected].key!="chapter_03")
