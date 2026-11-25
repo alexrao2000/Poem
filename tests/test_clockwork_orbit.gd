@@ -12,6 +12,7 @@ const CombatCamera=preload("res://scripts/combat_camera.gd")
 
 func _initialize():call_deferred("run")
 func run():
+ verify_sun_surface()
  var host=Node3D.new();root.add_child(host);var samples=0
  for theme in ["observatory","engine"]:
   for radius in [1.1,1.875]:
@@ -40,6 +41,9 @@ func run():
    if theme=="engine":assert(is_equal_approx(orbit.conduit_light.emission_energy_multiplier,glow))
    orbit.elapsed=0;orbit.update_motion();orbit._process(1)
    assert(orbit.outer.transform!=first[0] and orbit.inner.transform!=first[1],"The rings move independently")
+   if theme=="engine":
+    assert(orbit.core_material.albedo_texture==Orbit.SUN_SURFACE and is_equal_approx(orbit.core.rotation.y,.15))
+   else:assert(orbit.core_material.albedo_texture==null)
    var held=[orbit.elapsed,orbit.outer.transform,orbit.inner.transform,orbit.core_material.albedo_color]
    host.hide();orbit._process(2)
    assert([orbit.elapsed,orbit.outer.transform,orbit.inner.transform,orbit.core_material.albedo_color]==held)
@@ -132,6 +136,20 @@ func run():
  print("PASS: Starfall’s shared etched chart, grounded supports and eighteen wide-shot readings of the tilted slate")
  print("PASS: the Sun Engine’s two grounded conduits connect to its base and frame their pulse through three tactical and eighteen arena projections")
  quit()
+
+func verify_sun_surface():
+ var image=Orbit.SUN_SURFACE.get_image()
+ assert(image.get_size()==Vector2i(192,96) and image.has_mipmaps())
+ var seam=0.0;var interior=0.0;var width=image.get_width()
+ for y in image.get_height():
+  var first=image.get_pixel(0,y).get_luminance()
+  var previous=first
+  for x in range(1,width):
+   var next=image.get_pixel(x,y).get_luminance()
+   interior+=absf(next-previous);previous=next
+  seam+=absf(previous-first)
+ assert(interior>10 and seam<interior/(width-1)*1.3,"The wrapping seam has the same contrast as adjacent pixels")
+ print("PASS: mipmapped Sun Engine marbling wraps continuously around its core")
 
 func verify_clockwork_cache_boundaries(host: Node3D):
  var before_rings=Orbit.rings.duplicate()
@@ -335,6 +353,8 @@ func scenes():
       "The engraved slate appears in the batched tactical and combat landscapes")
    else:
     assert(is_equal_approx(map_orbit.conduit_light.emission_energy_multiplier,arena_orbit.conduit_light.emission_energy_multiplier))
+    assert(map_orbit.core.rotation.is_equal_approx(arena_orbit.core.rotation))
+    assert(map_orbit.core_material.albedo_texture==arena_orbit.core_material.albedo_texture)
     for field in [[app.world,map_orbit],[app.stage,arena_orbit]]:
      var light=field[1].conduit_light
      var glass=field[0].get_children().filter(func(node):return node is MeshInstance3D and node.material_override==light)
@@ -350,7 +370,9 @@ func scenes():
    var arena_orbit=app.stage.find_child("ClockworkOrbit",true,false)
    assert(is_equal_approx(map_orbit.elapsed,arena_orbit.elapsed) and arena_orbit.elapsed>transfers.entry)
    assert(map_orbit.inner.rotation.is_equal_approx(arena_orbit.inner.rotation))
-   if chapter==11:assert(is_equal_approx(map_orbit.conduit_light.emission_energy_multiplier,arena_orbit.conduit_light.emission_energy_multiplier))
+   if chapter==11:
+    assert(is_equal_approx(map_orbit.conduit_light.emission_energy_multiplier,arena_orbit.conduit_light.emission_energy_multiplier))
+    assert(map_orbit.core.rotation.is_equal_approx(arena_orbit.core.rotation))
    transfers.returned=true
   app.world.visibility_changed.connect(on_entry)
   app.stage.visibility_changed.connect(on_return)
