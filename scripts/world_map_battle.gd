@@ -24,6 +24,7 @@ const ROADS=[
  [[11,12],[12,10],[15,9],[17,8],[18,6],[20,4]]]
 const CAPITAL=[21,2]
 const ROUTE_TERRAIN={"Reed Crossing":"=","Hallow Abbey":"+","Kingsroad":"=","Windscar Pass":"h"}
+const LANDMARK_TERRAINS=["=","+","h","o","f"]
 
 static func chapter(route: Array) -> Dictionary:
  var cells=[]
@@ -105,6 +106,7 @@ static func build(parent: Node3D,game,scenery):
   grid.surface_add_vertex(Vector3(size.x-.5,.013,y-.5))
  grid.surface_end()
  var overlay=MeshInstance3D.new();overlay.name="ValleyGrid";overlay.mesh=grid;overlay.material_override=ink;parent.add_child(overlay)
+ build_landmarks(parent,game,scenery)
  if game.info().objective=="seize":
   var point=game.objective_position()
   var marker=Node3D.new();marker.name="ValleyStandard";parent.add_child(marker)
@@ -114,6 +116,45 @@ static func build(parent: Node3D,game,scenery):
   var flag=preload("res://scripts/wind_cloth.gd").new()
   marker.add_child(flag);flag.position=Vector3(0,.39,0)
   flag.configure(Vector2(.26,.19),Color("ad5549"),true,1.4)
+
+static func build_landmarks(parent: Node3D,game,scenery):
+ var group=Node3D.new();group.name="ValleyLandmarks";parent.add_child(group)
+ var sites=reached_places(game.content.chapters,game.chapter)
+ var objective=game.objective_position() if game.info().objective=="seize" else Vector2i(-1,-1)
+ if objective.x>=0 and not sites.has(objective):sites[objective]=[]
+ var brass=Color("e1c58a")
+ var clay=Color("996c56")
+ for tile in sites:
+  var terrain="o" if tile==objective else game.terrain(tile)
+  if terrain not in LANDMARK_TERRAINS:continue
+  var marker=Node3D.new()
+  marker.name="Landmark_%d_%d"%[tile.x,tile.y]
+  marker.set_meta("tile",tile);marker.set_meta("terrain",terrain)
+  marker.position=Vector3(tile.x-.375,.003,tile.y+.375);group.add_child(marker)
+  scenery.block(marker,Vector3(0,.013,0),Vector3(.181,.025,.169),Color("694938")).name="Footing"
+  match terrain:
+   "=":
+    for x in [-.057,.057]:
+     scenery.block(marker,Vector3(x,.055,0),Vector3(.028,.067,.098),clay)
+    scenery.block(marker,Vector3(0,.09,0),Vector3(.16,.025,.089),brass)
+    for z in [-.036,.036]:
+     scenery.block(marker,Vector3(0,.116,z),Vector3(.15,.033,.012),clay)
+   "+":
+    scenery.block(marker,Vector3(-.022,.074,0),Vector3(.091,.096,.087),clay)
+    scenery.block(marker,Vector3(-.022,.137,0),Vector3(.078,.055,.10),brass).rotation.z=PI*.25
+    scenery.block(marker,Vector3(.051,.098,0),Vector3(.047,.145,.046),clay)
+    scenery.cylinder(marker,Vector3(.051,.194,0),.059,.033,brass,.003)
+   "h","f":
+    var ink=Color("a8886a") if terrain=="h" else Color("7d8966")
+    scenery.cylinder(marker,Vector3(-.041,.069,.017),.087,.038,ink,.004)
+    scenery.cylinder(marker,Vector3(.030,.098,-.015),.145,.051,ink,.004)
+   "o":
+    scenery.block(marker,Vector3(0,.072,0),Vector3(.144,.093,.127),clay)
+    scenery.block(marker,Vector3(0,.135,0),Vector3(.084,.097,.078),brass)
+    for x in [-.062,.062]:
+     for z in [-.053,.053]:
+      scenery.block(marker,Vector3(x,.102,z),Vector3(.037,.154,.037),clay)
+      scenery.block(marker,Vector3(x,.19,z),Vector3(.045,.022,.045),brass)
 
 static func reveal_origin(game) -> Vector2i:
  return game.objective_position() if game.info().objective=="seize" else Vector2i(CAPITAL[0],CAPITAL[1])
@@ -154,6 +195,8 @@ static func play_reveal(navigation,game,world: Node3D,actors: Array,hint: Contro
  var standard=world.get_node_or_null("ValleyStandard")
  var props=actors.duplicate()
  if standard!=null:props.append(standard)
+ var pieces_from_above=props.size()
+ props.append_array(world.get_node("ValleyLandmarks").get_children())
  var resting=props.map(func(piece):return piece.position)
  var seats=resting.map(func(point):return origin.distance_to(Vector2(point.x,point.z)))
  var apply_frame=func(weight: float):
@@ -163,7 +206,8 @@ static func play_reveal(navigation,game,world: Node3D,actors: Array,hint: Contro
   for index in props.size():
    var arrival=smoothstep(seats[index]+.34,seats[index]+3.0,front)
    props[index].visible=arrival>0.0
-   props[index].position=resting[index]+Vector3.UP*(1.60*pow(1.0-arrival,2.0))
+   var offset=1.60*pow(1.0-arrival,2.0) if index<pieces_from_above else -.24*(1.0-arrival)
+   props[index].position=resting[index]+Vector3.UP*offset
   hint.modulate.a=1.0-smoothstep(.88,1.0,weight)
  apply_frame.call(0.0)
  var motion=world.create_tween()

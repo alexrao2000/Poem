@@ -271,6 +271,15 @@ func capture_tile(app,point: Vector2i):
   app.wait_action();await finish_presentation(app)
  assert(app.screen=="result" and app.game.result()=="victory")
 
+func verify_landmark_footing(landmarks: Node3D):
+ for marker in landmarks.get_children():
+  var tile=marker.get_meta("tile")
+  for mesh in marker.get_children():
+   var bounds=(marker.transform*mesh.transform)*mesh.get_aabb()
+   assert(bounds.position.y>0 and bounds.end.y<.25)
+   assert(bounds.position.x>tile.x-.5 and bounds.end.z<tile.y+.5)
+   assert(Vector2(tile.x-bounds.end.x,bounds.position.z-tile.y).length()>.39)
+
 func run():
  check_document()
  var scratch="/private/tmp/poem-campaign-editor-%d"%OS.get_process_id()
@@ -540,24 +549,30 @@ func run():
  controls(app,"Deploy company  >").pressed.emit()
  assert(app.valley_reveal_active and app.busy and not app.ui.visible and not app.markers.visible)
  var ink=app.world.get_node("ValleyGrid").material_override
+ var landmarks=app.world.get_node("ValleyLandmarks")
+ assert(landmarks.get_child_count()==2 and landmarks.get_children().all(func(marker):return not marker.visible))
  assert(ink.get_shader_parameter("front")<0.0 and app.camera.basis.z.is_equal_approx(Vector3.UP))
  assert(app.unit_nodes.values().all(func(piece):return not piece.visible))
  var persisted=app.game.save_data("battle").duplicate(true)
  var mid_reveal=[false]
+ var landmarks_rising=[false]
  var inspect_reveal=func():
   if not app.valley_reveal_active:return
   var visible=app.unit_nodes.values().filter(func(piece):return piece.visible)
   if not visible.is_empty() and visible.size()<app.unit_nodes.size():mid_reveal[0]=true
+  if landmarks.get_children().any(func(piece):return piece.visible and piece.position.y<.003):landmarks_rising[0]=true
   var frame=app.camera.get_viewport().get_visible_rect()
   for corner in Valley.reveal_corners(app.game.board_size()):
    assert(frame.grow(1).has_point(app.camera.unproject_position(corner)))
  process_frame.connect(inspect_reveal)
  await finish_presentation(app)
  process_frame.disconnect(inspect_reveal)
- assert(mid_reveal[0] and not app.valley_reveal_active and app.ui.visible and app.markers.visible)
+ assert(mid_reveal[0] and landmarks_rising[0] and not app.valley_reveal_active and app.ui.visible and app.markers.visible)
  assert(app.map_navigation.at_home() and app.game.save_data("battle")==persisted)
  assert(app.canvas.get_node_or_null("ValleyRevealHint")==null and ink.get_shader_parameter("front")>20.0)
  for piece in app.unit_nodes.values():assert(piece.visible and is_zero_approx(piece.position.y))
+ assert(landmarks.get_children().all(func(marker):return marker.visible and is_equal_approx(marker.position.y,.003)))
+ verify_landmark_footing(landmarks)
  assert(app.game.board_size()==Vector2i(24,16))
  app.click_tile(site_tile);await process_frame
  assert(app.game.terrain(site_tile)=="o" and app.terrain_card.place.text=="River Gate")
@@ -649,10 +664,18 @@ func run():
  assert(app.game.at(Vector2i(4,9)).id=="maelin" and app.game.living("enemy").all(func(enemy):return enemy.held_tonics==0))
  var places={"Reed Crossing":[Vector2i(6,9),"BRIDGE"],"Hallow Abbey":[Vector2i(9,5),"SANCTUARY"],
   "Kingsroad":[Vector2i(12,8),"BRIDGE"],"Windscar Pass":[Vector2i(19,7),"HILL"]}
+ var relief_pieces=app.world.get_node("ValleyLandmarks")
+ verify_landmark_footing(relief_pieces)
  for name in places:
   var site=places[name]
+  var relief_piece=relief_pieces.get_node("Landmark_%d_%d"%[site[0].x,site[0].y])
+  assert(relief_piece.visible and relief_piece.get_meta("terrain")==app.game.terrain(site[0]))
   app.click_tile(site[0]);await process_frame
   assert(app.terrain_card.place.visible and app.terrain_card.place.text==name and app.terrain_card.heading.text==site[1])
+ var abbey_opponent=app.game.living("enemy")[0].duplicate()
+ abbey_opponent.x=9;abbey_opponent.y=5
+ assert(app.scenery.combat_context(app.game,app.game.living("player")[0],abbey_opponent).environment=="abbey")
+ assert(relief_pieces.has_node("Landmark_21_2") and not relief_pieces.has_node("Landmark_21_1"))
  app.click_tile(Vector2i(21,1));await process_frame
  assert(not app.terrain_card.place.visible and app.terrain_card.place.text.is_empty())
  assert(Valley.route_tile([1.0,1.0])==Vector2i(23,15))
@@ -843,5 +866,5 @@ func run():
  app.campaign_editor.find_child("EditorOpenDraft_"+saved_key,true,false).pressed.emit();await process_frame
  assert(app.campaign_editor.draft_key==saved_key and app.campaign_editor.draft.data.title==saved_title)
  await Shutdown.dispose(app);await process_frame
- print("PASS: campaign JSON file transfer, draft library management, route pins, war-table site terrain, custom recruits, phase scenes, timed reinforcements, chapter 32 saves, section dialogue, authored section relief, authored legacy stock and purchase persistence, authored loss recruits, authored loss dialogue, reproducible playtest setup, Valley carryover, thirteen-chapter Valley template, and single-battle tests")
+ print("PASS: campaign JSON file transfer, draft library management, route pins, war-table site terrain, rising Valley landmarks, custom recruits, phase scenes, timed reinforcements, chapter 32 saves, section dialogue, authored section relief, authored legacy stock and purchase persistence, authored loss recruits, authored loss dialogue, reproducible playtest setup, Valley carryover, thirteen-chapter Valley template, and single-battle tests")
  quit()

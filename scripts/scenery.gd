@@ -620,7 +620,7 @@ func combat_context(game,a,b,screen_direction=1.0) -> Dictionary:
  var theme=game.info().get("environment","village")
  var tile=game.terrain(game.pos(b))
  if game.info().get("presentation","")=="valley_table":
-  theme={"f":"forest","h":"mountain","=":"river","o":"castle"}.get(tile,"road")
+  theme={"f":"forest","h":"mountain","=":"river","+":"abbey","o":"castle"}.get(tile,"road")
  var near_water=theme in ["road","harbor"] and nearby_channel(game,midpoint)
  var harbor_quayside=theme=="harbor" and tile!="=" and near_water
  var village_streamside=theme=="village" and CinderfordStream.borders_exchange(game,a,b)
