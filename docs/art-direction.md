@@ -223,7 +223,7 @@ An optional authored `recover` mapping takes precedence; unmapped authored actor
 
 ## Paired campaign score
 
-Cinderford and Reed Crossing share “A Standard at Dawn.” Each later chapter has its own theme, from “Where the Lanterns Wait” at Greywood to “The Light We Keep” at the Sun Engine. At Crown Approach, “The Gates Unanswered” shifts from strings in Calm to horns in Ablaze. Each of the eleven original 32-bar themes has two arrangements with identical decoded frame counts. The compositions combine original note and harmony timelines with CC0 VSCO recordings and synthesized percussion. Chapter assignments, recording provenance and licenses are in `data/campaign.json` and `assets/audio/`.
+Cinderford opens with “A Standard at Dawn.” Reed Crossing’s “The River Keeps Its Course” carries a flute melody over harp and sustained strings. Ablaze moves the melody to strings, with horn answers and a 3–3–2 bass and drum pulse. Each of the twelve chapters has a distinct original 32-bar theme with two arrangements on identical decoded timelines. The compositions combine original note and harmony timelines with CC0 VSCO recordings and synthesized percussion. Chapter assignments, recording provenance and licenses are in `data/campaign.json` and `assets/audio/`.
 
 A short harp and strings cue accompanies the first committed companion loss in a casualty sequence. It uses the same CC0 orchestra recordings and follows the Effects setting.
 

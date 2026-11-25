@@ -625,7 +625,7 @@
       "title": "The Broken Toll",
       "place": "Reed Crossing",
       "route_position": [0.25, 0.61],
-      "score_theme": "standard",
+      "score_theme": "reed_crossing",
       "objective": "seize",
       "boss": "Tollmaster Renn",
       "intro": "Mara’s boats cannot pass the chain towers. Take the eastern tollhouse before the river closes.",

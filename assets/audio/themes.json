@@ -266,6 +266,30 @@
         }
       },
       "composition_sha256": "756eccb0ece5694a8eab091760dfdc8d8fa4957622a9e7175521a924545ef24f"
+    },
+    {
+      "id": "reed_crossing",
+      "title": "The River Keeps Its Course",
+      "bpm": 104,
+      "bars": 32,
+      "frames": 1628308,
+      "sample_rate": 22050,
+      "channels": 2,
+      "arrangements": {
+        "calm": {
+          "path": "res://assets/audio/reed_crossing-calm.wav",
+          "peak": 0.6103171857326443,
+          "rms": 0.12,
+          "boundary_step": 0.021774627740526617
+        },
+        "ablaze": {
+          "path": "res://assets/audio/reed_crossing-ablaze.wav",
+          "peak": 0.8700000000000001,
+          "rms": 0.14859165039792477,
+          "boundary_step": 0.0187783175135706
+        }
+      },
+      "composition_sha256": "b442f5a58f42060e4d250ddd1d00bd81ac9b6d8edc5922c8f9f2158af557f95f"
     }
   ]
 }

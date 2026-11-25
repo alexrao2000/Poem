@@ -29,7 +29,8 @@ func run():
  assert(app.sfx_streams.levelup.get_length()>.71 and app.sfx_streams.levelup.get_length()<.73,"Level-up bell ends within the stat reveal")
  await verify_themes(app)
  await verify_authored_themes(app)
- await verify_chapter_exchange(app,2,"standard","greywood",Vector2i(3,3),Vector2i(4,3))
+ await verify_chapter_exchange(app,1,"standard","reed_crossing",Vector2i(5,2),Vector2i(6,2))
+ await verify_chapter_exchange(app,2,"reed_crossing","greywood",Vector2i(3,3),Vector2i(4,3))
  await verify_chapter_exchange(app,3,"greywood","abbey",Vector2i(11,4),Vector2i(12,4))
  await verify_chapter_exchange(app,5,"road","glass_harbor",Vector2i(8,4),Vector2i(9,4))
  await verify_chapter_exchange(app,6,"glass_harbor","windscar",Vector2i(4,5),Vector2i(5,5))
@@ -39,12 +40,12 @@ func run():
  await verify_chapter_exchange(app,11,"crown","sun_engine",Vector2i(9,2),Vector2i(10,2))
  await verify_quick_battles(app)
  await Shutdown.dispose(app);await process_frame
- print("PASS: eleven exact Calm/Ablaze pairs, 12 chapter mappings, compensated arrangement curve and seamless reversal, continuous combat mixing, bounded theme crossfades, mute/interruption and independent effects")
+ print("PASS: twelve exact Calm/Ablaze pairs, 12 unique chapter mappings, compensated arrangement curve and seamless reversal, continuous combat mixing, bounded theme crossfades, mute/interruption and independent effects")
  quit()
 
 func verify_themes(app):
  var director=app.score_director
- assert(director.profiles.size()==11)
+ assert(director.profiles.size()==12)
  for profile in director.profiles:
   var pair=director.make_pair(profile)
   var calm=pair.get_sync_stream(0);var ablaze=pair.get_sync_stream(1)
@@ -54,7 +55,7 @@ func verify_themes(app):
   assert(absf(calm.get_length()-float(profile.bars)*profile.get("beats_per_bar",4)*60/profile.bpm)<1.0/profile.sample_rate,"Actual audio duration matches the composition's meter and tempo")
   for stream in [calm,ablaze]:verify_decoded_loop(stream)
  for chapter in range(12):
-  var theme={2:"greywood",3:"abbey",5:"glass_harbor",6:"windscar",7:"aqueduct",8:"starfall",10:"crown",11:"sun_engine"}.get(chapter,["standard","road","dawnless"][chapter/4])
+  var theme={1:"reed_crossing",2:"greywood",3:"abbey",5:"glass_harbor",6:"windscar",7:"aqueduct",8:"starfall",10:"crown",11:"sun_engine"}.get(chapter,["standard","road","dawnless"][chapter/4])
   assert(app.campaign_score_profile(chapter).id==theme)
  assert(director.profile_for(11).id=="dawnless","An explicit finale theme does not change the catalog default")
  var roster=app.game.roster.duplicate(true);var rng=app.game.rng.state
@@ -62,8 +63,8 @@ func verify_themes(app):
  assert(not app.music.playing and director.outgoing==null,"Loading a later act while stopped never starts unsolicited playback")
  app.game.chapter=0;app.select_score_theme()
  app.music.play();var stable=app.score
- app.game.chapter=1;app.select_score_theme()
- assert(app.score==stable and app.music.stream==stable and director.outgoing==null,"Moving within the same act cannot replace/restart its active pair")
+ app.select_score_theme()
+ assert(app.score==stable and app.music.stream==stable and director.outgoing==null,"Selecting the same theme preserves the active pair and its playhead")
  var old_player=app.music;var old_playback=old_player.get_stream_playback()
  app.game.chapter=8;app.select_score_theme()
  assert(app.score!=stable and app.music.stream==app.score and director.outgoing.stream==stable,"Changing act retains the fading old pair")
