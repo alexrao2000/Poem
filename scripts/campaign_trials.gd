@@ -12,12 +12,20 @@ const SACRIFICE_PARAMETERS={
  "hp_penalty":{"label":"Recovery HP penalty","default":RECOVERY_HP_PENALTY,"maximum":20},
  "tonics":{"label":"Recovery tonics","default":RECOVERY_TONICS,"maximum":2},
 }
+const RETRY_PARAMETERS={
+ "max_hp":{"label":"Enemy HP added","default":2,"maximum":5},
+ "pow":{"label":"Enemy attack added","default":1,"maximum":3},
+ "tonics":{"label":"Enemy tonics spent","default":1,"maximum":2},
+ "raider_moves":{"label":"Raider moves added","default":1,"maximum":2},
+}
+const ENEMY_TONICS=2
 const HARD_BONUS_STATS={"max_hp":"Maximum HP","pow":"Attack","speed":"Speed","defense":"Defense"}
 const LEGACY_STOCK=[{"id":"tempered_sword","cost":1,"losses":1},{"id":"war_hammer","cost":2,"losses":2},{"id":"longbow","cost":3,"losses":3},{"id":"rally_lance","cost":2,"losses":2},{"id":"vigil_staff","cost":2,"losses":2}]
 const LEGACY_ARRIVALS=[{"id":"faye","losses":1,"job":""},{"id":"noor","losses":3,"job":""}]
 var legacy_stock: Array=LEGACY_STOCK
 var chapter_hard_bonuses: Dictionary={}
 var sacrifice_tuning: Dictionary=resolved_sacrifice_tuning()
+var retry_tuning: Dictionary=resolved_retry_tuning()
 const SCENE_TITLES={"relief_4":"Relief at the abbey","relief_8":"Relief at the monastery","retreat_0":"Regrouping at Cinderford","retreat_4":"Return to the abbey","retreat_8":"Return to Starfall","volunteer_faye":"Faye answers the call","volunteer_noor":"Noor leaves the observatory","volunteer_maelin":"The hospice road","volunteer_tovin":"The lanes beneath the hedge","memorial_0":"Names in the company book","memorial_4":"The abbey record","memorial_8":"The monastery bell"}
 var scenes: Dictionary=JSON.parse_string(FileAccess.get_file_as_string("res://data/campaign_trial_scenes.json"))
 var scene_titles: Dictionary=SCENE_TITLES
@@ -35,8 +43,14 @@ var checkpoint: Dictionary={}
 var section_starts=PackedInt32Array([0])
 
 static func resolved_sacrifice_tuning(overrides: Dictionary={}) -> Dictionary:
+ return resolved_tuning(SACRIFICE_PARAMETERS,overrides)
+
+static func resolved_retry_tuning(overrides: Dictionary={}) -> Dictionary:
+ return resolved_tuning(RETRY_PARAMETERS,overrides)
+
+static func resolved_tuning(parameters: Dictionary,overrides: Dictionary) -> Dictionary:
  var tuning={}
- for field in SACRIFICE_PARAMETERS:tuning[field]=int(overrides.get(field,SACRIFICE_PARAMETERS[field].default))
+ for field in parameters:tuning[field]=int(overrides.get(field,parameters[field].default))
  return tuning
 
 func configure_section_starts(starts: Array,chapter_count: int):
@@ -195,8 +209,10 @@ static func default_hard_bonuses(chapter: int) -> Dictionary:
 
 func enemy_modifiers(chapter: int,pressure_override: int=-1) -> Dictionary:
  var extra=(pressure if pressure_override<0 else clampi(pressure_override,0,10)) if flags.reset_pressure else 0
- var modifiers={"max_hp":extra*2,"pow":extra,"speed":0,"defense":0,
-  "held_tonics":maxi(0,2-extra) if flags.reset_pressure else 0,"raiders_advance":extra>0,"raider_moves":extra}
+ var moves=extra*int(retry_tuning.raider_moves)
+ var stock=maxi(0,ENEMY_TONICS-extra*int(retry_tuning.tonics)) if flags.reset_pressure else 0
+ var modifiers={"max_hp":extra*int(retry_tuning.max_hp),"pow":extra*int(retry_tuning.pow),"speed":0,"defense":0,
+  "held_tonics":stock,"raiders_advance":moves>0,"raider_moves":moves}
  if flags.hard_campaign:
   var bonuses=chapter_hard_bonuses.get(chapter,default_hard_bonuses(chapter))
   for stat in HARD_BONUS_STATS:modifiers[stat]+=int(bonuses[stat])
@@ -214,23 +230,22 @@ func deployment_condition(game,unit: Dictionary,chapter=-1) -> Dictionary:
 
 func prepare_battle(game):
  if not flags.reset_pressure and not flags.hard_campaign and not flags.sacrifice_cost:return
- var extra=pressure if flags.reset_pressure else 0
  var modifiers=enemy_modifiers(game.chapter)
  for unit in game.units:
   if unit.team=="enemy":
-   prepare_enemy(game,unit,modifiers,extra)
+   prepare_enemy(game,unit,modifiers)
   else:
    var condition=deployment_condition(game,unit)
    if condition.recovering:unit.hp=condition.hp;unit.potions=condition.tonics;unit.recovering=true
- for wave in game.enemy_waves:prepare_enemy(game,wave.unit,modifiers,extra)
- if extra>0:advance_raiders(game,extra)
+ for wave in game.enemy_waves:prepare_enemy(game,wave.unit,modifiers)
+ if modifiers.raiders_advance:advance_raiders(game,modifiers.raider_moves)
 
-func prepare_enemy(game,unit: Dictionary,modifiers: Dictionary,pressure_steps: int):
+func prepare_enemy(game,unit: Dictionary,modifiers: Dictionary):
  for key in ["max_hp","pow","speed","defense"]:game.raise_stat(unit,key,modifiers[key])
  unit.hp=unit.max_hp
  if not flags.reset_pressure:return
  unit.held_tonics=modifiers.held_tonics
- if pressure_steps>0:unit.reset_supplies_spent=mini(2,pressure_steps)
+ if modifiers.held_tonics<ENEMY_TONICS:unit.reset_supplies_spent=ENEMY_TONICS-int(modifiers.held_tonics)
  if not unit.boss and not unit.has("raider") and unit.job in ["Corsair","Ranger"]:unit.raider=true
 
 func advance_raiders(game,moves: int):
@@ -254,10 +269,11 @@ func restart(game) -> bool:
  record_losses(game);game.commit_casualties()
  if flags.reset_pressure:
   pressure=mini(10,pressure+1)
-  if pressure==1:
+  var prepared=enemy_modifiers(game.chapter)
+  if pressure==1 and prepared.held_tonics<ENEMY_TONICS and prepared.raiders_advance:
    log_event("The enemy prepares for another attempt: pressure %d/10. Held tonics are spent; raiders advance before deployment."%pressure)
   else:
-   log_event("Enemy pressure is %d/10. Each enemy has %d tonics left. Raiders may advance up to %d times before deployment."%[pressure,maxi(0,2-pressure),pressure])
+   log_event("Enemy pressure is %d/10. Each enemy has %d tonics left. Raiders may advance up to %d times before deployment."%[pressure,prepared.held_tonics,prepared.raider_moves])
  if flags.section_restarts and game.permadeath:
   capture_section(game)
   var preserved=to_data();var deaths=game.roster.filter(func(unit):return unit.get("fallen",false)).duplicate(true)

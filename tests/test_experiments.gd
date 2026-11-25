@@ -43,6 +43,47 @@ func verify_authored_sacrifice():
   assert("sacrifice values" in draft.structural_problem(malformed))
  print("PASS: authored opening and recovery values work together or independently, persist through a retry and reject invalid data")
 
+func verify_authored_retry():
+ var draft=Draft.new();draft.data=draft.new_document(false)
+ draft.data.settings.reset_pressure=true
+ for tuning in [{"max_hp":3,"pow":2,"tonics":0,"raider_moves":0},{"max_hp":0,"pow":0,"tonics":2,"raider_moves":2}]:
+  draft.data.retry_tuning=tuning
+  var imported=Draft.new();assert(imported.decode(draft.encode()).is_empty())
+  var compiled=imported.compile()
+  var game=Rules.new(compiled.content)
+  var reference=Rules.new(compiled.content)
+  for attempt in [game,reference]:
+   Draft.prepare_playtest(attempt,compiled.settings,0,17,0)
+   attempt.start_battle()
+  var preview=game.trials.restart_preview(game)
+  assert(preview.pressure==1 and game.trials.restart(game))
+  game.start_battle()
+  assert(game.trials.enemy_modifiers(0)==preview.enemies)
+  var starting_positions={}
+  for enemy in reference.living("enemy"):starting_positions[enemy.id]=reference.pos(enemy)
+  if tuning.raider_moves>0:reference.trials.advance_raiders(reference,tuning.raider_moves)
+  var shifted=0
+  for enemy in game.living("enemy"):
+   var old=reference.units.filter(func(unit):return unit.id==enemy.id)[0]
+   assert(enemy.max_hp==old.max_hp+tuning.max_hp and enemy.hp==enemy.max_hp and enemy.pow==old.pow+tuning.pow)
+   assert(enemy.held_tonics==2-tuning.tonics and enemy.get("reset_supplies_spent",0)==tuning.tonics)
+   assert(game.pos(enemy)==reference.pos(old))
+   if game.pos(enemy)!=starting_positions[enemy.id]:shifted+=1
+  assert((shifted>0)==(tuning.raider_moves>0))
+  var maximum=game.trials.enemy_modifiers(0,10)
+  assert(maximum.max_hp==10*tuning.max_hp and maximum.pow==10*tuning.pow)
+  assert(maximum.held_tonics==maxi(0,2-10*tuning.tonics) and maximum.raider_moves==10*tuning.raider_moves)
+  var restored=Rules.new(compiled.content)
+  assert(restored.import_code(game.export_code("battle"))=="battle" and restored.trials.retry_tuning==tuning)
+  assert(JSON.parse_string(JSON.stringify(restored.save_data("battle")))==JSON.parse_string(JSON.stringify(game.save_data("battle"))))
+  restored.trials.flags.reset_pressure=false
+  assert(restored.trials.enemy_modifiers(0)=={"max_hp":0,"pow":0,"speed":0,"defense":0,"held_tonics":0,"raiders_advance":false,"raider_moves":0})
+ var malformed=draft.data.duplicate(true)
+ for invalid in [{"max_hp":3},{"max_hp":6,"pow":2,"tonics":0,"raider_moves":0},{"max_hp":0,"pow":0,"tonics":2,"raider_moves":1.5}]:
+  malformed.retry_tuning=invalid
+  assert("retry values" in draft.structural_problem(malformed))
+ print("PASS: authored retry stats, consumed supplies and raider movements work independently and preserve the exact prepared battle")
+
 func verify_rules():
  var g=Rules.new();g.new_campaign(true);g.death_door=true;g.action_saves=true;g.start_battle()
  var victim=g.units[1];var rescuer=g.units[0];var healer=g.units.filter(func(u):return u.weapon=="staff")[0]
@@ -380,6 +421,7 @@ func verify_drop_controls(app):
 func run():
  verify_rules()
  verify_authored_sacrifice()
+ verify_authored_retry()
  verify_downed_objectives()
  verify_phase_aid_choices()
  root.size=Vector2i(1440,900)

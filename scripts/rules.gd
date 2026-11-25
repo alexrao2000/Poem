@@ -61,6 +61,7 @@ func _init(campaign: Dictionary={}):
 		trials.scene_titles=content.trial_titles
 	if content.has("legacy_stock"):trials.legacy_stock=content.legacy_stock
 	if content.has("sacrifice_tuning"):trials.sacrifice_tuning=trials.resolved_sacrifice_tuning(content.sacrifice_tuning)
+	if content.has("retry_tuning"):trials.retry_tuning=trials.resolved_retry_tuning(content.retry_tuning)
 	equipment = JSON.parse_string(FileAccess.get_file_as_string("res://data/equipment.json"))
 	promotions = JSON.parse_string(FileAccess.get_file_as_string("res://data/promotions.json"))
 	new_campaign()

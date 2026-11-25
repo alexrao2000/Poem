@@ -1309,6 +1309,19 @@ func verify_valley_roads_template(app):
  knobs.attack.value=2;knobs.hp_penalty.value=4;knobs.tonics.value=1
  assert(draft.encode()==baseline_code)
  print("PASS: the editor tunes sacrifice effects and restores the original draft when the controls return to default")
+ var retry={}
+ for key in ["max_hp","pow","tonics","raider_moves"]:retry[key]=editor.find_child("EditorRetry_"+key,true,false)
+ assert(retry.max_hp.value==2 and retry.pow.value==1 and retry.tonics.value==1 and retry.raider_moves.value==1)
+ retry.max_hp.value=4;retry.pow.value=2;retry.tonics.value=0;retry.raider_moves.value=2
+ assert(draft.compile().content.retry_tuning=={"max_hp":4,"pow":2,"tonics":0,"raider_moves":2})
+ var pressure=editor.find_child("EditorRule_reset_pressure",true,false)
+ pressure.button_pressed=false
+ assert(not retry.max_hp.is_visible_in_tree())
+ pressure.button_pressed=true
+ assert(retry.max_hp.value==4 and retry.raider_moves.value==2)
+ retry.max_hp.value=2;retry.pow.value=1;retry.tonics.value=1;retry.raider_moves.value=1
+ assert(draft.encode()==baseline_code)
+ print("PASS: the editor tunes all four retry effects and restores the original draft at their defaults")
  controls(app,"Play chapter").pressed.emit();await finish_presentation(app)
  assert(app.screen=="camp" and app.game.chapter==11 and app.game.rng.seed==472019)
  assert(app.game.capture_tiles()==[Vector2i(21,2),Vector2i(6,9),Vector2i(9,5)])

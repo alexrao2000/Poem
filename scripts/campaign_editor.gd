@@ -1080,7 +1080,12 @@ func build_rules(panel: VBoxContainer):
   enabled.toggled.connect(func(value):draft.data.settings[key]=value;changed())
   if key=="reset_pressure":pressure_option=enabled
   if key=="death_door":build_rescue_window(panel,enabled)
-  elif key=="sacrifice_cost":build_sacrifice_tuning(panel,enabled)
+  elif key=="sacrifice_cost":
+   build_trial_tuning(panel,enabled,"sacrifice_tuning",Trials.SACRIFICE_PARAMETERS,"EditorSacrifice_",
+    "The opening lasts through the next player turn. Recovery applies to deployments through the next chapter. A full allowance is two tonics.")
+  elif key=="reset_pressure":
+   build_trial_tuning(panel,enabled,"retry_tuning",Trials.RETRY_PARAMETERS,"EditorRetry_",
+    "Each point of pressure applies these effects before deployment. Each enemy starts with two tonics at zero pressure.")
   else:heading(panel,setting.text,15)
  build_playtest_setup(panel,pressure_option)
  var stock=VBoxContainer.new();stock.add_theme_constant_override("separation",8);panel.add_child(stock)
@@ -1100,20 +1105,20 @@ func build_rescue_window(panel: VBoxContainer,switch: CheckButton):
  field_label(row(controls),"Player phases to rescue",value)
  heading(controls,"Carrying pauses bleeding and costs 2 movement. Staff healing revives the ally.",15)
 
-func build_sacrifice_tuning(panel: VBoxContainer,switch: CheckButton):
+func build_trial_tuning(panel: VBoxContainer,switch: CheckButton,field_name: String,parameters: Dictionary,control_prefix: String,help: String):
  var controls=VBoxContainer.new();controls.visible=switch.button_pressed;panel.add_child(controls)
  switch.toggled.connect(func(value):controls.visible=value)
- heading(controls,"The opening lasts through the next player turn. Recovery applies to deployments through the next chapter. A full allowance is two tonics.",15)
- var defaults=Trials.resolved_sacrifice_tuning()
- var tuning=Trials.resolved_sacrifice_tuning(draft.data.get("sacrifice_tuning",{}))
- for key in Trials.SACRIFICE_PARAMETERS:
-  var field=Trials.SACRIFICE_PARAMETERS[key]
+ heading(controls,help,15)
+ var defaults=Trials.resolved_tuning(parameters,{})
+ var tuning=Trials.resolved_tuning(parameters,draft.data.get(field_name,{}))
+ for key in parameters:
+  var field=parameters[key]
   var value=spin(tuning[key],0,field.maximum,func(amount):
    tuning[key]=int(amount)
-   if tuning==defaults:draft.data.erase("sacrifice_tuning")
-   else:draft.data.sacrifice_tuning=tuning
+   if tuning==defaults:draft.data.erase(field_name)
+   else:draft.data[field_name]=tuning
    changed())
-  value.name="EditorSacrifice_"+key
+  value.name=control_prefix+key
   field_label(row(controls),field.label,value)
 
 func build_playtest_setup(panel: VBoxContainer,pressure_option: CheckButton):

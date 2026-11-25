@@ -180,6 +180,7 @@ func report(game,stage="battle") -> Dictionary:
  var result={"report_version":2,"recent_actions":trace.report(),"debug":true,"chapter":game.chapter+1,"title":game.info().title,"section":game.trials.section_index(game.chapter)+1,"turn":game.turn,"phase":game.phase,"outcome":game.result() if stage=="battle" and not game.units.is_empty() else "preparation","settings":settings,"seed_for_new_attempts":combat_seed,"rng_state":str(game.rng.state),"pressure":game.trials.pressure,"next_deployment_enemy_bonuses":game.trials.enemy_modifiers(game.chapter),"casualties":game.lost_ids(true),"legacy_credits":game.trials.credits,"dispatches":game.trials.events.duplicate(),"combatants":combatants,"save_code":game.export_code(stage)}
  if game.content.has("rescue_window"):result.rescue_window=game.rescue_window
  if game.content.has("sacrifice_tuning"):result.sacrifice_tuning=game.trials.sacrifice_tuning.duplicate()
+ if game.content.has("retry_tuning"):result.retry_tuning=game.trials.retry_tuning.duplicate()
  if stage=="battle" and settings.reset_pressure:
   var preview=retry_deployment(game.save_data("battle"),false,game.content)
   if not preview.is_empty():result.retry_deployment=preview

@@ -88,6 +88,8 @@ In Rules, Playtest setup lets you override the combat seed or choose a starting 
 
 To share a reproducible setup, choose **Transfer JSON → Include playtest setup in saved file**, then **Save JSON file**. Opening that file restores the selected chapter, seed setting, and starting retry pressure. Select **Play from start** or **Play chapter** to begin a fresh playtest with those settings.
 
+Enable **Enemies prepare after resets** in Rules to set the effect of each point of retry pressure. The defaults add 2 maximum HP and 1 attack per enemy, spend one of each enemy’s two tonics, and give each raider up to one move before deployment. Set individual effects to zero to test them independently. These bonuses apply alongside the chapter’s Hard bonuses. The preparation screen and Debug report use the authored values.
+
 Enable **Sacrifice costs & openings** in Rules to set the allied attack bonus, the recovery HP penalty, and the tonics returning allies start with. The defaults are +2 attack, 4 HP missing, and one tonic. Set the attack to zero to test recovery by itself. Set the HP penalty to zero and tonics to two to test the opening by itself.
 
 Enable **Death’s door & rescue** in Rules to give downed allies one to four player phases for treatment. The default is two. Rescue pauses the countdown, and staff healing revives the ally. The battlefield badge shows the remaining phases.

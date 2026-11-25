@@ -3320,6 +3320,9 @@ func show_options(return_to: String):
 		if setting.key=="death_door" and game.content.has("rescue_window"):
 			var phases="%d player phase%s"%[game.rescue_window,"" if game.rescue_window==1 else "s"]
 			description="Downed allies have "+phases+" for rescue or staff healing. Carrying pauses the countdown and costs 2 movement."
+		if setting.key=="reset_pressure" and game.content.has("retry_tuning"):
+			var tuning=game.trials.retry_tuning
+			description="Each pressure point adds %d HP and %d attack per enemy, spends up to %d of their tonics and gives each raider up to %d moves. Lyra must deploy."%[tuning.max_hp,tuning.pow,tuning.tonics,tuning.raider_moves]
 		if not description.is_empty():label_in(panel,description,16)
 	var presentation_heading=label_in(panel,"Battle presentation",21,GOLD)
 	var mode=OptionButton.new();mode.name="CombatMode";mode.custom_minimum_size.y=42

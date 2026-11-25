@@ -487,6 +487,11 @@ func structural_problem(document) -> String:
   if not tuning is Dictionary or tuning.size()!=Trials.SACRIFICE_PARAMETERS.size():return "Set all three sacrifice values."
   for key in Trials.SACRIFICE_PARAMETERS:
    if not integer(tuning.get(key),0,Trials.SACRIFICE_PARAMETERS[key].maximum):return "Set sacrifice values within their limits."
+ if document.has("retry_tuning"):
+  var tuning=document.retry_tuning
+  if not tuning is Dictionary or tuning.size()!=Trials.RETRY_PARAMETERS.size():return "Set all four retry values."
+  for key in Trials.RETRY_PARAMETERS:
+   if not integer(tuning.get(key),0,Trials.RETRY_PARAMETERS[key].maximum):return "Set retry values within their limits."
  if not known.all(func(id):return people.has(id)):return "The company roster is incomplete."
  for chapter in document.chapters:
   for scene in chapter.level.get("site_scenes",[]):
@@ -868,6 +873,7 @@ func compile(include_save_signature=true) -> Dictionary:
  if data.has("legacy_arrivals"):compile_legacy_arrivals(content)
  if data.has("rescue_window"):content.rescue_window=int(data.rescue_window)
  if data.has("sacrifice_tuning"):content.sacrifice_tuning=data.sacrifice_tuning.duplicate()
+ if data.has("retry_tuning"):content.retry_tuning=data.retry_tuning.duplicate()
  if not relief.is_empty():content.section_relief=relief
  return {"content":content,"story":{"chapters":scenes},"settings":data.settings.duplicate(true)}
 
