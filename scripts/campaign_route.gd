@@ -7,6 +7,7 @@ signal pin_placed(index: int,position: Vector2)
 const MAP=preload("res://assets/art/campaign-valley-v1.png")
 const Grid=preload("res://scripts/campaign_editor_grid.gd")
 const Rules=preload("res://scripts/rules.gd")
+const RouteSeals=preload("res://scripts/route_seals.gd")
 const SEAL_SIZE=36.0
 const SEAL_INSET=20.0
 const STANDARD_INSET=41.0
@@ -160,9 +161,7 @@ func _draw():
   if rally_points.has(i) and reached:
    var corners=PackedVector2Array([Vector2(0,-20),Vector2(20,0),Vector2(0,20),Vector2(-20,0),Vector2(0,-20)])
    draw_polyline(corners,Color("f5dc94") if i==retreat_chapter and not complete else Color("a88b55"),2,true)
-  draw_circle(Vector2(0,2),15,Color(0.18,.13,.08,.35))
-  draw_circle(Vector2.ZERO,14,Color("a8864b") if reached else Color("99927e"))
-  draw_circle(Vector2.ZERO,11.5,Color("354e60") if i==current else Color("66523b") if reached else Color("746e60"))
+  RouteSeals.draw_seal(self,Vector2.ZERO,1.0,reached,i==current,1.0)
   if i==selected:draw_arc(Vector2.ZERO,17,0,TAU,40,Color("f5dc94"),2,true)
   if i==current and not complete:
    var pulse=Color("f5dc94");pulse.a=.35+.22*sin(clock*2.2)

@@ -1440,6 +1440,12 @@ func run():
  var war_table_score=app.score_director.score
  controls(app,"Deploy company  >").pressed.emit()
  assert(app.valley_reveal_active and app.busy and not app.ui.visible and not app.markers.visible)
+ var seals=app.canvas.get_node("ValleyRouteSeals")
+ var visible_seals=seals.projected_pins()
+ assert(visible_seals.size()==1 and visible_seals[0].chapter==1 and is_equal_approx(visible_seals[0].opacity,1.0))
+ var river_pin=app.game.content.chapters[0].route_position
+ var seal_point=Vector3(river_pin[0]*Valley.WIDTH-.5,.016,river_pin[1]*Valley.HEIGHT-.5)
+ assert(visible_seals[0].center.is_equal_approx(app.camera.unproject_position(seal_point)))
  var ink=app.world.get_node("ValleyGrid").material_override
  var landmarks=app.world.get_node("ValleyLandmarks")
  assert(landmarks.get_child_count()==2 and landmarks.get_children().all(func(marker):return not marker.visible))
@@ -1449,12 +1455,15 @@ func run():
  var mid_reveal=[false]
  var landmarks_rising=[false]
  var paper_started=[false]
+ var seals_faded=[false]
  var inspect_reveal=func():
   if not app.valley_reveal_active:return
   if app.sfx_players.any(func(player):return player.stream==paper_sound and player.playing):paper_started[0]=true
   var visible=app.unit_nodes.values().filter(func(piece):return piece.visible)
   if not visible.is_empty() and visible.size()<app.unit_nodes.size():mid_reveal[0]=true
   if landmarks.get_children().any(func(piece):return piece.visible and piece.position.y<.003):landmarks_rising[0]=true
+  var route_seals=app.canvas.get_node_or_null("ValleyRouteSeals")
+  if route_seals!=null and route_seals.projected_pins().is_empty():seals_faded[0]=true
   var frame=app.camera.get_viewport().get_visible_rect()
   for corner in Valley.reveal_corners(app.game.board_size()):
    assert(frame.grow(1).has_point(app.camera.unproject_position(corner)))
@@ -1469,6 +1478,7 @@ func run():
  await Valley.play_reveal(app.map_navigation,app.game,app.world,app.unit_nodes.values(),temporary_hint,func():return true,func(cue):skipped_cues.append(cue))
  temporary_hint.queue_free()
  assert(skipped_cues.is_empty())
+ assert(seals_faded[0] and app.canvas.get_node_or_null("ValleyRouteSeals")==null)
  assert(mid_reveal[0] and landmarks_rising[0] and not app.valley_reveal_active and app.ui.visible and app.markers.visible)
  assert(app.map_navigation.at_home() and app.game.save_data("battle")==persisted)
  assert(app.canvas.get_node_or_null("ValleyRevealHint")==null and ink.get_shader_parameter("front")>20.0)
@@ -1903,5 +1913,5 @@ func run():
  await verify_route_arena_reuse(app)
  assert(FileAccess.get_file_as_string(app.save_path)==disk and app.game==installed)
  await Shutdown.dispose(app);await process_frame
- print("PASS: campaign JSON file transfer, draft library management, remembered playtest setup, campaign readiness, authored Hard bonuses, authored retry raiders, deployment comparison, authored formation previews, small deployment limits and save recovery, custom campaign atlas, terrain stroke undo, bulk terrain rows, editor dialogs at two viewport sizes, direct chapter reordering, continuous terrain strokes, connected terrain fill, placement moves and swaps, repeated placement copies, switching enemy difficulty groups, editor music preview, multiple standards and exact resume, standard navigation and live progress, standards that follow route pins, route pins, war-table site terrain, war-table overlay, blank war-table chapter, rising Valley landmarks, local war-table arena landmarks, authored route arenas, Valley reveal sound cues, battlefield site markers, custom recruits, phase scenes, tile dialogue and reload, recruitment on battlefield sites, navigation between available sites, one-use field tonic caches, Valley landmark dialogue, dialogue that follows route pins, timed reinforcements, chapter 32 saves, section dialogue, authored section relief, authored legacy stock and purchase persistence, authored loss recruits, authored loss dialogue, reproducible playtest setup, Valley carryover and resume, thirteen-chapter Valley template, and single-battle tests")
+ print("PASS: campaign JSON file transfer, draft library management, remembered playtest setup, campaign readiness, authored Hard bonuses, authored retry raiders, deployment comparison, authored formation previews, small deployment limits and save recovery, custom campaign atlas, terrain stroke undo, bulk terrain rows, editor dialogs at two viewport sizes, direct chapter reordering, continuous terrain strokes, connected terrain fill, placement moves and swaps, repeated placement copies, switching enemy difficulty groups, editor music preview, multiple standards and exact resume, standard navigation and live progress, standards that follow route pins, route pins, war-table site terrain, war-table overlay, blank war-table chapter, rising Valley landmarks, local war-table arena landmarks, authored route arenas, fading route seals, Valley reveal sound cues, battlefield site markers, custom recruits, phase scenes, tile dialogue and reload, recruitment on battlefield sites, navigation between available sites, one-use field tonic caches, Valley landmark dialogue, dialogue that follows route pins, timed reinforcements, chapter 32 saves, section dialogue, authored section relief, authored legacy stock and purchase persistence, authored loss recruits, authored loss dialogue, reproducible playtest setup, Valley carryover and resume, thirteen-chapter Valley template, and single-battle tests")
  quit()

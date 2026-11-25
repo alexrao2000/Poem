@@ -2,6 +2,7 @@ extends RefCounted
 ## The route illustration and tactical grid share the same normalized frame.
 const MAP=preload("res://assets/art/campaign-valley-v1.png")
 const GRID_INK=preload("res://assets/shaders/valley-grid.gdshader")
+const RouteSeals=preload("res://scripts/route_seals.gd")
 const REVEAL_SECONDS=1.75
 const WIDTH=24
 const HEIGHT=16
@@ -226,6 +227,9 @@ static func play_reveal(navigation,game,world: Node3D,actors: Array,hint: Contro
  var home: Dictionary=navigation.capture_view()
  var chart=chart_view(camera,game.board_size(),home)
  var origin=Vector2(reveal_origin(game))
+ var seals=RouteSeals.new()
+ hint.get_parent().add_child(seals)
+ seals.configure(camera,game,origin)
  var radius=0.0
  for corner in reveal_corners(game.board_size()):radius=maxf(radius,origin.distance_to(Vector2(corner.x,corner.z)))
  var ink: ShaderMaterial=world.get_node("ValleyGrid").material_override
@@ -244,6 +248,7 @@ static func play_reveal(navigation,game,world: Node3D,actors: Array,hint: Contro
   var front=lerpf(-.85,radius+4.8,smoothstep(.10,.86,weight))
   ink.set_shader_parameter("front",front)
   navigation.apply_return(smoothstep(.07,1.0,weight),chart,home)
+  seals.front=front
   for index in props.size():
    var arrival=smoothstep(seats[index]+.34,seats[index]+3.0,front)
    props[index].visible=arrival>0.0
@@ -261,3 +266,5 @@ static func play_reveal(navigation,game,world: Node3D,actors: Array,hint: Contro
  while motion.is_running() and not skip.call():await world.get_tree().process_frame
  if motion.is_running():motion.kill()
  apply_frame.call(1.0,false)
+ seals.get_parent().remove_child(seals)
+ seals.queue_free()
