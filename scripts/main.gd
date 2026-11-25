@@ -2,6 +2,7 @@ extends Node3D
 const Rules = preload("res://scripts/rules.gd")
 const CampaignDraftModel=preload("res://scripts/campaign_draft.gd")
 const CampaignSettings=preload("res://scripts/campaign_settings.gd")
+const DebugSession=preload("res://scripts/debug_session.gd")
 const EquipmentComparison=preload("res://scripts/equipment_comparison.gd")
 const Portraits = preload("res://scripts/portraits.gd")
 const WeaponIcons=preload("res://scripts/weapon_icons.gd")
@@ -71,6 +72,7 @@ var valley_reveal_active=false
 var valley_reveal_skip=false
 var atlas_return_control=""
 var rally_company_return=""
+var rally_company_state: Rules
 const CriticalCutin=preload("res://scripts/critical_cutin.gd")
 const Fighters = preload("res://scripts/fighters.gd")
 const ImportedFighter=preload("res://scripts/imported_fighter.gd")
@@ -148,7 +150,7 @@ const GOLD = Color("8d6a32")
 const INK = Color("e8e0cb")
 const SAVE = "user://campaign.json"
 var save_path=SAVE
-var debug_session=preload("res://scripts/debug_session.gd").new()
+var debug_session=DebugSession.new()
 var campaign_draft
 const CampaignDraftLibrary=preload("res://scripts/campaign_draft_library.gd")
 var campaign_draft_library=CampaignDraftLibrary.new()
@@ -665,7 +667,7 @@ func start_campaign_preview(compiled: Dictionary,start: int,resume: bool,return_
 	campaign_preview={"game":game,"story":story,"debug":debug_session,"path":path,"return":return_to,"save_failed":save_failed}
 	game=preview;story=compiled.story
 	save_failed=false
-	debug_session=preload("res://scripts/debug_session.gd").new()
+	debug_session=DebugSession.new()
 	if resume:await load_campaign();return
 	CampaignDraftModel.prepare_playtest(game,compiled.settings,start,seed_value,pressure,return_to!="route")
 	if return_to=="route":carry_valley_company(campaign_preview.game)
@@ -1522,6 +1524,8 @@ func _unhandled_input(event):
 		interface_audio.cue("back");close_retreat_route();get_viewport().set_input_as_handled();return
 	if screen=="rally_company" and event is InputEventKey and event.pressed and not event.echo and event.keycode==KEY_ESCAPE:
 		interface_audio.cue("back");close_rally_company();get_viewport().set_input_as_handled();return
+	if screen=="rally_enemies" and event is InputEventKey and event.pressed and not event.echo and event.keycode==KEY_ESCAPE:
+		interface_audio.cue("back");close_rally_enemies();get_viewport().set_input_as_handled();return
 	if screen=="battle_route" and event is InputEventKey and event.pressed and not event.echo and event.keycode in [KEY_ESCAPE,KEY_V]:
 		interface_audio.cue("back");close_battle_route();get_viewport().set_input_as_handled();return
 	if screen in ["dossier","campaign_route","campaign_trials","formation"] and event is InputEventKey and event.pressed and not event.echo and event.keycode==KEY_ESCAPE:
@@ -2381,6 +2385,11 @@ func show_rally_company():
 	if not rally.retry_battle():
 		show_notice("The rally company preview is unavailable for this position.");return
 	rally_company_return=screen
+	rally_company_state=rally
+	draw_rally_company()
+
+func draw_rally_company():
+	var rally=rally_company_state
 	screen="rally_company";reset_ui()
 	var frame=menu_panel(780)
 	label_in(frame,"Company at the rally",34,GOLD)
@@ -2402,14 +2411,35 @@ func show_rally_company():
 		for unit in formation:
 			label_in(group,"%s · %s · Lv %d"%[unit.name,rally.class_name_for(unit),unit.level],18).name="RallyRoster_"+unit.id
 	if not reserves.is_empty():label_in(frame,"You can change the company at the war council after regrouping.",16)
-	button_in(frame,"Return to loss review [Esc]" if from_losses else "Return to result [Esc]",close_rally_company).grab_focus()
+	var actions=HBoxContainer.new();actions.add_theme_constant_override("separation",8);frame.add_child(actions)
+	if rally.trials.flags.reset_pressure:
+		var enemies=button_in(actions,"Compare enemy preparations",show_rally_enemies)
+		enemies.name="PreviewRallyEnemies";enemies.size_flags_horizontal=Control.SIZE_EXPAND_FILL
+	var back=button_in(actions,"Return to loss review [Esc]" if rally_company_return=="phase_losses" else "Return to result [Esc]",close_rally_company)
+	back.size_flags_horizontal=Control.SIZE_EXPAND_FILL;back.grab_focus()
 
 func close_rally_company():
+	rally_company_state=null
 	if rally_company_return=="phase_losses":
 		screen="battle";show_phase_losses()
 	else:show_battle_result("defeat")
 	rally_company_return=""
 	ui.find_child("PreviewRallyCompany",true,false).grab_focus()
+
+func show_rally_enemies():
+	if screen!="rally_company" or rally_company_state==null:return
+	var camp=rally_company_state.save_data("camp")
+	var reference=Rules.new(rally_company_state.content)
+	var prepared=Rules.new(rally_company_state.content)
+	if reference.restore_save(camp)!="camp" or prepared.restore_save(camp)!="camp":
+		show_notice("The enemy preview is unavailable for this position.");return
+	reference.trials.pressure=game.trials.pressure
+	reference.start_battle();prepared.start_battle()
+	show_retry_deployment("rally_enemies",DebugSession.compare_deployments(reference,prepared))
+
+func close_rally_enemies():
+	draw_rally_company()
+	ui.find_child("PreviewRallyEnemies",true,false).grab_focus()
 
 func close_valley_battle():
 	var was_home=map_navigation.at_home()
@@ -3356,7 +3386,10 @@ func show_debug_report():
 
 func show_debug_retry_deployment(retry: Dictionary,current: Dictionary={}):
 	if not debug_session.active:return
-	screen="debug_retry_deployment";reset_ui()
+	show_retry_deployment("debug_retry_deployment",retry,current)
+
+func show_retry_deployment(view: String,retry: Dictionary,current: Dictionary={}):
+	screen=view;reset_ui()
 	var panel=menu_panel(1040)
 	label_in(panel,"Enemy deployment after a retry",36,GOLD)
 	var summary=label_in(panel,"",18,GOLD);summary.name="DebugRetryPressure"
@@ -3369,7 +3402,8 @@ func show_debug_retry_deployment(retry: Dictionary,current: Dictionary={}):
 		baseline.size_flags_horizontal=Control.SIZE_EXPAND_FILL;row.add_child(baseline)
 		baseline.add_item("Unprepared · Pressure 0")
 		baseline.add_item("Current · Pressure %d"%current.reference_pressure)
-	label_in(panel,"Both columns use the retry chapter’s fresh deployment. Tile coordinates start at 0.",16)
+	var caption="Both columns use the rally’s starting company. Tile coordinates start at 0." if view=="rally_enemies" else "Both columns use the retry chapter’s fresh deployment. Tile coordinates start at 0."
+	label_in(panel,caption,16)
 	var columns=[["position","Tile"],["hp","HP"],["attack","Attack"],["speed","Speed"],["defense","Defense"],["held_tonics","Tonics"]]
 	var table=GridContainer.new();table.name="DebugRetryEnemies";table.columns=columns.size()+1
 	table.add_theme_constant_override("h_separation",16);table.add_theme_constant_override("v_separation",10)
@@ -3399,7 +3433,8 @@ func show_debug_retry_deployment(retry: Dictionary,current: Dictionary={}):
 				rows[index][column].add_theme_color_override("font_color",GOLD if changed else Color("443e36"))
 	display.call(retry)
 	if baseline!=null:baseline.item_selected.connect(func(index):display.call(retry if index==0 else current))
-	button_in(panel,"Return to experiment report",show_debug_report)
+	if view=="rally_enemies":button_in(panel,"Return to rally company [Esc]",close_rally_enemies).grab_focus()
+	else:button_in(panel,"Return to experiment report",show_debug_report)
 
 func action_save_ready() -> bool:
 	return not game.action_saves or not save_failed or persist_campaign("battle")

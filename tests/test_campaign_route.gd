@@ -114,6 +114,7 @@ func run():
 
 func verify_retreat_route(app):
  app.game.chapter=11
+ app.game.trials.flags.reset_pressure=true
  app.game.start_battle();app.make_map();app.show_battle()
  var leader=app.game.living("player").filter(func(unit):return unit.id=="lyra")[0]
  leader.hp=0
@@ -146,6 +147,15 @@ func verify_retreat_route(app):
   assert(app.screen=="rally_company" and "Chapter 09 · Starfall" in app.ui.find_child("RallyCompanyLocation",true,false).text)
   assert(Rect2(Vector2.ZERO,dimensions).encloses(roster.get_global_rect()))
   assert(roster.find_child("RallyRoster_lyra",true,false)!=null)
+  app.ui.find_child("PreviewRallyEnemies",true,false).pressed.emit()
+  app.ui.set_anchors_and_offsets_preset(Control.PRESET_TOP_LEFT);app.ui.size=dimensions
+  await process_frame;await process_frame
+  var table=app.ui.find_child("DebugRetryEnemies",true,false)
+  assert(app.screen=="rally_enemies" and app.ui.find_child("DebugRetryPressure",true,false).text=="Chapter 09 · Pressure 0 → 1")
+  assert(Rect2(Vector2.ZERO,dimensions).encloses(table.get_parent().get_global_rect()))
+  var return_to_company=app.ui.find_children("*","Button",true,false).filter(func(button):return button.text=="Return to rally company [Esc]")[0]
+  return_to_company.pressed.emit()
+  assert(app.screen=="rally_company" and app.ui.find_child("PreviewRallyEnemies",true,false).has_focus())
   if dimensions.x==720:
    var retreat_escape=InputEventKey.new();retreat_escape.pressed=true;retreat_escape.keycode=KEY_ESCAPE
    app._unhandled_input(retreat_escape)
@@ -160,6 +170,7 @@ func verify_retreat_route(app):
  assert(app.ui.find_child("PreviewRallyCompany",true,false)==null)
  print("PASS: defeat previews the actual rally on the atlas and returns read-only by button or Escape")
  print("PASS: defeat previews the rally roster at narrow and desktop sizes and returns to the unchanged result")
+ print("PASS: the actual rally compares prepared enemies before committing and leaves the result save unchanged")
 
 func verify_longer_route(app):
  var original=app.game.content.chapters.duplicate(true)
