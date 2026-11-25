@@ -139,14 +139,19 @@ func plan_healer(game,unit: Dictionary,free: Array,foes: Array) -> Dictionary:
  var best_score=-INF
  var injured=game.units.filter(func(ally):return ally.team==unit.team and ally.id!=unit.id and (ally.hp>0 or game.DeathDoor.downed(ally)) and ally.hp<ally.max_hp)
  var probe=unit.duplicate(true)
+ var threat_by_tile={}
+ var healing=game.healing_power(unit)
  for ally in injured:
   for p in free:
    probe.x=p.x;probe.y=p.y
    if not game.can_heal(probe,ally):continue
-   var threat=0
-   for foe in foes:
-    if absi(p.x-int(foe.x))+absi(p.y-int(foe.y))<=foe.reach:threat+=10
-   var value=mini(game.healing_power(unit),ally.max_hp-ally.hp)*4-threat
+   var threat: int=threat_by_tile.get(p,-1)
+   if threat<0:
+    threat=0
+    for foe in foes:
+     if absi(p.x-int(foe.x))+absi(p.y-int(foe.y))<=foe.reach:threat+=10
+    threat_by_tile[p]=threat
+   var value=mini(healing,ally.max_hp-ally.hp)*4-threat
    if game.DeathDoor.downed(ally):
     value+=100
     if ally.get("carried_by","").is_empty():value+=(3-int(ally.bleed_turns))*30
@@ -166,9 +171,10 @@ func plan_healer(game,unit: Dictionary,free: Array,foes: Array) -> Dictionary:
    if value<nearest:nearest=value;best.position=p
  if nearest<INF:return best
  # Follow the company while keeping distance from enemy weapons.
+ var company=game.living(unit.team)
  for p in free:
   var nearest_ally=999;var nearest_foe=999
-  for ally in game.living(unit.team):
+  for ally in company:
    if ally.id!=unit.id:nearest_ally=mini(nearest_ally,absi(p.x-int(ally.x))+absi(p.y-int(ally.y)))
   for foe in foes:nearest_foe=mini(nearest_foe,absi(p.x-int(foe.x))+absi(p.y-int(foe.y)))
   var value=-absf(nearest_ally-1)*2+minf(nearest_foe,5)-game.pos(unit).distance_to(p)*.03
