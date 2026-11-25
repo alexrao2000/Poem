@@ -196,6 +196,13 @@ static func reached_places(chapters: Array,chapter_index: int) -> Dictionary:
   if chapter.place not in places[tile]:places[tile].append(chapter.place)
  return places
 
+static func reached_chapter_at(chapters: Array,chapter_index: int,point: Vector2i,environment: String) -> Dictionary:
+ for index in range(chapter_index-1,-1,-1):
+  var chapter=chapters[index]
+  if chapter.get("presentation","")=="valley_table" or chapter.get("environment","village")!=environment:continue
+  if route_tile(chapter.route_position)==point:return chapter
+ return {}
+
 static func reveal_corners(board: Vector2i) -> Array:
  return [Vector3(-.5,0,-.5),Vector3(board.x-.5,0,-.5),
   Vector3(-.5,0,board.y-.5),Vector3(board.x-.5,0,board.y-.5)]

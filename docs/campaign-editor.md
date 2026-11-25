@@ -72,6 +72,8 @@ The editor offers a Valley war table chapter template. Its terrain and markers u
 
 To carry an earlier location into a war table battle, set its terrain in Route. Moving that chapter’s pin moves the terrain on each later table. The Battle grid marks inherited tiles and names them when inspected. If entries share a tile, the latest preceding chapter with assigned terrain takes priority. The table keeps the terrain painted under each inherited tile so the paint returns if the pin moves or the assignment is cleared. The seize objective keeps its painted terrain.
 
+Close-up battles at reached war-table sites can bring back local scenery. Reed Crossing’s tollhouse returns on its bridge tile. Fighting at Hallow Abbey brings back its floor mosaic and any memorial lamps, while the table’s capital stronghold uses the raised gate.
+
 Choose a battle in the War-table overlay in Route to see its effective terrain and seize objective over the atlas. The readout follows the selected pin. Moving a pin or changing its inherited terrain updates the overlay as you edit.
 
 Choose a later seize battle in the overlay and switch on Require this pin as a standard to make that location part of the victory condition. Its standard follows the pin when it moves. Deleting the linked chapter leaves a standard on its last tile.

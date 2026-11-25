@@ -28,6 +28,7 @@ const CinderfordStream=preload("res://scripts/cinderford_stream.gd")
 const ReedTollhouse=preload("res://scripts/reed_tollhouse.gd")
 const AbbeyMosaic=preload("res://scripts/abbey_mosaic.gd")
 const AbbeyVigil=preload("res://scripts/abbey_vigil.gd")
+const Valley=preload("res://scripts/world_map_battle.gd")
 const ABBEY_COURT_BACK_ROW=1
 const ABBEY_ALCOVE_RADIUS=.39
 static var abbey_alcove_mesh: ArrayMesh
@@ -362,7 +363,7 @@ func house(parent,p,scale_value=1.0,roof_variant=-1,warehouse=false,vented=false
 func landscape(parent,game):
  cylinders.clear();cylinder_environment=""
  if game.info().get("presentation","")=="valley_table":
-  preload("res://scripts/world_map_battle.gd").build(parent,game,self)
+  Valley.build(parent,game,self)
   return
  # Keep ground under the whole camera envelope, including larger authored maps.
  var board=game.board_size()
@@ -618,15 +619,21 @@ func combat_context(game,a,b,screen_direction=1.0) -> Dictionary:
  axis*=screen_direction
  var depth=Vector2(-axis.y,axis.x)
  var theme=game.info().get("environment","village")
- var tile=game.terrain(game.pos(b))
- if game.info().get("presentation","")=="valley_table":
+ var point=game.pos(b)
+ var tile=game.terrain(point)
+ var tabletop=game.info().get("presentation","")=="valley_table"
+ var earlier_site={}
+ if tabletop:
   theme={"f":"forest","h":"mountain","=":"river","+":"abbey","o":"castle"}.get(tile,"road")
+  earlier_site=Valley.reached_chapter_at(game.content.chapters,game.chapter,point,theme)
  var near_water=theme in ["road","harbor"] and nearby_channel(game,midpoint)
  var harbor_quayside=theme=="harbor" and tile!="=" and near_water
  var village_streamside=theme=="village" and CinderfordStream.borders_exchange(game,a,b)
  var backdrop_edge=-9.25 if village_streamside else -7.0
  var candidates=[]
  var tollhouse_x=INF
+ if theme=="river" and earlier_site.get("landmarks",[]).any(func(item):return item.kind=="tollhouse"):
+  tollhouse_x=-6.3
  for item in game.info().get("landmarks",[]):
   if theme=="harbor" and item.kind=="boat" and tile!="=" and not harbor_quayside:continue
   var site=Vector2(item.position[0],item.position[1])
@@ -645,14 +652,20 @@ func combat_context(game,a,b,screen_direction=1.0) -> Dictionary:
  if context.road_canal:
   context.road_hoist=midpoint.distance_to(Vector2(KingsroadHoist.MAP_SITE.x,KingsroadHoist.MAP_SITE.z))<=3.5
  if theme=="castle":
-  context.raised_gate=midpoint.distance_to(Vector2(Fortification.MAP_GATE_SITE.x,Fortification.MAP_GATE_SITE.z))<=4.0
+  if tabletop:
+   context.raised_gate=(game.info().objective=="seize" and point==game.objective_position()) or not earlier_site.is_empty()
+  else:
+   context.raised_gate=midpoint.distance_to(Vector2(Fortification.MAP_GATE_SITE.x,Fortification.MAP_GATE_SITE.z))<=4.0
  if theme=="furnace" and tile!="=":
   context.slag_cart=midpoint.distance_to(Vector2(ReddeepCart.MAP_SITE.x,ReddeepCart.MAP_SITE.z))<=3.3
  if is_finite(tollhouse_x):context.tollhouse_x=tollhouse_x
  if theme=="abbey":
-  if tile=="p" and midpoint.distance_to(Vector2(AbbeyMosaic.MAP_SITE.x,AbbeyMosaic.MAP_SITE.z))<=3.0:
+  var known_abbey=not earlier_site.is_empty()
+  var mosaic=known_abbey if tabletop else tile=="p" and midpoint.distance_to(Vector2(AbbeyMosaic.MAP_SITE.x,AbbeyMosaic.MAP_SITE.z))<=3.0
+  var vigil=known_abbey if tabletop else midpoint.distance_to(Vector2(AbbeyVigil.MAP_SITE.x,AbbeyVigil.MAP_SITE.z))<=6.0
+  if mosaic:
    context.mosaic_yaw=atan2(axis.y,axis.x)
-  if midpoint.distance_to(Vector2(AbbeyVigil.MAP_SITE.x,AbbeyVigil.MAP_SITE.z))<=6.0:
+  if vigil:
    var lamps=AbbeyVigil.lamp_count(game)
    if lamps>0:context.vigil_lamps=lamps
  return context
@@ -1155,7 +1168,7 @@ func battle_landscape(parent,center,context={}):
   abbey_belfry(parent,center+Vector3(belfry_lateral,0,-6.5),1.35)
   AbbeyVigil.build(self,parent,center+Vector3(belfry_lateral-signf(belfry_lateral)*3.78,0,-5.3),
    AbbeyVigil.ARENA_SCALE,context.get("vigil_lamps",0))
-  if context.has("mosaic_yaw") and tile=="p":
+  if context.has("mosaic_yaw") and tile in ["p","+"]:
    AbbeyMosaic.build(self,parent,center+AbbeyMosaic.ARENA_SITE,AbbeyMosaic.ARENA_SCALE,context.mosaic_yaw)
  if theme=="castle":
   Fortification.build_castle_wall(self,parent,center+Vector3(0,0,-9),context.get("raised_gate",false))

@@ -267,6 +267,49 @@ func check_war_table_sites():
  assert(draft.battle_level(stage).map[shared.y][shared.x]==base[shared.y][shared.x])
  assert(draft.move_chapter(1,1)==stage and draft.valley_marks(1).is_empty())
 
+func check_valley_arena_locations():
+ var draft=Draft.new()
+ draft.load_poem_template(true)
+ var game=Rules.new(draft.compile().content)
+ game.chapter=11
+ var painter=preload("res://scripts/scenery.gd").new()
+ painter.batching_enabled=false
+ var crossing={"x":6,"y":9}
+ var near_bank={"x":5,"y":9}
+ var crossing_context=painter.combat_context(game,near_bank,crossing)
+ assert(crossing_context.environment=="river" and crossing_context.terrain=="=" and crossing_context.has("tollhouse_x"))
+ var stage=Node3D.new();root.add_child(stage)
+ painter.battle_landscape(stage,Vector3.ZERO,crossing_context)
+ assert(stage.has_node("ReedTollhouse") and stage.has_node("ArenaDeck"))
+ stage.free()
+ game.permadeath=true
+ game.trials.flags.death_legacies=true
+ game.trials.losses["ivo"]=2
+ game.roster.filter(func(unit):return unit.id=="ivo")[0].fallen=true
+ var abbey={"x":9,"y":5}
+ var abbey_context=painter.combat_context(game,{"x":8,"y":5},abbey)
+ assert(abbey_context.environment=="abbey" and abbey_context.terrain=="+" and abbey_context.vigil_lamps==1)
+ assert(abbey_context.has("mosaic_yaw"))
+ stage=Node3D.new();root.add_child(stage)
+ painter.battle_landscape(stage,Vector3.ZERO,abbey_context)
+ assert(stage.has_node("AbbeyFloorMosaic") and stage.has_node("AbbeyVigil/Lamp0"))
+ stage.free()
+ var capital=painter.combat_context(game,{"x":20,"y":2},{"x":21,"y":2})
+ assert(capital.environment=="castle" and capital.raised_gate)
+ stage=Node3D.new();root.add_child(stage)
+ painter.battle_landscape(stage,Vector3.ZERO,capital)
+ assert(stage.get_node("CastleGate/PortcullisBar").position.y>3.2)
+ stage.free()
+ var river=draft.data.chapters[1].level
+ river.route_position=[.265,.64]
+ river.route_terrain="="
+ var moved=Rules.new(draft.compile().content)
+ moved.chapter=11
+ var old_bank=painter.combat_context(moved,near_bank,crossing)
+ assert(old_bank.terrain=="=" and not old_bank.has("tollhouse_x"))
+ var new_bank=painter.combat_context(moved,{"x":5,"y":10},{"x":6,"y":10})
+ assert(new_bank.terrain=="=" and new_bank.has("tollhouse_x"))
+
 func check_authored_relief():
  var draft=Draft.new()
  var reserve=draft.data.recruits[draft.add_recruit(draft.data.recruits[3],"")]
@@ -921,6 +964,7 @@ func run():
  check_legacy_catalogue()
  check_legacy_arrivals()
  check_war_table_sites()
+ check_valley_arena_locations()
  check_authored_relief()
  check_battle_readiness()
  check_terrain_undo()
@@ -1813,5 +1857,5 @@ func run():
  await verify_site_recruitment(app)
  assert(FileAccess.get_file_as_string(app.save_path)==disk and app.game==installed)
  await Shutdown.dispose(app);await process_frame
- print("PASS: campaign JSON file transfer, draft library management, remembered playtest setup, campaign readiness, authored Hard bonuses, authored retry raiders, deployment comparison, authored formation previews, small deployment limits and save recovery, custom campaign atlas, terrain stroke undo, bulk terrain rows, editor dialogs at two viewport sizes, direct chapter reordering, continuous terrain strokes, connected terrain fill, placement moves and swaps, repeated placement copies, switching enemy difficulty groups, editor music preview, multiple standards and exact resume, standard navigation and live progress, standards that follow route pins, route pins, war-table site terrain, war-table overlay, blank war-table chapter, rising Valley landmarks, Valley reveal sound cues, battlefield site markers, custom recruits, phase scenes, tile dialogue and reload, recruitment on battlefield sites, navigation between available sites, one-use field tonic caches, Valley landmark dialogue, dialogue that follows route pins, timed reinforcements, chapter 32 saves, section dialogue, authored section relief, authored legacy stock and purchase persistence, authored loss recruits, authored loss dialogue, reproducible playtest setup, Valley carryover and resume, thirteen-chapter Valley template, and single-battle tests")
+ print("PASS: campaign JSON file transfer, draft library management, remembered playtest setup, campaign readiness, authored Hard bonuses, authored retry raiders, deployment comparison, authored formation previews, small deployment limits and save recovery, custom campaign atlas, terrain stroke undo, bulk terrain rows, editor dialogs at two viewport sizes, direct chapter reordering, continuous terrain strokes, connected terrain fill, placement moves and swaps, repeated placement copies, switching enemy difficulty groups, editor music preview, multiple standards and exact resume, standard navigation and live progress, standards that follow route pins, route pins, war-table site terrain, war-table overlay, blank war-table chapter, rising Valley landmarks, local war-table arena landmarks, Valley reveal sound cues, battlefield site markers, custom recruits, phase scenes, tile dialogue and reload, recruitment on battlefield sites, navigation between available sites, one-use field tonic caches, Valley landmark dialogue, dialogue that follows route pins, timed reinforcements, chapter 32 saves, section dialogue, authored section relief, authored legacy stock and purchase persistence, authored loss recruits, authored loss dialogue, reproducible playtest setup, Valley carryover and resume, thirteen-chapter Valley template, and single-battle tests")
  quit()
