@@ -1384,7 +1384,8 @@ func cinematic(a,b,events,initial_hp={},challenge: Dictionary={}):
 	# Skip disables its button first, so acknowledge the one-shot request itself.
 	playback.skip_requested.connect(func():interface_audio.cue("back");skip_combat=true)
 	var horizon=environment.sky.sky_material.sky_horizon_color
-	var veil=CombatTransition.new();veil.configure(ui,func():return camera.unproject_position(focus),horizon)
+	var veil=CombatTransition.new();veil.configure(ui,func():return camera.unproject_position(focus),horizon,
+		func():return map_navigation.combat_bounds(combat_sprites) if not combat_sprites.is_empty() else Rect2())
 	veil.conceal()
 	play_sfx("approach")
 	var push_time=.42

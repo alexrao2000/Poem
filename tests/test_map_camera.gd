@@ -27,13 +27,28 @@ func check_opening_aperture(app,veil,focus: Vector3,units: Array,dimensions: Vec
  var edge_alpha=0.0
  for point in [frame.position,frame.end,Vector2(0,frame.size.y),Vector2(frame.size.x,0)]:
   edge_alpha=maxf(edge_alpha,gradient.sample(center.distance_to(point)/radius).a)
- assert(edge_alpha>=.70,"At least one far corner shows a clear peripheral fade")
+ var minimum_edge_alpha=.12 if frame.size.y>frame.size.x else .70
+ assert(edge_alpha>=minimum_edge_alpha,"At least one far corner shows a peripheral fade")
+
+func check_opening_streaks(app,veil,subjects: Array,dimensions: Vector2i) -> int:
+ var bounds: Rect2=app.map_navigation.combat_bounds(subjects).grow(13.9)
+ var protected=PackedVector2Array([bounds.position,Vector2(bounds.end.x,bounds.position.y),bounds.end,Vector2(bounds.position.x,bounds.end.y)])
+ var frame=Rect2(Vector2.ZERO,Vector2(dimensions))
+ var trails=veil.edge_streaks(veil.projected_focus(),app.map_navigation.combat_bounds(subjects))
+ for trail in trails:
+  var shape: PackedVector2Array=trail[0]
+  var colors: PackedColorArray=trail[1]
+  assert(frame.has_point(shape[0]) and Geometry2D.intersect_polygons(protected,shape).is_empty(),
+   "Zoom streaks start inside the frame and keep the enlarged pair clear")
+  assert(colors[0].a==0 and colors[3]==colors[1] and colors[1].a>colors[2].a and colors[2].a>0,
+   "The streaks taper from their brightest section into transparent tips")
+ return trails.size()
 
 func visible_combat_zoom():
  var viewport=SubViewport.new();viewport.size=Vector2i(1440,900);viewport.render_target_update_mode=SubViewport.UPDATE_DISABLED;root.add_child(viewport)
  var app=load("res://main.tscn").instantiate();app.settings_path="";app.save_path="/private/tmp/poem-visible-zoom-%d.json"%Time.get_ticks_usec();viewport.add_child(app);await process_frame
  app.debug_session.begin(app.game,"camp");var count=0
- for dimensions in [Vector2i(1024,640),Vector2i(1280,720),Vector2i(1440,900)]:
+ for dimensions in [Vector2i(720,960),Vector2i(1024,640),Vector2i(1280,720),Vector2i(1440,900)]:
   viewport.size=dimensions;await process_frame
   for sample in [["lyra","iron_sword"],["oren","javelin"],["sera","longbow"]]:
    var setup=app.debug_session.start_recruit_encounter(app.game,sample[0],"",sample[1]);app.make_map();app.show_battle();await process_frame
@@ -48,22 +63,30 @@ func visible_combat_zoom():
      var original=app.map_navigation.capture_view();var initial=app.unit_nodes[a.id].screen_bounds(app.camera).size.y
      var subjects=[app.unit_nodes[a.id],app.unit_nodes[b.id]]
      var approach=app.map_navigation.approach_combat(focus,.42,subjects);approach.pause()
-     var veil=Transition.new();veil.configure(app.ui);var fade=veil.conceal();fade.pause()
+     var veil=Transition.new();veil.configure(app.ui,func():return app.camera.unproject_position(focus))
+     var fade=veil.conceal();fade.pause()
      approach.custom_step(.42*.5);fade.custom_step(.42*.5)
-     assert(veil.cover_alpha()==0 and app.unit_nodes[a.id].screen_bounds(app.camera).size.y>=initial*(1.15 if zoom==8 else 1.45),"The sprite zoom becomes visible before the covering fade starts")
+     var mid_height=app.unit_nodes[a.id].screen_bounds(app.camera).size.y
+     assert(veil.cover_alpha()==0 and mid_height>=initial*(1.15 if zoom==8 else 1.45),"The sprite zoom becomes visible before the covering fade starts")
+     assert(check_opening_streaks(app,veil,subjects,dimensions)>=16,"The approach shows streaks on portrait and landscape viewports")
      approach.custom_step(.42*.26);fade.custom_step(.42*.26)
      assert(is_equal_approx(veil.cover_alpha(),.5))
      check_opening_aperture(app,veil,focus,[a,b],dimensions)
+     check_opening_streaks(app,veil,subjects,dimensions)
      var minimum=1.4 if zoom==8 else 2.5 if zoom==16 else 3.5
-     assert(app.unit_nodes[a.id].screen_bounds(app.camera).size.y>=initial*minimum,"Useful sprite enlargement must happen while the map is still visible")
+     var minimum_height=mid_height*1.04 if dimensions.y>dimensions.x else initial*minimum
+     assert(app.unit_nodes[a.id].screen_bounds(app.camera).size.y>=minimum_height,"Useful sprite enlargement must happen while the map is still visible")
      for unit in [a,b]:assert(Rect2(Vector2.ZERO,Vector2(dimensions)).encloses(app.unit_nodes[unit.id].screen_bounds(app.camera)),"Both combatants remain inside the actual viewport during the enlarged handoff")
      approach.custom_step(.42*.24+.001);fade.custom_step(.42*.24+.001)
-     assert(is_equal_approx(app.camera.size,5.0) and veil.cover_alpha()==1,"The existing fully covered endpoint is retained")
+     assert(veil.cover_alpha()==1 and app.camera.size>=5.0,"The approach ends at a fully covered close view")
+     if dimensions.x>=dimensions.y:assert(is_equal_approx(app.camera.size,5.0))
+     assert(check_opening_streaks(app,veil,subjects,dimensions)==0,"The approach streaks finish before the scene swap")
      var returning=app.map_navigation.return_from_combat(app.map_navigation.capture_view(),original);returning.pause();returning.custom_step(.251)
      assert(app.map_navigation.capture_view()==original);app.map_navigation.stop();veil.free();count+=1
    assert(app.game.save_data("battle")==saved and app.game.rng.state==random)
- assert(count==54 and not FileAccess.file_exists(app.save_path) and not FileAccess.file_exists(app.save_path+".debug"))
+ assert(count==72 and not FileAccess.file_exists(app.save_path) and not FileAccess.file_exists(app.save_path+".debug"))
  await Shutdown.dispose(app);viewport.queue_free();await process_frame
+ print("PASS: 72 tactical approaches protect the enlarged sprites from the fading edge streaks in four viewports")
 
 func offscreen_combat_zoom():
  var viewport=SubViewport.new();viewport.size=Vector2i(1440,900);viewport.render_target_update_mode=SubViewport.UPDATE_DISABLED;root.add_child(viewport)
@@ -341,6 +364,7 @@ func run():
  var frame=camera.get_viewport().get_visible_rect()
  assert(not frame.encloses(nav.combat_bounds(subjects)),"The actual exchange starts from a camera panned away from its participants")
  var handoff=[false];var restored=[false];var checked_tint=[false];var visible_before_cut=[false]
+ var streaks_seen=[false]
  var horizon=app.environment.sky.sky_material.sky_horizon_color
  var expected_ink=Transition.INK.lerp(horizon.darkened(.81),.52)
  var observe_return=func():
@@ -351,6 +375,8 @@ func run():
    checked_tint[0]=true
    if not handoff[0] and veil.progress>=.5 and veil.progress<=.62 and frame.encloses(nav.combat_bounds(subjects)):
     visible_before_cut[0]=true
+    assert(veil.subject_bounds_source.call()==nav.combat_bounds(subjects))
+    streaks_seen[0]=check_opening_streaks(app,veil,subjects,Vector2i(frame.size))>0
   if app.stage.visible:handoff[0]=true
   elif handoff[0] and not restored[0]:
    restored[0]=true
@@ -359,7 +385,7 @@ func run():
  process_frame.connect(observe_return)
  await app.cinematic(a,b,[{"actor":a.id,"target":b.id,"damage":1,"remaining":19,"hit":true,"crit":false}],{a.id:20,b.id:20})
  process_frame.disconnect(observe_return)
- assert(restored[0] and checked_tint[0] and visible_before_cut[0],"Real cinematic finds the offscreen units before cutting and restores the player's view")
+ assert(restored[0] and checked_tint[0] and visible_before_cut[0] and streaks_seen[0],"Real cinematic finds the offscreen units, frames them with streaks, and restores the player's view")
  check_details(app,true)
  await create_timer(.2).timeout
  assert(camera.transform.is_equal_approx(prior) and is_equal_approx(camera.size,size),"Interrupted map zoom cannot overwrite arena or restored view")
@@ -367,5 +393,5 @@ func run():
  for player in app.sfx_players:player.stop()
  app.music.stop();await create_timer(.15).timeout
  await Shutdown.dispose(app);await process_frame
- print("PASS: 54 actual-viewport melee/ranged sprite zooms visible before concealment, unchanged endpoints/state/files, pointer-anchored zoom, bounded drag, reset, cursor tracking, continuous pair-centered return, exact view/zoom restoration, cancellation, busy-input lock and cinematic ownership")
+ print("PASS: 72 actual-viewport melee/ranged sprite zooms visible before concealment, unchanged endpoints/state/files, pointer-anchored zoom, bounded drag, reset, cursor tracking, continuous pair-centered return, exact view/zoom restoration, cancellation, busy-input lock and cinematic ownership")
  quit()
