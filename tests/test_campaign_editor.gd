@@ -475,9 +475,19 @@ func verify_multiple_standards(app):
  controls(app,"Deploy company  >").pressed.emit();await finish_presentation(app)
  assert(app.screen=="battle" and app.markers.has_node("RequiredStandards"))
  assert(app.game.capture_tiles()==[primary,secondary])
+ assert(app.objective_label.text=="0/2 standards held")
+ var initial=canonical(app.game.save_data("battle"))
+ controls(app,"Next standard [G]").pressed.emit();await process_frame
+ assert(app.cursor_tile==primary and app.terrain_card.tile==primary)
+ var next_standard=InputEventKey.new();next_standard.keycode=KEY_G;next_standard.pressed=true
+ app._input(next_standard);await process_frame
+ assert(app.cursor_tile==secondary and app.terrain_card.tile==secondary)
+ app._input(next_standard);await process_frame
+ assert(app.cursor_tile==primary and canonical(app.game.save_data("battle"))==initial)
  await app.click_tile(Vector2i(1,3));await app.click_tile(primary)
  app.wait_action();await finish_presentation(app)
  assert(app.screen=="battle" and app.game.result().is_empty() and app.game.at(primary).id=="lyra")
+ assert(app.objective_label.text=="1/2 standards held" and app.markers.has_node("HeldStandards"))
  var resumed=Rules.new(app.game.content)
  assert(resumed.import_code(app.game.export_code("battle"))=="battle")
  assert(resumed.result().is_empty() and resumed.at(primary).id=="lyra")
@@ -1388,5 +1398,5 @@ func run():
  await verify_multiple_standards(app)
  assert(FileAccess.get_file_as_string(app.save_path)==disk and app.game==installed)
  await Shutdown.dispose(app);await process_frame
- print("PASS: campaign JSON file transfer, draft library management, remembered playtest setup, campaign readiness, authored Hard bonuses, authored retry raiders, deployment comparison, authored formation previews, small deployment limits and save recovery, custom campaign atlas, terrain stroke undo, continuous terrain strokes, connected terrain fill, placement moves and swaps, multiple standards and exact resume, standards that follow route pins, route pins, war-table site terrain, war-table overlay, blank war-table chapter, rising Valley landmarks, custom recruits, phase scenes, tile dialogue and reload, Valley landmark dialogue, dialogue that follows route pins, timed reinforcements, chapter 32 saves, section dialogue, authored section relief, authored legacy stock and purchase persistence, authored loss recruits, authored loss dialogue, reproducible playtest setup, Valley carryover and resume, thirteen-chapter Valley template, and single-battle tests")
+ print("PASS: campaign JSON file transfer, draft library management, remembered playtest setup, campaign readiness, authored Hard bonuses, authored retry raiders, deployment comparison, authored formation previews, small deployment limits and save recovery, custom campaign atlas, terrain stroke undo, continuous terrain strokes, connected terrain fill, placement moves and swaps, multiple standards and exact resume, standard navigation and live progress, standards that follow route pins, route pins, war-table site terrain, war-table overlay, blank war-table chapter, rising Valley landmarks, custom recruits, phase scenes, tile dialogue and reload, Valley landmark dialogue, dialogue that follows route pins, timed reinforcements, chapter 32 saves, section dialogue, authored section relief, authored legacy stock and purchase persistence, authored loss recruits, authored loss dialogue, reproducible playtest setup, Valley carryover and resume, thirteen-chapter Valley template, and single-battle tests")
  quit()

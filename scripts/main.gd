@@ -856,6 +856,10 @@ func battle_objective_text() -> String:
 			if standing==0 and not game.enemy_waves.is_empty():return "Defeat every enemy · Reinforcements expected"
 			return "Defeat every enemy · %d remaining"%standing
 		"survive":return "Survive · %d/%d enemy phases · or defeat every enemy"%[clampi(game.turn-1,0,game.info().turn_limit),game.info().turn_limit]
+		"seize":
+			var points=game.capture_tiles()
+			if points.size()>1:return "%d/%d standards held"%[points.filter(game.ally_holds_standard).size(),points.size()]
+			return objective_text()
 		_:return objective_text()
 
 func deploy_company():
@@ -1045,6 +1049,8 @@ func update_side():
 		label_in(side,"%d allies  ·  %d enemies"%[game.living("player").size(),game.living("enemy").size()],18)
 		label_in(side,"Purple: %d tracked %s."%[tracked_threats.units.size(),"foe" if tracked_threats.units.size()==1 else "foes"] if not tracked_threats.units.is_empty() else "Choose an ally to move or inspect a foe.",17,Color("6f6c5e"))
 		button_in(side,"Enemy ranges [R]: "+("on" if show_danger else "off"),toggle_danger,busy)
+		if game.capture_tiles().size()>1:
+			button_in(side,"Next standard [G]",focus_next_standard,busy or game.phase!="player").name="NextStandard"
 	if save_failed and game.action_saves:button_in(side,"Retry autosave",retry_action_save,busy)
 	var expiring=game.units.filter(func(unit):return game.DeathDoor.downed(unit) and unit.bleed_turns==1 and unit.get("carried_by","").is_empty()) if game.phase=="player" else []
 	var phase_button=button_in(side,"End player phase" if expiring.is_empty() else "End phase · %d will fall"%expiring.size(),end_turn,busy or game.phase!="player");phase_button.name="EndPlayerPhase"
@@ -1145,7 +1151,10 @@ func highlight():
 		markers.remove_child(n);n.queue_free()
 	var standards=game.capture_tiles()
 	if standards.size()>1:
-		MapOverlay.tiles(markers,standards,Color(.90,.68,.21,.39),.023,"RequiredStandards",map_height)
+		var held=standards.filter(game.ally_holds_standard)
+		var unclaimed=standards.filter(func(point):return point not in held)
+		MapOverlay.tiles(markers,unclaimed,Color(.90,.68,.21,.39),.023,"RequiredStandards",map_height)
+		MapOverlay.tiles(markers,held,Color(.34,.73,.60,.40),.023,"HeldStandards",map_height)
 	var danger={}
 	if show_danger:
 		for enemy in game.living("enemy"):danger.merge(tactics.threatened_tiles(game,enemy))
@@ -1215,6 +1224,8 @@ func _input(event):
 			cycle_ready_ally(-1 if event.keycode==KEY_Q else 1);get_viewport().set_input_as_handled();return
 		if event.keycode==KEY_T and not event.echo:
 			toggle_tracked_threat();get_viewport().set_input_as_handled();return
+		if event.keycode==KEY_G and not event.echo and game.capture_tiles().size()>1:
+			focus_next_standard();get_viewport().set_input_as_handled();return
 	if is_instance_valid(reward_panel) and event is InputEventKey and event.pressed and event.keycode in [KEY_SPACE,KEY_ENTER,KEY_TAB]:
 		if not event.echo:reward_panel.request_continue();reward_skip=true
 		get_viewport().set_input_as_handled();return
@@ -3423,6 +3434,16 @@ func cycle_ready_ally(direction: int):
 	if focus!=null:focus.release_focus()
 	click_tile(cursor_tile)
 	map_navigation.keep_visible(map_position(cursor_tile),terrain_card.get_global_rect() if is_instance_valid(terrain_card) else Rect2())
+
+func focus_next_standard():
+	if screen!="battle" or busy or game.phase!="player":return
+	var goals=game.capture_tiles()
+	if goals.size()<2:return
+	var current=goals.find(cursor_tile) if cursor_visible else -1
+	cursor_tile=goals[(current+1)%goals.size()]
+	cursor_visible=true
+	move_map_cursor(Vector2i.ZERO)
+	interface_audio.cue("move")
 
 func activate_map_cursor():
 	if screen!="battle" or busy or game.phase!="player":return

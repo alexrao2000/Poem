@@ -152,6 +152,10 @@ static func standard_tiles(level: Dictionary) -> Array[Vector2i]:
 func capture_tiles() -> Array[Vector2i]:
 	return standard_tiles(info())
 
+func ally_holds_standard(tile: Vector2i) -> bool:
+	var occupant=at(tile)
+	return occupant!=null and occupant.team=="player" and occupant.hp>0
+
 func ensure_leader():
 	if not (trials.flags.reset_pressure or (trials.flags.section_restarts and permadeath)):return
 	deployed.erase("lyra");deployed.push_front("lyra");deployed=deployed.slice(0,int(info().deployment))
@@ -538,10 +542,7 @@ func result() -> String:
 		"survive":
 			if turn>info().turn_limit or (enemy_waves.is_empty() and living("enemy").is_empty()):return "victory"
 		"seize":
-			if capture_tiles().all(func(point):
-				var occupant=at(point)
-				return occupant!=null and occupant.team=="player" and occupant.hp>0):
-				return "victory"
+			if capture_tiles().all(ally_holds_standard):return "victory"
 	return ""
 
 func finish_chapter():
