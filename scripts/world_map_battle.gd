@@ -91,7 +91,7 @@ static func build(parent: Node3D,game,scenery):
  scenery.block(parent,center+Vector3.DOWN*.43,extent+Vector3(.96,0,.96),Color("463044")).name="ValleyTable"
  scenery.block(parent,center+Vector3.DOWN*.10,Vector3(size.x+.38,.16,size.y+.38),Color("ad8555")).name="ValleyTableRim"
  var parchment=StandardMaterial3D.new()
- parchment.albedo_texture=MAP
+ parchment.albedo_texture=game.content.get("route_atlas",MAP)
  parchment.shading_mode=BaseMaterial3D.SHADING_MODE_UNSHADED
  scenery.mesh(parent,scenery.plane_shape(size),center,Vector3.ONE,parchment).name="ValleyChart"
  var grid=ImmediateMesh.new()

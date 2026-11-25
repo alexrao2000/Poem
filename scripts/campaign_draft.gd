@@ -6,6 +6,7 @@ const Supports=preload("res://scripts/supports.gd")
 const Trials=preload("res://scripts/campaign_trials.gd")
 const Valley=preload("res://scripts/world_map_battle.gd")
 const Tactics=preload("res://scripts/tactics.gd")
+const Atlas=preload("res://scripts/campaign_atlas.gd")
 const FORMAT="poem-campaign"
 const VERSION=1
 const MAX_CHAPTERS=32
@@ -31,6 +32,8 @@ var equipment: Array
 var music_ids: Array
 var data: Dictionary
 var dirty=false
+var atlas_source=""
+var atlas_texture: ImageTexture
 
 func _init():
  templates=JSON.parse_string(FileAccess.get_file_as_string("res://data/campaign.json"))
@@ -152,6 +155,23 @@ func decode(raw: String) -> String:
 func index_for(key: String) -> int:
  return data.chapters.find_custom(func(chapter):return chapter.key==key)
 
+func route_texture() -> Texture2D:
+ if not data.has("route_atlas"):
+  atlas_source="";atlas_texture=null
+  return null
+ if not cache_route_atlas(data.route_atlas):return null
+ return atlas_texture
+
+func cache_route_atlas(encoded) -> bool:
+ if not encoded is String:return false
+ if atlas_texture!=null and atlas_source==encoded:return true
+ var picture=Atlas.unpack(encoded)
+ if picture==null:return false
+ picture.generate_mipmaps()
+ atlas_texture=ImageTexture.create_from_image(picture)
+ atlas_source=encoded
+ return true
+
 func insert_chapter(after: int,copy_current: bool,valley_table=false) -> int:
  if data.chapters.size()>=MAX_CHAPTERS:return -1
  var record={"source":-1,"section":false,"level":blank_level(),"opening":[],"closing":[]}
@@ -222,6 +242,7 @@ func structural_problem(document) -> String:
   return "Choose a Poem campaign document with format version 1."
  if not valid_text(document.get("title"),120) or not document.get("chapters") is Array or not document.get("recruits") is Array or not document.get("settings") is Dictionary:
   return "The campaign title, chapters, company, or settings are missing."
+ if document.has("route_atlas") and not cache_route_atlas(document.route_atlas):return "The campaign contains an invalid route atlas."
  if document.chapters.is_empty() or document.chapters.size()>MAX_CHAPTERS:return "A campaign needs 1–32 chapters."
  var keys={}
  for chapter in document.chapters:
@@ -484,6 +505,8 @@ func company_problem() -> String:
 func compile() -> Dictionary:
  var content=templates.duplicate(true)
  content.title=data.title
+ var picture=route_texture()
+ if picture!=null:content.route_atlas=picture
  content.authoring_signature=JSON.stringify(JSON.parse_string(encode()),"",true,true).sha256_text()
  content.opening_company=data.opening_company.duplicate()
  content.chapters=[]

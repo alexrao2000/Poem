@@ -44,6 +44,8 @@ The editor offers a Valley war table chapter template. Its terrain and markers u
 
 To carry an earlier location into a war table battle, set its terrain in Route. Moving that chapter’s pin moves the terrain on each later table. The Battle grid marks inherited tiles and names them when inspected. If entries share a tile, the latest preceding chapter with assigned terrain takes priority. The table keeps the terrain painted under each inherited tile so the paint returns if the pin moves or the assignment is cleared. The seize objective keeps its painted terrain.
 
+Use Open atlas image in Route to use your own PNG or JPEG for a campaign. The picker accepts images up to 6 MB and 8 megapixels. Poem centers the image in a 3:2 crop, sizes it to 1,200 by 800 pixels, and stores it inside the campaign JSON. The route screen and war tables use the same picture. Place chapter pins and paint the table’s terrain against that picture.
+
 ## Game data and playtest
 
 A campaign document contains its format and version, title, ordered chapters, roster settings, bonds, and defaults. Chapter entries carry the campaign fields for terrain, deployments, encounters, objectives, music, and scenery alongside their story scenes. The editor resolves stable recruit arrival and bond chapter keys to chapter indices when it makes a runtime copy. Removing a chapter moves those arrivals and conversations to the next surviving chapter, or the previous chapter if it was the finale. Each playtest runs against its own copy and saves independently of the normal campaign.

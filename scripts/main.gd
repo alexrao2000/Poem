@@ -765,7 +765,7 @@ func show_campaign_route():
 	var sectioned=game.permadeath and game.trials.flags.section_restarts
 	var rallies=game.trials.section_starts if sectioned else PackedInt32Array()
 	var retreat=game.trials.section_start(game.chapter)
-	route.configure(game.content.chapters,game.chapter,game.completed,rallies,retreat)
+	route.configure(game.content.chapters,game.chapter,game.completed,rallies,retreat,game.content.get("route_atlas"))
 	for marker in route.markers:interface_audio.watch(marker)
 	var details=VBoxContainer.new();details.custom_minimum_size.x=260;row.add_child(details)
 	var progress=label_in(details,"",16,GOLD)

@@ -130,7 +130,9 @@ func build_battle(panel: VBoxContainer):
  enemy_name=line_edit("","Enemy name",80,Callable());tools.add_child(enemy_name)
  show_brush_options()
  heading(panel,"Click or use the arrow keys and Enter. Right-click or Backspace erases. C marks the commander.",15)
- grid=Grid.new();grid.name="EditorGrid";panel.add_child(grid);grid.configure(layout,draft.valley_marks(selected));grid.tile_edited.connect(edit_tile)
+ grid=Grid.new();grid.name="EditorGrid";panel.add_child(grid)
+ grid.configure(layout,draft.valley_marks(selected),draft.route_texture() if fixed_chart else null)
+ grid.tile_edited.connect(edit_tile)
  if fixed_chart:
   var inspected=heading(panel,"",15)
   inspected.name="EditorAtlasTile"
@@ -409,8 +411,13 @@ func build_section_story(panel: VBoxContainer,record: Dictionary):
 
 func build_route(panel: VBoxContainer):
  heading(panel,"Click the chart to place this chapter’s pin. Select a seal to edit its chapter.",16)
+ var atlas_actions=row(panel)
+ var feedback=heading(panel,"",15);feedback.name="EditorAtlasStatus"
+ action(atlas_actions,"Open atlas image",func():open_route_atlas(panel,feedback)).name="EditorOpenAtlas"
+ action(atlas_actions,"Restore original atlas",func():
+  draft.data.erase("route_atlas");changed();rebuild(),not draft.data.has("route_atlas")).name="EditorRestoreAtlas"
  var chart=Route.new();chart.name="EditorRouteChart";panel.add_child(chart)
- chart.configure(draft.data.chapters.map(func(record):return record.level),selected,true)
+ chart.configure(draft.data.chapters.map(func(record):return record.level),selected,true,PackedInt32Array(),0,draft.route_texture())
  chart.enable_pin_editor()
  chart.chapter_selected.connect(select_chapter)
  var position=level().route_position
@@ -432,6 +439,32 @@ func build_route(panel: VBoxContainer):
   for index in Draft.ROUTE_TERRAIN.size():
    site.set_item_text(index+1,Draft.Rules.TERRAIN_PROFILES[Draft.ROUTE_TERRAIN[index]].name)
   field_label(row(panel),"Terrain on later war tables",site)
+
+func open_route_atlas(parent: Node,feedback: Label):
+ var limit=Draft.Atlas.MAX_FILE_BYTES
+ if OS.has_feature("web"):
+  open_browser_file(parent,feedback,limit,".png,.jpg,.jpeg,image/png,image/jpeg",true,func(encoded):
+   import_route_atlas(Marshalls.base64_to_raw(encoded),feedback))
+  return
+ var picker=campaign_file_picker(parent,false,"*.png,*.jpg,*.jpeg","Atlas images")
+ picker.file_selected.connect(func(path):
+  var file=FileAccess.open(path,FileAccess.READ)
+  if file==null:feedback.text="Could not open the atlas image.";return
+  var length=file.get_length()
+  if length>limit:feedback.text="The atlas image exceeds 6 MB.";file.close();return
+  var image=file.get_buffer(length);file.close()
+  import_route_atlas(image,feedback))
+ picker.popup_centered_ratio(.72)
+
+func import_route_atlas(bytes: PackedByteArray,feedback: Label):
+ var packed=Draft.Atlas.pack(bytes)
+ if packed.has("error"):feedback.text=packed.error;return
+ var candidate=draft.data.duplicate()
+ candidate.route_atlas=packed.encoded
+ if JSON.stringify(candidate,"  ",true,true).length()>Draft.MAX_DRAFT_LENGTH:
+  feedback.text="The atlas would make the campaign file too large.";return
+ draft.data.route_atlas=packed.encoded
+ changed();rebuild()
 
 func build_phase_scenes(panel: VBoxContainer,record: Dictionary):
  for child in panel.get_children():panel.remove_child(child);child.queue_free()
@@ -959,20 +992,8 @@ func import_campaign_text(raw: String,feedback: Label):
 
 func open_campaign_file(parent: Window,feedback: Label):
  if OS.has_feature("web"):
-  var bridge=JavaScriptBridge.get_interface("poemCampaignFiles")
-  if bridge==null:
-   JavaScriptBridge.eval(FileAccess.get_file_as_string("res://scripts/web_campaign_files.js"),true)
-   bridge=JavaScriptBridge.get_interface("poemCampaignFiles")
-  if bridge==null:feedback.text="The browser file picker is unavailable.";return
-  if not parent.has_meta("browser_file_picker"):
-   parent.set_meta("browser_file_picker",true)
-   parent.tree_exited.connect(func():bridge.cancel(),CONNECT_ONE_SHOT)
-  browser_campaign_file_callback=JavaScriptBridge.create_callback(func(arguments):
-   if not is_instance_valid(feedback) or arguments.size()!=2:return
-   var problem=str(arguments[0])
-   if not problem.is_empty():feedback.text=problem;return
-   import_campaign_text(str(arguments[1]),feedback))
-  bridge.open(MAX_CAMPAIGN_FILE_BYTES,browser_campaign_file_callback)
+  open_browser_file(parent,feedback,MAX_CAMPAIGN_FILE_BYTES,".json,application/json",false,func(raw):
+   import_campaign_text(raw,feedback))
   return
  var picker=campaign_file_picker(parent,false)
  picker.file_selected.connect(func(path):
@@ -983,6 +1004,22 @@ func open_campaign_file(parent: Window,feedback: Label):
   var raw=file.get_as_text();file.close()
   import_campaign_text(raw,feedback))
  picker.popup_centered_ratio(.72)
+
+func open_browser_file(parent: Node,feedback: Label,limit: int,accept: String,binary: bool,receive: Callable):
+ var bridge=JavaScriptBridge.get_interface("poemCampaignFiles")
+ if bridge==null:
+  JavaScriptBridge.eval(FileAccess.get_file_as_string("res://scripts/web_campaign_files.js"),true)
+  bridge=JavaScriptBridge.get_interface("poemCampaignFiles")
+ if bridge==null:feedback.text="The browser file picker is unavailable.";return
+ if not parent.has_meta("browser_file_picker"):
+  parent.set_meta("browser_file_picker",true)
+  parent.tree_exited.connect(func():bridge.cancel(),CONNECT_ONE_SHOT)
+ browser_campaign_file_callback=JavaScriptBridge.create_callback(func(arguments):
+  if not is_instance_valid(feedback) or arguments.size()!=2:return
+  var problem=str(arguments[0])
+  if not problem.is_empty():feedback.text=problem;return
+  receive.call(str(arguments[1])))
+ bridge.open(limit,browser_campaign_file_callback,accept,binary)
 
 func save_campaign_file(parent: Window,feedback: Label):
  var title=draft.data.title.validate_filename().strip_edges()
@@ -1006,10 +1043,10 @@ func save_campaign_file(parent: Window,feedback: Label):
   feedback.text="Saved "+path.get_file()+"." if written else "Could not save the campaign file.")
  picker.popup_centered_ratio(.72)
 
-func campaign_file_picker(parent: Window,saving: bool) -> FileDialog:
+func campaign_file_picker(parent: Node,saving: bool,extensions="*.json",description="Campaign JSON") -> FileDialog:
  var picker=FileDialog.new();picker.name="EditorCampaignFilePicker"
  picker.access=FileDialog.ACCESS_FILESYSTEM;picker.file_mode=FileDialog.FILE_MODE_SAVE_FILE if saving else FileDialog.FILE_MODE_OPEN_FILE
- picker.add_filter("*.json","Campaign JSON")
+ picker.add_filter(extensions,description)
  parent.add_child(picker);picker.canceled.connect(picker.queue_free)
  picker.file_selected.connect(func(_path):picker.queue_free())
  return picker

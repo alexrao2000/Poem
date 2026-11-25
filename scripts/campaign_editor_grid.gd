@@ -7,12 +7,14 @@ const COLORS={".":"bac08b","p":"ccb185","=":"bd9968","f":"547558","h":"9d937c","
  "+":"85b29b","#":"474650","~":"6b9cad"}
 var level: Dictionary
 var marks: Dictionary
+var atlas: Texture2D=Valley.MAP
 var cursor=Vector2i.ZERO
 var last_tile=Vector2i(-1,-1)
 
-func configure(source: Dictionary,route_marks: Dictionary):
+func configure(source: Dictionary,route_marks: Dictionary,picture: Texture2D=null):
  level=source
  marks=route_marks
+ atlas=Valley.MAP if picture==null else picture
  focus_mode=FOCUS_ALL;mouse_filter=MOUSE_FILTER_STOP
  mouse_default_cursor_shape=CURSOR_CROSS
  custom_minimum_size.y=306
@@ -39,7 +41,7 @@ func _draw():
  var cell=cell_size()
  var table=level.presentation=="valley_table"
  draw_rect(rect.grow(3),Color("40303a"))
- if table:draw_texture_rect(Valley.MAP,rect,false)
+ if table:draw_texture_rect(atlas,rect,false)
  for y in board_size().y:
   for x in board_size().x:
    var square=Rect2(rect.position+Vector2(x,y)*cell,Vector2.ONE*cell)

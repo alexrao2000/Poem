@@ -335,6 +335,44 @@ func verify_landmark_footing(landmarks: Node3D):
    assert(bounds.position.x>tile.x-.5 and bounds.end.z<tile.y+.5)
    assert(Vector2(tile.x-bounds.end.x,bounds.position.z-tile.y).length()>.39)
 
+func verify_custom_atlas(app,scratch: String):
+ var sample=Image.create_empty(180,90,false,Image.FORMAT_RGBA8)
+ sample.fill(Color("a24231"))
+ sample.fill_rect(Rect2i(60,0,60,90),Color("397f59"))
+ var path=scratch.path_join("custom-atlas.png")
+ assert(sample.save_png(path)==OK and Draft.Atlas.pack(sample.save_jpg_to_buffer()).has("encoded"))
+ var editor=app.campaign_editor
+ var book=editor.find_child("CampaignEditorTabs",true,false)
+ book.current_tab=book.get_tab_idx_from_control(editor.find_child("Route",true,false))
+ await process_frame
+ var original=editor.find_child("EditorRouteChart",true,false).positions.duplicate()
+ editor.find_child("EditorOpenAtlas",true,false).pressed.emit();await process_frame
+ editor.find_child("EditorCampaignFilePicker",true,false).file_selected.emit(path);await process_frame
+ var chart=editor.find_child("EditorRouteChart",true,false)
+ var picture=chart.map_picture
+ assert(picture!=Route.MAP and picture.get_size()==Vector2(1200,800) and chart.positions==original)
+ var center=picture.get_image().get_pixel(600,400)
+ assert(center.g>center.r+.1)
+ var grid=editor.find_child("EditorGrid",true,false)
+ assert(grid.atlas==picture)
+ var restored=Draft.new()
+ assert(restored.decode(editor.draft.encode()).is_empty())
+ assert(restored.route_texture().get_image().get_pixel(600,400).is_equal_approx(center))
+ var malformed=restored.data.duplicate();malformed.route_atlas="AAAAAAAA"
+ assert(restored.structural_problem(malformed).contains("invalid route atlas"))
+ controls(app,"Play chapter").pressed.emit();await finish_presentation(app)
+ assert(app.screen=="camp" and app.game.chapter==11)
+ controls(app,"Route").pressed.emit();await process_frame
+ assert(app.ui.find_child("CampaignRoute",true,false).map_picture==picture)
+ controls(app,"Return to war council").pressed.emit();await process_frame
+ controls(app,"Deploy company  >").pressed.emit()
+ app.valley_reveal_skip=true;await finish_presentation(app)
+ assert(app.world.get_node("ValleyChart").material_override.albedo_texture==picture and app.game.board_size()==Vector2i(24,16))
+ app.show_battle_menu();await process_frame
+ controls(app,"Return to editor").pressed.emit();await process_frame
+ app.campaign_editor.find_child("EditorRestoreAtlas",true,false).pressed.emit();await process_frame
+ assert(app.campaign_editor.find_child("EditorRouteChart",true,false).map_picture==Route.MAP)
+
 func run():
  check_document()
  var scratch="/private/tmp/poem-campaign-editor-%d"%OS.get_process_id()
@@ -985,6 +1023,8 @@ func run():
  assert(canonical(reopened.game.save_data("battle"))==expected)
  assert(FileAccess.get_file_as_string(app.save_path)==disk)
  await Shutdown.dispose(reopened);await process_frame
+ await verify_custom_atlas(app,scratch)
+ assert(FileAccess.get_file_as_string(app.save_path)==disk and app.game==installed)
  await Shutdown.dispose(app);await process_frame
- print("PASS: campaign JSON file transfer, draft library management, remembered playtest setup, campaign readiness, authored Hard bonuses, authored retry raiders, deployment comparison, route pins, war-table site terrain, rising Valley landmarks, custom recruits, phase scenes, timed reinforcements, chapter 32 saves, section dialogue, authored section relief, authored legacy stock and purchase persistence, authored loss recruits, authored loss dialogue, reproducible playtest setup, Valley carryover, thirteen-chapter Valley template, and single-battle tests")
+ print("PASS: campaign JSON file transfer, draft library management, remembered playtest setup, campaign readiness, authored Hard bonuses, authored retry raiders, deployment comparison, custom campaign atlas, route pins, war-table site terrain, rising Valley landmarks, custom recruits, phase scenes, timed reinforcements, chapter 32 saves, section dialogue, authored section relief, authored legacy stock and purchase persistence, authored loss recruits, authored loss dialogue, reproducible playtest setup, Valley carryover, thirteen-chapter Valley template, and single-battle tests")
  quit()

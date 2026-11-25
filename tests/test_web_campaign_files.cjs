@@ -20,7 +20,7 @@ const document = {
 };
 elements.set('canvas', { focus: () => focusCount++ });
 
-const browser = { window: {}, document };
+const browser = { window: {}, document, btoa: (text) => Buffer.from(text, 'latin1').toString('base64') };
 const script = fs.readFileSync(path.join(__dirname, '../scripts/web_campaign_files.js'), 'utf8');
 vm.runInNewContext(script, browser);
 const files = browser.window.poemCampaignFiles;
@@ -73,7 +73,14 @@ async function run() {
   await closedRead;
   assert.equal(results.length, 4);
   assert.ok(!elements.has(pickerId));
-  console.log('PASS: browser campaign file chooser, read limits, cancel focus, and stale read isolation');
+
+  files.open(256, (error, text) => results.push({ error, text }), '.png,.jpg', true);
+  const image = elements.get(pickerId);
+  assert.equal(image.accept, '.png,.jpg');
+  image.files = [{ size: 3, arrayBuffer: async () => Uint8Array.of(0, 255, 127).buffer }];
+  await image.listeners.get('change')();
+  assert.deepEqual(results.at(-1), { error: '', text: 'AP9/' });
+  console.log('PASS: browser campaign file chooser, atlas bytes, read limits, cancel focus, and stale read isolation');
 }
 
 run().catch((error) => { console.error(error); process.exitCode = 1; });

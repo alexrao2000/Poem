@@ -21,8 +21,10 @@ var clock=0.0
 var map_rect=Rect2()
 var seal_scale=1.0
 var editable=false
+var map_picture: Texture2D=MAP
 
-func configure(chapters: Array,index: int,finished=false,rallies=PackedInt32Array(),retreat=0):
+func configure(chapters: Array,index: int,finished=false,rallies=PackedInt32Array(),retreat=0,atlas: Texture2D=null):
+ map_picture=MAP if atlas==null else atlas
  for chapter in chapters:
   var pin=chapter.get("route_position",[])
   assert(pin is Array and pin.size()==2 and pin[0]>=0 and pin[0]<=1 and pin[1]>=0 and pin[1]<=1,"Route positions use normalized image coordinates")
@@ -68,7 +70,7 @@ func _gui_input(event):
 
 func arrange():
  var available=(size-Vector2(32 if size.x<500 else 48,64)).max(Vector2.ONE)
- var atlas_size=MAP.get_size()
+ var atlas_size=map_picture.get_size()
  var scale_value=minf(available.x/atlas_size.x,available.y/atlas_size.y)
  for seal in positions:
   var offset=(seal-Vector2(.5,.5))*atlas_size
@@ -105,7 +107,7 @@ func _process(dt):
 
 func _draw():
  if map_rect.size.x<=0:return
- draw_texture_rect(MAP,map_rect,false)
+ draw_texture_rect(map_picture,map_rect,false)
  var tick=Color(.34,.23,.14,.53)
  for index in range(1,24):
   var x=map_rect.position.x+map_rect.size.x*index/24.0
