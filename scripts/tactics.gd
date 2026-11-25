@@ -22,6 +22,40 @@ func threatened_tiles(game,unit: Dictionary) -> Dictionary:
    if not result.has(target) and game.terrain(target) not in ["#","~"]:result[target]=true
  return result
 
+func phase_aid_choices(game,patients: Array,only_ally="") -> Dictionary:
+ # Check real rescue and revive rules after each hypothetical move. A separate
+ # board keeps shared tiles, carried units, and the live selection untouched.
+ var probe=game.get_script().new(game.content)
+ probe.chapter=game.chapter;probe.phase=game.phase;probe.units=game.units.duplicate(true)
+ var wanted=patients.map(func(patient):return patient.id)
+ var subjects=probe.units.filter(func(unit):return unit.id in wanted)
+ var occupied=probe.occupied_tiles()
+ var choices={}
+ for patient in subjects:choices[patient.id]=[]
+ for ally in probe.living("player"):
+  if not probe.can_act(ally) or (not only_ally.is_empty() and only_ally!=ally.id):continue
+  var start=probe.pos(ally)
+  var steps={start:0} if ally.get("moved",false) else probe.reachable(ally,occupied)
+  var free=steps.keys().filter(func(tile):return tile==start or not occupied.has(tile))
+  free.sort_custom(func(a,b):
+   if steps[a]!=steps[b]:return steps[a]<steps[b]
+   return a.x<b.x if a.y==b.y else a.y<b.y)
+  for patient in subjects:
+   var nearest={}
+   for tile in free:
+    ally.x=tile.x;ally.y=tile.y
+    probe.DeathDoor.synchronize(probe,ally)
+    if not nearest.has("revive") and probe.can_heal(ally,patient):nearest.revive=tile
+    if not nearest.has("rescue") and probe.DeathDoor.can_rescue(probe,ally,patient):nearest.rescue=tile
+    if nearest.has("rescue") and (nearest.has("revive") or ally.weapon!="staff"):break
+   ally.x=start.x;ally.y=start.y
+   probe.DeathDoor.synchronize(probe,ally)
+   for action in ["revive","rescue"]:
+    if not nearest.has(action):continue
+    var tile=nearest[action]
+    choices[patient.id].append({"ally":ally.id,"name":ally.name,"action":action,"tile":tile,"cost":steps[tile]})
+ return choices
+
 func step_cost(game,p: Vector2i) -> int:
  return 2 if game.terrain(p) in ["f","h"] else 1
 

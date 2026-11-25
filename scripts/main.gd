@@ -3584,6 +3584,9 @@ func show_phase_losses():
 	label_in(frame,"Before ending the phase",34,GOLD)
 	label_in(frame,"These allies will bleed out when the player phase ends. Rescue pauses bleeding. Staff healing revives them.",19)
 	var details=scrolling_column(frame)
+	var pending_move=selected!=null and origin!=null and not game.action_saves
+	if pending_move:label_in(details,"Undo %s’s move to check other allies."%selected.name,16)
+	var aid=tactics.phase_aid_choices(game,patients,selected.id if pending_move else "")
 	var leader_lost=game.leader_fall_is_defeat() and patients.any(func(unit):return unit.id=="lyra")
 	if not leader_lost and patients.any(func(unit):return game.trials.records_sacrifice(game,unit)):
 		if game.living("player").any(func(unit):return game.trials.extends_sacrifice_opening(game,unit)):
@@ -3597,20 +3600,38 @@ func show_phase_losses():
 			var summary="Defeat. Regroup at %s in Chapter %02d."%[destination,retry.chapter+1]
 			if game.trials.flags.reset_pressure:summary+=" Retry pressure %d → %d."%[game.trials.pressure,retry.pressure]
 			label_in(details,summary,18).name="PhaseLoss_lyra"
-			continue
-		var fate="Withdraws for this battle."
-		if game.permadeath:
-			fate="Permanent loss, recorded this phase." if game.commits_losses_during_battle() else "Permanent loss if you win the battle."
-			if game.trials.awards_legacy_credit(game,patient):fate+=" Legacy supply credit +1."
-		elif game.trials.records_sacrifice(game,patient):
-			var hp=maxi(1,int(patient.max_hp)-game.trials.RECOVERY_HP_PENALTY)
-			fate+=" Recovery deployment starts at %d/%d HP with one field tonic."%[hp,patient.max_hp]
-		label_in(details,fate,18).name="PhaseLoss_"+patient.id
+		else:
+			var fate="Withdraws for this battle."
+			if game.permadeath:
+				fate="Permanent loss, recorded this phase." if game.commits_losses_during_battle() else "Permanent loss if you win the battle."
+				if game.trials.awards_legacy_credit(game,patient):fate+=" Legacy supply credit +1."
+			elif game.trials.records_sacrifice(game,patient):
+				var hp=maxi(1,int(patient.max_hp)-game.trials.RECOVERY_HP_PENALTY)
+				fate+=" Recovery deployment starts at %d/%d HP with one field tonic."%[hp,patient.max_hp]
+			label_in(details,fate,18).name="PhaseLoss_"+patient.id
+		if aid[patient.id].is_empty():
+			label_in(details,"Out of reach for the selected ally." if pending_move else "Out of reach for ready allies this phase.",16)
+		for option in aid[patient.id]:
+			var distance="in range" if option.cost==0 else "%d movement"%option.cost
+			var caption="%s · %s · %s"%[option.name,option.action.capitalize(),distance]
+			var guide=button_in(details,caption,guide_phase_aid.bind(option,patient))
+			guide.name="PhaseAid_%s_%s_%s"%[patient.id,option.ally,option.action]
+			guide.tooltip_text="Select %s and point to a tile for this action."%option.name
 	button_in(frame,"Return to battle [Esc]",close_phase_losses).grab_focus()
 
 func close_phase_losses():
 	show_battle()
 	side.get_node("ReviewPhaseLosses").grab_focus()
+
+func guide_phase_aid(option: Dictionary,patient: Dictionary):
+	if screen!="phase_losses":return
+	var helpers=game.living("player").filter(func(unit):return unit.id==option.ally)
+	if helpers.is_empty():return
+	if selected!=helpers[0]:origin=null
+	selected=helpers[0];target=null;drop_mode=false
+	show_battle();focus_map_point(option.tile)
+	battle_hint.text=("Move to the cursor, then select " if option.cost>0 else "Select ")+patient.name+"."
+	arrange_battle_hint()
 
 func begin_drop():
 	if busy or selected==null or not game.can_act(selected) or game.DeathDoor.passenger(game,selected)==null:return

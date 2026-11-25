@@ -4,6 +4,7 @@ extends SceneTree
 const Rules=preload("res://scripts/rules.gd")
 const Door=preload("res://scripts/death_door.gd")
 const Shutdown=preload("helpers/game_shutdown.gd")
+const Tactics=preload("res://scripts/tactics.gd")
 func _initialize():call_deferred("run")
 
 func casualty(game,unit):
@@ -85,6 +86,28 @@ func verify_downed_objectives():
    var copy=Rules.new();assert(copy.import_code(g.export_code("battle"))=="battle" and copy.result()=="","Reloading a downed objective occupant cannot award victory")
    g.begin_enemy_phase();g.next_player_turn();assert(g.heal(medic,patient))
    assert(g.result()=="victory" and patient.acted,"A living recovered ally can secure the objective even with their action spent")
+
+func verify_phase_aid_choices():
+ var game=Rules.new();game.death_door=true;game.start_battle()
+ var leader=game.units[0];var patient=game.units[1];var ally=game.units[2];var medic=game.units[3]
+ var enemy=game.living("enemy")[0]
+ leader.x=5;leader.y=3;leader.acted=true
+ patient.x=5;patient.y=3;casualty(game,patient);patient.bleed_turns=1
+ ally.x=4;ally.y=3;ally.acted=true
+ medic.x=6;medic.y=4
+ enemy.x=5;enemy.y=4
+ var tactics=Tactics.new()
+ var before=game.export_code("battle")
+ var choices=tactics.phase_aid_choices(game,[patient])[patient.id]
+ assert(choices.size()==1 and choices[0].action=="rescue" and choices[0].tile==Vector2i(6,3),"Moving into the only vacant adjacent square leaves no space to revive a shared patient")
+ assert(game.export_code("battle")==before)
+ enemy.x=12;enemy.y=4
+ before=game.export_code("battle")
+ choices=tactics.phase_aid_choices(game,[patient])[patient.id]
+ assert(choices.size()==2 and choices[0].action=="revive" and choices[0].tile==Vector2i(6,3) and choices[0].cost==1)
+ assert(game.export_code("battle")==before and game.move_unit(medic,choices[0].tile))
+ assert(game.heal(medic,patient) and game.pos(patient)==Vector2i(5,4),"The planned staff action works from the suggested tile")
+ print("PASS: phase aid respects movement, spent allies and the real revival square after a proposed move")
 
 func verify_bleed_warning(app):
  app.game.new_campaign(true);app.game.death_door=true;app.game.start_battle()
@@ -226,6 +249,7 @@ func verify_drop_controls(app):
 func run():
  verify_rules()
  verify_downed_objectives()
+ verify_phase_aid_choices()
  root.size=Vector2i(1440,900)
  var app=load("res://main.tscn").instantiate();app.settings_path="";app.save_path="/private/tmp/poem-experiment-ui-%d.json"%OS.get_process_id()
  root.add_child(app);await process_frame
