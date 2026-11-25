@@ -754,6 +754,54 @@ func verify_dialog_bounds(editor,dialog_name: String,names: Array):
  await process_frame
  assert(not editor.has_node(dialog_name))
 
+func verify_move_to_chapter(app):
+ var editor=app.campaign_editor
+ var draft=editor.draft
+ draft.load_poem_template(true)
+ var origin=11
+ while draft.data.chapters.size()<Draft.MAX_CHAPTERS:
+  draft.insert_chapter(draft.data.chapters.size()-1,false)
+ var valley=draft.data.chapters[origin]
+ var links=valley.level.site_scenes
+ var anchor=links[0].route_key
+ var destination=Draft.MAX_CHAPTERS-1
+ var recruit=draft.add_recruit(draft.data.recruits[1],valley.key)
+ var recruit_id=draft.data.recruits[recruit].id
+ valley.level.extra_standard_pins=[anchor]
+ valley.section=true
+ var old_terrain=valley.level.map.duplicate()
+ draft.remember_terrain(origin)
+ draft.paint(valley.level,Vector2i(0,15),"h")
+ var locations=links.map(func(site):return draft.site_position(origin,site))
+ var order=draft.data.chapters.map(func(record):return record.key)
+ editor.select_chapter(origin)
+ await process_frame
+ controls(app,"Move to…").pressed.emit();await process_frame
+ var dialog=editor.get_node("EditorMoveChapterDialog")
+ var position=dialog.find_child("EditorChapterDestination",true,false)
+ assert(position.value==12 and position.max_value==32)
+ dialog.confirmed.emit();await process_frame
+ assert(editor.selected==origin and not editor.has_node("EditorMoveChapterDialog"))
+ assert(draft.data.chapters.map(func(record):return record.key)==order)
+ controls(app,"Move to…").pressed.emit();await process_frame
+ dialog=editor.get_node("EditorMoveChapterDialog")
+ position=dialog.find_child("EditorChapterDestination",true,false)
+ position.value=3
+ assert(dialog.find_child("EditorChapterDestinationPreview",true,false).text.begins_with("Before 03"))
+ position.get_line_edit().text=str(destination+1)
+ dialog.confirmed.emit();await process_frame
+ assert(editor.selected==destination and editor.chapter()==valley and editor.dirty)
+ order.append(order.pop_at(origin))
+ assert(draft.data.chapters.map(func(record):return record.key)==order)
+ assert(links.map(func(site):return draft.site_position(destination,site))==locations)
+ assert(draft.standard_pin_tiles(destination)==[locations[0]])
+ controls(app,"Undo terrain").pressed.emit()
+ assert(valley.level.map==old_terrain)
+ var content=draft.compile().content
+ assert(destination in content.section_starts)
+ assert(content.roster.filter(func(person):return person.id==recruit_id)[0].join==destination)
+ assert(content.chapters[destination].site_scenes[0].position==locations[0])
+
 func run():
  check_document()
  check_small_section_deployment()
@@ -1655,7 +1703,8 @@ func run():
  await verify_multiple_standards(app)
  await verify_editor_score_preview(app)
  await verify_terrain_rows(app)
+ await verify_move_to_chapter(app)
  assert(FileAccess.get_file_as_string(app.save_path)==disk and app.game==installed)
  await Shutdown.dispose(app);await process_frame
- print("PASS: campaign JSON file transfer, draft library management, remembered playtest setup, campaign readiness, authored Hard bonuses, authored retry raiders, deployment comparison, authored formation previews, small deployment limits and save recovery, custom campaign atlas, terrain stroke undo, bulk terrain rows, editor dialogs at two viewport sizes, continuous terrain strokes, connected terrain fill, placement moves and swaps, repeated placement copies, switching enemy difficulty groups, editor music preview, multiple standards and exact resume, standard navigation and live progress, standards that follow route pins, route pins, war-table site terrain, war-table overlay, blank war-table chapter, rising Valley landmarks, Valley reveal sound cues, battlefield site markers, custom recruits, phase scenes, tile dialogue and reload, one-use field tonic caches, Valley landmark dialogue, dialogue that follows route pins, timed reinforcements, chapter 32 saves, section dialogue, authored section relief, authored legacy stock and purchase persistence, authored loss recruits, authored loss dialogue, reproducible playtest setup, Valley carryover and resume, thirteen-chapter Valley template, and single-battle tests")
+ print("PASS: campaign JSON file transfer, draft library management, remembered playtest setup, campaign readiness, authored Hard bonuses, authored retry raiders, deployment comparison, authored formation previews, small deployment limits and save recovery, custom campaign atlas, terrain stroke undo, bulk terrain rows, editor dialogs at two viewport sizes, direct chapter reordering, continuous terrain strokes, connected terrain fill, placement moves and swaps, repeated placement copies, switching enemy difficulty groups, editor music preview, multiple standards and exact resume, standard navigation and live progress, standards that follow route pins, route pins, war-table site terrain, war-table overlay, blank war-table chapter, rising Valley landmarks, Valley reveal sound cues, battlefield site markers, custom recruits, phase scenes, tile dialogue and reload, one-use field tonic caches, Valley landmark dialogue, dialogue that follows route pins, timed reinforcements, chapter 32 saves, section dialogue, authored section relief, authored legacy stock and purchase persistence, authored loss recruits, authored loss dialogue, reproducible playtest setup, Valley carryover and resume, thirteen-chapter Valley template, and single-battle tests")
  quit()

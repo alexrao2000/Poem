@@ -80,6 +80,8 @@ func rebuild():
  source_chapter.select(selected);source_chapter.item_selected.connect(select_chapter)
  action(chapter_bar,"Move up",func():move_chapter(-1),selected==0).size_flags_horizontal=SIZE_FILL
  action(chapter_bar,"Move down",func():move_chapter(1),selected==draft.data.chapters.size()-1).size_flags_horizontal=SIZE_FILL
+ var move_to=action(chapter_bar,"Move to…",show_chapter_destination,draft.data.chapters.size()==1)
+ move_to.name="EditorMoveToChapter";move_to.size_flags_horizontal=SIZE_FILL
  var steps=row(self)
  var full=draft.data.chapters.size()>=Draft.MAX_CHAPTERS
  action(steps,"Add chapter",func():insert_chapter(false),full)
@@ -1198,6 +1200,42 @@ func add_blank_war_table():
 
 func move_chapter(direction: int):
  dirty=true;select_chapter(draft.move_chapter(selected,direction))
+
+func show_chapter_destination():
+ var origin=selected
+ var dialog=AcceptDialog.new()
+ dialog.name="EditorMoveChapterDialog";dialog.title="Move chapter %02d"%(origin+1)
+ dialog.ok_button_text="Move chapter"
+ add_child(dialog)
+ dialog.add_cancel_button("Cancel")
+ dialog.canceled.connect(dialog.queue_free)
+ var panel=VBoxContainer.new()
+ panel.add_theme_constant_override("separation",8)
+ dialog.add_child(panel)
+ var position=spin(origin+1,1,draft.data.chapters.size(),Callable())
+ position.name="EditorChapterDestination"
+ field_label(row(panel),"New chapter number",position)
+ var neighbor=heading(panel,"",16,false)
+ neighbor.name="EditorChapterDestinationPreview"
+ neighbor.text_overrun_behavior=TextServer.OVERRUN_TRIM_ELLIPSIS
+ var refresh=func(value):
+  var index=int(value)-1
+  if index==origin:
+   neighbor.text="Current position"
+  else:
+   var relation="Before" if index<origin else "After"
+   neighbor.text="%s %02d · %s"%[relation,index+1,draft.data.chapters[index].level.title]
+  neighbor.tooltip_text=neighbor.text
+ position.value_changed.connect(refresh)
+ refresh.call(position.value)
+ dialog.confirmed.connect(func():
+  position.apply()
+  var offset=int(position.value)-1-origin
+  if offset!=0:move_chapter(offset)
+  else:dialog.queue_free())
+ popup_editor_dialog(dialog,Vector2i(460,180))
+ position.get_line_edit().grab_focus()
+ position.get_line_edit().select_all()
 
 func confirm_remove():
  var dialog=ConfirmationDialog.new();dialog.title="Remove chapter?"
