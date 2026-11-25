@@ -27,6 +27,7 @@ func run():
  await verify_reddeep_cart()
  await verify_aqueduct_gallery()
  await verify_abbey_arcade()
+ verify_abbey_court_wall()
  await verify_abbey_belfry()
  await verify_abbey_mosaic()
  verify_abbey_vigil()
@@ -270,6 +271,33 @@ func verify_abbey_mosaic():
  viewport.free();field.free()
  assert(game.save_data("camp")==saved)
  print("PASS: worn 142-triangle Hallow Abbey floor mosaic, shared geometry with oriented arena placement and nine clear projections")
+
+func verify_abbey_court_wall():
+ var scenery=Scenery.new();scenery.batching_enabled=false
+ var game=Rules.new();game.chapter=3
+ var field=Node3D.new();root.add_child(field);scenery.landscape(field,game)
+ var wall=field.get_node("AbbeyCourtWall")
+ var arches=wall.find_children("CourtBlindArch*","MeshInstance3D",false,false)
+ var backs=wall.find_children("CourtWallBacking*","MeshInstance3D",false,false)
+ var piers=wall.find_children("CourtArchPier*","MeshInstance3D",false,false)
+ var recesses=wall.find_children("CourtAlcove*","MeshInstance3D",false,false)
+ assert(arches.size()==5 and backs.size()==10 and piers.size()==10 and recesses.size()==5)
+ var surface=arches[0].mesh
+ var rows=game.info().map
+ for stone in wall.get_children():
+  var bounds=stone.global_transform*stone.mesh.get_aabb()
+  assert(bounds.position.y>=-.0001 and bounds.position.z>.5 and bounds.end.z<1.5)
+  for x in range(roundi(bounds.position.x+.001),roundi(bounds.end.x-.001)+1):
+   assert(rows[1][x]=="#","The wall’s full footprint stays in blocked cells")
+ for arch in arches:
+  assert(arch.mesh==surface and arch.material_override.shader.resource_path.ends_with("castle-stone.gdshader"))
+  var x=floori(arch.global_position.x)
+  assert(is_equal_approx(arch.global_position.x,x+.5) and rows[1][x]=="#" and rows[1][x+1]=="#")
+ var original=wall.get_child_count()
+ var result=scenery.batcher.combine(field)
+ assert(original==60 and result.batches<result.sources,"The repeated courses, piers and arches batch with the rest of the map")
+ field.free()
+ print("PASS: five seated blind arches and continuous north wall keep all Hallow Abbey footing inside blocked tiles")
 
 func verify_abbey_vigil():
  var scenery=Scenery.new();scenery.batching_enabled=false

@@ -28,6 +28,9 @@ const CinderfordStream=preload("res://scripts/cinderford_stream.gd")
 const ReedTollhouse=preload("res://scripts/reed_tollhouse.gd")
 const AbbeyMosaic=preload("res://scripts/abbey_mosaic.gd")
 const AbbeyVigil=preload("res://scripts/abbey_vigil.gd")
+const ABBEY_COURT_BACK_ROW=1
+const ABBEY_ALCOVE_RADIUS=.39
+static var abbey_alcove_mesh: ArrayMesh
 const ABBEY_GROVE_SITES=[
  Vector2(-7.9,-1.54),Vector2(-5.4,-.60),Vector2(-2.7,-1.70),Vector2(-1.05,-.43),
  Vector2(1.65,-1.50),Vector2(4.65,-.85),Vector2(6.85,-1.50),Vector2(8.15,-.55),
@@ -403,6 +406,7 @@ func landscape(parent,game):
    elif t=="h":boulder(parent,p+Vector3(.22,0,-.2),.32)
    elif t=="#" and theme=="mountain":boulder(parent,p+Vector3(0,.2,0),.8)
    elif t=="#" and not building_cells.has(Vector2i(x,y)):
+    if theme=="abbey" and y==ABBEY_COURT_BACK_ROW:continue
     for row in range(3):
      for col in range(3):
       var stone=block(parent,p+Vector3((col-1)*.32+(.04 if row%2 else 0),.17+row*.28,0),Vector3(.3,.26,.7),Color.WHITE)
@@ -425,6 +429,7 @@ func landscape(parent,game):
   village_mill(parent,MILL_MAP_SITE,.69)
   CinderfordMarket.build(self,parent,Vector3(1.5,0,2.5),.58)
  if theme=="abbey":
+  abbey_court_wall(parent,game)
   AbbeyMosaic.build(self,parent,AbbeyMosaic.MAP_SITE,1.0)
   AbbeyVigil.build(self,parent,AbbeyVigil.MAP_SITE,AbbeyVigil.MAP_SCALE,AbbeyVigil.lamp_count(game))
   abbey_grove(parent,Vector3(center.x-.5,-.15,-2.25),1.0,.84)
@@ -776,6 +781,43 @@ func abbey_arcade(parent: Node3D,anchor: Vector3):
   if x<12:arch_span(arcade,Vector3(x+2,3.15,0),1.6,.42,.82)
  block(arcade,Vector3(0,5.23,0),Vector3(25.6,.34,.82),stone).name="ArcadeCoping"
  block(arcade,Vector3(0,5.43,0),Vector3(25.8,.10,1.06),Color("b7b3a0")).name="ArcadeCornice"
+
+func abbey_court_wall(parent: Node3D,game):
+ var aisle=Node3D.new();aisle.name="AbbeyCourtWall";aisle.position.z=ABBEY_COURT_BACK_ROW
+ parent.add_child(aisle)
+ var masonry=Fortification.wall_paint(Color("79776d"))
+ var trim=Fortification.wall_paint(Color("9e9889"))
+ var inset=Fortification.wall_paint(Color("514e46"))
+ var cells=game.board_size().x
+ for x in cells:
+  if game.terrain(Vector2i(x,ABBEY_COURT_BACK_ROW))!="#":continue
+  block(aisle,Vector3(x,.395,-.048),Vector3(1,.79,.49),masonry).name="CourtWallBacking"
+  block(aisle,Vector3(x,.062,0),Vector3(1,.124,.69),trim).name="CourtWallPlinth"
+  block(aisle,Vector3(x,.837,-.02),Vector3(.986,.104,.64),trim).name="CourtWallCoping"
+ # The arches are set against continuous masonry on blocked cells.
+ for x in range(0,cells-1,2):
+  if game.terrain(Vector2i(x,ABBEY_COURT_BACK_ROW))!="#" or game.terrain(Vector2i(x+1,ABBEY_COURT_BACK_ROW))!="#":continue
+  var center=x+.5
+  mesh(aisle,abbey_alcove(),Vector3(center,.38,.201),Vector3.ONE,inset).name="CourtAlcove"
+  var span=arch_span(aisle,Vector3(center,.38,.225),ABBEY_ALCOVE_RADIUS,.13,.14)
+  span.name="CourtBlindArch";span.material_override=trim
+  for side in [-1,1]:
+   var foot=center+side*.456
+   block(aisle,Vector3(foot,.238,.227),Vector3(.13,.285,.147),trim).name="CourtArchPier"
+   block(aisle,Vector3(foot,.141,.234),Vector3(.188,.072,.173),trim).name="CourtPierBase"
+
+func abbey_alcove() -> ArrayMesh:
+ if abbey_alcove_mesh!=null:return abbey_alcove_mesh
+ var tool=SurfaceTool.new();tool.begin(Mesh.PRIMITIVE_TRIANGLES)
+ var radius=ABBEY_ALCOVE_RADIUS+.009
+ Fortification.quad(tool,[Vector3(-radius,-.252,0),Vector3(radius,-.252,0),
+  Vector3(radius,0,0),Vector3(-radius,0,0)],Vector3.BACK,Color.WHITE)
+ for segment in 11:
+  var from=Vector2.from_angle(segment*PI/11)*radius
+  var to=Vector2.from_angle((segment+1)*PI/11)*radius
+  Fortification.triangle(tool,Vector3.ZERO,Vector3(from.x,from.y,0),Vector3(to.x,to.y,0),Vector3.BACK,Color.WHITE)
+ abbey_alcove_mesh=tool.commit()
+ return abbey_alcove_mesh
 
 func abbey_grove(parent: Node3D,anchor: Vector3,spacing: float,size: float):
  # The same staggered tree line frames the map and the open arcade.
