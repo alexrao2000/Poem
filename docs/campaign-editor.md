@@ -18,7 +18,7 @@ The reveal uses the same illustrated valley shown during campaign briefings. Dep
 
 The route battle keeps the existing classes, weapons, forecasting, and rules switches. Allied sprites stand on octagonal counters and enemy sprites stand on hexagonal counters. Each piece represents a company led by a character. The terrain card names places the campaign has already visited. Their tiles come from the same chapter pins used on the route screen. The close-up shows the commanders and the local terrain where their pieces met. The original score, “The Roads Between,” moves from Calm to Ablaze on the same playhead during each exchange. Earlier route screens hint at the grid with a faint cartographer’s scale.
 
-The editor offers a Valley war table chapter template. Its terrain and markers use normalized coordinates on the same route illustration, so the route pin and the authored board align at different window sizes. Poem’s own first route battle belongs late in the campaign, when the company can recognize the locations from earlier chapters.
+The editor offers a Valley war table chapter template. Its terrain and markers use normalized coordinates on the same route illustration, so the route pin and the authored board align at different window sizes. In Poem, open Route at Crown Approach and choose Unroll the war table. That encounter brings the current company, formation, bonds, and trial state into a separate playtest save. The original campaign resumes when you return to Route.
 
 ## Game data and playtest
 

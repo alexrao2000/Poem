@@ -537,7 +537,8 @@ func close_campaign_editor():
 
 func start_campaign_preview(compiled: Dictionary,start: int,resume: bool,return_to: String):
 	var preview=Rules.new(compiled.content)
-	var path=campaign_playtest_directory.path_join("campaign-playtest-"+compiled.content.authoring_signature+".json")
+	var prefix="valley-front-" if return_to=="route" else "campaign-playtest-"
+	var path=campaign_playtest_directory.path_join(prefix+compiled.content.authoring_signature+".json")
 	var existing=preview.read_saved_data(path) if resume else {}
 	if resume and existing.is_empty():
 		show_notice("No playtest has been saved for this version.");return
@@ -547,16 +548,32 @@ func start_campaign_preview(compiled: Dictionary,start: int,resume: bool,return_
 	if resume:await load_campaign();return
 	game.new_campaign(compiled.settings.permadeath);game.chapter=start
 	for setting in CampaignSettings.SWITCHES:CampaignSettings.set_enabled(game,setting.key,compiled.settings[setting.key])
-	if return_to=="route":
-		var previous=campaign_preview.game
-		for recruit in game.roster:
-			var veteran=previous.roster.filter(func(unit):return unit.id==recruit.id)[0]
-			for field in ["hp","max_hp","pow","defense","resistance","speed","level","xp","item","reach","fallen","fallen_chapter"]:
-				recruit[field]=veteran[field]
-			if veteran.has("promotion"):recruit.promotion=veteran.promotion
-	if start>0:game.deployed=game.available().slice(0,int(game.info().deployment)).map(func(unit):return unit.id)
+	if return_to=="route":carry_valley_company(campaign_preview.game)
+	elif start>0:game.deployed=game.available().slice(0,int(game.info().deployment)).map(func(unit):return unit.id)
 	persist_campaign("camp")
 	show_camp()
+
+func carry_valley_company(previous):
+	var trials=previous.trials.to_data()
+	trials.checkpoint={};trials.earned_scenes=[];trials.read_scenes=[]
+	game.trials.from_data(trials)
+	game.supports.state=previous.supports.state.duplicate(true)
+	game.rng.state=previous.rng.state
+	for legacy in game.content.legacy_recruits:
+		if previous.roster.any(func(veteran):return veteran.id==legacy.unit.id):game.enlist_legacy_recruit(legacy.unit)
+	var recruits={}
+	for recruit in game.roster:recruits[recruit.id]=recruit
+	for veteran in previous.roster:
+		var recruit=recruits[veteran.id]
+		for field in ["hp","max_hp","pow","defense","resistance","speed","move","level","xp","item","reach","fallen","fallen_chapter","promotion"]:
+			if veteran.has(field):recruit[field]=veteran[field]
+		if previous.trials.joined(previous,veteran) and not game.trials.joined(game,recruit):
+			game.trials.volunteers.append(recruit.id)
+	var available=game.available().map(func(recruit):return recruit.id)
+	var count=int(game.info().deployment)
+	game.deployed=previous.deployed.filter(func(id):return id in available).slice(0,count)
+	game.formation_order=previous.formation_order.duplicate()
+	if game.deployed.is_empty():game.deployed=available.slice(0,count)
 
 func close_campaign_preview():
 	if campaign_preview.is_empty():return

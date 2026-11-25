@@ -457,11 +457,27 @@ func run():
  assert(app.ui.find_child("PairedEnding_"+first_bond.id,true,false).text==first_bond.ending)
  controls(app,"Return to editor").pressed.emit();await process_frame
  app.game.chapter=10
+ app.game.permadeath=true
+ app.game.trials.flags.death_legacies=true;app.game.trials.flags.reset_pressure=true;app.game.trials.flags.sacrifice_cost=true
+ app.game.trials.pressure=2
+ app.game.start_battle()
+ var warden=app.game.units.filter(func(unit):return unit.id=="ivo")[0]
+ warden.hp=0;app.game.commit_casualties()
+ assert(app.game.lost_ids()==["ivo"] and "maelin" in app.game.trials.volunteers)
+ app.game.trials.injuries.oren=11
+ app.game.supports.state.lyra_oren={"points":3,"rank":1,"chapter":9,"earned":1,"turn":3}
+ app.game.deployed=["lyra","maelin","oren","sera"]
+ app.game.formation_order=["oren","maelin","lyra","sera"]
  app.show_campaign_route();await process_frame
  var route_state=app.game.save_data("camp").duplicate(true)
  app.ui.find_child("OpenValleyFront",true,false).pressed.emit()
  await finish_presentation(app)
  assert(app.screen=="camp" and app.game.info().presentation=="valley_table" and app.game.chapter==11)
+ assert(app.campaign_save_path().get_file().begins_with("valley-front-"))
+ assert(app.game.deployed==route_state.deployed and app.game.formation_order==route_state.formation_order)
+ assert(app.game.lost_ids()==["ivo"] and app.game.trials.pressure==2 and app.game.trials.credits==1)
+ assert(app.game.supports.progress("lyra_oren").rank==1 and app.game.rng.state==installed.rng.state)
+ assert(app.game.read_saved_data(app.campaign_save_path()).stage=="camp")
  controls(app,"Deploy company  >").pressed.emit()
  assert(app.valley_reveal_active)
  var skip=InputEventKey.new();skip.keycode=KEY_TAB;skip.pressed=true
@@ -469,6 +485,8 @@ func run():
  assert(app.valley_reveal_skip)
  await finish_presentation(app)
  assert(not app.valley_reveal_active and app.map_navigation.at_home() and app.ui.visible)
+ assert(app.game.at(Vector2i(3,9)).id=="oren" and app.game.at(Vector2i(3,9)).potions==1)
+ assert(app.game.at(Vector2i(4,9)).id=="maelin" and app.game.living("enemy").all(func(enemy):return enemy.held_tonics==0))
  var places={"Reed Crossing":[Vector2i(6,9),"BRIDGE"],"Hallow Abbey":[Vector2i(9,5),"SANCTUARY"],
   "Kingsroad":[Vector2i(12,8),"BRIDGE"],"Windscar Pass":[Vector2i(19,7),"HILL"]}
  for name in places:
@@ -484,5 +502,5 @@ func run():
  assert(app.screen=="campaign_route" and app.game==installed and app.game.save_data("camp")==route_state)
  assert(FileAccess.get_file_as_string(app.save_path)==disk)
  await Shutdown.dispose(app);await process_frame
- print("PASS: campaign JSON, direct route pin placement, chapter order, custom recruit presentation, phase scenes, timed reinforcements, chapter 32 saves, smaller-board save migration, valley reveal and counters, complete chapters and isolated resume")
+ print("PASS: campaign JSON, route pins, custom recruits, phase scenes, timed reinforcements, chapter 32 saves, smaller-board migration, valley counters and current-company carryover, complete chapters and isolated resume")
  quit()
