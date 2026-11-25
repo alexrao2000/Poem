@@ -8,6 +8,8 @@ const Valley=preload("res://scripts/world_map_battle.gd")
 const Tactics=preload("res://scripts/tactics.gd")
 const Atlas=preload("res://scripts/campaign_atlas.gd")
 const FORMAT="poem-campaign"
+const PLAYTEST_FORMAT="poem-campaign-playtest"
+const PLAYTEST_VERSION=1
 const VERSION=1
 const MAX_CHAPTERS=32
 const MAX_CUSTOM_RECRUITS=16
@@ -44,6 +46,7 @@ var data: Dictionary:
 var dirty=false
 var atlas_source=""
 var atlas_texture: ImageTexture
+var transferred_editor_state={}
 
 func _init():
  templates=JSON.parse_string(FileAccess.get_file_as_string("res://data/campaign.json"))
@@ -150,17 +153,34 @@ func blank_level() -> Dictionary:
   "enemies":[{"position":[11,4],"job":"Vanguard","ai":"guard","name":"Garrison commander"},
    {"position":[9,4],"job":"Ranger","ai":"sentry","name":"Garrison scout"}],"hard_enemies":[]}
 
-func encode() -> String:
+func encode(editor_state: Dictionary={}) -> String:
+ if not editor_state.is_empty():
+  return JSON.stringify({"format":PLAYTEST_FORMAT,"version":PLAYTEST_VERSION,"document":data,"editor":editor_state},"",true,true)
  return JSON.stringify(data,"  ",true,true)
 
 func decode(raw: String) -> String:
  if raw.length()>MAX_DRAFT_LENGTH:return "This campaign document is too large."
  var parser=JSON.new()
  if parser.parse(raw)!=OK:return "JSON line %d. %s"%[parser.get_error_line(),parser.get_error_message()]
- var issue=structural_problem(parser.data)
+ var document=parser.data
+ var editor_state={}
+ if document is Dictionary and document.get("format")==PLAYTEST_FORMAT:
+  if not integer(document.get("version"),PLAYTEST_VERSION,PLAYTEST_VERSION):return "This playtest setup uses a different file version."
+  editor_state=document.get("editor") if document.get("editor") is Dictionary else {}
+  document=document.get("document")
+  if not valid_playtest_setup(editor_state):return "The playtest file needs a chapter, seed, and retry pressure."
+ var issue=structural_problem(document)
  if not issue.is_empty():return issue
- data=parser.data
+ if not editor_state.is_empty() and not document.chapters.any(func(chapter):return chapter.key==editor_state.chapter):
+  return "The playtest chapter is missing from this campaign."
+ data=document
+ transferred_editor_state=editor_state
  return ""
+
+func valid_playtest_setup(editor_state: Dictionary) -> bool:
+ var setup=editor_state.get("setup")
+ return editor_state.get("chapter") is String and setup is Dictionary and setup.get("fixed_seed") is bool \
+  and integer(setup.get("seed"),0,2147483647) and integer(setup.get("pressure"),0,10)
 
 func index_for(key: String) -> int:
  return data.chapters.find_custom(func(chapter):return chapter.key==key)

@@ -1562,15 +1562,18 @@ func show_transfer():
  dialog.confirmed.connect(dialog.queue_free)
  var panel=VBoxContainer.new();panel.add_theme_constant_override("separation",8);dialog.add_child(panel)
  heading(panel,"Copy this campaign or paste another Poem campaign document.",16,false)
- var source=multiline(draft.encode(),208,Callable());source.name="EditorTransferText"
+ var source=multiline(draft.encode(),172,Callable());source.name="EditorTransferText"
  source.size_flags_vertical=SIZE_EXPAND_FILL;panel.add_child(source)
  var buttons=row(panel)
  action(buttons,"Copy JSON",func():DisplayServer.clipboard_set(source.text))
+ var with_setup=CheckBox.new();with_setup.text="Include playtest setup in saved file";with_setup.name="EditorTransferSetup"
+ with_setup.tooltip_text="Include the selected chapter, combat seed setting, and starting retry pressure."
+ panel.add_child(with_setup)
  var files=row(panel)
  var feedback=heading(panel,"",15);feedback.name="EditorCampaignTransferStatus"
  action(buttons,"Import pasted JSON",func():import_campaign_text(source.text,feedback))
  action(files,"Open JSON file",func():open_campaign_file(dialog,feedback)).name="EditorOpenCampaignFile"
- action(files,"Save JSON file",func():save_campaign_file(dialog,feedback)).name="EditorSaveCampaignFile"
+ action(files,"Save JSON file",func():save_campaign_file(dialog,feedback,with_setup.button_pressed)).name="EditorSaveCampaignFile"
  popup_editor_dialog(dialog,Vector2i(560,480))
 
 func show_readiness():
@@ -1603,7 +1606,8 @@ func import_campaign_text(raw: String,feedback: Label):
  var issue=incoming.decode(raw)
  if not issue.is_empty():feedback.text=issue;return
  if dirty and not save_draft():feedback.text=status.text;return
- draft.data=incoming.data;draft_key="";dirty=true;select_chapter(restore_editor_state({}))
+ draft.data=incoming.data;draft_key="";dirty=true
+ select_chapter(restore_editor_state({"editor":incoming.transferred_editor_state}))
 
 func open_campaign_file(parent: Window,feedback: Label):
  if OS.has_feature("web"):
@@ -1636,11 +1640,12 @@ func open_browser_file(parent: Node,feedback: Label,limit: int,accept: String,bi
   receive.call(str(arguments[1])))
  bridge.open(limit,browser_campaign_file_callback,accept,binary)
 
-func save_campaign_file(parent: Window,feedback: Label):
+func save_campaign_file(parent: Window,feedback: Label,include_setup: bool):
  var title=draft.data.title.validate_filename().strip_edges()
  if title.is_empty():title="campaign"
  var filename=title.left(80)+".campaign.json"
- var payload=draft.encode()
+ var editor_state={"setup":playtest_setup,"chapter":chapter().key} if include_setup else {}
+ var payload=draft.encode(editor_state)
  if OS.has_feature("web"):
   JavaScriptBridge.download_buffer(payload.to_utf8_buffer(),filename,"application/json")
   return

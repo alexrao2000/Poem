@@ -846,7 +846,7 @@ func verify_editor_dialog_layout(app):
   root.content_scale_size=dimensions
   tabs.current_tab=0;await process_frame
   controls(app,"Transfer JSON").pressed.emit()
-  await verify_dialog_bounds(editor,"EditorTransferDialog",["EditorTransferText","EditorOpenCampaignFile","EditorSaveCampaignFile","EditorCampaignTransferStatus"])
+  await verify_dialog_bounds(editor,"EditorTransferDialog",["EditorTransferText","EditorTransferSetup","EditorOpenCampaignFile","EditorSaveCampaignFile","EditorCampaignTransferStatus"])
   controls(app,"Preview score").pressed.emit()
   await verify_dialog_bounds(editor,"EditorScorePreview",["MusicRoomCalm","MusicRoomAblaze"])
   tabs.current_tab=tabs.get_tab_idx_from_control(editor.find_child("Encounters",true,false))
@@ -880,6 +880,45 @@ func verify_dialog_bounds(editor,dialog_name: String,names: Array):
  dialog.canceled.emit()
  await process_frame
  assert(not editor.has_node(dialog_name))
+
+func verify_playtest_transfer(app,scratch: String,expected: Dictionary):
+ app.show_battle_menu();await process_frame
+ controls(app,"Return to editor").pressed.emit();await process_frame
+ var editor=app.campaign_editor
+ var draft=editor.draft
+ var plain=draft.encode()
+ var setup=editor.playtest_setup.duplicate()
+ var chapter=editor.chapter().key
+ controls(app,"Transfer JSON").pressed.emit();await process_frame
+ var transfer=editor.find_child("EditorTransferSetup",true,false)
+ assert(not transfer.button_pressed)
+ transfer.button_pressed=true
+ var path=scratch.path_join("shared-playtest.campaign.json")
+ controls(app,"Save JSON file").pressed.emit();await process_frame
+ var picker=editor.find_child("EditorCampaignFilePicker",true,false)
+ picker.file_selected.emit(path);await process_frame
+ var payload=FileAccess.get_file_as_string(path)
+ var incoming=Draft.new()
+ assert(incoming.decode(payload).is_empty() and incoming.encode()==plain)
+ var damaged=JSON.parse_string(payload)
+ damaged.editor.setup.pressure=11
+ assert("retry pressure" in incoming.decode(JSON.stringify(damaged)))
+ damaged.editor.setup.pressure=2
+ damaged.editor.chapter="missing"
+ assert("chapter is missing" in incoming.decode(JSON.stringify(damaged)))
+ assert(incoming.decode(plain).is_empty() and incoming.transferred_editor_state.is_empty())
+ editor.get_node("EditorTransferDialog").canceled.emit();await process_frame
+ editor.select_chapter(0)
+ editor.playtest_setup.seed=17;editor.playtest_setup.pressure=0
+ controls(app,"Transfer JSON").pressed.emit();await process_frame
+ controls(app,"Open JSON file").pressed.emit();await process_frame
+ picker=editor.find_child("EditorCampaignFilePicker",true,false)
+ picker.file_selected.emit(path);await process_frame
+ assert(editor.draft.encode()==plain and editor.chapter().key==chapter and editor.playtest_setup==setup)
+ assert(editor.selected==11 and editor.playtest_setup=={"fixed_seed":true,"seed":267,"pressure":2})
+ controls(app,"Resume playtest").pressed.emit();await finish_presentation(app)
+ assert(app.screen=="battle" and canonical(app.game.save_data("battle"))==expected)
+ print("PASS: the shared playtest file restores the chosen Valley chapter, seed 267 and pressure 2, and resumes the exact battle")
 
 func verify_move_to_chapter(app):
  var editor=app.campaign_editor
@@ -2649,6 +2688,8 @@ func run():
  assert(reopened.screen=="battle" and reopened.campaign_save_path()==experiment_path,
   "Reopened test reached %s via %s instead of %s"%[reopened.screen,reopened.campaign_save_path(),experiment_path])
  assert(canonical(reopened.game.save_data("battle"))==expected)
+ assert(FileAccess.get_file_as_string(app.save_path)==disk)
+ await verify_playtest_transfer(reopened,scratch,expected)
  assert(FileAccess.get_file_as_string(app.save_path)==disk)
  await Shutdown.dispose(reopened);await process_frame
  await verify_custom_atlas(app,scratch)
