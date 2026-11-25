@@ -149,6 +149,7 @@ var campaign_editor_chapter=0
 var campaign_editor_return="title"
 var campaign_editor
 var campaign_preview={}
+var campaign_playtest_setup={"fixed_seed":false,"seed":Rules.DEFAULT_COMBAT_SEED,"pressure":0}
 var campaign_playtest_directory="user://"
 var debug_duelists=preload("res://scripts/debug_duelist_models.gd").new()
 var revised_enemies=preload("res://scripts/revised_enemy_models.gd").new()
@@ -524,25 +525,30 @@ func show_campaign_editor(return_to: String):
 	screen="campaign_editor";reset_ui();title_backdrop()
 	var panel=menu_panel(1180)
 	campaign_editor=preload("res://scripts/campaign_editor.gd").new();panel.add_child(campaign_editor)
-	campaign_editor.configure(campaign_draft,campaign_draft_library,campaign_editor_key,campaign_editor_chapter)
+	campaign_editor.configure(campaign_draft,campaign_draft_library,campaign_editor_key,campaign_editor_chapter,campaign_playtest_setup)
 	campaign_editor.closed.connect(close_campaign_editor)
 	campaign_editor.draft_selection_changed.connect(func(key,index):
 		campaign_editor_key=key;campaign_editor_chapter=index)
 	campaign_editor.playtest_requested.connect(func(index,resume,single_battle):
-		start_campaign_preview(campaign_draft.compile(),index,resume,"chapter" if single_battle else "editor"))
+		start_campaign_preview(campaign_draft.compile(),index,resume,"chapter" if single_battle else "editor",campaign_playtest_setup))
 
 func close_campaign_editor():
 	if campaign_editor_return=="debug_tools":show_debug_tools(options_return)
 	else:show_title()
 
-func start_campaign_preview(compiled: Dictionary,start: int,resume: bool,return_to: String):
+func start_campaign_preview(compiled: Dictionary,start: int,resume: bool,return_to: String,setup: Dictionary={}):
 	var prefix="valley-front-" if return_to=="route" else "campaign-playtest-"
 	if return_to=="chapter":
 		prefix="battle-test-%d-"%start
 		compiled.content.authoring_signature=(prefix+compiled.content.authoring_signature).sha256_text()
 		compiled.content.section_starts=[0,start] if start>0 else [0]
 	var preview=Rules.new(compiled.content)
-	var path=campaign_playtest_directory.path_join(prefix+compiled.content.authoring_signature+".json")
+	var seed_value=int(setup.seed) if setup.get("fixed_seed",false) else -1
+	var pressure=int(setup.get("pressure",0)) if compiled.settings.reset_pressure else 0
+	var suffix=""
+	if seed_value>=0:suffix+="-seed-%d"%seed_value
+	if pressure>0:suffix+="-pressure-%d"%pressure
+	var path=campaign_playtest_directory.path_join(prefix+compiled.content.authoring_signature+suffix+".json")
 	var existing=preview.read_saved_data(path) if resume else {}
 	if resume and existing.is_empty():
 		show_notice("No playtest has been saved for this version.");return
@@ -552,6 +558,8 @@ func start_campaign_preview(compiled: Dictionary,start: int,resume: bool,return_
 	if resume:await load_campaign();return
 	game.new_campaign(compiled.settings.permadeath);game.chapter=start
 	for setting in CampaignSettings.SWITCHES:CampaignSettings.set_enabled(game,setting.key,compiled.settings[setting.key])
+	if seed_value>=0:game.rng.seed=seed_value
+	game.trials.pressure=pressure
 	if return_to=="route":carry_valley_company(campaign_preview.game)
 	elif start>0:
 		if compiled.content.get("section_relief",{}).has(start):game.trials.arrive(game)
@@ -2900,7 +2908,7 @@ func show_debug_experiments():
 	var frame=menu_panel(840);var panel=scrolling_column(frame)
 	label_in(panel,"DEBUG / EXPERIMENT SETUPS",17,GOLD)
 	label_in(panel,"Try a campaign rule",36,GOLD)
-	label_in(panel,"Starting a setup replaces the Debug company, losses, supplies and rule settings. Each uses combat seed %d. The default seed is 472019."%debug_session.combat_seed,19)
+	label_in(panel,"Starting a setup replaces the Debug company, losses, supplies and rule settings. Each uses combat seed %d. The default seed is %d."%[debug_session.combat_seed,Rules.DEFAULT_COMBAT_SEED],19)
 	label_in(panel,"Change individual rules in Options. Turn off Debug mode to return to your campaign.",17)
 	for setup in preload("res://scripts/debug_experiments.gd").SETUPS:
 		label_in(panel,setup.title,26,GOLD)

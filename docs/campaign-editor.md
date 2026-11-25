@@ -22,6 +22,8 @@ Use Edit loss dialogue to give a line an alternate if its speaker or a required 
 
 The chapter picker and editing controls sit above the Battle, Encounters, Story, Route, Company, Bonds, and Rules workspaces. Click the illustrated chart in Route to place the active chapter’s pin, or use the percentage fields for precise positioning. Save draft keeps a local copy. Transfer JSON copies a draft for sharing and accepts a pasted document. Playtest can start at the first war council or the selected chapter. If another chapter is unfinished, Test this battle still opens a ready chapter with its own save. A single-battle test returns directly to the editor after victory.
 
+In Rules, Playtest setup lets you override the combat seed or choose a starting level of retry pressure. Enable Enemies prepare after resets to set the starting pressure. These inputs stay with the current editor session and leave the draft’s campaign rules alone. Playtests use separate saves for each seed and pressure setup. Match the setup when you resume.
+
 ## When the map becomes a battlefield
 
 The reveal uses the same illustrated valley shown during campaign briefings. Deploying for the late route battle opens on the familiar chart from directly overhead. The camera tilts toward the war table as the grid spreads from the capital and the army pieces arrive. Click or press Tab to move directly to the tactical view. Drawn roads become cheap approaches, mountain passes use hill movement, marked crossings carry troops over otherwise blocked water, and the illustrated capital becomes the objective stronghold.

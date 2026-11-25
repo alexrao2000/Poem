@@ -11,6 +11,7 @@ const TOOLS=["Terrain","Deployment","Enemy","Hard-mode enemy","Objective"]
 const GOLD=Color("896937")
 var draft: RefCounted
 var library: RefCounted
+var playtest_setup: Dictionary
 var draft_key=""
 var selected=0
 var active_tab=0
@@ -34,8 +35,8 @@ var dirty: bool:
  get:return draft.dirty
  set(value):draft.dirty=value
 
-func configure(model,storage,key: String,index: int):
- draft=model;library=storage;draft_key=key
+func configure(model,storage,key: String,index: int,setup: Dictionary):
+ draft=model;library=storage;draft_key=key;playtest_setup=setup
  selected=clampi(index,0,draft.data.chapters.size()-1)
  size_flags_vertical=SIZE_EXPAND_FILL
  add_theme_constant_override("separation",8)
@@ -460,15 +461,33 @@ func remove_custom_recruit():
 func build_rules(panel: VBoxContainer):
  heading(panel,"Campaign title",17)
  panel.add_child(line_edit(draft.data.title,"Campaign title",120,func(value):draft.data.title=value;changed()))
+ var pressure_option: CheckButton
  for setting in [{"key":"permadeath","name":"Permadeath","text":"Committed fallen allies stay lost."}]+Settings.SWITCHES:
   var key=setting.key
   var enabled=CheckButton.new();enabled.text=setting.name;enabled.button_pressed=draft.data.settings[key];panel.add_child(enabled)
+  enabled.name="EditorRule_"+key
   enabled.toggled.connect(func(value):draft.data.settings[key]=value;changed())
+  if key=="reset_pressure":pressure_option=enabled
   heading(panel,setting.text,15)
+ build_playtest_setup(panel,pressure_option)
  var stock=VBoxContainer.new();stock.add_theme_constant_override("separation",8);panel.add_child(stock)
  build_legacy_stock(stock)
  var arrivals=VBoxContainer.new();arrivals.add_theme_constant_override("separation",8);panel.add_child(arrivals)
  build_legacy_arrivals(arrivals)
+
+func build_playtest_setup(panel: VBoxContainer,pressure_option: CheckButton):
+ heading(panel,"Playtest setup",21)
+ heading(panel,"Resume with the same seed and pressure to open that playtest save.",15)
+ var fixed=CheckButton.new();fixed.name="EditorFixedSeed";fixed.text="Override combat seed"
+ fixed.button_pressed=playtest_setup.fixed_seed;panel.add_child(fixed)
+ var seed_row=row(panel);seed_row.visible=fixed.button_pressed
+ var seed=spin(playtest_setup.seed,0,2147483647,func(value):playtest_setup.seed=int(value))
+ seed.name="EditorPlaytestSeed";field_label(seed_row,"Combat seed",seed)
+ fixed.toggled.connect(func(value):playtest_setup.fixed_seed=value;seed_row.visible=value)
+ var pressure_row=row(panel);pressure_row.visible=pressure_option.button_pressed
+ var pressure=spin(playtest_setup.pressure,0,10,func(value):playtest_setup.pressure=int(value))
+ pressure.name="EditorPlaytestPressure";field_label(pressure_row,"Starting retry pressure",pressure)
+ pressure_option.toggled.connect(func(value):pressure_row.visible=value)
 
 func build_legacy_stock(panel: VBoxContainer):
  for child in panel.get_children():panel.remove_child(child);child.queue_free()

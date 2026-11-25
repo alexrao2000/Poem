@@ -4,7 +4,7 @@ extends RefCounted
 const Rules=preload("res://scripts/rules.gd")
 const MODEL_FLAGS=["revised_vanguard","revised_duelists","revised_caster","revised_warden","revised_corsair","revised_ranger","revised_knight","revised_rider","revised_enemies"]
 
-var combat_seed=472019
+var combat_seed=Rules.DEFAULT_COMBAT_SEED
 var active=false
 var revised_duelists=false
 var revised_caster=false
@@ -22,7 +22,7 @@ var trace=preload("res://scripts/debug_trace.gd").new()
 
 func begin(game,screen: String,revised_models=false):
  if active:return
- return_screen=screen;combat_seed=472019
+ return_screen=screen;combat_seed=Rules.DEFAULT_COMBAT_SEED
  for field in MODEL_FLAGS:set(field,revised_models)
  checkpoint=game.save_data("battle" if screen=="battle" else "camp").duplicate(true)
  active=true

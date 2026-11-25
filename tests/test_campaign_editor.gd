@@ -748,10 +748,12 @@ func run():
  var exported=Draft.new()
  assert(exported.decode(template.encode()).is_empty() and exported.data.chapters[11].opening==opening)
  template.data.settings.permadeath=true;template.data.settings.action_saves=true
+ template.data.settings.reset_pressure=true
  controls(app,"Play chapter").pressed.emit()
  await await_phase_dialogue(app,"Pull the seals off the chart. I want to see every road into the capital.")
  await finish_presentation(app)
  assert(app.screen=="camp" and app.game.chapter==11 and app.game.info().title=="The Roads Between")
+ var ordinary_playtest=app.campaign_save_path()
  controls(app,"Deploy company  >").pressed.emit()
  app.valley_reveal_skip=true;await finish_presentation(app)
  var fallen_ivo=app.game.units.filter(func(member):return member.id=="ivo")[0]
@@ -763,6 +765,37 @@ func run():
  controls(app,"Return to editor").pressed.emit();await process_frame
  assert(app.screen=="campaign_editor" and app.game==installed and app.campaign_editor.selected==11)
  assert(FileAccess.get_file_as_string(app.save_path)==disk)
+ var ordinary_position=FileAccess.get_file_as_string(ordinary_playtest)
+ var setup_tabs=app.campaign_editor.find_child("CampaignEditorTabs",true,false)
+ setup_tabs.current_tab=setup_tabs.get_tab_idx_from_control(app.campaign_editor.find_child("Rules",true,false))
+ await process_frame
+ var authored=template.encode()
+ app.campaign_editor.find_child("EditorFixedSeed",true,false).button_pressed=true
+ var seed=app.campaign_editor.find_child("EditorPlaytestSeed",true,false)
+ var pressure=app.campaign_editor.find_child("EditorPlaytestPressure",true,false)
+ assert(seed.is_visible_in_tree() and seed.value==Rules.DEFAULT_COMBAT_SEED and pressure.is_visible_in_tree())
+ seed.value=267;pressure.value=2
+ assert(template.encode()==authored)
+ controls(app,"Play chapter").pressed.emit();await finish_presentation(app)
+ var expected_rng=RandomNumberGenerator.new();expected_rng.seed=267
+ assert(app.game.trials.pressure==2 and app.game.rng.state==expected_rng.state)
+ var experiment_path=app.campaign_save_path()
+ assert(experiment_path.ends_with("-seed-267-pressure-2.json") and ordinary_playtest!=experiment_path)
+ controls(app,"Deploy company  >").pressed.emit()
+ app.valley_reveal_skip=true;await finish_presentation(app)
+ assert(app.game.living("enemy").all(func(member):return member.held_tonics==0))
+ var experiment_snapshot=app.game.save_data("battle").duplicate(true)
+ app.show_battle_menu();await process_frame
+ controls(app,"Return to editor").pressed.emit();await process_frame
+ controls(app,"Resume playtest").pressed.emit();await finish_presentation(app)
+ assert(app.campaign_save_path()==experiment_path and app.screen=="battle")
+ var resumed=canonical(app.game.save_data("battle"))
+ var expected=canonical(experiment_snapshot)
+ for key in expected:assert(resumed[key]==expected[key],"Resumed playtest differs in "+key)
+ assert(FileAccess.get_file_as_string(ordinary_playtest)==ordinary_position)
+ app.show_battle_menu();await process_frame
+ controls(app,"Return to editor").pressed.emit();await process_frame
+ assert(app.game==installed and FileAccess.get_file_as_string(app.save_path)==disk)
  await Shutdown.dispose(app);await process_frame
- print("PASS: campaign JSON, route pins, war-table site terrain, custom recruits, phase scenes, timed reinforcements, chapter 32 saves, section dialogue, authored section relief, authored legacy stock and purchase persistence, authored loss recruits, authored loss dialogue, Valley carryover, thirteen-chapter Valley template, and single-battle tests")
+ print("PASS: campaign JSON, route pins, war-table site terrain, custom recruits, phase scenes, timed reinforcements, chapter 32 saves, section dialogue, authored section relief, authored legacy stock and purchase persistence, authored loss recruits, authored loss dialogue, reproducible playtest setup, Valley carryover, thirteen-chapter Valley template, and single-battle tests")
  quit()

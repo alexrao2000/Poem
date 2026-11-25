@@ -8,6 +8,7 @@ const Supports=preload("res://scripts/supports.gd")
 var supports: Supports
 var browser_journal=preload("res://scripts/browser_journal.gd").new()
 const MAX_LEVEL=99
+const DEFAULT_COMBAT_SEED=472019
 const STAT_CAPS={"max_hp":999,"pow":255,"defense":255,"resistance":255,"speed":255,"move":20}
 const DEFAULT_ITEMS={"sword":"iron_sword","lance":"iron_lance","axe":"iron_axe","bow":"scout_bow","magic":"ember","staff":"field_staff"}
 const TERRAIN_PROFILES={
@@ -54,7 +55,6 @@ func _init(campaign: Dictionary={}):
 	if content.has("legacy_stock"):trials.legacy_stock=content.legacy_stock
 	equipment = JSON.parse_string(FileAccess.get_file_as_string("res://data/equipment.json"))
 	promotions = JSON.parse_string(FileAccess.get_file_as_string("res://data/promotions.json"))
-	rng.seed = 472019
 	new_campaign()
 
 func new_campaign(permadeath_enabled=false):
@@ -68,7 +68,7 @@ func new_campaign(permadeath_enabled=false):
 	completed = false
 	story_seen.clear()
 	supports.state.clear();battle_supports.clear()
-	rng.seed = 472019
+	rng.seed = DEFAULT_COMBAT_SEED
 	roster = content.roster.duplicate(true)
 	for u in roster:initialize_recruit(u)
 	deployed = content.get("opening_company",["lyra", "oren", "sera", "ivo"]).duplicate()
