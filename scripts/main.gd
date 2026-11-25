@@ -2740,7 +2740,16 @@ func insert_save_code_file(raw: String,field: TextEdit):
 	show_notice("Save code loaded. Choose Import pasted code to use it.")
 
 func import_pasted_save():
-	var saved=game.import_code(transfer_text.text)
+	var data=game.decode_save_code(transfer_text.text)
+	var campaign_id=data.get("campaign_id","")
+	if campaign_id is String and campaign_id!=game.content.get("authoring_signature","") and game.has_save_header(data):
+		if campaign_id.is_empty():
+			show_notice("This code belongs to Poem’s main campaign. Open Transfer a local save from the title screen.",7.0)
+			return
+		if campaign_id.length()==64 and campaign_id.is_valid_hex_number():
+			show_notice("This code belongs to a different campaign. Open the matching draft or war table, then import from its war council.",7.0)
+			return
+	var saved=game.restore_save(data)
 	if saved=="":show_notice("This code is incomplete or invalid. Your campaign has not changed.");return
 	var persisted=persist_campaign(saved,false,"import")
 	if not music.playing:music.play()

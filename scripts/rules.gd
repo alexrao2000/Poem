@@ -700,17 +700,24 @@ func read_saved_data(path: String) -> Dictionary:
 		if newest.is_empty() or int(parser.data.get("save_sequence",0))>int(newest.get("save_sequence",0)):newest=parser.data
 	return newest
 
-func valid_save(data) -> bool:
+func has_save_header(data) -> bool:
 	if not data is Dictionary:return false
-	var saved_run=data.get("run_id","")
-	if not saved_run is String:return false
-	if not saved_run.is_empty() and (saved_run.length()!=24 or not saved_run.is_valid_hex_number()):return false
-	if data.get("campaign_id","")!=content.get("authoring_signature",""):return false
 	for key in ["version","chapter","turn","phase","roster","units","deployed","completed","rng","stage"]:
 		if not data.has(key):return false
 	for key in ["version","chapter","turn"]:
 		if not (data[key] is float or data[key] is int) or not is_finite(float(data[key])) or data[key]!=int(data[key]):return false
 	if int(data.version) not in [1,2,3,4,5,SAVE_VERSION]:return false
+	if int(data.chapter)<0 or int(data.turn)<1:return false
+	if data.phase not in ["player","enemy"] or data.stage not in ["camp","battle","ending"]:return false
+	if not data.completed is bool or not data.rng is String or not data.rng.is_valid_int():return false
+	return data.roster is Array and data.units is Array and data.deployed is Array
+
+func valid_save(data) -> bool:
+	if not has_save_header(data):return false
+	var saved_run=data.get("run_id","")
+	if not saved_run is String:return false
+	if not saved_run.is_empty() and (saved_run.length()!=24 or not saved_run.is_valid_hex_number()):return false
+	if data.get("campaign_id","")!=content.get("authoring_signature",""):return false
 	for flag in ["permadeath","death_door","action_saves"]:
 		if not data.get(flag,false) is bool:return false
 		if int(data.version)>=5 and not data.has(flag):return false
@@ -718,17 +725,15 @@ func valid_save(data) -> bool:
 	if int(data.version)>=6 and not data.has("trials"):return false
 	if not trials.valid(self,data.get("trials",{})):return false
 	if not trials.integer(data.get("save_sequence",0),0,9007199254740990):return false
-	if int(data.chapter)<0 or int(data.chapter)>=content.chapters.size() or int(data.turn)<1:return false
-	if data.phase not in ["player","enemy"] or data.stage not in ["camp","battle","ending"]:return false
+	if int(data.chapter)>=content.chapters.size():return false
 	if data.has("standard_hold_turn"):
 		var hold_turn=int(data.turn)-(1 if data.phase=="player" else 0)
 		if data.stage!="battle" or not standard_hold_required(content.chapters[int(data.chapter)]) or hold_turn<1:
 			return false
 		if not trials.integer(data.standard_hold_turn,hold_turn,hold_turn):return false
-	if not data.completed is bool or not data.rng is String or not data.rng.is_valid_int():return false
 	if not supports.valid_state(data.get("supports",{})) or not supports.valid_state(data.get("battle_supports",{})):return false
-	if not data.roster is Array or data.roster.size()<content.roster.size() or data.roster.size()>recruit_templates.size():return false
-	if not data.units is Array or not data.deployed is Array or not data.get("story_seen",[]) is Array:return false
+	if data.roster.size()<content.roster.size() or data.roster.size()>recruit_templates.size():return false
+	if not data.get("story_seen",[]) is Array:return false
 	if data.units.size()>64 or data.get("story_seen",[]).size()>story_limit:return false
 	for flag in data.get("story_seen",[]):
 		if not flag is String or flag.length()>64:return false
@@ -918,19 +923,22 @@ func export_saved_code(path: String) -> String:
 	var data=read_saved_data(path)
 	return "POEM1:"+Marshalls.utf8_to_base64(JSON.stringify(data)) if not data.is_empty() else ""
 
-func import_code(code: String) -> String:
+func decode_save_code(code: String) -> Dictionary:
 	code=code.strip_edges().replace("\n","").replace("\r","").replace(" ","").replace("\t","")
-	if code.length()>MAX_SAVE_CODE_LENGTH:return ""
+	if code.length()>MAX_SAVE_CODE_LENGTH:return {}
 	var prefix=code.get_slice(":",0)
-	if prefix not in ["POEM1","ASHEN1"]:return ""
+	if prefix not in ["POEM1","ASHEN1"]:return {}
 	var encoded=code.substr(prefix.length()+1)
-	if encoded.is_empty() or encoded.length()%4!=0:return ""
-	if "=" in encoded.trim_suffix("=").trim_suffix("="):return ""
+	if encoded.is_empty() or encoded.length()%4!=0:return {}
+	if "=" in encoded.trim_suffix("=").trim_suffix("="):return {}
 	for character in encoded:
-		if character not in "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/=":return ""
+		if character not in "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/=":return {}
 	var parser=JSON.new()
-	if parser.parse(Marshalls.base64_to_utf8(encoded))!=OK:return ""
-	return restore_save(parser.data)
+	if parser.parse(Marshalls.base64_to_utf8(encoded))!=OK or not parser.data is Dictionary:return {}
+	return parser.data
+
+func import_code(code: String) -> String:
+	return restore_save(decode_save_code(code))
 
 # A promoted title is separate from the base job, which drives equipment and art.
 func promotion_for(unit: Dictionary) -> Dictionary:

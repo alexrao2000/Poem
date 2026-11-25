@@ -44,6 +44,12 @@ func run():
  app.show_save_transfer("title");await process_frame
  await verify_code_files(app,code)
  assert(app.game.chapter==title_chapter and (FileAccess.get_file_as_string(app.save_path) if FileAccess.file_exists(app.save_path) else "")==disk_before_return)
+ var foreign=source.save_data("battle")
+ foreign.campaign_id="another campaign draft".sha256_text()
+ await verify_rejected_import(app,foreign,"belongs to a different campaign")
+ foreign.erase("units")
+ await verify_rejected_import(app,foreign,"incomplete or invalid")
+ app.transfer_text.text=code
  await app.import_pasted_save();await process_frame
  assert(app.screen=="battle" and app.game.chapter==4,"File and Import restore the battle")
  var restored=Rules.new();assert(restored.load_game(app.save_path)=="battle" and restored.chapter==4,"Imported state is persisted")
@@ -112,6 +118,19 @@ func run():
  await Shutdown.dispose(app);await process_frame
  print("PASS: local transfer, equipment/RNG continuity, bounded validation, legacy migration, failed autosave recovery and live battle export")
  quit()
+
+func verify_rejected_import(app,data: Dictionary,message: String):
+ var live=app.game.export_code("camp")
+ var path=app.campaign_save_path()
+ var disk=FileAccess.get_file_as_string(path) if FileAccess.file_exists(path) else ""
+ var code="POEM1:"+Marshalls.utf8_to_base64(JSON.stringify(data))
+ app.transfer_text.text=code
+ await app.import_pasted_save();await process_frame
+ var notice=app.ui.get_child(app.ui.get_child_count()-1)
+ assert(notice.get_child(0).text.contains(message),notice.get_child(0).text)
+ assert(app.screen=="save_transfer" and app.transfer_text.text==code)
+ assert(app.game.export_code("camp")==live)
+ assert((FileAccess.get_file_as_string(path) if FileAccess.file_exists(path) else "")==disk)
 
 func verify_code_files(app,code: String):
  var previous=app.transfer_text.text

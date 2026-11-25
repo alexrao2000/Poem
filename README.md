@@ -198,6 +198,8 @@ Browser storage can be cleared by the browser. Returning to the war council rest
 2. Copy the `POEM1:` code. Battle transfer exports the live state and returns to the same map.
 3. In the destination build, open the transfer screen. Paste the code or choose **Open code file** to select its text file, then choose **Import pasted code**.
 
+To import a campaign draft’s code, start the matching draft version in **Campaign Editor** and open transfer from its war council. For a main campaign code, open transfer from the title screen.
+
 In a browser, **Open browser copy / paste** provides a native text field. Paste there, choose **Use code**, then **Import pasted code**. Nothing is uploaded.
 
 Failed autosaves display a warning and a phase-status marker. Keep the game open and use a transfer code to preserve current progress if device storage cannot be written.
