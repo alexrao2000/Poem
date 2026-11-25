@@ -61,22 +61,27 @@ func run():
   assert(app.game.supports.progress(bond_id).points==(1 if expect_bond or mode=="repeat" else 3 if mode=="chapter_cap" else 0),"Duplicate/capped/fallen feedback cannot earn extra bonds")
   assert(not is_instance_valid(app.reward_panel))
  await Shutdown.dispose(app)
- print("PASS: 72 partner/XP/level layouts at three sizes; nine actual attack/heal/carried/counter/cap/repeat/casualty flows with committed read-only bond rewards and no extra rank, growth or RNG")
+ print("PASS: 78 partner/XP/level layouts at three sizes; nine actual attack/heal/carried/counter/cap/repeat/casualty flows with committed read-only bond rewards and no extra rank, growth or RNG")
  quit()
 
 func verify_layouts():
  var host=Control.new();host.theme=app.ui.theme;root.add_child(host)
  var snapshot=app.game.save_data("camp").duplicate(true)
+ var preview=Rules.new();preview.new_campaign(true);preview.trials.flags.death_legacies=true;preview.start_battle()
+ for unit in preview.units:
+  if unit.id in ["sera","ivo"]:unit.hp=0
+ preview.commit_casualties()
+ assert(preview.bond_available(preview.supports.entry_for("maelin_tovin")))
  for dimensions in [Vector2(1024,640),Vector2(1280,720),Vector2(1440,900)]:
   host.size=dimensions
-  for entry in app.game.supports.entries:
+  for entry in preview.supports.entries:
    for leveled in [false,true]:
-    var unit=app.game.roster.filter(func(u):return u.id==entry.members[0])[0].duplicate(true)
+    var unit=preview.roster.filter(func(u):return u.id==entry.members[0])[0].duplicate(true)
     var before={"level":unit.level,"xp":0};var gains={}
     for stat in Reward.STATS:before[stat[0]]=unit[stat[0]];gains[stat[0]]=0
     if leveled:unit.level+=1
     var names=[]
-    for id in entry.members:names.append(app.game.roster.filter(func(u):return u.id==id)[0].name)
+    for id in entry.members:names.append(preview.roster.filter(func(u):return u.id==id)[0].name)
     var bond={"id":entry.id,"names":names,"points":3,"gained":1,"rank":1,"ready":leveled}
     var card=Reward.new();card.configure(host,{"unit":unit,"before":before,"gains":gains,"xp_gain":25,"bond":bond},app.portraits.get_portrait(unit.id),unit.job)
     await process_frame;await process_frame

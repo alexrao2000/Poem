@@ -64,6 +64,7 @@ func run():
  app.game.story_seen=["opening_11"];app.show_camp()
  var expressed_supports=[]
  for entry in app.game.supports.entries:
+  if not app.game.bond_available(entry):continue
   if not entry.scenes.any(func(scene):return scene.lines.any(func(line):return line.has("expression"))):continue
   expressed_supports.append(entry)
   app.game.supports.state[entry.id]={"points":18,"rank":3,"chapter":11,"earned":0,"turn":-1}

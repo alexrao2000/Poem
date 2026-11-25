@@ -117,8 +117,8 @@ func run():
  assert(FileAccess.get_file_as_string(app.save_path+".debug")==sandbox_disk)
  assert(FileAccess.get_file_as_string(app.settings_path)==settings_disk)
  app.debug_session.end(app.game)
- assert(app.game.save_data("camp")==normal_snapshot and campaigns==24 and supports==36)
+ assert(app.game.save_data("camp")==normal_snapshot and campaigns==24 and supports==39)
  await Shutdown.dispose(app)
  viewport.queue_free();await process_frame
- print("PASS: 24 campaign previews, 36 support previews, actual loss branch, authored backdrops/expressions, focus and three layouts, exact debug and campaign state, camera, trace and file isolation")
+ print("PASS: 24 campaign previews, 39 support previews, actual loss branch, authored backdrops/expressions, focus and three layouts, exact debug and campaign state, camera, trace and file isolation")
  quit()

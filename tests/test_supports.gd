@@ -12,7 +12,7 @@ func run():
    assert(scene.lines.size()>=4)
    for line in scene.lines:
     assert(line.speaker in entry.members and not line.text.is_empty());lines+=1
- assert(members.size()==24 and book.entries.size()==12 and lines>=144)
+ assert(members.size()==26 and book.entries.size()==13 and lines>=160)
  assert(not book.can_read("lyra_oren",0) and not book.complete_scene("lyra_oren",0))
  g.start_battle();var a=g.units[0];var b=g.units[1]
  a.x=2;a.y=3;b.x=4;b.y=3
@@ -68,6 +68,67 @@ func run():
  var saved=Rules.new();assert(saved.load_game(app.save_path)=="camp" and saved.supports.progress(entry.id).rank==1,"Read status persists")
  app.show_dossier(unit);await process_frame;await process_frame
  for control in app.ui.find_children("*","Button",true,false):assert(control.get_global_rect().end.y<=app.ui.size.y,"Dossier buttons stay within viewport")
+ await verify_reserve_bond(app)
  await Shutdown.dispose(app);await process_frame
- print("PASS: 36 support scenes / ",lines," lines, all 24 recruits, bounded progression, combat bonuses, save migration and dialogue/replay UI")
+ print("PASS: 39 support scenes / ",lines," lines, all 26 recruits, bounded progression, combat bonuses, save migration and dialogue/replay UI")
  quit()
+
+func verify_reserve_bond(app):
+ var game=app.game;game.new_campaign(true);game.action_saves=true
+ game.trials.flags.death_legacies=true;game.start_battle()
+ var entry=game.supports.entry_for("maelin_tovin")
+ var medic=game.units.filter(func(unit):return unit.id=="ivo")[0]
+ medic.hp=0;game.commit_casualties()
+ var maelin=game.available().filter(func(unit):return unit.id=="maelin")[0]
+ assert(not game.bond_available(entry) and not app.supports_ready(maelin))
+ app.show_dossier(maelin)
+ var dossier_button=app.ui.find_children("*","Button",true,false).filter(func(button):return button.text=="Support conversations")[0]
+ dossier_button.pressed.emit()
+ assert(app.screen=="supports" and app.ui.find_children("*","Label",true,false).any(func(label):return "both recruits" in label.text))
+ assert(app.ui.find_children("*","Button",true,false).all(func(button):return button.text!="Read conversation"))
+ var scout=game.units.filter(func(unit):return unit.id=="sera")[0]
+ scout.hp=0;game.commit_casualties()
+ assert(game.bond_available(entry) and game.trials.volunteers.has("tovin"))
+ var warden: Dictionary;var ranger: Dictionary;var foe: Dictionary
+ for rank in range(3):
+  game.chapter=int(entry.chapters[rank]);game.deployed=["lyra","maelin","tovin"];game.start_battle()
+  warden=game.living("player").filter(func(unit):return unit.id=="maelin")[0]
+  ranger=game.living("player").filter(func(unit):return unit.id=="tovin")[0]
+  foe=game.living("enemy")[0]
+  warden.x=3;warden.y=3;ranger.x=4;ranger.y=3;foe.x=6;foe.y=3
+  assert(not app.supports_ready(maelin))
+  var needed=int(entry.points[rank])-int(game.supports.progress(entry.id).points)
+  for step in range(needed):
+   ranger.hp=ranger.max_hp-4
+   assert(game.heal(warden,ranger),"A real staff action earns the next bond point")
+   if rank==0:
+    assert(not game.combat(ranger,foe).is_empty())
+    assert(game.supports.progress(entry.id).points==1,"Fight and heal share the same one-point allowance")
+   game.next_player_turn()
+  assert(game.supports.progress(entry.id).points==entry.points[rank] and app.supports_ready(maelin))
+  app.show_dossier(maelin)
+  var ready=app.ui.find_children("*","Button",true,false).filter(func(button):return button.text=="Support conversations · Ready")
+  assert(ready.size()==1);ready[0].pressed.emit()
+  var read=app.ui.find_children("*","Button",true,false).filter(func(button):return button.text=="Read conversation")
+  assert(read.size()==1 and not read[0].disabled);read[0].pressed.emit()
+  assert(app.screen=="dialogue" and app.dialogue_lines==entry.scenes[rank].lines)
+  for line in entry.scenes[rank].lines:
+   var face=app.portraits.get_dialogue_portrait(line.speaker,line.expression)
+   assert(app.dialogue_portrait.texture==face and face!=app.portraits.get_dialogue_portrait(line.speaker))
+   app.dialogue_label.visible_characters=-1;app.advance_dialogue()
+  var saved=Rules.new();assert(saved.load_game(app.save_path)=="camp" and saved.supports.progress(entry.id).rank==rank+1)
+  assert(app.screen=="supports" and game.supports.progress(entry.id).rank==rank+1 and not app.supports_ready(maelin))
+  await process_frame
+ foe.speed=game.attack_speed(ranger)+int(game.item_for(foe).weight)+5;foe.defense=0
+ var bonded=game.forecast(ranger,foe)
+ warden.x=9
+ var separate=game.forecast(ranger,foe)
+ assert(bonded.hit==separate.hit+15 and bonded.damage==separate.damage+1)
+ ranger.hp=0;game.commit_casualties()
+ assert(not game.bond_available(entry) and not app.supports_ready(maelin))
+ app.show_supports(maelin)
+ var archive=app.ui.find_children("*","Button",true,false).filter(func(button):return button.text=="Replay conversation")
+ assert(archive.size()==3);archive[0].pressed.emit()
+ assert(app.dialogue_lines==entry.scenes[0].lines,"An earned memory retains the fallen partner's original lines")
+ app.finish_dialogue();await process_frame
+ print("PASS: reserve bond unlocks after both losses, reaches three earned ranks with original expressions, applies existing nearby bonuses, and preserves memories after loss")

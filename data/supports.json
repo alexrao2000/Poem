@@ -1365,5 +1365,44 @@
         ]
       }
     ]
+  },
+  {
+    "id": "maelin_tovin",
+    "members": ["maelin", "tovin"],
+    "chapters": [0, 2, 4],
+    "points": [1, 3, 6],
+    "scenes": [
+      {
+        "title": "A second mark",
+        "lines": [
+          {"speaker":"tovin","text":"The slash on the gate means the lane is clear.","expression":"resolute"},
+          {"speaker":"maelin","text":"A woman inside had been waiting since morning. I thought it meant someone had seen her.","expression":"concerned"},
+          {"speaker":"tovin","text":"I'll keep the slash for the road. A circle under it can mean someone has called.","expression":"resolute"},
+          {"speaker":"maelin","text":"Only after we knock. The quiet houses count too.","expression":"resolute"}
+        ]
+      },
+      {
+        "title": "The long way round",
+        "lines": [
+          {"speaker":"maelin","text":"You walked the long road with me again.","expression":"concerned"},
+          {"speaker":"tovin","text":"Your bag was heavier on the way back.","expression":"somber"},
+          {"speaker":"maelin","text":"Two people at the mill couldn't leave. They gave me the names of the people they usually looked after.","expression":"concerned"},
+          {"speaker":"tovin","text":"I'll mark the road from the mill before dark.","expression":"resolute"},
+          {"speaker":"maelin","text":"Will the villagers know to follow those marks when we're gone?","expression":"concerned"},
+          {"speaker":"tovin","text":"They will when I show them how to cut their own.","expression":"resolute"}
+        ]
+      },
+      {
+        "title": "One last round",
+        "lines": [
+          {"speaker":"tovin","text":"Someone put a circle under every slash from the ford to the mill.","expression":"resolute"},
+          {"speaker":"maelin","text":"Then we can take the road north. I was beginning to think I ought to stay.","expression":"concerned"},
+          {"speaker":"tovin","text":"We have time for one last round. I'll tell Lyra we need an hour.","expression":"resolute"},
+          {"speaker":"maelin","text":"There's one door I've been walking past because I knew who used to knock.","expression":"concerned"},
+          {"speaker":"tovin","text":"I used to wait for that knock too.","expression":"somber"},
+          {"speaker":"maelin","text":"Come along. Let's knock together.","expression":"resolute"}
+        ]
+      }
+    ]
   }
 ]

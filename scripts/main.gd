@@ -2216,7 +2216,11 @@ func show_supports(unit):
 	var scroll=ScrollContainer.new();scroll.size_flags_vertical=Control.SIZE_EXPAND_FILL;panel.add_child(scroll)
 	var list=VBoxContainer.new();list.size_flags_horizontal=Control.SIZE_EXPAND_FILL;list.add_theme_constant_override("separation",16);scroll.add_child(list)
 	for entry in game.supports.for_unit(unit.id):
-		var partner=game.roster.filter(func(other):return other.id!=unit.id and other.id in entry.members)[0]
+		var partners=game.roster.filter(func(other):return other.id!=unit.id and other.id in entry.members)
+		if partners.is_empty():
+			label_in(list,"This bond opens once both recruits have joined the company.",20)
+			continue
+		var partner=partners[0]
 		var record=game.supports.progress(entry.id);var available=game.bond_available(entry)
 		var row=HBoxContainer.new();row.add_theme_constant_override("separation",24);list.add_child(row)
 		var portrait=TextureRect.new();portrait.texture=portraits.get_portrait(partner.id);portrait.custom_minimum_size=Vector2(250,300)
@@ -2246,7 +2250,7 @@ func read_support(unit,entry,index: int):
 	show_dialogue(entry.scenes[index].lines,completed,"support")
 
 func supports_ready(unit) -> bool:
-	return unit.join<=game.chapter and not unit.get("fallen",false) and game.supports.for_unit(unit.id).any(func(entry):return game.bond_available(entry) and game.supports.can_read(entry.id,game.chapter))
+	return game.trials.joined(game,unit) and not unit.get("fallen",false) and game.supports.for_unit(unit.id).any(func(entry):return game.bond_available(entry) and game.supports.can_read(entry.id,game.chapter))
 
 func map_height(point: Vector2i) -> float:
 	return MapSurface.height_for(game.terrain(point))

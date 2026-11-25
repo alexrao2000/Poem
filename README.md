@@ -113,7 +113,7 @@ The new-campaign screen and Options expose independent campaign experiments: sec
 
 Debug tools also offers **Stage a combat encounter**: eight reproducible attack/healing positions for inspecting complete scenes. Press Enter to preview an attack, then Enter again to confirm; healing takes one press. These replace only the temporary Debug campaign and retain your model and combat-display choices. During a Debug battle, **M → Combat encounters** reopens the list; Escape returns without changing the current position. Its current/revised buttons compare whole model sets inside Debug without changing the campaign’s presentation preference.
 
-Choose **Debug tools → Replay dialogue** to preview any chapter opening or closing and all 36 support conversations, including locked ranks. Turn on **Apply current campaign losses** to preview survivor dialogue for the current Debug roster. Replays use the usual portraits, backdrops, text speed, and history. They leave campaign progress and bond ranks intact.
+Choose **Debug tools → Replay dialogue** to preview any chapter opening or closing and all 39 support conversations, including locked ranks. Turn on **Apply current campaign losses** to preview survivor dialogue for the current Debug roster. Replays use the usual portraits, backdrops, text speed, and history. They leave campaign progress and bond ranks intact.
 
 The same page offers **Choose anyone in the company**: select any of the 24 recruits, then their base class or either advanced path, and choose **Stage chosen recruit**. Promoted starters receive ordinary growth to at least level 10 and the normal training bonuses. The displayed chapter respects the recruit’s arrival; equipment and combat rolls remain ordinary. Your selection stays available when you return to compare model sets or replay the same seeded encounter.
 
@@ -135,7 +135,7 @@ Each named commander speaks the first time they fight your company. The line cha
 
 At level 10, open **Advanced training** in a recruit's dossier to compare two permanent promotion paths. There are 16 advanced paths across the eight base classes. Training retains level, experience, and equipment, and costs no consumable.
 
-The roster has 36 support conversations across 12 partnerships. Fighting or healing within two tiles of a partner earns one point per pair per turn, capped at three per chapter. Camp cards show when a conversation is ready; open **Support conversations** in the dossier to read or replay it.
+The roster has 39 support conversations across 13 partnerships, including Maelin and Tovin if both join. Fighting or healing within two tiles of a partner earns one point per pair per turn, capped at three per chapter. Camp cards show when a conversation is ready. Open **Support conversations** in the dossier to read or replay it.
 
 Read support ranks grant +5 Hit/Avoid per rank while the partner is nearby. Rank A also adds one damage.
 
