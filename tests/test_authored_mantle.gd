@@ -13,8 +13,15 @@ func run():
   unit.item=item;var actor=models.build(stage,unit,Vector3(35,0,0));assert(actor!=null);await process_frame
   var identity=actor.model.get_node("Identity");var mantle=identity.mantle;var rig=actor.model.get_node("Rig/Armature/Skeleton3D")
   assert(identity.identity==character_id and identity.robe==null and identity.hair_motion.root!=null and identity.cloak.cloth.get_parent().get_meta("cape_cut")=="standard")
-  assert(mantle!=null and mantle.anchor.bone_name=="spine_03" and mantle.garment.get_meta("batch_stats").batches<=2)
+  var collar=character_id=="lyra"
+  assert(mantle!=null and mantle.anchor.bone_name=="spine_03" and mantle.garment.get_meta("batch_stats").batches==(3 if collar else 2))
   assert(mantle.surfaces[0].get_shader_parameter("tint")==Color("e5dfce") and mantle.surfaces[1].get_shader_parameter("tint")==Color("bca26b"))
+  if collar:
+   assert(mantle.surfaces.size()==3 and mantle.surfaces[2].get_shader_parameter("tint")==Color("354c77"))
+   var collar_material=mantle.garment.find_children("*","MeshInstance3D",true,false).filter(func(mesh):return mesh.get_active_material(0)==mantle.surfaces[2])
+   assert(collar_material.size()==1,"The stand collar and clasp share one navy material batch")
+   assert(collar_material[0].mesh.get_aabb().end.y>.53,"The collar rises above the mantle without changing its ivory drape")
+  else:assert(mantle.surfaces.size()==2)
   var local=mantle.garment.transform;var meshes=mantle.garment.find_children("*","MeshInstance3D",true,false)
   for height in [0.0,.7]:
    actor.position.y=height;actor.rotation.y=.8 if height>0 else -PI/2;mantle._process(0)
@@ -61,5 +68,5 @@ func run():
  app.close_model_view();await process_frame
  assert(app.game.save_data("camp")==saved and app.game.rng.state==rng)
  await Shutdown.dispose(app);await process_frame
- print("PASS: ",count," mantle/chest poses across four swords and relocated floor planes, two material batches, original identity/hair/cape, private fading materials, real study/style/equipment/mounted contact, unchanged campaign; minimum raw cloth height ",lowest)
+ print("PASS: ",count," mantle/chest poses across four swords and relocated floor planes, fitted material batches, original identity/hair/cape, private fading materials, real study/style/equipment/mounted contact, unchanged campaign; minimum raw cloth height ",lowest)
  quit()

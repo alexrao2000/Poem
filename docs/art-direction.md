@@ -618,6 +618,8 @@ The existing cloth material blends the alpha mask into its painted linen on the 
 
 Checks cover 24 base recruits, all 48 promoted outfits, eight enemy classes, contrasting thread, sparse transparent source masks, mipmaps, per-actor cloth/outline ownership and preserved rigid geometry. Counts remain 1,780 rigid sources / 1,063 batches plus three dynamic rein meshes. Current assembled character rendering remains unverified.
 
+Lyra’s revised Vanguard outfit carries two details from her company portrait into combat. A navy stand collar rises above her ivory mantle, with an opening beneath the chin and gold piping along the folded edge. The gold clasp carries the company’s split diamond. Both details follow the upper spine. The piping shares the existing gold batch, and the collar and clasp inlay share one additional navy batch.
+
 
 ## Estoc thrust preparation
 
