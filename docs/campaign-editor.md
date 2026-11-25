@@ -4,7 +4,7 @@ Poem campaigns are ordered sets of battles, recruit arrivals, section checkpoint
 
 Copy Hold the Valley Roads opens a tested Hard campaign at Chapter 12 with a fixed playtest seed. Hold Reed Crossing, Hallow Abbey, and the capital at the same time. The draft includes Merrin’s relief company and Aster’s recruitment after two losses. Change individual switches in Rules to run the experiment with a different setup, or use Play from start to begin at Cinderford.
 
-Copy Signals in the Valley opens the version with a defense, the three reserve enemies, and the abbey signal scene. It starts in the editor at Chapter 12 with the same seed.
+**Copy Signals in the Valley** opens the version with a defense, three reserve enemies, and the abbey signal scene. Set the **Permadeath** toggle beside the button before copying. Both playtests start in the editor at Chapter 12 with the same seed, Harder enemy forces, retry pressure, and Death’s Door.
 
 Use Move to… above the Battle workspace to move the selected chapter to a specific number. The preview shows where it will land in the current order. Chapter-linked recruits, scenes, and standards follow their chapter. Check campaign flags links that reorder a war table ahead of a required route location.
 

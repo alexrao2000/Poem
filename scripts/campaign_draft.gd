@@ -246,9 +246,10 @@ func load_valley_roads_trial():
  data.legacy_stock=Trials.LEGACY_STOCK.duplicate(true)
  data.legacy_stock.append({"id":"pike","cost":1,"losses":2,"legacy_only":true})
 
-func load_valley_signals_trial():
+func load_valley_signals_trial(permanent=true):
  load_valley_roads_trial()
- data.title="Poem · Signals in the Valley · Permadeath on"
+ data.title="Poem · Signals in the Valley · Permadeath "+("on" if permanent else "off")
+ for key in ["permadeath","action_saves","section_restarts","death_legacies"]:data.settings[key]=permanent
  var chapter=data.chapters[-2]
  chapter.level.hold_enemy_phase=true
  chapter.phase_scenes.append({"id":"ridge_signal","turn":1,"phase":"enemy","on_defense":true,"lines":[
