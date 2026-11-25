@@ -159,6 +159,8 @@ Named commanders have a separate first-encounter caption. It uses their regular 
 
 All twelve battlefields use original eight-second stereo PCM loops. Cinderford has a quiet dawn bed with distant calls, the Old Aqueduct adds water droplets, Starfall uses a low night wind, and Crown Approach has brief cloth rustles. Each loop keeps its playhead across the tactical map, 3D battle and camera return. A short fade handles scene changes, while the Effects setting controls ambience volume. The Calm and Ablaze arrangements use their existing synchronized streams. [Field audio renderer](../scripts/render_field_audio.py)
 
+The Valley chart has its own quiet room loop. When the camera drops into close-up combat, the ambience fades to the local terrain and returns to the room as the camera pulls back. The Valley’s score keeps playing across both views.
+
 Quick map attacks also blend into Ablaze and start the return to Calm after the last strike. Consecutive attacks take up the blend from its current gain on the same live decoder.
 
 ## Tactical action tracking

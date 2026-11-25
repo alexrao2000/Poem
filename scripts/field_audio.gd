@@ -1,5 +1,5 @@
 extends Node
-## The tactical map and its combat arena share one environmental playhead.
+## One environmental loop follows the map or the current war-table arena.
 const TRACKS={
  "village":"res://assets/audio/field-village.wav",
  "river":"res://assets/audio/field-river.wav",
@@ -13,6 +13,7 @@ const TRACKS={
  "aqueduct":"res://assets/audio/field-aqueduct.wav",
  "observatory":"res://assets/audio/field-observatory.wav",
  "castle":"res://assets/audio/field-castle.wav",
+ "valley-table":"res://assets/audio/field-valley-table.wav",
 }
 const LOOP_FRAMES=176400
 const MIX_OFFSET_DB=-14.0

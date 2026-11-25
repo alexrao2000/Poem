@@ -1,5 +1,6 @@
 extends SceneTree
 const Field=preload("res://scripts/field_audio.gd")
+const Draft=preload("res://scripts/campaign_draft.gd")
 const Architecture=preload("res://scripts/architecture.gd")
 const ReedTollhouse=preload("res://scripts/reed_tollhouse.gd")
 const HarborNet=preload("res://scripts/harbor_net.gd")
@@ -71,7 +72,7 @@ func run():
   Vector2i(4,2),Vector2i(3,4),Vector2i(3,4),Vector2i(10,4),
  ]
  var themes=app.game.content.chapters.map(func(chapter):return chapter.environment)
- assert(locations.size()==themes.size() and Field.TRACKS.size()==themes.size())
+ assert(locations.size()==themes.size() and Field.TRACKS.size()==themes.size()+1)
  for chapter in locations.size():
   active_decoder=await verify_combat_voice(app,chapter,themes[chapter],locations[chapter])
  app.preferences.values.music=0
@@ -84,13 +85,67 @@ func run():
  app.apply_audio_preferences()
  await settle(app.field_audio)
  verify_voice(app.field_audio,"engine")
+ await verify_war_table_ambience(app)
  app.show_camp()
  await settle(app.field_audio)
  assert(not app.field_audio.player.playing and app.field_audio.player.stream==null)
  await Shutdown.dispose(app)
  viewport.queue_free();await process_frame
- print("PASS: twelve eight-second stereo loops, bounded one-voice fades, rapid retargeting and mute, combat and tactical menu continuity in all twelve chapters, score and save isolation")
+ print("PASS: twelve battlefield loops and a war-table room loop, bounded one-voice fades, rapid retargeting and mute, combat and tactical menu continuity in all twelve chapters, score and save isolation")
  quit()
+
+func verify_war_table_ambience(app):
+ var draft=Draft.new();draft.load_poem_template(true)
+ var compiled=draft.compile()
+ app.game=Draft.Rules.new(compiled.content);app.game.chapter=11;app.story=compiled.story
+ app.game.start_battle()
+ app.selected=null;app.target=null;app.origin=null
+ var ally=app.game.living("player")[0]
+ var foe=app.game.living("enemy")[1]
+ ally.x=5;ally.y=9;foe.x=6;foe.y=9
+ app.preferences.values.music=.62
+ app.apply_audio_preferences()
+ app.make_map();app.show_battle()
+ await settle(app.field_audio)
+ verify_voice(app.field_audio,"valley-table")
+ var room=app.field_audio.player.stream
+ var score=app.score
+ app.music.play();await process_frame
+ var score_voice=app.music.get_stream_playback()
+ var events=app.game.combat(ally,foe)
+ assert(not events.is_empty())
+ var frozen=app.game.save_data("battle").duplicate(true)
+ app.busy=true
+ app.cinematic(ally,foe,events)
+ for _frame in 180:
+  if app.stage.visible:break
+  await process_frame
+ assert(app.stage.visible and app.stage.get_meta("environment")=="river")
+ assert(app.field_audio.requested_theme=="river")
+ await settle(app.field_audio)
+ verify_voice(app.field_audio,"river")
+ assert(app.field_audio.player.stream.data!=room.data and app.stage.visible)
+ app.ui.get_node("CombatPlayback").request_skip()
+ for _frame in 180:
+  if not app.ui.has_node("CombatPlayback"):break
+  await process_frame
+ assert(app.world.visible and not app.stage.visible)
+ await settle(app.field_audio)
+ verify_voice(app.field_audio,"valley-table")
+ assert(app.field_audio.player.stream.data==room.data)
+ assert(app.score==score and app.music.get_stream_playback()==score_voice)
+ var map_decoder=app.field_audio.player.get_stream_playback()
+ app.cinematic(ally,foe,events)
+ assert(not app.stage.visible)
+ app.ui.get_node("CombatPlayback").request_skip()
+ for _frame in 180:
+  if not app.ui.has_node("CombatPlayback"):break
+  await process_frame
+ assert(not app.stage.visible and app.world.visible)
+ assert(app.field_audio.player.get_stream_playback()==map_decoder and app.music.get_stream_playback()==score_voice)
+ assert(app.game.save_data("battle")==frozen)
+ app.busy=false
+ print("PASS: war-table room tone fades to the actual river arena and back; skipping before the arena preserves both playheads")
 
 func verify_combat_voice(app,chapter: int,theme: String,point: Vector2i) -> AudioStreamPlayback:
  app.game.chapter=chapter

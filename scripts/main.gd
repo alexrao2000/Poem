@@ -271,8 +271,12 @@ func box(color: Color) -> StyleBoxFlat:
 	b.shadow_color=Color(0.15,0.12,0.08,0.22);b.shadow_size=4
 	return b
 
+func tactical_field_ambience() -> String:
+	var level=game.info()
+	return "valley-table" if level.get("presentation","")=="valley_table" else level.get("environment","")
+
 func reset_ui():
-	field_audio.select(game.info().get("environment","") if screen in ["battle","triage","tile_units"] else "")
+	field_audio.select(tactical_field_ambience() if screen in ["battle","triage","tile_units"] else "")
 	objective_label=null
 	battle_header=null
 	portraits.expression_textures.clear()
@@ -1656,6 +1660,7 @@ func cinematic(a,b,events,initial_hp={},challenge: Dictionary={}):
 	stage.process_mode=Node.PROCESS_MODE_INHERIT;stage.visible=true
 	var arena_context=scenery.combat_context(game,a,b,opening_direction)
 	var old_lighting=battle_lighting(arena_context.environment)
+	field_audio.select(arena_context.environment)
 	scenery.battle_landscape(stage,Vector3(35,0,0),arena_context)
 	scenery.transfer_environment_motion(world,stage,arena_context.environment)
 	world.hide();pieces.hide()
@@ -1863,6 +1868,7 @@ func cinematic(a,b,events,initial_hp={},challenge: Dictionary={}):
 
 func return_to_tactical_map(veil,playback,close_map_view: Dictionary,tactical_view: Dictionary,tactical_controls: Dictionary,focus: Vector3,home_viewport: Vector2,focal_units: Array):
 	music_mix(false)
+	field_audio.select(tactical_field_ambience())
 	refresh_pieces()
 	var bystanders=prepare_tactical_cut(focal_units,1.0)
 	world.show();pieces.show()
