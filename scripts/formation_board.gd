@@ -27,7 +27,7 @@ var cell_size=0.0
 func configure(game,catalog: RefCounted):
  name="FormationBoard";chapter=game.info().duplicate(true);map_sprites=catalog
  draft=game.deployment_slots();defaults=game.deployment_slots(false)
- preview_rules=game.get_script().new()
+ preview_rules=game.get_script().new(game.content)
  if preview_rules.restore_save(game.save_data("camp"))!="camp":
   push_error("Formation preview could not restore the preparation state");return
  for unit in game.deployment_units():units[unit.id]=unit.duplicate(true)

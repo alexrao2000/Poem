@@ -754,6 +754,32 @@ func run():
  assert(app.ui.find_children("*","Label",true,false).any(func(label):return label.text==custom.bio))
  controls(app,"Return to war council").pressed.emit();await process_frame
  assert(not installed.valid_save(app.game.save_data("camp")))
+ var before_formation=canonical(app.game.save_data("camp"))
+ var formation_save=FileAccess.get_file_as_string(app.campaign_save_path())
+ var expected_formation=Rules.new(app.game.content)
+ assert(expected_formation.restore_save(before_formation)=="camp")
+ expected_formation.start_battle()
+ app.ui.find_child("OpenFormation",true,false).pressed.emit();await process_frame
+ var formation=app.ui.find_child("FormationBoard",true,false)
+ assert(app.screen=="formation" and formation.slots.size()==app.game.info().deployment)
+ assert(formation.preview_rules.content.authoring_signature==app.game.content.authoring_signature)
+ assert(canonical(formation.preview_rules.living("enemy"))==canonical(expected_formation.living("enemy")))
+ assert(formation.preview_rules.enemy_waves.size()==1 and formation.foes.size()==expected_formation.living("enemy").size())
+ formation.foes[0].pressed.emit();await process_frame
+ assert(formation.inspected_unit().id=="enemy_0")
+ var starting_order=formation.draft.duplicate()
+ formation.slots[0].pressed.emit();formation.slots[1].pressed.emit()
+ assert(formation.draft[0]==starting_order[1] and formation.draft[1]==starting_order[0])
+ assert(canonical(app.game.save_data("camp"))==before_formation and FileAccess.get_file_as_string(app.campaign_save_path())==formation_save)
+ var edited_order=formation.draft.duplicate()
+ app.ui.find_child("ApplyFormation",true,false).pressed.emit();await process_frame
+ assert(app.screen=="camp" and app.game.deployment_slots()==edited_order)
+ assert(app.game.read_saved_data(app.campaign_save_path()).formation_order==edited_order)
+ app.ui.find_child("OpenFormation",true,false).pressed.emit();await process_frame
+ formation=app.ui.find_child("FormationBoard",true,false)
+ formation.slots[0].pressed.emit();formation.slots[1].pressed.emit()
+ app.ui.find_child("ApplyFormation",true,false).pressed.emit();await process_frame
+ assert(app.game.deployment_slots()==starting_order)
  var playable_bond=app.game.supports.entry_for(first_bond.id)
  assert(playable_bond.scenes[0].title=="Watch on the river" and playable_bond.chapters==[1,1,1])
  app.preferences.values.auto_end=false
@@ -1268,5 +1294,5 @@ func run():
  await verify_moving_placements(app)
  assert(FileAccess.get_file_as_string(app.save_path)==disk and app.game==installed)
  await Shutdown.dispose(app);await process_frame
- print("PASS: campaign JSON file transfer, draft library management, remembered playtest setup, campaign readiness, authored Hard bonuses, authored retry raiders, deployment comparison, custom campaign atlas, terrain stroke undo, continuous terrain strokes, connected terrain fill, placement moves and swaps, route pins, war-table site terrain, war-table overlay, blank war-table chapter, rising Valley landmarks, custom recruits, phase scenes, tile dialogue and reload, Valley landmark dialogue, dialogue that follows route pins, timed reinforcements, chapter 32 saves, section dialogue, authored section relief, authored legacy stock and purchase persistence, authored loss recruits, authored loss dialogue, reproducible playtest setup, Valley carryover and resume, thirteen-chapter Valley template, and single-battle tests")
+ print("PASS: campaign JSON file transfer, draft library management, remembered playtest setup, campaign readiness, authored Hard bonuses, authored retry raiders, deployment comparison, authored formation previews, custom campaign atlas, terrain stroke undo, continuous terrain strokes, connected terrain fill, placement moves and swaps, route pins, war-table site terrain, war-table overlay, blank war-table chapter, rising Valley landmarks, custom recruits, phase scenes, tile dialogue and reload, Valley landmark dialogue, dialogue that follows route pins, timed reinforcements, chapter 32 saves, section dialogue, authored section relief, authored legacy stock and purchase persistence, authored loss recruits, authored loss dialogue, reproducible playtest setup, Valley carryover and resume, thirteen-chapter Valley template, and single-battle tests")
  quit()
