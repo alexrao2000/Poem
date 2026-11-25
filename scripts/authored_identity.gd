@@ -80,7 +80,7 @@ func configure_identity(id: String,commander: Dictionary={}) -> String:
    mesh.set_surface_override_material(surface,dyed);painted_materials.append(dyed)
  head=painter.joint(face_anchor,"PortraitHead",Vector3(0,.105,.005));head.rotation.y=PI;head.scale=Vector3(.84,.84,.84)
  var shape=painter.Head.shape_key(appearance.get("face_shape","tapered"));head.set_meta("face_shape",shape)
- var skull=painter.geo.mesh(head,painter.Head.mesh(shape),Vector3.ZERO,Vector3.ONE,painter.geo.material(skin));skull.name="SculptedHead"
+ var skull=painter.geo.mesh(head,painter.Head.mesh(shape),Vector3.ZERO,Vector3.ONE,painter.skin_surface(skin));skull.name="SculptedHead"
  for x in [-.14,.14]:painter.ellipsoid(head,Vector3(x,-.015,0),Vector3(.025,.05,.025),skin)
  if enemy_job=="Knight":
   var helmet=preload("res://scripts/knight_helmet.gd")

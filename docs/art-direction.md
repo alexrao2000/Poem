@@ -645,6 +645,8 @@ Recruit appearance profiles now select one of four original head meshes: tapered
 
 Standalone head geometry was inspected from front and oblique views. Tests cover closed topology, outward normals, nondegenerate faces, distinct geometry, fitted expression vertices and UV isolation for all four shapes and 32 feature combinations, plus every recruit's actual mesh binding. Facial-state, cut-in, rigid batching and outfit checks cover their existing behavior. No roster mesh count or rendering pass is added; assembled facial appearance remains unreviewed.
 
+The sculpted skin now has soft brow and jaw shadows, warmer cheeks and a small highlight along the nose. The depth mask confines those changes to the front of the head. Both combat model sets retain each recruit’s skin palette, fitted expressions and defeat fade. The face uses one separate material batch per actor, with the existing mesh and texture coordinates.
+
 
 ## Clouded arena skies
 

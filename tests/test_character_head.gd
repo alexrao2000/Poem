@@ -54,6 +54,8 @@ func run():
   var actor=painter.build(stage,unit,Vector3.ZERO)
   var head_shape=painter.profiles[unit.id].appearance.face_shape
   assert(actor.bones.Head.get_meta("face_shape")==head_shape and actor.bones.Head.get_node("SculptedHead").mesh.surface_get_arrays(0)[Mesh.ARRAY_VERTEX]==Head.mesh(head_shape).surface_get_arrays(0)[Mesh.ARRAY_VERTEX],"Recruit binds its selected sculpted jaw and nose")
+  var skin=actor.bones.Head.get_node("SculptedHead").material_override
+  assert(skin.shader==Fighters.SKIN_CONTOUR and skin.get_shader_parameter("tint")==Color(painter.profiles[unit.id].appearance.skin))
   if unit.id in ["dax","galen","hale"]:
    var expected=preload("res://scripts/character_beard.gd").mesh(painter.profiles[unit.id].appearance.beard_style)
    var beard=actor.bones.Head.get_node("Beard")
@@ -98,7 +100,7 @@ func run():
  for signature in shapes.values():distinct[signature]=true
  assert(distinct.size()==5,"Front styles differ in actual geometry rather than names or colors")
  stage.queue_free();await process_frame
- print("PASS: four head profiles, 32 fitted face variants, exact decal placement, 24 recruit bindings, sculpted beards and helmets, five hair fronts, clear eyes and Lyra's 864-triangle temple braid")
+ print("PASS: four head profiles, 32 fitted face variants, exact decal placement, 24 individually tinted skin contours, sculpted beards and helmets, five hair fronts, clear eyes and Lyra's 864-triangle temple braid")
  quit()
 
 func verify_beards():

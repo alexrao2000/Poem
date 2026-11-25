@@ -4,6 +4,7 @@ extends Node
 const SHADER=preload("res://assets/shaders/authored-outline.gdshader")
 const CHARACTER=preload("res://assets/shaders/character.gdshader")
 const DYED=preload("res://assets/shaders/authored-cloth.gdshader")
+const SKIN=preload("res://assets/shaders/skin-contour.gdshader")
 const WIDTH=.0025
 const CLOTH={"cloth_amount":0.0,"cloth_clock":0.0,"cloth_drive":0.0,"cloth_floor_enabled":false,"cloth_floor_y":0.0}
 var model: Node3D
@@ -34,7 +35,7 @@ func locally_visible(node: Node) -> bool:
 static func eligible(material: Material) -> bool:
  if material==null or material.next_pass!=null or material.get_meta("no_character_outline",false):return false
  if material is BaseMaterial3D:return material.transparency==BaseMaterial3D.TRANSPARENCY_DISABLED and not material.emission_enabled
- return material is ShaderMaterial and material.shader in [CHARACTER,DYED]
+ return material is ShaderMaterial and material.shader in [CHARACTER,DYED,SKIN]
 
 func outlined(source: Material,copies: Dictionary) -> Material:
  if copies.has(source):return copies[source]

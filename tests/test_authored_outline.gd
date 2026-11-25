@@ -23,6 +23,12 @@ func run():
   var actor=models.build(stage,unit,Vector3(35,0,0));var other=models.build(stage,unit,Vector3(40,0,0));await process_frame
   var identity=actor.model.get_node("Identity");var driver=identity.outline;var second=other.model.get_node("Identity").outline
   assert(driver.pairs.size()>10 and driver.process_priority>identity.cloak.process_priority and driver.process_priority>identity.process_priority)
+  var skin_parts=identity.head.find_children("*","MeshInstance3D",true,false).filter(func(part):
+   var surface=part.get_active_material(0)
+   return surface is ShaderMaterial and surface.shader==Outline.SKIN)
+  assert(skin_parts.size()==1,"The authored face keeps one contoured skin surface")
+  var skin=skin_parts[0].material_override
+  assert(skin.next_pass!=null and skin.next_pass.shader==Outline.SHADER)
   var plain_models=Models.new("");plain_models.catalog={"characters":{pair[1]:studies[pair[0]]}};var plain=plain_models.build(stage,unit,Vector3(45,0,0));await process_frame
   var original=[]
   for mesh in plain.model.get_node("Rig/Armature/Skeleton3D").get_children():
@@ -76,6 +82,9 @@ func run():
   actor.position.y=.65
   for frame in range(3):await process_frame
   assert_cloth(driver)
+  var fading_skin=skin_parts[0].material_override
+  assert(fading_skin!=skin and fading_skin.get_shader_parameter("tint")==skin.get_shader_parameter("tint"))
+  assert(is_equal_approx(fading_skin.get_shader_parameter("defeat_visibility"),.35))
   for entry in driver.pairs:
    assert(entry.shell not in old_shells and is_equal_approx(entry.shell.get_shader_parameter("defeat_visibility"),.35),"Defeat clones and fades every shell without leaving an opaque silhouette")
    if entry.cloth and entry.material.get_shader_parameter("cloth_floor_enabled"):assert(is_equal_approx(entry.shell.get_shader_parameter("cloth_floor_y"),.668))
