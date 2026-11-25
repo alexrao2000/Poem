@@ -1,6 +1,7 @@
 extends SceneTree
 const Vertices=preload("authored_vertices.gd")
 var job="Vanguard"
+var extra_promotions=[]
 func _initialize():call_deferred("run")
 func run():
  var world=Node3D.new();root.add_child(world);var rules=load("res://scripts/rules.gd").new();var studies=JSON.parse_string(FileAccess.get_file_as_string("res://data/model_studies.json"));var entries={}
@@ -13,11 +14,14 @@ func run():
    for id in study.get("campaign_characters",[study.study_character]):
     var recruit=rules.recruit_templates[id]
     if recruit.job==job:entries["recruit:"+id]=[study,id]
+ for pair in extra_promotions:
+  entries["promotion:%s:%s"%pair]=entries["recruit:"+pair[0]]+[pair[1]]
  var count=0;var lowest=INF
  for key in entries:
   var spec=entries[key][0].duplicate(true);spec.appearance="Identity"
   var unit=rules.recruit_templates[entries[key][1]].duplicate(true);rules.initialize_recruit(unit)
   unit.item=spec.supported_items[0];unit.team="enemy" if key.begins_with("enemy:") else "player"
+  if entries[key].size()>2:unit.promotion=entries[key][2]
   if unit.team=="enemy":unit.id=key;unit.job=job
   var raw=load(spec.scene).instantiate();var source=raw.get_node(NodePath(spec.player)).get_animation("Death01");var path=NodePath("Armature/Skeleton3D:root")
   var source_track=source.find_track(path,Animation.TYPE_POSITION_3D);var source_keys=[]
@@ -48,7 +52,7 @@ func run():
    for index in range(source_keys.size()):assert(source.track_get_key_value(source_track,index)==source_keys[index])
   actor.queue_free();raw.free();await process_frame
  var reserves=rules.content.legacy_recruits.filter(func(legacy):return legacy.unit.job==job)
- assert(entries.size()==4+reserves.size(),"Every infantry class includes its recruits and anonymous enemy")
+ assert(entries.size()==4+reserves.size()+extra_promotions.size(),"The test covers every base identity and all selected promotions")
  world.queue_free();await process_frame
  print("PASS: ",job," ",count," complete falling outfits, minimum ",lowest," m, continuous private root support, native/direct attachments and unchanged source clips")
  quit()
