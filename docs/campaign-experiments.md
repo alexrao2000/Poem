@@ -117,6 +117,8 @@ With section restarts and permadeath enabled, the route map marks reached sectio
 
 Before retreating, the battle menu and defeat screen show the destination chapter, next pressure level, enemy bonuses, held tonics and raider preparation. The preview includes section rewinds and caps pressure at 10. Viewing it does not advance pressure, consume RNG or change the save.
 
+The victory report shows starting HP and tonics for each ally whose recovery penalty carries into the next chapter. This also applies to allies who returned after an earlier attempt and ended the battle standing. A downed ally can be evacuated and still have a prior injury to recover from.
+
 ## Matched experiment comparison
 
 Run the bounded nine-configuration comparison with the project’s Godot binary:

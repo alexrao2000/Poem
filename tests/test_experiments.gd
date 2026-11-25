@@ -319,6 +319,62 @@ func run():
   app.ui.set_anchors_and_offsets_preset(Control.PRESET_TOP_LEFT);app.ui.size=dimensions
   await process_frame;await process_frame
   assert(Rect2(Vector2.ZERO,Vector2(dimensions)).grow(1).encloses(recovery.get_global_rect()))
+ await verify_victory_recovery(app)
  await Shutdown.dispose(app);await process_frame
  print("PASS: downed countdown, rescue/carry/drop, revival, carrier loss, evacuation, irreversible deaths and movement, current recovery saves, validation and interrupted phase continuation")
  quit()
+
+func verify_victory_recovery(app):
+ var game=app.game
+ for kind in ["recoverable","ordinary","permanent","finale"]:
+  game.new_campaign(kind=="permanent");game.death_door=true;game.action_saves=true
+  game.chapter=game.content.chapters.size()-1 if kind=="finale" else 2
+  game.trials.flags.sacrifice_cost=kind!="ordinary"
+  if kind in ["recoverable","finale"]:
+   game.trials.injuries={"lyra":game.chapter,"sera":game.chapter+1,"ivo":game.chapter+1}
+  game.start_battle();game.rng.seed=17
+  var lyra=game.units.filter(func(unit):return unit.id=="lyra")[0]
+  var oren=game.units.filter(func(unit):return unit.id=="oren")[0]
+  var sera=game.units.filter(func(unit):return unit.id=="sera")[0]
+  var ivo=game.units.filter(func(unit):return unit.id=="ivo")[0]
+  casualty(game,oren);casualty(game,ivo);oren.bleed_turns=1
+  game.begin_enemy_phase();game.next_player_turn()
+  assert(oren.hp==0 and not Door.downed(oren) and Door.downed(ivo))
+  var boss=game.living("enemy").filter(func(unit):return unit.boss)[0]
+  lyra.x=3 if kind=="finale" else 4;lyra.y=3;lyra.speed=120
+  boss.x=lyra.x+1;boss.y=lyra.y;boss.speed=0;boss.hp=1
+  game.units=game.units.filter(func(unit):return unit.team=="player" or unit==boss)
+  assert(game.result()=="" and game.can_attack(lyra,boss))
+  app.make_map();app.show_battle();app.preferences.values.combat="map"
+  app.click_tile(game.pos(lyra),lyra.id);app.click_tile(game.pos(boss),boss.id);await app.player_attack()
+  assert(app.screen=="result" and game.result()=="victory")
+  var state=JSON.parse_string(JSON.stringify(game.save_data("battle")))
+  var copy=Rules.new();assert(copy.load_game(app.save_path)=="battle")
+  assert(JSON.parse_string(JSON.stringify(copy.save_data("battle")))==state)
+  var rows={}
+  for unit in [lyra,oren,sera,ivo]:
+   var choices=app.ui.find_children("*","Label",true,false).filter(func(label):return label.text.begins_with(unit.name+" · Lv "))
+   assert(choices.size()==1);rows[unit.id]=choices[0]
+  assert("Ready for the next march" in rows.lyra.text and "Rescued after battle" in rows.ivo.text)
+  if kind=="recoverable":
+   for unit in [oren,sera,ivo]:
+    assert(("Next deployment · %d HP, 1 tonic"%(unit.max_hp-4)) in rows[unit.id].text)
+  else:
+   assert(rows.values().all(func(label):return not "Next deployment" in label.text))
+   assert(("Fallen — permanently lost" if kind=="permanent" else "Recovering at camp") in rows.oren.text)
+  for dimensions in [Vector2i(720,960),Vector2i(1024,640),Vector2i(1440,900)]:
+   root.size=dimensions;app.ui.set_anchors_and_offsets_preset(Control.PRESET_TOP_LEFT);app.ui.size=dimensions
+   await process_frame;await process_frame
+   for row in rows.values():
+    assert(row.get_parent().get_global_rect().grow(1).encloses(row.get_global_rect()))
+    assert(Rect2(Vector2.ZERO,Vector2(dimensions)).grow(1).encloses(row.get_global_rect()))
+    assert(row.get_line_count()==row.get_visible_line_count(),"All result lines fit at each viewport size")
+  assert(JSON.parse_string(JSON.stringify(game.save_data("battle")))==state,"Reading recovery preserves the settled battle and RNG")
+  copy.finish_chapter()
+  if kind=="finale":assert(copy.completed);continue
+  copy.start_battle()
+  if kind=="recoverable":
+   for unit in copy.living("player"):
+    var recovering=unit.id in ["oren","sera","ivo"]
+    assert(unit.hp==unit.max_hp-(4 if recovering else 0) and unit.potions==(1 if recovering else 2))
+ print("PASS: victory recovery reports the exact next deployment for withdrawn, standing and evacuated allies across three viewports, with expired, ordinary, permanent and final-battle exclusions")

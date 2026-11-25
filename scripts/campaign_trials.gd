@@ -134,8 +134,9 @@ func restart_preview(game) -> Dictionary:
  var next_pressure=mini(10,pressure+1) if flags.reset_pressure else pressure
  return {"chapter":chapter,"pressure":next_pressure,"enemies":enemy_modifiers(chapter,next_pressure)}
 
-func deployment_condition(game,unit: Dictionary) -> Dictionary:
- var recovering=flags.sacrifice_cost and not unit.get("fallen",false) and int(injuries.get(unit.id,-1))>=game.chapter
+func deployment_condition(game,unit: Dictionary,chapter=-1) -> Dictionary:
+ var deployment_chapter=game.chapter if chapter<0 else chapter
+ var recovering=flags.sacrifice_cost and not unit.get("fallen",false) and int(injuries.get(unit.id,-1))>=deployment_chapter
  return {"recovering":recovering,"hp":maxi(1,int(unit.max_hp)-4) if recovering else int(unit.max_hp),"tonics":1 if recovering else 2}
 
 func prepare_battle(game):

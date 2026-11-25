@@ -1758,11 +1758,21 @@ func check_result() -> bool:
 		label_in(v,game.info().outro,24)
 		label_in(v,"%d turns  ·  %d allies standing  ·  %d foes defeated"%[game.turn,game.living("player").size(),game.units.filter(func(u):return u.team=="enemy" and u.hp<=0).size()],18,GOLD)
 		var summary=GridContainer.new();summary.columns=2;summary.add_theme_constant_override("h_separation",24);summary.add_theme_constant_override("v_separation",8);v.add_child(summary)
+		var next_chapter=game.chapter+1
 		for unit in game.units:
 			if unit.team!="player":continue
 			var row=HBoxContainer.new();row.size_flags_horizontal=Control.SIZE_EXPAND_FILL;summary.add_child(row)
 			var portrait=TextureRect.new();portrait.texture=portraits.get_portrait(unit.id);portrait.custom_minimum_size=Vector2(55,55);portrait.expand_mode=TextureRect.EXPAND_IGNORE_SIZE;portrait.stretch_mode=TextureRect.STRETCH_KEEP_ASPECT_CENTERED;row.add_child(portrait)
-			label_in(row,"%s · Lv %d\n%s"%[unit.name,unit.level,"Rescued after battle" if game.DeathDoor.downed(unit) else "Ready for the next march" if unit.hp>0 else "Fallen — permanently lost" if game.permadeath else "Recovering at camp"],16)
+			var downed=game.DeathDoor.downed(unit)
+			var lost=unit.hp<=0 and not downed and game.permadeath
+			var status="Rescued after battle" if downed else "Ready for the next march"
+			if unit.hp<=0 and not downed:status="Fallen — permanently lost" if lost else "Recovering at camp"
+			if not lost and next_chapter<game.content.chapters.size():
+				var condition=game.trials.deployment_condition(game,unit,next_chapter)
+				if condition.recovering:
+					var recovery="Next deployment · %d HP, %d tonic"%[condition.hp,condition.tonics]
+					status=status+"\n"+recovery if downed else recovery
+			label_in(row,"%s · Lv %d\n%s"%[unit.name,unit.level,status],16).size_flags_horizontal=Control.SIZE_EXPAND_FILL
 		button_in(frame,"Continue the chronicle",func():
 			if not action_save_ready():return
 			var onward=func():
