@@ -24,6 +24,9 @@ for name in SUITES:
     if name == "infantry_stride":
         # 61 Hz exposes the last partially blended frame of the 200 ms entry.
         command.extend(["--fixed-fps", "61"])
+    elif name == "mount_stride":
+        # Sample several fully blended steps during the short mounted approach.
+        command.extend(["--fixed-fps", "120"])
     if name == "export":
         command.extend(["--main-pack", str(ROOT / "build/web/index.pck")])
     try:

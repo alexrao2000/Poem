@@ -684,7 +684,14 @@ func run():
    wounded_seen[0]=true
  process_frame.connect(watch_fall)
  await app.map_combat_feedback([{"actor":app.game.living("enemy")[0].id,"target":fallen_patient.id,"hit":true,"crit":false,"damage":1,"remaining":0}])
- process_frame.disconnect(watch_fall);assert(wounded_seen[0] and map_contact_seen[0] and app.pieces.get_node_or_null("MapImpact")==null)
+ process_frame.disconnect(watch_fall)
+ assert(wounded_seen[0] and map_contact_seen[0],"Packed map combat presents both the contact and the wounded pose")
+ var finishing_impact=app.pieces.get_node_or_null("MapImpact")
+ # Contact and its damage label can finish during the same slow frame.
+ if finishing_impact!=null:
+  assert(finishing_impact.is_queued_for_deletion(),"The contact ends with the exchange")
+  await process_frame
+ assert(app.pieces.get_node_or_null("MapImpact")==null,"The contact releases after its final frame")
  var map_miss=load("res://scripts/map_projectile.gd").new();app.pieces.add_child(map_miss)
  var map_flight=map_miss.fly(Vector3.ZERO,Vector3(2,0,0),"bow","",{},true)
  assert(is_equal_approx(map_miss.body.scale.x,.55),"Packed map arrows retain the sprite scale")

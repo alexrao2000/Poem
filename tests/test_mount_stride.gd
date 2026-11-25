@@ -86,7 +86,7 @@ func watch_approach(node):
  if not node.mounted:return
  var previous={}
  while watching and is_instance_valid(node):
-  if node.pose_name=="advance" and node.mounted_gait_weight>.999:
+  if node.pose_name=="advance" and node.mounted_gait_weight==1.0:
    assert(node.travel_previous.is_equal_approx(node.global_position),"Mounted joints use the current tween-written position")
    previous=inspect_contact(node,previous,true)
   else:previous.clear()
