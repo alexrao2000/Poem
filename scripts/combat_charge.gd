@@ -17,6 +17,7 @@ var seal: MeshInstance3D
 var floor_position=Vector3.ZERO
 var floor_basis=Basis.IDENTITY
 var motion: Tween
+var socket_driver: RemoteTransform3D
 
 func begin(actor: Node3D,folio: String,duration: float):
  name="CombatCharge";caster=actor;spell=folio
@@ -35,16 +36,37 @@ func begin(actor: Node3D,folio: String,duration: float):
    mote.mesh=ember_mesh
   mote.material_override=material(colors.core if i==0 else colors.wake);add_child(mote);motes.append(mote)
  seal=MeshInstance3D.new();seal.name="CastingSeal";seal.mesh=Seal.shape(spell)
- seal.material_override=material(Color.WHITE);add_child(seal)
+ seal.material_override=material(Color.WHITE);seal.top_level=true;add_child(seal)
  for node in [ring,seal]+motes:node.cast_shadow=GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+ bind_socket()
  _process(0)
  motion=create_tween();motion.tween_property(self,"strength",1.0,maxf(duration,.01)).set_trans(Tween.TRANS_SINE)
 
 static func material(color: Color) -> StandardMaterial3D:
  var result=Impact.accent_material();result.albedo_color=color;return result
 
+func bind_socket():
+ if not caster.has_method("socket_node"):return
+ var socket=caster.socket_node("projectile") as Node3D
+ if socket==null:return
+ # Follow the attachment after deferred skeleton modifier passes.
+ socket_driver=RemoteTransform3D.new()
+ socket_driver.update_rotation=false;socket_driver.update_scale=false
+ socket.add_child(socket_driver)
+ socket_driver.remote_path=socket_driver.get_path_to(self)
+ global_position=socket.global_position
+
+func unbind_socket():
+ if not is_instance_valid(socket_driver):return
+ socket_driver.remote_path=NodePath("")
+ socket_driver.queue_free();socket_driver=null
+
+func _exit_tree():
+ unbind_socket()
+
 func release():
  if released:return
+ unbind_socket()
  _process(0);released=true
  if motion and motion.is_valid():motion.kill()
  motion=create_tween();motion.tween_property(self,"strength",0.0,.12);motion.tween_callback(queue_free)
@@ -53,7 +75,7 @@ func _process(dt):
  if ring==null:return
  if not released:
   if not is_instance_valid(caster):queue_free();return
-  global_position=caster.socket_position("projectile")
+  if socket_driver==null:global_position=caster.socket_position("projectile")
   global_basis=caster.global_basis.orthonormalized()
   floor_position=caster.global_position+Vector3.UP*.025
   var forward=-caster.global_basis.z;forward.y=0

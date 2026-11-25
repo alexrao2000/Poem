@@ -223,6 +223,9 @@ func refresh_skeleton():
  for attachment in attachments:attachment.on_skeleton_update()
  for constraint in pose_constraints:constraint.sample_attachments()
 
+func socket_node(key: String) -> Node3D:
+ return sockets.get(key)
+
 func socket_position(key: String) -> Vector3:
  if key=="recovery":return socket_position("impact")
  if sockets.has(key):return sockets[key].global_position

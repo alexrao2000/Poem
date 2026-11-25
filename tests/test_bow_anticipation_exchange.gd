@@ -9,6 +9,7 @@ var weapon_kind="bow"
 var promotion_ids=["","sharpshooter","pathfinder"]
 var items=["scout_bow","recurve","longbow"]
 var charges=0
+var charge_frames=0
 var app
 var mode=""
 var flights=0
@@ -23,9 +24,15 @@ func observe(node):
   assert(is_instance_valid(node));preparations+=1;app.skip_combat=true;return
  if node is Charge:
   await process_frame
-  assert(weapon_kind=="magic" and node.caster is Imported and node.global_position.distance_to(node.caster.socket_position("projectile"))<.001,"Gathering follows the actual raised free casting palm")
+  assert(weapon_kind=="magic" and node.caster is Imported)
   assert(node.caster.player.assigned_animation==("CriticalSpellEnter" if flights==0 else "Spell_Simple_Enter"))
-  charges+=1;return
+  charges+=1
+  while is_instance_valid(node) and not node.released and not node.is_queued_for_deletion():
+   assert(node.global_position.distance_to(node.caster.socket_position("projectile"))<.001,"Gathering follows the animated casting palm throughout the windup")
+   assert(node.seal.global_position.is_equal_approx(node.caster.global_position+Vector3.UP*.025),"The casting seal stays on the floor while the palm moves")
+   charge_frames+=1
+   await process_frame
+  return
  if not node is Projectile:return
  await process_frame
  var archers=app.stage.get_children().filter(func(value):return value is Imported and value.kind==weapon_kind and value.pose_name==strike_key)
@@ -69,5 +76,5 @@ func run():
  assert(total==character_ids.size()*6+3 and preparations==1)
  assert(charges==(total+1 if weapon_kind=="magic" else 0))
  await Shutdown.dispose(app);await process_frame
- print("PASS: ",character_ids.size()*3," base/promoted ",job," exchanges, enemy counter, ",total," actual critical/ordinary flights, ",charges," followed charges, preparation/projectile skips, correct launch origin and exact campaign/RNG/map restoration")
+ print("PASS: ",character_ids.size()*3," base/promoted ",job," exchanges, enemy counter, ",total," actual critical/ordinary flights, ",charges," followed charges across ",charge_frames," frames, preparation/projectile skips, correct launch origin and exact campaign/RNG/map restoration")
  quit()
