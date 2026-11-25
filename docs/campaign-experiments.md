@@ -115,6 +115,8 @@ This is a local experimentation harness, not tamper-resistant ironman enforcemen
 
 With section restarts and permadeath enabled, the route map marks reached section starts with diamonds and identifies the current retreat point. Selecting a historical chapter shows its own four-chapter section without moving the current rally point or exposing future briefings. The section aids disappear when either switch is off.
 
+If a defeat sends the company to an earlier chapter, **View rally on atlas** traces the withdrawal before you choose **Regroup and retry**. Press **Esc** or choose **Return to result** to close the preview.
+
 Before retreating, the battle menu and defeat screen show the destination chapter, next pressure level, enemy bonuses, held tonics and raider preparation. The preview includes section rewinds and caps pressure at 10. Viewing it does not advance pressure, consume RNG or change the save.
 
 The victory report shows starting HP and tonics for each ally whose recovery penalty carries into the next chapter. This also applies to allies who returned after an earlier attempt and ended the battle standing. A downed ally can be evacuated and still have a prior injury to recover from.

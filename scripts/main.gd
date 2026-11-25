@@ -882,16 +882,23 @@ func show_formation():
 		if game.set_formation_order(board.draft):show_camp();persist_campaign("camp",true,"formation")).name="ApplyFormation"
 	button_in(actions,"Cancel",show_camp).name="CancelFormation"
 
-func show_campaign_route():
-	screen="campaign_route";reset_ui()
+func show_campaign_route(retreat_view=false):
+	screen="retreat_route" if retreat_view else "campaign_route"
+	reset_ui()
 	var frame=menu_panel(1320)
-	label_in(frame,"THE MARCH OF THE STANDARD",30,GOLD)
-	label_in(frame,"A chronicle of the valley · Select a reached destination to review its briefing.",16)
+	var retreat=game.trials.section_start(game.chapter)
+	label_in(frame,"WITHDRAWAL ROUTE" if retreat_view else "THE MARCH OF THE STANDARD",30,GOLD)
+	var route_intro="A chronicle of the valley · Select a reached destination to review its briefing."
+	if retreat_view:
+		var rally=game.content.chapters[retreat]
+		var destination=rally.place if not rally.place.is_empty() else rally.title
+		route_intro="Regroup at %s in Chapter %02d."%[destination,retreat+1]
+	label_in(frame,route_intro,16)
 	var row=HBoxContainer.new();row.add_theme_constant_override("separation",20);row.size_flags_vertical=Control.SIZE_EXPAND_FILL;frame.add_child(row)
 	var route=preload("res://scripts/campaign_route.gd").new();route.name="CampaignRoute";row.add_child(route)
 	var sectioned=game.permadeath and game.trials.flags.section_restarts
 	var rallies=game.trials.section_starts if sectioned else PackedInt32Array()
-	var retreat=game.trials.section_start(game.chapter)
+	route.show_retreat_path=retreat_view
 	route.configure(game.content.chapters,game.chapter,game.completed,rallies,retreat,game.content.get("route_atlas"))
 	for marker in route.markers:interface_audio.watch(marker)
 	var details=VBoxContainer.new();details.custom_minimum_size.x=260;row.add_child(details)
@@ -923,7 +930,9 @@ func show_campaign_route():
 	var tactics_text=label_in(reading,"",17,Color("766e5e"))
 	var refresh=func(index):
 		var chapter=game.content.chapters[index]
-		progress.text="CHAPTER %02d / %02d · %s"%[index+1,game.content.chapters.size(),"COMPLETED" if index<game.chapter or game.completed else "CURRENT"]
+		var state="COMPLETED" if index<game.chapter or game.completed else "CURRENT"
+		if retreat_view and index==retreat:state="RALLY DESTINATION"
+		progress.text="CHAPTER %02d / %02d · %s"%[index+1,game.content.chapters.size(),state]
 		title.text=chapter.title;place.text=chapter.place.to_upper()
 		survey.text=ValleyBattle.survey_mark(route.survey_cells[index])
 		var start=game.trials.section_start(index)
@@ -933,12 +942,15 @@ func show_campaign_route():
 		objective.text="OBJECTIVE / "+objective_text(chapter)
 		chapter_choice.select(index)
 		reading.get_parent().scroll_vertical=0
-	route.chapter_selected.connect(refresh);refresh.call(game.chapter)
+	route.chapter_selected.connect(refresh);route.select_chapter(retreat if retreat_view else game.chapter)
 	var route_hint="Numbered seals mark the road traveled. The standard marks your company’s current chapter."
 	if sectioned:route_hint="Diamonds mark section starts."+(" The chronicle is complete." if game.completed else " Your current retreat point is Chapter %02d."%(retreat+1))
+	if retreat_view:route_hint="Arrows point back to the rally. The gold diamond marks the destination."
 	var legend=label_in(frame,route_hint,15,Color("766e5e"));legend.name="RouteLegend"
-	if game.chapter>=10 and campaign_preview.is_empty():add_valley_route_action(frame)
-	button_in(frame,"Return to war council",show_camp)
+	if retreat_view:button_in(frame,"Return to result",close_retreat_route).grab_focus()
+	else:
+		if game.chapter>=10 and campaign_preview.is_empty():add_valley_route_action(frame)
+		button_in(frame,"Return to war council",show_camp)
 	var fit_route=func():
 		var compact=ui.size.x<960
 		details.custom_minimum_size.x=212 if compact else 260
@@ -1443,6 +1455,8 @@ func _unhandled_input(event):
 		interface_audio.cue("back");show_title();get_viewport().set_input_as_handled();return
 	if screen in ["model","arena_preview"] and event is InputEventKey and event.pressed and not event.echo and event.keycode==KEY_ESCAPE:
 		interface_audio.cue("back");close_model_view();get_viewport().set_input_as_handled();return
+	if screen=="retreat_route" and event is InputEventKey and event.pressed and not event.echo and event.keycode==KEY_ESCAPE:
+		interface_audio.cue("back");close_retreat_route();get_viewport().set_input_as_handled();return
 	if screen in ["dossier","campaign_route","campaign_trials","formation"] and event is InputEventKey and event.pressed and not event.echo and event.keycode==KEY_ESCAPE:
 		interface_audio.cue("back")
 		if screen=="campaign_trials" and game.completed:show_ending()
@@ -2200,6 +2214,10 @@ func check_result(present_victory=true) -> bool:
 		if game.info().get("presentation","")=="valley_table":
 			if present_victory and screen=="battle":await close_valley_battle()
 		else:await play_crossing_chain_release()
+	show_battle_result(outcome)
+	return true
+
+func show_battle_result(outcome: String):
 	screen="result";reset_ui()
 	var frame=menu_panel(1000)
 	var v=scrolling_column(frame)
@@ -2252,6 +2270,8 @@ func check_result(present_victory=true) -> bool:
 				label_in(v,"Next deployment recovery · "+", ".join(recovering),18,GOLD).name="DefeatRecovery"
 		label_in(v,"Retry from the beginning of this section. Deaths, legacy supplies and reset pressure remain." if game.trials.flags.section_restarts and game.permadeath else "Retry from preparation. Committed deaths remain lost." if (game.action_saves or game.trials.flags.death_legacies) and game.permadeath else "Retry from chapter preparation. Losses and gains from this failed attempt are discarded; earlier permanent losses remain." if game.permadeath else "Regroup at the war council and choose a new approach.",20)
 		var retreat=label_in(v,restart_summary(),18,GOLD);retreat.name="RestartPreview"
+		if game.trials.restart_preview(game).chapter<game.chapter:
+			button_in(frame,"View rally on atlas",show_campaign_route.bind(true)).name="ViewRallyOnAtlas"
 		button_in(frame,"Regroup and retry",func():
 			if not action_save_ready():return
 			if game.retry_battle():persist_campaign("camp");show_camp())
@@ -2264,7 +2284,10 @@ func check_result(present_victory=true) -> bool:
 		button_in(frame,"Save and return to route",save_and_return_to_route.bind("battle"))
 	elif not campaign_preview.is_empty() and (outcome!="victory" or campaign_preview.return!="chapter"):
 		button_in(frame,"Return to editor",close_campaign_preview)
-	return true
+
+func close_retreat_route():
+	show_battle_result("defeat")
+	ui.find_child("ViewRallyOnAtlas",true,false).grab_focus()
 
 func close_valley_battle():
 	var was_home=map_navigation.at_home()

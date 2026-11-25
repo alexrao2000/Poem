@@ -21,6 +21,7 @@ var complete=false
 var section_starts=false
 var rally_points=PackedInt32Array()
 var retreat_chapter=0
+var show_retreat_path=false
 var crowded=false
 var clock=0.0
 var map_rect=Rect2()
@@ -155,13 +156,25 @@ func _draw():
   var a=point(i);var b=point(i+1);var delta=b-a
   var side=Vector2(-delta.y,delta.x).normalized()*minf(18,delta.length()*.1)
   var reached=i<current or complete
+  var withdrawal=show_retreat_path and i>=retreat_chapter and i<current
+  var distance=delta.length()
+  var arrow=withdrawal and distance>40
   var color=Color("786344") if reached else Color("8c826b")
   color.a=.9 if reached else .43
-  var samples=maxi(2,int(delta.length()/8))
+  if withdrawal:color=Color("8a3e38")
+  var samples=maxi(2,int(distance/8))
   for step in range(1,samples):
    var t=float(step)/samples
+   if arrow and absf(t-.5)*distance<11:continue
    var pos=a.lerp(b,t)+side*sin(t*PI)
-   draw_circle(pos,2.0 if reached else 1.1,color)
+   draw_circle(pos,2.8 if withdrawal else 2.0 if reached else 1.1,color)
+  if arrow:
+   var direction=delta.normalized()
+   var wing=direction.orthogonal()*4.5
+   var center=a.lerp(b,.5)+side
+   var tip=center-direction*7.0
+   var base=center+direction*4.0
+   draw_colored_polygon(PackedVector2Array([tip,base+wing,base-wing]),color)
  for i in range(markers.size()):
   draw_set_transform(point(i),0,Vector2.ONE*seal_scale)
   var reached=i<=current or complete

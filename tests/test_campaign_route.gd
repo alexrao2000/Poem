@@ -5,7 +5,7 @@ const Valley=preload("res://scripts/world_map_battle.gd")
 ## access, and keeps fitted markers/standard inside the display at every size.
 func _initialize():call_deferred("run")
 func run():
- var app=load("res://main.tscn").instantiate();app.settings_path="";app.save_path="/private/tmp/poem-route-test.json";root.add_child(app);await process_frame
+ var app=load("res://main.tscn").instantiate();app.settings_path="";app.save_path="/private/tmp/poem-route-test-%d.json"%OS.get_process_id();root.add_child(app);await process_frame
  for chapter in range(12):app.game.story_seen.append("opening_"+str(chapter))
  app.game.permadeath=true;app.game.trials.flags.section_restarts=true
  var count=0
@@ -106,10 +106,43 @@ func run():
  assert(app.debug_session.report(app.game,"camp").section==2)
  app.debug_session.end(app.game)
  await verify_longer_route(app)
+ await verify_retreat_route(app)
  await Shutdown.dispose(app);await process_frame
  print("PASS: ",count," campaign route layouts, all twelve chapter markers selectable at 720, live focus and reflow, locked briefing protection, read-only campaign state and Escape return")
  print("PASS: unequal section ranges and reached rally points agree in the route, war council and Debug report")
  quit()
+
+func verify_retreat_route(app):
+ app.game.chapter=11
+ app.game.start_battle();app.make_map();app.show_battle()
+ var leader=app.game.living("player").filter(func(unit):return unit.id=="lyra")[0]
+ leader.hp=0
+ assert(await app.check_result() and app.game.result()=="defeat")
+ var before=app.game.save_data("battle")
+ var disk=FileAccess.get_file_as_string(app.save_path)
+ for dimensions in [Vector2(720,640),Vector2(1440,900)]:
+  app.ui.find_child("ViewRallyOnAtlas",true,false).pressed.emit()
+  app.ui.set_anchors_and_offsets_preset(Control.PRESET_TOP_LEFT);app.ui.size=dimensions
+  await process_frame;await process_frame
+  var route=app.ui.find_child("CampaignRoute",true,false)
+  assert(app.screen=="retreat_route" and route.current==11 and route.selected==8 and route.show_retreat_path)
+  assert(route.retreat_chapter==8 and "Current retreat point" in route.markers[8].tooltip_text)
+  assert(Rect2(Vector2.ZERO,dimensions).encloses(route.get_global_rect()))
+  assert(app.ui.find_child("RouteLegend",true,false).text.begins_with("Arrows point back to the rally"))
+  route.markers[0].pressed.emit()
+  assert(route.selected==0 and route.retreat_chapter==8)
+  if dimensions.x==720:
+   var escape=InputEventKey.new();escape.pressed=true;escape.keycode=KEY_ESCAPE
+   app._unhandled_input(escape)
+  else:
+   var back=app.ui.find_children("*","Button",true,false).filter(func(button):return button.text=="Return to result")[0]
+   back.pressed.emit()
+  assert(app.screen=="result" and app.ui.find_child("ViewRallyOnAtlas",true,false).has_focus())
+  assert(app.game.save_data("battle")==before and FileAccess.get_file_as_string(app.save_path)==disk)
+ app.game.trials.flags.section_restarts=false
+ app.show_battle_result("defeat")
+ assert(app.ui.find_child("ViewRallyOnAtlas",true,false)==null)
+ print("PASS: defeat previews the actual rally on the atlas and returns read-only by button or Escape")
 
 func verify_longer_route(app):
  var original=app.game.content.chapters.duplicate(true)
