@@ -29,6 +29,8 @@ const ROADS=[
 const CAPITAL=[21,2]
 const ROUTE_TERRAIN={"Reed Crossing":"=","Hallow Abbey":"+","Kingsroad":"=","Windscar Pass":"h"}
 const LANDMARK_TERRAINS=["=","+","h","o","f"]
+const LOCATION_MODELS={"village":"cottages","forest":"grove","harbor":"harbor","aqueduct":"aqueduct",
+ "observatory":"dome","furnace":"foundry","castle":"o"}
 const TERRAIN_ARENAS={"f":"forest","h":"mountain","=":"river","+":"abbey","o":"castle"}
 
 static func route_dialogue(route: Array) -> Array:
@@ -222,19 +224,27 @@ static func update_standard_claims(world: Node3D,standards: Array[Vector2i],occu
 static func build_landmarks(parent: Node3D,game,scenery):
  var group=Node3D.new();group.name="ValleyLandmarks";parent.add_child(group)
  var sites=reached_places(game.content.chapters,game.chapter)
+ var models={}
+ for chapter in game.content.chapters.slice(0,game.chapter):
+  if chapter.place.is_empty() or chapter.get("presentation","")=="valley_table":continue
+  var point=route_tile(chapter.route_position)
+  models[point]=LOCATION_MODELS.get(chapter.environment,"")
  var objective=game.objective_position() if game.info().objective=="seize" else Vector2i(-1,-1)
  if objective.x>=0 and not sites.has(objective):sites[objective]=[]
  var brass=Color("e1c58a")
  var clay=Color("996c56")
  for tile in sites:
   var terrain="o" if tile==objective else game.terrain(tile)
-  if terrain not in LANDMARK_TERRAINS:continue
+  if terrain in ["#","~"]:continue
+  var model=models.get(tile,"") if tile!=objective and terrain not in ["o","+"] else ""
+  if model.is_empty() and terrain not in LANDMARK_TERRAINS:continue
+  if model.is_empty():model=terrain
   var marker=Node3D.new()
   marker.name="Landmark_%d_%d"%[tile.x,tile.y]
-  marker.set_meta("tile",tile);marker.set_meta("terrain",terrain)
+  marker.set_meta("tile",tile);marker.set_meta("terrain",terrain);marker.set_meta("model",model)
   marker.position=Vector3(tile.x-.375,.003,tile.y+.375);group.add_child(marker)
   scenery.block(marker,Vector3(0,.013,0),Vector3(.181,.025,.169),Color("694938")).name="Footing"
-  match terrain:
+  match model:
    "=":
     for x in [-.057,.057]:
      scenery.block(marker,Vector3(x,.055,0),Vector3(.028,.067,.098),clay)
@@ -257,6 +267,37 @@ static func build_landmarks(parent: Node3D,game,scenery):
      for z in [-.053,.053]:
       scenery.block(marker,Vector3(x,.102,z),Vector3(.037,.154,.037),clay)
       scenery.block(marker,Vector3(x,.19,z),Vector3(.045,.022,.045),brass)
+   "cottages":
+    scenery.block(marker,Vector3(-.023,.067,0),Vector3(.104,.086,.115),clay)
+    scenery.block(marker,Vector3(-.023,.126,0),Vector3(.078,.078,.122),brass).rotation.z=PI*.25
+    scenery.block(marker,Vector3(.054,.089,-.023),Vector3(.036,.132,.041),clay)
+   "grove":
+    for x in [-.039,.037]:
+     var height=.108 if x<0 else .149
+     scenery.cylinder(marker,Vector3(x,.046,-x*.48),.05,.011,clay)
+     scenery.cylinder(marker,Vector3(x,.067+height*.5,-x*.48),height,.044,Color("84906d"),.002)
+   "harbor":
+    for x in [-.065,.042]:
+     scenery.block(marker,Vector3(x,.065,0),Vector3(.024,.083,.073),clay)
+    scenery.block(marker,Vector3(0,.100,0),Vector3(.160,.026,.092),brass)
+    scenery.cylinder(marker,Vector3(.033,.146,-.018),.101,.014,clay)
+    scenery.block(marker,Vector3(.003,.194,-.018),Vector3(.110,.022,.022),brass)
+    scenery.block(marker,Vector3(-.042,.167,-.018),Vector3(.009,.054,.009),Color("654737"))
+   "aqueduct":
+    for x in [-.067,.067]:
+     scenery.block(marker,Vector3(x,.058,0),Vector3(.032,.068,.082),clay)
+    var span=scenery.arch_span(marker,Vector3(0,.092,0),.054,.029,.082)
+    span.material_override=scenery.material(brass)
+   "dome":
+    scenery.cylinder(marker,Vector3(0,.075,0),.098,.065,clay)
+    scenery.cylinder(marker,Vector3(0,.139,0),.037,.070,brass,.054)
+    scenery.cylinder(marker,Vector3(0,.168,0),.025,.054,brass,.024)
+    scenery.cylinder(marker,Vector3(0,.192,0),.028,.012,clay)
+   "foundry":
+    scenery.block(marker,Vector3(-.008,.069,0),Vector3(.156,.087,.101),clay)
+    scenery.block(marker,Vector3(-.008,.120,0),Vector3(.163,.019,.113),brass)
+    scenery.cylinder(marker,Vector3(-.043,.152,-.015),.087,.017,clay,.014)
+    scenery.cylinder(marker,Vector3(.048,.169,-.015),.125,.022,clay,.016)
 
 static func reveal_origin(game) -> Vector2i:
  return game.objective_position() if game.info().objective=="seize" else Vector2i(CAPITAL[0],CAPITAL[1])

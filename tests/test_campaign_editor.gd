@@ -2066,6 +2066,12 @@ func run():
   "Kingsroad":[Vector2i(12,8),"BRIDGE"],"Windscar Pass":[Vector2i(19,7),"HILL"]}
  var relief_pieces=app.world.get_node("ValleyLandmarks")
  verify_landmark_footing(relief_pieces)
+ assert(relief_pieces.get_child_count()==12)
+ var familiar_places={Vector2i(4,10):"cottages",Vector2i(5,6):"grove",Vector2i(17,11):"harbor",
+  Vector2i(17,4):"aqueduct",Vector2i(13,2):"dome",Vector2i(17,3):"foundry",Vector2i(19,3):"o"}
+ for point in familiar_places:
+  var miniature=relief_pieces.get_node("Landmark_%d_%d"%[point.x,point.y])
+  assert(miniature.get_meta("model")==familiar_places[point] and miniature.get_meta("terrain")==app.game.terrain(point))
  for name in places:
   var site=places[name]
   var relief_piece=relief_pieces.get_node("Landmark_%d_%d"%[site[0].x,site[0].y])
