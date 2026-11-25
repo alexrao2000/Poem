@@ -40,6 +40,8 @@ The war council and section rallies use the number of deployment tiles you place
 
 For a seize battle, use Extra standard in Battle to add more objectives. Win by holding every standard at once with standing allies. Right-click or press Backspace to remove an extra standard. The Battle grid, Positions screen, and war table show all required tiles. During battle, the objective shows how many are held. Choose Next standard or press G to cycle through their positions. Check campaign flags standards cut off from deployment.
 
+Turn on Hold standards through an enemy phase to require a defense after your allies capture the objectives. End the player phase with a standing ally on every standard. If a standard falls, retake it and defend again. Action saves keep the current defense if you leave during the enemy phase.
+
 In Encounters, set a chapter’s Hard enemy bonuses for maximum HP, attack, speed, and defense. These apply to the on-map enemies and later reinforcements when Harder enemy forces is enabled. Retry pressure still adds its own bonuses and uses the rally chapter’s settings after a section restart.
 
 Use Hard only on a selected enemy to move it between difficulty groups. Its position, equipment, and arrival stay with it. The commander deploys in every difficulty.

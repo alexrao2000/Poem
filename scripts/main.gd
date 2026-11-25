@@ -922,6 +922,8 @@ func objective_text(chapter: Dictionary={}) -> String:
 		"rout":return "Defeat every enemy"
 		"seize":
 			var required=Rules.standard_tiles(chapter).size()
+			if Rules.standard_hold_required(chapter):
+				return "Hold the standard through an enemy phase" if required==1 else "Hold all %d standards through an enemy phase"%required
 			if required>1:return "Hold all %d standards with standing allies"%required
 			return "Occupy the golden standard with any standing ally"
 		"survive":return "Survive %d enemy phases or defeat every enemy"%chapter.turn_limit
@@ -936,7 +938,11 @@ func battle_objective_text() -> String:
 		"survive":return "Survive · %d/%d enemy phases · or defeat every enemy"%[clampi(game.turn-1,0,game.info().turn_limit),game.info().turn_limit]
 		"seize":
 			var points=game.capture_tiles()
-			if points.size()>1:return "%d/%d standards held"%[points.filter(game.ally_holds_standard).size(),points.size()]
+			var held=points.filter(game.ally_holds_standard).size()
+			if Rules.standard_hold_required(game.info()):
+				var status="Defending" if game.phase=="enemy" and game.standard_hold_turn==game.turn and held==points.size() else "Hold through enemy phase"
+				return "%d/%d held · %s"%[held,points.size(),status]
+			if points.size()>1:return "%d/%d standards held"%[held,points.size()]
 			return objective_text()
 		_:return objective_text()
 
@@ -2115,7 +2121,9 @@ func check_result() -> bool:
 	if outcome=="victory":
 		label_in(v,"CHAPTER COMPLETE",18,GOLD);label_in(v,game.info().title,38)
 		label_in(v,game.info().outro,24)
-		label_in(v,"%d turns  ·  %d allies standing  ·  %d foes defeated"%[game.turn,game.living("player").size(),game.units.filter(func(u):return u.team=="enemy" and u.hp<=0).size()],18,GOLD)
+		var turns=game.standard_hold_turn if game.standard_hold_turn>0 else game.turn
+		var turn_count="%d %s"%[turns,"turn" if turns==1 else "turns"]
+		label_in(v,"%s  ·  %d allies standing  ·  %d foes defeated"%[turn_count,game.living("player").size(),game.units.filter(func(u):return u.team=="enemy" and u.hp<=0).size()],18,GOLD)
 		var summary=GridContainer.new();summary.columns=2;summary.add_theme_constant_override("h_separation",24);summary.add_theme_constant_override("v_separation",8);v.add_child(summary)
 		var next_chapter=game.chapter+1
 		for unit in game.units:

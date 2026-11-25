@@ -126,8 +126,17 @@ func build_battle(panel: VBoxContainer):
  var layout=level()
  var parameters=GridContainer.new();parameters.columns=2
  parameters.add_theme_constant_override("h_separation",12);parameters.add_theme_constant_override("v_separation",8);panel.add_child(parameters)
+ var hold=CheckButton.new();hold.name="EditorHoldStandard"
+ hold.text="Hold standards through an enemy phase"
+ hold.button_pressed=layout.get("hold_enemy_phase",false)
+ hold.visible=layout.objective=="seize"
+ hold.toggled.connect(func(enabled):
+  if enabled:layout.hold_enemy_phase=true
+  else:layout.erase("hold_enemy_phase")
+  changed())
  field_label(parameters,"Objective",choice(Draft.OBJECTIVES,layout.objective,func(value):
-  layout.objective=value;grid.marks=draft.valley_marks(selected);refresh_linked_standards();show_brush_options();changed()))
+  layout.objective=value;hold.visible=value=="seize"
+  grid.marks=draft.valley_marks(selected);refresh_linked_standards();show_brush_options();changed()))
  field_label(parameters,"Phase limit",spin(int(layout.turn_limit),1,99,func(value):layout.turn_limit=value;changed()))
  var environment_controls=HBoxContainer.new();environment_controls.add_theme_constant_override("separation",8)
  var environment=choice(Draft.ENVIRONMENTS,layout.environment,func(value):layout.environment=value;changed())
@@ -149,6 +158,7 @@ func build_battle(panel: VBoxContainer):
  var fixed_chart=layout.presentation=="valley_table"
  width.editable=not fixed_chart;height.editable=not fixed_chart
  field_label(parameters,"Width",width);field_label(parameters,"Height",height)
+ panel.add_child(hold)
  action(panel,"Resize map",func():
   var dimensions=Vector2i(width.value,height.value)
   if dimensions==grid.board_size():return

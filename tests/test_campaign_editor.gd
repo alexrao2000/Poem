@@ -1188,6 +1188,69 @@ func verify_arena_previews(app):
  root.content_scale_size=original_scale
  await process_frame
 
+func verify_standards_through_enemy_phase(app):
+ var ordinary=app.game
+ var disk=FileAccess.get_file_as_string(app.save_path)
+ controls(app,"New draft").pressed.emit();await process_frame
+ var editor=app.campaign_editor
+ var tabs=editor.find_child("CampaignEditorTabs",true,false)
+ tabs.current_tab=tabs.get_tab_idx_from_control(editor.find_child("Battle",true,false))
+ var draft=editor.draft
+ var level=editor.level()
+ level.map=["......","......","......","......","......"]
+ level.deployment_positions=[[1,3],[1,4],[0,3]]
+ level.objective_position=[2,3]
+ level.extra_standards=[[2,4]]
+ level.enemies=[{"job":"Knight","position":[5,0],"ai":"guard","name":"Watchman"}]
+ draft.data.opening_company=["lyra","oren","sera"]
+ draft.data.settings.action_saves=true
+ editor.rebuild()
+ await process_frame
+ var hold=editor.find_child("EditorHoldStandard",true,false)
+ assert(hold.visible and not hold.button_pressed)
+ hold.button_pressed=true
+ assert(level.hold_enemy_phase and draft.playtest_problem().is_empty(),draft.playtest_problem())
+ var decoded=Draft.new()
+ assert(decoded.decode(draft.encode()).is_empty() and decoded.compile().content.chapters[0].hold_enemy_phase)
+ decoded.data.chapters[0].level.hold_enemy_phase="yes"
+ assert(decoded.structural_problem(decoded.data)=="Choose whether standards must be held through an enemy phase.")
+ controls(app,"Play chapter").pressed.emit();await finish_presentation(app)
+ controls(app,"Deploy company  >").pressed.emit();await finish_presentation(app)
+ assert(app.objective_text()=="Hold all 2 standards through an enemy phase")
+ for y in [3,4]:
+  await app.click_tile(Vector2i(1,y));await app.click_tile(Vector2i(2,y))
+  app.wait_action();await finish_presentation(app)
+ assert(app.screen=="battle" and app.game.result().is_empty())
+ assert(app.objective_label.text=="2/2 held · Hold through enemy phase")
+ var armed=Rules.new(app.game.content)
+ assert(armed.import_code(app.game.export_code("battle"))=="battle")
+ armed.begin_enemy_phase()
+ assert(armed.standard_hold_turn==1 and armed.result().is_empty())
+ var during_enemy=armed.export_code("battle")
+ var broken=Rules.new(armed.content)
+ assert(broken.import_code(during_enemy)=="battle" and canonical(broken.save_data("battle"))==canonical(armed.save_data("battle")))
+ var invalid=armed.save_data("battle")
+ invalid.standard_hold_turn=2
+ assert(not broken.valid_save(invalid))
+ broken.at(Vector2i(2,4)).hp=0
+ broken.next_player_turn()
+ assert(broken.standard_hold_turn==0 and broken.result().is_empty())
+ var replacement=broken.at(Vector2i(0,3))
+ assert(broken.move_unit(replacement,Vector2i(2,4)) and broken.result().is_empty())
+ broken.begin_enemy_phase();broken.next_player_turn()
+ assert(broken.standard_hold_turn==2 and broken.result()=="victory")
+ controls(app,"End player phase").pressed.emit();await finish_presentation(app)
+ assert(app.screen=="result" and app.game.result()=="victory" and app.game.turn==2)
+ assert(app.ui.find_children("*","Label",true,false).any(func(label):return label.text.begins_with("1 turn  ·  ")))
+ var complete=canonical(app.game.save_data("battle"))
+ var resumed=Rules.new(app.game.content)
+ assert(resumed.import_code(app.game.export_code("battle"))=="battle" and resumed.result()=="victory")
+ assert(armed.save_game(app.campaign_save_path(),"battle"))
+ app.load_campaign();await finish_presentation(app)
+ assert(app.screen=="result" and canonical(app.game.save_data("battle"))==complete)
+ controls(app,"Return to editor").pressed.emit();await process_frame
+ assert(app.screen=="campaign_editor" and app.game==ordinary and FileAccess.get_file_as_string(app.save_path)==disk)
+
 func run():
  check_document()
  check_small_section_deployment()
@@ -2152,7 +2215,8 @@ func run():
  await verify_route_arena_reuse(app)
  await verify_valley_roads_template(app)
  await verify_arena_previews(app)
+ await verify_standards_through_enemy_phase(app)
  assert(FileAccess.get_file_as_string(app.save_path)==disk and app.game==installed)
  await Shutdown.dispose(app);await process_frame
- print("PASS: campaign JSON file transfer, draft library management, remembered playtest setup, campaign readiness, authored Hard bonuses, authored retry raiders, deployment comparison, authored formation previews, small deployment limits and save recovery, custom campaign atlas, terrain stroke undo, bulk terrain rows, editor dialogs at two viewport sizes, direct chapter reordering, continuous terrain strokes, connected terrain fill, placement moves and swaps, repeated placement copies, switching enemy difficulty groups, editor music preview, multiple standards and exact resume, standard navigation and live progress, standards that follow route pins, route pins, war-table site terrain, war-table overlay, blank war-table chapter, rising Valley landmarks, local war-table arena landmarks including Kingsroad and Windscar, authored route arenas, fading route seals, war-table landmark index and shared survey marks, Valley reveal sound cues, battlefield site markers, custom recruits, phase scenes, tile dialogue and reload, recruitment on battlefield sites, authored recruit starting equipment, live recruit art previews, 3D recruit preview and editor return, navigation between available sites, one-use field tonic caches, Valley landmark dialogue, dialogue that follows route pins, timed reinforcements, chapter 32 saves, section dialogue, authored section relief, authored legacy stock and purchase persistence, authored loss recruits, authored loss dialogue, reproducible playtest setup, Valley carryover and resume, thirteen-chapter Valley template, built-in Hold the Valley Roads trial, 3D arena previews from Battle and Route, and single-battle tests")
+ print("PASS: campaign JSON file transfer, draft library management, remembered playtest setup, campaign readiness, authored Hard bonuses, authored retry raiders, deployment comparison, authored formation previews, small deployment limits and save recovery, custom campaign atlas, terrain stroke undo, bulk terrain rows, editor dialogs at two viewport sizes, direct chapter reordering, continuous terrain strokes, connected terrain fill, placement moves and swaps, repeated placement copies, switching enemy difficulty groups, editor music preview, multiple standards and exact resume, standard navigation and live progress, standards that follow route pins, route pins, war-table site terrain, war-table overlay, blank war-table chapter, rising Valley landmarks, local war-table arena landmarks including Kingsroad and Windscar, authored route arenas, fading route seals, war-table landmark index and shared survey marks, Valley reveal sound cues, battlefield site markers, custom recruits, phase scenes, tile dialogue and reload, recruitment on battlefield sites, authored recruit starting equipment, live recruit art previews, 3D recruit preview and editor return, navigation between available sites, one-use field tonic caches, Valley landmark dialogue, dialogue that follows route pins, timed reinforcements, chapter 32 saves, section dialogue, authored section relief, authored legacy stock and purchase persistence, authored loss recruits, authored loss dialogue, reproducible playtest setup, Valley carryover and resume, thirteen-chapter Valley template, built-in Hold the Valley Roads trial, 3D arena previews from Battle and Route, holding standards through an enemy phase, and single-battle tests")
  quit()

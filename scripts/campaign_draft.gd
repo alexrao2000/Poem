@@ -25,7 +25,7 @@ const STRATEGIES=["pursue","sentry","guard"]
 const ROUTE_TERRAIN=["p","=","f","h","o","+"]
 const RECRUIT_STATS={"hp":[1,900],"pow":[0,200],"defense":[0,200],"resistance":[0,200],"speed":[0,200],"move":[1,20]}
 const LEVEL_FIELDS=["title","place","intro","outro","tactical_brief","map","route_position","environment","score_theme",
- "objective","objective_position","turn_limit","deployment_positions","enemies","hard_enemies","presentation","enemy_level","hard_bonuses","site_scenes","extra_standards","route_arena"]
+ "objective","objective_position","turn_limit","deployment_positions","enemies","hard_enemies","presentation","enemy_level","hard_bonuses","site_scenes","extra_standards","route_arena","hold_enemy_phase"]
 const MIN_BOARD=Vector2i(6,5)
 const MAX_BOARD=Vector2i(32,24)
 
@@ -551,6 +551,7 @@ func map_structure_problem(level: Dictionary) -> String:
   return "A chapter references an unknown environment or score."
  if level.get("presentation") not in ["battlefield","valley_table"] or level.get("objective") not in OBJECTIVES:
   return "A chapter references an unknown presentation or objective."
+ if not level.get("hold_enemy_phase",false) is bool:return "Choose whether standards must be held through an enemy phase."
  if not integer(level.get("turn_limit"),1,99):return "A survival limit must be between 1 and 99 phases."
  if not integer(level.get("enemy_level",0),0,Rules.MAX_LEVEL):return "Set a default enemy level from 0 to 99."
  if level.has("hard_bonuses"):

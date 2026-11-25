@@ -25,6 +25,7 @@ const TERRAIN_PROFILES={
 var chapter: int = 0
 var turn: int = 1
 var phase: String = "player"
+var standard_hold_turn: int = 0
 var roster: Array = []
 var recruit_templates: Dictionary = {}
 var units: Array = []
@@ -68,6 +69,7 @@ func new_campaign(permadeath_enabled=false):
 	chapter = 0
 	turn = 1
 	phase = "player"
+	standard_hold_turn = 0
 	units.clear()
 	enemy_waves.clear()
 	completed = false
@@ -182,6 +184,9 @@ static func standard_tiles(level: Dictionary) -> Array[Vector2i]:
 func capture_tiles() -> Array[Vector2i]:
 	return standard_tiles(info())
 
+static func standard_hold_required(level: Dictionary) -> bool:
+	return level.objective=="seize" and level.get("hold_enemy_phase",false)
+
 func ally_holds_standard(tile: Vector2i) -> bool:
 	var occupant=at(tile)
 	return occupant!=null and occupant.team=="player" and occupant.hp>0
@@ -237,6 +242,7 @@ func start_battle():
 	enemy_waves.clear()
 	turn = 1
 	phase = "player"
+	standard_hold_turn = 0
 	var spots = info().get("deployment_positions",[[1,3],[1,4],[1,5],[2,3],[2,4],[2,5]])
 	var placement=deployment_slots()
 	for u in deployment_units():
@@ -473,6 +479,8 @@ func use_tonic(u: Dictionary) -> bool:
 func begin_enemy_phase() -> Dictionary:
 	DeathDoor.end_player_phase(self)
 	var consequences=commit_casualties()
+	if standard_hold_required(info()):
+		standard_hold_turn=turn if capture_tiles().all(ally_holds_standard) else 0
 	phase="enemy"
 	bring_in_enemy_waves()
 	for u in living("enemy"):
@@ -572,7 +580,9 @@ func result() -> String:
 		"survive":
 			if turn>info().turn_limit or (enemy_waves.is_empty() and living("enemy").is_empty()):return "victory"
 		"seize":
-			if capture_tiles().all(ally_holds_standard):return "victory"
+			var defended=phase=="player" and turn>1 and standard_hold_turn==turn-1
+			if (defended or not standard_hold_required(info())) and capture_tiles().all(ally_holds_standard):
+				return "victory"
 	return ""
 
 func finish_chapter():
@@ -585,6 +595,7 @@ func finish_chapter():
 				if permadeath and u.hp<=0 and not DeathDoor.downed(u):
 					r.fallen=true;r.fallen_chapter=chapter;r.hp=0;deployed.erase(r.id)
 	chapter+=1
+	standard_hold_turn=0
 	enemy_waves.clear()
 	if chapter>=content.chapters.size():
 		completed=true
@@ -602,6 +613,8 @@ func retry_battle() -> bool:
 	return trials.restart(self)
 
 func next_player_turn():
+	if standard_hold_turn>0 and not capture_tiles().all(ally_holds_standard):
+		standard_hold_turn=0
 	turn+=1
 	phase="player"
 	for u in units:
@@ -643,6 +656,7 @@ func save_data(stage: String) -> Dictionary:
 	if content.has("authoring_signature"):saved.campaign_id=content.authoring_signature
 	if not run_id.is_empty():saved.run_id=run_id
 	if stage=="battle" and not enemy_waves.is_empty():saved.enemy_waves=enemy_waves
+	if stage=="battle" and standard_hold_turn>0:saved.standard_hold_turn=standard_hold_turn
 	return saved
 
 func save_game(path: String,stage: String) -> bool:
@@ -693,6 +707,11 @@ func valid_save(data) -> bool:
 	if not trials.integer(data.get("save_sequence",0),0,9007199254740990):return false
 	if int(data.chapter)<0 or int(data.chapter)>=content.chapters.size() or int(data.turn)<1:return false
 	if data.phase not in ["player","enemy"] or data.stage not in ["camp","battle","ending"]:return false
+	if data.has("standard_hold_turn"):
+		var hold_turn=int(data.turn)-(1 if data.phase=="player" else 0)
+		if data.stage!="battle" or not standard_hold_required(content.chapters[int(data.chapter)]) or hold_turn<1:
+			return false
+		if not trials.integer(data.standard_hold_turn,hold_turn,hold_turn):return false
 	if not data.completed is bool or not data.rng is String or not data.rng.is_valid_int():return false
 	if not supports.valid_state(data.get("supports",{})) or not supports.valid_state(data.get("battle_supports",{})):return false
 	if not data.roster is Array or data.roster.size()<content.roster.size() or data.roster.size()>recruit_templates.size():return false
@@ -836,6 +855,7 @@ func restore_save(data) -> String:
 	chapter=int(data.chapter);turn=int(data.turn);phase=data.phase;roster=data.roster;units=data.units;deployed=data.deployed;completed=data.completed;rng.state=int(data.rng)
 	formation_order=data.get("formation_order",[])
 	enemy_waves=data.get("enemy_waves",[])
+	standard_hold_turn=int(data.get("standard_hold_turn",0))
 	# Older authored camps let the player select six allies on smaller maps.
 	if deployed.size()>int(info().deployment):
 		deployed=deployment_slots(false).filter(func(id):return not id.is_empty())
@@ -853,7 +873,7 @@ func restore_save(data) -> String:
 		if unit.team=="enemy":unit.ai=unit.get("ai","guard" if unit.get("boss",false) else "pursue")
 	# Old layouts cannot safely resume units on redesigned walls or water.
 	if data.stage=="battle" and not matches_layout_signature(data.get("layout_signature","")):
-		units.clear();enemy_waves.clear();phase="player";return "camp"
+		units.clear();enemy_waves.clear();standard_hold_turn=0;phase="player";return "camp"
 	return data.stage
 
 func progress_snapshot() -> Dictionary:
