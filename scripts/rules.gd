@@ -38,10 +38,12 @@ var permadeath=false
 var battle_supports: Dictionary={}
 var trials=preload("res://scripts/campaign_trials.gd").new()
 var story_seen: Array = []
+var story_limit=128
 
 func _init(campaign: Dictionary={}):
 	content = JSON.parse_string(FileAccess.get_file_as_string("res://data/campaign.json")) if campaign.is_empty() else campaign.duplicate(true)
 	supports=Supports.new(content.get("bonds"),content.chapters.size())
+	for level in content.chapters:story_limit+=level.get("phase_scenes",[]).size()
 	for template in content.roster:recruit_templates[template.id]=template
 	for legacy in content.legacy_recruits:recruit_templates[legacy.unit.id]=legacy.unit
 	trials.configure_section_starts(content.section_starts,content.chapters.size())
@@ -97,6 +99,13 @@ func bond_available(entry: Dictionary) -> bool:
 
 func info() -> Dictionary:
 	return content.chapters[chapter]
+
+func phase_scene_token(scene: Dictionary) -> String:
+	return "phase_scene_%d_%s"%[chapter,scene.id]
+
+func pending_phase_scenes() -> Array:
+	return info().get("phase_scenes",[]).filter(func(scene):
+		return scene.turn==turn and scene.phase==phase and not scene.lines.is_empty() and phase_scene_token(scene) not in story_seen)
 
 func board_size() -> Vector2i:
 	return Vector2i(info().map[0].length(),info().map.size())
@@ -555,7 +564,7 @@ func valid_save(data) -> bool:
 	if not supports.valid_state(data.get("supports",{})) or not supports.valid_state(data.get("battle_supports",{})):return false
 	if not data.roster is Array or data.roster.size()<content.roster.size() or data.roster.size()>recruit_templates.size():return false
 	if not data.units is Array or not data.deployed is Array or not data.get("story_seen",[]) is Array:return false
-	if data.units.size()>64 or data.get("story_seen",[]).size()>128:return false
+	if data.units.size()>64 or data.get("story_seen",[]).size()>story_limit:return false
 	for flag in data.get("story_seen",[]):
 		if not flag is String or flag.length()>64:return false
 	var ids={}

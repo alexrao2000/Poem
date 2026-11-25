@@ -16,6 +16,7 @@ var brush=0
 var selected_person=0
 var selected_bond=0
 var selected_enemy=0
+var selected_scene=0
 var encounter_panel: VBoxContainer
 var grid: Control
 var status: Label
@@ -238,6 +239,49 @@ func build_story(panel: VBoxContainer):
  var x=spin(roundi(layout.route_position[0]*100),0,100,func(value):layout.route_position[0]=value/100.0;changed())
  var y=spin(roundi(layout.route_position[1]*100),0,100,func(value):layout.route_position[1]=value/100.0;changed())
  field_label(route,"Route pin X %",x);field_label(route,"Y %",y)
+ var events=VBoxContainer.new();events.add_theme_constant_override("separation",8);panel.add_child(events)
+ build_phase_scenes(events,record)
+
+func build_phase_scenes(panel: VBoxContainer,record: Dictionary):
+ for child in panel.get_children():panel.remove_child(child);child.queue_free()
+ heading(panel,"Battle dialogue",21)
+ var scenes=record.get("phase_scenes",[])
+ var actions=row(panel)
+ action(actions,"Add phase scene",func():
+  var ids=scenes.map(func(scene):return scene.id)
+  var number=1
+  while "scene_%02d"%number in ids:number+=1
+  scenes.append({"id":"scene_%02d"%number,"turn":1,"phase":"player","lines":[]})
+  record.phase_scenes=scenes
+  selected_scene=scenes.size()-1;changed();build_phase_scenes(panel,record),scenes.size()>=Draft.MAX_PHASE_SCENES).name="EditorAddPhaseScene"
+ if scenes.is_empty():return
+ selected_scene=clampi(selected_scene,0,scenes.size()-1)
+ var index=selected_scene
+ var scene=scenes[index]
+ action(actions,"Remove phase scene",func():confirm_remove_phase_scene(scenes,index,build_phase_scenes.bind(panel,record)))
+ var picker=OptionButton.new();picker.name="EditorPhaseScene";picker.custom_minimum_size.y=42
+ for stored in scenes:picker.add_item(phase_scene_label(stored))
+ picker.select(index);picker.item_selected.connect(func(value):selected_scene=value;build_phase_scenes(panel,record));panel.add_child(picker)
+ var trigger=row(panel)
+ var turn=spin(int(scene.turn),1,99,func(value):
+  scene.turn=int(value);picker.set_item_text(index,phase_scene_label(scene));changed())
+ turn.name="EditorPhaseSceneTurn";field_label(trigger,"Turn",turn)
+ var phase=choice(["player","enemy"],scene.phase,func(value):
+  scene.phase=value;picker.set_item_text(index,phase_scene_label(scene));changed())
+ phase.name="EditorPhaseScenePhase";field_label(trigger,"Phase",phase)
+ var original_lines=scene.lines.duplicate(true)
+ var lines=multiline(dialogue_text(original_lines),132,func(value):scene.lines=parse_dialogue(value,original_lines);changed())
+ lines.name="EditorPhaseSceneLines";panel.add_child(lines)
+
+func phase_scene_label(scene: Dictionary) -> String:
+ return "Turn %d · %s phase"%[scene.turn,scene.phase.capitalize()]
+
+func confirm_remove_phase_scene(scenes: Array,index: int,refresh: Callable):
+ var dialog=ConfirmationDialog.new();dialog.title="Remove this phase scene?"
+ dialog.dialog_text="This removes its dialogue and phase trigger."
+ add_child(dialog);dialog.popup_centered()
+ dialog.confirmed.connect(func():scenes.remove_at(index);changed();refresh.call();dialog.queue_free())
+ dialog.canceled.connect(dialog.queue_free)
 
 func build_company(panel: VBoxContainer):
  var company=draft.data.recruits
@@ -404,6 +448,7 @@ func parse_dialogue(text: String,original: Array) -> Array:
 func select_chapter(index: int):
  selected=index
  selected_enemy=0
+ selected_scene=0
  draft_selection_changed.emit(draft_key,selected)
  rebuild()
 

@@ -7,6 +7,7 @@ const FORMAT="poem-campaign"
 const VERSION=1
 const MAX_CHAPTERS=32
 const MAX_CUSTOM_RECRUITS=16
+const MAX_PHASE_SCENES=8
 const MAX_DRAFT_LENGTH=1000000
 const ENVIRONMENTS=["village","river","forest","abbey","road","harbor","mountain","aqueduct","observatory","furnace","castle","engine"]
 const OBJECTIVES=["rout","boss","seize","survive"]
@@ -96,6 +97,8 @@ func recruit_in_use(id: String) -> bool:
    if dialogue_uses(scene.lines,id):return true
  for chapter in data.chapters:
   if dialogue_uses(chapter.opening,id) or dialogue_uses(chapter.closing,id):return true
+  for scene in chapter.get("phase_scenes",[]):
+   if dialogue_uses(scene.lines,id):return true
  return false
 
 static func dialogue_uses(lines: Array,id: String) -> bool:
@@ -136,6 +139,9 @@ func insert_chapter(after: int,copy_current: bool,valley_table=false) -> int:
   record.opening=[{"speaker":"lyra","text":"Pull the seals off the chart. I want to see every road into the capital."},
    {"speaker":"oren","text":"We drew those crossings at the same scale. Put a company on each road and see where they can meet."}]
   record.closing=[{"speaker":"lyra","text":"The capital’s road is open. Send word to every company still on the map."}]
+  record.phase_scenes=[{"id":"capital_standard","turn":3,"phase":"player","lines":[
+   {"speaker":"oren","text":"From the abbey road you can see both banks. Keep the crossings open behind us."},
+   {"speaker":"lyra","text":"When we raise the standard, every company in the valley will know which road to take."}]}]
  if copy_current:
   record=data.chapters[after].duplicate(true)
   record.level.title+=" (copy)"
@@ -199,6 +205,7 @@ func structural_problem(document) -> String:
   var level_issue=map_structure_problem(chapter.level)
   if not level_issue.is_empty():return level_issue
   if not dialogue_valid(chapter.get("opening")) or not dialogue_valid(chapter.get("closing")):return "A chapter has an invalid dialogue line."
+  if not phase_scenes_valid(chapter.get("phase_scenes",[])):return "A chapter has an invalid phase scene."
   keys[chapter.key]=true
  if not document.chapters[0].section:return "The opening chapter must start a section."
  var known=templates.roster.map(func(recruit):return recruit.id)
@@ -237,6 +244,17 @@ func structural_problem(document) -> String:
  for key in (["permadeath"]+Settings.SWITCHES.map(func(setting):return setting.key)):
   if not document.settings.get(key) is bool:return "A campaign rules switch is missing."
  return ""
+
+func phase_scenes_valid(scenes) -> bool:
+ if not scenes is Array or scenes.size()>MAX_PHASE_SCENES:return false
+ var found={}
+ for scene in scenes:
+  if not scene is Dictionary or not valid_text(scene.get("id"),32) or not scene.id.is_valid_identifier() or found.has(scene.id):
+   return false
+  if not integer(scene.get("turn"),1,99) or scene.get("phase") not in ["player","enemy"] or not dialogue_valid(scene.get("lines")):
+   return false
+  found[scene.id]=true
+ return true
 
 func bond_structure_problem(bonds,people: Dictionary,chapter_keys: Dictionary) -> String:
  if not bonds is Array or bonds.size()>people.size()/2.0:return "A company member can have one authored bond."
@@ -344,6 +362,7 @@ func compile() -> Dictionary:
   for field in LEVEL_FIELDS:
    if chapter.level.has(field):level[field]=chapter.level[field]
   level=level.duplicate(true)
+  if chapter.has("phase_scenes"):level.phase_scenes=chapter.phase_scenes.duplicate(true)
   level.id=index
   level.boss=level.enemies[0].get("name","")
   if level.boss.is_empty():level.boss="Garrison commander"

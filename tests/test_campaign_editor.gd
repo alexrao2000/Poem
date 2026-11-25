@@ -25,6 +25,14 @@ func finish_presentation(app):
   if is_instance_valid(app.reward_panel):app.reward_panel.request_continue()
  assert(not app.busy and app.screen!="dialogue")
 
+func await_phase_dialogue(app,text_value: String):
+ var deadline=Time.get_ticks_msec()+3000
+ while app.screen!="dialogue" and Time.get_ticks_msec()<deadline:
+  if app.chapter_card_active:app.chapter_card_skip=true
+  if app.phase_banner_active:app.phase_skip=true
+  await process_frame
+ assert(app.screen=="dialogue" and app.dialogue_label.text==text_value)
+
 func check_document():
  var draft=Draft.new()
  assert(draft.playtest_problem().is_empty())
@@ -40,6 +48,8 @@ func check_document():
  assert("unpaired" in draft.decode(JSON.stringify(broken)))
  broken=canonical(draft.data);broken.chapters[0].level.enemies[0].item="field_staff"
  assert("class cannot use" in draft.decode(JSON.stringify(broken)))
+ broken=canonical(draft.data);broken.chapters[0].phase_scenes=[{"id":"scene_01","phase":"invalid","turn":2,"lines":[]}]
+ assert("phase scene" in draft.decode(JSON.stringify(broken)))
  assert(canonical(draft.data)==JSON.parse_string(original))
  var selected=draft.insert_chapter(2,true)
  assert(selected==3 and draft.data.chapters[selected].key!="chapter_03")
@@ -158,6 +168,19 @@ func run():
  controls(app,"Deploy in the opening chapter").button_pressed=true
  editor.chapter().opening=[{"speaker":custom.id,"text":"We can take the upper road."}]
  assert(editor.draft.recruit_in_use(custom.id))
+ book=editor.find_child("CampaignEditorTabs",true,false)
+ book.current_tab=book.get_tab_idx_from_control(editor.find_child("Story",true,false))
+ await process_frame
+ controls(app,"Add phase scene").pressed.emit();await process_frame
+ var phase_text=editor.find_child("EditorPhaseSceneLines",true,false)
+ phase_text.text=custom.id+" | The signal is ours.";phase_text.text_changed.emit()
+ controls(app,"Add phase scene").pressed.emit();await process_frame
+ var side_picker=editor.find_child("EditorPhaseScenePhase",true,false)
+ side_picker.select(1);side_picker.item_selected.emit(1)
+ phase_text=editor.find_child("EditorPhaseSceneLines",true,false)
+ phase_text.text="narrator | Their line is already moving.";phase_text.text_changed.emit()
+ editor.draft.data.settings.action_saves=true
+ assert(editor.chapter().phase_scenes.size()==2 and editor.chapter().phase_scenes[1].phase=="enemy")
  editor.find_child("AddValleyBattle",true,false).pressed.emit()
  assert(editor.selected==1 and editor.level().map.size()==16 and editor.level().map[0].length()==24)
  var chart=editor.level()
@@ -234,7 +257,22 @@ func run():
  var playable_bond=app.game.supports.entry_for(first_bond.id)
  assert(playable_bond.scenes[0].title=="Watch on the river" and playable_bond.chapters==[1,1,1])
  app.preferences.values.auto_end=false
- controls(app,"Deploy company  >").pressed.emit();await finish_presentation(app)
+ controls(app,"Deploy company  >").pressed.emit()
+ await await_phase_dialogue(app,"The signal is ours.")
+ assert(app.game.turn==1 and app.game.phase=="player" and app.busy)
+ var pending=app.game.pending_phase_scenes()
+ var player_key=app.game.phase_scene_token(pending[0])
+ var unfinished=app.game.read_saved_data(app.campaign_save_path())
+ assert(player_key not in unfinished.story_seen and unfinished.stage=="battle")
+ await finish_presentation(app)
+ assert(player_key in app.game.read_saved_data(app.campaign_save_path()).story_seen)
+ assert(app.game.restore_save(unfinished)=="battle")
+ app.resume_saved_battle()
+ await await_phase_dialogue(app,"The signal is ours.")
+ await finish_presentation(app)
+ assert(app.game.pending_phase_scenes().is_empty())
+ app.resume_saved_battle();await finish_presentation(app)
+ assert(app.game.story_seen.count(player_key)==1 and app.screen=="battle")
  var deployed_linden=app.game.units.filter(func(unit):return unit.id==custom.id)[0]
  assert(app.unit_nodes[custom.id].visual_id=="recruit.sera")
  var actor=app.make_preview_fighter(deployed_linden,Vector3(35,0,0),"revised")
@@ -245,6 +283,13 @@ func run():
  var edited_save=custom_save.duplicate(true)
  edited_save.roster.filter(func(unit):return unit.id==custom.id)[0].art_id="lyra"
  assert(not app.game.valid_save(edited_save))
+ app.end_turn()
+ await await_phase_dialogue(app,"Their line is already moving.")
+ var enemy_scene=app.game.pending_phase_scenes()[0]
+ var enemy_key=app.game.phase_scene_token(enemy_scene)
+ assert(app.game.turn==1 and app.game.phase=="enemy" and app.game.living("enemy").all(func(enemy):return not enemy.acted))
+ await finish_presentation(app)
+ assert(app.game.turn==2 and app.game.phase=="player" and enemy_key in app.game.read_saved_data(app.campaign_save_path()).story_seen)
  await capture_tile(app,Vector2i(0,3))
  controls(app,"Continue the chronicle").pressed.emit();await finish_presentation(app)
  assert(app.screen=="camp" and app.game.chapter==1 and app.game.info().presentation=="valley_table")
@@ -346,5 +391,5 @@ func run():
  assert(app.screen=="campaign_route" and app.game==installed and app.game.save_data("camp")==route_state)
  assert(FileAccess.get_file_as_string(app.save_path)==disk)
  await Shutdown.dispose(app);await process_frame
- print("PASS: campaign JSON and chapter order, custom recruit portrait, map sprite, 3D model and ending, authored encounters and bonds, chapter 32 saves, two complete chapters, valley reveal and sites, and isolated resume")
+ print("PASS: campaign JSON and chapter order, custom recruit presentation, authored phase scenes and durable replay, authored encounters and bonds, chapter 32 saves, two complete chapters, valley reveal and sites, and isolated resume")
  quit()

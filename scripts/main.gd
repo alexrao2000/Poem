@@ -803,6 +803,7 @@ func deploy_company():
 	if game.info().get("presentation","")=="valley_table":await reveal_valley_battle()
 	await announce_chapter()
 	await announce_phase("player")
+	await present_phase_scenes()
 	busy=false;update_side()
 
 func reveal_valley_battle():
@@ -835,6 +836,17 @@ func announce_phase(side: String):
 	var banner=PhaseBanner.new();banner.configure(ui,side,game.turn)
 	await banner.play(func():return phase_skip)
 	ui.remove_child(banner);banner.queue_free();phase_banner_active=false
+
+func present_phase_scenes() -> bool:
+	for scene in game.pending_phase_scenes():
+		var finished=[false]
+		show_dialogue(scene.lines,func():finished[0]=true)
+		while not finished[0]:await get_tree().process_frame
+		game.story_seen.append(game.phase_scene_token(scene))
+		show_battle()
+		if not persist_campaign("battle",true,"phase_scene") and game.action_saves:
+			busy=false;update_side();return false
+	return true
 
 func show_battle():
 	prefetch_battle_models()
@@ -1326,6 +1338,7 @@ func end_turn(resuming=false):
 		await present_casualties(losses)
 		if await check_result():busy=false;return
 		update_side();await announce_phase("enemy")
+	if not await present_phase_scenes():return
 	for e in game.living("enemy"):
 		if e.acted:continue
 		if game.result()!="":break
@@ -1363,6 +1376,7 @@ func end_turn(resuming=false):
 	var allies=game.living("player")
 	if not allies.is_empty():await frame_map_action([allies[0]])
 	await announce_phase("player")
+	if not await present_phase_scenes():return
 	await show_terrain_recovery(recovery_before)
 	busy=false;update_side()
 	persist_campaign("battle")
@@ -2826,6 +2840,8 @@ func resume_saved_battle():
 	make_map();show_battle()
 	if await check_result():return
 	if game.phase=="enemy":await end_turn(true)
+	elif not game.pending_phase_scenes().is_empty():
+		busy=true;await present_phase_scenes();busy=false;update_side()
 
 func restart_summary() -> String:
 	var preview=game.trials.restart_preview(game);var modifiers=preview.enemies
