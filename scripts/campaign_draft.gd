@@ -19,7 +19,7 @@ const STRATEGIES=["pursue","sentry","guard"]
 const ROUTE_TERRAIN=["p","=","f","h","o","+"]
 const RECRUIT_STATS={"hp":[1,900],"pow":[0,200],"defense":[0,200],"resistance":[0,200],"speed":[0,200],"move":[1,20]}
 const LEVEL_FIELDS=["title","place","intro","outro","tactical_brief","map","route_position","environment","score_theme",
- "objective","objective_position","turn_limit","deployment_positions","enemies","hard_enemies","presentation","enemy_level"]
+ "objective","objective_position","turn_limit","deployment_positions","enemies","hard_enemies","presentation","enemy_level","hard_bonuses"]
 const MIN_BOARD=Vector2i(6,5)
 const MAX_BOARD=Vector2i(32,24)
 
@@ -365,6 +365,11 @@ func map_structure_problem(level: Dictionary) -> String:
   return "A chapter references an unknown presentation or objective."
  if not integer(level.get("turn_limit"),1,99):return "A survival limit must be between 1 and 99 phases."
  if not integer(level.get("enemy_level",0),0,Rules.MAX_LEVEL):return "Set a default enemy level from 0 to 99."
+ if level.has("hard_bonuses"):
+  var bonuses=level.hard_bonuses
+  if not bonuses is Dictionary or bonuses.size()!=Trials.HARD_BONUS_STATS.size():return "Set all four Hard enemy bonuses."
+  for stat in Trials.HARD_BONUS_STATS:
+   if not integer(bonuses.get(stat),0,Rules.STAT_CAPS[stat]):return "Set each Hard enemy bonus within its stat limit."
  if not level.get("route_position") is Array or level.route_position.size()!=2 or not level.route_position.all(
    func(value):return number(value) and value>=0 and value<=1):return "A route pin must stay on the map."
  if level.get("route_terrain","") not in ([""]+ROUTE_TERRAIN):return "Choose a terrain type for the route pin."

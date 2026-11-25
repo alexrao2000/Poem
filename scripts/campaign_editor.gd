@@ -186,6 +186,7 @@ func build_encounters():
  base_level.name="EditorEncounterBaseLevel"
  field_label(defaults,"Default enemy level",base_level)
  heading(encounter_panel,"Use 0 to scale by chapter number.",15)
+ build_hard_bonuses(layout)
  var enemies=layout.enemies+layout.hard_enemies
  if enemies.is_empty():
   heading(encounter_panel,"Place enemies on the Battle map to edit them here.",17)
@@ -243,6 +244,24 @@ func build_encounters():
   layout.enemies.remove_at(enemy_index);layout.enemies.push_front(enemy)
   selected_enemy=0;grid.queue_redraw();changed();build_encounters(),is_commander or enemy_index>=layout.enemies.size()).name="EditorMakeCommander"
  sync_encounter_arrival(enemy,enemy_index,layout.enemies.size(),selector)
+
+func build_hard_bonuses(layout: Dictionary):
+ var bonuses=layout.get("hard_bonuses",Trials.default_hard_bonuses(selected))
+ var custom=CheckButton.new();custom.name="EditorHardBonuses";custom.text="Set Hard enemy bonuses for this chapter"
+ custom.button_pressed=layout.has("hard_bonuses");encounter_panel.add_child(custom)
+ var fields=GridContainer.new();fields.columns=2;fields.visible=custom.button_pressed
+ fields.add_theme_constant_override("h_separation",12);fields.add_theme_constant_override("v_separation",8)
+ encounter_panel.add_child(fields)
+ for stat in Trials.HARD_BONUS_STATS:
+  var value=spin(int(bonuses[stat]),0,Draft.Rules.STAT_CAPS[stat],func(amount):bonuses[stat]=int(amount);changed())
+  value.name="EditorHardBonus_"+stat
+  field_label(fields,Trials.HARD_BONUS_STATS[stat],value)
+ var help=heading(encounter_panel,"Retry pressure adds to the chapter’s Hard bonuses.",15);help.visible=custom.button_pressed
+ custom.toggled.connect(func(enabled):
+  fields.visible=enabled;help.visible=enabled
+  if enabled:layout.hard_bonuses=bonuses
+  else:layout.erase("hard_bonuses")
+  changed())
 
 func sync_encounter_arrival(enemy: Dictionary,index: int,standard_count: int,selector: OptionButton):
  selector.set_item_text(index,encounter_name(enemy,index,standard_count))

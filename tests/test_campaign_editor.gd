@@ -267,6 +267,26 @@ func check_battle_readiness():
  level.enemies.clear()
  assert(draft.battle_readiness(0).title=="Needs edits")
 
+func check_chapter_hard_bonuses():
+ var draft=Draft.new()
+ var bonuses={"max_hp":3,"pow":4,"speed":-1,"defense":2}
+ draft.data.chapters[0].level.hard_bonuses=bonuses
+ assert(not draft.playtest_problem().is_empty())
+ bonuses.speed=0;assert(draft.playtest_problem().is_empty())
+ var content=draft.compile().content
+ var normal=Rules.new(content);normal.start_battle()
+ var hard=Rules.new(content);hard.new_campaign(true)
+ hard.trials.flags.hard_campaign=true;hard.trials.flags.reset_pressure=true;hard.trials.flags.section_restarts=true
+ hard.trials.pressure=1;hard.start_battle()
+ var regular_enemy=normal.living("enemy")[0]
+ var prepared_enemy=hard.living("enemy")[0]
+ assert(prepared_enemy.max_hp==regular_enemy.max_hp+5 and prepared_enemy.pow==regular_enemy.pow+5)
+ assert(prepared_enemy.speed==regular_enemy.speed and prepared_enemy.defense==regular_enemy.defense+2)
+ hard.chapter=1
+ var retry=hard.trials.restart_preview(hard)
+ assert(retry.chapter==0 and retry.enemies.max_hp==7 and retry.enemies.pow==6 and retry.enemies.held_tonics==0)
+ assert(normal.trials.enemy_modifiers(0).max_hp==0)
+
 func use_brush(editor,index: int,point: Vector2i,erase=false):
  var mode=editor.find_child("EditorBrush",true,false)
  mode.select(index);mode.item_selected.emit(index)
@@ -305,6 +325,7 @@ func run():
  check_war_table_sites()
  check_authored_relief()
  check_battle_readiness()
+ check_chapter_hard_bonuses()
  root.size=Vector2i(1440,900)
  var app=load("res://main.tscn").instantiate();app.settings_path="";app.save_path=scratch.path_join("normal.json")
  app.campaign_draft_library.path=scratch.path_join("drafts.json")
@@ -490,9 +511,17 @@ func run():
  encounter.select(reinforcement);encounter.item_selected.emit(reinforcement)
  editor.find_child("EditorEncounterLevel",true,false).value=9
  editor.find_child("EditorEncounterArrivalTurn",true,false).value=2
+ var defaults=Rules.new(editor.draft.compile().content)
+ defaults.chapter=1;defaults.trials.flags.hard_campaign=true;defaults.start_battle()
+ var default_wave=defaults.enemy_waves[0].unit
+ editor.find_child("EditorHardBonuses",true,false).button_pressed=true
+ editor.find_child("EditorHardBonus_max_hp",true,false).value=0
+ editor.find_child("EditorHardBonus_pow",true,false).value=4
+ assert(editor.level().hard_bonuses=={"max_hp":0,"pow":4,"speed":1,"defense":0})
  var hard=Rules.new(editor.draft.compile().content)
  hard.chapter=1;hard.trials.flags.hard_campaign=true;hard.start_battle()
  assert(hard.at(Vector2i(20,2))==null and hard.enemy_waves.size()==1)
+ assert(hard.enemy_waves[0].unit.max_hp==default_wave.max_hp-7 and hard.enemy_waves[0].unit.pow==default_wave.pow+2)
  hard.begin_enemy_phase();hard.next_player_turn()
  assert(hard.at(Vector2i(20,2)).level==9 and hard.at(Vector2i(20,2)).job=="Warden")
  assert(editor.draft.playtest_problem().is_empty(),editor.draft.playtest_problem())
@@ -885,5 +914,5 @@ func run():
  app.campaign_editor.find_child("EditorOpenDraft_"+saved_key,true,false).pressed.emit();await process_frame
  assert(app.campaign_editor.draft_key==saved_key and app.campaign_editor.draft.data.title==saved_title)
  await Shutdown.dispose(app);await process_frame
- print("PASS: campaign JSON file transfer, draft library management, campaign readiness, route pins, war-table site terrain, rising Valley landmarks, custom recruits, phase scenes, timed reinforcements, chapter 32 saves, section dialogue, authored section relief, authored legacy stock and purchase persistence, authored loss recruits, authored loss dialogue, reproducible playtest setup, Valley carryover, thirteen-chapter Valley template, and single-battle tests")
+ print("PASS: campaign JSON file transfer, draft library management, campaign readiness, authored Hard bonuses, route pins, war-table site terrain, rising Valley landmarks, custom recruits, phase scenes, timed reinforcements, chapter 32 saves, section dialogue, authored section relief, authored legacy stock and purchase persistence, authored loss recruits, authored loss dialogue, reproducible playtest setup, Valley carryover, thirteen-chapter Valley template, and single-battle tests")
  quit()

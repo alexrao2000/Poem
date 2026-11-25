@@ -4,9 +4,11 @@ extends RefCounted
 # pressure survive a rewind. Default settings leave the original campaign intact.
 
 const FLAGS={"section_restarts":false,"reset_pressure":false,"hard_campaign":false,"death_legacies":false,"sacrifice_cost":false}
+const HARD_BONUS_STATS={"max_hp":"Maximum HP","pow":"Attack","speed":"Speed","defense":"Defense"}
 const LEGACY_STOCK=[{"id":"tempered_sword","cost":1,"losses":1},{"id":"war_hammer","cost":2,"losses":2},{"id":"longbow","cost":3,"losses":3},{"id":"rally_lance","cost":2,"losses":2},{"id":"vigil_staff","cost":2,"losses":2}]
 const LEGACY_ARRIVALS=[{"id":"faye","losses":1,"job":""},{"id":"noor","losses":3,"job":""}]
 var legacy_stock: Array=LEGACY_STOCK
+var chapter_hard_bonuses: Dictionary={}
 const SCENE_TITLES={"relief_4":"Relief at the abbey","relief_8":"Relief at the monastery","retreat_0":"Regrouping at Cinderford","retreat_4":"Return to the abbey","retreat_8":"Return to Starfall","volunteer_faye":"Faye answers the call","volunteer_noor":"Noor leaves the observatory","volunteer_maelin":"The hospice road","volunteer_tovin":"The lanes beneath the hedge","memorial_0":"Names in the company book","memorial_4":"The abbey record","memorial_8":"The monastery bell"}
 var scenes: Dictionary=JSON.parse_string(FileAccess.get_file_as_string("res://data/campaign_trial_scenes.json"))
 var scene_titles: Dictionary=SCENE_TITLES
@@ -142,9 +144,17 @@ func early_volunteer(game,fallen_job: String) -> String:
   return recruit.name
  return ""
 
+static func default_hard_bonuses(chapter: int) -> Dictionary:
+ return {"max_hp":6+chapter,"pow":2+int(chapter/2),"speed":1+int(chapter/4),"defense":int(chapter/3)}
+
 func enemy_modifiers(chapter: int,pressure_override: int=-1) -> Dictionary:
  var extra=(pressure if pressure_override<0 else clampi(pressure_override,0,10)) if flags.reset_pressure else 0
- return {"max_hp":extra*2+(6+chapter if flags.hard_campaign else 0),"pow":extra+(2+int(chapter/2) if flags.hard_campaign else 0),"speed":1+int(chapter/4) if flags.hard_campaign else 0,"defense":int(chapter/3) if flags.hard_campaign else 0,"held_tonics":maxi(0,2-extra) if flags.reset_pressure else 0,"raiders_advance":extra>0,"raider_moves":extra}
+ var modifiers={"max_hp":extra*2,"pow":extra,"speed":0,"defense":0,
+  "held_tonics":maxi(0,2-extra) if flags.reset_pressure else 0,"raiders_advance":extra>0,"raider_moves":extra}
+ if flags.hard_campaign:
+  var bonuses=chapter_hard_bonuses.get(chapter,default_hard_bonuses(chapter))
+  for stat in HARD_BONUS_STATS:modifiers[stat]+=int(bonuses[stat])
+ return modifiers
 
 func restart_preview(game) -> Dictionary:
  var chapter=section_start(game.chapter) if flags.section_restarts and game.permadeath else game.chapter
