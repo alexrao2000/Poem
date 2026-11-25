@@ -162,6 +162,7 @@ func build_battle(panel: VBoxContainer):
  var history=row(panel)
  undo_terrain=action(history,"Undo terrain",func():step_terrain(false));undo_terrain.name="EditorUndoTerrain"
  redo_terrain=action(history,"Redo terrain",func():step_terrain(true));redo_terrain.name="EditorRedoTerrain"
+ action(history,"Edit terrain rows",show_terrain_rows).name="EditorEditTerrainRows"
  update_terrain_history()
  grid_help=heading(panel,"",15)
  placement_hint=heading(panel,"",15);placement_hint.name="EditorMovePlacementStatus"
@@ -233,6 +234,66 @@ func step_terrain(redo: bool):
  if grid.stroke_active or not draft.step_terrain(selected,redo):return
  grid.queue_redraw();grid.tile_inspected.emit(grid.cursor);grid.grab_focus()
  update_terrain_history();changed()
+
+func show_terrain_rows():
+ var layout=level()
+ var dimensions=grid.board_size()
+ var dialog=AcceptDialog.new()
+ dialog.name="EditorTerrainRows";dialog.title="Edit terrain rows"
+ dialog.ok_button_text="Apply terrain";dialog.dialog_hide_on_ok=false
+ dialog.wrap_controls=false
+ dialog.min_size=Vector2i(560,480)
+ add_child(dialog)
+ dialog.add_cancel_button("Cancel").name="EditorCancelTerrainRows"
+ dialog.canceled.connect(dialog.queue_free)
+ var panel=VBoxContainer.new()
+ panel.custom_minimum_size.x=400
+ panel.add_theme_constant_override("separation",8)
+ dialog.add_child(panel)
+ heading(panel,"Enter %d rows of %d tiles each."%[dimensions.y,dimensions.x],16).autowrap_mode=TextServer.AUTOWRAP_OFF
+ var legend=GridContainer.new()
+ legend.columns=3
+ legend.add_theme_constant_override("h_separation",16)
+ panel.add_child(legend)
+ for tile in Draft.Rules.TERRAIN_PROFILES:
+  var key=heading(legend,tile+"  "+Draft.Rules.TERRAIN_PROFILES[tile].name,15)
+  key.autowrap_mode=TextServer.AUTOWRAP_OFF
+ if not grid.marks.is_empty():
+  var underlay=heading(panel,"Route locations keep their assigned terrain.",15)
+  underlay.autowrap_mode=TextServer.AUTOWRAP_OFF
+ var field=TextEdit.new()
+ field.name="EditorTerrainRowsText";field.custom_minimum_size.y=240
+ field.size_flags_vertical=SIZE_EXPAND_FILL
+ field.text="\n".join(layout.map)
+ panel.add_child(field)
+ var error=heading(panel,"",15)
+ error.name="EditorTerrainRowsError";error.autowrap_mode=TextServer.AUTOWRAP_OFF
+ dialog.confirmed.connect(func():
+  var rows=Array(field.text.replace("\r\n","\n").trim_suffix("\n").split("\n"))
+  if rows.size()!=dimensions.y:
+   error.text="Expected %d rows. Found %d."%[dimensions.y,rows.size()]
+   return
+  for y in rows.size():
+   var line: String=rows[y]
+   if line.length()!=dimensions.x:
+    error.text="Row %d has %d tiles. Use exactly %d."%[y+1,line.length(),dimensions.x]
+    return
+   for x in line.length():
+    if not Draft.Rules.TERRAIN_PROFILES.has(line[x]):
+     error.text="Unknown terrain ‘%s’ at row %d, column %d."%[line[x],y+1,x+1]
+     return
+  if rows!=layout.map:
+   draft.remember_terrain(selected)
+   layout.map=rows
+   grid.queue_redraw()
+   grid.tile_inspected.emit(grid.cursor)
+   update_terrain_history()
+   changed()
+  dialog.hide()
+  dialog.queue_free()
+  grid.grab_focus())
+ dialog.popup_centered(dialog.min_size)
+ field.grab_focus()
 
 func paint_terrain_segment(points: Array[Vector2i],erase: bool):
  var layout=level()

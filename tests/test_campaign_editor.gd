@@ -638,6 +638,77 @@ func verify_editor_score_preview(app):
  assert(editor.draft.encode()==draft_before and canonical(app.game.save_data("camp"))==camp_before)
  assert(FileAccess.get_file_as_string(app.save_path)==disk_before)
 
+func verify_terrain_rows(app):
+ var editor=app.campaign_editor
+ root.size=Vector2i(720,640)
+ root.content_scale_size=Vector2i(720,640)
+ await process_frame
+ var original=editor.level().duplicate(true)
+ var rows=original.map.duplicate()
+ var old_history=editor.draft.terrain_history.duplicate(true)
+ var was_dirty=editor.dirty
+ controls(app,"Edit terrain rows").pressed.emit();await process_frame
+ var dialog=editor.get_node("EditorTerrainRows")
+ var field=dialog.find_child("EditorTerrainRowsText",true,false)
+ var feedback=dialog.find_child("EditorTerrainRowsError",true,false)
+ assert(root.get_visible_rect().encloses(Rect2(dialog.position,dialog.size)))
+ assert(Rect2(Vector2.ZERO,Vector2(dialog.size)).encloses(dialog.get_ok_button().get_global_rect()))
+ assert(field.text=="\n".join(rows))
+ field.text="."
+ dialog.confirmed.emit()
+ assert(feedback.text.begins_with("Expected %d rows."%rows.size()))
+ rows[0]=original.map[0].substr(1)
+ field.text="\n".join(rows)
+ dialog.confirmed.emit()
+ assert(feedback.text.begins_with("Row 1 has"))
+ rows[0]="?"+original.map[0].substr(1)
+ field.text="\n".join(rows)
+ dialog.confirmed.emit()
+ assert(feedback.text=="Unknown terrain ‘?’ at row 1, column 1.")
+ assert(dialog.visible and editor.level()==original and editor.dirty==was_dirty)
+ assert(editor.draft.terrain_history==old_history)
+ rows[0]="f"+original.map[0].substr(1)
+ rows[1]="h"+original.map[1].substr(1)
+ field.text="\r\n".join(rows)+"\r\n"
+ dialog.confirmed.emit();await process_frame
+ var expected=original.duplicate(true)
+ expected.map=rows
+ assert(not editor.has_node("EditorTerrainRows") and editor.level()==expected and editor.dirty)
+ controls(app,"Undo terrain").pressed.emit()
+ assert(editor.level()==original)
+ var redo_history=editor.draft.terrain_history.duplicate(true)
+ controls(app,"Edit terrain rows").pressed.emit();await process_frame
+ dialog=editor.get_node("EditorTerrainRows")
+ dialog.confirmed.emit();await process_frame
+ assert(editor.level()==original and editor.draft.terrain_history==redo_history)
+ controls(app,"Edit terrain rows").pressed.emit();await process_frame
+ dialog=editor.get_node("EditorTerrainRows")
+ dialog.find_child("EditorTerrainRowsText",true,false).text="."
+ dialog.find_child("EditorCancelTerrainRows",true,false).pressed.emit()
+ await process_frame
+ assert(not editor.has_node("EditorTerrainRows") and editor.level()==original)
+ controls(app,"Redo terrain").pressed.emit()
+ assert(editor.level()==expected)
+ root.size=Vector2i(1440,900)
+ root.content_scale_size=Vector2i(1440,900)
+ var tabs=editor.find_child("CampaignEditorTabs",true,false)
+ tabs.current_tab=tabs.get_tab_idx_from_control(editor.find_child("Route",true,false))
+ editor.level().route_terrain="o";editor.level().route_position=[.2,.4]
+ await process_frame
+ editor.find_child("EditorAddBlankWarTable",true,false).pressed.emit();await process_frame
+ tabs=editor.find_child("CampaignEditorTabs",true,false)
+ tabs.current_tab=0;await process_frame
+ var grid=editor.find_child("EditorGrid",true,false)
+ var landmark=grid.marks.keys()[0]
+ rows=editor.level().map.duplicate()
+ rows[landmark.y]=rows[landmark.y].left(landmark.x)+"f"+rows[landmark.y].substr(landmark.x+1)
+ controls(app,"Edit terrain rows").pressed.emit();await process_frame
+ dialog=editor.get_node("EditorTerrainRows")
+ dialog.find_child("EditorTerrainRowsText",true,false).text="\n".join(rows)
+ dialog.confirmed.emit();await process_frame
+ assert(editor.level().map[landmark.y][landmark.x]=="f" and grid.terrain_at(landmark)=="o")
+ assert(editor.draft.battle_level(editor.selected).map[landmark.y][landmark.x]=="o")
+
 func run():
  check_document()
  check_small_section_deployment()
@@ -1537,7 +1608,8 @@ func run():
  await verify_enemy_group_switch(app)
  await verify_multiple_standards(app)
  await verify_editor_score_preview(app)
+ await verify_terrain_rows(app)
  assert(FileAccess.get_file_as_string(app.save_path)==disk and app.game==installed)
  await Shutdown.dispose(app);await process_frame
- print("PASS: campaign JSON file transfer, draft library management, remembered playtest setup, campaign readiness, authored Hard bonuses, authored retry raiders, deployment comparison, authored formation previews, small deployment limits and save recovery, custom campaign atlas, terrain stroke undo, continuous terrain strokes, connected terrain fill, placement moves and swaps, repeated placement copies, switching enemy difficulty groups, editor music preview, multiple standards and exact resume, standard navigation and live progress, standards that follow route pins, route pins, war-table site terrain, war-table overlay, blank war-table chapter, rising Valley landmarks, Valley reveal sound cues, battlefield site markers, custom recruits, phase scenes, tile dialogue and reload, one-use field tonic caches, Valley landmark dialogue, dialogue that follows route pins, timed reinforcements, chapter 32 saves, section dialogue, authored section relief, authored legacy stock and purchase persistence, authored loss recruits, authored loss dialogue, reproducible playtest setup, Valley carryover and resume, thirteen-chapter Valley template, and single-battle tests")
+ print("PASS: campaign JSON file transfer, draft library management, remembered playtest setup, campaign readiness, authored Hard bonuses, authored retry raiders, deployment comparison, authored formation previews, small deployment limits and save recovery, custom campaign atlas, terrain stroke undo, bulk terrain rows, continuous terrain strokes, connected terrain fill, placement moves and swaps, repeated placement copies, switching enemy difficulty groups, editor music preview, multiple standards and exact resume, standard navigation and live progress, standards that follow route pins, route pins, war-table site terrain, war-table overlay, blank war-table chapter, rising Valley landmarks, Valley reveal sound cues, battlefield site markers, custom recruits, phase scenes, tile dialogue and reload, one-use field tonic caches, Valley landmark dialogue, dialogue that follows route pins, timed reinforcements, chapter 32 saves, section dialogue, authored section relief, authored legacy stock and purchase persistence, authored loss recruits, authored loss dialogue, reproducible playtest setup, Valley carryover and resume, thirteen-chapter Valley template, and single-battle tests")
  quit()

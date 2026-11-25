@@ -20,6 +20,8 @@ Use Preview score in Battle to listen to the selected chapter theme. Calm and Ab
 
 Drag to paint a continuous line with the terrain brush. Leaving and reentering the board starts a fresh line in the same stroke. Undo terrain and Redo terrain reverse whole brush strokes. On the focused Battle grid, use Command-Z or Control-Z to undo and add Shift to redo. Resizing a board starts a fresh terrain history for that chapter.
 
+Use Edit terrain rows in Battle to copy or paste the full grid as text. Each character represents one tile, and the dimensions match the current grid. Apply terrain records one undoable edit. Deployment, objectives, scene positions, and inherited route terrain keep their current placement.
+
 Switch on Fill connected area to paint touching tiles of the same terrain in one step. The fill stops at different terrain and inherited route tiles. Undo terrain reverses the whole fill.
 
 Use Move placement to relocate a deployment tile or enemy with its equipment, level, strategy, and arrival settings. Select another placement to swap their tiles. Right-click or press Escape to cancel the selection.
