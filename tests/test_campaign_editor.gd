@@ -1116,6 +1116,78 @@ func verify_valley_roads_template(app):
  controls(app,"Return to editor").pressed.emit();await process_frame
  assert(app.screen=="campaign_editor" and app.game==saved and FileAccess.get_file_as_string(app.save_path)==disk)
 
+func verify_arena_previews(app):
+ var draft=app.campaign_editor.draft
+ var recorded=draft.encode()
+ var saved=canonical(app.game.save_data("camp"))
+ var disk=FileAccess.get_file_as_string(app.save_path)
+ var original_size=root.size
+ var original_scale=root.content_scale_size
+ for dimensions in [Vector2i(720,640),Vector2i(1440,900)]:
+  root.size=dimensions
+  root.content_scale_size=dimensions
+  var editor=app.campaign_editor
+  var tabs=editor.find_child("CampaignEditorTabs",true,false)
+  var battle=editor.find_child("Battle",true,false)
+  tabs.current_tab=tabs.get_tab_idx_from_control(battle)
+  editor.grid.cursor=Vector2i(12,8)
+  await process_frame;await process_frame
+  battle.scroll_vertical=48
+  await process_frame
+  var previous_scroll=battle.scroll_vertical
+  controls(app,"Preview arena").pressed.emit()
+  await process_frame;await process_frame
+  assert(app.screen=="arena_preview" and app.stage.visible and not app.world.visible)
+  assert(app.stage.has_node("ArenaPreviewCamera") and app.stage.has_node("KingsroadCargoHoist"))
+  assert(app.stage.get_meta("terrain")=="=")
+  assert(app.stage.get_meta("environment")=="road" and app.field_audio.requested_theme=="road")
+  assert(app.ui.get_node("CombatCaption").text=="Road · Bridge · M-9")
+  var return_button=controls(app,"Return to editor [Esc]")
+  assert(root.get_visible_rect().encloses(return_button.get_global_rect()) and return_button.has_focus())
+  if dimensions.x==720:
+   var escape=InputEventKey.new();escape.keycode=KEY_ESCAPE;escape.pressed=true
+   app._unhandled_input(escape)
+  else:return_button.pressed.emit()
+  for frame in 4:await process_frame
+  assert(app.screen=="campaign_editor" and app.campaign_editor.draft==draft and not app.stage.visible)
+  assert(app.campaign_editor.selected==11 and app.campaign_editor.grid.cursor==Vector2i(12,8))
+  assert(app.campaign_editor.find_child("Battle",true,false).scroll_vertical==previous_scroll)
+  assert(app.campaign_editor.find_child("EditorPreviewArena",true,false).has_focus())
+  assert(canonical(app.game.save_data("camp"))==saved and draft.encode()==recorded and FileAccess.get_file_as_string(app.save_path)==disk)
+ root.size=Vector2i(720,640)
+ root.content_scale_size=Vector2i(720,640)
+ var editor=app.campaign_editor
+ var chapters=editor.find_child("EditorChapter",true,false)
+ chapters.select(4);chapters.item_selected.emit(4)
+ var tabs=editor.find_child("CampaignEditorTabs",true,false)
+ var route=editor.find_child("Route",true,false)
+ tabs.current_tab=tabs.get_tab_idx_from_control(route)
+ await process_frame
+ var table=editor.find_child("EditorRouteSurvey",true,false)
+ var preview=editor.find_child("EditorPreviewRouteArena",true,false)
+ assert(not preview.visible)
+ table.select(1);table.item_selected.emit(1)
+ await process_frame;await process_frame
+ route.ensure_control_visible(preview)
+ await process_frame
+ var route_scroll=route.scroll_vertical
+ assert(preview.visible and route_scroll>0 and route.get_global_rect().encloses(preview.get_global_rect()))
+ preview.pressed.emit();await process_frame
+ assert(app.screen=="arena_preview" and app.stage.has_node("KingsroadCargoHoist"))
+ assert(app.ui.get_node("CombatCaption").text=="Road · Bridge · M-9")
+ controls(app,"Return to editor [Esc]").pressed.emit()
+ for frame in 4:await process_frame
+ editor=app.campaign_editor
+ assert(app.screen=="campaign_editor" and editor.selected==4 and editor.draft==draft)
+ assert(editor.find_child("EditorRouteSurvey",true,false).selected==1)
+ assert(editor.survey_chapter==draft.data.chapters[11].key)
+ assert(editor.find_child("Route",true,false).scroll_vertical==route_scroll)
+ assert(editor.find_child("EditorPreviewRouteArena",true,false).has_focus())
+ assert(canonical(app.game.save_data("camp"))==saved and draft.encode()==recorded and FileAccess.get_file_as_string(app.save_path)==disk)
+ root.size=original_size
+ root.content_scale_size=original_scale
+ await process_frame
+
 func run():
  check_document()
  check_small_section_deployment()
@@ -2079,7 +2151,8 @@ func run():
  await verify_site_recruitment(app)
  await verify_route_arena_reuse(app)
  await verify_valley_roads_template(app)
+ await verify_arena_previews(app)
  assert(FileAccess.get_file_as_string(app.save_path)==disk and app.game==installed)
  await Shutdown.dispose(app);await process_frame
- print("PASS: campaign JSON file transfer, draft library management, remembered playtest setup, campaign readiness, authored Hard bonuses, authored retry raiders, deployment comparison, authored formation previews, small deployment limits and save recovery, custom campaign atlas, terrain stroke undo, bulk terrain rows, editor dialogs at two viewport sizes, direct chapter reordering, continuous terrain strokes, connected terrain fill, placement moves and swaps, repeated placement copies, switching enemy difficulty groups, editor music preview, multiple standards and exact resume, standard navigation and live progress, standards that follow route pins, route pins, war-table site terrain, war-table overlay, blank war-table chapter, rising Valley landmarks, local war-table arena landmarks including Kingsroad and Windscar, authored route arenas, fading route seals, war-table landmark index and shared survey marks, Valley reveal sound cues, battlefield site markers, custom recruits, phase scenes, tile dialogue and reload, recruitment on battlefield sites, authored recruit starting equipment, live recruit art previews, 3D recruit preview and editor return, navigation between available sites, one-use field tonic caches, Valley landmark dialogue, dialogue that follows route pins, timed reinforcements, chapter 32 saves, section dialogue, authored section relief, authored legacy stock and purchase persistence, authored loss recruits, authored loss dialogue, reproducible playtest setup, Valley carryover and resume, thirteen-chapter Valley template, built-in Hold the Valley Roads trial, and single-battle tests")
+ print("PASS: campaign JSON file transfer, draft library management, remembered playtest setup, campaign readiness, authored Hard bonuses, authored retry raiders, deployment comparison, authored formation previews, small deployment limits and save recovery, custom campaign atlas, terrain stroke undo, bulk terrain rows, editor dialogs at two viewport sizes, direct chapter reordering, continuous terrain strokes, connected terrain fill, placement moves and swaps, repeated placement copies, switching enemy difficulty groups, editor music preview, multiple standards and exact resume, standard navigation and live progress, standards that follow route pins, route pins, war-table site terrain, war-table overlay, blank war-table chapter, rising Valley landmarks, local war-table arena landmarks including Kingsroad and Windscar, authored route arenas, fading route seals, war-table landmark index and shared survey marks, Valley reveal sound cues, battlefield site markers, custom recruits, phase scenes, tile dialogue and reload, recruitment on battlefield sites, authored recruit starting equipment, live recruit art previews, 3D recruit preview and editor return, navigation between available sites, one-use field tonic caches, Valley landmark dialogue, dialogue that follows route pins, timed reinforcements, chapter 32 saves, section dialogue, authored section relief, authored legacy stock and purchase persistence, authored loss recruits, authored loss dialogue, reproducible playtest setup, Valley carryover and resume, thirteen-chapter Valley template, built-in Hold the Valley Roads trial, 3D arena previews from Battle and Route, and single-battle tests")
  quit()

@@ -4,6 +4,7 @@ signal playtest_requested(start: int, resume: bool, single_battle: bool)
 signal draft_selection_changed(key: String, chapter: int)
 signal score_preview_requested(theme_id: String)
 signal recruit_preview_requested(recruit: Dictionary)
+signal arena_preview_requested(chapter_index: int, tile: Vector2i, from_route: bool)
 const Draft=preload("res://scripts/campaign_draft.gd")
 const Grid=preload("res://scripts/campaign_editor_grid.gd")
 const Route=preload("res://scripts/campaign_route.gd")
@@ -128,7 +129,15 @@ func build_battle(panel: VBoxContainer):
  field_label(parameters,"Objective",choice(Draft.OBJECTIVES,layout.objective,func(value):
   layout.objective=value;grid.marks=draft.valley_marks(selected);refresh_linked_standards();show_brush_options();changed()))
  field_label(parameters,"Phase limit",spin(int(layout.turn_limit),1,99,func(value):layout.turn_limit=value;changed()))
- field_label(parameters,"Environment",choice(Draft.ENVIRONMENTS,layout.environment,func(value):layout.environment=value;changed()))
+ var environment_controls=HBoxContainer.new();environment_controls.add_theme_constant_override("separation",8)
+ var environment=choice(Draft.ENVIRONMENTS,layout.environment,func(value):layout.environment=value;changed())
+ environment.clip_text=true;environment.fit_to_longest_item=false
+ environment.size_flags_horizontal=SIZE_EXPAND_FILL
+ environment_controls.add_child(environment)
+ var arena=action(environment_controls,"Preview arena",func():arena_preview_requested.emit(selected,grid.cursor,false))
+ arena.name="EditorPreviewArena";arena.size_flags_horizontal=SIZE_FILL
+ arena.tooltip_text="Show the close-up scenery for the highlighted tile."
+ field_label(parameters,"Environment",environment_controls)
  var score_controls=HBoxContainer.new();score_controls.add_theme_constant_override("separation",8)
  var theme=choice(draft.music_ids,layout.score_theme,func(value):layout.score_theme=value;changed())
  theme.name="EditorScoreTheme";theme.size_flags_horizontal=SIZE_EXPAND_FILL;score_controls.add_child(theme)
@@ -684,6 +693,10 @@ func build_route_survey(panel: VBoxContainer,chart: Control) -> Callable:
   if record.key==survey_chapter:picker.select(picker.item_count-1)
  field_label(row(panel),"War-table overlay",picker)
  var location=heading(panel,"",15);location.name="EditorRouteSurveyTile"
+ var preview=action(panel,"Preview arena",func():
+  var index=draft.index_for(picker.get_selected_metadata())
+  arena_preview_requested.emit(index,chart.survey_cells[selected],true))
+ preview.name="EditorPreviewRouteArena"
  var require=CheckButton.new();require.name="EditorRequireRouteStandard";require.text="Require this pin as a standard";panel.add_child(require)
  var refresh=func():
   var key=picker.get_selected_metadata()
@@ -691,6 +704,7 @@ func build_route_survey(panel: VBoxContainer,chart: Control) -> Callable:
   var battle=draft.battle_level(index) if index>=0 else {}
   chart.set_war_table_overlay(battle)
   location.visible=index>=0
+  preview.visible=index>=0
   require.hide()
   if index>=0:
    picker.set_item_text(picker.selected,"%02d · %s"%[index+1,draft.data.chapters[index].level.title])

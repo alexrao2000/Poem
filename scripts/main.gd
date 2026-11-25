@@ -541,31 +541,63 @@ func show_campaign_editor(return_to: String,view_state: Dictionary={}):
 	campaign_editor=preload("res://scripts/campaign_editor.gd").new();panel.add_child(campaign_editor)
 	campaign_editor.active_tab=view_state.get("tab",0)
 	campaign_editor.selected_person=view_state.get("person",0)
+	campaign_editor.survey_chapter=view_state.get("survey","")
 	campaign_editor.configure(campaign_draft,campaign_draft_library,campaign_editor_key,campaign_editor_chapter,campaign_playtest_setup,portraits,map_catalog)
 	if view_state.has("cursor"):campaign_editor.grid.cursor=view_state.cursor
 	campaign_editor.closed.connect(close_campaign_editor)
 	campaign_editor.score_preview_requested.connect(open_editor_score_preview)
 	campaign_editor.recruit_preview_requested.connect(open_editor_recruit_preview)
+	campaign_editor.arena_preview_requested.connect(open_editor_arena_preview)
 	campaign_editor.draft_selection_changed.connect(func(key,index):
 		campaign_editor_key=key;campaign_editor_chapter=index)
 	campaign_editor.playtest_requested.connect(func(index,resume,single_battle):
 		start_campaign_preview(campaign_draft.compile(),index,resume,"chapter" if single_battle else "editor",campaign_playtest_setup))
 
-func open_editor_recruit_preview(unit: Dictionary):
-	if screen!="campaign_editor":return
-	var company=campaign_editor.find_child("Company",true,false)
-	var view_state={
+func editor_preview_state(panel_name: String,control_name: String) -> Dictionary:
+	var panel=campaign_editor.find_child(panel_name,true,false)
+	return {
 		"tab":campaign_editor.active_tab,
 		"person":campaign_editor.selected_person,
+		"survey":campaign_editor.survey_chapter,
 		"cursor":campaign_editor.grid.cursor,
-		"scroll":company.scroll_vertical,
+		"scroll":panel.scroll_vertical,
+		"panel":panel_name,
+		"control":control_name,
 	}
+
+func open_editor_recruit_preview(unit: Dictionary):
+	if screen!="campaign_editor":return
+	var view_state=editor_preview_state("Company","EditorRecruitModel")
 	var return_to=campaign_editor_return
 	var preview_context={"environment":campaign_editor.level().environment}
 	game.normalize_equipment(unit)
-	show_model_view(unit,func():restore_editor_after_recruit_preview(return_to,view_state),{},"",preview_context)
+	show_model_view(unit,func():restore_editor_after_preview(return_to,view_state),{},"",preview_context)
 
-func restore_editor_after_recruit_preview(return_to: String,view_state: Dictionary):
+func open_editor_arena_preview(chapter_index: int,tile: Vector2i,from_route: bool):
+	if screen!="campaign_editor":return
+	var view_state=editor_preview_state("Route","EditorPreviewRouteArena") if from_route else editor_preview_state("Battle","EditorPreviewArena")
+	var return_to=campaign_editor_return
+	var preview_game=Rules.new(campaign_draft.compile().content)
+	preview_game.chapter=chapter_index
+	var neighbor=tile+(Vector2i.LEFT if tile.x>0 else Vector2i.RIGHT)
+	var arena=scenery.combat_context(preview_game,{"x":neighbor.x,"y":neighbor.y},{"x":tile.x,"y":tile.y})
+	var terrain=preview_game.terrain_profile(tile)
+	var coordinate=ValleyBattle.survey_mark(tile) if preview_game.info().presentation=="valley_table" else "%d, %d"%[tile.x,tile.y]
+	var headings="%s · %s · %s"%[arena.environment.capitalize(),terrain.name,coordinate]
+	screen="arena_preview";preview_return=func():restore_editor_after_preview(return_to,view_state)
+	reset_ui()
+	prepare_stage_preview(arena)
+	field_audio.select(arena.environment)
+	var director=CombatCamera.new();director.name="ArenaPreviewCamera";stage.add_child(director)
+	director.configure(camera)
+	director.establish(Vector3(33.4,0,0),Vector3(36.6,0,0),false)
+	var caption=CombatCaption.new();caption.configure(ui);caption.show_line(headings,"finish")
+	var back=button_in(ui,"Return to editor [Esc]",close_model_view)
+	back.set_anchors_and_offsets_preset(Control.PRESET_BOTTOM_RIGHT)
+	back.offset_left=-256;back.offset_top=-66;back.offset_right=-22;back.offset_bottom=-22
+	back.grab_focus()
+
+func restore_editor_after_preview(return_to: String,view_state: Dictionary):
 	show_campaign_editor(return_to,view_state)
 	var editor=weakref(campaign_editor)
 	var tree=get_tree()
@@ -573,9 +605,9 @@ func restore_editor_after_recruit_preview(return_to: String,view_state: Dictiona
 	await tree.process_frame
 	var restored=editor.get_ref()
 	if restored==null or restored!=campaign_editor or restored.is_queued_for_deletion():return
-	var button=restored.find_child("EditorRecruitModel",true,false)
+	var button=restored.find_child(view_state.control,true,false)
 	button.grab_focus()
-	restored.find_child("Company",true,false).scroll_vertical=view_state.scroll
+	restored.find_child(view_state.panel,true,false).scroll_vertical=view_state.scroll
 
 func close_campaign_editor():
 	if campaign_editor_return=="debug_tools":show_debug_tools(options_return)
@@ -1362,7 +1394,7 @@ func _unhandled_input(event):
 		show_options(options_return);get_viewport().set_input_as_handled();return
 	if screen in ["credits","campaign_rules"] and event is InputEventKey and event.pressed and not event.echo and event.keycode==KEY_ESCAPE:
 		interface_audio.cue("back");show_title();get_viewport().set_input_as_handled();return
-	if screen=="model" and event is InputEventKey and event.pressed and not event.echo and event.keycode==KEY_ESCAPE:
+	if screen in ["model","arena_preview"] and event is InputEventKey and event.pressed and not event.echo and event.keycode==KEY_ESCAPE:
 		interface_audio.cue("back");close_model_view();get_viewport().set_input_as_handled();return
 	if screen in ["dossier","campaign_route","campaign_trials","formation"] and event is InputEventKey and event.pressed and not event.echo and event.keycode==KEY_ESCAPE:
 		interface_audio.cue("back")
@@ -2311,12 +2343,16 @@ func make_preview_fighter(unit,position,model_choice: String) -> Dictionary:
 		return {"actor":fighters.build(stage,visual,position),"available":false}
 	return {"actor":make_fighter(unit,position),"available":true}
 
-func show_model_view(unit,on_close=Callable(),model_spec: Dictionary={},model_choice="",editor_context: Dictionary={}):
-	screen="model";preview_unit=unit;preview_return=on_close;reset_ui()
+func prepare_stage_preview(context: Dictionary):
 	for child in stage.get_children():stage.remove_child(child);child.queue_free()
 	world.hide();pieces.hide();markers.hide();stage.process_mode=Node.PROCESS_MODE_INHERIT;stage.show()
-	var theme=editor_context.get("environment",game.info().get("environment","village"));battle_lighting(theme)
-	scenery.battle_landscape(stage,Vector3(35,0,0),{"environment":theme})
+	battle_lighting(context.environment)
+	scenery.battle_landscape(stage,Vector3(35,0,0),context)
+
+func show_model_view(unit,on_close=Callable(),model_spec: Dictionary={},model_choice="",editor_context: Dictionary={}):
+	screen="model";preview_unit=unit;preview_return=on_close;reset_ui()
+	var theme=editor_context.get("environment",game.info().get("environment","village"))
+	prepare_stage_preview({"environment":theme})
 	var actor_data=unit.duplicate(true);actor_data.team="enemy" if model_spec.has("study_enemy_class") else "player"
 	var preview_available=true
 	if model_spec.is_empty():

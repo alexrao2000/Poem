@@ -22,7 +22,7 @@ In Rules, choose which items appear under Legacy supplies, how many permanent lo
 
 Legacy arrivals can give a recruit an early or reserve-only entry after a loss. Set the number of recorded losses, choose which fallen class can trigger the arrival, and write the scene. Use Higher priority and Lower priority to choose which recruit arrives when multiple entries qualify for the same loss.
 
-The map workspace combines a terrain brush with controls for deployment tiles, enemy placements, hard-mode reinforcements, and the objective. Authors can resize a board and choose its battlefield environment and score. The Encounters workspace assigns the commander, chapter-wide enemy levels, individual level overrides, classes, strategies, and compatible equipment. Set an enemy’s arrival turn and phase to bring them in as reinforcements. Arrivals use the nearest open passable tile if the marked tile is occupied. The editor identifies blocked tiles, overlapping placements, and missing objective markers before playtest. The runtime uses its regular tactical rules and two-stage combat presentation.
+The map workspace combines a terrain brush with controls for deployment tiles, enemy placements, hard-mode reinforcements, and the objective. Authors can resize a board and choose its battlefield environment and score. Use Preview arena beside Environment to see and hear the close-up surroundings for the highlighted tile. The Encounters workspace assigns the commander, chapter-wide enemy levels, individual level overrides, classes, strategies, and compatible equipment. Set an enemy’s arrival turn and phase to bring them in as reinforcements. Arrivals use the nearest open passable tile if the marked tile is occupied. The editor identifies blocked tiles, overlapping placements, and missing objective markers before playtest. The runtime uses its regular tactical rules and two-stage combat presentation.
 
 Use Preview score in Battle to listen to the selected chapter theme. Calm and Ablaze share the same playhead. Close the preview to return to your draft.
 
@@ -80,7 +80,7 @@ Close-up battles at reached war-table sites can bring back local scenery. Reed C
 
 Route briefings show each reached location’s survey mark. The same marks appear in the editor’s war-table overlay and on the battlefield’s terrain card. Choose Next landmark or press L to inspect places from earlier chapters in campaign order. Use Index beside Next landmark to jump directly to a named place. Locations sharing a tile have separate entries in the index.
 
-Turn on Reuse this environment on later war tables in Route to give the tile that chapter’s close-up surroundings and ambience. The war-table overlay names the chosen arena. When several opted-in pins share a tile, the latest preceding chapter supplies it.
+Turn on Reuse this environment on later war tables in Route to give the tile that chapter’s close-up surroundings and ambience. The war-table overlay names the chosen arena. Use Preview arena below the overlay to open the actual close-up scenery at that pin. When several opted-in pins share a tile, the latest preceding chapter supplies it.
 
 Choose a battle in the War-table overlay in Route to see its effective terrain and seize objective over the atlas. The readout follows the selected pin. Moving a pin or changing its inherited terrain updates the overlay as you edit.
 
