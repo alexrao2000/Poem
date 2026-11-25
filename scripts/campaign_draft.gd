@@ -215,7 +215,8 @@ func load_poem_template(valley: bool):
  data=new_document(true)
  if valley:
   data.title="Poem · The Roads Between"
-  insert_chapter(data.chapters.size()-2,false,true)
+  var stage=insert_chapter(data.chapters.size()-2,false,true)
+  data.chapters[stage].level.site_scenes=Valley.route_dialogue(templates.chapters)
 
 func move_chapter(index: int,direction: int) -> int:
  var destination=index+direction

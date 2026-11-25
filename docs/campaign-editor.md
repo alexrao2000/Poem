@@ -1,6 +1,6 @@
 # Campaign editor
 
-Poem campaigns are ordered sets of battles, recruit arrivals, section checkpoints, and story scenes. Choose a blank campaign with New draft, or open the draft library to copy Poem. Copy Poem with the Valley battle puts the war table between Crown Approach and the Sun Engine in a 13-chapter draft. The same versioned document can be exported as JSON and opened in either build.
+Poem campaigns are ordered sets of battles, recruit arrivals, section checkpoints, and story scenes. Choose a blank campaign with New draft, or open the draft library to copy Poem. Copy Poem with the Valley battle puts the war table between Crown Approach and the Sun Engine in a 13-chapter draft. In that battle, stop at Reed Crossing, Hallow Abbey, or Windscar Pass and finish an action to hear from the valley. The same versioned document can be exported as JSON and opened in either build.
 
 ## Authoring
 

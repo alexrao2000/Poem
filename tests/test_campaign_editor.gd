@@ -1086,6 +1086,9 @@ func run():
  assert(template.data.chapters.size()==13 and template.playtest_problem().is_empty())
  assert(template.data.chapters[10].level.place=="Crown Approach" and template.data.chapters[12].level.place=="The Sun Engine")
  assert(template.data.chapters[11].level.presentation=="valley_table" and template.data.chapters[11].phase_scenes.size()==1)
+ var landmark_dialogue=template.data.chapters[11].level.site_scenes
+ assert(landmark_dialogue.map(func(scene):return scene.id)==["reed_crossing","hallow_abbey","windscar_pass"])
+ assert(landmark_dialogue.map(func(scene):return scene.position)==[[6,9],[9,5],[19,7]])
  var chapters=app.campaign_editor.find_child("EditorChapter",true,false)
  chapters.select(11);chapters.item_selected.emit(11)
  var editor_tabs=app.campaign_editor.find_child("CampaignEditorTabs",true,false)
@@ -1114,6 +1117,14 @@ func run():
  var ordinary_playtest=app.campaign_save_path()
  controls(app,"Deploy company  >").pressed.emit()
  app.valley_reveal_skip=true;await finish_presentation(app)
+ var reed=Vector2i(6,9)
+ var visitors=app.game.living("player").filter(func(unit):return app.game.reachable(unit).has(reed))
+ assert(not visitors.is_empty() and app.game.has_tile_dialogue(reed))
+ await app.click_tile(app.game.pos(visitors[0]));await app.click_tile(reed)
+ app.wait_action()
+ await await_phase_dialogue(app,landmark_dialogue[0].lines[0].text)
+ await finish_presentation(app)
+ assert(app.game.site_scene_token(landmark_dialogue[0]) in app.game.read_saved_data(app.campaign_save_path()).story_seen)
  var fallen_ivo=app.game.units.filter(func(member):return member.id=="ivo")[0]
  fallen_ivo.hp=0;app.game.commit_casualties()
  assert("ivo" in app.game.lost_ids())
@@ -1227,5 +1238,5 @@ func run():
  await verify_moving_placements(app)
  assert(FileAccess.get_file_as_string(app.save_path)==disk and app.game==installed)
  await Shutdown.dispose(app);await process_frame
- print("PASS: campaign JSON file transfer, draft library management, remembered playtest setup, campaign readiness, authored Hard bonuses, authored retry raiders, deployment comparison, custom campaign atlas, terrain stroke undo, continuous terrain strokes, connected terrain fill, placement moves and swaps, route pins, war-table site terrain, war-table overlay, blank war-table chapter, rising Valley landmarks, custom recruits, phase scenes, tile dialogue and reload, timed reinforcements, chapter 32 saves, section dialogue, authored section relief, authored legacy stock and purchase persistence, authored loss recruits, authored loss dialogue, reproducible playtest setup, Valley carryover and resume, thirteen-chapter Valley template, and single-battle tests")
+ print("PASS: campaign JSON file transfer, draft library management, remembered playtest setup, campaign readiness, authored Hard bonuses, authored retry raiders, deployment comparison, custom campaign atlas, terrain stroke undo, continuous terrain strokes, connected terrain fill, placement moves and swaps, route pins, war-table site terrain, war-table overlay, blank war-table chapter, rising Valley landmarks, custom recruits, phase scenes, tile dialogue and reload, Valley landmark dialogue, timed reinforcements, chapter 32 saves, section dialogue, authored section relief, authored legacy stock and purchase persistence, authored loss recruits, authored loss dialogue, reproducible playtest setup, Valley carryover and resume, thirteen-chapter Valley template, and single-battle tests")
  quit()

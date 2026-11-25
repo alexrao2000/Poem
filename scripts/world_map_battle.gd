@@ -26,6 +26,24 @@ const CAPITAL=[21,2]
 const ROUTE_TERRAIN={"Reed Crossing":"=","Hallow Abbey":"+","Kingsroad":"=","Windscar Pass":"h"}
 const LANDMARK_TERRAINS=["=","+","h","o","f"]
 
+static func route_dialogue(route: Array) -> Array:
+ var scenes={
+  "Reed Crossing":{"id":"reed_crossing","lines":[
+   {"speaker":"narrator","text":"The ferrymen wind the last length of chain onto the bank. From here, the next company can see your standard."}]},
+  "Hallow Abbey":{"id":"hallow_abbey","lines":[
+   {"speaker":"oren","text":"Raise the abbey lamp. The next garrison will know the river road is open.","when_absent":[
+    {"speaker":"narrator","text":"The keeper raises the signal lamp. Every road out of the abbey answers."}]}]},
+  "Windscar Pass":{"id":"windscar_pass","lines":[
+   {"speaker":"lyra","text":"Those roofs below us belong to everyone we’ve met on the road. Leave a company on the ridge until the last banner is through."}]}}
+ var events=[]
+ for place in route:
+  if not scenes.has(place.place):continue
+  var tile=route_tile(place.route_position)
+  var event=scenes[place.place]
+  event.position=[tile.x,tile.y]
+  events.append(event)
+ return events
+
 static func chapter(route: Array) -> Dictionary:
  var cells=[]
  for y in HEIGHT:
