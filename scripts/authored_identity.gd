@@ -113,6 +113,7 @@ func configure_identity(id: String,commander: Dictionary={}) -> String:
  neck_material.set_meta("identity",id);neck_material.set_meta("dye_mode",3);neck.material_override=neck_material;painted_materials.append(neck_material)
  cloak=preload("res://scripts/authored_cloak.gd").new();cloak.name="CloakDriver";add_child(cloak);cloak.configure(model,rig,painter,appearance,cloak_cut,enemy_job.is_empty())
  if id=="sera" and enemy_job.is_empty():fit_feather_clasp(rig,painter)
+ if id=="ivo" and enemy_job.is_empty() and promotion_unit.is_empty():fit_warden_stole(rig,painter,Color(appearance.cape))
  if mantle_enabled and promotion_unit.is_empty():
   mantle=preload("res://scripts/authored_mantle.gd").new();mantle.name="MantleDriver";add_child(mantle);mantle.configure(model,rig,painter,appearance,mantle_depth,id=="lyra")
  if robe_enabled:
@@ -136,6 +137,14 @@ func fit_feather_clasp(rig: Skeleton3D,painter):
  var fit=Basis.looking_at(Vector3(.38,-.59,-.71),Vector3.UP)
  var position_on_cloak=Vector3(shoulder.x*.57,neck.y-.105,.112)
  preload("res://scripts/ranger_clasp.gd").add(painter,attachment,chest.affine_inverse()*Transform3D(fit,position_on_cloak))
+ attachment.on_skeleton_update()
+
+func fit_warden_stole(rig: Skeleton3D,painter,cloth: Color):
+ var attachment=BoneAttachment3D.new();attachment.name="WardenStoleAnchor";rig.add_child(attachment)
+ attachment.bone_name="spine_03"
+ var chest=rig.get_bone_global_rest(attachment.bone_idx)
+ var neck=rig.get_bone_global_rest(rig.find_bone("neck_01")).origin
+ preload("res://scripts/warden_stole.gd").add(painter,attachment,chest.affine_inverse()*Transform3D(Basis.IDENTITY,neck),cloth,true)
  attachment.on_skeleton_update()
 
 func configure_animations(player: AnimationPlayer) -> String:

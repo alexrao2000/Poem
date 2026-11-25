@@ -4,6 +4,8 @@ const Actor=preload("res://scripts/fighter_actor.gd")
 const Defeat=preload("res://scripts/combat_defeat.gd")
 const Heal=preload("res://scripts/combat_heal.gd")
 const Shutdown=preload("helpers/game_shutdown.gd")
+const Stole=preload("res://scripts/warden_stole.gd")
+const STOLE_PATH="Rig/Armature/Skeleton3D/WardenStoleAnchor/WardenStole"
 var heals=0
 var departures=0
 func _initialize():call_deferred("run")
@@ -22,7 +24,11 @@ func run():
  var original=app.game.save_data("camp").duplicate(true);var disk=FileAccess.get_file_as_string(app.save_path);var catalog=app.fighters.models.catalog.duplicate(true)
  var unit=app.game.roster.filter(func(value):return value.id=="ivo")[0].duplicate(true);unit.team="player"
  assert(not app.debug_session.set_revised_warden(true));app.debug_session.revised_warden=true
- var actor=app.make_fighter(unit,Vector3.ZERO);assert(actor is Actor);actor.queue_free();await process_frame
+ app.fighters.batching_enabled=false
+ var actor=app.make_fighter(unit,Vector3.ZERO);assert(actor is Actor)
+ var original_stole=actor.find_child("WardenStole",true,false)
+ assert(original_stole.get_parent().name=="Torso" and original_stole.mesh==Stole.geometry(Color("847299"),false))
+ app.fighters.batching_enabled=true;actor.queue_free();await process_frame
  app.show_options("camp");app.ui.find_child("DebugMode",true,false).button_pressed=true;app.show_debug_tools("camp");await process_frame
  var toggle=app.ui.find_child("DebugWardenModel",true,false);assert(not toggle.button_pressed);toggle.button_pressed=true
  var checkpoint=app.game.save_data("camp").duplicate(true);var rng=app.game.rng.state
@@ -31,10 +37,17 @@ func run():
   for item in ["field_staff","mend_staff","beacon_staff"]:
    unit.item=item;actor=app.make_fighter(unit,Vector3.ZERO)
    assert(actor is Imported and actor.model.get_meta("character_identity")==id and actor.model.get_node("Rig/Armature/Skeleton3D/WeaponHand/Staff").equipped==item)
+   var stole=actor.model.get_node_or_null(STOLE_PATH)
+   assert((stole!=null)==(id=="ivo"))
+   if stole!=null:
+    assert(stole.get_parent().bone_name=="spine_03" and stole.mesh==Stole.geometry(Color("847299"),true))
+    var arrays=stole.mesh.surface_get_arrays(0)
+    assert(arrays[Mesh.ARRAY_VERTEX].size()==600 and arrays[Mesh.ARRAY_COLOR].size()==600)
    actor.queue_free();await process_frame
   for promotion in ["luminary","wayfarer"]:
    var promoted=unit.duplicate(true);promoted.promotion=promotion;actor=app.make_fighter(promoted,Vector3.ZERO)
-   assert(actor is Imported and actor.get_meta("promotion_look")==promotion);actor.queue_free();await process_frame
+   assert(actor is Imported and actor.get_meta("promotion_look")==promotion and not actor.model.has_node(STOLE_PATH))
+   actor.queue_free();await process_frame
   for patch in [{"team":"enemy"},{"id":"lyra"},{"job":"Arcanist"},{"weapon":"magic","item":"ember"},{"item":"unknown_staff"},{"promotion":"test_promotion"}]:
    var changed=unit.duplicate(true);changed.merge(patch,true);assert(app.debug_warden.build(app.stage,changed,Vector3.ZERO)==null)
   app.show_model_view(unit);await process_frame;assert(app.preview_actor is Imported and app.preview_actor.model.get_meta("character_identity")==id);app.close_model_view();await process_frame
@@ -62,5 +75,5 @@ func run():
  actor=app.make_fighter(unit,Vector3.ZERO);assert(actor is Actor);actor.queue_free();await process_frame
  app.show_options("camp");app.ui.find_child("DebugMode",true,false).button_pressed=true;assert(not app.debug_session.revised_warden)
  app.debug_session.end(app.game);await Shutdown.dispose(app);await process_frame
- print("PASS: independent Warden comparison, nine staff/identity bindings, promotion/class/item/enemy fallback, three previews/heals/reactions, resolved defeat, normal map restoration, report and exact campaign/save/RNG isolation")
+ print("PASS: independent Warden comparison, Ivo’s base stole on both rigs, nine staff/identity bindings, promotion/class/item/enemy fallback, three previews/heals/reactions, resolved defeat, normal map restoration, report and exact campaign/save/RNG isolation")
  quit()
