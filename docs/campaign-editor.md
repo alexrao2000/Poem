@@ -14,7 +14,7 @@ The chapter picker and editing controls sit above the Battle, Story, Company, Ru
 
 ## When the map becomes a battlefield
 
-The reveal uses the same illustrated valley shown during campaign briefings. A late route battle drops the numbered route seals, shows the existing illustration as a physical war table, and exposes the movement grid. Drawn roads become cheap approaches, mountain passes use hill movement, marked crossings carry troops over otherwise blocked water, and the illustrated capital becomes the objective stronghold.
+The reveal uses the same illustrated valley shown during campaign briefings. Deploying for the late route battle opens on the familiar chart from directly overhead. The camera tilts toward the war table as the grid spreads from the capital and the army pieces arrive. Click or press Tab to move directly to the tactical view. Drawn roads become cheap approaches, mountain passes use hill movement, marked crossings carry troops over otherwise blocked water, and the illustrated capital becomes the objective stronghold.
 
 The route battle keeps the existing classes, weapons, forecasting, and rules switches. On the board the pieces stand for companies led by Poem’s characters. The close-up shows the commanders and the local terrain where their pieces met. Earlier route screens can hint at the grid with a faint cartographer’s scale, evenly spaced crossings, and repeated landmarks.
 

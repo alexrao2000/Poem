@@ -196,7 +196,27 @@ func run():
  app.finish_dialogue()
  assert(app.game.supports.progress(first_bond.id).rank==1 and app.game.read_saved_data(app.campaign_save_path()).supports[first_bond.id].rank==1)
  app.show_camp();await process_frame
- controls(app,"Deploy company  >").pressed.emit();await finish_presentation(app)
+ controls(app,"Deploy company  >").pressed.emit()
+ assert(app.valley_reveal_active and app.busy and not app.ui.visible and not app.markers.visible)
+ var ink=app.world.get_node("ValleyGrid").material_override
+ assert(ink.get_shader_parameter("front")<0.0 and app.camera.basis.z.is_equal_approx(Vector3.UP))
+ assert(app.unit_nodes.values().all(func(piece):return not piece.visible))
+ var persisted=app.game.save_data("battle").duplicate(true)
+ var mid_reveal=[false]
+ var inspect_reveal=func():
+  if not app.valley_reveal_active:return
+  var visible=app.unit_nodes.values().filter(func(piece):return piece.visible)
+  if not visible.is_empty() and visible.size()<app.unit_nodes.size():mid_reveal[0]=true
+  var frame=app.camera.get_viewport().get_visible_rect()
+  for corner in Valley.reveal_corners(app.game.board_size()):
+   assert(frame.grow(1).has_point(app.camera.unproject_position(corner)))
+ process_frame.connect(inspect_reveal)
+ await finish_presentation(app)
+ process_frame.disconnect(inspect_reveal)
+ assert(mid_reveal[0] and not app.valley_reveal_active and app.ui.visible and app.markers.visible)
+ assert(app.map_navigation.at_home() and app.game.save_data("battle")==persisted)
+ assert(app.canvas.get_node_or_null("ValleyRevealHint")==null and ink.get_shader_parameter("front")>20.0)
+ for piece in app.unit_nodes.values():assert(piece.visible and is_zero_approx(piece.position.y))
  assert(app.game.board_size()==Vector2i(24,16))
  var paper=app.world.get_node("ValleyChart")
  assert(paper.material_override.albedo_texture==Route.MAP and Valley.MAP==Route.MAP)
@@ -241,9 +261,17 @@ func run():
  app.ui.find_child("OpenValleyFront",true,false).pressed.emit()
  await finish_presentation(app)
  assert(app.screen=="camp" and app.game.info().presentation=="valley_table" and app.game.chapter==11)
+ controls(app,"Deploy company  >").pressed.emit()
+ assert(app.valley_reveal_active)
+ var skip=InputEventKey.new();skip.keycode=KEY_TAB;skip.pressed=true
+ app._input(skip)
+ assert(app.valley_reveal_skip)
+ await finish_presentation(app)
+ assert(not app.valley_reveal_active and app.map_navigation.at_home() and app.ui.visible)
+ app.show_battle_menu();await process_frame
  controls(app,"Return to campaign route").pressed.emit();await process_frame
  assert(app.screen=="campaign_route" and app.game==installed and app.game.save_data("camp")==route_state)
  assert(FileAccess.get_file_as_string(app.save_path)==disk)
  await Shutdown.dispose(app);await process_frame
- print("PASS: campaign JSON and chapter order, three editor sizes, pointer terrain editing, authored bonds with chapter 32 saves, two complete authored chapters, valley geography, isolated resume and late route entrance")
+ print("PASS: campaign JSON and chapter order, three editor sizes, pointer terrain editing, authored bonds with chapter 32 saves, two complete authored chapters, valley reveal and skip, isolated resume and late route entrance")
  quit()

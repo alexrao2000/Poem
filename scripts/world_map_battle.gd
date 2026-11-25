@@ -1,6 +1,8 @@
 extends RefCounted
 ## The route illustration and tactical grid share the same normalized frame.
 const MAP=preload("res://assets/art/campaign-valley-v1.png")
+const GRID_INK=preload("res://assets/shaders/valley-grid.gdshader")
+const REVEAL_SECONDS=1.75
 const WIDTH=24
 const HEIGHT=16
 const WATER=[
@@ -86,11 +88,9 @@ static func build(parent: Node3D,game,scenery):
  parchment.shading_mode=BaseMaterial3D.SHADING_MODE_UNSHADED
  scenery.mesh(parent,scenery.plane_shape(size),center,Vector3.ONE,parchment).name="ValleyChart"
  var grid=ImmediateMesh.new()
- var ink=StandardMaterial3D.new()
- ink.albedo_color=Color(.24,.15,.08,.30)
- ink.shading_mode=BaseMaterial3D.SHADING_MODE_UNSHADED
- ink.transparency=BaseMaterial3D.TRANSPARENCY_ALPHA
- grid.surface_begin(Mesh.PRIMITIVE_LINES,ink)
+ var ink=ShaderMaterial.new();ink.shader=GRID_INK
+ ink.set_shader_parameter("origin",Vector2(reveal_origin(game)))
+ grid.surface_begin(Mesh.PRIMITIVE_LINES)
  for x in range(int(size.x)+1):
   grid.surface_add_vertex(Vector3(x-.5,.013,-.5))
   grid.surface_add_vertex(Vector3(x-.5,.013,size.y-.5))
@@ -98,7 +98,7 @@ static func build(parent: Node3D,game,scenery):
   grid.surface_add_vertex(Vector3(-.5,.013,y-.5))
   grid.surface_add_vertex(Vector3(size.x-.5,.013,y-.5))
  grid.surface_end()
- var overlay=MeshInstance3D.new();overlay.name="ValleyGrid";overlay.mesh=grid;parent.add_child(overlay)
+ var overlay=MeshInstance3D.new();overlay.name="ValleyGrid";overlay.mesh=grid;overlay.material_override=ink;parent.add_child(overlay)
  if game.info().objective=="seize":
   var point=game.objective_position()
   var marker=Node3D.new();marker.name="ValleyStandard";parent.add_child(marker)
@@ -108,3 +108,47 @@ static func build(parent: Node3D,game,scenery):
   var flag=preload("res://scripts/wind_cloth.gd").new()
   marker.add_child(flag);flag.position=Vector3(0,.39,0)
   flag.configure(Vector2(.26,.19),Color("ad5549"),true,1.4)
+
+static func reveal_origin(game) -> Vector2i:
+ return game.objective_position() if game.info().objective=="seize" else Vector2i(CAPITAL[0],CAPITAL[1])
+
+static func reveal_corners(board: Vector2i) -> Array:
+ return [Vector3(-.5,0,-.5),Vector3(board.x-.5,0,-.5),
+  Vector3(-.5,0,board.y-.5),Vector3(board.x-.5,0,board.y-.5)]
+
+static func chart_view(camera: Camera3D,board: Vector2i,home: Dictionary) -> Dictionary:
+ var view=home.duplicate()
+ var aspect=camera.get_viewport().get_visible_rect().size.aspect()
+ view.transform=Transform3D(Basis(Vector3.RIGHT,-PI*.5),Vector3((board.x-1)*.5,24,(board.y-1)*.5))
+ view.size=maxf(board.y+2,(board.x+2)/aspect)
+ view.h_offset=0.0;view.v_offset=0.0
+ return view
+
+static func play_reveal(navigation,game,world: Node3D,actors: Array,hint: Control,skip: Callable):
+ var camera: Camera3D=navigation.camera
+ var home: Dictionary=navigation.capture_view()
+ var chart=chart_view(camera,game.board_size(),home)
+ var origin=Vector2(reveal_origin(game))
+ var radius=0.0
+ for corner in reveal_corners(game.board_size()):radius=maxf(radius,origin.distance_to(Vector2(corner.x,corner.z)))
+ var ink: ShaderMaterial=world.get_node("ValleyGrid").material_override
+ var standard=world.get_node_or_null("ValleyStandard")
+ var props=actors.duplicate()
+ if standard!=null:props.append(standard)
+ var resting=props.map(func(piece):return piece.position)
+ var seats=resting.map(func(point):return origin.distance_to(Vector2(point.x,point.z)))
+ var apply_frame=func(weight: float):
+  var front=lerpf(-.85,radius+4.8,smoothstep(.10,.86,weight))
+  ink.set_shader_parameter("front",front)
+  navigation.apply_return(smoothstep(.07,1.0,weight),chart,home)
+  for index in props.size():
+   var arrival=smoothstep(seats[index]+.34,seats[index]+3.0,front)
+   props[index].visible=arrival>0.0
+   props[index].position=resting[index]+Vector3.UP*(1.60*pow(1.0-arrival,2.0))
+  hint.modulate.a=1.0-smoothstep(.88,1.0,weight)
+ apply_frame.call(0.0)
+ var motion=world.create_tween()
+ motion.tween_method(apply_frame,0.0,1.0,REVEAL_SECONDS)
+ while motion.is_running() and not skip.call():await world.get_tree().process_frame
+ if motion.is_running():motion.kill()
+ apply_frame.call(1.0)

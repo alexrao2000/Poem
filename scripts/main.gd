@@ -62,6 +62,9 @@ var phase_skip=false
 var phase_banner_active=false
 var chapter_card_active=false
 var chapter_card_skip=false
+const ValleyBattle=preload("res://scripts/world_map_battle.gd")
+var valley_reveal_active=false
+var valley_reveal_skip=false
 const CriticalCutin=preload("res://scripts/critical_cutin.gd")
 const Fighters = preload("res://scripts/fighters.gd")
 const ImportedFighter=preload("res://scripts/imported_fighter.gd")
@@ -797,9 +800,27 @@ func battle_objective_text() -> String:
 
 func deploy_company():
 	game.start_battle();make_map();show_battle();busy=true;update_side();persist_campaign("battle")
+	if game.info().get("presentation","")=="valley_table":await reveal_valley_battle()
 	await announce_chapter()
 	await announce_phase("player")
 	busy=false;update_side()
+
+func reveal_valley_battle():
+	valley_reveal_skip=false;valley_reveal_active=true
+	ui.hide();markers.hide()
+	var hint=label_in(canvas,"Click or press Tab to continue",16,Color("fff1d5"))
+	hint.name="ValleyRevealHint"
+	hint.set_anchors_and_offsets_preset(Control.PRESET_BOTTOM_WIDE)
+	hint.offset_top=-48;hint.offset_bottom=-16
+	hint.horizontal_alignment=HORIZONTAL_ALIGNMENT_CENTER
+	hint.add_theme_color_override("font_outline_color",Color("25313a"))
+	hint.add_theme_constant_override("outline_size",5)
+	var viewport_size=get_viewport().get_visible_rect().size
+	await ValleyBattle.play_reveal(map_navigation,game,world,unit_nodes.values(),hint,func():return valley_reveal_skip)
+	if get_viewport().get_visible_rect().size!=viewport_size:map_camera()
+	canvas.remove_child(hint);hint.queue_free()
+	ui.show();markers.show()
+	valley_reveal_active=false
 
 func announce_chapter():
 	chapter_card_skip=false;chapter_card_active=true
@@ -1070,6 +1091,10 @@ func toggle_tracked_threat():
 	if tracked_threats.toggle(game,selected):highlight();update_side()
 
 func _input(event):
+	if valley_reveal_active:
+		if event is InputEventKey and event.keycode==KEY_TAB and event.pressed and not event.echo:valley_reveal_skip=true
+		if event is InputEventMouseButton and event.button_index==MOUSE_BUTTON_LEFT and event.pressed:valley_reveal_skip=true
+		get_viewport().set_input_as_handled();return
 	if screen=="dialogue" and event is InputEventKey and dialogue_stage.history!=null and event.keycode in [KEY_UP,KEY_DOWN,KEY_PAGEUP,KEY_PAGEDOWN,KEY_HOME,KEY_END]:
 		if event.pressed:dialogue_stage.history.navigate(event.keycode)
 		get_viewport().set_input_as_handled();return
