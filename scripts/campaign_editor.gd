@@ -461,16 +461,26 @@ func build_encounters():
   group.remove_at(source_index);other.append(enemy)
   selected_enemy=layout.enemies.size()+layout.hard_enemies.size()-1 if enabled else layout.enemies.size()-1
   grid.queue_redraw();changed();build_encounters())
+ var reactive=Draft.Rules.standard_hold_required(layout) and enemy.get("arrive_on_defense",false)
  var turn=spin(int(enemy.get("arrival_turn",1)),1,99,func(value):
   if value==1:enemy.erase("arrival_turn")
   else:enemy.arrival_turn=int(value)
   sync_encounter_arrival(enemy,enemy_index,layout.enemies.size(),selector);changed())
- turn.name="EditorEncounterArrivalTurn";turn.editable=not is_commander;field_label(fields,"Arrival turn",turn)
+ turn.name="EditorEncounterArrivalTurn";turn.editable=not is_commander and not reactive;field_label(fields,"Arrival turn",turn)
  var phase=choice(["player","enemy"],enemy.get("arrival_phase","player"),func(value):
   if value=="player":enemy.erase("arrival_phase")
   else:enemy.arrival_phase=value
   sync_encounter_arrival(enemy,enemy_index,layout.enemies.size(),selector);changed())
- phase.name="EditorEncounterArrivalPhase";phase.disabled=is_commander;field_label(fields,"Arrival phase",phase)
+ phase.name="EditorEncounterArrivalPhase";phase.disabled=is_commander or reactive;field_label(fields,"Arrival phase",phase)
+ if Draft.Rules.standard_hold_required(layout):
+  var arrive=CheckButton.new();arrive.name="EditorEncounterDefenseArrival"
+  arrive.text="Arrive to contest the standards";arrive.button_pressed=reactive;arrive.disabled=is_commander
+  encounter_panel.add_child(arrive)
+  arrive.toggled.connect(func(enabled):
+   if enabled:enemy.arrive_on_defense=true
+   else:enemy.erase("arrive_on_defense")
+   turn.editable=not enabled;phase.disabled=enabled
+   sync_encounter_arrival(enemy,enemy_index,layout.enemies.size(),selector);changed())
  var default_role="class"
  if enemy.has("raider"):default_role="advance" if enemy.raider else "hold"
  var role=choice(["class","advance","hold"],default_role,func(value):
@@ -557,13 +567,15 @@ func sync_encounter_arrival(enemy: Dictionary,index: int,standard_count: int,sel
  var commander=encounter_panel.get_node_or_null("EditorMakeCommander")
  if commander!=null:commander.disabled=index==0 or index>=standard_count or Draft.Rules.delayed_enemy(enemy)
  var role=encounter_panel.find_child("EditorEnemyRetryRole",true,false)
- if role!=null:role.disabled=index==0 or Draft.Rules.delayed_enemy(enemy)
+ if role!=null:role.disabled=index==0 or not Draft.Rules.reinforcement_schedule(enemy,level()).is_empty()
 
 func encounter_name(enemy: Dictionary,index: int,standard_count: int) -> String:
  var name=enemy.get("name","").strip_edges()
  if name.is_empty():name=enemy.job
  var role=" · Commander" if index==0 and standard_count>0 else " · Hard only" if index>=standard_count else ""
- if Draft.Rules.delayed_enemy(enemy):role+=" · Turn %d %s"%[enemy.get("arrival_turn",1),enemy.get("arrival_phase","player")]
+ var schedule=Draft.Rules.reinforcement_schedule(enemy,level())
+ if schedule.get("arrive_on_defense",false):role+=" · Counterattack"
+ elif not schedule.is_empty():role+=" · Turn %d %s"%[schedule.turn,schedule.phase]
  return "%s · %d, %d%s"%[name,enemy.position[0],enemy.position[1],role]
 
 func build_story(panel: VBoxContainer):

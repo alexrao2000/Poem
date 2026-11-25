@@ -260,9 +260,11 @@ func start_battle():
 	for i in range(formation.size()):
 		var entry=formation[i]
 		var enemy=build_enemy(entry,i)
-		if delayed_enemy(entry):
-			enemy_waves.append({"turn":entry.get("arrival_turn",1),"phase":entry.get("arrival_phase","player"),"unit":enemy})
-		else:units.append(enemy)
+		var wave=reinforcement_schedule(entry,info())
+		if wave.is_empty():units.append(enemy)
+		else:
+			wave.unit=enemy
+			enemy_waves.append(wave)
 	trials.prepare_battle(self)
 
 func build_enemy(entry: Dictionary,index: int) -> Dictionary:
@@ -284,7 +286,15 @@ func build_enemy(entry: Dictionary,index: int) -> Dictionary:
 	return enemy
 
 static func delayed_enemy(entry: Dictionary) -> bool:
-	return entry.get("arrival_turn",1)>1 or entry.get("arrival_phase","player")=="enemy"
+	return entry.get("arrive_on_defense",false) or entry.get("arrival_turn",1)>1 or entry.get("arrival_phase","player")=="enemy"
+
+static func reinforcement_schedule(entry: Dictionary,level: Dictionary) -> Dictionary:
+	if standard_hold_required(level) and entry.get("arrive_on_defense",false):
+		return {"turn":1,"phase":"enemy","arrive_on_defense":true}
+	var arrival_turn=entry.get("arrival_turn",1)
+	var arrival_phase=entry.get("arrival_phase","player")
+	if arrival_turn==1 and arrival_phase=="player":return {}
+	return {"turn":arrival_turn,"phase":arrival_phase}
 
 func bring_in_enemy_waves():
 	if enemy_waves.is_empty():return
@@ -292,6 +302,7 @@ func bring_in_enemy_waves():
 	var waiting=[]
 	for wave in enemy_waves:
 		var due=turn>wave.turn or (turn==wave.turn and (phase=="enemy" or wave.phase=="player"))
+		if wave.get("arrive_on_defense",false):due=phase=="enemy" and standard_hold_turn==turn
 		if not due:
 			waiting.append(wave);continue
 		var enemy=wave.unit
@@ -790,8 +801,11 @@ func valid_enemy_waves(data: Dictionary,combat_ids: Dictionary) -> bool:
 		if not index.is_valid_int() or int(index)<1 or int(index)>=formation.size():return false
 		if unit.id!="enemy_"+str(int(index)):return false
 		var authored=formation[int(index)]
-		if not delayed_enemy(authored) or unit.job!=authored.job or unit.get("boss",false):return false
-		if wave.get("turn")!=authored.get("arrival_turn",1) or wave.get("phase")!=authored.get("arrival_phase","player"):return false
+		var schedule=reinforcement_schedule(authored,level)
+		if schedule.is_empty() or unit.job!=authored.job or unit.get("boss",false):return false
+		if wave.get("turn")!=schedule.turn or wave.get("phase")!=schedule.phase:return false
+		var reactive=wave.get("arrive_on_defense",false)
+		if not reactive is bool or reactive!=schedule.get("arrive_on_defense",false):return false
 		if unit.x!=authored.position[0] or unit.y!=authored.position[1]:return false
 		seen[unit.id]=true
 	return true

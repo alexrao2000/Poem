@@ -1201,7 +1201,8 @@ func verify_standards_through_enemy_phase(app):
  level.deployment_positions=[[1,3],[1,4],[0,3]]
  level.objective_position=[2,3]
  level.extra_standards=[[2,4]]
- level.enemies=[{"job":"Knight","position":[5,0],"ai":"guard","name":"Watchman"}]
+ level.enemies=[{"job":"Knight","position":[5,0],"ai":"guard","name":"Watchman"},
+  {"job":"Warden","position":[5,4],"ai":"guard","name":"Reserve medic","arrival_turn":3}]
  draft.data.opening_company=["lyra","oren","sera"]
  draft.data.settings.action_saves=true
  editor.rebuild()
@@ -1210,13 +1211,44 @@ func verify_standards_through_enemy_phase(app):
  assert(hold.visible and not hold.button_pressed)
  hold.button_pressed=true
  assert(level.hold_enemy_phase and draft.playtest_problem().is_empty(),draft.playtest_problem())
+ tabs=editor.find_child("CampaignEditorTabs",true,false)
+ tabs.current_tab=tabs.get_tab_idx_from_control(editor.find_child("Encounters",true,false))
+ await process_frame
+ assert(editor.find_child("EditorEncounterDefenseArrival",true,false).disabled)
+ var encounters=editor.find_child("EditorEncounter",true,false)
+ encounters.select(1);encounters.item_selected.emit(1)
+ await process_frame
+ encounters=editor.find_child("EditorEncounter",true,false)
+ editor.find_child("EditorEncounterDefenseArrival",true,false).button_pressed=true
+ assert(encounters.get_item_text(1).ends_with(" · Counterattack"))
+ assert(not editor.find_child("EditorEncounterArrivalTurn",true,false).editable)
+ assert(editor.find_child("EditorEncounterArrivalPhase",true,false).disabled)
+ assert(level.enemies[1].arrive_on_defense and level.enemies[1].arrival_turn==3)
  var decoded=Draft.new()
  assert(decoded.decode(draft.encode()).is_empty() and decoded.compile().content.chapters[0].hold_enemy_phase)
+ assert(decoded.data.chapters[0].level.enemies[1].arrive_on_defense)
+ var fallback_content=decoded.compile().content
+ fallback_content.chapters[0].hold_enemy_phase=false
+ var timed=Rules.new(fallback_content)
+ timed.start_battle()
+ assert(timed.enemy_waves.size()==1 and timed.enemy_waves[0].turn==3 and not timed.enemy_waves[0].has("arrive_on_defense"))
+ timed.begin_enemy_phase();timed.next_player_turn()
+ assert(timed.enemy_waves.size()==1)
+ timed.begin_enemy_phase();timed.next_player_turn()
+ assert(timed.enemy_waves.is_empty() and timed.at(Vector2i(5,4)).id=="enemy_1")
  decoded.data.chapters[0].level.hold_enemy_phase="yes"
  assert(decoded.structural_problem(decoded.data)=="Choose whether standards must be held through an enemy phase.")
  controls(app,"Play chapter").pressed.emit();await finish_presentation(app)
  controls(app,"Deploy company  >").pressed.emit();await finish_presentation(app)
  assert(app.objective_text()=="Hold all 2 standards through an enemy phase")
+ assert(app.game.enemy_waves.size()==1 and app.game.enemy_waves[0].arrive_on_defense)
+ var waiting=Rules.new(app.game.content)
+ assert(waiting.import_code(app.game.export_code("battle"))=="battle")
+ waiting.begin_enemy_phase();waiting.next_player_turn()
+ assert(waiting.standard_hold_turn==0 and waiting.enemy_waves.size()==1 and waiting.at(Vector2i(5,4))==null)
+ var tampered=waiting.save_data("battle").duplicate(true)
+ tampered.enemy_waves[0].arrive_on_defense=false
+ assert(not waiting.valid_save(tampered))
  for y in [3,4]:
   await app.click_tile(Vector2i(1,y));await app.click_tile(Vector2i(2,y))
   app.wait_action();await finish_presentation(app)
@@ -1226,6 +1258,7 @@ func verify_standards_through_enemy_phase(app):
  assert(armed.import_code(app.game.export_code("battle"))=="battle")
  armed.begin_enemy_phase()
  assert(armed.standard_hold_turn==1 and armed.result().is_empty())
+ assert(armed.enemy_waves.is_empty() and armed.at(Vector2i(5,4)).id=="enemy_1")
  var during_enemy=armed.export_code("battle")
  var broken=Rules.new(armed.content)
  assert(broken.import_code(during_enemy)=="battle" and canonical(broken.save_data("battle"))==canonical(armed.save_data("battle")))
@@ -1241,6 +1274,7 @@ func verify_standards_through_enemy_phase(app):
  assert(broken.standard_hold_turn==2 and broken.result()=="victory")
  controls(app,"End player phase").pressed.emit();await finish_presentation(app)
  assert(app.screen=="result" and app.game.result()=="victory" and app.game.turn==2)
+ assert(app.game.units.filter(func(unit):return unit.id=="enemy_1").size()==1)
  assert(app.ui.find_children("*","Label",true,false).any(func(label):return label.text.begins_with("1 turn  ·  ")))
  var complete=canonical(app.game.save_data("battle"))
  var resumed=Rules.new(app.game.content)
@@ -2218,5 +2252,5 @@ func run():
  await verify_standards_through_enemy_phase(app)
  assert(FileAccess.get_file_as_string(app.save_path)==disk and app.game==installed)
  await Shutdown.dispose(app);await process_frame
- print("PASS: campaign JSON file transfer, draft library management, remembered playtest setup, campaign readiness, authored Hard bonuses, authored retry raiders, deployment comparison, authored formation previews, small deployment limits and save recovery, custom campaign atlas, terrain stroke undo, bulk terrain rows, editor dialogs at two viewport sizes, direct chapter reordering, continuous terrain strokes, connected terrain fill, placement moves and swaps, repeated placement copies, switching enemy difficulty groups, editor music preview, multiple standards and exact resume, standard navigation and live progress, standards that follow route pins, route pins, war-table site terrain, war-table overlay, blank war-table chapter, rising Valley landmarks, local war-table arena landmarks including Kingsroad and Windscar, authored route arenas, fading route seals, war-table landmark index and shared survey marks, Valley reveal sound cues, battlefield site markers, custom recruits, phase scenes, tile dialogue and reload, recruitment on battlefield sites, authored recruit starting equipment, live recruit art previews, 3D recruit preview and editor return, navigation between available sites, one-use field tonic caches, Valley landmark dialogue, dialogue that follows route pins, timed reinforcements, chapter 32 saves, section dialogue, authored section relief, authored legacy stock and purchase persistence, authored loss recruits, authored loss dialogue, reproducible playtest setup, Valley carryover and resume, thirteen-chapter Valley template, built-in Hold the Valley Roads trial, 3D arena previews from Battle and Route, holding standards through an enemy phase, and single-battle tests")
+ print("PASS: campaign JSON file transfer, draft library management, remembered playtest setup, campaign readiness, authored Hard bonuses, authored retry raiders, deployment comparison, authored formation previews, small deployment limits and save recovery, custom campaign atlas, terrain stroke undo, bulk terrain rows, editor dialogs at two viewport sizes, direct chapter reordering, continuous terrain strokes, connected terrain fill, placement moves and swaps, repeated placement copies, switching enemy difficulty groups, editor music preview, multiple standards and exact resume, standard navigation and live progress, standards that follow route pins, route pins, war-table site terrain, war-table overlay, blank war-table chapter, rising Valley landmarks, local war-table arena landmarks including Kingsroad and Windscar, authored route arenas, fading route seals, war-table landmark index and shared survey marks, Valley reveal sound cues, battlefield site markers, custom recruits, phase scenes, tile dialogue and reload, recruitment on battlefield sites, authored recruit starting equipment, live recruit art previews, 3D recruit preview and editor return, navigation between available sites, one-use field tonic caches, Valley landmark dialogue, dialogue that follows route pins, timed reinforcements, chapter 32 saves, section dialogue, authored section relief, authored legacy stock and purchase persistence, authored loss recruits, authored loss dialogue, reproducible playtest setup, Valley carryover and resume, thirteen-chapter Valley template, built-in Hold the Valley Roads trial, 3D arena previews from Battle and Route, holding standards through an enemy phase, defense-triggered reserves, and single-battle tests")
  quit()

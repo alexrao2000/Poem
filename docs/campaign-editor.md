@@ -42,6 +42,8 @@ For a seize battle, use Extra standard in Battle to add more objectives. Win by 
 
 Turn on Hold standards through an enemy phase to require a defense after your allies capture the objectives. End the player phase with a standing ally on every standard. If a standard falls, retake it and defend again. Action saves keep the current defense if you leave during the enemy phase.
 
+In Encounters, choose Arrive to contest the standards for a reserve you want to send in when that defense starts. It deploys at the start of the enemy phase and can act right away. The reserve uses its normal arrival time whenever the chapter uses immediate capture.
+
 In Encounters, set a chapter’s Hard enemy bonuses for maximum HP, attack, speed, and defense. These apply to the on-map enemies and later reinforcements when Harder enemy forces is enabled. Retry pressure still adds its own bonuses and uses the rally chapter’s settings after a section restart.
 
 Use Hard only on a selected enemy to move it between difficulty groups. Its position, equipment, and arrival stay with it. The commander deploys in every difficulty.
