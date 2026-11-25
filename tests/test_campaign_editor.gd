@@ -2130,6 +2130,8 @@ func run():
   var open_index=app.ui.find_child("OpenLandmarkIndex",true,false)
   assert(root.get_visible_rect().encloses(open_index.get_global_rect()))
   assert(not open_index.get_global_rect().intersects(next_landmark.get_global_rect()))
+  var atlas_button=app.ui.find_child("OpenBattleAtlas",true,false)
+  assert(root.get_visible_rect().encloses(atlas_button.get_global_rect()))
   open_index.pressed.emit();await process_frame;await process_frame
   assert(app.screen=="battle_menu")
   var index=app.ui.find_child("LandmarkIndex",true,false)
@@ -2208,6 +2210,31 @@ func run():
  await app.click_tile(Vector2i(3,9));await app.click_tile(destination)
  assert(app.game.at(destination).id=="oren")
  var valley_state=canonical(app.game.save_data("battle"))
+ var valley_disk=FileAccess.get_file_as_string(valley_path)
+ var selected_move=app.origin
+ var move_view=app.map_navigation.capture_view()
+ var atlas_toggle=InputEventKey.new();atlas_toggle.keycode=KEY_V;atlas_toggle.pressed=true
+ root.push_input(atlas_toggle,true);await process_frame
+ assert(app.screen=="battle_route" and app.selected==vanguard and app.origin==selected_move)
+ var held=atlas_toggle.duplicate();held.echo=true;root.push_input(held,true)
+ assert(app.screen=="battle_route")
+ atlas_toggle.pressed=false;root.push_input(atlas_toggle,true)
+ atlas_toggle.pressed=true;root.push_input(atlas_toggle,true);await process_frame
+ assert(app.screen=="battle" and app.selected==vanguard and app.origin==selected_move)
+ assert(app.map_navigation.capture_view()==move_view and canonical(app.game.save_data("battle"))==valley_state)
+ assert(FileAccess.get_file_as_string(valley_path)==valley_disk)
+ atlas_toggle.pressed=false;root.push_input(atlas_toggle,true)
+ app.cancel_selection()
+ var atlas_button=app.ui.find_child("OpenBattleAtlas",true,false)
+ atlas_button.pressed.emit();await process_frame
+ assert(app.screen=="battle_route")
+ app.ui.find_child("BattleRouteReturn",true,false).pressed.emit();await process_frame
+ assert(app.screen=="battle" and app.ui.find_child("OpenBattleAtlas",true,false).has_focus())
+ # Restore the moved unit when this campaign permits undo.
+ if app.game.at(destination)==null:
+  await app.click_tile(Vector2i(3,9));await app.click_tile(destination)
+  assert(canonical(app.game.save_data("battle"))==valley_state)
+ print("PASS: Atlas and V open the battle chart directly, preserving a pending movement, camera view and save")
  app.show_battle_menu();await process_frame
  controls(app,"Save and return to route").pressed.emit();await process_frame
  assert(app.screen=="campaign_route" and app.game==installed and app.game.save_data("camp")==route_state)

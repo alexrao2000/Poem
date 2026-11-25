@@ -69,6 +69,7 @@ var chapter_card_skip=false
 const ValleyBattle=preload("res://scripts/world_map_battle.gd")
 var valley_reveal_active=false
 var valley_reveal_skip=false
+var atlas_return_control=""
 const CriticalCutin=preload("res://scripts/critical_cutin.gd")
 const Fighters = preload("res://scripts/fighters.gd")
 const ImportedFighter=preload("res://scripts/imported_fighter.gd")
@@ -1245,6 +1246,8 @@ func update_side():
 			next.name="NextLandmark";next.size_flags_horizontal=Control.SIZE_EXPAND_FILL
 			var index=button_in(landmarks,"Index",show_battle_menu.bind(true),busy or game.phase!="player")
 			index.name="OpenLandmarkIndex";index.tooltip_text="Choose a landmark from an earlier chapter."
+		if terrain_card.show_survey:
+			button_in(side,"Atlas [V]",open_battle_atlas.bind("OpenBattleAtlas"),busy or game.phase!="player").name="OpenBattleAtlas"
 	if save_failed and game.action_saves:button_in(side,"Retry autosave",retry_action_save,busy)
 	var expiring=allies_bleeding_out(patients)
 	if not expiring.is_empty():button_in(side,"Review losses",show_phase_losses,busy).name="ReviewPhaseLosses"
@@ -1351,14 +1354,22 @@ func build_landmark_index(commands: VBoxContainer):
 			choice.clip_text=true;choice.text_overrun_behavior=TextServer.OVERRUN_TRIM_ELLIPSIS
 			choice.alignment=HORIZONTAL_ALIGNMENT_LEFT;choice.tooltip_text=name_line
 	var actions=HBoxContainer.new();actions.add_theme_constant_override("separation",8);commands.add_child(actions)
-	button_in(actions,"Review atlas",func():close_battle_menu();show_campaign_route("battle_route")).size_flags_horizontal=Control.SIZE_EXPAND_FILL
+	button_in(actions,"Review atlas",open_battle_atlas.bind("OpenLandmarkIndex")).size_flags_horizontal=Control.SIZE_EXPAND_FILL
 	button_in(actions,"Return to battle",close_battle_menu).size_flags_horizontal=Control.SIZE_EXPAND_FILL
 	list.get_child(0).grab_focus()
 
+func open_battle_atlas(opener: String):
+	if busy or game.phase!="player" or game.info().get("presentation","")!="valley_table":return
+	if screen=="battle_menu":close_battle_menu()
+	if screen!="battle":return
+	atlas_return_control=opener;map_navigation.stop()
+	show_campaign_route("battle_route")
+
 func close_battle_route():
 	show_battle()
-	var index=side.find_child("OpenLandmarkIndex",true,false)
-	if index!=null:index.grab_focus()
+	var opener=side.find_child(atlas_return_control,true,false)
+	atlas_return_control=""
+	if opener!=null:opener.grab_focus()
 
 func close_battle_menu():
 	if not is_instance_valid(battle_menu):return
@@ -1440,6 +1451,8 @@ func _input(event):
 		interface_audio.cue("back");close_battle_menu();get_viewport().set_input_as_handled();return
 	if screen=="battle" and not busy and game.phase=="player" and event is InputEventKey and event.pressed:
 		if event.keycode==KEY_M and not event.echo:show_battle_menu();get_viewport().set_input_as_handled();return
+		if event.keycode==KEY_V and not event.echo and terrain_card.show_survey:
+			open_battle_atlas("OpenBattleAtlas");get_viewport().set_input_as_handled();return
 		if event.keycode==KEY_HOME:map_camera();get_viewport().set_input_as_handled();return
 		if event.keycode in [KEY_EQUAL,KEY_PLUS,KEY_MINUS]:
 			var anchor=camera.unproject_position(map_position(cursor_tile)) if cursor_visible else Vector2((ui.size.x-325)*.5,ui.size.y*.5)
@@ -1506,7 +1519,7 @@ func _unhandled_input(event):
 		interface_audio.cue("back");close_model_view();get_viewport().set_input_as_handled();return
 	if screen=="retreat_route" and event is InputEventKey and event.pressed and not event.echo and event.keycode==KEY_ESCAPE:
 		interface_audio.cue("back");close_retreat_route();get_viewport().set_input_as_handled();return
-	if screen=="battle_route" and event is InputEventKey and event.pressed and not event.echo and event.keycode==KEY_ESCAPE:
+	if screen=="battle_route" and event is InputEventKey and event.pressed and not event.echo and event.keycode in [KEY_ESCAPE,KEY_V]:
 		interface_audio.cue("back");close_battle_route();get_viewport().set_input_as_handled();return
 	if screen in ["dossier","campaign_route","campaign_trials","formation"] and event is InputEventKey and event.pressed and not event.echo and event.keycode==KEY_ESCAPE:
 		interface_audio.cue("back")

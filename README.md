@@ -86,6 +86,7 @@ These controls apply to campaign battles; menus and the visual workshop have the
 | Toggle enemy threat ranges | R |
 | Keep the selected enemy’s reach visible | T, or **Track** in its sidebar |
 | Open or close the battle menu | M; Escape also closes it |
+| Open or close the atlas during a Valley battle | V; choose **Atlas** on the map to open it |
 | Zoom the tactical map | Mouse wheel / + / − |
 | Pan the tactical map | Middle-button drag |
 | Fit the whole battlefield | Home |
