@@ -13,6 +13,7 @@ const Route=preload("res://scripts/campaign_route.gd")
 const Settings=preload("res://scripts/campaign_settings.gd")
 const Trials=preload("res://scripts/campaign_trials.gd")
 const DebugSession=preload("res://scripts/debug_session.gd")
+const LocalTextExport=preload("res://scripts/local_text_export.gd")
 const StorySurvivors=preload("res://scripts/story_survivors.gd")
 const MAX_CAMPAIGN_FILE_BYTES=4*Draft.MAX_DRAFT_LENGTH
 const TOOLS=["Terrain","Deployment","Enemy","Hard-mode enemy","Objective","Move placement","Extra standard","Copy placement","Reveal origin"]
@@ -1670,14 +1671,7 @@ func save_campaign_file(parent: Window,feedback: Label,include_setup: bool):
  var picker=campaign_file_picker(parent,true)
  picker.current_file=filename
  picker.file_selected.connect(func(path):
-  var temporary=path+".%d-%d.tmp"%[OS.get_process_id(),Time.get_ticks_usec()]
-  var file=FileAccess.open(temporary,FileAccess.WRITE)
-  if file==null:feedback.text="Could not save the campaign file.";return
-  file.store_string(payload);file.flush()
-  var written=file.get_error()==OK
-  file.close()
-  if written:written=DirAccess.rename_absolute(temporary,path)==OK
-  if not written:DirAccess.remove_absolute(temporary)
+  var written=LocalTextExport.write(path,payload)
   feedback.text="Saved "+path.get_file()+"." if written else "Could not save the campaign file.")
  picker.popup_centered_ratio(.72)
 

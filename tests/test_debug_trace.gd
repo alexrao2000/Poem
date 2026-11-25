@@ -87,8 +87,32 @@ func verify_app():
  assert(trace.entries[-1].persistence=="written" and trace.entries[-1].units.is_empty(),"End-of-action autosave records the later write")
  var state=app.game.save_data("battle").duplicate(true);var rng=app.game.rng.state
  app.show_debug_tools("battle");app.show_debug_report();await process_frame
- var displayed=JSON.parse_string(app.ui.find_child("DebugReport",true,false).text)
+ var report_text=app.ui.find_child("DebugReport",true,false).text
+ var displayed=JSON.parse_string(report_text)
  assert(canonical(displayed.recent_actions)==canonical(trace.report()) and app.game.save_data("battle")==state and app.game.rng.state==rng)
+ var trace_before=trace.report()
+ var debug_path=app.campaign_save_path()
+ var debug_disk=FileAccess.get_file_as_string(debug_path)
+ var save_report=app.ui.find_child("SaveDebugReport",true,false)
+ var output=app.save_path.get_basename()+"-report.json"
+ save_report.pressed.emit();await process_frame
+ var picker=app.ui.find_child("DebugReportFilePicker",true,false)
+ assert(picker.file_mode==FileDialog.FILE_MODE_SAVE_FILE and picker.current_file.begins_with("poem-experiment-ch01-turn-01-seed-"))
+ picker.canceled.emit();await process_frame
+ assert(not FileAccess.file_exists(output) and app.ui.find_child("DebugReportFilePicker",true,false)==null)
+ save_report.pressed.emit();await process_frame
+ app.ui.find_child("DebugReportFilePicker",true,false).file_selected.emit(output);await process_frame
+ assert(FileAccess.get_file_as_string(output)==report_text)
+ var exported=JSON.parse_string(FileAccess.get_file_as_string(output))
+ var restored=Rules.new();assert(restored.import_code(exported.save_code)=="battle")
+ assert(canonical(restored.save_data("battle"))==canonical(state))
+ save_report.pressed.emit();await process_frame
+ app.ui.find_child("DebugReportFilePicker",true,false).file_selected.emit(output.path_join("unwritable.json"));await process_frame
+ assert(FileAccess.get_file_as_string(output)==report_text and trace.report()==trace_before)
+ assert(app.game.save_data("battle")==state and app.game.rng.state==rng)
+ assert(FileAccess.get_file_as_string(debug_path)==debug_disk)
+ assert(DirAccess.remove_absolute(output)==OK)
+ print("PASS: Debug saves exactly the displayed report and restores its code without changing either campaign save")
  assert(FileAccess.get_file_as_string(app.save_path)==disk,"Debug actions never replace the normal save")
  app.show_options("battle");app.ui.find_child("DebugMode",true,false).button_pressed=false
  assert(canonical(app.game.save_data("battle"))==canonical(original) and trace.entries.is_empty() and FileAccess.get_file_as_string(app.save_path)==disk)
@@ -116,7 +140,7 @@ func verify_summary():
    game.permadeath=permanent;app.options_return=stage
    var state=game.save_data("battle").duplicate(true);var trace=app.debug_session.trace.report()
    app.show_debug_report()
-   for dimensions in [Vector2(1024,640),Vector2(1280,720),Vector2(1440,900)]:
+   for dimensions in [Vector2(720,640),Vector2(1024,640),Vector2(1280,720),Vector2(1440,900)]:
     app.ui.set_anchors_and_offsets_preset(Control.PRESET_TOP_LEFT);app.ui.size=dimensions;await process_frame;await process_frame
     var position=app.ui.find_child("DebugReportPosition",true,false);var summary=app.ui.find_child("DebugReportSummary",true,false);var report=app.ui.find_child("DebugReport",true,false)
     assert(position.text.contains("Chapter 02") and position.text.contains("Permadeath "+("ON" if permanent else "OFF")))
@@ -125,7 +149,7 @@ func verify_summary():
     if stage=="battle":assert(summary.text.contains("Awaiting rescue: 1") and summary.text.contains("Carried: 1"),"A carried patient is not counted twice")
     else:assert(not summary.text.contains("Awaiting rescue") and not summary.text.contains("Carried"),"Preparation does not report stale battle patients")
     for control in [position,summary,report]+app.ui.find_children("*","Button",true,false):
-     assert(Rect2(Vector2.ZERO,dimensions).grow(1).encloses(control.get_global_rect()),"Report and fixed actions fit the viewport")
+     assert(Rect2(Vector2.ZERO,dimensions).grow(1).encloses(control.get_global_rect()),"%s must fit the %s report viewport, got %s"%[control.name,dimensions,control.get_global_rect()])
      assert(control.size.x>=control.get_minimum_size().x and control.size.y>=control.get_minimum_size().y)
     assert(position.get_global_rect().end.y<=summary.get_global_rect().position.y and summary.get_global_rect().end.y<=report.get_global_rect().position.y)
     var displayed=JSON.parse_string(report.text);assert(displayed.report_version==2);displayed.erase("presentation")

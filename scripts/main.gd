@@ -3,6 +3,7 @@ const Rules = preload("res://scripts/rules.gd")
 const CampaignDraftModel=preload("res://scripts/campaign_draft.gd")
 const CampaignSettings=preload("res://scripts/campaign_settings.gd")
 const DebugSession=preload("res://scripts/debug_session.gd")
+const LocalTextExport=preload("res://scripts/local_text_export.gd")
 const EquipmentComparison=preload("res://scripts/equipment_comparison.gd")
 const Portraits = preload("res://scripts/portraits.gd")
 const WeaponIcons=preload("res://scripts/weapon_icons.gd")
@@ -3589,16 +3590,42 @@ func show_debug_report():
 			if game.trials.pressure>0:current=debug_session.retry_deployment(game.save_data("battle"),true,game.content)
 			show_debug_retry_deployment(retry,current)
 		).name="DebugCompareEnemies"
-	label_in(panel,"Copy rules, casualties and the last 64 action changes, including RNG and save results. History lasts only for this Debug session; the restore code carries the current position.",19)
+	label_in(panel,"The report includes rules, casualties and the last 64 recorded actions. Its restore code carries the current position.",19)
 	var report=TextEdit.new();report.name="DebugReport";report.editable=false;report.wrap_mode=TextEdit.LINE_WRAPPING_BOUNDARY
 	report.custom_minimum_size.y=160;report.size_flags_vertical=Control.SIZE_EXPAND_FILL;report.add_theme_font_size_override("font_size",14)
 	record.presentation={"campaign_models":preferences.values.character_models,"revised_vanguard":debug_session.revised_vanguard,"revised_duelists":debug_session.revised_duelists,"revised_caster":debug_session.revised_caster,"revised_warden":debug_session.revised_warden,"revised_corsair":debug_session.revised_corsair,"revised_ranger":debug_session.revised_ranger,"revised_knight":debug_session.revised_knight,"revised_rider":debug_session.revised_rider,"revised_enemies":debug_session.revised_enemies}
 	report.text=JSON.stringify(record,"\t",false);panel.add_child(report)
-	var actions=HBoxContainer.new();actions.add_theme_constant_override("separation",12);panel.add_child(actions)
+	var actions=GridContainer.new()
+	actions.add_theme_constant_override("h_separation",12);actions.add_theme_constant_override("v_separation",8)
+	panel.add_child(actions)
 	button_in(actions,"Copy report",func():DisplayServer.clipboard_set(report.text);show_notice("Experiment report copied."))
+	var position_name="turn-%02d"%record.turn if stage_name=="battle" else "council"
+	var report_name="poem-experiment-ch%02d-%s-seed-%d.json"%[record.chapter,position_name,record.seed_for_new_attempts]
+	button_in(actions,"Save report JSON",func():save_debug_report_file(report_name,report.text)).name="SaveDebugReport"
 	button_in(actions,"Copy restore code",func():DisplayServer.clipboard_set(record.save_code);show_notice("Restore code copied. Paste it into Transfer a local save in another debug session."))
 	button_in(actions,"Select all text",func():report.grab_focus();report.select_all())
 	button_in(panel,"Return to debug tools",func():show_debug_tools(options_return))
+	var fit_report=func():
+		var compact=ui.size.x<840
+		actions.columns=2 if compact else 4
+		report.custom_minimum_size.y=128 if compact else 160
+	ui.resized.connect(fit_report)
+	fit_report.call()
+
+func save_debug_report_file(filename: String,payload: String):
+	if OS.has_feature("web"):
+		JavaScriptBridge.download_buffer(payload.to_utf8_buffer(),filename,"application/json")
+		return
+	var picker=FileDialog.new();picker.name="DebugReportFilePicker"
+	picker.title="Save an experiment report";picker.access=FileDialog.ACCESS_FILESYSTEM
+	picker.file_mode=FileDialog.FILE_MODE_SAVE_FILE;picker.add_filter("*.json","Experiment report")
+	picker.current_file=filename
+	ui.add_child(picker);picker.canceled.connect(picker.queue_free)
+	picker.file_selected.connect(func(path):
+		picker.queue_free()
+		var written=LocalTextExport.write(path,payload)
+		show_notice("Saved "+path.get_file()+"." if written else "Could not save the experiment report."))
+	picker.popup_centered_ratio(.72)
 
 func show_debug_retry_deployment(retry: Dictionary,current: Dictionary={}):
 	if not debug_session.active:return
