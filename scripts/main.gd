@@ -964,7 +964,9 @@ func show_campaign_route(view: String="campaign_route"):
 	elif battle_view:
 		var inspection=label_in(frame,"",16,GOLD);inspection.name="BattleRouteTileSummary";inspection.hide()
 		route.battle_tile_selected.connect(func(tile):
-			inspection.text="%s · %s"%[ValleyBattle.survey_mark(tile),game.terrain_profile(tile).name])
+			var path=game.movement_path(selected,tile) if selection_can_move() else []
+			route.set_battle_path(path)
+			inspection.text=battle_atlas_tile_summary(tile,path))
 		route.chapter_selected.connect(func(chapter):route.select_battle_tile(route.survey_cells[chapter]))
 		route.select_battle_tile(route.survey_cells[route.selected])
 		var key=label_in(frame,"Blue squares mark the company. Red diamonds mark enemies. Crosses mark downed allies.",15,Color("766e5e"))
@@ -972,17 +974,20 @@ func show_campaign_route(view: String="campaign_route"):
 		var display_options=HBoxContainer.new();display_options.add_theme_constant_override("separation",8);frame.add_child(display_options)
 		var grid=CheckButton.new();grid.text="Show battle grid";grid.name="BattleRouteGrid";display_options.add_child(grid)
 		grid.tooltip_text="Show the tactical tiles and inspect them with the pointer or arrow keys."
-		grid.toggled.connect(func(enabled):
-			inspection.visible=enabled
-			route.set_war_table_overlay(game.info() if enabled else {})
-			route.enable_battle_tile_picker(enabled))
-		interface_audio.watch(grid)
 		var company=CheckButton.new();company.text="Show units";company.name="BattleRouteUnits";display_options.add_child(company)
 		company.tooltip_text="Mark standing and downed units and show who holds each standard."
+		var update_picker=func():
+			var enabled=grid.button_pressed or company.button_pressed
+			inspection.visible=enabled;route.enable_battle_tile_picker(enabled)
+		grid.toggled.connect(func(enabled):
+			route.set_war_table_overlay(game.info() if enabled else {})
+			update_picker.call())
+		interface_audio.watch(grid)
 		company.toggled.connect(func(enabled):
 			key.visible=enabled
 			if enabled:route.set_battle_positions(game.occupied_tiles(),game.capture_tiles())
-			else:route.set_battle_positions({},[]))
+			else:route.set_battle_positions({},[])
+			update_picker.call())
 		interface_audio.watch(company)
 		var actions=HBoxContainer.new();actions.add_theme_constant_override("separation",8);frame.add_child(actions)
 		var inspect=button_in(actions,"Inspect selected tile",func():
@@ -1000,6 +1005,23 @@ func show_campaign_route(view: String="campaign_route"):
 		row.add_theme_constant_override("separation",16 if compact else 20)
 	ui.resized.connect(fit_route)
 	fit_route.call()
+
+func battle_atlas_tile_summary(tile: Vector2i,path: Array) -> String:
+	var parts=PackedStringArray([ValleyBattle.survey_mark(tile),game.terrain_profile(tile).name])
+	for unit in game.occupants(tile):
+		if game.DeathDoor.downed(unit):
+			parts.append("%s (downed, %d %s left)"%[unit.name,unit.bleed_turns,"phase" if unit.bleed_turns==1 else "phases"])
+			continue
+		var health="%s %d/%d HP"%[unit.name,unit.hp,unit.max_hp]
+		var passenger=game.DeathDoor.passenger(game,unit)
+		if passenger!=null:health+=", carrying "+passenger.name
+		parts.append(health)
+	if tile in game.capture_tiles():parts.append(TerrainCard.STANDARD_STATUS[ValleyBattle.standard_claim(game.at(tile))])
+	if path.size()>1:
+		var cost=0
+		for step in path.slice(1):cost+=game.terrain_profile(step).move
+		parts.append("%s uses %d of %d movement"%[selected.name,cost,game.movement_allowance(selected)])
+	return " · ".join(parts)
 
 func objective_text(chapter: Dictionary={}) -> String:
 	if chapter.is_empty():chapter=game.info()

@@ -2164,14 +2164,14 @@ func run():
   assert(atlas.survey_terrain.is_empty())
   units.button_pressed=true;await process_frame
   var occupied=app.game.occupied_tiles()
-  assert(atlas.survey_terrain.is_empty() and atlas.battle_counters.size()==occupied.size())
+  assert(atlas.survey_terrain.is_empty() and atlas.battle_counters.size()==occupied.size() and atlas.battle_tile_picker)
   for point in occupied:
    var counter=atlas.battle_counters[point]
    assert(counter.team==occupied[point].team and counter.downed==app.game.DeathDoor.downed(occupied[point]))
    assert(Rect2(Vector2.ZERO,atlas.size).has_point(atlas.battle_counter_point(point)))
   for standard in app.game.capture_tiles():assert(atlas.battle_claims[standard]==Valley.standard_claim(occupied.get(standard)))
   units.button_pressed=false
-  assert(atlas.battle_counters.is_empty() and atlas.battle_claims.is_empty())
+  assert(atlas.battle_counters.is_empty() and atlas.battle_claims.is_empty() and not atlas.battle_tile_picker)
   root.push_input(exit_index,true);await process_frame
   assert(app.screen=="battle" and app.cursor_tile==Vector2i(6,9) and app.map_navigation.capture_view()==view)
   var returned=app.ui.find_child("OpenLandmarkIndex",true,false)

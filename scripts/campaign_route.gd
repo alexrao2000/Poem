@@ -35,6 +35,7 @@ var battle_counters: Dictionary
 var battle_claims: Dictionary
 var battle_tile_picker=false
 var battle_tile=Vector2i(-1,-1)
+var battle_path: Array[Vector2i]
 
 func configure(chapters: Array,index: int,finished=false,rallies=PackedInt32Array(),retreat=0,atlas: Texture2D=null):
  map_picture=MAP if atlas==null else atlas
@@ -102,6 +103,10 @@ func enable_battle_tile_picker(enabled: bool):
 func select_battle_tile(tile: Vector2i):
  battle_tile=tile.clamp(Vector2i.ZERO,Vector2i(Valley.WIDTH-1,Valley.HEIGHT-1))
  battle_tile_selected.emit(battle_tile)
+ queue_redraw()
+
+func set_battle_path(path: Array):
+ battle_path.assign(path)
  queue_redraw()
 
 func draw_battle_positions():
@@ -205,6 +210,10 @@ func _draw():
  if map_rect.size.x<=0:return
  draw_texture_rect(map_picture,map_rect,false)
  if not survey_terrain.is_empty():draw_war_table_overlay()
+ if battle_tile_picker and battle_path.size()>1:
+  var path=PackedVector2Array(battle_path.map(func(tile):return battle_tile_box(tile).get_center()))
+  draw_polyline(path,Color("674c30"),4.0,true)
+  draw_polyline(path,Color("f6d48b"),2.0,true)
  var tick=Color(.34,.23,.14,.53)
  for index in range(1,Valley.WIDTH):
   var x=map_rect.position.x+map_rect.size.x*index/Valley.WIDTH
