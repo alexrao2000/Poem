@@ -2,6 +2,7 @@ extends SceneTree
 const Audio=preload("res://scripts/travel_audio.gd")
 const Dust=preload("res://scripts/combat_dust.gd")
 const Ground=preload("res://scripts/map_ground.gd")
+const Draft=preload("res://scripts/campaign_draft.gd")
 const Shutdown=preload("helpers/game_shutdown.gd")
 var contacts=[]
 var followed: Node3D
@@ -173,7 +174,35 @@ func run():
   assert(returned.checked)
   assert(not arena_cues.is_empty() and arena_cues.all(func(family):return family==course[2]),"Actual mounted harbor approaches match paved and wooden floors")
   assert(app.game.save_data("battle")==saved and app.game.rng.state==rng,"Arena contacts do not change campaign outcomes")
+ await verify_table_contacts(app)
  await Shutdown.dispose(app);await process_frame
  print("PASS: six original contacts, 84 matching terrain/chapter surfaces, real movement timing, planted final step, mounted map/harbor arena cues, grounded dust/wood suppression, muted visual contacts, isolated voices, volume/mute and unchanged simulation/score")
  print("PASS: Harbor matches the sail phases of each shown boat during quay and pier cutaways and retains omitted sails")
  quit()
+
+func verify_table_contacts(app):
+ var draft=Draft.new();draft.load_poem_template(true)
+ var compiled=draft.compile()
+ app.game=Draft.Rules.new(compiled.content);app.game.chapter=11;app.story=compiled.story
+ app.game.deployed=["lyra","bram"]
+ app.game.start_battle();app.make_map();app.show_battle()
+ var rider=app.game.living("player").filter(func(unit):return unit.job=="Rider")[0]
+ followed=app.unit_nodes[rider.id]
+ assert(followed.on_war_table)
+ var path: Array=[]
+ for target in app.game.reachable(rider):
+  var course=app.game.movement_path(rider,target)
+  if course.size()==5 and [1,3,4].any(func(index):return app.game.terrain(course[index])!="="):
+   path=course;break
+ assert(path.size()==5)
+ var saved=app.game.save_data("battle").duplicate(true)
+ contacts.clear();map_contacts.clear()
+ app.travel_audio.step_played.connect(record_contact)
+ app.pieces.child_entered_tree.connect(watch_map_dust)
+ await app.animate_map_move(rider,path);await process_frame
+ assert(contacts.map(func(entry):return entry.family)==["foot_wood","foot_wood","foot_wood"])
+ for index in 3:assert(contacts[index].position==app.map_position(path[[1,3,4][index]]))
+ assert(map_contacts.is_empty() and app.game.save_data("battle")==saved)
+ app.travel_audio.step_played.disconnect(record_contact)
+ app.pieces.child_entered_tree.disconnect(watch_map_dust)
+ print("PASS: tabletop regiments make wooden contacts at real arrival tiles, without hoof cues or ground dust")

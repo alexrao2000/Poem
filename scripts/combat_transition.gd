@@ -23,10 +23,13 @@ func configure(parent: Control,source=Callable(),horizon=Color.TRANSPARENT,subje
  parent.add_child(self);set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
  focal_source=source
  subject_bounds_source=subject_bounds
- if horizon.a>0:
-  ink=INK.lerp(horizon.darkened(.81),.52)
-  cool_streak=COOL_STREAK.lerp(horizon,.36)
-  warm_streak=WARM_STREAK.lerp(horizon.lightened(.13),.28)
+ set_horizon(horizon)
+
+func set_horizon(horizon: Color):
+ ink=INK.lerp(horizon.darkened(.81),.52) if horizon.a>0 else INK
+ cool_streak=COOL_STREAK.lerp(horizon,.36) if horizon.a>0 else COOL_STREAK
+ warm_streak=WARM_STREAK.lerp(horizon.lightened(.13),.28) if horizon.a>0 else WARM_STREAK
+ queue_redraw()
 
 func conceal(duration=.42,with_streaks=true) -> Tween:
  if motion and motion.is_valid():motion.kill()

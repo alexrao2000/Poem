@@ -161,6 +161,8 @@ All twelve battlefields use original eight-second stereo PCM loops. Cinderford h
 
 The Valley chart has its own quiet room loop. When the camera drops into close-up combat, the ambience fades to the local terrain and returns to the room as the camera pulls back. The Valley’s score keeps playing across both views.
 
+Warm light separates the war table from its outdoor battlefields. Miniatures make wooden contacts as they move. The tactical zoom starts in the room’s palette, takes on the local arena color under the veil, and restores the room on return.
+
 Quick map attacks also blend into Ablaze and start the return to Calm after the last strike. Consecutive attacks take up the blend from its current gain on the same live decoder.
 
 ## Tactical action tracking

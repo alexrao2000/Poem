@@ -1,5 +1,6 @@
 extends SceneTree
 const Shutdown=preload("helpers/game_shutdown.gd")
+const Draft=preload("res://scripts/campaign_draft.gd")
 var inspected_hud=false
 
 func inspect_combat_hud(app):
@@ -137,12 +138,52 @@ func run():
 	await verify_weather_exchange(app)
 	await verify_harbor_gulls(app)
 	await verify_chimney_exchange(app)
+	await verify_valley_lighting(app)
 	app.show_ending()
 	await process_frame
 	await Shutdown.dispose(app)
 	await process_frame
 	print("PASS: 12 distinct chapter palettes shared by map and arena, 12 camp/map scenes, combat camera transition, control restoration and ending")
 	quit()
+
+func verify_valley_lighting(app):
+	var previous_game=app.game
+	var previous_story=app.story
+	var draft=Draft.new();draft.load_poem_template(true)
+	var compiled=draft.compile()
+	app.game=Draft.Rules.new(compiled.content);app.game.chapter=11;app.story=compiled.story
+	app.game.start_battle()
+	app.selected=null;app.target=null;app.origin=null
+	var ally=app.game.living("player")[0]
+	var foe=app.game.living("enemy")[1]
+	ally.x=5;ally.y=9;foe.x=6;foe.y=9
+	app.make_map();app.show_battle()
+	var room=app.lighting_state()
+	var river=app.CHAPTER_LIGHTING.river
+	assert(room.sky_cover==null and not room.fog.fog_enabled)
+	assert(room.horizon==Color(app.WAR_TABLE_LIGHTING.horizon) and room.color==Color(app.WAR_TABLE_LIGHTING.sun))
+	var saved=app.game.save_data("battle").duplicate(true)
+	var seen={"map":false,"arena":false,"return":false}
+	var check_palette=func():
+		var veil=app.ui.get_node_or_null("CombatTransition")
+		if veil==null or not veil.visible:return
+		if app.stage.visible:
+			var lighting=app.lighting_state()
+			assert(lighting.sky_cover==app.CloudSky.texture() and lighting.fog.fog_enabled)
+			assert(lighting.horizon==Color(river.horizon) and lighting.color==Color(river.sun))
+			assert(veil.ink==app.CombatTransition.INK.lerp(Color(river.horizon).darkened(.81),.52))
+			seen.arena=true
+		else:
+			assert(veil.ink==app.CombatTransition.INK.lerp(room.horizon.darkened(.81),.52))
+			if seen.arena:seen.return=true
+			else:seen.map=true
+	process_frame.connect(check_palette)
+	await app.cinematic(ally,foe,[{"actor":ally.id,"target":foe.id,"damage":1,"remaining":foe.hp-1,"hit":true,"crit":false}])
+	process_frame.disconnect(check_palette)
+	assert(seen.values().all(func(marker):return marker) and app.lighting_state()==room)
+	assert(app.game.save_data("battle")==saved)
+	app.game=previous_game;app.story=previous_story
+	print("PASS: warm war-table lighting, local river palette on entry, and exact room lighting and save restoration")
 
 func verify_chimney_exchange(app):
 	app.game.chapter=0;app.game.start_battle();app.make_map();app.show_battle()

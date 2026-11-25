@@ -30,6 +30,7 @@ const CHAPTER_LIGHTING={
 	"castle":{"sun":"f0e6d5","energy":.78,"ambient":.57,"top":"617589","horizon":"c7c9c3","haze":.28},
 	"engine":{"sun":"ffc48e","energy":.55,"ambient":.69,"top":"514750","horizon":"a47965","haze":.28},
 }
+const WAR_TABLE_LIGHTING={"sun":"ffe3b4","energy":.87,"ambient":.60,"top":"433448","horizon":"947167","haze":.08}
 var map_catalog=preload("res://scripts/campaign_catalog.gd").new()
 var map_facings: Dictionary={}
 const DISPLAY_FONT = preload("res://assets/fonts/CormorantGaramond.ttf")
@@ -418,7 +419,9 @@ func make_map():
 	cursor_visible=false
 	clear_world()
 	map_camera()
-	battle_lighting(game.info().get("environment","village"),false)
+	var level=game.info()
+	var theme="valley_table" if level.get("presentation","")=="valley_table" else level.get("environment","village")
+	battle_lighting(theme,false)
 	scenery.landscape(world,game)
 	refresh_pieces()
 
@@ -1660,6 +1663,7 @@ func cinematic(a,b,events,initial_hp={},challenge: Dictionary={}):
 	stage.process_mode=Node.PROCESS_MODE_INHERIT;stage.visible=true
 	var arena_context=scenery.combat_context(game,a,b,opening_direction)
 	var old_lighting=battle_lighting(arena_context.environment)
+	veil.set_horizon(environment.sky.sky_material.sky_horizon_color)
 	field_audio.select(arena_context.environment)
 	scenery.battle_landscape(stage,Vector3(35,0,0),arena_context)
 	scenery.transfer_environment_motion(world,stage,arena_context.environment)
@@ -1863,6 +1867,7 @@ func cinematic(a,b,events,initial_hp={},challenge: Dictionary={}):
 		if child not in [actor,defender]:stage.remove_child(child);child.queue_free()
 	stage.process_mode=Node.PROCESS_MODE_DISABLED
 	restore_lighting(old_lighting)
+	veil.set_horizon(old_lighting.horizon)
 	await return_to_tactical_map(veil,playback,close_map_view,tactical_view,tactical_controls,focus,home_viewport,focal_units)
 	await present_casualties(events)
 
@@ -1933,6 +1938,7 @@ func lighting_state() -> Dictionary:
 	return {"energy":sunlight.light_energy,"color":sunlight.light_color,"ambient":environment.ambient_light_energy,"top":sky.sky_top_color,"horizon":sky.sky_horizon_color,"ground":sky.ground_horizon_color,"clouds":sky.sky_cover_modulate,"sky_cover":sky.sky_cover,"fog":fog}
 
 func battlefield_palette(theme: String) -> Dictionary:
+	if theme=="valley_table":return WAR_TABLE_LIGHTING
 	var palette=CHAPTER_LIGHTING.get(theme,{})
 	if palette.is_empty() or theme!=game.info().get("environment","village"):return palette
 	var authored=game.info().get("lighting",{})
@@ -1951,7 +1957,7 @@ func battle_lighting(theme: String,arena=true) -> Dictionary:
 	var old=lighting_state()
 	if not default_lighting.is_empty():restore_lighting(default_lighting)
 	var sky=environment.sky.sky_material
-	sky.sky_cover=CloudSky.texture(theme=="observatory")
+	sky.sky_cover=null if theme=="valley_table" else CloudSky.texture(theme=="observatory")
 	sky.sky_cover_modulate=CloudSky.tint(theme)
 	var palette=battlefield_palette(theme)
 	if not palette.is_empty():
@@ -2573,6 +2579,9 @@ func track_map_actor(actor: Node3D):
 	map_navigation.follow_action([actor.position,actor.position+Vector3.UP*1.1],action_occlusion())
 
 func map_step_feedback(unit,point: Vector2i,direction: Vector2i,index: int):
+	if game.info().get("presentation","")=="valley_table":
+		travel_audio.step("=","",index)
+		return
 	var terrain=game.terrain(point);var theme=game.info().get("environment","village")
 	travel_audio.step(terrain,unit.job,index,theme)
 	var dust=preload("res://scripts/combat_dust.gd").spawn(pieces,map_position(point),Vector3(direction.x,0,direction.y),unit.job=="Rider",travel_audio.surface_for(terrain,theme),index)
