@@ -7,6 +7,50 @@ func place_duel(app,unit,enemy):
   if blocker!=null and blocker.id!=pair[0].id:blocker.x=previous.x;blocker.y=previous.y
   pair[0].x=pair[1].x;pair[0].y=pair[1].y
  app.refresh_pieces()
+func verify_downed_navigation(app):
+ app.game.death_door=true
+ app.game.start_battle();app.make_map()
+ app.selected=null;app.target=null;app.origin=null;app.show_battle()
+ var lyra=app.game.living("player").filter(func(unit):return unit.id=="lyra")[0]
+ var oren=app.game.living("player").filter(func(unit):return unit.id=="oren")[0]
+ var sera=app.game.living("player").filter(func(unit):return unit.id=="sera")[0]
+ var field=app.game.DeathDoor.drop_positions(app.game,lyra)[0]
+ sera.x=field.x;sera.y=field.y
+ for patient in [oren,sera]:
+  patient.hp=0
+  app.game.DeathDoor.fall(app.game,patient)
+ sera.bleed_turns=1
+ app.refresh_pieces();app.update_side()
+ var old_size=root.size
+ var old_scale=root.content_scale_size
+ var disk=FileAccess.get_file_as_string(app.save_path)
+ var armed=InputEventKey.new();armed.keycode=KEY_K;armed.pressed=true
+ for dimensions in [Vector2i(720,640),Vector2i(1440,900)]:
+  root.size=dimensions;root.content_scale_size=dimensions
+  app.cursor_visible=false
+  await process_frame;await process_frame
+  var button=app.side.find_child("NextDownedAlly",true,false)
+  assert(button!=null and root.get_visible_rect().encloses(button.get_global_rect()))
+  var saved=app.game.save_data("battle").duplicate(true)
+  button.pressed.emit()
+  assert(app.cursor_tile==app.game.pos(sera) and app.terrain_card.tile==app.cursor_tile)
+  armed.echo=true;app._input(armed);assert(app.cursor_tile==app.game.pos(sera))
+  armed.echo=false;app._input(armed);assert(app.cursor_tile==app.game.pos(oren))
+  app.busy=true;app._input(armed);assert(app.cursor_tile==app.game.pos(oren))
+  app.busy=false;app._input(armed);assert(app.cursor_tile==app.game.pos(sera))
+  assert(app.selected==null and app.game.save_data("battle")==saved and FileAccess.get_file_as_string(app.save_path)==disk)
+ assert(app.game.DeathDoor.rescue(app.game,lyra,sera))
+ app.refresh_pieces();app.update_side();app.cursor_visible=false
+ app._input(armed);assert(app.cursor_tile==app.game.pos(oren))
+ app._input(armed);assert(app.cursor_tile==app.game.pos(lyra))
+ for patient in [oren,sera]:
+  patient.hp=1
+  app.game.DeathDoor.recover(app.game,patient)
+ app.refresh_pieces();app.update_side()
+ assert(app.side.find_child("NextDownedAlly",true,false)==null)
+ root.size=old_size;root.content_scale_size=old_scale
+ print("PASS: downed ally cycling visits urgent patients first, sees carried allies, and preserves the battle")
+
 func run():
  var app=load("res://main.tscn").instantiate();app.settings_path="";app.save_path="/private/tmp/poem-controls.json";root.add_child(app);await process_frame
  app.game.start_battle();app.make_map();app.show_battle();app.preferences.values.auto_end=false;app.preferences.values.combat="map"
@@ -133,6 +177,7 @@ func run():
   else:
    if app.screen=="dialogue":app.finish_dialogue();await process_frame
    assert(app.screen=="camp","Menu council returns to preparation after any unseen chapter briefing")
+ await verify_downed_navigation(app)
  for player in app.sfx_players:player.stop()
  app.music.stop();await create_timer(.15).timeout
  await Shutdown.dispose(app);await process_frame

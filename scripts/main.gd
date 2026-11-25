@@ -1057,6 +1057,7 @@ func update_side():
 	if save_failed:notices.append("SAVE FAILED")
 	if not notices.is_empty():phase_text+="\n"+" · ".join(notices)
 	battle_header.set_phase(phase_text,game.phase=="enemy",save_failed)
+	var patients=downed_allies()
 	if selected!=null:
 		var identity=HBoxContainer.new();identity.add_theme_constant_override("separation",8);side.add_child(identity)
 		var portrait=TextureRect.new();portrait.name="UnitPortrait";portrait.texture=portraits.get_unit_portrait(selected);portrait.expand_mode=TextureRect.EXPAND_IGNORE_SIZE;portrait.flip_h=selected.team=="enemy"
@@ -1149,6 +1150,9 @@ func update_side():
 			button_in(side,"Next standard [G]",focus_next_standard,busy or game.phase!="player").name="NextStandard"
 		if not game.available_site_scenes().is_empty():
 			button_in(side,"Next site [J]",focus_next_site,busy or game.phase!="player").name="NextSite"
+		if not patients.is_empty():
+			var rescue=button_in(side,"Next downed ally [K]",focus_next_downed,busy or game.phase!="player")
+			rescue.name="NextDownedAlly";rescue.tooltip_text="Cycle through downed allies, starting with those closest to bleeding out."
 		if not terrain_card.places.is_empty():
 			var landmarks=HBoxContainer.new();landmarks.add_theme_constant_override("separation",6);side.add_child(landmarks)
 			var next=button_in(landmarks,"Next landmark [L]",focus_next_landmark,busy or game.phase!="player")
@@ -1156,7 +1160,7 @@ func update_side():
 			var index=button_in(landmarks,"Index",show_battle_menu.bind(true),busy or game.phase!="player")
 			index.name="OpenLandmarkIndex";index.tooltip_text="Choose a landmark from an earlier chapter."
 	if save_failed and game.action_saves:button_in(side,"Retry autosave",retry_action_save,busy)
-	var expiring=game.units.filter(func(unit):return game.DeathDoor.downed(unit) and unit.bleed_turns==1 and unit.get("carried_by","").is_empty()) if game.phase=="player" else []
+	var expiring=patients.filter(func(unit):return unit.bleed_turns==1 and unit.get("carried_by","").is_empty()) if game.phase=="player" else []
 	var phase_button=button_in(side,"End player phase" if expiring.is_empty() else "End phase · %d will fall"%expiring.size(),end_turn,busy or game.phase!="player");phase_button.name="EndPlayerPhase"
 	if not expiring.is_empty():
 		phase_button.add_theme_color_override("font_color",Color("923e33"))
@@ -1357,6 +1361,8 @@ func _input(event):
 			focus_next_standard();get_viewport().set_input_as_handled();return
 		if event.keycode==KEY_J and not event.echo and not game.available_site_scenes().is_empty():
 			focus_next_site();get_viewport().set_input_as_handled();return
+		if event.keycode==KEY_K and not event.echo:
+			focus_next_downed();get_viewport().set_input_as_handled();return
 		if event.keycode==KEY_L and not event.echo and not terrain_card.places.is_empty():
 			focus_next_landmark();get_viewport().set_input_as_handled();return
 	if is_instance_valid(reward_panel) and event is InputEventKey and event.pressed and event.keycode in [KEY_SPACE,KEY_ENTER,KEY_TAB]:
@@ -3662,6 +3668,21 @@ func focus_next_landmark():
 	var landmarks: Array[Vector2i]=[]
 	landmarks.assign(terrain_card.places.keys())
 	focus_next_map_point(landmarks)
+
+func downed_allies() -> Array:
+	return game.units.filter(func(unit):return unit.team=="player" and game.DeathDoor.downed(unit))
+
+func focus_next_downed():
+	var patients=downed_allies()
+	patients.sort_custom(func(first,second):
+		var first_wait=int(first.bleed_turns) if first.get("carried_by","").is_empty() else 3
+		var second_wait=int(second.bleed_turns) if second.get("carried_by","").is_empty() else 3
+		return first_wait<second_wait)
+	var positions: Array[Vector2i]=[]
+	for patient in patients:
+		var point=game.pos(patient)
+		if point not in positions:positions.append(point)
+	focus_next_map_point(positions)
 
 func focus_next_map_point(points: Array[Vector2i]):
 	if screen!="battle" or busy or game.phase!="player" or points.is_empty():return
