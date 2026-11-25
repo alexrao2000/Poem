@@ -111,11 +111,43 @@ func verify_app():
  assert(FileAccess.get_file_as_string(output)==report_text and trace.report()==trace_before)
  assert(app.game.save_data("battle")==state and app.game.rng.state==rng)
  assert(FileAccess.get_file_as_string(debug_path)==debug_disk)
- assert(DirAccess.remove_absolute(output)==OK)
  print("PASS: Debug saves exactly the displayed report and restores its code without changing either campaign save")
+ app.game.rng.randi()
+ assert(app.game.rng.state!=rng and app.persist_campaign("battle",true,"fixture"))
+ var changed_disk=FileAccess.get_file_as_string(debug_path)
+ app.show_battle()
+ app.show_save_transfer("battle");await process_frame
+ var field=app.transfer_text
+ var changed_code=field.text
+ assert(changed_code!=exported.save_code)
+ var damaged_path=output.get_basename()+"-damaged.json"
+ var damaged=FileAccess.open(damaged_path,FileAccess.WRITE);damaged.store_string("{\"debug\":");damaged.close()
+ var open_report=app.ui.find_child("OpenSaveCodeFile",true,false)
+ open_report.pressed.emit();await process_frame
+ app.ui.find_child("SaveCodeFilePicker",true,false).file_selected.emit(damaged_path);await process_frame
+ assert(field.text==changed_code and FileAccess.get_file_as_string(debug_path)==changed_disk)
+ open_report.pressed.emit();await process_frame
+ var report_picker=app.ui.find_child("SaveCodeFilePicker",true,false)
+ assert(report_picker.filters[0].contains("*.json"))
+ report_picker.file_selected.emit(output);await process_frame
+ assert(field.text==exported.save_code and field.has_focus())
+ assert(app.game.rng.state!=rng and FileAccess.get_file_as_string(debug_path)==changed_disk)
+ await app.import_pasted_save()
+ assert(app.screen=="battle" and canonical(app.game.save_data("battle"))==canonical(state))
+ assert(trace.entries[-1].reason=="import" and app.game.rng.state==rng)
+ var persisted=Rules.new(app.game.content)
+ assert(persisted.load_game(debug_path)=="battle" and canonical(persisted.save_data("battle"))==canonical(state))
  assert(FileAccess.get_file_as_string(app.save_path)==disk,"Debug actions never replace the normal save")
  app.show_options("battle");app.ui.find_child("DebugMode",true,false).button_pressed=false
  assert(canonical(app.game.save_data("battle"))==canonical(original) and trace.entries.is_empty() and FileAccess.get_file_as_string(app.save_path)==disk)
+ app.show_battle()
+ app.show_save_transfer("battle");await process_frame
+ var ordinary_code=app.transfer_text.text
+ app.ui.find_child("OpenSaveCodeFile",true,false).pressed.emit()
+ app.ui.find_child("SaveCodeFilePicker",true,false).file_selected.emit(output);await process_frame
+ assert(app.transfer_text.text==ordinary_code and FileAccess.get_file_as_string(app.save_path)==disk)
+ assert(DirAccess.remove_absolute(damaged_path)==OK and DirAccess.remove_absolute(output)==OK)
+ print("PASS: an exported report stages its restore code only in Debug, and explicit import restores the exact saved battle")
  await Shutdown.dispose(app)
 
 func verify_summary():

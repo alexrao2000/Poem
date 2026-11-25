@@ -4,6 +4,7 @@ const CampaignDraftModel=preload("res://scripts/campaign_draft.gd")
 const CampaignSettings=preload("res://scripts/campaign_settings.gd")
 const DebugSession=preload("res://scripts/debug_session.gd")
 const LocalTextExport=preload("res://scripts/local_text_export.gd")
+const MAX_DEBUG_REPORT_FILE_BYTES=8*Rules.MAX_SAVE_CODE_LENGTH
 const EquipmentComparison=preload("res://scripts/equipment_comparison.gd")
 const Portraits = preload("res://scripts/portraits.gd")
 const WeaponIcons=preload("res://scripts/weapon_icons.gd")
@@ -3031,7 +3032,7 @@ func show_save_transfer(return_screen: String):
 	if return_screen=="title":title_backdrop()
 	var panel=menu_panel()
 	label_in(panel,"LOCAL SAVE TRANSFER",36,GOLD)
-	var instructions="Paste a starter code to load a position into the temporary Debug campaign. Copy the code below to keep this test position." if debug_session.active else "Move your campaign between browsers or the desktop app. Copy the code below, then paste it into this screen on the other build."
+	var instructions="Paste a starter code or open an experiment report to load a position into the temporary Debug campaign." if debug_session.active else "Move your campaign between browsers or the desktop app. Copy the code below, then paste it into this screen on the other build."
 	label_in(panel,instructions,21).name="TransferInstructions"
 	var backup="Import replaces the save for the code’s chronicle. Copy a backup of that chronicle first."
 	if return_screen!="title" or debug_session.active:backup="Import replaces the current save in this slot. Copy its code first to keep a separate backup."
@@ -3045,6 +3046,7 @@ func show_save_transfer(return_screen: String):
 	button_in(code_actions,"Copy code",func():DisplayServer.clipboard_set(transfer_text.text);show_notice("Save code copied. Keep it in a local text file or paste it into another build.")).size_flags_horizontal=Control.SIZE_EXPAND_FILL
 	var open_file=button_in(code_actions,"Open code file",open_save_code_file)
 	open_file.name="OpenSaveCodeFile";open_file.size_flags_horizontal=Control.SIZE_EXPAND_FILL
+	if debug_session.active:open_file.tooltip_text="Open a save code or an experiment report."
 	if OS.has_feature("web"):button_in(code_actions,"Open browser copy / paste",open_browser_transfer).size_flags_horizontal=Control.SIZE_EXPAND_FILL
 	else:button_in(code_actions,"Select all text",func():transfer_text.grab_focus();transfer_text.select_all()).size_flags_horizontal=Control.SIZE_EXPAND_FILL
 	var actions=HBoxContainer.new();actions.add_theme_constant_override("separation",10);panel.add_child(actions)
@@ -3053,6 +3055,8 @@ func show_save_transfer(return_screen: String):
 
 func open_save_code_file():
 	var field=transfer_text
+	var reports_allowed=debug_session.active
+	var limit=MAX_DEBUG_REPORT_FILE_BYTES if reports_allowed else Rules.MAX_SAVE_CODE_LENGTH
 	if OS.has_feature("web"):
 		var bridge=JavaScriptBridge.get_interface("poemCampaignFiles")
 		if bridge==null:
@@ -3066,17 +3070,20 @@ func open_save_code_file():
 			if not is_instance_valid(field) or field!=transfer_text or screen!="save_transfer" or arguments.size()!=2:return
 			if str(arguments[0]).is_empty():insert_save_code_file(str(arguments[1]),field)
 			else:show_notice(str(arguments[0])))
-		bridge.open(Rules.MAX_SAVE_CODE_LENGTH,browser_save_file_callback,".txt,text/plain",false,true)
+		var types=".txt,text/plain,.json,application/json" if reports_allowed else ".txt,text/plain"
+		bridge.open(limit,browser_save_file_callback,types,false,true)
 		return
 	var picker=FileDialog.new();picker.name="SaveCodeFilePicker"
 	picker.title="Open a save code file";picker.access=FileDialog.ACCESS_FILESYSTEM
-	picker.file_mode=FileDialog.FILE_MODE_OPEN_FILE;picker.add_filter("*.txt","Poem save codes")
+	picker.file_mode=FileDialog.FILE_MODE_OPEN_FILE
+	if reports_allowed:picker.add_filter("*.txt, *.json","Poem save codes and reports")
+	else:picker.add_filter("*.txt","Poem save codes")
 	ui.add_child(picker);picker.canceled.connect(picker.queue_free)
 	picker.file_selected.connect(func(path):
 		picker.queue_free()
 		var file=FileAccess.open(path,FileAccess.READ)
 		if file==null:show_notice("Could not read the save code file.");return
-		if file.get_length()>Rules.MAX_SAVE_CODE_LENGTH:
+		if file.get_length()>limit:
 			file.close();show_notice("This save code file is too large.");return
 		var raw=file.get_as_text();file.close()
 		insert_save_code_file(raw,field))
@@ -3086,6 +3093,19 @@ func insert_save_code_file(raw: String,field: TextEdit):
 	if not is_instance_valid(field) or field!=transfer_text or screen!="save_transfer":return
 	var code=raw.trim_prefix("\uFEFF").strip_edges()
 	if code.is_empty():show_notice("This save code file is empty.");return
+	if code.begins_with("{"):
+		if not debug_session.active:show_notice("Enable Debug mode to open an experiment report.");return
+		var parser=JSON.new()
+		if parser.parse(code)!=OK or not parser.data is Dictionary:
+			show_notice("This file does not contain a readable experiment report.");return
+		var record=parser.data
+		var candidate=record.get("save_code")
+		if record.get("debug")!=true or record.get("report_version")!=2 or not candidate is String or not candidate.begins_with("POEM1:"):
+			show_notice("This report does not contain a Poem save code.");return
+		code=candidate
+	elif raw.length()>Rules.MAX_SAVE_CODE_LENGTH:
+		show_notice("This save code file is too large.");return
+	if code.length()>Rules.MAX_SAVE_CODE_LENGTH:show_notice("This save code is too large.");return
 	field.text=code;field.grab_focus()
 	show_notice("Save code loaded. Choose Import pasted code to use it.")
 

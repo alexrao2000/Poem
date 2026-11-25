@@ -100,6 +100,13 @@ async function run() {
   complete('old code');
   await reading;
   assert.equal(results.length, resultCount);
+  const report = '{"report_version":2,"debug":true,"save_code":"POEM1:e30="}';
+  files.open(128, (error, text) => results.push({ error, text }), '.txt,text/plain,.json,application/json', false, true);
+  const reportPicker = elements.get(pickerId);
+  assert.equal(reportPicker.accept, '.txt,text/plain,.json,application/json');
+  reportPicker.files = [{ size: report.length, text: async () => report }];
+  await reportPicker.listeners.get('change')();
+  assert.deepEqual(results.at(-1), { error: '', text: report });
   console.log('PASS: browser campaign file chooser, atlas bytes, read limits, cancel focus, and stale read isolation for campaign and save files');
 }
 
