@@ -118,7 +118,7 @@ func build_battle(panel: VBoxContainer):
  var parameters=GridContainer.new();parameters.columns=2
  parameters.add_theme_constant_override("h_separation",12);parameters.add_theme_constant_override("v_separation",8);panel.add_child(parameters)
  field_label(parameters,"Objective",choice(Draft.OBJECTIVES,layout.objective,func(value):
-  layout.objective=value;grid.marks=draft.valley_marks(selected);show_brush_options();changed()))
+  layout.objective=value;grid.marks=draft.valley_marks(selected);refresh_linked_standards();show_brush_options();changed()))
  field_label(parameters,"Phase limit",spin(int(layout.turn_limit),1,99,func(value):layout.turn_limit=value;changed()))
  field_label(parameters,"Environment",choice(Draft.ENVIRONMENTS,layout.environment,func(value):layout.environment=value;changed()))
  field_label(parameters,"Score",choice(draft.music_ids,layout.score_theme,func(value):layout.score_theme=value;changed()))
@@ -160,6 +160,7 @@ func build_battle(panel: VBoxContainer):
  placement_hint=heading(panel,"",15);placement_hint.name="EditorMovePlacementStatus"
  grid=Grid.new();grid.name="EditorGrid";panel.add_child(grid)
  grid.configure(layout,draft.valley_marks(selected),draft.route_texture() if fixed_chart else null)
+ refresh_linked_standards()
  refresh_tile_scene_markers()
  grid.stroke_started.connect(func():terrain_changed=false)
  grid.terrain_step_requested.connect(step_terrain)
@@ -264,6 +265,8 @@ func edit_tile(point: Vector2i,erase: bool):
    group[old].merge(enemy,true)
   elif group.size()<24:group.append(enemy)
  else:
+  if point in grid.linked_standards:
+   grid_help.text="This tile already has a standard from a route pin.";return
   var standards=layout.get("extra_standards",[])
   var overlap=standards.find_custom(func(tile):return same_tile(tile,point))
   if overlap>=0:standards[overlap]=layout.objective_position
@@ -274,15 +277,20 @@ func edit_tile(point: Vector2i,erase: bool):
 
 func edit_extra_standard(layout: Dictionary,point: Vector2i,erase: bool):
  if layout.objective!="seize" or same_tile(layout.objective_position,point):return
+ if point in grid.linked_standards:
+  grid_help.text="Edit this standard from its pin in Route.";return
  var standards=layout.get("extra_standards",[])
  var existing=standards.find_custom(func(tile):return same_tile(tile,point))
  if erase and existing>=0:
   standards.remove_at(existing)
   if standards.is_empty():layout.erase("extra_standards")
- elif not erase and existing<0 and standards.size()<Draft.MAX_EXTRA_STANDARDS:
+ elif not erase and existing<0 and standards.size()+layout.get("extra_standard_pins",[]).size()<Draft.MAX_EXTRA_STANDARDS:
   standards.append([point.x,point.y]);layout.extra_standards=standards
  else:return
  grid.queue_redraw();changed()
+
+func refresh_linked_standards():
+ grid.linked_standards.assign(draft.standard_pin_tiles(selected).map(func(tile):return Vector2i(tile[0],tile[1])))
 
 func same_tile(position: Array,point: Vector2i) -> bool:
  return int(position[0])==point.x and int(position[1])==point.y
@@ -570,20 +578,42 @@ func build_route_survey(panel: VBoxContainer,chart: Control) -> Callable:
   if record.key==survey_chapter:picker.select(picker.item_count-1)
  field_label(row(panel),"War-table overlay",picker)
  var location=heading(panel,"",15);location.name="EditorRouteSurveyTile"
+ var require=CheckButton.new();require.name="EditorRequireRouteStandard";require.text="Require this pin as a standard";panel.add_child(require)
  var refresh=func():
   var key=picker.get_selected_metadata()
   var index=draft.index_for(key) if key is String else -1
-  chart.set_war_table_overlay(draft.battle_level(index) if index>=0 else {})
+  var battle=draft.battle_level(index) if index>=0 else {}
+  chart.set_war_table_overlay(battle)
   location.visible=index>=0
+  require.hide()
   if index>=0:
    picker.set_item_text(picker.selected,"%02d · %s"%[index+1,draft.data.chapters[index].level.title])
    var tile=chart.survey_tile(chart.positions[selected])
    var terrain=Draft.Rules.TERRAIN_PROFILES[chart.survey_terrain[tile.y][tile.x]].name
    location.text="Selected pin · %d, %d · %s"%[tile.x,tile.y,terrain]
+   var authored=draft.data.chapters[index].level
+   var pins=authored.get("extra_standard_pins",[])
+   var pinned=chapter().key in pins
+   var full=authored.get("extra_standards",[]).size()+pins.size()>=Draft.MAX_EXTRA_STANDARDS
+   var eligible=index>selected and level().presentation!="valley_table" and battle.objective=="seize"
+   require.visible=eligible or pinned
+   require.set_pressed_no_signal(pinned)
+   require.disabled=not pinned and (not eligible or tile in chart.survey_standards or full)
  picker.item_selected.connect(func(_selected):
   var key=picker.get_selected_metadata()
   survey_chapter=key if key is String else ""
   refresh.call())
+ require.toggled.connect(func(enabled):
+  if not require.visible or require.disabled:return
+  var index=draft.index_for(picker.get_selected_metadata())
+  var battle=draft.data.chapters[index].level
+  var pins=battle.get("extra_standard_pins",[])
+  if enabled:
+   pins.append(chapter().key);battle.extra_standard_pins=pins
+  else:
+   pins.erase(chapter().key)
+   if pins.is_empty():battle.erase("extra_standard_pins")
+  refresh.call();changed())
  return refresh
 
 func open_route_atlas(parent: Node,feedback: Label):

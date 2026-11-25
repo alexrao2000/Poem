@@ -715,10 +715,24 @@ func run():
  survey=editor.find_child("EditorRouteChart",true,false)
  overlay=editor.find_child("EditorRouteSurvey",true,false)
  assert(overlay.selected==1 and editor.find_child("EditorRouteSurveyTile",true,false).text=="Selected pin · 6, 10 · Stronghold")
+ var required_pin=editor.find_child("EditorRequireRouteStandard",true,false)
+ assert(required_pin.visible and not required_pin.disabled and not required_pin.button_pressed)
+ required_pin.button_pressed=true
+ assert(survey.survey_standards==[Vector2i(21,2),site_tile] and chart.extra_standard_pins==[editor.chapter().key])
  editor.find_child("EditorRouteX",true,false).value=33
  var shifted=Valley.route_tile([.33,.67])
  assert(survey.survey_tile(survey.positions[0])==shifted)
  assert(survey.survey_terrain[shifted.y][shifted.x]=="o" and survey.survey_terrain[site_tile.y][site_tile.x]==chart.map[site_tile.y][site_tile.x])
+ assert(survey.survey_standards==[Vector2i(21,2),shifted])
+ var compiled_flags=editor.draft.compile().content.chapters[1]
+ assert(Rules.standard_tiles(compiled_flags)==[Vector2i(21,2),shifted] and not compiled_flags.has("extra_standard_pins"))
+ var without_source=Draft.new()
+ assert(without_source.decode(editor.draft.encode()).is_empty())
+ without_source.remove_chapter(0)
+ assert(without_source.data.chapters[0].level.extra_standards==[[shifted.x,shifted.y]])
+ assert(not without_source.data.chapters[0].level.has("extra_standard_pins"))
+ required_pin.button_pressed=false
+ assert(survey.survey_standards==[Vector2i(21,2)] and not chart.has("extra_standard_pins"))
  editor.find_child("EditorRouteX",true,false).value=27
  assert(survey.survey_terrain==editor.draft.battle_level(1).map)
  overlay.select(0);overlay.item_selected.emit(0)
@@ -1374,5 +1388,5 @@ func run():
  await verify_multiple_standards(app)
  assert(FileAccess.get_file_as_string(app.save_path)==disk and app.game==installed)
  await Shutdown.dispose(app);await process_frame
- print("PASS: campaign JSON file transfer, draft library management, remembered playtest setup, campaign readiness, authored Hard bonuses, authored retry raiders, deployment comparison, authored formation previews, small deployment limits and save recovery, custom campaign atlas, terrain stroke undo, continuous terrain strokes, connected terrain fill, placement moves and swaps, multiple standards and exact resume, route pins, war-table site terrain, war-table overlay, blank war-table chapter, rising Valley landmarks, custom recruits, phase scenes, tile dialogue and reload, Valley landmark dialogue, dialogue that follows route pins, timed reinforcements, chapter 32 saves, section dialogue, authored section relief, authored legacy stock and purchase persistence, authored loss recruits, authored loss dialogue, reproducible playtest setup, Valley carryover and resume, thirteen-chapter Valley template, and single-battle tests")
+ print("PASS: campaign JSON file transfer, draft library management, remembered playtest setup, campaign readiness, authored Hard bonuses, authored retry raiders, deployment comparison, authored formation previews, small deployment limits and save recovery, custom campaign atlas, terrain stroke undo, continuous terrain strokes, connected terrain fill, placement moves and swaps, multiple standards and exact resume, standards that follow route pins, route pins, war-table site terrain, war-table overlay, blank war-table chapter, rising Valley landmarks, custom recruits, phase scenes, tile dialogue and reload, Valley landmark dialogue, dialogue that follows route pins, timed reinforcements, chapter 32 saves, section dialogue, authored section relief, authored legacy stock and purchase persistence, authored loss recruits, authored loss dialogue, reproducible playtest setup, Valley carryover and resume, thirteen-chapter Valley template, and single-battle tests")
  quit()

@@ -20,6 +20,7 @@ var paint_on_drag=true
 var connect_terrain_strokes=false
 var marked_placement=Vector2i(-1,-1)
 var site_tiles: Array
+var linked_standards: Array[Vector2i]
 
 func configure(source: Dictionary,route_marks: Dictionary,picture: Texture2D=null):
  level=source
@@ -79,7 +80,9 @@ func _draw():
   var mark=rect.position+Vector2(tile)*cell+Vector2.ONE*cell*.18
   draw_circle(mark,maxf(2.5,cell*.13),Color("246966"))
   draw_circle(mark,maxf(1.0,cell*.07),Color("cbf1da"))
- for point in Rules.standard_tiles(level):
+ var standards=Rules.standard_tiles(level)
+ standards.append_array(linked_standards)
+ for point in standards:
   if Rect2i(Vector2i.ZERO,board_size()).has_point(point):
    draw_rect(Rect2(rect.position+Vector2(point)*cell,Vector2.ONE*cell).grow(-2),Color("ffe8a5"),false,2)
  if marked_placement.x>=0:

@@ -58,6 +58,8 @@ To carry an earlier location into a war table battle, set its terrain in Route. 
 
 Choose a battle in the War-table overlay in Route to see its effective terrain and seize objective over the atlas. The readout follows the selected pin. Moving a pin or changing its inherited terrain updates the overlay as you edit.
 
+Choose a later seize battle in the overlay and switch on Require this pin as a standard to make that location part of the victory condition. Its standard follows the pin when it moves. Deleting the linked chapter leaves a standard on its last tile.
+
 Use Open atlas image in Route to use your own PNG or JPEG for a campaign. The picker accepts images up to 6 MB and 8 megapixels. Poem centers the image in a 3:2 crop, sizes it to 1,200 by 800 pixels, and stores it inside the campaign JSON. The route screen and war tables use the same picture. Place chapter pins and paint the table’s terrain against that picture.
 
 Use Add blank war table in Route when you want to paint your own geography. It inserts a battle after the selected chapter and opens its 24 by 16 grid on the current atlas. The base grid starts with a stronghold objective and plain terrain. Earlier route pins still supply their assigned terrain.

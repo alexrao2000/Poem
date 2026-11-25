@@ -234,12 +234,20 @@ func remove_chapter(index: int) -> int:
  var removed=data.chapters.pop_at(index)
  terrain_history.erase(removed.key)
  var next=mini(index,data.chapters.size()-1)
+ var tile=Valley.route_tile(removed.level.route_position)
  for chapter in data.chapters:
   for scene in chapter.level.get("site_scenes",[]):
    if scene.get("route_key","")!=removed.key:continue
-   var tile=Valley.route_tile(removed.level.route_position)
    scene.position=[tile.x,tile.y]
    scene.erase("route_key")
+  var pins=chapter.level.get("extra_standard_pins",[])
+  if removed.key in pins:
+   pins.erase(removed.key)
+   if pins.is_empty():chapter.level.erase("extra_standard_pins")
+   var standards=chapter.level.get("extra_standards",[])
+   var position=[tile.x,tile.y]
+   if position not in standards:standards.append(position)
+   chapter.level.extra_standards=standards
  for recruit in data.recruits:
   if recruit.chapter==removed.key:recruit.chapter=data.chapters[next].key
  for bond in data.get("bonds",[]):
@@ -354,6 +362,8 @@ func structural_problem(document) -> String:
   for scene in chapter.level.get("site_scenes",[]):
    if scene.has("route_key") and (chapter.level.presentation!="valley_table" or not keys.has(scene.route_key)):
     return "A tile dialogue link needs a campaign route pin."
+  for pin in chapter.level.get("extra_standard_pins",[]):
+   if not keys.has(pin):return "A required standard needs a campaign route pin."
  if not document.chapters[0].section:return "The opening chapter must start a section."
  var known=templates.roster.map(func(recruit):return recruit.id)
  var people={}
@@ -513,6 +523,14 @@ func map_structure_problem(level: Dictionary) -> String:
  var additional=level.get("extra_standards",[])
  if not additional is Array or additional.size()>MAX_EXTRA_STANDARDS or not additional.all(point_valid):
   return "Use up to five additional standard tiles."
+ var pins=level.get("extra_standard_pins",[])
+ if not pins is Array or additional.size()+pins.size()>MAX_EXTRA_STANDARDS:
+  return "Use up to five additional standards, including linked route pins."
+ if not pins.is_empty() and level.presentation!="valley_table":return "Only war tables can require a route pin."
+ var seen={}
+ for pin in pins:
+  if not valid_text(pin,64) or not pin.is_valid_identifier() or seen.has(pin):return "Each linked standard needs a different route pin."
+  seen[pin]=true
  if not site_scenes_valid(level.get("site_scenes",[])):return "A chapter has invalid tile dialogue."
  if not level.get("deployment_positions") is Array or level.deployment_positions.size()>6 or not level.deployment_positions.all(point_valid):
   return "A battle supports up to six deployment tiles."
@@ -575,10 +593,13 @@ func battle_level(index: int) -> Dictionary:
  var marks=valley_marks(index)
  var scenes=level.get("site_scenes",[])
  var linked=scenes.any(func(scene):return scene.has("route_key"))
- if marks.is_empty() and not linked:return level
+ var linked_standards=standard_pin_tiles(index)
+ if marks.is_empty() and not linked and linked_standards.is_empty():return level
  var adjusted=level.duplicate()
  if not marks.is_empty():adjusted.map=level.map.duplicate()
  for tile in marks:paint(adjusted,tile,marks[tile].terrain)
+ if not linked_standards.is_empty():
+  adjusted.extra_standards=level.get("extra_standards",[])+linked_standards
  if linked:
   adjusted.site_scenes=scenes.map(func(scene):
    if not scene.has("route_key"):return scene
@@ -588,26 +609,41 @@ func battle_level(index: int) -> Dictionary:
    return resolved)
  return adjusted
 
-func route_site_index(index: int,site: Dictionary) -> int:
- if not site.has("route_key"):return -1
- var anchor=index_for(site.route_key)
+func earlier_route_index(index: int,key: String) -> int:
+ if key.is_empty():return -1
+ var anchor=index_for(key)
  if anchor<0 or anchor>=index or data.chapters[anchor].level.presentation=="valley_table":return -1
  return anchor
 
 func site_position(index: int,site: Dictionary) -> Array:
- var anchor=route_site_index(index,site)
+ var anchor=earlier_route_index(index,site.get("route_key",""))
  if anchor<0:return site.position
  var tile=Valley.route_tile(data.chapters[anchor].level.route_position)
  return [tile.x,tile.y]
 
-func site_link_problem(index: int) -> String:
- for scene in data.chapters[index].level.get("site_scenes",[]):
-  if scene.has("route_key") and route_site_index(index,scene)<0:
+func standard_pin_tiles(index: int) -> Array:
+ var level=data.chapters[index].level
+ var positions=[]
+ if level.objective!="seize":return positions
+ for key in level.get("extra_standard_pins",[]):
+  var anchor=earlier_route_index(index,key)
+  if anchor>=0:
+   var tile=Valley.route_tile(data.chapters[anchor].level.route_position)
+   positions.append([tile.x,tile.y])
+ return positions
+
+func route_link_problem(index: int) -> String:
+ var level=data.chapters[index].level
+ for scene in level.get("site_scenes",[]):
+  if scene.has("route_key") and earlier_route_index(index,scene.route_key)<0:
    return "Tile dialogue must follow a route pin from an earlier chapter."
+ if level.objective=="seize":
+  for key in level.get("extra_standard_pins",[]):
+   if earlier_route_index(index,key)<0:return "A required standard must follow a route pin from an earlier chapter."
  return ""
 
 func battle_readiness(index: int) -> Dictionary:
- var link_issue=site_link_problem(index)
+ var link_issue=route_link_problem(index)
  if not link_issue.is_empty():return {"title":"Needs edits","description":link_issue}
  var level=battle_level(index)
  var issue=battle_problem(level)
@@ -638,7 +674,7 @@ func playtest_problem(selected=-1) -> String:
  if not issue.is_empty():return issue
  var indices=range(data.chapters.size()) if selected<0 else [selected]
  for index in indices:
-  issue=site_link_problem(index)
+  issue=route_link_problem(index)
   if not issue.is_empty():return "Chapter %d · %s"%[index+1,issue]
   issue=battle_problem(battle_level(index))
   if not issue.is_empty():return "Chapter %d · %s"%[index+1,issue]
