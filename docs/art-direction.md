@@ -47,6 +47,8 @@ The campaign map uses the [animated class catalog](../visuals/README.md) for all
 
 ## Facial texture and model inspection
 
+Lyra’s combat hair uses a crown fitted to her sculpted head, with a shaped hairline, the temple braid, and shorter asymmetric locks around her cheeks. The outfit viewer and battle close-ups use the same geometry. The current art pass prioritizes matching the opening cast’s portrait silhouettes before applying a design across the company.
+
 `assets/art/face-features.png` is an original transparent eight-face feature atlas generated with the built-in image tool on 2026-10-29. Exact prompt: `docs/face-features-prompt.txt`. It supplies painted eyes, brows, nose and mouth details on curved 3D facial surfaces; characters remain fully 3D during combat. Each recruit selects a feature variant, skin/hair palette and short/long/bearded silhouette. Sculpted hair locks, collars, harnesses, armor trim and boot fittings add depth to the shared rigs. The company record's combat-model viewer exposes rotation and attack poses for visual review.
 
 Water uses a shared world-space animated ripple shader. Ground receives broad color variation, tree crowns have varied heights/asymmetry, and village arenas include a cart, barrels and fences. These remain prototype art rather than a claim of matching finished 3DS character quality.

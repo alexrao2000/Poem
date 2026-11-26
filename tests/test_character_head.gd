@@ -68,6 +68,16 @@ func run():
   var braid=head.get_node_or_null("TempleBraid")
   assert((braid!=null)==(unit.id=="lyra"),"The portrait selects Lyra's braid independently of her long hair")
   if braid!=null:
+   var crown=head.get_node("FittedCrown")
+   var scalp=crown.mesh.surface_get_arrays(0)
+   var crown_points=scalp[Mesh.ARRAY_VERTEX];var crown_order=scalp[Mesh.ARRAY_INDEX]
+   for point in [Vector3(0,.145,-.3),Vector3(.070,.144,-.3),Vector3(-.070,.144,-.3)]:
+    var first_hit=INF
+    for i in range(0,crown_order.size(),3):
+     var hit=Geometry3D.ray_intersects_triangle(point,Vector3.BACK,crown_points[crown_order[i]],crown_points[crown_order[i+1]],crown_points[crown_order[i+2]])
+     if hit!=null:first_hit=minf(first_hit,hit.z)
+    assert(first_hit<-.10,"The fitted crown covers the front scalp in front of the skin")
+   assert(head.has_node("CheekLock-1") and head.has_node("CheekLock1"))
    var arrays=braid.mesh.surface_get_arrays(0)
    var points=arrays[Mesh.ARRAY_VERTEX];var normals=arrays[Mesh.ARRAY_NORMAL]
    assert(points.size()==2592 and normals.size()==points.size())

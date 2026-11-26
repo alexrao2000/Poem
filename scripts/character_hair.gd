@@ -6,12 +6,16 @@ const CAP_RADII=Vector3(.157,.145,.155)
 const BRAID_ROWS=24
 const BRAID_SIDES=6
 static var braid_mesh: ArrayMesh
+static var fitted_crowns={}
 
 static func build(painter,head,appearance,gold):
  var hair=Color(appearance.get("hair","623c31"));var style=appearance.get("hair_style","short")
  head.set_meta("hair_style",style)
  if style!="bald":
-  if appearance.get("hair_fringe","")!="receding":
+  if appearance.get("fitted_crown",false):
+   var crown=fitted_crown(painter.Head,appearance.get("face_shape","tapered"))
+   painter.geo.mesh(head,crown,Vector3.ZERO,Vector3.ONE,painter.geo.material(hair)).name="FittedCrown"
+  elif appearance.get("hair_fringe","")!="receding":
    painter.ellipsoid(head,CAP_CENTER,CAP_RADII,hair)
   else:
    painter.ellipsoid(head,Vector3(0,.055,.095),Vector3(.15,.125,.095),hair)
@@ -34,7 +38,10 @@ static func build(painter,head,appearance,gold):
    lengths.append(painter.hair_lock(head,[Vector3(x,.1,.13),Vector3(x*1.2,-.1,.17),Vector3(x*1.3+.018*sin(i),-.32,.18),Vector3(x*1.25-.025*sin(i),-.55,.12)],.052,hair.lightened((i%3)*.025)))
   separate_lengths(head,lengths,Vector3(0,.1,.13),.075)
   for side in [-1,1]:
-   painter.hair_lock(head,[Vector3(side*.13,.08,-.055),Vector3(side*.15,-.14,-.08),Vector3(side*.18,-.31,-.11),Vector3(side*.15,-.49,-.08)],.038,hair)
+   if appearance.get("fitted_crown",false):
+    cheek_locks(painter,head,hair,side)
+   else:
+    painter.hair_lock(head,[Vector3(side*.13,.08,-.055),Vector3(side*.15,-.14,-.08),Vector3(side*.18,-.31,-.11),Vector3(side*.15,-.49,-.08)],.038,hair)
  elif style=="ponytail":
   var rise=float(appearance.get("ponytail_rise",0.0))
   var root=Vector3(0,.10+rise,.18-rise*.18)
@@ -68,6 +75,51 @@ static func build(painter,head,appearance,gold):
  elif style in ["beard","bald"]:
   var beard=preload("res://scripts/character_beard.gd").mesh(appearance.get("beard_style","full"))
   var piece=painter.geo.mesh(head,beard,Vector3.ZERO,Vector3.ONE,painter.geo.material(hair));piece.name="Beard"
+
+static func fitted_crown(head,shape: String) -> ArrayMesh:
+ if fitted_crowns.has(shape):return fitted_crowns[shape]
+ var surface=SurfaceTool.new();surface.begin(Mesh.PRIMITIVE_TRIANGLES)
+ var rings=[]
+ for section in range(8):
+  var ring=PackedVector3Array()
+  var height_fraction=float(section)/7.0
+  for side in range(head.SIDES):
+   var angle=TAU*side/head.SIDES
+   var front=maxf(0.0,-sin(angle))
+   var hairline=lerpf(-.078,.114,smoothstep(.16,.92,front))+.012*cos(angle)*front
+   var height=lerpf(hairline,.179,height_fraction)
+   var row=1
+   while height>head.RINGS[row][0]:row+=1
+   var fraction=inverse_lerp(head.RINGS[row-1][0],head.RINGS[row][0],height)
+   var scalp: Vector3=head.point(row-1,side,shape).lerp(head.point(row,side,shape),fraction)
+   var radial=Vector3(cos(angle),0,sin(angle))
+   var clearance=lerpf(.009,.023,smoothstep(0.0,.48,height_fraction))
+   ring.append(scalp+radial*clearance+Vector3.UP*.021*height_fraction)
+  rings.append(ring)
+ for row in range(rings.size()-1):
+  for side in range(head.SIDES):
+   var next=(side+1)%head.SIDES
+   for point in [rings[row][side],rings[row][next],rings[row+1][next],
+     rings[row][side],rings[row+1][next],rings[row+1][side]]:
+    surface.add_vertex(point)
+ for side in range(head.SIDES):
+  surface.add_vertex(Vector3(.009,.221,.017))
+  surface.add_vertex(rings[-1][side])
+  surface.add_vertex(rings[-1][(side+1)%head.SIDES])
+ surface.index();surface.generate_normals();fitted_crowns[shape]=surface.commit()
+ return fitted_crowns[shape]
+
+static func cheek_locks(painter,head: Node3D,hair: Color,side: int):
+ var longer=side<0
+ var sweep=[Vector3(side*.137,.090,-.060),Vector3(side*.153,.015,-.092),
+  Vector3(side*.142,-.102,-.118),Vector3(side*.165,-.206,-.129),
+  Vector3(side*.192,-.263,-.124),Vector3(side*.187,-.316,-.107),
+  Vector3(side*(.156 if longer else .181),-.394 if longer else -.348,-.091)]
+ painter.hair_lock(head,smooth_path(sweep),.031,hair).name="CheekLock"+str(side)
+ var edge=[Vector3(side*.146,.063,-.067),Vector3(side*.168,-.052,-.094),
+  Vector3(side*.163,-.144,-.122),Vector3(side*.185,-.215,-.144),
+  Vector3(side*.208,-.279,-.130),Vector3(side*.203,-.328,-.099)]
+ painter.hair_lock(head,smooth_path(edge),.014,hair.lightened(.065)).name="CheekStrand"+str(side)
 
 static func braid_direction(t: float) -> Vector3:
  var angle=lerpf(.32,2.12,t)
