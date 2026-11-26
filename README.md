@@ -4,7 +4,26 @@ A playable tactical RPG prototype built with Godot 4.5.1 and GDScript. Lead a co
 
 The campaign uses animated 2D sprites over textured 3D terrain. Combat zooms enlarge the sprites with tactical indicators hidden. The fighters emerge before the surrounding 3D arena, and the return opens on the same spot on the map with updated health and status. Browser and macOS exports run locally.
 
-[Screenshots](#screenshots) · [Play](#play) · [Controls](#controls) · [Campaign guide](#campaign-guide) · [Saves and options](#saves-and-options) · [Development](#development) · [Testing](#testing) · [Builds](#builds) · [Assets and credits](#assets-and-credits)
+[Project status](#project-status) · [Screenshots](#screenshots) · [Play](#play) · [Controls](#controls) · [Campaign guide](#campaign-guide) · [Saves and options](#saves-and-options) · [Development](#development) · [Testing](#testing) · [Builds](#builds) · [Assets and credits](#assets-and-credits)
+
+## Project status
+
+### Completed
+
+- [x] Built **The Roads Between**, the default 13-chapter campaign with 24 regular recruits, equipment, promotions, and bond conversations. The earlier 12-chapter campaign has a separate save.
+- [x] Turned the world atlas into Chapter 12’s tactical battlefield. Earlier locations become terrain and landmarks, and the battle atlas can show enemy reach and replay the reveal.
+- [x] Added animated 2D map sprites on 3D terrain, a zoom into animated 3D combat, and paired Calm and Ablaze arrangements that share a playhead.
+- [x] Implemented the campaign experiment switches. They cover permadeath, action saves, casualty rewards and recruits, chapter-section retreats, enemy preparations after retries, rescue and revival, and sacrifice effects.
+- [x] Added Debug mode with isolated test saves, reports, and restore codes.
+- [x] Built a campaign editor for chapters, maps, encounters, rosters, story scenes, rules, and custom atlases. Drafts support local playtests and JSON transfer. [Campaign editor guide](docs/campaign-editor.md)
+- [x] Built local Web and macOS playtest packages. Headless replays reached the ending on Standard and Hard permadeath. The latest focused model checks cover Lyra’s fitted hairline and reshaped cheek locks in both exports.
+
+### To do
+
+1. [ ] Rework the opening cast’s 3D combat models. Use Lyra, Oren, Sera, and Ivo to establish faces, proportions, outfits, and silhouettes that match their portraits in close-up. [Art direction](docs/art-direction.md)
+2. [ ] Carry that look through the rest of the roster, enemies, and promoted outfits. Check animation poses, weapon grips, and hits on the new geometry. [Combat model guide](docs/combat-models.md)
+3. [ ] Review live combat in the browser and macOS builds. Check the sprite-to-3D cut, model finish under game lighting, frame rate, and the audible Calm-to-Ablaze transition.
+4. [ ] Playtest difficulty with people. Check whether rescue, retry pressure, and sacrifice create worthwhile decisions with permadeath on and off.
 
 ## Screenshots
 
