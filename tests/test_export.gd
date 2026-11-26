@@ -67,6 +67,9 @@ func run():
  var metadata=JSON.parse_string(FileAccess.get_file_as_string("res://assets/audio/score.json"))
  assert("CC0" in metadata.samples and metadata.frames==1568000,"Export uses the current orchestral arrangement")
  var app=load("res://main.tscn").instantiate();app.settings_path="";app.save_path="/private/tmp/poem-export-test.json";root.add_child(app);await process_frame
+ app.show_campaign_rules()
+ assert(app.ui.find_child("ChronicleChoice",true,false).selected==1,"The packed default includes the Valley battle")
+ app.show_title()
  assert(app.preferences.values.character_models=="revised","Packaged fresh profiles start with revised models")
  var fresh_unit=app.game.roster[0].duplicate(true);fresh_unit.team="player"
  var fresh_lyra=app.make_fighter(fresh_unit,Vector3.ZERO)
@@ -671,6 +674,8 @@ func run():
   if rescue_live[key]!=rescue_disk.get(key):print("RESCUE SAVE DIFF ",key," live=",rescue_live[key]," disk=",rescue_disk.get(key))
  assert(rescue_disk==rescue_live,"Packed rescue starter writes the complete temporary battle")
  app.show_campaign_rules();app.ui.find_child("Permadeath",true,false).button_pressed=true
+ var chronicle=app.ui.find_child("ChronicleChoice",true,false)
+ assert(chronicle.selected==0 and not chronicle.visible,"A packed Debug start keeps its isolated campaign")
  var campaign_settings=load("res://scripts/campaign_settings.gd")
  for setting in campaign_settings.SWITCHES:app.ui.find_child(setting.key,true,false).button_pressed=true
  app.ui.find_children("*","Button",true,false).filter(func(button):return button.text=="Begin the chronicle")[0].pressed.emit()

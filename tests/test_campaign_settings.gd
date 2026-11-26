@@ -22,8 +22,7 @@ func verify_roads_chronicle(app,normal_disk: String):
  assert(app.ui.find_children("*","Button",true,false).all(func(button):return button.text!="Continue The Roads Between"))
  press(app,"Begin the chronicle")
  var chronicle=app.ui.find_child("ChronicleChoice",true,false)
- assert(chronicle.item_count==2 and chronicle.selected==0)
- chronicle.select(1)
+ assert(chronicle.item_count==2 and chronicle.selected==1)
  app.ui.find_child("Permadeath",true,false).button_pressed=true
  app.ui.find_child("action_saves",true,false).button_pressed=true
  press(app,"Begin the chronicle");await finish_presentation(app)
@@ -66,6 +65,7 @@ func verify_roads_chronicle(app,normal_disk: String):
  press(app,"Save and return to title");await process_frame
  assert(FileAccess.get_file_as_string(app.save_path)==normal_disk)
  print("PASS: The Roads Between starts and resumes from title, imports into its own slot, and reaches the Sun Engine after the Valley battle")
+ print("PASS: beginning with the default chronicle includes the Valley as Chapter 12")
 
 func run():
  root.size=Vector2i(1440,900)
@@ -106,6 +106,7 @@ func run():
    for setting in Settings.SWITCHES:Settings.set_enabled(app.game,setting.key,true)
    app.game.trials.losses={"oren":1};app.game.trials.credits=1;app.game.trials.volunteers=["faye"];app.game.trials.injuries={"sera":5};app.game.trials.purchases=["tempered_sword"]
    app.show_campaign_rules();var previous=canonical(app.game.save_data("camp"));var disk=FileAccess.get_file_as_string(app.save_path) if FileAccess.file_exists(app.save_path) else ""
+   app.ui.find_child("ChronicleChoice",true,false).select(0)
    app.ui.find_child("Permadeath",true,false).button_pressed=permanent
    for setting in Settings.SWITCHES:app.ui.find_child(setting.key,true,false).button_pressed=setting.key in enabled
    assert(canonical(app.game.save_data("camp"))==previous)

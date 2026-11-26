@@ -59,7 +59,7 @@ Exports are generated locally and ignored by Git. If `build/web/index.html` or t
 
 ## The Roads Between
 
-At the title, choose **Begin the chronicle → The Roads Between** to start the 13-chapter campaign. **Continue The Roads Between** opens its local save. Late in the campaign, the same atlas used in briefings becomes the Valley battlefield. Mountains and crossings shape how the companies advance, and the capital holds the standard. Press **V** to review the atlas during that battle. Use **Show enemy reach** to plan around exposed tiles or choose **Replay reveal** to see the transformation again.
+**Begin the chronicle** preselects the 13-chapter **The Roads Between**. **Continue The Roads Between** opens its local save. Late in the campaign, the same atlas used in briefings becomes the Valley battlefield. Mountains and crossings shape how the companies advance, and the capital holds the standard. Press **V** to review the atlas during that battle. Use **Show enemy reach** to plan around exposed tiles or choose **Replay reveal** to see the transformation again. Choose **Poem · 12 chapters** in the chronicle selector to start the shorter route.
 
 ## Campaign editor
 

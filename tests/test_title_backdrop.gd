@@ -44,6 +44,7 @@ func run():
  assert(app.game.roster==roster,"Title browsing preserves character progression")
  press(app,"Begin the chronicle");assert(app.screen=="campaign_rules")
  press(app,"Begin the chronicle");assert(app.screen=="dialogue" and not app.ui.has_node("TitleBackdrop"))
+ assert(app.game.content.chapters.size()==13,"The normal title flow opens the chronicle with the Valley battle")
  assert(app.ui.get_node("DialogueBackdrop").covered.all(func(entry):return entry.visible and entry.process_mode==Node.PROCESS_MODE_INHERIT),"Title releases its scene before the conversation acquires it")
  app.finish_dialogue();assert(app.screen=="camp")
  assert(app.ui.has_node("CouncilBackdrop") and not app.world.visible and not app.pieces.visible,"Finishing the opening hands scene suspension to the opaque council")

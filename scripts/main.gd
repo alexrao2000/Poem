@@ -520,7 +520,7 @@ func show_campaign_rules():
 	label_in(panel,"Campaign options",38)
 	var chronicle=OptionButton.new();chronicle.name="ChronicleChoice"
 	chronicle.add_item("Poem · 12 chapters");chronicle.add_item("The Roads Between · 13 chapters")
-	chronicle.select(0);chronicle.custom_minimum_size.y=42;chronicle.visible=not debug_session.active
+	chronicle.select(0 if debug_session.active else 1);chronicle.custom_minimum_size.y=42;chronicle.visible=not debug_session.active
 	label_in(panel,"Chronicle",17,GOLD).visible=chronicle.visible
 	panel.add_child(chronicle)
 	var permanent=CheckButton.new();permanent.name="Permadeath";permanent.text="Permadeath";permanent.button_pressed=draft.permadeath;panel.add_child(permanent)

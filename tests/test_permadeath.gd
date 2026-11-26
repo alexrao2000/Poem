@@ -94,6 +94,7 @@ func run():
  var app=load("res://main.tscn").instantiate();app.settings_path="";app.save_path="/private/tmp/poem-permadeath-ui.json"
  root.add_child(app);await process_frame
  press(app,"Begin the chronicle");assert(app.screen=="campaign_rules")
+ app.ui.find_child("ChronicleChoice",true,false).select(0)
  app.ui.find_child("Permadeath",true,false).button_pressed=true
  press(app,"Begin the chronicle");assert(app.game.permadeath and app.screen=="dialogue")
  app.finish_dialogue();app.game.start_battle()
@@ -128,7 +129,8 @@ func run():
  press(app,"Regroup and retry")
  assert(app.screen=="camp" and app.game.units.is_empty() and dead_recruit(app.game).fallen,"Real retry returns to preparation without reviving a previous chapter's casualty")
  var restored=Rules.new();assert(restored.load_game(app.save_path)=="camp" and restored.permadeath and dead_recruit(restored).fallen,"Retry autosave retains permadeath and its earlier memorials")
- app.show_campaign_rules();app.ui.find_child("Permadeath",true,false).button_pressed=false;press(app,"Begin the chronicle");assert(app.game.permadeath==false and app.game.lost_ids().is_empty(),"Starting recovery clears the previous campaign's memorials")
+ app.show_campaign_rules();app.ui.find_child("ChronicleChoice",true,false).select(0)
+ app.ui.find_child("Permadeath",true,false).button_pressed=false;press(app,"Begin the chronicle");assert(app.game.permadeath==false and app.game.lost_ids().is_empty(),"Starting recovery clears the previous campaign's memorials")
  await Shutdown.dispose(app);await process_frame
  print("PASS: permadeath lethal combat, victory persistence, leader defeat/retry, later deployment, saves/transfers/legacy validation, living story speakers, memorial menus, support memories and recovery with the rule off")
  quit()
