@@ -551,6 +551,36 @@ func verify_custom_atlas(app,scratch: String):
  app.valley_reveal_skip=true;await finish_presentation(app)
  assert(app.world.get_node("ValleyChart").material_override.albedo_texture==picture and app.game.board_size()==Vector2i(24,16))
  assert(app.world.get_node("ValleyStandard2").visible and app.game.capture_tiles()==[default_origin,Vector2i(9,4)])
+ var before_size=root.size;var before_scale=root.content_scale_size
+ root.size=Vector2i(1440,900);root.content_scale_size=root.size
+ await process_frame;await process_frame
+ app.map_camera()
+ var reserve: Node3D=app.unit_nodes.values().back()
+ var rest=reserve.position
+ var checkpoint=FileAccess.get_file_as_string(app.campaign_save_path())
+ var geometry=Valley.reveal_corners(app.game.board_size())
+ var frame_count=[0]
+ var observe=func():
+  if app.ui.visible:return
+  if root.size.x!=720:
+   root.size=Vector2i(720,640);root.content_scale_size=root.size
+  var viewport=root.get_visible_rect()
+  if viewport.size.x!=720:return
+  assert(viewport.grow(1).encloses(app.TacticalCamera.board_bounds(app.camera,geometry)))
+  frame_count[0]+=1
+ var resize_connections=root.size_changed.get_connections().size()
+ reserve.hide();app.busy=true;app.phase_skip=false
+ process_frame.connect(observe)
+ var wave: Array[Node3D]=[reserve]
+ await app.present_table_reserves(wave)
+ process_frame.disconnect(observe)
+ assert(frame_count[0]>2 and reserve.visible and reserve.position==rest and app.map_navigation.at_home())
+ assert(root.size_changed.get_connections().size()==resize_connections)
+ assert(FileAccess.get_file_as_string(app.campaign_save_path())==checkpoint)
+ app.busy=false
+ root.size=before_size;root.content_scale_size=before_scale
+ await process_frame
+ print("PASS: the defense reserve overview and returning Home view both fit through a resize")
  var checked=[false]
  var inspect_conclusion=func():
   checked[0]=app.canvas.get_node("ValleyRouteSeals").origin==Vector2(origin)

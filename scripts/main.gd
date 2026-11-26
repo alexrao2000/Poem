@@ -1960,14 +1960,29 @@ func present_table_reserves(arriving: Array[Node3D]):
 	if phase_skip:
 		for actor in arriving:actor.show()
 		return
-	var view=map_navigation.capture_view()
-	var viewport_size=get_viewport().get_visible_rect().size
 	var began_at_home=map_navigation.at_home()
-	var overview=ValleyBattle.reserve_view(camera,game.board_size(),view)
+	map_navigation.stop()
+	var view=map_navigation.capture_view()
+	var board=game.board_size()
+	var overview=ValleyBattle.reserve_view(camera,board,view)
+	var progress=[0.0]
+	var apply_view=func(weight: float):
+		progress[0]=weight
+		map_navigation.apply_return(weight,view,overview)
+	var pan=func(from: float,to: float):
+		var motion=create_tween().set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_OUT)
+		motion.tween_method(apply_view,from,to,.22)
+		return motion
+	var resize=func():
+		if began_at_home:view.merge(map_camera(),true)
+		overview.merge(ValleyBattle.reserve_view(camera,board,view),true)
+		apply_view.call(progress[0])
+	var viewport=get_viewport()
+	viewport.size_changed.connect(resize)
 	var resting=arriving.map(func(actor):return actor.position)
 	var ui_visible=ui.visible;var marks_visible=markers.visible
 	ui.hide();markers.hide();skip_combat=false
-	if await combat_wait(map_navigation.return_from_combat(view,overview,.22)):
+	if await combat_wait(pan.call(0.0,1.0)):
 		var placement=create_tween().set_parallel(true)
 		var delay=.16/maxi(1,arriving.size()-1)
 		for index in arriving.size():
@@ -1980,10 +1995,9 @@ func present_table_reserves(arriving: Array[Node3D]):
 		await combat_wait(placement)
 	for index in arriving.size():
 		arriving[index].position=resting[index];arriving[index].show()
-	var current=map_navigation.capture_view()
-	await combat_wait(map_navigation.return_from_combat(current,view,.22))
-	map_navigation.apply_return(1,current,view)
-	if began_at_home and get_viewport().get_visible_rect().size!=viewport_size:map_camera()
+	await combat_wait(pan.call(progress[0],0.0))
+	viewport.size_changed.disconnect(resize)
+	map_navigation.apply_return(1.0,view,view);map_navigation.stop()
 	ui.visible=ui_visible;markers.visible=marks_visible;skip_combat=false
 
 func selected_model_builders() -> Array:

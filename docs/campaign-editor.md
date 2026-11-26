@@ -50,7 +50,7 @@ In Story, add a phase scene and choose When a standards defense begins to play i
 
 In Encounters, choose Arrive to contest the standards for a reserve you want to send in when that defense starts. It deploys at the start of the enemy phase and can act right away. The reserve uses its normal arrival time whenever the chapter uses immediate capture.
 
-On the war table, the camera pulls back as those reserves settle onto the chart. Press Tab to skip the arrival and return to the battle view.
+On the war table, the camera pulls back as those reserves settle onto the chart. The overview fits the window as you resize. Press Tab to skip the arrival and return to the battle view.
 
 Preview deployment lists the enemies on the opening board and the reserves that join later. It shows when each reserve will arrive, its marked tile, and how retry pressure changes its stats and held tonics.
 
